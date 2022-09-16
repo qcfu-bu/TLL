@@ -6,7 +6,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Reserved Notation "Γ ⊢ m : A" (at level 30, m, A at next level).
+Reserved Notation "Γ ⊢ m : A" (at level 50, m, A at next level).
 
 Inductive sta_type : sta_ctx term -> term -> term -> Prop :=
 | sta_axiom Γ s :
