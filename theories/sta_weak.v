@@ -7,7 +7,7 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Inductive sta_agree_ren : (var -> var) ->
-  sta_ctx term -> sta_ctx term -> Prop :=
+  sta_ctx -> sta_ctx -> Prop :=
 | sta_agree_ren_nil ξ :
   sta_agree_ren ξ nil nil
 | sta_agree_ren_cons Γ Γ' ξ m :
@@ -108,5 +108,5 @@ Lemma sta_eweaken Γ m m' A A' B :
   A' = A.[ren (+1)] ->
   Γ ⊢ m : A -> (B :: Γ) ⊢ m' : A'.
 Proof with eauto using sta_agree_ren, sta_agree_ren_refl.
-  move=>*; subst. by apply: sta_weaken.
+  move=>*; subst. exact: sta_weaken.
 Qed.

@@ -9,7 +9,7 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Reserved Notation "Γ ; Δ ⊨ m : A" (at level 50, m, A at next level).
-Inductive dyn_type : sta_ctx term -> dyn_ctx term -> term -> term -> Prop :=
+Inductive dyn_type : sta_ctx -> dyn_ctx -> term -> term -> Prop :=
 | dyn_var Γ Δ x A :
   sta_has Γ x A ->
   dyn_has Δ x A ->
@@ -40,7 +40,7 @@ Inductive dyn_type : sta_ctx term -> dyn_ctx term -> term -> term -> Prop :=
   Γ ; Δ ⊨ m : B
 where "Γ ; Δ ⊨ m : A" := (dyn_type Γ Δ m A).
 
-Inductive dyn_wf : sta_ctx term -> dyn_ctx term -> Prop :=
+Inductive dyn_wf : sta_ctx -> dyn_ctx -> Prop :=
 | dyn_wf_nil : dyn_wf nil nil
 | dyn_wf_cons Γ Δ A s :
   dyn_wf Γ Δ ->

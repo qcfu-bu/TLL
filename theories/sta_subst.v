@@ -8,36 +8,36 @@ Unset Printing Implicit Defensive.
 
 Reserved Notation "Γ1 ⊢ σ ⊣ Γ2" (at level 50, σ, Γ2 at next level).
 
-Inductive agree_subst :
-  sta_ctx term -> (var -> term) -> sta_ctx term -> Prop :=
-| agree_subst_nil σ :
+Inductive sta_agree_subst :
+  sta_ctx -> (var -> term) -> sta_ctx -> Prop :=
+| sta_agree_subst_nil σ :
   nil ⊢ σ ⊣ nil
-| agree_subst_ty Γ1 σ Γ2 A :
+| sta_agree_subst_ty Γ1 σ Γ2 A :
   Γ1 ⊢ σ ⊣ Γ2 ->
   (A.[σ] :: Γ1) ⊢ up σ ⊣ (A :: Γ2)
-| agree_subst_wk Γ1 σ Γ2 n A :
+| sta_agree_subst_wk Γ1 σ Γ2 n A :
   Γ1 ⊢ σ ⊣ Γ2 ->
   Γ1 ⊢ n : A.[σ] ->
   Γ1 ⊢ n .: σ ⊣ (A :: Γ2)
-| agree_subst_conv Γ1 σ Γ2 A B s :
+| sta_agree_subst_conv Γ1 σ Γ2 A B s :
   A === B ->
   Γ1 ⊢ B.[ren (+1)].[σ] : @s ->
   Γ2 ⊢ B : @s ->
   Γ1 ⊢ σ ⊣ (A :: Γ2) ->
   Γ1 ⊢ σ ⊣ (B :: Γ2)
-where "Γ1 ⊢ σ ⊣ Γ2" := (agree_subst Γ1 σ Γ2).
+where "Γ1 ⊢ σ ⊣ Γ2" := (sta_agree_subst Γ1 σ Γ2).
 
-Lemma agree_subst_refl Γ : Γ ⊢ ids ⊣ Γ.
-Proof with eauto using agree_subst.
+Lemma sta_agree_subst_refl Γ : Γ ⊢ ids ⊣ Γ.
+Proof with eauto using sta_agree_subst.
   elim: Γ...
   move=>A Γ agr.
   have: (A.[ids] :: Γ) ⊢ up ids ⊣ (A :: Γ)... by asimpl.
 Qed.
-Hint Resolve agree_subst_refl.
+Hint Resolve sta_agree_subst_refl.
 
 Lemma agree_subst_sta_has Γ1 σ Γ2 x A :
   Γ1 ⊢ σ ⊣ Γ2 -> sta_has Γ2 x A -> Γ1 ⊢ σ x : A.[σ].
-Proof with eauto using agree_subst.
+Proof with eauto using sta_agree_subst.
   move=>agr. elim: agr x A=>{Γ1 σ Γ2}.
   { move=>σ x A hs. inv hs. }
   { move=>Γ1 σ Γ2 A agr ih x B hs.
@@ -62,7 +62,7 @@ Qed.
 
 Lemma subst_ok Γ1 Γ2 m A σ :
   Γ2 ⊢ m : A -> Γ1 ⊢ σ ⊣ Γ2 -> Γ1 ⊢ m.[σ] : A.[σ].
-Proof with eauto using agree_subst, sta_type.
+Proof with eauto using sta_agree_subst, sta_type.
   move=>ty. elim: ty Γ1 σ=>{Γ2 m A}...
   { move=>Γ2 x A hs Γ1 σ agr. asimpl.
     apply: agree_subst_sta_has... }
@@ -90,10 +90,10 @@ Qed.
 
 Lemma sta_subst Γ m n A B :
   (A :: Γ) ⊢ m : B -> Γ ⊢ n : A -> Γ ⊢ m.[n/] : B.[n/].
-Proof with eauto using agree_subst_refl.
+Proof with eauto using sta_agree_subst_refl.
   move=>tym tyn.
   apply: subst_ok...
-  apply: agree_subst_wk...
+  apply: sta_agree_subst_wk...
   by asimpl.
 Qed.
 
@@ -112,12 +112,9 @@ Proof with eauto.
   move=>conv tyA tym.
   have:(B :: Γ) ⊢ m.[ids] : C.[ids].
   apply: subst_ok...
-  apply: agree_subst_conv...
+  apply: sta_agree_subst_conv...
   apply: sta_eweaken...
   asimpl...
   asimpl...
   asimpl...
 Qed.
-
-
-

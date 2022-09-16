@@ -1,21 +1,13 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
-
 From Coq Require Import ssrfun Classical Utf8.
-Require Import AutosubstSsr ARS.
+Require Import AutosubstSsr ARS tll_ast.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Declare Scope sort_scope.
-Delimit Scope sort_scope with srt.
-Open Scope sort_scope.
-
-Inductive sort : Type := U | L.
-Bind Scope sort_scope with sort.
-
 Definition elem T := option (T * sort).
-Definition dyn_ctx T := seq (elem T).
+Definition dyn_ctx := seq (elem term).
 
 Notation "m :U Γ" := (Some (m, U) :: Γ)
   (at level 30, right associativity).
@@ -26,22 +18,8 @@ Notation "m :{ s } Γ" := (Some (m, s) :: Γ)
 Notation "_: Γ" := (None :: Γ)
   (at level 30, right associativity).
 
-Definition sort_plus (s t : sort) :=
-  match s with
-  | U => t
-  | L => L
-  end.
-Infix "+" := sort_plus : sort_scope.
-
-Inductive sort_leq : sort -> sort -> Prop :=
-| sort_leqU s :
-  sort_leq U s
-| sort_leqL :
-  sort_leq L L.
-Infix "≤" := sort_leq : sort_scope.
-
 Reserved Notation "Δ1 ∘ Δ2 => Δ" (at level 40).
-Inductive merge T : dyn_ctx T -> dyn_ctx T -> dyn_ctx T -> Prop :=
+Inductive merge : dyn_ctx -> dyn_ctx -> dyn_ctx -> Prop :=
 | merge_nil :
   nil ∘ nil => nil
 | merge_left Δ1 Δ2 Δ m :
@@ -59,7 +37,7 @@ Inductive merge T : dyn_ctx T -> dyn_ctx T -> dyn_ctx T -> Prop :=
 where "Δ1 ∘ Δ2 => Δ" := (merge Δ1 Δ2 Δ).
 
 Reserved Notation "Δ ▷ s" (at level 40).
-Inductive key T : dyn_ctx T -> sort -> Prop :=
+Inductive key : dyn_ctx -> sort -> Prop :=
 | key_nil s :
   nil ▷ s
 | key_u Γ m :
@@ -73,8 +51,7 @@ Inductive key T : dyn_ctx T -> sort -> Prop :=
   _: Γ ▷ s
 where "Γ ▷ s" := (key Γ s).
 
-Inductive dyn_has {T} `{Ids T} `{Subst T} :
-  dyn_ctx T -> var -> T -> Prop :=
+Inductive dyn_has : dyn_ctx -> var -> term -> Prop :=
 | dyn_has_O Γ A s :
   Γ ▷ U ->
   dyn_has (A :{s} Γ) 0 A.[ren (+1)]

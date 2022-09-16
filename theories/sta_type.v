@@ -8,7 +8,7 @@ Unset Printing Implicit Defensive.
 
 Reserved Notation "Γ ⊢ m : A" (at level 50, m, A at next level).
 
-Inductive sta_type : sta_ctx term -> term -> term -> Prop :=
+Inductive sta_type : sta_ctx -> term -> term -> Prop :=
 | sta_axiom Γ s :
   Γ ⊢ @s : @U
 | sta_var Γ x A :
@@ -45,7 +45,7 @@ Inductive sta_type : sta_ctx term -> term -> term -> Prop :=
   Γ ⊢ m : B
 where "Γ ⊢ m : A" := (sta_type Γ m A).
 
-Inductive sta_wf : sta_ctx term -> Prop :=
+Inductive sta_wf : sta_ctx -> Prop :=
 | sta_wf_nil : sta_wf nil
 | sta_wf_cons Γ A s :
   sta_wf Γ ->
