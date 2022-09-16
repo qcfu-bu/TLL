@@ -39,9 +39,9 @@ Inductive sta_step : term -> term -> Prop :=
   n ~> n' ->
   App m n ~> App m n'
 | sta_beta0 A m n s t :
-  (App (Lam0 A m s t) n) ~> m.[n/]
+  App (Lam0 A m s t) n ~> m.[n/]
 | sta_beta1 A m n s t :
-  (App (Lam1 A m s t) n) ~> m.[n/]
+  App (Lam1 A m s t) n ~> m.[n/]
 where "m ~> n" := (sta_step m n).
 
 Notation sta_red := (star sta_step).

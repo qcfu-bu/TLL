@@ -74,14 +74,14 @@ Inductive key T : dyn_ctx T -> sort -> Prop :=
 where "Γ ▷ s" := (key Γ s).
 
 Inductive dyn_has {T} `{Ids T} `{Subst T} :
-  dyn_ctx T -> var -> sort -> T -> Prop :=
+  dyn_ctx T -> var -> T -> Prop :=
 | dyn_has_O Γ A s :
   Γ ▷ U ->
-  dyn_has (A :{s} Γ) 0 s A.[ren (+1)]
-| dyn_has_S Γ A B x s :
-  dyn_has Γ x s A ->
-  dyn_has (B :U Γ) x.+1 s A.[ren (+1)]
-| dyn_has_N Γ A x s :
-  dyn_has Γ x s A ->
-  dyn_has (_: Γ) x.+1 s A.[ren (+1)].
+  dyn_has (A :{s} Γ) 0 A.[ren (+1)]
+| dyn_has_S Γ A B x :
+  dyn_has Γ x A ->
+  dyn_has (B :U Γ) x.+1 A.[ren (+1)]
+| dyn_has_N Γ A x :
+  dyn_has Γ x A ->
+  dyn_has (_: Γ) x.+1 A.[ren (+1)].
 
