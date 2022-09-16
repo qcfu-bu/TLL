@@ -10,7 +10,7 @@ Reserved Notation "Γ ⊢ m : A" (at level 50, m, A at next level).
 
 Inductive sta_type : sta_ctx term -> term -> term -> Prop :=
 | sta_axiom Γ s :
-  Γ ⊢ s : @U
+  Γ ⊢ @s : @U
 | sta_var Γ x A :
   sta_has Γ x A ->
   Γ ⊢ Var x : A

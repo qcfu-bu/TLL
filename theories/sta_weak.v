@@ -47,6 +47,10 @@ Proof with eauto using sta_type, agree_ren.
   { move=>Γ x A hs Γ' ξ agr. asimpl.
     apply: sta_var.
     apply: agree_ren_sta_has... }
+  { move=>Γ A B s r t tyA ihA tyB ihB Γ' ξ agr. asimpl.
+    apply: sta_pi0... }
+  { move=>Γ A B s r t tyA ihA tyB ihB Γ' ξ agr. asimpl.
+    apply: sta_pi1... }
   { move=>Γ A B m s t tyP ihP tym ihm Γ' ξ agr. asimpl.
     apply: sta_lam0...
     have:=(ihP _ _ agr).

@@ -97,6 +97,14 @@ Proof with eauto using agree_subst_refl.
   by asimpl.
 Qed.
 
+Lemma sta_esubst Γ m m' n A B B' :
+  m' = m.[n/] ->
+  B' = B.[n/] ->
+  (A :: Γ) ⊢ m : B -> Γ ⊢ n : A -> Γ ⊢ m' : B'.
+Proof.
+  move=>*; subst. apply: sta_subst; eauto.
+Qed.
+
 Lemma sta_ctx_conv Γ m A B C s :
   B === A ->
   Γ ⊢ A : @s -> (A :: Γ) ⊢ m : C -> (B :: Γ) ⊢ m : C.
