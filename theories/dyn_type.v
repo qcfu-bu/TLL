@@ -18,12 +18,12 @@ Inductive dyn_type : sta_ctx term -> dyn_ctx term -> term -> term -> Prop :=
   Δ ▷ t ->
   Γ ⊢ Pi0 A B s t : @t ->
   (A :: Γ) ; (_: Δ) ⊨ m : B ->
-  Γ ; Δ ⊨ Lam0 A B s t : Pi0 A B s t
+  Γ ; Δ ⊨ Lam0 A m s t : Pi0 A B s t
 | dyn_lam1 Γ Δ A B m s t :
   Δ ▷ t ->
   Γ ⊢ Pi1 A B s t : @t ->
   (A :: Γ) ; (A :{s} Δ) ⊨ m : B ->
-  Γ ; Δ ⊨ Lam1 A B s t : Pi1 A B s t
+  Γ ; Δ ⊨ Lam1 A m s t : Pi1 A B s t
 | dyn_app0 Γ Δ A B m n s t :
   Γ ; Δ ⊨ m : Pi0 A B s t ->
   Γ ⊢ n : A ->
@@ -39,3 +39,10 @@ Inductive dyn_type : sta_ctx term -> dyn_ctx term -> term -> term -> Prop :=
   Γ ⊢ B : @s ->
   Γ ; Δ ⊨ m : B
 where "Γ ; Δ ⊨ m : A" := (dyn_type Γ Δ m A).
+
+Inductive dyn_wf : sta_ctx term -> dyn_ctx term -> Prop :=
+| dyn_wf_nil : dyn_wf nil nil
+| dyn_wf_cons Γ Δ A s :
+  dyn_wf Γ Δ ->
+  Γ ⊢ A : @s ->
+  dyn_wf (A :: Γ) (A :{s} Δ).
