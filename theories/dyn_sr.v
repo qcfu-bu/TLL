@@ -55,7 +55,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf.
       have:=sta_subst tyB tyn.
       asimpl... }
     { have[x tyP]:=dyn_valid wf tym.
-      have [tym0 _]:=dyn_lam0_inv wf tyP tym.
+      have[tym0 _]:=dyn_lam0_inv wf tyP tym.
       apply: dyn_subst0... }
     { exfalso.
       apply: sta_lam1_pi0_false...
