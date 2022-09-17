@@ -109,7 +109,7 @@ Lemma sta_ctx_conv Γ m A B C s :
   B === A ->
   Γ ⊢ A : @s -> (A :: Γ) ⊢ m : C -> (B :: Γ) ⊢ m : C.
 Proof with eauto.
-  move=>conv tyA tym.
+  move=>eq tyA tym.
   have:(B :: Γ) ⊢ m.[ids] : C.[ids].
   apply: sta_substitution...
   apply: sta_agree_subst_conv...
