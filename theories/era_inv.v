@@ -22,6 +22,9 @@ Proof.
   exists A. by exists m.
 Qed.
 
+Lemma era_box_form Γ Δ m A : ~Γ ; Δ ⊨ m ~ Box : A.
+Proof. move e:(Box)=>m' ty. elim: ty e=>//{Γ Δ m m' A}. Qed.
+
 Lemma era_lam0_invX Γ Δ A1 A2 A3 B C m1 m2 s1 s2 t1 t2 r :
   dyn_wf (A3 :: Γ) (_: Δ) ->
   Γ ; Δ ⊨ Lam0 A1 m1 s1 t1 ~ Lam0 A2 m2 s1 t1 : C ->

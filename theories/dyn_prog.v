@@ -52,7 +52,7 @@ Proof with eauto.
     apply: conv_trans... }
 Qed.
 
-Lemma dyn_progress m A : nil ; nil ⊨ m : A -> (exists n, m ~>> n) \/ dyn_val m.
+Lemma dyn_prog m A : nil ; nil ⊨ m : A -> (exists n, m ~>> n) \/ dyn_val m.
 Proof with eauto using dyn_step, dyn_val.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty. elim: ty e1 e2=>{Γ Δ m A}.
