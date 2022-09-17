@@ -34,7 +34,7 @@ Proof with eauto using sta_type, sta_step, sta_wf.
       apply: sta_pi1... } }
   { move=>Γ A B m s t tyP ihP tym ihm n wf st. inv st.
     { have st:Pi0 A B s t ~> Pi0 A' B s t...
-      have[r tyA tyB]:=sta_pi0_inv tyP.
+      have[r[tyA[tyB _]]]:=sta_pi0_inv tyP.
       have tyP':=ihP  _ wf st.
       apply: sta_conv.
       apply: conv1i...
@@ -44,13 +44,13 @@ Proof with eauto using sta_type, sta_step, sta_wf.
       exact: tyA.
       exact: tym.
       exact: tyP. }
-    { have[r tyA tyB]:=sta_pi0_inv tyP.
+    { have[r[tyA[tyB _]]]:=sta_pi0_inv tyP.
       have{}wf: sta_wf (A :: Γ) by eauto using sta_wf.
       have tym':=ihm _ wf H4.
       exact: sta_lam0. } }
   { move=>Γ A B m s t tyP ihP tym ihm n wf st. inv st.
     { have st:Pi1 A B s t ~> Pi1 A' B s t...
-      have[r tyA tyB]:=sta_pi1_inv tyP.
+      have[r[tyA[tyB _]]]:=sta_pi1_inv tyP.
       have tyP':=ihP  _ wf st.
       apply: sta_conv.
       apply: conv1i...
@@ -60,14 +60,14 @@ Proof with eauto using sta_type, sta_step, sta_wf.
       exact: tyA.
       exact: tym.
       exact: tyP. }
-    { have[r tyA tyB]:=sta_pi1_inv tyP.
+    { have[r[tyA[tyB _]]]:=sta_pi1_inv tyP.
       have{}wf: sta_wf (A :: Γ) by eauto using sta_wf.
       have tym':=ihm _ wf H4.
       exact: sta_lam1. } }
   { move=>Γ A B m n s t tym ihm tyn ihn n0 wf st. inv st.
     { have tym':=ihm _ wf H2... }
     { have tyn':=ihn _ wf H2.
-      have[_/sta_pi0_inv[r tyA tyB]]:=sta_valid wf tym.
+      have[_/sta_pi0_inv[r[tyA[tyB _]]]]:=sta_valid wf tym.
       apply: sta_conv.
       apply: sta_conv_beta.
       apply: conv1i...
@@ -81,7 +81,7 @@ Proof with eauto using sta_type, sta_step, sta_wf.
   { move=>Γ A B m n s t tym ihm tyn ihn n0 wf st. inv st.
     { have tym':=ihm _ wf H2... }
     { have tyn':=ihn _ wf H2.
-      have[_/sta_pi1_inv[r tyA tyB]]:=sta_valid wf tym.
+      have[_/sta_pi1_inv[r[tyA[tyB _]]]]:=sta_valid wf tym.
       apply: sta_conv.
       apply: sta_conv_beta.
       apply: conv1i...
@@ -92,4 +92,13 @@ Proof with eauto using sta_type, sta_step, sta_wf.
     { have[x tyP]:=sta_valid wf tym.
       have tym0:=sta_lam1_inv tyP tym.
       apply: sta_esubst... } }
+Qed.
+
+Corollary sta_rd Γ m n A :
+  sta_wf Γ -> Γ ⊢ m : A -> m ~>* n -> Γ ⊢ n : A.
+Proof with eauto.
+  move=>wf ty rd. elim: rd Γ A wf ty=>{n}...
+  move=>n z rd ih st Γ A wf tym.
+  have tyn:=ih _ _ wf tym.
+  apply: sta_sr...
 Qed.

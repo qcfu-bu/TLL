@@ -12,9 +12,9 @@ Proof with eauto using sta_type.
   { move=>Γ x A hs wf.
     apply: sta_wf_ok... }
   { move=>Γ A B m n s t tym ihm tyn ihn wf.
-    have[_/sta_pi0_inv[r tyA tyB]]:=ihm wf.
+    have[_/sta_pi0_inv[r[tyA[tyB _]]]]:=ihm wf.
     exists r. have//:=sta_subst tyB tyn. }
   { move=>Γ A B m n s t tym ihm tyn ihn wf.
-    have[_/sta_pi1_inv[r tyA tyB]]:=ihm wf.
+    have[_/sta_pi1_inv[r[tyA[tyB _]]]]:=ihm wf.
     exists r. have//:=sta_subst tyB tyn. }
 Qed.
