@@ -38,7 +38,8 @@ Inductive pstep : term -> term -> Prop :=
 | pstep_beta1 A m m' n n' s t :
   pstep m m' ->
   pstep n n' ->
-  pstep (App (Lam1 A m s t) n) (m'.[n'/]).
+  pstep (App (Lam1 A m s t) n) (m'.[n'/])
+| pstep_box : pstep Box Box.
 
 Definition sred σ τ := forall x : var, (σ x) ~>* (τ x).
 
@@ -523,4 +524,3 @@ Ltac solve_conv :=
   | [ H : ?t1 === ?t2 |- _ ] =>
     assert (~ t1 === t2) by solve_conv'
   end; eauto.
-

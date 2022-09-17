@@ -34,7 +34,8 @@ Inductive term : Type :=
 | Pi1 (A : term) (B : {bind term}) (s t : sort)
 | Lam0 (A : term) (m : {bind term}) (s t : sort)
 | Lam1 (A : term) (m : {bind term}) (s t : sort)
-| App (m n : term).
+| App (m n : term)
+| Box.
 
 Notation "@ s" := (Sort s) (at level 20).
 

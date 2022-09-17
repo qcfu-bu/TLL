@@ -77,19 +77,6 @@ Proof with eauto using dyn_agree_subst.
 Qed.
 Hint Resolve dyn_agree_subst_refl.
 
-Lemma dyn_wf_merge Γ Δ Δ1 Δ2 :
-  Δ1 ∘ Δ2 => Δ -> dyn_wf Γ Δ -> dyn_wf Γ Δ1 /\ dyn_wf Γ Δ2.
-Proof with eauto using dyn_wf.
-  move=>mrg agr. elim: agr Δ1 Δ2 mrg=>{Γ Δ}.
-  { move=>Δ1 Δ2 mrg. inv mrg... }
-  { move=>Γ Δ A s wf ih tyA Δ1 Δ2 mrg. inv mrg.
-    { have[wf1 wf2]:=ih _ _ H2... }
-    { have[wf1 wf2]:=ih _ _ H2... }
-    { have[wf1 wf2]:=ih _ _ H2... } }
-  { move=>Γ Δ A s wf ih tyA Δ1 Δ2 mrg. inv mrg.
-    have[wf1 wf2]:=ih _ _ H2... }
-Qed.
-
 Lemma dyn_agree_subst_has Γ1 Γ2 σ Δ1 Δ2 x A :
   dyn_wf Γ1 Δ1 ->
   Γ1 ; Δ1 ⊨ σ ⫤ Γ2 ; Δ2 -> dyn_has Δ2 x A -> Γ1 ; Δ1 ⊨ (σ x) : A.[σ].
