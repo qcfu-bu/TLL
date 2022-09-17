@@ -42,7 +42,11 @@ where "Γ ; Δ ⊨ m : A" := (dyn_type Γ Δ m A).
 
 Inductive dyn_wf : sta_ctx -> dyn_ctx -> Prop :=
 | dyn_wf_nil : dyn_wf nil nil
-| dyn_wf_cons Γ Δ A s :
+| dyn_wf_ty Γ Δ A s :
   dyn_wf Γ Δ ->
   Γ ⊢ A : @s ->
-  dyn_wf (A :: Γ) (A :{s} Δ).
+  dyn_wf (A :: Γ) (A :{s} Δ)
+| dyn_wf_n Γ Δ A s :
+  dyn_wf Γ Δ ->
+  Γ ⊢ A : @s ->
+  dyn_wf (A :: Γ) (_: Δ).

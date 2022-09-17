@@ -6,7 +6,6 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-
 Lemma dyn_sta_type Γ Δ m A : Γ ; Δ ⊨ m : A -> Γ ⊢ m : A.
 Proof with eauto using sta_type.
   move=>ty. elim: ty...

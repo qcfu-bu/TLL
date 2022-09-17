@@ -37,10 +37,14 @@ Proof with eauto using dyn_agree_ren.
   elim: Γ Δ.
   { move=>Δ wf. inv wf... }
   { move=>A Γ ih Δ wf. inv wf.
-    have agr:=ih _ H1.
-    have:dyn_agree_ren (upren id)
-      (A :: Γ) (A :{s} Δ0) (A.[ren id] :: Γ) (A.[ren id] :{s} Δ0)...
-    by asimpl. }
+    { have agr:=ih _ H1.
+      have:dyn_agree_ren (upren id)
+        (A :: Γ) (A :{s} Δ0) (A.[ren id] :: Γ) (A.[ren id] :{s} Δ0)...
+      by asimpl. }
+    { have agr:=ih _ H1.
+      have:dyn_agree_ren (upren id)
+        (A :: Γ) (_: Δ0) (A.[ren id] :: Γ) (_: Δ0)...
+      by asimpl. } }
 Qed.
 
 Lemma dyn_agree_ren_key Γ Γ' Δ Δ' ξ s :

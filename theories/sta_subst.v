@@ -35,7 +35,7 @@ Proof with eauto using sta_agree_subst.
 Qed.
 Hint Resolve sta_agree_subst_refl.
 
-Lemma agree_subst_sta_has Γ1 σ Γ2 x A :
+Lemma sta_agree_subst_has Γ1 σ Γ2 x A :
   Γ1 ⊢ σ ⊣ Γ2 -> sta_has Γ2 x A -> Γ1 ⊢ σ x : A.[σ].
 Proof with eauto using sta_agree_subst.
   move=>agr. elim: agr x A=>{Γ1 σ Γ2}.
@@ -60,12 +60,12 @@ Proof with eauto using sta_agree_subst.
       constructor... } }
 Qed.
 
-Lemma subst_ok Γ1 Γ2 m A σ :
+Lemma sta_substitution Γ1 Γ2 m A σ :
   Γ2 ⊢ m : A -> Γ1 ⊢ σ ⊣ Γ2 -> Γ1 ⊢ m.[σ] : A.[σ].
 Proof with eauto using sta_agree_subst, sta_type.
   move=>ty. elim: ty Γ1 σ=>{Γ2 m A}...
   { move=>Γ2 x A hs Γ1 σ agr. asimpl.
-    apply: agree_subst_sta_has... }
+    apply: sta_agree_subst_has... }
   { move=>Γ2 A B m n s t tym ihm tyn ihn Γ1 σ agr. asimpl.
     replace B.[n.[σ] .: σ] with B.[up σ].[n.[σ]/] by autosubst.
     have{}ihm:=ihm _ _ agr.
@@ -92,7 +92,7 @@ Lemma sta_subst Γ m n A B :
   (A :: Γ) ⊢ m : B -> Γ ⊢ n : A -> Γ ⊢ m.[n/] : B.[n/].
 Proof with eauto using sta_agree_subst_refl.
   move=>tym tyn.
-  apply: subst_ok...
+  apply: sta_substitution...
   apply: sta_agree_subst_wk...
   by asimpl.
 Qed.
@@ -111,7 +111,7 @@ Lemma sta_ctx_conv Γ m A B C s :
 Proof with eauto.
   move=>conv tyA tym.
   have:(B :: Γ) ⊢ m.[ids] : C.[ids].
-  apply: subst_ok...
+  apply: sta_substitution...
   apply: sta_agree_subst_conv...
   apply: sta_eweaken...
   asimpl...
