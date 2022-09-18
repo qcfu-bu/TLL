@@ -7,7 +7,7 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Lemma dyn_pi0_canonical m A B C s t :
-  nil ; nil ⊨ m : C -> C === Pi0 A B s t -> dyn_val m ->
+  nil ; nil ⊢ m : C -> C === Pi0 A B s t -> dyn_val m ->
   exists A n, m = Lam0 A n s t.
 Proof with eauto.
   move e1:(nil)=>Γ.
@@ -30,7 +30,7 @@ Proof with eauto.
 Qed.
 
 Lemma dyn_pi1_canonical m A B C s t :
-  nil ; nil ⊨ m : C -> C === Pi1 A B s t -> dyn_val m ->
+  nil ; nil ⊢ m : C -> C === Pi1 A B s t -> dyn_val m ->
   exists A n, m = Lam1 A n s t.
 Proof with eauto.
   move e1:(nil)=>Γ.
@@ -52,7 +52,7 @@ Proof with eauto.
     apply: conv_trans... }
 Qed.
 
-Lemma dyn_prog m A : nil ; nil ⊨ m : A -> (exists n, m ~>> n) \/ dyn_val m.
+Lemma dyn_prog m A : nil ; nil ⊢ m : A -> (exists n, m ~>> n) \/ dyn_val m.
 Proof with eauto using dyn_step, dyn_val.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty. elim: ty e1 e2=>{Γ Δ m A}.

@@ -8,10 +8,10 @@ Unset Printing Implicit Defensive.
 
 Lemma dyn_lam0_invX Γ Δ A1 A2 B C m s1 s2 t1 t2 r :
   dyn_wf (A2 :: Γ) (_: Δ) ->
-  Γ ; Δ ⊨ Lam0 A1 m s1 t1 : C ->
+  Γ ; Δ ⊢ Lam0 A1 m s1 t1 : C ->
   C === Pi0 A2 B s2 t2 ->
   (A2 :: Γ) ⊢ B : @r ->
-  (A2 :: Γ) ; _: Δ ⊨ m : B /\ s1 = s2 /\ t1 = t2.
+  (A2 :: Γ) ; _: Δ ⊢ m : B /\ s1 = s2 /\ t1 = t2.
 Proof with eauto.
   move e:(Lam0 A1 m s1 t1)=>n wf tyL.
   elim: tyL A1 A2 B m wf s1 s2 t1 t2 r e=>//{Γ Δ C n}.
@@ -33,10 +33,10 @@ Qed.
 
 Lemma dyn_lam1_invX Γ Δ A1 A2 B C m s1 s2 t1 t2 r :
   dyn_wf (A2 :: Γ) (A2 :{s2} Δ) ->
-  Γ ; Δ ⊨ Lam1 A1 m s1 t1 : C ->
+  Γ ; Δ ⊢ Lam1 A1 m s1 t1 : C ->
   C === Pi1 A2 B s2 t2 ->
   (A2 :: Γ) ⊢ B : @r ->
-  (A2 :: Γ) ; A2 :{s2} Δ ⊨ m : B /\ s1 = s2 /\ t1 = t2.
+  (A2 :: Γ) ; A2 :{s2} Δ ⊢ m : B /\ s1 = s2 /\ t1 = t2.
 Proof with eauto.
   move e:(Lam1 A1 m s1 t1)=>n wf tyL.
   elim: tyL A1 A2 B m s1 s2 t1 t2 r wf e=>//{Γ Δ C n}.
@@ -59,8 +59,8 @@ Qed.
 Lemma dyn_lam0_inv Γ Δ m A1 A2 B s1 s2 t1 t2 x :
   dyn_wf Γ Δ ->
   Γ ⊢ Pi0 A1 B s1 t1 : @x ->
-  Γ ; Δ ⊨ Lam0 A2 m s2 t2 : Pi0 A1 B s1 t1 ->
-  (A1 :: Γ) ; _: Δ ⊨ m : B /\ s2 = s1 /\ t2 = t1.
+  Γ ; Δ ⊢ Lam0 A2 m s2 t2 : Pi0 A1 B s1 t1 ->
+  (A1 :: Γ) ; _: Δ ⊢ m : B /\ s2 = s1 /\ t2 = t1.
 Proof with eauto.
   move=>wf/sta_pi0_inv[r[tyA1[tyB _]]] tyL.
   apply: dyn_lam0_invX...
@@ -70,8 +70,8 @@ Qed.
 Lemma dyn_lam1_inv Γ Δ m A1 A2 B s1 s2 t1 t2 x :
   dyn_wf Γ Δ ->
   Γ ⊢ Pi1 A1 B s1 t1 : @x ->
-  Γ ; Δ ⊨ Lam1 A2 m s2 t2 : Pi1 A1 B s1 t1 ->
-  (A1 :: Γ) ; A1 :{s1} Δ ⊨ m : B /\ s2 = s1 /\ t2 = t1.
+  Γ ; Δ ⊢ Lam1 A2 m s2 t2 : Pi1 A1 B s1 t1 ->
+  (A1 :: Γ) ; A1 :{s1} Δ ⊢ m : B /\ s2 = s1 /\ t2 = t1.
 Proof with eauto.
   move=>wf/sta_pi1_inv[r[tyA1[tyB _]]] tyL.
   apply: dyn_lam1_invX...

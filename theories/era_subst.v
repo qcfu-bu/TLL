@@ -6,44 +6,44 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Reserved Notation "Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δ2"
-  (at level 50, σ1, σ2, Γ2 at next level).
+Reserved Notation "Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2"
+  (at level 50, Δ1, σ1, σ2, Γ2 at next level).
 Inductive era_agree_subst :
   sta_ctx -> dyn_ctx -> (var -> term) -> (var -> term) -> sta_ctx -> dyn_ctx -> Prop :=
 | era_agree_subst_nil σ :
-  nil ; nil ⊨ σ ~ σ ⫤ nil ; nil
+  nil ; nil ⊢ σ ~ σ ⊣ nil ; nil
 | era_agree_subst_ty Γ1 Δ1 σ1 σ2 Γ2 Δ2 A s :
-  Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δ2 ->
-  (A.[σ1] :: Γ1) ; (A.[σ1] :{s} Δ1) ⊨ up σ1 ~ up σ2 ⫤ (A :: Γ2) ; (A :{s} Δ2)
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 ->
+  (A.[σ1] :: Γ1) ; (A.[σ1] :{s} Δ1) ⊢ up σ1 ~ up σ2 ⊣ (A :: Γ2) ; (A :{s} Δ2)
 | era_agree_subst_n Γ1 Δ1 σ1 σ2 Γ2 Δ2 A :
-  Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δ2 ->
-  (A.[σ1] :: Γ1) ; (_: Δ1) ⊨ up σ1 ~ up σ2 ⫤ (A :: Γ2) ; (_: Δ2)
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 ->
+  (A.[σ1] :: Γ1) ; (_: Δ1) ⊢ up σ1 ~ up σ2 ⊣ (A :: Γ2) ; (_: Δ2)
 | era_agree_subst_wk0 Γ1 Δ1 σ1 σ2 Γ2 Δ2 n n' A :
-  Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δ2 ->
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 ->
   Γ1 ⊢ n : A.[σ1] ->
-  Γ1 ; Δ1 ⊨ n .: σ1 ~ n' .: σ2 ⫤ (A :: Γ2) ; (_: Δ2)
+  Γ1 ; Δ1 ⊢ n .: σ1 ~ n' .: σ2 ⊣ (A :: Γ2) ; (_: Δ2)
 | era_agree_subst_wk1 Γ1 Γ2 σ1 σ2 Δ1 Δ2 Δa Δb n n' A s :
   Δb ▷ s ->
   Δa ∘ Δb => Δ1 ->
-  Γ1 ; Δa ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δ2 ->
-  Γ1 ; Δb ⊨ n ~ n' : A.[σ1] ->
-  Γ1 ; Δ1 ⊨ n .: σ1 ~ n' .: σ2 ⫤ (A :: Γ2) ; (A :{s} Δ2)
+  Γ1 ; Δa ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 ->
+  Γ1 ; Δb ⊢ n ~ n' : A.[σ1] ->
+  Γ1 ; Δ1 ⊢ n .: σ1 ~ n' .: σ2 ⊣ (A :: Γ2) ; (A :{s} Δ2)
 | era_agree_subst_conv0 Γ1 Δ1 σ1 σ2 Γ2 Δ2 A B s :
   A === B ->
   Γ1 ⊢ B.[ren (+1)].[σ1] : @s ->
   Γ2 ⊢ B : @s ->
-  Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ (A :: Γ2) ; (_: Δ2) ->
-  Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ (B :: Γ2) ; (_: Δ2)
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ (A :: Γ2) ; (_: Δ2) ->
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ (B :: Γ2) ; (_: Δ2)
 | era_agree_subst_conv1 Γ1 Δ1 σ1 σ2 Γ2 Δ2 A B s :
   A === B ->
   Γ1 ⊢ B.[ren (+1)].[σ1] : @s ->
   Γ2 ⊢ B : @s ->
-  Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ (A :: Γ2) ; (A :{s} Δ2) ->
-  Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ (B :: Γ2) ; (B :{s} Δ2)
-where "Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δ2" := (era_agree_subst Γ1 Δ1 σ1 σ2 Γ2 Δ2).
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ (A :: Γ2) ; (A :{s} Δ2) ->
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ (B :: Γ2) ; (B :{s} Δ2)
+where "Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2" := (era_agree_subst Γ1 Δ1 σ1 σ2 Γ2 Δ2).
 
 Lemma era_agree_subst_key Γ1 Γ2 Δ1 Δ2 σ1 σ2 s :
-  Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δ2 -> Δ2 ▷ s -> Δ1 ▷ s.
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 -> Δ2 ▷ s -> Δ1 ▷ s.
 Proof with eauto using key.
   move=>agr. elim: agr s=>{Γ1 Γ2 Δ1 Δ2 σ1 σ2}...
   { move=>Γ1 Δ1 σ1 σ2 Γ2 Δ2 A s agr ih r k. inv k... }
@@ -55,7 +55,7 @@ Proof with eauto using key.
 Qed.
 
 Lemma era_sta_agree_subst Γ1 Γ2 Δ1 Δ2 σ1 σ2 :
-  Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δ2 -> Γ1 ⊢ σ1 ⊣ Γ2.
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 -> Γ1 ⊢ σ1 ⊣ Γ2.
 Proof with eauto using sta_agree_subst.
   elim=>{Γ1 Γ2 Δ1 Δ2 σ1 σ2}...
   move=>Γ1 Γ2 σ1 σ2 Δ1 Δ2 Δa Δb n n' A s _ _ _ agr tyn.
@@ -64,24 +64,24 @@ Proof with eauto using sta_agree_subst.
   apply: era_dyn_type...
 Qed.
 
-Lemma era_agree_subst_refl Γ Δ : dyn_wf Γ Δ -> Γ ; Δ ⊨ ids ~ ids ⫤ Γ ; Δ.
+Lemma era_agree_subst_refl Γ Δ : dyn_wf Γ Δ -> Γ ; Δ ⊢ ids ~ ids ⊣ Γ ; Δ.
 Proof with eauto using era_agree_subst.
   elim: Γ Δ.
   { move=>Δ wf. inv wf... }
   { move=>A Γ ih Δ wf. inv wf.
     { have agr:=ih _ H1.
-      have:(A.[ids] :: Γ); A.[ids] :{s} Δ0 ⊨
-       up ids ~ up ids ⫤ (A :: Γ); A :{s} Δ0...
+      have:(A.[ids] :: Γ); A.[ids] :{s} Δ0 ⊢
+       up ids ~ up ids ⊣ (A :: Γ); A :{s} Δ0...
       by asimpl. }
     { have agr:=ih _ H1.
-      have:(A.[ids] :: Γ); _: Δ0 ⊨ up ids ~ up ids ⫤ (A :: Γ); _: Δ0...
+      have:(A.[ids] :: Γ); _: Δ0 ⊢ up ids ~ up ids ⊣ (A :: Γ); _: Δ0...
       by asimpl. } }
 Qed.
 Hint Resolve era_agree_subst_refl.
 
 Lemma era_agree_subst_has Γ1 Γ2 σ1 σ2 Δ1 Δ2 x A :
-  dyn_wf Γ1 Δ1 -> Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δ2 -> dyn_has Δ2 x A ->
-  Γ1 ; Δ1 ⊨ (σ1 x) ~ (σ2 x) : A.[σ1].
+  dyn_wf Γ1 Δ1 -> Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 -> dyn_has Δ2 x A ->
+  Γ1 ; Δ1 ⊢ (σ1 x) ~ (σ2 x) : A.[σ1].
 Proof with eauto using era_agree_subst, era_agree_subst_key.
   move=>wf agr. elim: agr wf x A=>{Γ1 Γ2 σ1 σ2 Δ1 Δ2}...
   { move=>σ _ x A hs. inv hs. }
@@ -116,10 +116,10 @@ Proof with eauto using era_agree_subst, era_agree_subst_key.
 Qed.
 
 Lemma era_agree_subst_merge Γ1 Γ2 Δ1 Δ2 Δa Δb σ1 σ2 :
-  Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δ2 -> Δa ∘ Δb => Δ2 ->
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 -> Δa ∘ Δb => Δ2 ->
   exists Δa' Δb',
     Δa' ∘ Δb' => Δ1 /\
-    Γ1 ; Δa' ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δa /\ Γ1 ; Δb' ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δb.
+    Γ1 ; Δa' ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δa /\ Γ1 ; Δb' ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δb.
 Proof with eauto 6 using merge, era_agree_subst, era_agree_subst_key.
   move=>agr. elim: agr Δa Δb=>{Γ1 Γ2 Δ1 Δ2 σ1 σ2}.
   { move=>σ Δa Δb mrg. inv mrg.
@@ -175,8 +175,8 @@ Proof with eauto 6 using merge, era_agree_subst, era_agree_subst_key.
 Qed.
 
 Lemma era_substitution Γ1 Γ2 m m' A Δ1 Δ2 σ1 σ2 :
-  dyn_wf Γ1 Δ1 -> Γ2 ; Δ2 ⊨ m ~ m' : A -> Γ1 ; Δ1 ⊨ σ1 ~ σ2 ⫤ Γ2 ; Δ2 ->
-  Γ1 ; Δ1 ⊨ m.[σ1] ~ m'.[σ2] : A.[σ1].
+  dyn_wf Γ1 Δ1 -> Γ2 ; Δ2 ⊢ m ~ m' : A -> Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 ->
+  Γ1 ; Δ1 ⊢ m.[σ1] ~ m'.[σ2] : A.[σ1].
 Proof with eauto using era_agree_subst, era_agree_subst_key, era_type.
   move=>wf ty. elim: ty Γ1 Δ1 σ1 σ2 wf=>{Γ2 Δ2 m m' A}.
   { move=>Γ Δ x A shs dhs Γ1 Δ1 σ1 σ2 wf agr. asimpl.
@@ -219,8 +219,8 @@ Proof with eauto using era_agree_subst, era_agree_subst_key, era_type.
 Qed.
 
 Lemma era_subst0 Γ Δ m m' n A B :
-  dyn_wf Γ Δ -> (A :: Γ) ; _: Δ ⊨ m ~ m' : B -> Γ ⊢ n : A ->
-  Γ ; Δ ⊨ m.[n/] ~ m'.[Box/] : B.[n/].
+  dyn_wf Γ Δ -> (A :: Γ) ; _: Δ ⊢ m ~ m' : B -> Γ ⊢ n : A ->
+  Γ ; Δ ⊢ m.[n/] ~ m'.[Box/] : B.[n/].
 Proof with eauto using era_agree_subst_refl.
   move=>wf tym tyn.
   apply: era_substitution...
@@ -230,8 +230,8 @@ Qed.
 
 Lemma era_subst1 Γ Δ1 Δ2 Δ m m' n n' A B s :
   dyn_wf Γ Δ -> Δ2 ▷ s -> Δ1 ∘ Δ2 => Δ ->
-  (A :: Γ) ; A :{s} Δ1 ⊨ m ~ m' : B -> Γ ; Δ2 ⊨ n ~ n' : A ->
-  Γ ; Δ ⊨ m.[n/] ~ m'.[n'/] : B.[n/].
+  (A :: Γ) ; A :{s} Δ1 ⊢ m ~ m' : B -> Γ ; Δ2 ⊢ n ~ n' : A ->
+  Γ ; Δ ⊢ m.[n/] ~ m'.[n'/] : B.[n/].
 Proof with eauto using era_agree_subst_refl.
   move=>wf k mrg tym tyn.
   apply: era_substitution...
@@ -245,8 +245,8 @@ Lemma era_esubst0 Γ Δ m m' n n' v A B B' :
   n' = n.[Box/] ->
   B' = B.[v/] ->
   dyn_wf Γ Δ ->
-  (A :: Γ) ; _: Δ ⊨ m ~ n : B -> Γ ⊢ v : A ->
-  Γ ; Δ ⊨ m' ~ n' : B'.
+  (A :: Γ) ; _: Δ ⊢ m ~ n : B -> Γ ⊢ v : A ->
+  Γ ; Δ ⊢ m' ~ n' : B'.
 Proof.
   move=>*; subst. apply: era_subst0; eauto.
 Qed.
@@ -256,20 +256,20 @@ Lemma era_esubst1 Γ Δ1 Δ2 Δ m m' n n' v v' A B B' s :
   n' = n.[v'/] ->
   B' = B.[v/] ->
   dyn_wf Γ Δ -> Δ2 ▷ s -> Δ1 ∘ Δ2 => Δ ->
-  (A :: Γ) ; A :{s} Δ1 ⊨ m ~ n : B ->
-  Γ ; Δ2 ⊨ v ~ v' : A ->
-  Γ ; Δ ⊨ m' ~ n' : B'.
+  (A :: Γ) ; A :{s} Δ1 ⊢ m ~ n : B ->
+  Γ ; Δ2 ⊢ v ~ v' : A ->
+  Γ ; Δ ⊢ m' ~ n' : B'.
 Proof.
   move=>*; subst. apply: era_subst1; eauto.
 Qed.
 
 Lemma era_ctx_conv0 Γ Δ m m' A B C s :
   dyn_wf (B :: Γ) (_: Δ) -> B === A ->
-  Γ ⊢ A : @s -> (A :: Γ) ; _: Δ ⊨ m ~ m' : C ->
-  (B :: Γ) ; _: Δ ⊨ m ~ m' : C.
+  Γ ⊢ A : @s -> (A :: Γ) ; _: Δ ⊢ m ~ m' : C ->
+  (B :: Γ) ; _: Δ ⊢ m ~ m' : C.
 Proof with eauto.
   move=>wf eq tyA tym.
-  have:(B :: Γ) ; _: Δ ⊨ m.[ids] ~ m'.[ids] : C.[ids].
+  have:(B :: Γ) ; _: Δ ⊢ m.[ids] ~ m'.[ids] : C.[ids].
   apply: era_substitution...
   apply: era_agree_subst_conv0...
   apply: sta_eweaken...
@@ -280,11 +280,11 @@ Qed.
 
 Lemma era_ctx_conv1 Γ Δ m m' A B C s :
   dyn_wf (B :: Γ) (B :{s} Δ) -> B === A ->
-  Γ ⊢ A : @s -> (A :: Γ) ; A :{s} Δ ⊨ m ~ m' : C ->
-  (B :: Γ) ; B :{s} Δ ⊨ m ~ m' : C.
+  Γ ⊢ A : @s -> (A :: Γ) ; A :{s} Δ ⊢ m ~ m' : C ->
+  (B :: Γ) ; B :{s} Δ ⊢ m ~ m' : C.
 Proof with eauto.
   move=>wf eq tyA tym.
-  have:(B :: Γ) ; B :{s} Δ ⊨ m.[ids] ~ m'.[ids] : C.[ids].
+  have:(B :: Γ) ; B :{s} Δ ⊢ m.[ids] ~ m'.[ids] : C.[ids].
   apply: era_substitution...
   apply: era_agree_subst_conv1...
   apply: sta_eweaken...

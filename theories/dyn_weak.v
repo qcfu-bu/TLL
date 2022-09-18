@@ -109,7 +109,7 @@ Proof with eauto 6 using merge, dyn_agree_ren.
 Qed.
 
 Lemma dyn_rename Γ Γ' Δ Δ' m A ξ :
-  Γ ; Δ ⊨ m : A -> dyn_agree_ren ξ Γ Δ Γ' Δ' -> Γ' ; Δ' ⊨ m.[ren ξ] : A.[ren ξ].
+  Γ ; Δ ⊢ m : A -> dyn_agree_ren ξ Γ Δ Γ' Δ' -> Γ' ; Δ' ⊢ m.[ren ξ] : A.[ren ξ].
 Proof with eauto using dyn_type, dyn_agree_ren, dyn_agree_ren_key.
   move=>ty. elim: ty Γ' Δ' ξ=>{Γ Δ m A}.
   { move=>Γ Δ x A shs dhs Γ' Δ' ξ agr. asimpl.
@@ -150,14 +150,14 @@ Qed.
 
 Lemma dyn_weakenU Γ Δ m A B :
   dyn_wf Γ Δ ->
-  Γ ; Δ ⊨ m : A -> (B :: Γ) ; (B :U Δ) ⊨ m.[ren (+1)] : A.[ren (+1)].
+  Γ ; Δ ⊢ m : A -> (B :: Γ) ; (B :U Δ) ⊢ m.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using dyn_agree_ren, dyn_agree_ren_refl.
   move=>wf ty. apply: dyn_rename...
 Qed.
 
 Lemma dyn_weakenN Γ Δ m A B :
   dyn_wf Γ Δ ->
-  Γ ; Δ ⊨ m : A -> (B :: Γ) ; (_: Δ) ⊨ m.[ren (+1)] : A.[ren (+1)].
+  Γ ; Δ ⊢ m : A -> (B :: Γ) ; (_: Δ) ⊢ m.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using dyn_agree_ren, dyn_agree_ren_refl.
   move=>wf ty. apply: dyn_rename...
 Qed.
@@ -166,8 +166,8 @@ Lemma dyn_eweakenU Γ Δ m m' A A' B :
   m' = m.[ren (+1)] ->
   A' = A.[ren (+1)] ->
   dyn_wf Γ Δ ->
-  Γ ; Δ ⊨ m : A ->
-  (B :: Γ) ; (B :U Δ) ⊨ m' : A'.
+  Γ ; Δ ⊢ m : A ->
+  (B :: Γ) ; (B :U Δ) ⊢ m' : A'.
 Proof.
   move=>*; subst. exact: dyn_weakenU.
 Qed.
@@ -176,8 +176,8 @@ Lemma dyn_eweakenN Γ Δ m m' A A' B :
   m' = m.[ren (+1)] ->
   A' = A.[ren (+1)] ->
   dyn_wf Γ Δ ->
-  Γ ; Δ ⊨ m : A ->
-  (B :: Γ) ; (_: Δ) ⊨ m' : A'.
+  Γ ; Δ ⊢ m : A ->
+  (B :: Γ) ; (_: Δ) ⊢ m' : A'.
 Proof.
   move=>*; subst. exact: dyn_weakenN.
 Qed.

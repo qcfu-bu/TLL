@@ -6,7 +6,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma dyn_sta_type Γ Δ m A : Γ ; Δ ⊨ m : A -> Γ ⊢ m : A.
+Lemma dyn_sta_type Γ Δ m A : Γ ; Δ ⊢ m : A -> Γ ⊢ m : A.
 Proof with eauto using sta_type.
   move=>ty. elim: ty...
 Qed.
@@ -17,11 +17,10 @@ Proof with eauto using sta_wf.
 Qed.
 
 Theorem dyn_valid Γ Δ m A :
-  dyn_wf Γ Δ -> Γ ; Δ ⊨ m : A -> exists s, Γ ⊢ A : @s.
+  dyn_wf Γ Δ -> Γ ; Δ ⊢ m : A -> exists s, Γ ⊢ A : @s.
 Proof.
   move=>wf ty.
   apply: sta_valid.
   apply: dyn_sta_wf; eauto.
   apply: dyn_sta_type; eauto.
 Qed.
-

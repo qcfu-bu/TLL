@@ -7,8 +7,8 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Lemma era_rename Γ Γ' Δ Δ' m m' A ξ :
-  Γ ; Δ ⊨ m ~ m' : A -> dyn_agree_ren ξ Γ Δ Γ' Δ' ->
-  Γ' ; Δ' ⊨ m.[ren ξ] ~ m'.[ren ξ] : A.[ren ξ].
+  Γ ; Δ ⊢ m ~ m' : A -> dyn_agree_ren ξ Γ Δ Γ' Δ' ->
+  Γ' ; Δ' ⊢ m.[ren ξ] ~ m'.[ren ξ] : A.[ren ξ].
 Proof with eauto using era_type, dyn_agree_ren, dyn_agree_ren_key.
   move=>ty. elim: ty Γ' Δ' ξ=>{Γ Δ m m' A}.
   { move=>Γ Δ x A shs dhs Γ' Δ' ξ agr. asimpl.
@@ -48,15 +48,15 @@ Proof with eauto using era_type, dyn_agree_ren, dyn_agree_ren_key.
 Qed.
 
 Lemma era_weakenU Γ Δ m m' A B :
-  dyn_wf Γ Δ -> Γ ; Δ ⊨ m ~ m' : A ->
-  (B :: Γ) ; (B :U Δ) ⊨ m.[ren (+1)] ~ m'.[ren (+1)] : A.[ren (+1)].
+  dyn_wf Γ Δ -> Γ ; Δ ⊢ m ~ m' : A ->
+  (B :: Γ) ; (B :U Δ) ⊢ m.[ren (+1)] ~ m'.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using dyn_agree_ren, dyn_agree_ren_refl.
   move=>wf ty. apply: era_rename...
 Qed.
 
 Lemma era_weakenN Γ Δ m m' A B :
-  dyn_wf Γ Δ -> Γ ; Δ ⊨ m ~ m' : A ->
-  (B :: Γ) ; (_: Δ) ⊨ m.[ren (+1)] ~ m'.[ren (+1)] : A.[ren (+1)].
+  dyn_wf Γ Δ -> Γ ; Δ ⊢ m ~ m' : A ->
+  (B :: Γ) ; (_: Δ) ⊢ m.[ren (+1)] ~ m'.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using dyn_agree_ren, dyn_agree_ren_refl.
   move=>wf ty. apply: era_rename...
 Qed.
@@ -66,8 +66,8 @@ Lemma era_eweakenU Γ Δ m m' n n' A A' B :
   n' = n.[ren (+1)] ->
   A' = A.[ren (+1)] ->
   dyn_wf Γ Δ ->
-  Γ ; Δ ⊨ m ~ n : A ->
-  (B :: Γ) ; (B :U Δ) ⊨ m' ~ n' : A'.
+  Γ ; Δ ⊢ m ~ n : A ->
+  (B :: Γ) ; (B :U Δ) ⊢ m' ~ n' : A'.
 Proof.
   move=>*; subst. exact: era_weakenU.
 Qed.
@@ -77,8 +77,8 @@ Lemma era_eweakenN Γ Δ m m' n n' A A' B :
   n' = n.[ren (+1)] ->
   A' = A.[ren (+1)] ->
   dyn_wf Γ Δ ->
-  Γ ; Δ ⊨ m ~ n : A ->
-  (B :: Γ) ; (_: Δ) ⊨ m' ~ n' : A'.
+  Γ ; Δ ⊢ m ~ n : A ->
+  (B :: Γ) ; (_: Δ) ⊢ m' ~ n' : A'.
 Proof.
   move=>*; subst. exact: era_weakenN.
 Qed.

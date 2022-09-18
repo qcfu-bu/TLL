@@ -42,33 +42,33 @@
 ```
 Δ ▹ U
 ————————————————————————————
-Γ, x : A; Δ, x :s A ⊨ x : A
+Γ, x : A; Δ, x :s A ⊢ x : A
 
-Γ ⊢ Πt (x :s A).B : t    Γ, x : A; Δ, x :s A ⊨ m : B    Δ ▹ t
+Γ ⊢ Πt (x :s A).B : t    Γ, x : A; Δ, x :s A ⊢ m : B    Δ ▹ t
 ———————————————————————————————————————————————————————————————
-Γ; Δ ⊨ λt (x :s A).m : Πt (x :s A).B
+Γ; Δ ⊢ λt (x :s A).m : Πt (x :s A).B
 
-Γ ⊢ Πt {x :s A}.B : t    Γ, x : A; Δ ⊨ m : B    Δ ▹ t
+Γ ⊢ Πt {x :s A}.B : t    Γ, x : A; Δ ⊢ m : B    Δ ▹ t
 ———————————————————————————————————————————————————————
-Γ; Δ ⊨ λt {x :s A}.m : Πt {x :s A}.B
+Γ; Δ ⊢ λt {x :s A}.m : Πt {x :s A}.B
 
 (compatible with non-deterministic reduction)
-Γ; Δ1 ⊨ m : Πt (x :s A).B    Γ; Δ2 ⊨ n : A     Δ2 ▹ s
+Γ; Δ1 ⊢ m : Πt (x :s A).B    Γ; Δ2 ⊢ n : A     Δ2 ▹ s
 ———————————————————————————————————————————————————————
-Γ; Δ1 ⊍ Δ2 ⊨ m n : B[n/x]
+Γ; Δ1 ⊍ Δ2 ⊢ m n : B[n/x]
 
 (only compatible with call-by-value reduction)
-Γ; Δ1 ⊨ m : Πt (x :s A).B    Γ; Δ2 ⊨ n : A
+Γ; Δ1 ⊢ m : Πt (x :s A).B    Γ; Δ2 ⊢ n : A
 ———————————————————————————————————————————
-Γ; Δ1 ⊍ Δ2 ⊨ m n : B[n/x]
+Γ; Δ1 ⊍ Δ2 ⊢ m n : B[n/x]
 
-Γ; Δ ⊨ m : Πt {x :s A}.B    Γ ⊢ n : A
+Γ; Δ ⊢ m : Πt {x :s A}.B    Γ ⊢ n : A
 ——————————————————————————————————————
-Γ; Δ ⊨ m n : B[n/x]
+Γ; Δ ⊢ m n : B[n/x]
 
-Γ ⊢ B : s    Γ; Δ ⊨ m : A     A = B
+Γ ⊢ B : s    Γ; Δ ⊢ m : A     A = B
 ————————————————————————————————————
-Γ; Δ ⊨ m : B
+Γ; Δ ⊢ m : B
 ```
 
 ## Arity
@@ -148,20 +148,20 @@ I := Ind(s)(X : A){C̄}     Γ ⊢ I : A
 Γ; ⋅ ⊢ Constr(s)(i, I) : Cᵢ[I/X]
 
 I := Ind(s)(X : A){C̄}     arity(s, A)
-Γ; Δ1 ⊨ n : I m̄      Γ ⊢ Q : motive(A, t, I)
-Γ; Δ2 ⊨ fᵢ : branch(Cᵢ, I, Q, Constr(s)(i, I))
+Γ; Δ1 ⊢ n : I m̄      Γ ⊢ Q : motive(A, t, I)
+Γ; Δ2 ⊢ fᵢ : branch(Cᵢ, I, Q, Constr(s)(i, I))
 ——————————————————————————————————————————————
-Γ; Δ1 ⊍ Δ2 ⊨ Case(n, Q){f̄} : Q m̄ n
+Γ; Δ1 ⊍ Δ2 ⊢ Case(n, Q){f̄} : Q m̄ n
 
-Γ ⊢ A : U     Γ, x : A; Δ, x : A ⊨ m : A     Δ ▹ U
+Γ ⊢ A : U     Γ, x : A; Δ, x : A ⊢ m : A     Δ ▹ U
 ———————————————————————————————————————————————————
-Γ; Δ ⊨ Fix(x : A).m : A
+Γ; Δ ⊢ Fix(x : A).m : A
 ```
 
 ## Theorems
 - **Translation**  
-  For dynamic typing `Γ; Δ ⊨ m : A` then static typing `Γ ⊢ m : A` is well-typed.
+  For dynamic typing `Γ; Δ ⊢ m : A` then static typing `Γ ⊢ m : A` is well-typed.
 - **Validity**  
-  For dynamic typing `Γ; Δ ⊨ m : A`, there exists sort `s` such that static typing `Γ ⊢ A : s` is well-typed.
+  For dynamic typing `Γ; Δ ⊢ m : A`, there exists sort `s` such that static typing `Γ ⊢ A : s` is well-typed.
 - **Subject Reduction**  
-  For dynamic typing `Γ; Δ ⊨ m : A`, if there is reduction `m ~> n` then `Γ; Δ ⊨ n : A` is well-typed.
+  For dynamic typing `Γ; Δ ⊢ m : A`, if there is reduction `m ~> n` then `Γ; Δ ⊢ n : A` is well-typed.

@@ -10,7 +10,7 @@ Lemma dyn_sta_step m n : m ~>> n -> m ~> n.
 Proof with eauto using sta_step. elim... Qed.
 
 Lemma dyn_val_key Γ Δ m A s :
-  dyn_wf Γ Δ -> Γ ; Δ ⊨ m : A -> Γ ⊢ A : @s -> dyn_val m -> Δ ▷ s.
+  dyn_wf Γ Δ -> Γ ; Δ ⊢ m : A -> Γ ⊢ A : @s -> dyn_val m -> Δ ▷ s.
 Proof with eauto using key_impure.
   destruct s...
   move=>wf ty. elim: ty wf=>{Γ Δ m A}.
@@ -35,7 +35,7 @@ Proof with eauto using key_impure.
 Qed.
 
 Theorem dyn_sr Γ Δ m n A :
-  dyn_wf Γ Δ -> Γ ; Δ ⊨ m : A -> m ~>> n -> Γ ; Δ ⊨ n : A.
+  dyn_wf Γ Δ -> Γ ; Δ ⊢ m : A -> m ~>> n -> Γ ; Δ ⊢ n : A.
 Proof with eauto using dyn_type, dyn_step, dyn_wf.
   move=>wf ty. elim: ty n wf=>{Γ Δ m A}...
   { move=>Γ Δ x A0 shs dhs n wf st. inv st. }
@@ -87,7 +87,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf.
 Qed.
 
 Corollary dyn_rd Γ Δ m n A :
-  dyn_wf Γ Δ -> Γ ; Δ ⊨ m : A -> m ~>>* n -> Γ ; Δ ⊨ n : A.
+  dyn_wf Γ Δ -> Γ ; Δ ⊢ m : A -> m ~>>* n -> Γ ; Δ ⊢ n : A.
 Proof with eauto.
   move=>wf ty rd. elim: rd Γ A wf ty=>{n}...
   move=>n z rd ih st Γ A wf tym.

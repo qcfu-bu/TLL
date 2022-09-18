@@ -7,7 +7,7 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Lemma era_lam0_canonical Γ Δ A B m n s t :
-  Γ ; Δ ⊨ Lam0 A m s t ~ n : B -> exists m', n = Lam0 Box m' s t.
+  Γ ; Δ ⊢ Lam0 A m s t ~ n : B -> exists m', n = Lam0 Box m' s t.
 Proof with eauto.
   move e:(Lam0 A m s t)=>x ty. elim: ty A m s t e=>//{Γ Δ x n B}.
   move=>Γ Δ A B m m' s t k tyP tym ihm A0 m0 s0 t0 [e1 e2 e3 e4]; subst.
@@ -15,7 +15,7 @@ Proof with eauto.
 Qed.
 
 Lemma era_lam1_canonical Γ Δ A B m n s t :
-  Γ ; Δ ⊨ Lam1 A m s t ~ n : B -> exists m', n = Lam1 Box m' s t.
+  Γ ; Δ ⊢ Lam1 A m s t ~ n : B -> exists m', n = Lam1 Box m' s t.
 Proof with eauto.
   move e:(Lam1 A m s t)=>x ty. elim: ty A m s t e=>//{Γ Δ x n B}.
   move=>Γ Δ A B m m' s t k tyP tym ihm A0 m0 s0 t0 [e1 e2 e3 e4]; subst.
@@ -23,7 +23,7 @@ Proof with eauto.
 Qed.
 
 Lemma era_prog m m' A :
-  nil ; nil ⊨ m ~ m' : A -> (exists n', m' ~>> n') \/ dyn_val m'.
+  nil ; nil ⊢ m ~ m' : A -> (exists n', m' ~>> n') \/ dyn_val m'.
 Proof with eauto using dyn_step, dyn_val.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty. elim: ty e1 e2=>{Γ Δ m m' A}.

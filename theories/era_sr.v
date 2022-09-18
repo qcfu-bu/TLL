@@ -7,7 +7,7 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Lemma era_dyn_val Γ Δ m m' A :
-  dyn_val m' -> Γ ; Δ ⊨ m ~ m' : A -> dyn_val m.
+  dyn_val m' -> Γ ; Δ ⊢ m ~ m' : A -> dyn_val m.
 Proof with eauto using dyn_val.
   move=>vl. inv vl.
   { move=>/era_lam0_form[A'[m' e]]; subst... }
@@ -15,8 +15,8 @@ Proof with eauto using dyn_val.
 Qed.
 
 Theorem era_sr Γ Δ m m' n' A :
-  dyn_wf Γ Δ -> Γ ; Δ ⊨ m ~ m' : A -> m' ~>> n' ->
-  exists2 n, m ~>> n & Γ ; Δ ⊨ n ~ n' : A.
+  dyn_wf Γ Δ -> Γ ; Δ ⊢ m ~ m' : A -> m' ~>> n' ->
+  exists2 n, m ~>> n & Γ ; Δ ⊢ n ~ n' : A.
 Proof with eauto using dyn_step, era_type.
   move=>wf er. elim: er wf n'=>{Γ Δ m m' A}.
   { move=>Γ Δ x A shs dhs wf n' st. inv st. }
@@ -73,8 +73,8 @@ Proof with eauto using dyn_step, era_type.
 Qed.
 
 Corollary era_rd Γ Δ m m' n' A :
-  dyn_wf Γ Δ -> Γ ; Δ ⊨ m ~ m' : A -> m' ~>>* n' ->
-  exists2 n, m ~>>* n & Γ ; Δ ⊨ n ~ n' : A.
+  dyn_wf Γ Δ -> Γ ; Δ ⊢ m ~ m' : A -> m' ~>>* n' ->
+  exists2 n, m ~>>* n & Γ ; Δ ⊢ n ~ n' : A.
 Proof with eauto.
   move=>wf ty rd. elim: rd Γ Δ m A wf ty=>{n'}...
   move=>n n' rd ih st Γ Δ m A wf tym.

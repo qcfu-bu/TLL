@@ -6,43 +6,43 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Reserved Notation "Γ1 ; Δ1 ⊨ σ ⫤ Γ2 ; Δ2" (at level 50, σ, Γ2 at next level).
+Reserved Notation "Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2" (at level 50, Δ1, σ, Γ2 at next level).
 Inductive dyn_agree_subst :
   sta_ctx -> dyn_ctx -> (var -> term) -> sta_ctx -> dyn_ctx -> Prop :=
 | dyn_agree_subst_nil σ :
-  nil ; nil ⊨ σ ⫤ nil ; nil
+  nil ; nil ⊢ σ ⊣ nil ; nil
 | dyn_agree_subst_ty Γ1 Δ1 σ Γ2 Δ2 A s :
-  Γ1 ; Δ1 ⊨ σ ⫤ Γ2 ; Δ2 ->
-  (A.[σ] :: Γ1) ; (A.[σ] :{s} Δ1) ⊨ up σ ⫤ (A :: Γ2) ; (A :{s} Δ2)
+  Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 ->
+  (A.[σ] :: Γ1) ; (A.[σ] :{s} Δ1) ⊢ up σ ⊣ (A :: Γ2) ; (A :{s} Δ2)
 | dyn_agree_subst_n Γ1 Δ1 σ Γ2 Δ2 A :
-  Γ1 ; Δ1 ⊨ σ ⫤ Γ2 ; Δ2 ->
-  (A.[σ] :: Γ1) ; (_: Δ1) ⊨ up σ ⫤ (A :: Γ2) ; (_: Δ2)
+  Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 ->
+  (A.[σ] :: Γ1) ; (_: Δ1) ⊢ up σ ⊣ (A :: Γ2) ; (_: Δ2)
 | dyn_agree_subst_wk0 Γ1 Δ1 σ Γ2 Δ2 n A :
-  Γ1 ; Δ1 ⊨ σ ⫤ Γ2 ; Δ2 ->
+  Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 ->
   Γ1 ⊢ n : A.[σ] ->
-  Γ1 ; Δ1 ⊨ n .: σ ⫤ (A :: Γ2) ; (_: Δ2)
+  Γ1 ; Δ1 ⊢ n .: σ ⊣ (A :: Γ2) ; (_: Δ2)
 | dyn_agree_subst_wk1 Γ1 Γ2 σ Δ1 Δ2 Δa Δb n A s :
   Δb ▷ s ->
   Δa ∘ Δb => Δ1 ->
-  Γ1 ; Δa ⊨ σ ⫤ Γ2 ; Δ2 ->
-  Γ1 ; Δb ⊨ n : A.[σ] ->
-  Γ1 ; Δ1 ⊨ n .: σ ⫤ (A :: Γ2) ; (A :{s} Δ2)
+  Γ1 ; Δa ⊢ σ ⊣ Γ2 ; Δ2 ->
+  Γ1 ; Δb ⊢ n : A.[σ] ->
+  Γ1 ; Δ1 ⊢ n .: σ ⊣ (A :: Γ2) ; (A :{s} Δ2)
 | dyn_agree_subst_conv0 Γ1 Δ1 σ Γ2 Δ2 A B s :
   A === B ->
   Γ1 ⊢ B.[ren (+1)].[σ] : @s ->
   Γ2 ⊢ B : @s ->
-  Γ1 ; Δ1 ⊨ σ ⫤ (A :: Γ2) ; (_: Δ2) ->
-  Γ1 ; Δ1 ⊨ σ ⫤ (B :: Γ2) ; (_: Δ2)
+  Γ1 ; Δ1 ⊢ σ ⊣ (A :: Γ2) ; (_: Δ2) ->
+  Γ1 ; Δ1 ⊢ σ ⊣ (B :: Γ2) ; (_: Δ2)
 | dyn_agree_subst_conv1 Γ1 Δ1 σ Γ2 Δ2 A B s :
   A === B ->
   Γ1 ⊢ B.[ren (+1)].[σ] : @s ->
   Γ2 ⊢ B : @s ->
-  Γ1 ; Δ1 ⊨ σ ⫤ (A :: Γ2) ; (A :{s} Δ2) ->
-  Γ1 ; Δ1 ⊨ σ ⫤ (B :: Γ2) ; (B :{s} Δ2)
-where "Γ1 ; Δ1 ⊨ σ ⫤ Γ2 ; Δ2" := (dyn_agree_subst Γ1 Δ1 σ Γ2 Δ2).
+  Γ1 ; Δ1 ⊢ σ ⊣ (A :: Γ2) ; (A :{s} Δ2) ->
+  Γ1 ; Δ1 ⊢ σ ⊣ (B :: Γ2) ; (B :{s} Δ2)
+where "Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2" := (dyn_agree_subst Γ1 Δ1 σ Γ2 Δ2).
 
 Lemma dyn_agree_subst_key Γ1 Γ2 Δ1 Δ2 σ s :
-  Γ1 ; Δ1 ⊨ σ ⫤ Γ2 ; Δ2 -> Δ2 ▷ s -> Δ1 ▷ s.
+  Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> Δ2 ▷ s -> Δ1 ▷ s.
 Proof with eauto using key.
   move=>agr. elim: agr s=>{Γ1 Γ2 Δ1 Δ2 σ}...
   { move=>Γ1 Δ1 σ Γ2 Δ2 A s agr ih r k. inv k... }
@@ -55,7 +55,7 @@ Proof with eauto using key.
 Qed.
 
 Lemma dyn_sta_agree_subst Γ1 Γ2 Δ1 Δ2 σ :
-  Γ1 ; Δ1 ⊨ σ ⫤ Γ2 ; Δ2 -> Γ1 ⊢ σ ⊣ Γ2.
+  Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> Γ1 ⊢ σ ⊣ Γ2.
 Proof with eauto using sta_agree_subst.
   elim=>{Γ1 Γ2 Δ1 Δ2 σ}...
   move=>Γ1 Γ2 σ Δ1 Δ2 Δa Δb n A s _ _ _ agr tyn.
@@ -63,23 +63,23 @@ Proof with eauto using sta_agree_subst.
   apply: dyn_sta_type...
 Qed.
 
-Lemma dyn_agree_subst_refl Γ Δ : dyn_wf Γ Δ -> Γ ; Δ ⊨ ids ⫤ Γ ; Δ.
+Lemma dyn_agree_subst_refl Γ Δ : dyn_wf Γ Δ -> Γ ; Δ ⊢ ids ⊣ Γ ; Δ.
 Proof with eauto using dyn_agree_subst.
   elim: Γ Δ.
   { move=>Δ wf. inv wf... }
   { move=>A Γ ih Δ wf. inv wf.
     { have agr:=ih _ H1.
-      have:(A.[ids] :: Γ); A.[ids] :{s} Δ0 ⊨ up ids ⫤ (A :: Γ); A :{s} Δ0...
+      have:(A.[ids] :: Γ); A.[ids] :{s} Δ0 ⊢ up ids ⊣ (A :: Γ); A :{s} Δ0...
       by asimpl. }
     { have agr:=ih _ H1.
-      have:(A.[ids] :: Γ); _: Δ0 ⊨ up ids ⫤ (A :: Γ); _: Δ0...
+      have:(A.[ids] :: Γ); _: Δ0 ⊢ up ids ⊣ (A :: Γ); _: Δ0...
       by asimpl. } }
 Qed.
 Hint Resolve dyn_agree_subst_refl.
 
 Lemma dyn_agree_subst_has Γ1 Γ2 σ Δ1 Δ2 x A :
   dyn_wf Γ1 Δ1 ->
-  Γ1 ; Δ1 ⊨ σ ⫤ Γ2 ; Δ2 -> dyn_has Δ2 x A -> Γ1 ; Δ1 ⊨ (σ x) : A.[σ].
+  Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> dyn_has Δ2 x A -> Γ1 ; Δ1 ⊢ (σ x) : A.[σ].
 Proof with eauto using dyn_agree_subst, dyn_agree_subst_key.
   move=>wf agr. elim: agr wf x A=>{Γ1 Γ2 σ Δ1 Δ2}...
   { move=>σ _ x A hs. inv hs. }
@@ -114,9 +114,9 @@ Proof with eauto using dyn_agree_subst, dyn_agree_subst_key.
 Qed.
 
 Lemma dyn_agree_subst_merge Γ1 Γ2 Δ1 Δ2 Δa Δb σ :
-  Γ1 ; Δ1 ⊨ σ ⫤ Γ2 ; Δ2 -> Δa ∘ Δb => Δ2 ->
+  Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> Δa ∘ Δb => Δ2 ->
   exists Δa' Δb',
-    Δa' ∘ Δb' => Δ1 /\ Γ1 ; Δa' ⊨ σ ⫤ Γ2 ; Δa /\ Γ1 ; Δb' ⊨ σ ⫤ Γ2 ; Δb.
+    Δa' ∘ Δb' => Δ1 /\ Γ1 ; Δa' ⊢ σ ⊣ Γ2 ; Δa /\ Γ1 ; Δb' ⊢ σ ⊣ Γ2 ; Δb.
 Proof with eauto 6 using merge, dyn_agree_subst, dyn_agree_subst_key.
   move=>agr. elim: agr Δa Δb=>{Γ1 Γ2 Δ1 Δ2 σ}.
   { move=>σ Δa Δb mrg. inv mrg.
@@ -170,7 +170,7 @@ Qed.
 
 Lemma dyn_substitution Γ1 Γ2 m A Δ1 Δ2 σ :
   dyn_wf Γ1 Δ1 ->
-  Γ2 ; Δ2 ⊨ m : A -> Γ1 ; Δ1 ⊨ σ ⫤ Γ2 ; Δ2 -> Γ1 ; Δ1 ⊨ m.[σ] : A.[σ].
+  Γ2 ; Δ2 ⊢ m : A -> Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> Γ1 ; Δ1 ⊢ m.[σ] : A.[σ].
 Proof with eauto using dyn_agree_subst, dyn_agree_subst_key, dyn_type.
   move=>wf ty. elim: ty Γ1 Δ1 σ wf=>{Γ2 Δ2 m A}.
   { move=>Γ Δ x A shs dhs Γ1 Δ1 σ wf agr. asimpl.
@@ -213,7 +213,7 @@ Qed.
 
 Lemma dyn_subst0 Γ Δ m n A B :
   dyn_wf Γ Δ ->
-  (A :: Γ) ; _: Δ ⊨ m : B -> Γ ⊢ n : A -> Γ ; Δ ⊨ m.[n/] : B.[n/].
+  (A :: Γ) ; _: Δ ⊢ m : B -> Γ ⊢ n : A -> Γ ; Δ ⊢ m.[n/] : B.[n/].
 Proof with eauto using dyn_agree_subst_refl.
   move=>wf tym tyn.
   apply: dyn_substitution...
@@ -223,7 +223,7 @@ Qed.
 
 Lemma dyn_subst1 Γ Δ1 Δ2 Δ m n A B s :
   dyn_wf Γ Δ -> Δ2 ▷ s -> Δ1 ∘ Δ2 => Δ ->
-  (A :: Γ) ; A :{s} Δ1 ⊨ m : B -> Γ ; Δ2 ⊨ n : A -> Γ ; Δ ⊨ m.[n/] : B.[n/].
+  (A :: Γ) ; A :{s} Δ1 ⊢ m : B -> Γ ; Δ2 ⊢ n : A -> Γ ; Δ ⊢ m.[n/] : B.[n/].
 Proof with eauto using dyn_agree_subst_refl.
   move=>wf k mrg tym tyn.
   apply: dyn_substitution...
@@ -236,7 +236,7 @@ Lemma dyn_esubst0 Γ Δ m m' n A B B' :
   m' = m.[n/] ->
   B' = B.[n/] ->
   dyn_wf Γ Δ ->
-  (A :: Γ) ; _: Δ ⊨ m : B -> Γ ⊢ n : A -> Γ ; Δ ⊨ m': B'.
+  (A :: Γ) ; _: Δ ⊢ m : B -> Γ ⊢ n : A -> Γ ; Δ ⊢ m': B'.
 Proof.
   move=>*; subst. apply: dyn_subst0; eauto.
 Qed.
@@ -245,17 +245,17 @@ Lemma dyn_esubst1 Γ Δ1 Δ2 Δ m m' n A B B' s :
   m' = m.[n/] ->
   B' = B.[n/] ->
   dyn_wf Γ Δ -> Δ2 ▷ s -> Δ1 ∘ Δ2 => Δ ->
-  (A :: Γ) ; A :{s} Δ1 ⊨ m : B -> Γ ; Δ2 ⊨ n : A -> Γ ; Δ ⊨ m' : B'.
+  (A :: Γ) ; A :{s} Δ1 ⊢ m : B -> Γ ; Δ2 ⊢ n : A -> Γ ; Δ ⊢ m' : B'.
 Proof.
   move=>*; subst. apply: dyn_subst1; eauto.
 Qed.
 
 Lemma dyn_ctx_conv0 Γ Δ m A B C s :
   dyn_wf (B :: Γ) (_: Δ) -> B === A ->
-  Γ ⊢ A : @s -> (A :: Γ) ; _: Δ ⊨ m : C -> (B :: Γ) ; _: Δ ⊨ m : C.
+  Γ ⊢ A : @s -> (A :: Γ) ; _: Δ ⊢ m : C -> (B :: Γ) ; _: Δ ⊢ m : C.
 Proof with eauto.
   move=>wf eq tyA tym.
-  have:(B :: Γ) ; _: Δ ⊨ m.[ids] : C.[ids].
+  have:(B :: Γ) ; _: Δ ⊢ m.[ids] : C.[ids].
   apply: dyn_substitution...
   apply: dyn_agree_subst_conv0...
   apply: sta_eweaken...
@@ -266,10 +266,10 @@ Qed.
 
 Lemma dyn_ctx_conv1 Γ Δ m A B C s :
   dyn_wf (B :: Γ) (B :{s} Δ) -> B === A ->
-  Γ ⊢ A : @s -> (A :: Γ) ; A :{s} Δ ⊨ m : C -> (B :: Γ) ; B :{s} Δ ⊨ m : C.
+  Γ ⊢ A : @s -> (A :: Γ) ; A :{s} Δ ⊢ m : C -> (B :: Γ) ; B :{s} Δ ⊢ m : C.
 Proof with eauto.
   move=>wf eq tyA tym.
-  have:(B :: Γ) ; B :{s} Δ ⊨ m.[ids] : C.[ids].
+  have:(B :: Γ) ; B :{s} Δ ⊢ m.[ids] : C.[ids].
   apply: dyn_substitution...
   apply: dyn_agree_subst_conv1...
   apply: sta_eweaken...
