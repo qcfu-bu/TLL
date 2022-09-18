@@ -83,9 +83,9 @@ arity(s, ΠU {x :r A}.B)
 
 ## Constructor
 ```
-X ∉ FV(̅m)
+X ∉ FV(m̄)
 -----------------
-constr(X, s, X ̅m)
+constr(X, s, X m̄)
 
 t ⊑ s    positive(X, A)    x ∉ FV(B)    constr(X, s, B)
 -------------------------------------------------------
@@ -114,7 +114,7 @@ motive(s, t, I) = ΠU {x :s I}.t
 ```
 br(Πs (x :t A).B, X, Q, c) = ΠL (x :t A).br(B, X, Q, c x)
 br(Πs {x :t A}.B, X, Q, c) = ΠL {x :t A}.br(B, X, Q, c x)
-br(X ̅m, X, Q, c) = Q ̅m c
+br(X m̄, X, Q, c) = Q m̄ c
 
 branch(A, I, Q, c) = (br(A, X, Q, c))[I/X]
 ```
@@ -124,17 +124,17 @@ branch(A, I, Q, c) = (br(A, X, Q, c))[I/X]
 arity(s, A)     constr(X, s, Cᵢ)
 Γ ⊢ A : U     Γ, x : A ⊢ Cᵢ : s
 --------------------------------
-Γ ⊢ Indₛ(X : A){̅C} : A
+Γ ⊢ Indₛ(X : A){C̄} : A
 
-I := Indₛ(X : A){̅C}    Γ ⊢ I : A
+I := Indₛ(X : A){C̄}    Γ ⊢ I : A
 ----------------------------------
 Γ ⊢ Constrₛ(i, I) : Cᵢ[I/X]
 
-I := Indₛ(X : A){̅C}     arity(s, A)
-Γ ⊢ n : I ̅m      Γ ⊢ Q : motive(A, t, I)
+I := Indₛ(X : A){C̄}     arity(s, A)
+Γ ⊢ n : I m̄      Γ ⊢ Q : motive(A, t, I)
 Γ ⊢ fᵢ : branch(Cᵢ, I, Q, Constrₛ(i, I))
 -----------------------------------------
-Γ ⊢ Case(n, Q){̅f} : Q ̅m n
+Γ ⊢ Case(n, Q){f̄} : Q m̄ n
 
 Γ ⊢ A : U     Γ, x : A ⊢ m : A
 ------------------------------
@@ -143,15 +143,15 @@ I := Indₛ(X : A){̅C}     arity(s, A)
 
 ## Dynamic Inductive
 ```
-I := Indₛ(X : A){̅C}     Γ ⊢ I : A
+I := Indₛ(X : A){C̄}     Γ ⊢ I : A
 ---------------------------------
 Γ; ⋅ ⊢ Constrₛ(i, I) : Cᵢ[I/X]
 
-I := Indₛ(X : A){̅C}     arity(s, A)
-Γ; Δ1 ⊨ n : I ̅m      Γ ⊢ Q : motive(A, t, I)
+I := Indₛ(X : A){C̄}     arity(s, A)
+Γ; Δ1 ⊨ n : I m̄      Γ ⊢ Q : motive(A, t, I)
 Γ; Δ2 ⊨ fᵢ : branch(Cᵢ, I, Q, Constrₛ(i, I))
 --------------------------------------------
-Γ; Δ1 ⊍ Δ2 ⊨ Case(n, Q){̅f} : Q ̅m n
+Γ; Δ1 ⊍ Δ2 ⊨ Case(n, Q){f̄} : Q m̄ n
 
 Γ ⊢ A : U     Γ, x : A; Δ, x : A ⊨ m : A     Δ ▹ U
 --------------------------------------------------
