@@ -678,7 +678,7 @@ module UMeta = struct
       let ptl = resolve_ptl map ptl in
       PBind (r, a, bind_ptl x ptl)
 
-  let rec resolve_dcons map (DCons (c, ptl)) = DCons (c, resolve_ptl map ptl)
+  let resolve_dcons map (DCons (c, ptl)) = DCons (c, resolve_ptl map ptl)
 
   let resolve_dcl map dcl =
     match dcl with
