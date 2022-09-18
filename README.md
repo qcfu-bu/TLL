@@ -57,7 +57,7 @@
 ———————————————————————————————————————————————————————
 Γ; Δ1 ⊍ Δ2 ⊨ m n : B[n/x]
 
-(compatible with call-by-value reduction)
+(only compatible with call-by-value reduction)
 Γ; Δ1 ⊨ m : Πt (x :s A).B    Γ; Δ2 ⊨ n : A
 ———————————————————————————————————————————
 Γ; Δ1 ⊍ Δ2 ⊨ m n : B[n/x]
