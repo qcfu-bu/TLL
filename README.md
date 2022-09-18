@@ -124,16 +124,16 @@ branch(A, I, Q, c) = (br(A, X, Q, c))[I/X]
 arity(s, A)     constr(X, s, Cᵢ)
 Γ ⊢ A : U     Γ, x : A ⊢ Cᵢ : s
 ————————————————————————————————
-Γ ⊢ Indₛ(X : A){C̄} : A
+Γ ⊢ Ind(s)(X : A){C̄} : A
 
-I := Indₛ(X : A){C̄}    Γ ⊢ I : A
-—————————————————————————————————
-Γ ⊢ Constrₛ(i, I) : Cᵢ[I/X]
+I := Ind(s)(X : A){C̄}    Γ ⊢ I : A
+———————————————————————————————————
+Γ ⊢ Constr(s)(i, I) : Cᵢ[I/X]
 
-I := Indₛ(X : A){C̄}     arity(s, A)
+I := Ind(s)(X : A){C̄}     arity(s, A)
 Γ ⊢ n : I m̄      Γ ⊢ Q : motive(A, t, I)
-Γ ⊢ fᵢ : branch(Cᵢ, I, Q, Constrₛ(i, I))
-—————————————————————————————————————————
+Γ ⊢ fᵢ : branch(Cᵢ, I, Q, Constr(s)(i, I))
+——————————————————————————————————————————
 Γ ⊢ Case(n, Q){f̄} : Q m̄ n
 
 Γ ⊢ A : U     Γ, x : A ⊢ m : A
@@ -143,14 +143,14 @@ I := Indₛ(X : A){C̄}     arity(s, A)
 
 ## Dynamic Inductive
 ```
-I := Indₛ(X : A){C̄}     Γ ⊢ I : A
-——————————————————————————————————
-Γ; ⋅ ⊢ Constrₛ(i, I) : Cᵢ[I/X]
+I := Ind(s)(X : A){C̄}     Γ ⊢ I : A
+————————————————————————————————————
+Γ; ⋅ ⊢ Constr(s)(i, I) : Cᵢ[I/X]
 
-I := Indₛ(X : A){C̄}     arity(s, A)
+I := Ind(s)(X : A){C̄}     arity(s, A)
 Γ; Δ1 ⊨ n : I m̄      Γ ⊢ Q : motive(A, t, I)
-Γ; Δ2 ⊨ fᵢ : branch(Cᵢ, I, Q, Constrₛ(i, I))
-—————————————————————————————————————————————
+Γ; Δ2 ⊨ fᵢ : branch(Cᵢ, I, Q, Constr(s)(i, I))
+——————————————————————————————————————————————
 Γ; Δ1 ⊍ Δ2 ⊨ Case(n, Q){f̄} : Q m̄ n
 
 Γ ⊢ A : U     Γ, x : A; Δ, x : A ⊨ m : A     Δ ▹ U
