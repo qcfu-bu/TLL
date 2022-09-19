@@ -1,5 +1,6 @@
-## Static Fragment
-```
+* TLL
+** Static Fragment
+#+begin_src 
 ——————————
 Γ ⊢ U : U
 
@@ -36,10 +37,10 @@
 Γ ⊢ B : s    Γ ⊢ m : A    A = B
 ————————————————————————————————
 Γ ⊢ m : B
-```
+#+end_src
 
-## Dynamic Fragment
-```
+** Dynamic Fragment
+#+begin_src 
 Δ ▹ U
 ————————————————————————————
 Γ, x : A; Δ, x :s A ⊢ x : A
@@ -69,20 +70,20 @@
 Γ ⊢ B : s    Γ; Δ ⊢ m : A     A = B
 ————————————————————————————————————
 Γ; Δ ⊢ m : B
-```
+#+end_src
 
-## Arity
-```
+** Arity
+#+begin_src 
 ——————————
 arity(s,s)
 
 arity(s,B)
 ———————————————————————
 arity(s, ΠU {x :r A}.B)
-```
+#+end_src
 
-## Constructor
-```
+** Constructor
+#+begin_src 
 X ∉ FV(m̄)
 —————————————————
 constr(X, s, X m̄)
@@ -102,25 +103,25 @@ constr(X, s, Πs (x :t A).B)
 x ∉ FV(A)    constr(X, s, B)
 ————————————————————————————
 constr(X, s, Πs {x :t A}.B)
-```
+#+end_src
 
-## Motive
-```
+** Motive
+#+begin_src 
 motive(ΠU {x :r A}.B, t, I) = ΠU {x :r A}.motive(B, t, I)
 motive(s, t, I) = ΠU {x :s I}.t
-```
+#+end_src
 
-## Branch
-```
+** Branch
+#+begin_src 
 br(Πs (x :t A).B, X, Q, c) = ΠL (x :t A).br(B, X, Q, c x)
 br(Πs {x :t A}.B, X, Q, c) = ΠL {x :t A}.br(B, X, Q, c x)
 br(X m̄, X, Q, c) = Q m̄ c
 
 branch(A, I, Q, c) = (br(A, X, Q, c))[I/X]
-```
+#+end_src
 
-## Static Inductive
-```
+** Static Inductive
+#+begin_src 
 arity(s, A)     constr(X, s, Cᵢ)
 Γ ⊢ A : U     Γ, x : A ⊢ Cᵢ : s
 ————————————————————————————————
@@ -139,10 +140,10 @@ I := Ind(s)(X : A){C̄}     arity(s, A)
 Γ ⊢ A : U     Γ, x : A ⊢ m : A
 ———————————————————————————————
 Γ ⊢ Fix(x : A).m : A
-```
+#+end_src
 
-## Dynamic Inductive
-```
+** Dynamic Inductive
+#+begin_src 
 I := Ind(s)(X : A){C̄}     Γ ⊢ I : A
 ————————————————————————————————————
 Γ; ⋅ ⊢ Constr(s)(i, I) : Cᵢ[I/X]
@@ -156,12 +157,12 @@ I := Ind(s)(X : A){C̄}     arity(s, A)
 Γ ⊢ A : U     Γ, x : A; Δ, x : A ⊢ m : A     Δ ▹ U
 ———————————————————————————————————————————————————
 Γ; Δ ⊢ Fix(x : A).m : A
-```
+#+end_src
 
-## Theorems
-- **Translation**  
-  For dynamic typing `Γ; Δ ⊢ m : A` then static typing `Γ ⊢ m : A` is well-typed.
-- **Validity**  
-  For dynamic typing `Γ; Δ ⊢ m : A`, there exists sort `s` such that static typing `Γ ⊢ A : s` is well-typed.
-- **Subject Reduction**  
-  For dynamic typing `Γ; Δ ⊢ m : A`, if there is reduction `m ~> n` then `Γ; Δ ⊢ n : A` is well-typed.
+** Theorems
+- *Translation*  
+  For dynamic typing ~Γ; Δ ⊢ m : A~ then static typing ~Γ ⊢ m : A~ is well-typed.
+- *Validity*  
+  For dynamic typing ~Γ; Δ ⊢ m : A~, there exists sort ~s~ such that static typing ~Γ ⊢ A : s~ is well-typed.
+- *Subject Reduction*  
+  For dynamic typing ~Γ; Δ ⊢ m : A~, if there is reduction ~m ~> n~ then ~Γ; Δ ⊢ n : A~ is well-typed.
