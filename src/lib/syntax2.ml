@@ -9,28 +9,27 @@ type ('a, 'b) abs = Abs of 'a * 'b [@@deriving show { with_path = false }]
 
 and tm =
   | Var of V.t
-  | Fix of (V.t, (V.t, tm) abs) abs
   | Lam of srt * (V.t, tm) abs
   | App of srt * tm * tm
   | Let of tm * (V.t, tm) abs
   | Cons of C.t * tms
-  | Case of srt * tm * cls
+  | Match of srt * tm * cls
+  | Fix of (V.t, tm) abs
   | Box
 
 and tms = tm list
 
 and p =
   | PVar of V.t
-  | PCons of C.t * ps
+  | PCons of C.t * V.t list
 
-and ps = p list
 and cl = (p, tm) abs
 and cls = cl list
 
 type dcl =
   | DTm of V.t * tm
   | DData of D.t * dconss
-  | DAtom of V.t * tm
+  | DAtom of V.t
 [@@deriving show { with_path = false }]
 
 and dcls = dcl list
@@ -39,15 +38,13 @@ and dconss = dcons list
 
 let var x = Var x
 
-let rec freshen_p p =
-  match p with
+let freshen_p = function
   | PVar x -> PVar (V.freshen x)
-  | PCons (c, ps) -> PCons (c, List.map freshen_p ps)
+  | PCons (c, xs) -> PCons (c, List.map V.freshen xs)
 
-let rec xs_of_p p =
-  match p with
+let xs_of_p = function
   | PVar x -> [ x ]
-  | PCons (_, ps) -> List.concat_map xs_of_p ps
+  | PCons (_, xs) -> xs
 
 let findi_opt f ls =
   let rec aux k ls =
@@ -69,9 +66,6 @@ let bindn_tm k xs m =
       match opt with
       | Some (i, _) -> Var (V.bind (i + k))
       | None -> Var y)
-    | Fix (Abs (f, Abs (x, m))) ->
-      let m = aux (k + 2) m in
-      Fix (Abs (f, Abs (x, m)))
     | Lam (s, Abs (x, m)) ->
       let m = aux (k + 1) m in
       Lam (s, Abs (x, m))
@@ -86,18 +80,21 @@ let bindn_tm k xs m =
     | Cons (c, ms) ->
       let ms = List.map (aux k) ms in
       Cons (c, ms)
-    | Case (s, m, cls) ->
+    | Match (s, m, cls) ->
       let m = aux k m in
       let cls =
         List.map
-          (fun (Abs (p, rhs)) ->
+          (fun (Abs (p, m)) ->
             let xs = xs_of_p p in
             let k = k + List.length xs in
-            let rhs = aux k rhs in
-            Abs (p, rhs))
+            let m = aux k m in
+            Abs (p, m))
           cls
       in
-      Case (s, m, cls)
+      Match (s, m, cls)
+    | Fix (Abs (x, m)) ->
+      let m = aux (k + 1) m in
+      Fix (Abs (x, m))
     | Box -> Box
   in
   aux k m
@@ -110,9 +107,6 @@ let unbindn_tm k xs m =
       match V.is_bound y sz k with
       | Some i -> List.nth xs (i - k)
       | None -> Var y)
-    | Fix (Abs (f, Abs (x, m))) ->
-      let m = aux (k + 2) m in
-      Fix (Abs (f, Abs (x, m)))
     | Lam (s, Abs (x, m)) ->
       let m = aux (k + 1) m in
       Lam (s, Abs (x, m))
@@ -127,18 +121,21 @@ let unbindn_tm k xs m =
     | Cons (c, ms) ->
       let ms = List.map (aux k) ms in
       Cons (c, ms)
-    | Case (s, m, cls) ->
+    | Match (s, m, cls) ->
       let m = aux k m in
       let cls =
         List.map
-          (fun (Abs (p, rhs)) ->
+          (fun (Abs (p, m)) ->
             let xs = xs_of_p p in
             let k = k + List.length xs in
-            let rhs = aux k rhs in
-            Abs (p, rhs))
+            let m = aux k m in
+            Abs (p, m))
           cls
       in
-      Case (s, m, cls)
+      Match (s, m, cls)
+    | Fix (Abs (x, m)) ->
+      let m = aux (k + 1) m in
+      Fix (Abs (x, m))
     | Box -> Box
   in
   aux k m
@@ -183,16 +180,18 @@ let unbindp_tm (Abs (p, rhs)) =
 let rec equal_p p1 p2 =
   match (p1, p2) with
   | PVar _, PVar _ -> true
-  | PCons (c1, ps1), PCons (c2, ps2) ->
-    C.equal c1 c2 && List.equal equal_p ps1 ps2
+  | PCons (c1, xs1), PCons (c2, xs2) ->
+    C.equal c1 c2 && List.equal V.equal xs1 xs2
   | _ -> false
 
 let rec match_p p m =
   match (p, m) with
   | PVar _, _ -> [ m ]
-  | PCons (c1, ps), Cons (c2, ms) ->
-    if C.equal c1 c2 then
-      List.fold_left2 (fun acc p m -> acc @ match_p p m) [] ps ms
+  | PCons (c1, xs), Cons (c2, ms) ->
+    let xs_sz = List.length xs in
+    let ms_sz = List.length ms in
+    if C.equal c1 c2 && xs_sz = ms_sz then
+      ms
     else
       failwith "match_p"
   | _ -> failwith "match_p"
@@ -219,9 +218,6 @@ let equal_abs eq (Abs (_, m)) (Abs (_, n)) = eq m n
 let rec occurs_tm x m =
   match m with
   | Var y -> V.equal x y
-  | Fix abs ->
-    let _, _, m = unbind_tm_abs abs in
-    occurs_tm x m
   | Lam (_, abs) ->
     let _, m = unbind_tm abs in
     occurs_tm x m
@@ -230,7 +226,7 @@ let rec occurs_tm x m =
     let _, n = unbind_tm abs in
     occurs_tm x m || occurs_tm x n
   | Cons (_, ms) -> List.exists (occurs_tm x) ms
-  | Case (_, m, cls) ->
+  | Match (_, m, cls) ->
     let m_res = occurs_tm x m in
     let cls_res =
       List.exists
@@ -240,4 +236,7 @@ let rec occurs_tm x m =
         cls
     in
     m_res || cls_res
+  | Fix abs ->
+    let _, m = unbind_tm abs in
+    occurs_tm x m
   | Box -> false
