@@ -49,7 +49,6 @@ and cls = cl list
 
 type dcl =
   | DTm of rel * V.t * tm_opt * tm
-  | DFun of rel * V.t * tm * (V.t, cls) abs
   | DData of D.t * ptl * dconss
   | DAtom of rel * V.t * tm
 [@@deriving show { with_path = false }]
@@ -320,7 +319,7 @@ let unbind2_tm (Abs (x, m)) (Abs (_, n)) =
   let n = unbindn_tm 0 [ Var x ] n in
   (x, m, n)
 
-let rec equal_p p1 p2 =
+let equal_p p1 p2 =
   match (p1, p2) with
   | PVar _, PVar _ -> true
   | PData (d1, xs1), PData (d2, xs2) ->
@@ -339,7 +338,7 @@ let unbindp2_tm (Abs (p1, m)) (Abs (p2, n)) =
   else
     failwith "unbindp2"
 
-let unbind2_xptm (Abs (x, ptm1)) (Abs (_, ptm2)) =
+let unbind2_ptm (Abs (x, ptm1)) (Abs (_, ptm2)) =
   let x = V.freshen x in
   let ptm1 = unbindn_ptm 0 [ Var x ] ptm1 in
   let ptm2 = unbindn_ptm 0 [ Var x ] ptm2 in
@@ -351,7 +350,7 @@ let asubst_tm (Abs (_, m)) n = unbindn_tm 0 [ n ] m
 let asubst_tl (Abs (_, tl)) n = unbindn_tl 0 [ n ] tl
 let asubst_ptl (Abs (_, ptl)) n = unbindn_ptl 0 [ n ] ptl
 
-let rec match_p p m =
+let match_p p m =
   match (p, m) with
   | PVar _, _ -> [ m ]
   | PData (d1, xs), Data (d2, ms) ->
