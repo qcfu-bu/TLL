@@ -57,14 +57,6 @@ let pp_cs fmt cs =
 
 let pp_ctx fmt ctx = pf fmt "@[<v 0>ctx{@;<1 2>%a}@]" pp_vs ctx.vs
 
-let msubst_ctx map ctx =
-  let vs = VMap.map (fun a -> UVar.msubst_tm map a) ctx.vs in
-  { ctx with vs }
-
-let subst_ctx x ctx m =
-  let ctx = { ctx with vs = VMap.remove x ctx.vs } in
-  msubst_ctx (VMap.singleton x m) ctx
-
 let meta_mk ctx =
   let x = M.mk () in
   let xs = ctx.vs |> VMap.bindings |> List.map (fun x -> Var (fst x)) in
@@ -85,7 +77,7 @@ let has_failed f =
 
 let rec infer_sort ctx env eqns map a =
   let srt, eqns, map = infer_tm ctx env eqns map a in
-  let srt = UMeta.resolve_tm map srt in
+  let srt = resolve_tm map srt in
   match whnf rd_all env srt with
   | Type s -> (s, eqns, map)
   | _ -> failwith "infer_sort(%a : %a)" pp_tm a pp_tm srt
@@ -114,16 +106,12 @@ and infer_tm ctx env eqns map = function
     let ctx = add_v x a ctx in
     let _, eqns, map = infer_sort ctx env eqns map b in
     (Type s, eqns, map)
-  | Fun (a_opt, cls) as m -> (
-    match a_opt with
-    | Some a ->
-      let _, eqns, map = infer_sort ctx env eqns map a in
-      let eqns, map = check_tm ctx env eqns map (Fun (a_opt, cls)) a in
-      (a, eqns, map)
-    | None -> failwith "infer_Fun(%a)" pp_tm m)
+  | Lam _ ->
+    let a, _ = meta_mk ctx in
+    (a, eqns, map)
   | App (m, n) -> (
     let a, eqns, map = infer_tm ctx env eqns map m in
-    let a = UMeta.resolve_tm map a in
+    let a = resolve_tm map a in
     match whnf rd_all env a with
     | Pi (_, _, a, abs) ->
       let eqns, map = check_tm ctx env eqns map n a in
@@ -132,9 +120,9 @@ and infer_tm ctx env eqns map = function
   | Let (_, m, abs) ->
     let a, eqns, map = infer_tm ctx env eqns map m in
     let s, eqns, map = infer_sort ctx env eqns map a in
-    let map = UMeta.unify map eqns in
-    let m = UMeta.resolve_tm map m in
-    let a = UMeta.resolve_tm map a in
+    let map = unify map eqns in
+    let m = resolve_tm map m in
+    let a = resolve_tm map a in
     let x, n = unbind_tm abs in
     let ctx = add_v x a ctx in
     let env =
@@ -149,25 +137,45 @@ and infer_tm ctx env eqns map = function
   | Cons (c, ms) ->
     let ptl = find_c c ctx in
     check_ptl ctx env eqns map ms ptl
-  | Absurd -> failwith "infer_Absurd"
-  | Match (ms, b, cls) ->
-    let ms_ty, eqns, map =
-      List.fold_left
-        (fun (acc, eqns, map) m ->
-          let a, eqns, map = infer_tm ctx env eqns map m in
-          (a :: acc, eqns, map))
-        ([], eqns, map) ms
-    in
-    let a =
-      List.fold_left
-        (fun acc m_ty -> Pi (R, L, m_ty, bind_tm (V.blank ()) acc))
-        b ms_ty
-    in
-    let prbm = UVar.prbm_of_cls cls in
-    let map = UMeta.unify map eqns in
-    let eqns, map = check_prbm ctx env eqns map prbm a in
-    let map = UMeta.unify map eqns in
-    (UMeta.resolve_tm map b, eqns, map)
+  | Match (m, mot, cls) -> (
+    let a, eqns, map = infer_tm ctx env eqns map m in
+    let map = unify map eqns in
+    let a = resolve_tm map a in
+    match whnf rd_all env a with
+    | Data (d, ms) -> (
+      let _, cs = find_d d ctx in
+      let cover, eqns, map = coverage ctx env eqns map cls cs ms in
+      match mot with
+      | Mot0 ->
+        let ms, eqns, map = infer_cover cover ctx env eqns map in
+        let eqns = List.fold_left (fun acc n -> (env, m, n) :: acc) eqns ms in
+        (m, eqns, map)
+      | Mot1 abs ->
+        let a = asubst_tm abs m in
+        let eqns, map = check_mot cover ctx env eqns map mot in
+        (a, eqns, map)
+      | Mot2 abs ->
+        let p, a = unbindp_tm abs in
+        let a = substp_tm p a m in
+        let eqns, map = check_mot cover ctx env eqns map mot in
+        (a, eqns, map)
+      | Mot3 abs ->
+        let x, abs = unbind_ptm abs in
+        let p, b = unbindp_tm abs in
+        let b = subst_tm x b m in
+        let b = substp_tm p b a in
+        (b, eqns, map))
+    | _ -> failwith "infer_Match(%a)" pp_tm m)
+  | Fix abs as m -> (
+    let _, n = unbind_tm abs in
+    match n with
+    | Ann (a, _) ->
+      let _, eqns, map = infer_sort ctx env eqns map a in
+      let eqns, map = check_tm ctx env eqns map m a in
+      (a, eqns, map)
+    | _ ->
+      let a, _ = meta_mk ctx in
+      (a, eqns, map))
 
 and check_ptl ctx env eqns map ms ptl =
   match (ms, ptl) with
@@ -192,25 +200,22 @@ and check_tl ctx env eqns map ms tl =
 and check_tm ctx env eqns map m a =
   match m with
   | Meta (x, _) -> (eqns, add_m x a map)
-  | Fun (b_opt, abs) ->
-    let eqns, map =
-      match b_opt with
-      | Some b ->
-        let _, eqns, map = infer_sort ctx env eqns map b in
-        assert_equal env eqns map a b
-      | None -> (eqns, map)
-    in
-    let x, cls = unbind_cls abs in
-    let prbm = UVar.prbm_of_cls cls in
-    let map = UMeta.unify map eqns in
-    check_prbm (add_v x a ctx) env eqns map prbm a
+  | Lam abs -> (
+    let x, m = unbind_tm abs in
+    let a = resolve_tm map a in
+    match whnf rd_all env a with
+    | Pi (_, _, a, abs) ->
+      let b = asubst_tm abs (Var x) in
+      let _, eqns, map = infer_sort ctx env eqns map a in
+      check_tm (add_v x a ctx) env eqns map m b
+    | _ -> failwith "check_Lam(%a)" pp_tm m)
   | Let (r, m, abs) ->
     let x, n = unbind_tm abs in
     let abs = bind_tm x (Ann (a, n)) in
     let b, eqns, map = infer_tm ctx env eqns map (Let (r, m, abs)) in
     assert_equal env eqns map a b
   | Cons (c, ms) -> (
-    let a = UMeta.resolve_tm map a in
+    let a = resolve_tm map a in
     match whnf rd_all env a with
     | Data (_, ns) ->
       let ptl = find_c c ctx in
@@ -227,25 +232,21 @@ and check_tm ctx env eqns map m a =
     | _ ->
       let b, eqns, map = infer_tm ctx env eqns map m in
       assert_equal env eqns map a b)
-  | Match (ms, b, cls) ->
-    let eqns, map = assert_equal env eqns map a b in
-    let ms_ty, eqns, map =
-      List.fold_left
-        (fun (acc, eqns, map) m ->
-          let a, eqns, map = infer_tm ctx env eqns map m in
-          (a :: acc, eqns, map))
-        ([], eqns, map) ms
-    in
-    let a =
-      List.fold_left
-        (fun acc m_ty -> Pi (R, L, m_ty, bind_tm (V.blank ()) acc))
-        a ms_ty
-    in
-    let prbm = UVar.prbm_of_cls cls in
-    let map = UMeta.unify map eqns in
-    let eqns, map = check_prbm ctx env eqns map prbm a in
-    let map = UMeta.unify map eqns in
-    (eqns, map)
+  | Match (m, mot, cls) -> (
+    match mot with
+    | Mot0 -> (
+      let b, eqns, map = infer_tm ctx env eqns map m in
+      let map = unify map eqns in
+      let b = resolve_tm map b in
+      match whnf rd_all env b with
+      | Data (d, ms) ->
+        let _, cs = find_d d ctx in
+        let cover, eqns, map = coverage ctx env eqns map cls cs ms in
+        check_cover cover ctx env eqns map a
+      | _ -> failwith "check_Match(%a)" pp_tm m)
+    | _ ->
+      let b, eqns, map = infer_tm ctx env eqns map (Match (m, mot, cls)) in
+      assert_equal env eqns map a b)
   | _ ->
     let b, eqns, map = infer_tm ctx env eqns map m in
     assert_equal env eqns map a b
@@ -258,215 +259,21 @@ and tl_of_ptl ptl ns =
   | PBase tl, _ -> tl
   | _ -> failwith "tl_of_ptl"
 
-and check_prbm ctx env eqns map prbm a =
-  let rec is_absurd es rhs =
-    match (es, rhs) with
-    | (_, Var _, Absurd, _) :: _, None -> true
-    | (_, Var _, Absurd, _) :: _, Some _ -> failwith "is_absurd"
-    | _ :: es, _ -> is_absurd es rhs
-    | [], _ -> false
-  in
-  let rec get_absurd = function
-    | (_, Var _, Absurd, a) :: _ -> a
-    | _ :: es -> get_absurd es
-    | [] -> failwith "get_absurd"
-  in
-  let rec can_split = function
-    | (_, Var _, Cons (_, _), _) :: _ -> true
-    | _ :: es -> can_split es
-    | [] -> false
-  in
-  let rec first_split = function
-    | (_, Var x, Cons (_, _), a) :: _ -> (x, a)
-    | _ :: es -> first_split es
-    | [] -> failwith "first_split"
-  in
-  let fail_on_d ctx eqns map d ns s a =
-    let _, cs = find_d d ctx in
-    let ptls = List.map (fun c -> find_c c ctx) cs in
-    let rec loop = function
-      | [] -> (eqns, map)
-      | ptl :: ptls ->
-        let tl = tl_of_ptl ptl ns in
-        let _, targ = fold_tl (fun () _ _ _ tl -> ((), tl)) () tl in
-        let global = (env, a, targ, Type s) :: prbm.global in
-        if has_failed (fun () -> UVar.unify global) then
-          loop ptls
-        else
-          failwith "fail_on_d(%a)" pp_tm (Data (d, ns))
-    in
-    loop ptls
-  in
-  match prbm.clause with
-  | [] -> (
-    if has_failed (fun () -> UVar.unify prbm.global) then
-      (eqns, map)
-    else
-      let a = UMeta.resolve_tm map a in
-      match whnf rd_all env a with
-      | Pi (_, _, a, _) -> (
-        let s, eqns, map = infer_sort ctx env eqns map a in
-        match whnf rd_all env a with
-        | Data (d, ns) -> fail_on_d ctx eqns map d ns s a
-        | _ -> failwith "check_Empty")
-      | a -> failwith "check_Empty(%a)" pp_tm a)
-  | (es, _, rhs) :: _ when is_absurd es rhs -> (
-    if has_failed (fun () -> UVar.unify prbm.global) then
-      (eqns, map)
-    else
-      let a = get_absurd es in
-      let s, eqns, map = infer_sort ctx env eqns map a in
-      let a = UMeta.resolve_tm map a in
-      match whnf rd_all env a with
-      | Data (d, ns) -> fail_on_d ctx eqns map d ns s a
-      | _ -> failwith "check_Absurd")
-  | (es, _, _) :: _ when can_split es -> (
-    let x, b = first_split es in
-    let s, eqns, map = infer_sort ctx env eqns map b in
-    let b = UMeta.resolve_tm map b in
-    match whnf rd_all env b with
-    | Data (d, ns) ->
-      let _, cs = find_d d ctx in
-      let ptls = List.map (fun c -> find_c c ctx) cs in
-      List.fold_left2
-        (fun (eqns, map) ptl c ->
-          let tl = tl_of_ptl ptl ns in
-          let (ctx, args), targ =
-            fold_tl
-              (fun (ctx, acc) _ a x tl ->
-                let ctx = add_v x a ctx in
-                ((ctx, Var x :: acc), tl))
-              (ctx, []) tl
-          in
-          let c = Ann (targ, Cons (c, List.rev args)) in
-          let a = subst_tm x a c in
-          let ctx = subst_ctx x ctx c in
-          let prbm = prbm_subst ctx map x prbm c in
-          let prbm =
-            UVar.{ prbm with global = (env, b, targ, Type s) :: prbm.global }
-          in
-          check_prbm ctx env eqns map prbm a)
-        (eqns, map) ptls cs
-    | b -> failwith "check_Split(%a)" pp_tm b)
-  | (es, [], rhs) :: _ ->
-    let es = prbm.global @ es in
-    let vmap = UVar.unify es in
-    let a = UVar.msubst_tm vmap a in
-    let ctx = msubst_ctx vmap ctx in
-    let rhs =
-      match rhs with
-      | Some m -> UVar.msubst_tm vmap m
-      | None -> failwith "check_Finish"
-    in
-    check_tm ctx env eqns map rhs a
-  | (_, ps, _) :: _ -> (
-    let a = UMeta.resolve_tm map a in
-    let a = whnf rd_all env a in
-    match (a, ps) with
-    | Pi (_, _, a, abs), _ :: _ ->
-      let x, b = unbind_tm abs in
-      let ctx = add_v x a ctx in
-      let prbm = prbm_add ctx env prbm x a in
-      check_prbm ctx env eqns map prbm b
-    | _ -> failwith "check_Intro")
-
-and prbm_add ctx env prbm x a =
-  let rec tm_of_p p =
-    match p with
+and coverage ctx env eqns map cls cs ms =
+  let rec tm_of_p = function
     | PVar x -> Var x
-    | PCons (c, ps) ->
-      let ptl = find_c c ctx in
-      let ps = ps_of_ptl ps ptl in
-      let ps = List.map tm_of_p ps in
-      Cons (c, ps)
-    | PAbsurd -> Absurd
-  and ps_of_ptl ps ptl =
-    match ptl with
-    | PBase tl -> ps_of_tl ps tl
-    | PBind (_, _, abs) ->
-      let _, ptl = unbind_ptl abs in
-      ps_of_ptl ps ptl
-  and ps_of_tl ps tl =
-    match tl with
-    | TBase _ -> ps
-    | TBind (_, _, abs) -> (
-      let _, tl = unbind_tl abs in
-      match ps with
-      | p :: ps -> p :: ps_of_tl ps tl
-      | _ -> failwith "ps_of_tl")
-  in
-  match prbm.clause with
-  | [] -> prbm
-  | (es, p :: ps, rhs) :: clause ->
-    let prbm = prbm_add ctx env { prbm with clause } x a in
-    let clause = ((env, Var x, tm_of_p p, a) :: es, ps, rhs) :: prbm.clause in
-    { prbm with clause }
-  | _ -> failwith "prbm_add"
-
-and prbm_subst ctx map x prbm m =
-  match prbm.clause with
-  | [] -> prbm
-  | (es, ps, rhs) :: clause -> (
-    let prbm = prbm_subst ctx map x { prbm with clause } m in
-    let opt =
-      List.fold_left
-        (fun acc (env, l, r, a) ->
-          match acc with
-          | Some acc -> (
-            let l = subst_tm x l m in
-            let a = subst_tm x a m in
-            match p_simpl ctx env map l r a with
-            | Some es -> Some (acc @ es)
-            | None -> None)
-          | None -> None)
-        (Some []) es
-    in
-    match opt with
-    | Some es -> { prbm with clause = (es, ps, rhs) :: prbm.clause }
-    | _ -> prbm)
-
-and p_simpl ctx env map m n a =
-  let m = whnf rd_all env m in
-  let n = whnf rd_all env n in
-  let a = UMeta.resolve_tm map a in
-  let a = whnf rd_all env a in
-  match (m, n, a) with
-  | Cons (c1, xs), Cons (c2, ys), Data (d, ns) ->
-    if C.equal c1 c2 then
-      let _, cs = find_d d ctx in
-      if List.exists (fun c -> c = c1) cs then
-        let ptl = find_c c1 ctx in
-        let tl = tl_of_ptl ptl ns in
-        ps_simpl_tl ctx env map xs ys tl
+    | PData (d, xs) -> Data (d, List.map var xs)
+    | PCons (c, xs) -> Cons (c, List.map var xs)
+  and remove_c k ctx = function
+    | c :: cs ->
+      if C.equal k c then
+        (find_c c ctx, cs)
       else
-        failwith "p_simpl(%a, %a, %a)" pp_tm m pp_tm n pp_tm a
-    else
-      None
-  | Cons (c1, _), _, Data (d, _) ->
-    let _, cs = find_d d ctx in
-    if List.exists (fun c -> c = c1) cs then
-      Some [ (env, m, n, a) ]
-    else
-      failwith "p_simpl(%a, %a, %a)" pp_tm m pp_tm n pp_tm a
-  | _, Cons (c2, _), Data (d, _) ->
-    let _, cs = find_d d ctx in
-    if List.exists (fun c -> c = c2) cs then
-      Some [ (env, m, n, a) ]
-    else
-      failwith "p_simpl(%a, %a, %a)" pp_tm m pp_tm n pp_tm a
-  | _ -> Some [ (env, m, n, a) ]
-
-and ps_simpl_tl ctx env map ms ns tl =
-  match (ms, ns, tl) with
-  | m :: ms, n :: ns, TBind (_, a, abs) -> (
-    let opt1 = p_simpl ctx env map m n a in
-    let tl = asubst_tl abs m in
-    let opt2 = ps_simpl_tl ctx env map ms ns tl in
-    match (opt1, opt2) with
-    | Some es1, Some es2 -> Some (es1 @ es2)
-    | _ -> None)
-  | [], [], TBase _ -> Some []
-  | _ -> None
+        let a, cs = remove_c k ctx cs in
+        (a, c :: cs)
+    | _ -> failwith "remove_c(%a)" C.pp c
+  in
+  __
 
 let rec infer_dcl ctx env eqns map dcl =
   match dcl with
