@@ -177,14 +177,14 @@ let unbindp_tm (Abs (p, rhs)) =
   let xs = ps |> xs_of_p |> List.map var in
   (ps, unbindn_tm 0 xs rhs)
 
-let rec equal_p p1 p2 =
+let equal_p p1 p2 =
   match (p1, p2) with
   | PVar _, PVar _ -> true
   | PCons (c1, xs1), PCons (c2, xs2) ->
     C.equal c1 c2 && List.equal V.equal xs1 xs2
   | _ -> false
 
-let rec match_p p m =
+let match_p p m =
   match (p, m) with
   | PVar _, _ -> [ m ]
   | PCons (c1, xs), Cons (c2, ms) ->
