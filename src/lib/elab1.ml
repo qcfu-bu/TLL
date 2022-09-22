@@ -242,7 +242,7 @@ and check_tm ctx env eqns map m a =
       | Data (d, ms) ->
         let _, cs = find_d d ctx in
         let cover, eqns, map = coverage ctx env eqns map cls cs ms in
-        check_cover cover ctx env eqns map a
+        check_cover cover env eqns map a
       | _ -> failwith "check_Match(%a)" pp_tm m)
     | _ ->
       let b, eqns, map = infer_tm ctx env eqns map (Match (m, mot, cls)) in
@@ -271,9 +271,67 @@ and coverage ctx env eqns map cls cs ms =
       else
         let a, cs = remove_c k ctx cs in
         (a, c :: cs)
-    | _ -> failwith "remove_c(%a)" C.pp c
+    | _ -> failwith "remove_c(%a)" C.pp k
   in
-  __
+  let rec arity_ptl ctx eqns map a ms xs =
+    match (a, ms) with
+    | PBind (_, a, abs), m :: ms ->
+      let b = asubst_ptl abs (Ann (m, a)) in
+      arity_ptl ctx eqns map b ms xs
+    | PBase a, _ -> arity_tl ctx eqns map a xs
+    | _ -> failwith "arity_ptl"
+  and arity_tl ctx eqns map a xs =
+    match (a, xs) with
+    | TBind (_, a, abs), x :: xs ->
+      let s, eqns, map = infer_sort ctx env eqns map a in
+      let ctx = add_v x a ctx in
+      let b = asubst_tl abs (Var x) in
+      let ctx, b, ss, eqns, map = arity_tl ctx eqns map b xs in
+      (ctx, b, (x, s) :: ss, eqns, map)
+    | TBase a, [] -> (ctx, a, [], eqns, map)
+    | _ -> failwith "arity_tl"
+  in
+  match cls with
+  | cl :: cls -> (
+    let p, m = unbindp_tm cl in
+    match p with
+    | PCons (c, xs) ->
+      let cns = tm_of_p p in
+      let ptl, cs = remove_c c ctx cs in
+      let ctx, a, ss, eqns, map = arity_ptl ctx eqns map ptl ms xs in
+      let m = resolve_tm map m in
+      let cs, eqns, map = coverage ctx env eqns map cls cs ms in
+      ((ctx, cns, a, m, ss) :: cs, eqns, map)
+    | _ -> failwith "")
+  | _ -> failwith ""
+
+and check_cover cover env eqns map a =
+  match cover with
+  | (ctx, _, _, m, _) :: cover ->
+    let eqns, map = check_tm ctx env eqns map m a in
+    check_cover cover env eqns map a
+  | _ -> (eqns, map)
+
+and check_motive cover ctx env eqns map mot =
+  match (mot, cover) with
+  | Mot0, _ -> failwith "check_Mot0"
+  | Mot1 abs, (ctx, cns, _, m, _) :: cover ->
+    let a = asubst_tm abs cns in
+    let eqns, map = check_tm ctx env eqns map m a in
+    check_motive cover ctx env eqns map mot
+  | Mot2 abs, (ctx, _, a, m, _) :: cover ->
+    let p, b = unbindp_tm abs in
+    let b = substp_tm p b a in
+    let eqns, map = check_tm ctx env eqns map m b in
+    check_motive cover ctx env eqns map mot
+  | Mot3 abs, (ctx, cns, a, m, _) :: cover ->
+    let x, abs = unbind_ptm abs in
+    let p, b = unbindp_tm abs in
+    let b = subst_tm x b cns in
+    let b = substp_tm p b a in
+    let eqns, map = check_tm ctx env eqns map m b in
+    check_motive cover ctx env eqns map mot
+  | _ -> (eqns, map)
 
 let rec infer_dcl ctx env eqns map dcl =
   match dcl with
