@@ -147,17 +147,17 @@ and infer_tm ctx env eqns map = function
       let cover, eqns, map = coverage ctx env eqns map cls cs ms in
       match mot with
       | Mot0 ->
-        let ms, eqns, map = infer_cover cover ctx env eqns map in
+        let ms, eqns, map = infer_cover cover env eqns map in
         let eqns = List.fold_left (fun acc n -> (env, m, n) :: acc) eqns ms in
         (m, eqns, map)
       | Mot1 abs ->
         let a = asubst_tm abs m in
-        let eqns, map = check_mot cover ctx env eqns map mot in
+        let eqns, map = check_mot cover env eqns map mot in
         (a, eqns, map)
       | Mot2 abs ->
         let p, a = unbindp_tm abs in
         let a = substp_tm p a m in
-        let eqns, map = check_mot cover ctx env eqns map mot in
+        let eqns, map = check_mot cover env eqns map mot in
         (a, eqns, map)
       | Mot3 abs ->
         let x, abs = unbind_ptm abs in
@@ -305,11 +305,11 @@ and coverage ctx env eqns map cls cs ms =
     | _ -> failwith "")
   | _ -> failwith ""
 
-and infer_cover cover ctx env eqns map =
+and infer_cover cover env eqns map =
   match cover with
   | (ctx, _, _, m, _) :: cover ->
     let t, eqns, map = infer_tm ctx env eqns map m in
-    let ts, eqns, map = infer_cover cover ctx env eqns map in
+    let ts, eqns, map = infer_cover cover env eqns map in
     (t :: ts, eqns, map)
   | _ -> ([], eqns, map)
 
@@ -320,25 +320,25 @@ and check_cover cover env eqns map a =
     check_cover cover env eqns map a
   | _ -> (eqns, map)
 
-and check_mot cover ctx env eqns map mot =
+and check_mot cover env eqns map mot =
   match (mot, cover) with
   | Mot0, _ -> failwith "check_Mot0"
   | Mot1 abs, (ctx, cns, _, m, _) :: cover ->
     let a = asubst_tm abs cns in
     let eqns, map = check_tm ctx env eqns map m a in
-    check_mot cover ctx env eqns map mot
+    check_mot cover env eqns map mot
   | Mot2 abs, (ctx, _, a, m, _) :: cover ->
     let p, b = unbindp_tm abs in
     let b = substp_tm p b a in
     let eqns, map = check_tm ctx env eqns map m b in
-    check_mot cover ctx env eqns map mot
+    check_mot cover env eqns map mot
   | Mot3 abs, (ctx, cns, a, m, _) :: cover ->
     let x, abs = unbind_ptm abs in
     let p, b = unbindp_tm abs in
     let b = subst_tm x b cns in
     let b = substp_tm p b a in
     let eqns, map = check_tm ctx env eqns map m b in
-    check_mot cover ctx env eqns map mot
+    check_mot cover env eqns map mot
   | _ -> (eqns, map)
 
 let rec infer_dcl ctx env eqns map dcl =
@@ -346,65 +346,42 @@ let rec infer_dcl ctx env eqns map dcl =
   | DTm (_, x, a_opt, m) -> (
     match a_opt with
     | Some a ->
-      let s, eqns, map = infer_sort ctx env eqns map a in
+      let _, eqns, map = infer_sort ctx env eqns map a in
       let eqns, map = check_tm ctx env eqns map m a in
-      let map = UMeta.unify map eqns in
-      let m = UMeta.resolve_tm map m in
-      let a = UMeta.resolve_tm map a in
+      let map = unify map eqns in
+      let m = resolve_tm map m in
+      let a = resolve_tm map a in
       let ctx = add_v x a ctx in
-      if s = U then
-        let env = VMap.add x m env in
-        (ctx, env, eqns, map)
-      else
-        (ctx, env, eqns, map)
+      let env = VMap.add x m env in
+      (ctx, env, eqns, map)
     | None ->
       let a, eqns, map = infer_tm ctx env eqns map m in
       let s, eqns, map = infer_sort ctx env eqns map a in
-      let map = UMeta.unify map eqns in
-      let m = UMeta.resolve_tm map m in
-      let a = UMeta.resolve_tm map a in
+      let map = unify map eqns in
+      let m = resolve_tm map m in
+      let a = resolve_tm map a in
       let ctx = add_v x a ctx in
       if s = U then
         let env = VMap.add x m env in
         (ctx, env, eqns, map)
       else
         (ctx, env, eqns, map))
-  | DFun (_, x, a, abs) ->
-    let s, eqns, map = infer_sort ctx env eqns map a in
-    let y, cls = unbind_cls abs in
-    if s = U then
-      let local_ctx = add_v y a ctx in
-      let prbm = UVar.prbm_of_cls cls in
-      let eqns, map = check_prbm local_ctx env eqns map prbm a in
-      let map = UMeta.unify map eqns in
-      let abs = UMeta.resolve_cls_abs map abs in
-      let a = UMeta.resolve_tm map a in
-      let ctx = add_v x a ctx in
-      let env = VMap.add x (Fun (Some a, abs)) env in
-      (ctx, env, eqns, map)
-    else
-      let prbm = UVar.prbm_of_cls cls in
-      let eqns, map = check_prbm ctx env eqns map prbm a in
-      let map = UMeta.unify map eqns in
-      let a = UMeta.resolve_tm map a in
-      let ctx = add_v x a ctx in
-      (ctx, env, eqns, map)
   | DData (d, ptl, dconss) ->
     let eqns, map = infer_ptl ctx env eqns map ptl U in
-    let map = UMeta.unify map eqns in
-    let ptl = UMeta.resolve_ptl map ptl in
+    let map = unify map eqns in
+    let ptl = resolve_ptl map ptl in
     let ctx = add_d d ptl [] ctx in
     let eqns, map, cs, ctx =
       List.fold_right
         (fun (DCons (c, ptl)) (eqns, map, acc, ctx) ->
           let eqns, map = infer_ptl ctx env eqns map ptl U in
           let _ = param_ptl ptl d [] in
-          let ptl = UMeta.resolve_ptl map ptl in
+          let ptl = resolve_ptl map ptl in
           let ctx = add_c c ptl ctx in
           (eqns, map, c :: acc, ctx))
         dconss (eqns, map, [], ctx)
     in
-    let map = UMeta.unify map eqns in
+    let map = unify map eqns in
     let ctx = add_d d ptl cs ctx in
     (ctx, env, eqns, map)
   | DAtom (_, x, a) ->
@@ -485,4 +462,4 @@ and cmp_sort s1 s2 =
 let elab_dcls dcls =
   let ctx = { vs = VMap.empty; ds = DMap.empty; cs = CMap.empty } in
   let _, map = infer_dcls ctx VMap.empty [] MMap.empty dcls in
-  UMeta.resolve_dcls map dcls
+  resolve_dcls map dcls
