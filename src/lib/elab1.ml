@@ -305,6 +305,14 @@ and coverage ctx env eqns map cls cs ms =
     | _ -> failwith "")
   | _ -> failwith ""
 
+and infer_cover cover ctx env eqns map =
+  match cover with
+  | (ctx, _, _, m, _) :: cover ->
+    let t, eqns, map = infer_tm ctx env eqns map m in
+    let ts, eqns, map = infer_cover cover ctx env eqns map in
+    (t :: ts, eqns, map)
+  | _ -> ([], eqns, map)
+
 and check_cover cover env eqns map a =
   match cover with
   | (ctx, _, _, m, _) :: cover ->
@@ -312,25 +320,25 @@ and check_cover cover env eqns map a =
     check_cover cover env eqns map a
   | _ -> (eqns, map)
 
-and check_motive cover ctx env eqns map mot =
+and check_mot cover ctx env eqns map mot =
   match (mot, cover) with
   | Mot0, _ -> failwith "check_Mot0"
   | Mot1 abs, (ctx, cns, _, m, _) :: cover ->
     let a = asubst_tm abs cns in
     let eqns, map = check_tm ctx env eqns map m a in
-    check_motive cover ctx env eqns map mot
+    check_mot cover ctx env eqns map mot
   | Mot2 abs, (ctx, _, a, m, _) :: cover ->
     let p, b = unbindp_tm abs in
     let b = substp_tm p b a in
     let eqns, map = check_tm ctx env eqns map m b in
-    check_motive cover ctx env eqns map mot
+    check_mot cover ctx env eqns map mot
   | Mot3 abs, (ctx, cns, a, m, _) :: cover ->
     let x, abs = unbind_ptm abs in
     let p, b = unbindp_tm abs in
     let b = subst_tm x b cns in
     let b = substp_tm p b a in
     let eqns, map = check_tm ctx env eqns map m b in
-    check_motive cover ctx env eqns map mot
+    check_mot cover ctx env eqns map mot
   | _ -> (eqns, map)
 
 let rec infer_dcl ctx env eqns map dcl =
