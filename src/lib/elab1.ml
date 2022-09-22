@@ -119,17 +119,13 @@ and infer_tm ctx env eqns map = function
     | _ -> (fst (meta_mk ctx), eqns, map))
   | Let (_, m, abs) ->
     let a, eqns, map = infer_tm ctx env eqns map m in
-    let s, eqns, map = infer_sort ctx env eqns map a in
+    let _, eqns, map = infer_sort ctx env eqns map a in
     let map = unify map eqns in
     let m = resolve_tm map m in
     let a = resolve_tm map a in
     let x, n = unbind_tm abs in
     let ctx = add_v x a ctx in
-    let env =
-      match s with
-      | U -> VMap.add x m env
-      | L -> env
-    in
+    let env = VMap.add x m env in
     infer_tm ctx env eqns map n
   | Data (d, ms) ->
     let ptl, _ = find_d d ctx in
@@ -146,10 +142,13 @@ and infer_tm ctx env eqns map = function
       let _, cs = find_d d ctx in
       let cover, eqns, map = coverage ctx env eqns map cls cs ms in
       match mot with
-      | Mot0 ->
+      | Mot0 -> (
         let ms, eqns, map = infer_cover cover env eqns map in
-        let eqns = List.fold_left (fun acc n -> (env, m, n) :: acc) eqns ms in
-        (m, eqns, map)
+        match ms with
+        | [] -> failwith "infer_Mot0"
+        | m :: ms ->
+          let eqns = List.fold_left (fun acc n -> (env, m, n) :: acc) eqns ms in
+          (m, eqns, map))
       | Mot1 abs ->
         let a = asubst_tm abs m in
         let eqns, map = check_mot cover env eqns map mot in
@@ -303,7 +302,10 @@ and coverage ctx env eqns map cls cs ms =
       let cs, eqns, map = coverage ctx env eqns map cls cs ms in
       ((ctx, cns, a, m, ss) :: cs, eqns, map)
     | _ -> failwith "")
-  | _ -> failwith ""
+  | [] -> (
+    match cs with
+    | [] -> ([], eqns, map)
+    | _ -> failwith "coverage")
 
 and infer_cover cover env eqns map =
   match cover with
