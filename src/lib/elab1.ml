@@ -205,7 +205,6 @@ and check_tm ctx env eqns map m a =
     match whnf rd_all env a with
     | Pi (_, _, a, abs) ->
       let b = asubst_tm abs (Var x) in
-      let _, eqns, map = infer_sort ctx env eqns map a in
       check_tm (add_v x a ctx) env eqns map m b
     | _ -> failwith "check_Lam(%a)" pp_tm m)
   | Let (r, m, abs) ->
@@ -301,7 +300,7 @@ and coverage ctx env eqns map cls cs ms =
       let m = resolve_tm map m in
       let cs, eqns, map = coverage ctx env eqns map cls cs ms in
       ((ctx, cns, a, m, ss) :: cs, eqns, map)
-    | _ -> failwith "")
+    | _ -> failwith "coverage")
   | [] -> (
     match cs with
     | [] -> ([], eqns, map)
