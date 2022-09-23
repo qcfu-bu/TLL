@@ -447,11 +447,11 @@ let rec resolve_tl map tl =
 let rec resolve_ptl map ptl =
   match ptl with
   | PBase tl -> PBase (resolve_tl map tl)
-  | PBind (r, a, abs) ->
+  | PBind (a, abs) ->
     let x, ptl = unbind_ptl abs in
     let a = resolve_tm map a in
     let ptl = resolve_ptl map ptl in
-    PBind (r, a, bind_ptl x ptl)
+    PBind (a, bind_ptl x ptl)
 
 let resolve_dcons map (DCons (c, ptl)) = DCons (c, resolve_ptl map ptl)
 

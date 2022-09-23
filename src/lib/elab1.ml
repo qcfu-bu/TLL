@@ -68,13 +68,6 @@ let assert_equal env eqns map m n =
   else
     ((env, m, n) :: eqns, map)
 
-let has_failed f =
-  try
-    let _ = f () in
-    false
-  with
-  | _ -> true
-
 let rec infer_sort ctx env eqns map a =
   let srt, eqns, map = infer_tm ctx env eqns map a in
   let srt = resolve_tm map srt in
@@ -178,7 +171,7 @@ and infer_tm ctx env eqns map = function
 
 and check_ptl ctx env eqns map ms ptl =
   match (ms, ptl) with
-  | m :: ms, PBind (_, a, abs) ->
+  | m :: ms, PBind (a, abs) ->
     let _, eqns, map = infer_sort ctx env eqns map a in
     let eqns, map = check_tm ctx env eqns map m a in
     check_ptl ctx env eqns map ms (asubst_ptl abs (Ann (a, m)))
@@ -221,7 +214,7 @@ and check_tm ctx env eqns map m a =
         List.fold_left
           (fun ptl n ->
             match ptl with
-            | PBind (_, a, abs) -> asubst_ptl abs (Ann (a, n))
+            | PBind (a, abs) -> asubst_ptl abs (Ann (a, n))
             | PBase _ -> ptl)
           ptl ns
       in
@@ -245,13 +238,18 @@ and check_tm ctx env eqns map m a =
     | _ ->
       let b, eqns, map = infer_tm ctx env eqns map (Match (m, mot, cls)) in
       assert_equal env eqns map a b)
+  | Fix abs ->
+    let x, m = unbind_tm abs in
+    let _, eqns, map = infer_sort ctx env eqns map a in
+    let ctx = add_v x a ctx in
+    check_tm ctx env eqns map m a
   | _ ->
     let b, eqns, map = infer_tm ctx env eqns map m in
     assert_equal env eqns map a b
 
 and tl_of_ptl ptl ns =
   match (ptl, ns) with
-  | PBind (_, a, abs), n :: ns ->
+  | PBind (a, abs), n :: ns ->
     let ptl = asubst_ptl abs (Ann (a, n)) in
     tl_of_ptl ptl ns
   | PBase tl, _ -> tl
@@ -273,7 +271,7 @@ and coverage ctx env eqns map cls cs ms =
   in
   let rec arity_ptl ctx eqns map a ms xs =
     match (a, ms) with
-    | PBind (_, a, abs), m :: ms ->
+    | PBind (a, abs), m :: ms ->
       let b = asubst_ptl abs (Ann (m, a)) in
       arity_ptl ctx eqns map b ms xs
     | PBase a, _ -> arity_tl ctx eqns map a xs
@@ -281,25 +279,25 @@ and coverage ctx env eqns map cls cs ms =
   and arity_tl ctx eqns map a xs =
     match (a, xs) with
     | TBind (_, a, abs), x :: xs ->
-      let s, eqns, map = infer_sort ctx env eqns map a in
+      let _, eqns, map = infer_sort ctx env eqns map a in
       let ctx = add_v x a ctx in
       let b = asubst_tl abs (Var x) in
-      let ctx, b, ss, eqns, map = arity_tl ctx eqns map b xs in
-      (ctx, b, (x, s) :: ss, eqns, map)
-    | TBase a, [] -> (ctx, a, [], eqns, map)
+      let ctx, b, eqns, map = arity_tl ctx eqns map b xs in
+      (ctx, b, eqns, map)
+    | TBase a, [] -> (ctx, a, eqns, map)
     | _ -> failwith "arity_tl"
   in
   match cls with
   | cl :: cls -> (
-    let p, m = unbindp_tm cl in
+    let p, rhs = unbindp_tm cl in
     match p with
     | PCons (c, xs) ->
       let cns = tm_of_p p in
       let ptl, cs = remove_c c ctx cs in
-      let ctx, a, ss, eqns, map = arity_ptl ctx eqns map ptl ms xs in
-      let m = resolve_tm map m in
+      let ctx, a, eqns, map = arity_ptl ctx eqns map ptl ms xs in
+      let rhs = resolve_tm map rhs in
       let cs, eqns, map = coverage ctx env eqns map cls cs ms in
-      ((ctx, cns, a, m, ss) :: cs, eqns, map)
+      ((ctx, cns, a, rhs) :: cs, eqns, map)
     | _ -> failwith "coverage")
   | [] -> (
     match cs with
@@ -308,32 +306,32 @@ and coverage ctx env eqns map cls cs ms =
 
 and infer_cover cover env eqns map =
   match cover with
-  | (ctx, _, _, m, _) :: cover ->
-    let t, eqns, map = infer_tm ctx env eqns map m in
+  | (ctx, _, _, rhs) :: cover ->
+    let t, eqns, map = infer_tm ctx env eqns map rhs in
     let ts, eqns, map = infer_cover cover env eqns map in
     (t :: ts, eqns, map)
   | _ -> ([], eqns, map)
 
 and check_cover cover env eqns map a =
   match cover with
-  | (ctx, _, _, m, _) :: cover ->
-    let eqns, map = check_tm ctx env eqns map m a in
+  | (ctx, _, _, rhs) :: cover ->
+    let eqns, map = check_tm ctx env eqns map rhs a in
     check_cover cover env eqns map a
   | _ -> (eqns, map)
 
 and check_mot cover env eqns map mot =
   match (mot, cover) with
   | Mot0, _ -> failwith "check_Mot0"
-  | Mot1 abs, (ctx, cns, _, m, _) :: cover ->
+  | Mot1 abs, (ctx, cns, _, rhs) :: cover ->
     let a = asubst_tm abs cns in
-    let eqns, map = check_tm ctx env eqns map m a in
+    let eqns, map = check_tm ctx env eqns map rhs a in
     check_mot cover env eqns map mot
-  | Mot2 abs, (ctx, _, a, m, _) :: cover ->
+  | Mot2 abs, (ctx, _, a, m) :: cover ->
     let p, b = unbindp_tm abs in
     let b = substp_tm p b a in
     let eqns, map = check_tm ctx env eqns map m b in
     check_mot cover env eqns map mot
-  | Mot3 abs, (ctx, cns, a, m, _) :: cover ->
+  | Mot3 abs, (ctx, cns, a, m) :: cover ->
     let x, abs = unbind_ptm abs in
     let p, b = unbindp_tm abs in
     let b = subst_tm x b cns in
@@ -399,7 +397,7 @@ and infer_dcls ctx env eqns map dcls =
 and param_ptl ptl d xs =
   match ptl with
   | PBase a -> param_tl a d (List.rev xs)
-  | PBind (_, _, abs) ->
+  | PBind (_, abs) ->
     let x, ptl = unbind_ptl abs in
     param_ptl ptl d (x :: xs)
 
@@ -444,7 +442,7 @@ and infer_tl ctx env eqns map tl s =
 and infer_ptl ctx env eqns map ptl s =
   match ptl with
   | PBase tl -> infer_tl ctx env eqns map tl s
-  | PBind (_, a, abs) ->
+  | PBind (a, abs) ->
     let x, ptl = unbind_ptl abs in
     let t, eqns, map = infer_sort ctx env eqns map a in
     let ctx = add_v x a ctx in

@@ -101,11 +101,9 @@ and pp_cls fmt cls =
 
 let rec pp_ptl fmt = function
   | PBase tl -> pf fmt ":@;<1 2>%a" pp_tl tl
-  | PBind (r, a, abs) -> (
+  | PBind (a, abs) ->
     let x, ptl = unbind_ptl abs in
-    match r with
-    | N -> pf fmt "{%a : %a} %a" V.pp x pp_tm a pp_ptl ptl
-    | R -> pf fmt "(%a : %a) %a" V.pp x pp_tm a pp_ptl ptl)
+    pf fmt "(%a : %a) %a" V.pp x pp_tm a pp_ptl ptl
 
 and pp_tl fmt = function
   | TBase b -> pp_tm fmt b

@@ -59,7 +59,7 @@ and dconss = dcons list
 
 and ptl =
   | PBase of tl
-  | PBind of rel * tm * (V.t, ptl) abs
+  | PBind of tm * (V.t, ptl) abs
 
 and tl =
   | TBase of tm
@@ -232,10 +232,10 @@ let rec bindn_ptl k xs ptl =
   let rec aux k ptl =
     match ptl with
     | PBase tl -> PBase (bindn_tl k xs tl)
-    | PBind (r, a, Abs (x, ptl)) ->
+    | PBind (a, Abs (x, ptl)) ->
       let a = bindn_tm k xs a in
       let ptl = aux (k + 1) ptl in
-      PBind (r, a, Abs (x, ptl))
+      PBind (a, Abs (x, ptl))
   in
   aux k ptl
 
@@ -259,10 +259,10 @@ let rec unbindn_ptl k xs ptl =
   let rec aux k ptl =
     match ptl with
     | PBase tl -> PBase (unbindn_tl k xs tl)
-    | PBind (r, a, Abs (x, ptl)) ->
+    | PBind (a, Abs (x, ptl)) ->
       let a = unbindn_tm k xs a in
       let ptl = aux (k + 1) ptl in
-      PBind (r, a, Abs (x, ptl))
+      PBind (a, Abs (x, ptl))
   in
   aux k ptl
 
