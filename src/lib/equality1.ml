@@ -40,7 +40,7 @@ let rec whnf rds env = function
     let n = whnf rds env n in
     if List.exists (( = ) Beta) rds then
       match m with
-      | Lam abs -> whnf rds env (asubst_tm abs n)
+      | Lam (_, _, abs) -> whnf rds env (asubst_tm abs n)
       | Fix abs -> whnf rds env (App (asubst_tm abs m, n))
       | _ -> App (m, n)
     else
@@ -92,7 +92,8 @@ let rec aeq m1 m2 =
     | Var x1, Var x2 -> V.equal x1 x2
     | Pi (r1, s1, a1, abs1), Pi (r2, s2, a2, abs2) ->
       r1 = r2 && s1 = s2 && aeq a1 a2 && equal_abs aeq abs1 abs2
-    | Lam abs1, Lam abs2 -> equal_abs aeq abs1 abs2
+    | Lam (r1, s1, abs1), Lam (r2, s2, abs2) ->
+      r1 = r2 && s1 = s2 && equal_abs aeq abs1 abs2
     | App (m1, n1), App (m2, n2) -> aeq m1 m2 && aeq n1 n2
     | Let (r1, m1, abs1), Let (r2, m2, abs2) ->
       r1 = r2 && aeq m1 m2 && equal_abs aeq abs1 abs2
@@ -118,7 +119,8 @@ let rec equal rds env m1 m2 =
     | Pi (r1, s1, a1, abs1), Pi (r2, s2, a2, abs2) ->
       r1 = r2 && s1 = s2 && equal rds env a1 a2
       && equal_abs (equal rds env) abs1 abs2
-    | Lam abs1, Lam abs2 -> equal_abs (equal rds env) abs1 abs2
+    | Lam (r1, s1, abs1), Lam (r2, s2, abs2) ->
+      r1 = r2 && s1 = s2 && equal_abs (equal rds env) abs1 abs2
     | App (m1, n1), App (m2, n2) -> equal rds env m1 m2 && equal rds env n1 n2
     | Let (r1, m1, abs1), Let (r2, m2, abs2) ->
       r1 = r2 && equal rds env m1 m2 && equal_abs (equal rds env) abs1 abs2

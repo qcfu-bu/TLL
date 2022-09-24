@@ -6,20 +6,47 @@ let rec pp_p fmt p =
   match p with
   | PVar x -> V.pp fmt x
   | PData (d, []) -> D.pp fmt d
-  | PData (d, xs) -> pf fmt "(%a%a)" D.pp d pp_xs xs
+  | PData (d, xs) -> pf fmt "(%a %a)" D.pp d pp_xs xs
   | PCons (c, []) -> C.pp fmt c
-  | PCons (c, xs) -> pf fmt "(%a%a)" C.pp c pp_xs xs
+  | PCons (c, xs) -> pf fmt "(%a %a)" C.pp c pp_xs xs
 
 and pp_xs fmt = function
   | [] -> ()
-  | [ x ] -> pf fmt " %a" V.pp x
-  | x :: xs -> pf fmt " %a%a" V.pp x pp_xs xs
+  | [ x ] -> pf fmt "%a" V.pp x
+  | x :: xs -> pf fmt "%a %a" V.pp x pp_xs xs
 
-let rec gather = function
-  | Lam abs ->
-    let x, m = unbind_tm abs in
-    let xs, m = gather m in
-    (x :: xs, m)
+let rec rel_gather r rxs =
+  match rxs with
+  | [] -> ([], [])
+  | (r', x) :: rxs' ->
+    if r' = r then
+      let xs, rxs = rel_gather r rxs' in
+      (x :: xs, rxs)
+    else
+      ([], rxs)
+
+let rec pp_rxs fmt = function
+  | [] -> ()
+  | [ (r, x) ] -> (
+    match r with
+    | N -> pf fmt "{%a}" V.pp x
+    | R -> pf fmt "%a" V.pp x)
+  | (r, x) :: rxs -> (
+    let xs, rxs = rel_gather r rxs in
+    let xs = x :: xs in
+    match r with
+    | N -> pf fmt "{%a} %a" pp_xs xs pp_rxs rxs
+    | R -> pf fmt "%a %a" pp_xs xs pp_rxs rxs)
+
+let rec lam_gather s m =
+  match m with
+  | Lam (r, t, abs) ->
+    if s = t then
+      let x, m = unbind_tm abs in
+      let rxs, m = lam_gather s m in
+      ((r, x) :: rxs, m)
+    else
+      ([], m)
   | m -> ([], m)
 
 let rec pp_tm fmt = function
@@ -42,10 +69,13 @@ let rec pp_tm fmt = function
     | R, L, false -> pf fmt "@[%a -o@;<1 2>%a@]" pp_tm a pp_tm b
     | R, L, true ->
       pf fmt "@[@[∀ (%a :@;<1 2>%a) -o@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b)
-  | Lam abs ->
+  | Lam (r, s, abs) -> (
     let x, m = unbind_tm abs in
-    let xs, m = gather m in
-    pf fmt "@[fun %a%a =>@;<1 2>%a@]" V.pp x pp_xs xs pp_tm m
+    let rxs, m = lam_gather s m in
+    let rxs = (r, x) :: rxs in
+    match s with
+    | U -> pf fmt "@[fun %a =>@;<1 2>%a@]" pp_rxs rxs pp_tm m
+    | L -> pf fmt "@[lin %a =>@;<1 2>%a@]" pp_rxs rxs pp_tm m)
   | App _ as m ->
     let m, ms = unApps m in
     pf fmt "@[((%a)@;<1 2>@[%a@])@]" pp_tm m (list ~sep:sp pp_tm) ms
@@ -71,8 +101,9 @@ let rec pp_tm fmt = function
       mot pp_cls cls
   | Fix m ->
     let x, m = unbind_tm m in
-    let xs, m = gather m in
-    pf fmt "@[fix %a%a =>@;<1 2>%a@]" V.pp x pp_xs xs pp_tm m
+    let rxs, m = lam_gather U m in
+    let rxs = (R, x) :: rxs in
+    pf fmt "@[fix %a =>@;<1 2>%a@]" pp_rxs rxs pp_tm m
 
 and pp_tms fmt ms = pf fmt "[%a]" (list ~sep:semi pp_tm) ms
 

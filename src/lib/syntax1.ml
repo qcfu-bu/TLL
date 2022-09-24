@@ -20,7 +20,7 @@ and tm =
   | Type of srt
   | Var of V.t
   | Pi of rel * srt * tm * (V.t, tm) abs
-  | Lam of (V.t, tm) abs
+  | Lam of rel * srt * (V.t, tm) abs
   | App of tm * tm
   | Let of rel * tm * (V.t, tm) abs
   (* inductive *)
@@ -107,9 +107,9 @@ let bindn_tm k xs m =
       let a = aux k a in
       let b = aux (k + 1) b in
       Pi (r, s, a, Abs (x, b))
-    | Lam (Abs (x, m)) ->
+    | Lam (r, s, Abs (x, m)) ->
       let m = aux (k + 1) m in
-      Lam (Abs (x, m))
+      Lam (r, s, Abs (x, m))
     | App (m, n) ->
       let m = aux k m in
       let n = aux k n in
@@ -177,9 +177,9 @@ let unbindn_tm k xs m =
       let a = aux k a in
       let b = aux (k + 1) b in
       Pi (r, s, a, Abs (x, b))
-    | Lam (Abs (x, m)) ->
+    | Lam (r, s, Abs (x, m)) ->
       let m = aux (k + 1) m in
-      Lam (Abs (x, m))
+      Lam (r, s, Abs (x, m))
     | App (m, n) ->
       let m = aux k m in
       let n = aux k n in
@@ -375,8 +375,8 @@ let substp_tm p m n =
   unbindn_tm 0 ns (bindn_tm 0 xs m)
 
 let subst_tm x m n = unbindn_tm 0 [ n ] (bindn_tm 0 [ x ] m)
-let lam x m = Lam (bind_tm x m)
-let mLam xs m = List.fold_right lam xs m
+let lam r s x m = Lam (r, s, bind_tm x m)
+let mLam r s xs m = List.fold_right (lam r s) xs m
 
 let rec fold_tl f acc tl =
   match tl with
@@ -407,7 +407,7 @@ let rec occurs_tm x = function
   | Pi (_, _, a, abs) ->
     let _, b = unbind_tm abs in
     occurs_tm x a || occurs_tm x b
-  | Lam abs ->
+  | Lam (_, _, abs) ->
     let _, m = unbind_tm abs in
     occurs_tm x m
   | App (m, n) -> occurs_tm x m || occurs_tm x n

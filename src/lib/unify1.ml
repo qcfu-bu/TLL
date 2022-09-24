@@ -40,7 +40,7 @@ let rec fv ctx = function
     let fv1 = fv ctx a in
     let fv2 = fv (VSet.add x ctx) b in
     VSet.union fv1 fv2
-  | Lam abs ->
+  | Lam (_, _, abs) ->
     let x, m = unbind_tm abs in
     fv (VSet.add x ctx) m
   | App (m, n) -> VSet.union (fv ctx m) (fv ctx n)
@@ -95,7 +95,7 @@ let rec occurs x = function
   | Pi (_, _, a, abs) ->
     let _, b = unbind_tm abs in
     occurs x a || occurs x b
-  | Lam abs ->
+  | Lam (_, _, abs) ->
     let _, m = unbind_tm abs in
     occurs x m
   | App (m, n) -> occurs x m || occurs x n
@@ -175,9 +175,12 @@ let rec asimpl (env, m1, m2) =
           eqns1 @ eqns2
         else
           failwith "asimpl(%a, %a)" pp_tm h1 pp_tm h2
-      | Lam abs1, Lam abs2 ->
-        let _, m1, m2 = unbind2_tm abs1 abs2 in
-        asimpl (env, m1, m2)
+      | Lam (r1, s1, abs1), Lam (r2, s2, abs2) ->
+        if r1 = r2 && s1 = s2 then
+          let _, m1, m2 = unbind2_tm abs1 abs2 in
+          asimpl (env, m1, m2)
+        else
+          failwith "asimpl(%a, %a)" pp_tm h1 pp_tm h2
       | Let (r1, e1, abs1), Let (r2, e2, abs2) ->
         if r1 = r2 then
           let _, n1, n2 = unbind2_tm abs1 abs2 in
@@ -280,9 +283,12 @@ let rec simpl (env, m1, m2) =
           eqns1 @ eqns2
         else
           failwith "umeta_simpl(%a, %a)" pp_tm h1 pp_tm h2
-      | Lam abs1, Lam abs2 ->
-        let _, m1, m2 = unbind2_tm abs1 abs2 in
-        simpl (env, m1, m2)
+      | Lam (r1, s1, abs1), Lam (r2, s2, abs2) ->
+        if r1 = r2 && s1 = s2 then
+          let _, m1, m2 = unbind2_tm abs1 abs2 in
+          simpl (env, m1, m2)
+        else
+          failwith "umeta_simpl(%a, %a)" pp_tm h1 pp_tm h2
       | Let (r1, e1, abs1), Let (r2, e2, abs2) ->
         if r1 = r2 then
           let _, n1, n2 = unbind2_tm abs1 abs2 in
@@ -358,7 +364,7 @@ let solve map (env, m1, m2) =
       let xs = meta_spine xs in
       let ctx = fv VSet.empty m2 in
       if VSet.subset ctx (VSet.of_list xs) then
-        let m = mLam xs m2 in
+        let m = mLam R U xs m2 in
         MMap.add x (Some m, None) map
       else
         failwith "solve0(%a{%a} ?= %a)" pp_tm m1 V.pps xs pp_tm m2
@@ -383,10 +389,10 @@ let rec resolve_tm map m =
     let a = resolve_tm map a in
     let b = resolve_tm map b in
     Pi (r, s, a, bind_tm x b)
-  | Lam abs ->
+  | Lam (r, s, abs) ->
     let x, m = unbind_tm abs in
     let m = resolve_tm map m in
-    Lam (bind_tm x m)
+    Lam (r, s, bind_tm x m)
   | App (m, n) ->
     let m = resolve_tm map m in
     let n = resolve_tm map n in

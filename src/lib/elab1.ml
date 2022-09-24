@@ -130,27 +130,30 @@ and infer_tm ctx env eqns map = function
     let a, eqns, map = infer_tm ctx env eqns map m in
     let map = unify map eqns in
     let a = resolve_tm map a in
-    match whnf rd_all env a with
+    let a = whnf rd_all env a in
+    match a with
     | Data (d, ms) -> (
       let _, cs = find_d d ctx in
       let cover, eqns, map = coverage ctx env eqns map cls cs ms in
       match mot with
       | Mot0 -> (
-        let ms, eqns, map = infer_cover cover env eqns map in
-        match ms with
+        let ts, eqns, map = infer_cover cover env eqns map in
+        match ts with
         | [] -> failwith "infer_Mot0"
-        | m :: ms ->
-          let eqns = List.fold_left (fun acc n -> (env, m, n) :: acc) eqns ms in
-          (m, eqns, map))
+        | t0 :: ts ->
+          let eqns =
+            List.fold_left (fun acc t -> (env, t0, t) :: acc) eqns ts
+          in
+          (t0, eqns, map))
       | Mot1 abs ->
-        let a = asubst_tm abs m in
+        let b = asubst_tm abs m in
         let eqns, map = check_mot cover env eqns map mot in
-        (a, eqns, map)
+        (b, eqns, map)
       | Mot2 abs ->
-        let p, a = unbindp_tm abs in
-        let a = substp_tm p a m in
+        let p, b = unbindp_tm abs in
+        let b = substp_tm p b a in
         let eqns, map = check_mot cover env eqns map mot in
-        (a, eqns, map)
+        (b, eqns, map)
       | Mot3 abs ->
         let x, abs = unbind_ptm abs in
         let p, b = unbindp_tm abs in
@@ -192,11 +195,11 @@ and check_tl ctx env eqns map ms tl =
 and check_tm ctx env eqns map m a =
   match m with
   | Meta (x, _) -> (eqns, add_m x a map)
-  | Lam abs -> (
+  | Lam (r1, s1, abs) -> (
     let x, m = unbind_tm abs in
     let a = resolve_tm map a in
     match whnf rd_all env a with
-    | Pi (_, _, a, abs) ->
+    | Pi (r2, s2, a, abs) when r1 = r2 && s1 = s2 ->
       let b = asubst_tm abs (Var x) in
       check_tm (add_v x a ctx) env eqns map m b
     | _ -> failwith "check_Lam(%a)" pp_tm m)
@@ -268,8 +271,7 @@ and coverage ctx env eqns map cls cs ms =
         let a, cs = remove_c k ctx cs in
         (a, c :: cs)
     | _ -> failwith "remove_c(%a)" C.pp k
-  in
-  let rec arity_ptl ctx eqns map a ms xs =
+  and arity_ptl ctx eqns map a ms xs =
     match (a, ms) with
     | PBind (a, abs), m :: ms ->
       let b = asubst_ptl abs (Ann (m, a)) in
@@ -296,8 +298,8 @@ and coverage ctx env eqns map cls cs ms =
       let ptl, cs = remove_c c ctx cs in
       let ctx, a, eqns, map = arity_ptl ctx eqns map ptl ms xs in
       let rhs = resolve_tm map rhs in
-      let cs, eqns, map = coverage ctx env eqns map cls cs ms in
-      ((ctx, cns, a, rhs) :: cs, eqns, map)
+      let cover, eqns, map = coverage ctx env eqns map cls cs ms in
+      ((ctx, cns, a, rhs) :: cover, eqns, map)
     | _ -> failwith "coverage")
   | [] -> (
     match cs with
@@ -326,17 +328,17 @@ and check_mot cover env eqns map mot =
     let a = asubst_tm abs cns in
     let eqns, map = check_tm ctx env eqns map rhs a in
     check_mot cover env eqns map mot
-  | Mot2 abs, (ctx, _, a, m) :: cover ->
+  | Mot2 abs, (ctx, _, a, rhs) :: cover ->
     let p, b = unbindp_tm abs in
     let b = substp_tm p b a in
-    let eqns, map = check_tm ctx env eqns map m b in
+    let eqns, map = check_tm ctx env eqns map rhs b in
     check_mot cover env eqns map mot
-  | Mot3 abs, (ctx, cns, a, m) :: cover ->
+  | Mot3 abs, (ctx, cns, a, rhs) :: cover ->
     let x, abs = unbind_ptm abs in
     let p, b = unbindp_tm abs in
     let b = subst_tm x b cns in
     let b = substp_tm p b a in
-    let eqns, map = check_tm ctx env eqns map m b in
+    let eqns, map = check_tm ctx env eqns map rhs b in
     check_mot cover env eqns map mot
   | _ -> (eqns, map)
 
