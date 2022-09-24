@@ -326,7 +326,53 @@ and check_tm ctx env m a =
     let _ = Statype1.assert_equal env a b in
     (m_elab, usage)
 
-and coverage ctx env cls cs ms = failwith "TODO"
+and coverage ctx env cls cs ms =
+  let rec tm_of_p = function
+    | PVar x -> Var x
+    | PData (d, xs) -> Data (d, List.map var xs)
+    | PCons (c, xs) -> Cons (c, List.map var xs)
+  and remove_c k ctx = function
+    | c :: cs ->
+      if C.equal k c then
+        (find_c c ctx, cs)
+      else
+        let a, cs = remove_c k ctx cs in
+        (a, c :: cs)
+    | _ -> failwith "remove_c(%a)" C.pp k
+  and arity_ptl ctx a ms xs =
+    match (a, ms) with
+    | PBind (a, abs), m :: ms ->
+      let b = asubst_ptl abs (Ann (m, a)) in
+      arity_ptl ctx b ms xs
+    | PBase a, _ -> arity_tl ctx a xs
+    | _ -> failwith "arity_ptl"
+  and arity_tl ctx a xs =
+    match (a, xs) with
+    | TBind (r, a, abs), x :: xs ->
+      let s = Statype1.infer_sort ctx env a in
+      let ctx = add_v x s a ctx in
+      let tl = asubst_tl abs (Var x) in
+      let ctx, b, rsx = arity_tl ctx tl xs in
+      (ctx, b, (r, s, x) :: rsx)
+    | TBase a, [] -> (ctx, a, [])
+    | _ -> failwith "arity_tl"
+  in
+  match cls with
+  | cl :: cls -> (
+    let p, rhs = unbindp_tm cl in
+    match p with
+    | PCons (c, xs) ->
+      let cns = tm_of_p p in
+      let ptl, cs = remove_c c ctx cs in
+      let ctx, a, rsx = arity_ptl ctx ptl ms xs in
+      let cover = coverage ctx env cls cs ms in
+      (ctx, cns, a, c, rsx, rhs) :: cover
+    | _ -> failwith "coverage")
+  | [] -> (
+    match cs with
+    | [] -> []
+    | _ -> failwith "coverage")
+
 and infer_cover cover env = failwith "TODO"
 and check_cover cover ctx env a = failwith "TODO"
 and check_mot cover env mot = failwith "TODO"

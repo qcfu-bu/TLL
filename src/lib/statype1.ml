@@ -211,8 +211,8 @@ and coverage ctx env cls cs ms =
     | TBind (_, a, abs), x :: xs ->
       let s = infer_sort ctx env a in
       let ctx = add_v x s a ctx in
-      let b = asubst_tl abs (Var x) in
-      let ctx, b = arity_tl ctx b xs in
+      let tl = asubst_tl abs (Var x) in
+      let ctx, b = arity_tl ctx tl xs in
       (ctx, b)
     | TBase a, [] -> (ctx, a)
     | _ -> failwith "arity_tl"
