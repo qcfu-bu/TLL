@@ -126,7 +126,7 @@ let rec infer_tm ctx env m =
       let cover = coverage ctx env cls cs ms in
       match mot with
       | Mot0 -> (
-        let cls_elab, usages = infer_cover cover ctx env in
+        let cls_elab, usages = infer_cover cover env in
         match usages with
         | [] -> failwith "infer_Mot0"
         | (t0, usage0) :: usages ->
@@ -149,14 +149,10 @@ let rec infer_tm ctx env m =
           let usage2 = usage_of_ctx ctx in
           let usage = merge usage1 usage2 in
           (b, Syntax2.(Match (trans_sort s, m_elab, cls_elab)), usage)
-        | (t0, usage0) :: usages ->
+        | usage0 :: usages ->
           let usage2 =
             List.fold_left
-              (fun usage0 (t, usage) ->
-                if equal rd_all env t0 t then
-                  refine_equal usage0 usage
-                else
-                  failwith "infer_Mot1")
+              (fun usage0 usage -> refine_equal usage0 usage)
               usage0 usages
           in
           let usage = merge usage1 usage2 in
@@ -170,14 +166,10 @@ let rec infer_tm ctx env m =
           let usage2 = usage_of_ctx ctx in
           let usage = merge usage1 usage2 in
           (b, Syntax2.(Match (trans_sort s, m_elab, cls_elab)), usage)
-        | (t0, usage0) :: usages ->
+        | usage0 :: usages ->
           let usage2 =
             List.fold_left
-              (fun usage0 (t, usage) ->
-                if equal rd_all env t0 t then
-                  refine_equal usage0 usage
-                else
-                  failwith "infer_Mot1")
+              (fun usage0 usage -> refine_equal usage0 usage)
               usage0 usages
           in
           let usage = merge usage1 usage2 in
@@ -193,14 +185,10 @@ let rec infer_tm ctx env m =
           let usage2 = usage_of_ctx ctx in
           let usage = merge usage1 usage2 in
           (b, Syntax2.(Match (trans_sort s, m_elab, cls_elab)), usage)
-        | (t0, usage0) :: usages ->
+        | usage0 :: usages ->
           let usage2 =
             List.fold_left
-              (fun usage0 (t, usage) ->
-                if equal rd_all env t0 t then
-                  refine_equal usage0 usage
-                else
-                  failwith "infer_Mot1")
+              (fun usage0 usage -> refine_equal usage0 usage)
               usage0 usages
           in
           let usage = merge usage1 usage2 in
@@ -295,7 +283,7 @@ and check_tm ctx env m a =
       | Data (d, ms) -> (
         let _, cs = find_d d ctx in
         let cover = coverage ctx env cls cs ms in
-        let cls_elab, usages = check_cover cover ctx env a in
+        let cls_elab, usages = check_cover cover env a in
         match usages with
         | [] ->
           let usage2 = usage_of_ctx ctx in
@@ -373,6 +361,62 @@ and coverage ctx env cls cs ms =
     | [] -> []
     | _ -> failwith "coverage")
 
-and infer_cover cover env = failwith "TODO"
-and check_cover cover ctx env a = failwith "TODO"
-and check_mot cover env mot = failwith "TODO"
+and infer_cover cover env =
+  match cover with
+  | (ctx, _, _, c, rsx, rhs) :: cover ->
+    let a, rhs_elab, usage = infer_tm ctx env rhs in
+    let usage =
+      List.fold_left (fun usage (r, s, x) -> remove x usage r s) usage rsx
+    in
+    let cls_elab, usages = infer_cover cover env in
+    let p = Syntax2.(PCons (c, List.map (fun (_, _, x) -> x) rsx)) in
+    (Syntax2.(bindp_tm p rhs_elab :: cls_elab), (a, usage) :: usages)
+  | _ -> ([], [])
+
+and check_cover cover env a =
+  match cover with
+  | (ctx, _, _, c, rsx, rhs) :: cover ->
+    let rhs_elab, usage = check_tm ctx env rhs a in
+    let usage =
+      List.fold_left (fun usage (r, s, x) -> remove x usage r s) usage rsx
+    in
+    let cls_elab, usages = check_cover cover env a in
+    let p = Syntax2.(PCons (c, List.map (fun (_, _, x) -> x) rsx)) in
+    (Syntax2.(bindp_tm p rhs_elab :: cls_elab), usage :: usages)
+  | _ -> ([], [])
+
+and check_mot cover env mot =
+  match (mot, cover) with
+  | Mot0, _ -> failwith "check_Mot0"
+  | Mot1 abs, (ctx, cns, _, c, rsx, rhs) :: cover ->
+    let b = asubst_tm abs cns in
+    let rhs_elab, usage = check_tm ctx env rhs b in
+    let usage =
+      List.fold_left (fun usage (r, s, x) -> remove x usage r s) usage rsx
+    in
+    let cls_elab, usages = check_mot cover env mot in
+    let p = Syntax2.(PCons (c, List.map (fun (_, _, x) -> x) rsx)) in
+    (Syntax2.(bindp_tm p rhs_elab :: cls_elab), usage :: usages)
+  | Mot2 abs, (ctx, _, a, c, rsx, rhs) :: cover ->
+    let p, b = unbindp_tm abs in
+    let b = substp_tm p b a in
+    let rhs_elab, usage = check_tm ctx env rhs b in
+    let usage =
+      List.fold_left (fun usage (r, s, x) -> remove x usage r s) usage rsx
+    in
+    let cls_elab, usages = check_mot cover env mot in
+    let p = Syntax2.(PCons (c, List.map (fun (_, _, x) -> x) rsx)) in
+    (Syntax2.(bindp_tm p rhs_elab :: cls_elab), usage :: usages)
+  | Mot3 abs, (ctx, cns, a, c, rsx, rhs) :: cover ->
+    let x, abs = unbind_ptm abs in
+    let p, b = unbindp_tm abs in
+    let b = subst_tm x b cns in
+    let b = substp_tm p b a in
+    let rhs_elab, usage = check_tm ctx env rhs b in
+    let usage =
+      List.fold_left (fun usage (r, s, x) -> remove x usage r s) usage rsx
+    in
+    let cls_elab, usages = check_mot cover env mot in
+    let p = Syntax2.(PCons (c, List.map (fun (_, _, x) -> x) rsx)) in
+    (Syntax2.(bindp_tm p rhs_elab :: cls_elab), usage :: usages)
+  | _ -> failwith "TODO"
