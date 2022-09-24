@@ -80,9 +80,9 @@ and infer_tm ctx env m =
                 failwith "infer_Mot0")
             t0 ts)
       | Mot1 abs ->
-        let a = asubst_tm abs m in
+        let b = asubst_tm abs m in
         let _ = check_mot cover env mot in
-        a
+        b
       | Mot2 abs ->
         let p, b = unbindp_tm abs in
         let b = substp_tm p b a in
@@ -95,7 +95,7 @@ and infer_tm ctx env m =
         let b = substp_tm p b a in
         b)
     | _ -> failwith "infer_Match(%a)" pp_tm m)
-  | Fix abs as m -> (
+  | Fix abs -> (
     let _, n = unbind_tm abs in
     match n with
     | Ann (a, _) ->
@@ -170,7 +170,13 @@ and check_tm ctx env m a =
     | _ ->
       let b = infer_tm ctx env (Match (m, mot, cls)) in
       assert_equal env a b)
-  | _ -> failwith "TODO"
+  | Fix abs ->
+    let x, m = unbind_tm abs in
+    let s = infer_sort ctx env a in
+    check_tm (add_v x s a ctx) env m a
+  | _ ->
+    let b = infer_tm ctx env m in
+    assert_equal env a b
 
 and tl_of_ptl ptl ns =
   match (ptl, ns) with

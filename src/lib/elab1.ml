@@ -243,9 +243,7 @@ and check_tm ctx env eqns map m a =
       assert_equal env eqns map a b)
   | Fix abs ->
     let x, m = unbind_tm abs in
-    let _, eqns, map = infer_sort ctx env eqns map a in
-    let ctx = add_v x a ctx in
-    check_tm ctx env eqns map m a
+    check_tm (add_v x a ctx) env eqns map m a
   | _ ->
     let b, eqns, map = infer_tm ctx env eqns map m in
     assert_equal env eqns map a b

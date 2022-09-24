@@ -39,25 +39,27 @@ let refine_equal usage1 usage2 =
       | _ -> failwith "refine_equal")
     usage1 usage2
 
-let assert_empty usage =
-  if VMap.for_all (fun _ (_, b) -> b) usage then
+let assert_pure usage =
+  if VMap.for_all (fun _ (s, b) -> s = U || b) usage then
     ()
   else
-    failwith "assert_empty"
+    failwith "assert_pure"
 
 let remove x usage r s =
   match (r, s) with
   | N, _ ->
-    if VMap.exists (fun y _ -> V.equal x y) usage then
+    if VMap.exists (fun y (_, b) -> V.equal x y && not b) usage then
       failwith "remove(%a)" V.pp x
     else
-      usage
+      VMap.remove x usage
   | R, U -> VMap.remove x usage
   | R, L ->
     if VMap.exists (fun y _ -> V.equal x y) usage then
       VMap.remove x usage
     else
       failwith "remove(%a)" V.pp x
+
+let usage_of_ctx ctx = VMap.map (fun (s, _) -> (s, true)) ctx.vs
 
 let trans_sort = function
   | U -> Syntax2.U
@@ -115,7 +117,216 @@ let rec infer_tm ctx env m =
     let ptl = find_c c ctx in
     let a, ms_elab, usage = check_ptl ctx env ms ptl in
     (a, Syntax2.(Cons (c, ms_elab)), usage)
-  | _ -> failwith "TODO"
+  | Match (m, mot, cls) -> (
+    let a, m_elab, usage1 = infer_tm ctx env m in
+    let s = Statype1.infer_sort ctx env a in
+    match whnf rd_all env a with
+    | Data (d, ms) -> (
+      let _, cs = find_d d ctx in
+      let cover = coverage ctx env cls cs ms in
+      match mot with
+      | Mot0 -> (
+        let cls_elab, usages = infer_cover cover ctx env in
+        match usages with
+        | [] -> failwith "infer_Mot0"
+        | (t0, usage0) :: usages ->
+          let usage2 =
+            List.fold_left
+              (fun usage0 (t, usage) ->
+                if equal rd_all env t0 t then
+                  refine_equal usage0 usage
+                else
+                  failwith "infer_Mot0")
+              usage0 usages
+          in
+          let usage = merge usage1 usage2 in
+          (t0, Syntax2.(Match (trans_sort s, m_elab, cls_elab)), usage))
+      | Mot1 abs -> (
+        let b = asubst_tm abs m in
+        let cls_elab, usages = check_mot cover env mot in
+        match usages with
+        | [] ->
+          let usage2 = usage_of_ctx ctx in
+          let usage = merge usage1 usage2 in
+          (b, Syntax2.(Match (trans_sort s, m_elab, cls_elab)), usage)
+        | (t0, usage0) :: usages ->
+          let usage2 =
+            List.fold_left
+              (fun usage0 (t, usage) ->
+                if equal rd_all env t0 t then
+                  refine_equal usage0 usage
+                else
+                  failwith "infer_Mot1")
+              usage0 usages
+          in
+          let usage = merge usage1 usage2 in
+          (b, Syntax2.(Match (trans_sort s, m_elab, cls_elab)), usage))
+      | Mot2 abs -> (
+        let p, b = unbindp_tm abs in
+        let b = substp_tm p b a in
+        let cls_elab, usages = check_mot cover env mot in
+        match usages with
+        | [] ->
+          let usage2 = usage_of_ctx ctx in
+          let usage = merge usage1 usage2 in
+          (b, Syntax2.(Match (trans_sort s, m_elab, cls_elab)), usage)
+        | (t0, usage0) :: usages ->
+          let usage2 =
+            List.fold_left
+              (fun usage0 (t, usage) ->
+                if equal rd_all env t0 t then
+                  refine_equal usage0 usage
+                else
+                  failwith "infer_Mot1")
+              usage0 usages
+          in
+          let usage = merge usage1 usage2 in
+          (b, Syntax2.(Match (trans_sort s, m_elab, cls_elab)), usage))
+      | Mot3 abs -> (
+        let x, abs = unbind_ptm abs in
+        let p, b = unbindp_tm abs in
+        let b = subst_tm x b m in
+        let b = substp_tm p b a in
+        let cls_elab, usages = check_mot cover env mot in
+        match usages with
+        | [] ->
+          let usage2 = usage_of_ctx ctx in
+          let usage = merge usage1 usage2 in
+          (b, Syntax2.(Match (trans_sort s, m_elab, cls_elab)), usage)
+        | (t0, usage0) :: usages ->
+          let usage2 =
+            List.fold_left
+              (fun usage0 (t, usage) ->
+                if equal rd_all env t0 t then
+                  refine_equal usage0 usage
+                else
+                  failwith "infer_Mot1")
+              usage0 usages
+          in
+          let usage = merge usage1 usage2 in
+          (b, Syntax2.(Match (trans_sort s, m_elab, cls_elab)), usage)))
+    | _ -> failwith "infer_Match(%a)" pp_tm m)
+  | Fix abs -> (
+    let _, n = unbind_tm abs in
+    match n with
+    | Ann (a, _) ->
+      let _ = Statype1.infer_sort ctx env a in
+      let m_elab, usage = check_tm ctx env m a in
+      (a, m_elab, usage)
+    | _ -> failwith "infer_Fix(%a)" pp_tm m)
+  | _ -> failwith "infer_tm(%a)" pp_tm m
 
-and check_tm ctx env m a = failwith "TODO"
-and check_ptl ctx env ms ptl = failwith "TODO"
+and check_ptl ctx env ms ptl =
+  match (ms, ptl) with
+  | m :: ms, PBind (a, abs) ->
+    let _ = Statype1.infer_sort ctx env a in
+    let _ = Statype1.check_tm ctx env m a in
+    let a, ms_elab, usage =
+      check_ptl ctx env ms (asubst_ptl abs (Ann (a, m)))
+    in
+    (a, Syntax2.(Box :: ms_elab), usage)
+  | ms, PBase tl -> check_tl ctx env ms tl
+  | _ -> failwith "check_Ptl(%a, %a)" pp_tms ms pp_ptl ptl
+
+and check_tl ctx env ms tl =
+  match (ms, tl) with
+  | m :: ms, TBind (N, a, abs) ->
+    let _ = Statype1.infer_sort ctx env a in
+    let _ = Statype1.check_tm ctx env m a in
+    let a, ms_elab, usage = check_tl ctx env ms (asubst_tl abs (Ann (a, m))) in
+    (a, Syntax2.(Box :: ms_elab), usage)
+  | m :: ms, TBind (R, a, abs) ->
+    let _ = Statype1.infer_sort ctx env a in
+    let m_elab, usage1 = check_tm ctx env m a in
+    let a, ms_elab, usage2 = check_tl ctx env ms (asubst_tl abs (Ann (a, m))) in
+    (a, m_elab :: ms_elab, merge usage1 usage2)
+  | [], TBase a ->
+    let _ = Statype1.infer_sort ctx env a in
+    (a, [], VMap.empty)
+  | _ -> failwith "check_Tl(%a, %a)" pp_tms ms pp_tl tl
+
+and check_tm ctx env m a =
+  match m with
+  | Lam (r1, s1, abs) -> (
+    let x, m = unbind_tm abs in
+    match whnf rd_all env a with
+    | Pi (r2, s2, a, abs) when r1 = r2 && s1 = s2 -> (
+      let b = asubst_tm abs (Var x) in
+      let t = Statype1.infer_sort ctx env a in
+      let m_elab, usage = check_tm (add_v x t a ctx) env m b in
+      let usage = remove x usage r1 s1 in
+      match s1 with
+      | U ->
+        let _ = assert_pure usage in
+        (Syntax2.(Lam (trans_sort s1, bind_tm x m_elab)), usage)
+      | L -> (Syntax2.(Lam (trans_sort s1, bind_tm x m_elab)), usage))
+    | _ -> failwith "check_Lam(%a)" pp_tm m)
+  | Let (r, m, abs) ->
+    let x, n = unbind_tm abs in
+    let abs = bind_tm x (Ann (a, n)) in
+    let b, m_elab, usage = infer_tm ctx env (Let (r, m, abs)) in
+    let _ = Statype1.assert_equal env a b in
+    (m_elab, usage)
+  | Cons (c, ms) -> (
+    match whnf rd_all env a with
+    | Data (_, ns) ->
+      let ptl = find_c c ctx in
+      let ptl =
+        List.fold_left
+          (fun ptl n ->
+            match ptl with
+            | PBind (a, abs) -> asubst_ptl abs (Ann (a, n))
+            | PBase _ -> ptl)
+          ptl ns
+      in
+      let b, ms_elab, usage = check_ptl ctx env ms ptl in
+      let _ = Statype1.assert_equal env a b in
+      (Syntax2.(Cons (c, ms_elab)), usage)
+    | _ ->
+      let b, m_elab, usage = infer_tm ctx env m in
+      let _ = Statype1.assert_equal env a b in
+      (m_elab, usage))
+  | Match (m, mot, cls) -> (
+    match mot with
+    | Mot0 -> (
+      let b, m_elab, usage1 = infer_tm ctx env m in
+      let s = Statype1.infer_sort ctx env b in
+      match whnf rd_all env b with
+      | Data (d, ms) -> (
+        let _, cs = find_d d ctx in
+        let cover = coverage ctx env cls cs ms in
+        let cls_elab, usages = check_cover cover ctx env a in
+        match usages with
+        | [] ->
+          let usage2 = usage_of_ctx ctx in
+          let usage = merge usage1 usage2 in
+          (Syntax2.(Match (trans_sort s, m_elab, cls_elab)), usage)
+        | usage0 :: usages ->
+          let usage2 =
+            List.fold_left
+              (fun usage0 usage -> refine_equal usage0 usage)
+              usage0 usages
+          in
+          let usage = merge usage1 usage2 in
+          (Syntax2.(Match (trans_sort s, m_elab, cls_elab)), usage))
+      | _ -> failwith "check_Match(%a)" pp_tm m)
+    | _ ->
+      let b, m_elab, usage = infer_tm ctx env (Match (m, mot, cls)) in
+      let _ = Statype1.assert_equal env a b in
+      (m_elab, usage))
+  | Fix abs ->
+    let x, m = unbind_tm abs in
+    let s = Statype1.infer_sort ctx env a in
+    let m_elab, usage = check_tm (add_v x s a ctx) env m a in
+    let usage = remove x usage R s in
+    let _ = assert_pure usage in
+    Syntax2.(Fix (bind_tm x m_elab), usage)
+  | _ ->
+    let b, m_elab, usage = infer_tm ctx env m in
+    let _ = Statype1.assert_equal env a b in
+    (m_elab, usage)
+
+and coverage ctx env cls cs ms = failwith "TODO"
+and infer_cover cover env = failwith "TODO"
+and check_cover cover ctx env a = failwith "TODO"
+and check_mot cover env mot = failwith "TODO"
