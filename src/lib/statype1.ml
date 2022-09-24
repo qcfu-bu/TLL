@@ -1,58 +1,8 @@
 open Fmt
 open Names
 open Syntax1
+open Context1
 open Equality1
-
-type ctx =
-  { vs : (rel * srt * tm) VMap.t
-  ; ds : (ptl * C.t list) DMap.t
-  ; cs : ptl CMap.t
-  }
-
-let add_v x r s a ctx = { ctx with vs = VMap.add x (r, s, a) ctx.vs }
-let add_d d ptl cs ctx = { ctx with ds = DMap.add d (ptl, cs) ctx.ds }
-let add_c c ptl ctx = { ctx with cs = CMap.add c ptl ctx.cs }
-
-let find_v x ctx =
-  match VMap.find_opt x ctx.vs with
-  | Some a -> a
-  | None -> failwith "find_v(%a)" V.pp x
-
-let find_d d ctx =
-  match DMap.find_opt d ctx.ds with
-  | Some res -> res
-  | None -> failwith "find_d(%a)" D.pp d
-
-let find_c c ctx =
-  match CMap.find_opt c ctx.cs with
-  | Some ptl -> ptl
-  | None -> failwith "find_c(%a)" C.pp c
-
-let pp_vs fmt vs =
-  let aux fmt vs =
-    VMap.iter
-      (fun x (r, s, a) ->
-        pf fmt "@[%a :(%a;%a)@;<1 2>%a@]@;<1 2>" V.pp x pp_rel r pp_srt s pp_tm
-          a)
-      vs
-  in
-  pf fmt "@[<v 0>vs={@;<1 2>%a}@]" aux vs
-
-let pp_ds fmt ds =
-  let aux fmt ds =
-    DMap.iter
-      (fun d (ptl, _) -> pf fmt "@[%a : %a@]@;<1 2>" D.pp d pp_ptl ptl)
-      ds
-  in
-  pf fmt "@[<v 0>ds={@;<1 2>%a}@]" aux ds
-
-let pp_cs fmt cs =
-  let aux fmt cs =
-    CMap.iter (fun c ptl -> pf fmt "@[%a : %a@]@;<1 2>" C.pp c pp_ptl ptl) cs
-  in
-  pf fmt "@[<v 0>cs={@;<1 2>%a}@]" aux cs
-
-let pp_ctx fmt ctx = pf fmt "@[<v 0>ctx{@;<1 2>%a}@]" pp_vs ctx.vs
 
 let assert_equal env m n =
   if equal rd_all env m n then
@@ -66,7 +16,8 @@ let rec infer_sort ctx env a =
   | Type s -> s
   | _ -> failwith "infer_sort(%a : %a)" pp_tm a pp_tm srt
 
-and infer_tm ctx env = function
+and infer_tm ctx env m =
+  match m with
   | Ann (a, m) -> (
     match m with
     | Let (r, m, abs) ->
@@ -77,18 +28,18 @@ and infer_tm ctx env = function
     | _ ->
       let _ = check_tm ctx env m a in
       a)
-  | Meta _ as m -> failwith "infer_tm_Meta(%a)" pp_tm m
+  | Meta _ -> failwith "infer_tm_Meta(%a)" pp_tm m
   | Type _ -> Type U
   | Var x ->
-    let _, _, a = find_v x ctx in
+    let _, a = find_v x ctx in
     a
-  | Pi (r, s, a, abs) ->
+  | Pi (_, s, a, abs) ->
     let x, b = unbind_tm abs in
     let t = infer_sort ctx env a in
-    let ctx = add_v x r t a ctx in
+    let ctx = add_v x t a ctx in
     let _ = infer_sort ctx env b in
     Type s
-  | Lam _ as m -> failwith "infer_tm_Lam(%a)" pp_tm m
+  | Lam _ -> failwith "infer_tm_Lam(%a)" pp_tm m
   | App (m, n) -> (
     let a = infer_tm ctx env m in
     match whnf rd_all env a with
@@ -96,11 +47,11 @@ and infer_tm ctx env = function
       let _ = check_tm ctx env n a in
       asubst_tm abs (Ann (a, n))
     | _ -> failwith "infer_tm_App(%a)" pp_tm m)
-  | Let (r, m, abs) ->
+  | Let (_, m, abs) ->
     let a = infer_tm ctx env m in
     let s = infer_sort ctx env a in
     let x, n = unbind_tm abs in
-    let ctx = add_v x r s a ctx in
+    let ctx = add_v x s a ctx in
     let env = VMap.add x m env in
     infer_tm ctx env n
   | Data (d, ms) ->
@@ -182,7 +133,7 @@ and check_tm ctx env m a =
     | Pi (r2, s2, a, abs) when r1 = r2 && s1 = s2 ->
       let b = asubst_tm abs (Var x) in
       let t = infer_sort ctx env a in
-      check_tm (add_v x r1 t a ctx) env m b
+      check_tm (add_v x t a ctx) env m b
     | _ -> failwith "check_Lam(%a)" pp_tm m)
   | Let (r, m, abs) ->
     let x, n = unbind_tm abs in
@@ -251,9 +202,9 @@ and coverage ctx env cls cs ms =
     | _ -> failwith "arity_ptl"
   and arity_tl ctx a xs =
     match (a, xs) with
-    | TBind (r, a, abs), x :: xs ->
+    | TBind (_, a, abs), x :: xs ->
       let s = infer_sort ctx env a in
-      let ctx = add_v x r s a ctx in
+      let ctx = add_v x s a ctx in
       let b = asubst_tl abs (Var x) in
       let ctx, b = arity_tl ctx b xs in
       (ctx, b)
