@@ -420,3 +420,72 @@ and check_mot cover env mot =
     let p = Syntax2.(PCons (c, List.map (fun (_, _, x) -> x) rsx)) in
     (Syntax2.(bindp_tm p rhs_elab :: cls_elab), usage :: usages)
   | _ -> failwith "TODO"
+
+let rec infer_dcls ctx env dcls =
+  match dcls with
+  | DTm (N, x, a_opt, m) :: dcls -> (
+    match a_opt with
+    | Some a ->
+      let s = Statype1.infer_sort ctx env a in
+      let _ = Statype1.check_tm ctx env m a in
+      let ctx = add_v x s a ctx in
+      let env = VMap.add x m env in
+      let dcls_elab, usage = infer_dcls ctx env dcls in
+      let usage = remove x usage N s in
+      (Syntax2.(DTm (x, Box) :: dcls_elab), usage)
+    | None ->
+      let a = Statype1.infer_tm ctx env m in
+      let s = Statype1.infer_sort ctx env a in
+      let ctx = add_v x s a ctx in
+      let env = VMap.add x m env in
+      let dcls_elab, usage = infer_dcls ctx env dcls in
+      let usage = remove x usage N s in
+      (Syntax2.(DTm (x, Box) :: dcls_elab), usage))
+  | DTm (R, x, a_opt, m) :: dcls -> (
+    match a_opt with
+    | Some a ->
+      let s = Statype1.infer_sort ctx env a in
+      let m_elab, usage1 = check_tm ctx env m a in
+      let ctx = add_v x s a ctx in
+      let env = VMap.add x m env in
+      let dcls_elab, usage2 = infer_dcls ctx env dcls in
+      let usage2 = remove x usage2 R s in
+      let usage = merge usage1 usage2 in
+      (Syntax2.(DTm (x, m_elab) :: dcls_elab), usage)
+    | None ->
+      let a, m_elab, usage1 = infer_tm ctx env m in
+      let s = Statype1.infer_sort ctx env a in
+      let ctx = add_v x s a ctx in
+      let env = VMap.add x m env in
+      let dcls_elab, usage2 = infer_dcls ctx env dcls in
+      let usage2 = remove x usage2 R s in
+      let usage = merge usage1 usage2 in
+      (Syntax2.(DTm (x, m_elab) :: dcls_elab), usage))
+  | DData (d, ptl, dconss) :: dcls ->
+    let _ = Statype1.infer_ptl ctx env ptl U in
+    let ctx = add_d d ptl [] ctx in
+    let dconss_elab, cs, ctx =
+      List.fold_right
+        (fun (DCons (c, ptl)) (dconss_elab, cs, ctx) ->
+          let _ = Statype1.infer_ptl ctx env ptl U in
+          let n = Statype1.param_ptl ptl d [] in
+          let ctx = add_c c ptl ctx in
+          Syntax2.(DCons (c, n) :: dconss_elab, c :: cs, ctx))
+        dconss ([], [], ctx)
+    in
+    let ctx = add_d d ptl cs ctx in
+    let dcls_elab, usage = infer_dcls ctx env dcls in
+    (Syntax2.(DData (d, dconss_elab) :: dcls_elab), usage)
+  | DAtom (N, x, a) :: dcls ->
+    let s = Statype1.infer_sort ctx env a in
+    let ctx = add_v x s a ctx in
+    let dcls_elab, usage = infer_dcls ctx env dcls in
+    let usage = remove x usage N s in
+    (Syntax2.(DAtom x :: dcls_elab), usage)
+  | DAtom (R, x, a) :: dcls ->
+    let s = Statype1.infer_sort ctx env a in
+    let ctx = add_v x s a ctx in
+    let dcls_elab, usage = infer_dcls ctx env dcls in
+    let usage = remove x usage R s in
+    (Syntax2.(DAtom x :: dcls_elab), usage)
+  | [] -> ([], VMap.empty)

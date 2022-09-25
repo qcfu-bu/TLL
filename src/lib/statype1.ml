@@ -268,3 +268,68 @@ and check_mot cover env mot =
     let _ = check_tm ctx env rhs b in
     check_mot cover env mot
   | _ -> ()
+
+let rec param_ptl ptl d xs =
+  match ptl with
+  | PBase a -> param_tl a d (List.rev xs)
+  | PBind (_, abs) ->
+    let x, ptl = unbind_ptl abs in
+    1 + param_ptl ptl d (x :: xs)
+
+and param_tl tl d xs =
+  let rec param xs ms =
+    match (xs, ms) with
+    | [], _ -> ()
+    | x :: xs, Var y :: ms ->
+      if V.equal x y then
+        param xs ms
+      else
+        failwith "param(%a, %a)" V.pp x V.pp y
+    | _ -> failwith "param"
+  in
+  match tl with
+  | TBase b -> (
+    match b with
+    | Data (d', ms) ->
+      if D.equal d d' then
+        let _ = param xs ms in
+        0
+      else
+        failwith "param_tl(%a, %a)" D.pp d D.pp d'
+    | _ -> failwith "param_tl")
+  | TBind (_, _, abs) ->
+    let _, tl = unbind_tl abs in
+    1 + param_tl tl d xs
+
+let rec infer_tl ctx env tl s =
+  match tl with
+  | TBase a ->
+    let t = infer_sort ctx env a in
+    if cmp_sort t s then
+      ()
+    else
+      failwith "infer_tl"
+  | TBind (_, a, abs) ->
+    let x, tl = unbind_tl abs in
+    let t = infer_sort ctx env a in
+    let ctx = add_v x t a ctx in
+    infer_tl ctx env tl (min_sort s t)
+
+and infer_ptl ctx env ptl s =
+  match ptl with
+  | PBase tl -> infer_tl ctx env tl s
+  | PBind (a, abs) ->
+    let x, ptl = unbind_ptl abs in
+    let t = infer_sort ctx env a in
+    let ctx = add_v x t a ctx in
+    infer_ptl ctx env ptl (min_sort s t)
+
+and min_sort s1 s2 =
+  match s1 with
+  | U -> s2
+  | L -> s1
+
+and cmp_sort s1 s2 =
+  match (s1, s2) with
+  | U, L -> false
+  | _ -> true
