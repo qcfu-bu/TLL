@@ -1,6 +1,6 @@
 open Names
 
-type srt =
+type sort =
   | U
   | L
 [@@deriving show { with_path = false }]
@@ -17,10 +17,10 @@ and tm =
   | Ann of tm * tm
   | Meta of M.t * tms
   (* core *)
-  | Type of srt
+  | Type of sort
   | Var of V.t
-  | Pi of rel * srt * tm * (V.t, tm) abs
-  | Lam of rel * srt * (V.t, tm) abs
+  | Pi of rel * sort * tm * (V.t, tm) abs
+  | Lam of rel * sort * (V.t, tm) abs
   | App of tm * tm
   | Let of rel * tm * (V.t, tm) abs
   (* inductive *)

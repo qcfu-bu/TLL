@@ -52,7 +52,7 @@ let rec lam_gather s m =
 let rec pp_tm fmt = function
   | Ann (a, m) -> pf fmt "@[(@@[%a]@,%a)@]" pp_tm a pp_tm m
   | Meta (x, _) -> pf fmt "%a" M.pp x
-  | Type s -> pp_srt fmt s
+  | Type s -> pp_sort fmt s
   | Var x -> V.pp fmt x
   | Pi (r, s, a, abs) -> (
     let x, b = unbind_tm abs in

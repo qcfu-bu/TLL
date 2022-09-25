@@ -3,7 +3,7 @@ open Names
 open Syntax1
 
 type ctx =
-  { vs : (srt * tm) VMap.t
+  { vs : (sort * tm) VMap.t
   ; ds : (ptl * C.t list) DMap.t
   ; cs : ptl CMap.t
   }
@@ -31,7 +31,7 @@ let pp_vs fmt vs =
   let aux fmt vs =
     VMap.iter
       (fun x (s, a) ->
-        pf fmt "@[%a :%a@;<1 2>%a@]@;<1 2>" V.pp x pp_srt s pp_tm a)
+        pf fmt "@[%a :%a@;<1 2>%a@]@;<1 2>" V.pp x pp_sort s pp_tm a)
       vs
   in
   pf fmt "@[<v 0>vs={@;<1 2>%a}@]" aux vs

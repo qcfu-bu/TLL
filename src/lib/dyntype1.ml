@@ -7,7 +7,7 @@ open Context1
 let pp_usage fmt usage =
   let aux fmt usage =
     VMap.iter
-      (fun x (s, b) -> pf fmt "%a ?(%a;%b)@;<1 2>" V.pp x pp_srt s b)
+      (fun x (s, b) -> pf fmt "%a ?(%a;%b)@;<1 2>" V.pp x pp_sort s b)
       usage
   in
   pf fmt "@[<v 0>{@;<1 2>%a}]" aux usage
