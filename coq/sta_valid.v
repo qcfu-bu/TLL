@@ -33,7 +33,7 @@ Proof with eauto.
   move e:(Lam0 A1 m s1)=>n tyL.
   elim: tyL A1 A2 B m s1 s2 t e=>//{Γ C n}.
   { move=>Γ A B m s tym _ A1 A2 B0 m0
-      s1 s2 t [e1 e2 e3]/pi0_inj[eq1[eq2 e4]] tyB0; subst.
+      s1 s2 t[e1 e2 e3]/pi0_inj[eq1[eq2 e4]]tyB0; subst.
     have wf:=sta_type_wf tym. inv wf.
     have wf:=sta_type_wf tyB0. inv wf.
     apply: sta_ctx_conv.
@@ -56,7 +56,7 @@ Proof with eauto.
   move e:(Lam1 A1 m s1)=>n tyL.
   elim: tyL A1 A2 B m s1 s2 t e=>//{Γ C n}.
   { move=>Γ A B m s tym _ A1 A2 B0 m0
-      s1 s2 t [e1 e2 e3]/pi1_inj[eq1[eq2 e4]] tyB0; subst.
+      s1 s2 t[e1 e2 e3]/pi1_inj[eq1[eq2 e4]]tyB0; subst.
     have wf:=sta_type_wf tym. inv wf.
     have wf:=sta_type_wf tyB0. inv wf.
     apply: sta_ctx_conv.

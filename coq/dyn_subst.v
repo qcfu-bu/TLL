@@ -250,6 +250,15 @@ Proof with eauto using dyn_agree_subst, dyn_agree_subst_key, dyn_type.
     apply: dyn_agree_subst_wf_n... }
 Qed.
 
+Lemma dyn_substitution_wf Γ1 Γ2 Δ1 Δ2 σ :
+  dyn_wf Γ2 Δ2 -> Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> dyn_wf Γ1 Δ1.
+Proof with eauto using dyn_wf.
+  move=>wf. elim: wf Γ1 Δ1 σ=>{Γ2 Δ2}.
+  { move=>*. apply: dyn_agree_subst_wf_nil... }
+  { move=>*. apply: dyn_agree_subst_wf_ty... }
+  { move=>*. apply: dyn_agree_subst_wf_n... }
+Qed.
+
 Lemma dyn_subst0 Γ Δ m n A B :
   (A :: Γ) ; _: Δ ⊢ m : B -> Γ ⊢ n : A -> Γ ; Δ ⊢ m.[n/] : B.[n/].
 Proof with eauto using dyn_agree_subst_refl.
@@ -292,7 +301,7 @@ Lemma dyn_ctx_conv0 Γ Δ m A B C s :
   B === A ->
   Γ ⊢ B : Sort s -> (A :: Γ) ; _: Δ ⊢ m : C -> (B :: Γ) ; _: Δ ⊢ m : C.
 Proof with eauto using dyn_wf, dyn_agree_subst_refl.
-  move=>eq tyA tym.
+  move=>eq tyB tym.
   have wf:=dyn_type_wf tym. inv wf.
   have:(B :: Γ) ; _: Δ ⊢ m.[ids] : C.[ids].
   apply: dyn_substitution...
@@ -307,7 +316,7 @@ Lemma dyn_ctx_conv1 Γ Δ m A B C s :
   B === A ->
   Γ ⊢ B : Sort s -> (A :: Γ) ; A :{s} Δ ⊢ m : C -> (B :: Γ) ; B :{s} Δ ⊢ m : C.
 Proof with eauto using dyn_wf, dyn_agree_subst_refl.
-  move=>eq tyA tym.
+  move=>eq tyB tym.
   have wf:=dyn_type_wf tym. inv wf.
   have:(B :: Γ) ; B :{s} Δ ⊢ m.[ids] : C.[ids].
   apply: dyn_substitution...

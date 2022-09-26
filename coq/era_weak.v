@@ -11,27 +11,26 @@ Lemma era_rename Γ Γ' Δ Δ' m m' A ξ :
   Γ' ; Δ' ⊢ m.[ren ξ] ~ m'.[ren ξ] : A.[ren ξ].
 Proof with eauto using era_type, dyn_agree_ren, dyn_agree_ren_key.
   move=>ty. elim: ty Γ' Δ' ξ=>{Γ Δ m m' A}.
-  { move=>Γ Δ x A shs dhs Γ' Δ' ξ agr. asimpl.
+  { move=>Γ Δ x A wf shs dhs Γ' Δ' ξ agr. asimpl.
     apply: era_var.
+    apply: dyn_rename_wf...
     apply: sta_agree_ren_has...
     apply: dyn_sta_agree_ren...
     apply: dyn_agree_ren_has... }
-  { move=>Γ Δ A B m m' s t k tyP tym ihm Γ' Δ' ξ agr. asimpl.
-    apply: era_lam0...
-    have:=sta_rename tyP (dyn_sta_agree_ren agr).
-    by autosubst. }
-  { move=>Γ Δ A B m m' s t k tyP tym ihm Γ' Δ' ξ agr. asimpl.
-    apply: era_lam1...
-    have:=sta_rename tyP (dyn_sta_agree_ren agr).
-    by autosubst. }
-  { move=>Γ Δ A B m m' n s t tym ihm tyn Γ' Δ' ξ agr. asimpl.
+  { move=>Γ Δ A B m m' s k tym ihm Γ' Δ' ξ agr. asimpl.
+    have wf:=dyn_type_wf (era_dyn_type tym). inv wf.
+    apply: era_lam0... }
+  { move=>Γ Δ A B m m' s t k tym ihm Γ' Δ' ξ agr. asimpl.
+    have wf:=dyn_type_wf (era_dyn_type tym). inv wf.
+    apply: era_lam1... }
+  { move=>Γ Δ A B m m' n s tym ihm tyn Γ' Δ' ξ agr. asimpl.
     replace B.[n.[ren ξ] .: ren ξ] with B.[ren (upren ξ)].[n.[ren ξ]/]
       by autosubst.
     have{}ihm:=ihm _ _ _ agr.
     have{}ihn:=sta_rename tyn (dyn_sta_agree_ren agr).
     apply: era_app0...
     asimpl in ihm... }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' s t mrg tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' s mrg tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
     replace B.[n.[ren ξ] .: ren ξ] with B.[ren (upren ξ)].[n.[ren ξ]/]
       by autosubst.
     have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg.
@@ -48,37 +47,41 @@ Proof with eauto using era_type, dyn_agree_ren, dyn_agree_ren_key.
 Qed.
 
 Lemma era_weakenU Γ Δ m m' A B :
-  dyn_wf Γ Δ -> Γ ; Δ ⊢ m ~ m' : A ->
-  (B :: Γ) ; (B :U Δ) ⊢ m.[ren (+1)] ~ m'.[ren (+1)] : A.[ren (+1)].
+  Γ ⊢ B : Sort U ->
+  Γ ; Δ ⊢ m ~ m' : A ->
+  (B :: Γ) ; B :U Δ ⊢ m.[ren (+1)] ~ m'.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using dyn_agree_ren, dyn_agree_ren_refl.
-  move=>wf ty. apply: era_rename...
+  move=>tyB tym. apply: era_rename...
+  have:=era_dyn_type tym...
 Qed.
 
-Lemma era_weakenN Γ Δ m m' A B :
-  dyn_wf Γ Δ -> Γ ; Δ ⊢ m ~ m' : A ->
-  (B :: Γ) ; (_: Δ) ⊢ m.[ren (+1)] ~ m'.[ren (+1)] : A.[ren (+1)].
+Lemma era_weakenN Γ Δ m m' A B s :
+  Γ ⊢ B : Sort s ->
+  Γ ; Δ ⊢ m ~ m' : A ->
+  (B :: Γ) ; _: Δ ⊢ m.[ren (+1)] ~ m'.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using dyn_agree_ren, dyn_agree_ren_refl.
-  move=>wf ty. apply: era_rename...
+  move=>tyB tym. apply: era_rename...
+  have:=era_dyn_type tym...
 Qed.
 
 Lemma era_eweakenU Γ Δ m m' n n' A A' B :
   m' = m.[ren (+1)] ->
   n' = n.[ren (+1)] ->
   A' = A.[ren (+1)] ->
-  dyn_wf Γ Δ ->
+  Γ ⊢ B : Sort U ->
   Γ ; Δ ⊢ m ~ n : A ->
-  (B :: Γ) ; (B :U Δ) ⊢ m' ~ n' : A'.
+  (B :: Γ) ; B :U Δ ⊢ m' ~ n' : A'.
 Proof.
   move=>*; subst. exact: era_weakenU.
 Qed.
 
-Lemma era_eweakenN Γ Δ m m' n n' A A' B :
+Lemma era_eweakenN Γ Δ m m' n n' A A' B s :
   m' = m.[ren (+1)] ->
   n' = n.[ren (+1)] ->
   A' = A.[ren (+1)] ->
-  dyn_wf Γ Δ ->
+  Γ ⊢ B : Sort s ->
   Γ ; Δ ⊢ m ~ n : A ->
   (B :: Γ) ; (_: Δ) ⊢ m' ~ n' : A'.
 Proof.
-  move=>*; subst. exact: era_weakenN.
+  move=>*; subst. apply: era_weakenN; eauto.
 Qed.
