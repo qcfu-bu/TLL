@@ -115,17 +115,9 @@ Qed.
 Lemma dyn_agree_weak_wf_nil Γ' Δ' ξ :
   dyn_agree_ren ξ nil nil Γ' Δ' -> dyn_wf Γ' Δ'.
 Proof with eauto using dyn_wf.
-  elim=>{Γ' Δ' ξ}...
-  { move=>Γ Γ' Δ Δ' ξ m s tym agr wf.
-    apply: dyn_wf_ty...
-    replace (Sort s) with (Sort s).[ren ξ] by eauto.
-    apply: sta_rename...
-    apply: dyn_sta_agree_ren... }
-  { move=>Γ Γ' Δ Δ' ξ m s tym agr wf.
-    apply: dyn_wf_n...
-    replace (Sort s) with (Sort s).[ren ξ] by eauto.
-    apply: sta_rename...
-    apply: dyn_sta_agree_ren... }
+  move e1:(nil)=>Γ.
+  move e2:(nil)=>Δ agr.
+  elim: agr e1 e2=>//{Γ Γ' Δ Δ' ξ}...
 Qed.
 
 Lemma dyn_agree_weak_wf_ty Γ Γ' Δ Δ' A s ξ :
