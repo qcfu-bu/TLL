@@ -1,0 +1,76 @@
+* TLL
+** Static Fragment
+#+begin_src 
+Γ ⊢
+—————————
+Γ ⊢ s : U
+
+Γ, x : A ⊢
+————————————————
+Γ, x : A ⊢ x : A
+
+Γ, x : A ⊢ B : r
+————————————————————
+Γ ⊢ Πt (x : A).B : t
+
+Γ, x : A ⊢ B : r
+————————————————————
+Γ ⊢ Πt {x : A}.B : t
+
+Γ, x : A ⊢ m : B
+———————————————————————————————
+Γ ⊢ λt (x : A).m : Πt (x : A).B
+
+Γ, x : A ⊢ m : B
+——————————————————————————————–
+Γ ⊢ λt {x : A}.m : Πt {x : A}.B
+
+Γ ⊢ m : Πt (x : A).B    Γ ⊢ n : A
+—————————————————————————————————
+Γ ⊢ m n : B[n/x]
+
+Γ ⊢ m : Πt {x : A}.B    Γ ⊢ n : A
+—————————————————————————————————
+Γ ⊢ m n : B[n/x]
+
+Γ ⊢ B : s    Γ ⊢ m : A    A = B
+———————————————————————————————
+Γ ⊢ m : B
+#+end_src
+
+** Dynamic Fragment
+#+begin_src 
+Γ, x : A; Δ, x :s A ⊢    Δ ▹ U
+——————————————————————————–———
+Γ, x : A; Δ, x :s A ⊢ x : A
+
+Γ, x : A; Δ, x :s A ⊢ m : B    Δ ▹ t
+————————————————————————————————————
+Γ; Δ ⊢ λt (x : A).m : Πt (x : A).B
+
+Γ, x : A; Δ ⊢ m : B    Δ ▹ t
+——————————————————————————————————
+Γ; Δ ⊢ λt {x : A}.m : Πt {x : A}.B
+
+Γ; Δ1 ⊢ m : Πt (x : A).B    Γ; Δ2 ⊢ n : A
+—————————————————————————————————————————
+Γ; Δ1 ⊍ Δ2 ⊢ m n : B[n/x]
+
+Γ; Δ ⊢ m : Πt {x : A}.B    Γ ⊢ n : A
+————————————————————————————————————
+Γ; Δ ⊢ m n : B[n/x]
+
+Γ ⊢ B : s    Γ; Δ ⊢ m : A     A = B
+————————————————————————————————————
+Γ; Δ ⊢ m : B
+#+end_src
+
+** Theorems
+- *Translation*\\
+  For dynamic typing ~Γ; Δ ⊢ m : A~ then static typing ~Γ ⊢ m : A~ is well-typed.
+- *Validity*\\
+  For dynamic typing ~Γ; Δ ⊢ m : A~, there exists sort ~s~ such that static typing ~Γ ⊢ A : s~ is well-typed.
+- *Subject Reduction*\\
+  For dynamic typing ~Γ; Δ ⊢ m : A~, if there is reduction ~m ↝ n~ then ~Γ; Δ ⊢ n : A~ is well-typed.
+- *Strong Normalization*\\
+  For dynamic typing ~Γ; Δ ⊢ m : A~, ~m~ is strongly normalizing.
