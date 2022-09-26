@@ -17,12 +17,13 @@ type tm =
   | Id of id
   | Pi of rel * sort * id * tm * tm
   | Lam of rel * sort * id * tm
-  | App of tm * tm
+  | App of tms
   | Let of rel * id * tm * tm
   | Match of tm * mot * cls
   | Fix of id * tm
 [@@deriving show { with_path = false }]
 
+and tms = tm list
 and tm_opt = tm option
 
 and mot =
