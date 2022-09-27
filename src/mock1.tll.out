@@ -58,7 +58,7 @@
   (DData ("eq",
      (PBind ("A", (Type L),
         (PBind ("x", (Id "A"),
-           (PBase (TBind (R, "", (Id "A"), (TBase (Type L)))))))
+           (PBase (TBind (R, "", (Id "A"), (TBase (Type U)))))))
         )),
      [(DCons ("refl",
          (PBind ("A", (Type L),
@@ -69,33 +69,10 @@
          ))
        ]
      ));
-  (DTm (N, "eq_sym",
-     (Some (Pi (R, U, "A", (Type L),
-              (Pi (R, U, "m", (Id "A"),
-                 (Pi (R, U, "n", (Id "A"),
-                    (Pi (R, U, "",
-                       (App [(Id "eq"); (Id "A"); (Id "m"); (Id "n")]),
-                       (App [(Id "eq"); (Id "A"); (Id "n"); (Id "m")])))
-                    ))
-                 ))
-              ))),
-     (Lam (R, U, "A",
-        (Lam (R, U, "m",
-           (Lam (R, U, "n",
-              (Lam (R, U, "e",
-                 (Match ((Id "e"),
-                    (Mot2 ((PData ("eq", ["_"; "_"; "x"])),
-                       (App [(Id "eq"); (Id "A"); (Id "x"); (Id "m")]))),
-                    [((PCons ("refl", [])), (Id "refl"))]))
-                 ))
-              ))
-           ))
-        ))
-     ));
   (DTm (N, "rw",
      (Some (Pi (R, U, "A", (Type L),
               (Pi (R, U, "m", (Id "A"),
-                 (Pi (R, U, "P", (Pi (R, U, "", (Id "A"), (Type L))),
+                 (Pi (R, U, "P", (Pi (R, U, "", (Id "A"), (Type U))),
                     (Pi (R, U, "pf", (App [(Id "P"); (Id "m")]),
                        (Pi (R, U, "n", (Id "A"),
                           (Pi (R, U, "",
@@ -123,10 +100,34 @@
            ))
         ))
      ));
+  (DTm (N, "eq_sym",
+     (Some (Pi (R, U, "A", (Type L),
+              (Pi (R, U, "m", (Id "A"),
+                 (Pi (R, U, "n", (Id "A"),
+                    (Pi (R, U, "",
+                       (App [(Id "eq"); (Id "A"); (Id "m"); (Id "n")]),
+                       (App [(Id "eq"); (Id "A"); (Id "n"); (Id "m")])))
+                    ))
+                 ))
+              ))),
+     (Lam (R, U, "A",
+        (Lam (R, U, "m",
+           (Lam (R, U, "n",
+              (Lam (R, U, "e",
+                 (App
+                    [(Id "rw"); (Id "A"); (Id "m");
+                      (Lam (R, U, "x",
+                         (App [(Id "eq"); (Id "_"); (Id "x"); (Id "m")])));
+                      (Id "refl"); (Id "n"); (Id "e")])
+                 ))
+              ))
+           ))
+        ))
+     ));
   (DTm (N, "rwr",
      (Some (Pi (R, U, "A", (Type L),
               (Pi (R, U, "m", (Id "A"),
-                 (Pi (R, U, "P", (Pi (R, U, "", (Id "A"), (Type L))),
+                 (Pi (R, U, "P", (Pi (R, U, "", (Id "A"), (Type U))),
                     (Pi (R, U, "pf", (App [(Id "P"); (Id "m")]),
                        (Pi (R, U, "n", (Id "A"),
                           (Pi (R, U, "",
@@ -370,116 +371,115 @@ inductive nat_d2 : U where
 | O_c2 : nat_d2
 | S_c3 : nat_d2 -> nat_d2
 
-inductive tupL_d3 (A_112 : L) (B_113 : U) : L where
-| TupL_c4 (A_114 : L) (B_115 : U) : A_114 -> B_115 -> (tupL_d3 A_114 B_115)
+inductive tupL_d3 (A_110 : L) (B_111 : U) : L where
+| TupL_c4 (A_112 : L) (B_113 : U) : A_112 -> B_113 -> (tupL_d3 A_112 B_113)
 
-inductive list_d4 (A_119 : U) : L where
-| nil_c5 (A_120 : U) : (list_d4 A_120)
-| cons_c6 (A_121 : U) : A_121 -> (list_d4 A_121) -> (list_d4 A_121)
+inductive list_d4 (A_117 : U) : L where
+| nil_c5 (A_118 : U) : (list_d4 A_118)
+| cons_c6 (A_119 : U) : A_119 -> (list_d4 A_119) -> (list_d4 A_119)
 
-inductive ex_d5 (A_125 : L) (P_126 : A_125 -> U) : L where
-| Ex_c7 (A_128 : L) (P_129 : A_128 -> U) :
-  ∀ (x_131 : A_128) -> {((P_129) x_131)} -> (ex_d5 A_128 P_129)
+inductive ex_d5 (A_123 : L) (P_124 : A_123 -> U) : L where
+| Ex_c7 (A_126 : L) (P_127 : A_126 -> U) :
+  ∀ (x_129 : A_126) -> {((P_127) x_129)} -> (ex_d5 A_126 P_127)
 
-inductive eq_d6 (A_133 : L) (x_134 : A_133) : A_133 -> L where
-| refl_c8 (A_136 : L) (x_137 : A_136) : (eq_d6 A_136 x_137 x_137)
+inductive eq_d6 (A_131 : L) (x_132 : A_131) : A_131 -> U where
+| refl_c8 (A_134 : L) (x_135 : A_134) : (eq_d6 A_134 x_135 x_135)
 
-theorem eq_sym_26 :
-  ∀ (A_138 : L) ->
-    ∀ (m_140 : A_138) ->
-      ∀ (n_143 : A_138) ->
-        (eq_d6 A_138 m_140 n_143) -> (eq_d6 A_138 n_143 m_140) :=
-  fun A_146 m_147 n_148 e_149  ->
-    match e_149 in (eq_d6 __150 __151 x_152) return (eq_d6 A_146 x_152 m_147)
-    with
-    | refl_c8 -> refl_c8
+theorem rw_26 :
+  ∀ (A_136 : L) ->
+    ∀ (m_138 : A_136) ->
+      ∀ (P_142 : A_136 -> U) ->
+        ((P_142) m_138) ->
+          ∀ (n_148 : A_136) -> (eq_d6 A_136 m_138 n_148) -> ((P_142) n_148) :=
+  fun A_151 m_152 P_153 pf_154 n_155 e_156  ->
+    match e_156 in (eq_d6 __157 __158 x_159) return ((P_153) x_159) with
+    | refl_c8 -> pf_154
 
-theorem rw_38 :
-  ∀ (A_153 : L) ->
-    ∀ (m_155 : A_153) ->
-      ∀ (P_159 : A_153 -> L) ->
-        ((P_159) m_155) ->
-          ∀ (n_165 : A_153) -> (eq_d6 A_153 m_155 n_165) -> ((P_159) n_165) :=
-  fun A_168 m_169 P_170 pf_171 n_172 e_173  ->
-    match e_173 in (eq_d6 __174 __175 x_176) return ((P_170) x_176) with
-    | refl_c8 -> pf_171
+theorem eq_sym_43 :
+  ∀ (A_160 : L) ->
+    ∀ (m_162 : A_160) ->
+      ∀ (n_165 : A_160) ->
+        (eq_d6 A_160 m_162 n_165) -> (eq_d6 A_160 n_165 m_162) :=
+  fun A_168 m_169 n_170 e_171  ->
+    ((rw_26)
+      A_168 m_169 fun x_172 -> (eq_d6 ??1 x_172 m_169) refl_c8 n_170 e_171)
 
-theorem rwr_55 :
-  ∀ (A_177 : L) ->
-    ∀ (m_179 : A_177) ->
-      ∀ (P_183 : A_177 -> L) ->
-        ((P_183) m_179) ->
-          ∀ (n_189 : A_177) -> (eq_d6 A_177 n_189 m_179) -> ((P_183) n_189) :=
-  fun A_192 m_193 P_194 pf_195 n_196 e_197  ->
-    ((rw_38)
-      A_192 m_193 fun x_198 -> ((P_194) x_198) pf_195 n_196
-      ((eq_sym_26) ??1 ??2 ??3 e_197))
+theorem rwr_53 :
+  ∀ (A_173 : L) ->
+    ∀ (m_175 : A_173) ->
+      ∀ (P_179 : A_173 -> U) ->
+        ((P_179) m_175) ->
+          ∀ (n_185 : A_173) -> (eq_d6 A_173 n_185 m_175) -> ((P_179) n_185) :=
+  fun A_188 m_189 P_190 pf_191 n_192 e_193  ->
+    ((rw_26)
+      A_188 m_189 fun x_194 -> ((P_190) x_194) pf_191 n_192
+      ((eq_sym_43) ??2 ??3 ??4 e_193))
 
-definition fst_70 :
-  ∀ {A_199 : L} -> ∀ {B_202 : U} -> (tupL_d3 A_199 B_202) -> A_199 :=
-  fun {A_205 B_206} p_207 ->
-    match p_207 with
-    | (TupL_c4 a_208 __209) -> a_208
+definition fst_68 :
+  ∀ {A_195 : L} -> ∀ {B_198 : U} -> (tupL_d3 A_195 B_198) -> A_195 :=
+  fun {A_201 B_202} p_203 ->
+    match p_203 with
+    | (TupL_c4 a_204 __205) -> a_204
 
-definition size_79 :
-  ∀ {A_210 : U} -> (list_d4 A_210) -> (tupL_d3 (list_d4 A_210) nat_d2) :=
-  fix loop_213 {A_214} xs_215 ->
-    match xs_215 with
+definition size_77 :
+  ∀ {A_206 : U} -> (list_d4 A_206) -> (tupL_d3 (list_d4 A_206) nat_d2) :=
+  fix loop_209 {A_210} xs_211 ->
+    match xs_211 with
     | nil_c5 -> (TupL_c4 nil_c5 O_c2)
-    | (cons_c6 x_216 xs_217) ->
-      match ((loop_213) ??4 xs_217) with
-      | (TupL_c4 xs_218 sz_219) ->
-        (TupL_c4 (cons_c6 x_216 xs_218) (S_c3 sz_219))
+    | (cons_c6 x_212 xs_213) ->
+      match ((loop_209) ??5 xs_213) with
+      | (TupL_c4 xs_214 sz_215) ->
+        (TupL_c4 (cons_c6 x_212 xs_214) (S_c3 sz_215))
 
-theorem size_id_89 :
-  ∀ (A_220 : U) ->
-    ∀ (ls_222 : (list_d4 A_220)) ->
-      (eq_d6 ??5 ((fst_70) ??6 ??7 ((size_79) ??8 ls_222)) ls_222) :=
-  fix induction_223 A_224 ls_225  ->
-    match ls_225 as ls0_226 return
-      (eq_d6 (list_d4 A_224) ((fst_70) ??9 ??10 ((size_79) ??11 ls0_226))
-      ls0_226)
+theorem size_id_87 :
+  ∀ (A_216 : U) ->
+    ∀ (ls_218 : (list_d4 A_216)) ->
+      (eq_d6 ??6 ((fst_68) ??7 ??8 ((size_77) ??9 ls_218)) ls_218) :=
+  fix induction_219 A_220 ls_221  ->
+    match ls_221 as ls0_222 return
+      (eq_d6 (list_d4 A_220) ((fst_68) ??10 ??11 ((size_77) ??12 ls0_222))
+      ls0_222)
     with
     | nil_c5 -> refl_c8
-    | (cons_c6 x_227 xs_228) ->
-      let p_229 := ((size_79) A_224 xs_228) in
-      let e_230 :=
-        (@[(eq_d6 (tupL_d3 (list_d4 A_224) nat_d2) p_229
-           ((size_79) A_224 xs_228))]
+    | (cons_c6 x_223 xs_224) ->
+      let p_225 := ((size_77) A_220 xs_224) in
+      let e_226 :=
+        (@[(eq_d6 (tupL_d3 (list_d4 A_220) nat_d2) p_225
+           ((size_77) A_220 xs_224))]
         refl_c8)
       in
-      ((match p_229 as p0_231 return
-          (eq_d6 ??12 p0_231 ((size_79) A_224 xs_228)) ->
-            (eq_d6 ??13
-            ((fst_70)
-              ??14 ??15
-              match p0_231 with
-              | (TupL_c4 xs0_235 sz_236) ->
-                (TupL_c4 (cons_c6 x_227 xs0_235) (S_c3 sz_236)))
-            (cons_c6 x_227 xs_228))
+      ((match p_225 as p0_227 return
+          (eq_d6 ??13 p0_227 ((size_77) A_220 xs_224)) ->
+            (eq_d6 ??14
+            ((fst_68)
+              ??15 ??16
+              match p0_227 with
+              | (TupL_c4 xs0_231 sz_232) ->
+                (TupL_c4 (cons_c6 x_223 xs0_231) (S_c3 sz_232)))
+            (cons_c6 x_223 xs_224))
         with
-        | (TupL_c4 a_237 b_238) ->
-          fun e0_239 ->
-            let H0_240 :=
-              (@[(eq_d6 ??16 ((fst_70) ??17 ??18 ((size_79) A_224 xs_228))
-                 xs_228)]
-              ((induction_223) A_224 xs_228))
+        | (TupL_c4 a_233 b_234) ->
+          fun e0_235 ->
+            let H0_236 :=
+              (@[(eq_d6 ??17 ((fst_68) ??18 ??19 ((size_77) A_220 xs_224))
+                 xs_224)]
+              ((induction_219) A_220 xs_224))
             in
-            let H1_241 :=
-              (@[(eq_d6 ??19 ((fst_70) ??20 ??21 (TupL_c4 a_237 b_238))
-                 xs_228)]
-              ((rwr_55)
-                ??22 ??23
-                fun p0_242 -> (eq_d6 ??24 ((fst_70) ??25 ??26 p0_242) xs_228)
-                H0_240 ??27 e0_239))
+            let H1_237 :=
+              (@[(eq_d6 ??20 ((fst_68) ??21 ??22 (TupL_c4 a_233 b_234))
+                 xs_224)]
+              ((rwr_53)
+                ??23 ??24
+                fun p0_238 -> (eq_d6 ??25 ((fst_68) ??26 ??27 p0_238) xs_224)
+                H0_236 ??28 e0_235))
             in
-            ((rwr_55)
-              ??28 ??29
-              fun l_243 ->
-                (eq_d6 (list_d4 A_224) (cons_c6 x_227 l_243)
-                (cons_c6 x_227 xs_228))
-              refl_c8 ??30 H1_241))
-        e_230)
+            ((rwr_53)
+              ??29 ??30
+              fun l_239 ->
+                (eq_d6 (list_d4 A_220) (cons_c6 x_223 l_239)
+                (cons_c6 x_223 xs_224))
+              refl_c8 ??31 H1_237))
+        e_226)
 
 trans01 success---------------------------------------
 
@@ -490,131 +490,130 @@ inductive nat_d2 : U where
 | O_c2 : nat_d2
 | S_c3 : nat_d2 -> nat_d2
 
-inductive tupL_d3 (A_1838 : L) (B_1839 : U) : L where
-| TupL_c4 (A_1840 : L) (B_1841 : U) :
-  A_1840 -> B_1841 -> (tupL_d3 A_1840 B_1841)
+inductive tupL_d3 (A_1883 : L) (B_1884 : U) : L where
+| TupL_c4 (A_1885 : L) (B_1886 : U) :
+  A_1885 -> B_1886 -> (tupL_d3 A_1885 B_1886)
 
-inductive list_d4 (A_1845 : U) : L where
-| nil_c5 (A_1846 : U) : (list_d4 A_1846)
-| cons_c6 (A_1847 : U) : A_1847 -> (list_d4 A_1847) -> (list_d4 A_1847)
+inductive list_d4 (A_1890 : U) : L where
+| nil_c5 (A_1891 : U) : (list_d4 A_1891)
+| cons_c6 (A_1892 : U) : A_1892 -> (list_d4 A_1892) -> (list_d4 A_1892)
 
-inductive ex_d5 (A_1851 : L) (P_1852 : A_1851 -> U) : L where
-| Ex_c7 (A_1854 : L) (P_1855 : A_1854 -> U) :
-  ∀ (x_1857 : A_1854) -> {((P_1855) x_1857)} -> (ex_d5 A_1854 P_1855)
+inductive ex_d5 (A_1896 : L) (P_1897 : A_1896 -> U) : L where
+| Ex_c7 (A_1899 : L) (P_1900 : A_1899 -> U) :
+  ∀ (x_1902 : A_1899) -> {((P_1900) x_1902)} -> (ex_d5 A_1899 P_1900)
 
-inductive eq_d6 (A_1859 : L) (x_1860 : A_1859) : A_1859 -> L where
-| refl_c8 (A_1862 : L) (x_1863 : A_1862) : (eq_d6 A_1862 x_1863 x_1863)
+inductive eq_d6 (A_1904 : L) (x_1905 : A_1904) : A_1904 -> U where
+| refl_c8 (A_1907 : L) (x_1908 : A_1907) : (eq_d6 A_1907 x_1908 x_1908)
 
-theorem eq_sym_26 :
-  ∀ (A_1864 : L) ->
-    ∀ (m_1866 : A_1864) ->
-      ∀ (n_1869 : A_1864) ->
-        (eq_d6 A_1864 m_1866 n_1869) -> (eq_d6 A_1864 n_1869 m_1866) :=
-  fun A_1872 m_1873 n_1874 e_1875  ->
-    match e_1875 in (eq_d6 __1876 __1877 x_1878) return
-      (eq_d6 A_1872 x_1878 m_1873)
+theorem rw_26 :
+  ∀ (A_1909 : L) ->
+    ∀ (m_1911 : A_1909) ->
+      ∀ (P_1915 : A_1909 -> U) ->
+        ((P_1915) m_1911) ->
+          ∀ (n_1921 : A_1909) ->
+            (eq_d6 A_1909 m_1911 n_1921) -> ((P_1915) n_1921) :=
+  fun A_1924 m_1925 P_1926 pf_1927 n_1928 e_1929  ->
+    match e_1929 in (eq_d6 __1930 __1931 x_1932) return ((P_1926) x_1932)
     with
-    | refl_c8 -> refl_c8
+    | refl_c8 -> pf_1927
 
-theorem rw_38 :
-  ∀ (A_1879 : L) ->
-    ∀ (m_1881 : A_1879) ->
-      ∀ (P_1885 : A_1879 -> L) ->
-        ((P_1885) m_1881) ->
-          ∀ (n_1891 : A_1879) ->
-            (eq_d6 A_1879 m_1881 n_1891) -> ((P_1885) n_1891) :=
-  fun A_1894 m_1895 P_1896 pf_1897 n_1898 e_1899  ->
-    match e_1899 in (eq_d6 __1900 __1901 x_1902) return ((P_1896) x_1902)
-    with
-    | refl_c8 -> pf_1897
+theorem eq_sym_43 :
+  ∀ (A_1933 : L) ->
+    ∀ (m_1935 : A_1933) ->
+      ∀ (n_1938 : A_1933) ->
+        (eq_d6 A_1933 m_1935 n_1938) -> (eq_d6 A_1933 n_1938 m_1935) :=
+  fun A_1941 m_1942 n_1943 e_1944  ->
+    ((rw_26)
+      A_1941 m_1942 fun x_1945 -> (eq_d6 A_1941 x_1945 m_1942) refl_c8 n_1943
+      e_1944)
 
-theorem rwr_55 :
-  ∀ (A_1903 : L) ->
-    ∀ (m_1905 : A_1903) ->
-      ∀ (P_1909 : A_1903 -> L) ->
-        ((P_1909) m_1905) ->
-          ∀ (n_1915 : A_1903) ->
-            (eq_d6 A_1903 n_1915 m_1905) -> ((P_1909) n_1915) :=
-  fun A_1918 m_1919 P_1920 pf_1921 n_1922 e_1923  ->
-    ((rw_38)
-      A_1918 m_1919 fun x_1924 -> ((P_1920) x_1924) pf_1921 n_1922
-      ((eq_sym_26) A_1918 n_1922 m_1919 e_1923))
+theorem rwr_53 :
+  ∀ (A_1946 : L) ->
+    ∀ (m_1948 : A_1946) ->
+      ∀ (P_1952 : A_1946 -> U) ->
+        ((P_1952) m_1948) ->
+          ∀ (n_1958 : A_1946) ->
+            (eq_d6 A_1946 n_1958 m_1948) -> ((P_1952) n_1958) :=
+  fun A_1961 m_1962 P_1963 pf_1964 n_1965 e_1966  ->
+    ((rw_26)
+      A_1961 m_1962 fun x_1967 -> ((P_1963) x_1967) pf_1964 n_1965
+      ((eq_sym_43) A_1961 n_1965 m_1962 e_1966))
 
-definition fst_70 :
-  ∀ {A_1925 : L} -> ∀ {B_1928 : U} -> (tupL_d3 A_1925 B_1928) -> A_1925 :=
-  fun {A_1931 B_1932} p_1933 ->
-    match p_1933 with
-    | (TupL_c4 a_1934 __1935) -> a_1934
+definition fst_68 :
+  ∀ {A_1968 : L} -> ∀ {B_1971 : U} -> (tupL_d3 A_1968 B_1971) -> A_1968 :=
+  fun {A_1974 B_1975} p_1976 ->
+    match p_1976 with
+    | (TupL_c4 a_1977 __1978) -> a_1977
 
-definition size_79 :
-  ∀ {A_1936 : U} -> (list_d4 A_1936) -> (tupL_d3 (list_d4 A_1936) nat_d2) :=
-  fix loop_1939 {A_1940} xs_1941 ->
-    match xs_1941 with
+definition size_77 :
+  ∀ {A_1979 : U} -> (list_d4 A_1979) -> (tupL_d3 (list_d4 A_1979) nat_d2) :=
+  fix loop_1982 {A_1983} xs_1984 ->
+    match xs_1984 with
     | nil_c5 -> (TupL_c4 nil_c5 O_c2)
-    | (cons_c6 x_1942 xs_1943) ->
-      match ((loop_1939) A_1940 xs_1943) with
-      | (TupL_c4 xs_1944 sz_1945) ->
-        (TupL_c4 (cons_c6 x_1942 xs_1944) (S_c3 sz_1945))
+    | (cons_c6 x_1985 xs_1986) ->
+      match ((loop_1982) A_1983 xs_1986) with
+      | (TupL_c4 xs_1987 sz_1988) ->
+        (TupL_c4 (cons_c6 x_1985 xs_1987) (S_c3 sz_1988))
 
-theorem size_id_89 :
-  ∀ (A_1946 : U) ->
-    ∀ (ls_1948 : (list_d4 A_1946)) ->
-      (eq_d6 (list_d4 A_1946)
-      ((fst_70) (list_d4 A_1946) nat_d2 ((size_79) A_1946 ls_1948)) ls_1948) :=
-  fix induction_1949 A_1950 ls_1951  ->
-    match ls_1951 as ls0_1952 return
-      (eq_d6 (list_d4 A_1950)
-      ((fst_70) (list_d4 A_1950) nat_d2 ((size_79) A_1950 ls0_1952))
-      ls0_1952)
+theorem size_id_87 :
+  ∀ (A_1989 : U) ->
+    ∀ (ls_1991 : (list_d4 A_1989)) ->
+      (eq_d6 (list_d4 A_1989)
+      ((fst_68) (list_d4 A_1989) nat_d2 ((size_77) A_1989 ls_1991)) ls_1991) :=
+  fix induction_1992 A_1993 ls_1994  ->
+    match ls_1994 as ls0_1995 return
+      (eq_d6 (list_d4 A_1993)
+      ((fst_68) (list_d4 A_1993) nat_d2 ((size_77) A_1993 ls0_1995))
+      ls0_1995)
     with
     | nil_c5 -> refl_c8
-    | (cons_c6 x_1953 xs_1954) ->
-      let p_1955 := ((size_79) A_1950 xs_1954) in
-      let e_1956 :=
-        (@[(eq_d6 (tupL_d3 (list_d4 A_1950) nat_d2) p_1955
-           ((size_79) A_1950 xs_1954))]
+    | (cons_c6 x_1996 xs_1997) ->
+      let p_1998 := ((size_77) A_1993 xs_1997) in
+      let e_1999 :=
+        (@[(eq_d6 (tupL_d3 (list_d4 A_1993) nat_d2) p_1998
+           ((size_77) A_1993 xs_1997))]
         refl_c8)
       in
-      ((match p_1955 as p0_1957 return
-          (eq_d6 (tupL_d3 (list_d4 A_1950) nat_d2) p0_1957
-          ((size_79) A_1950 xs_1954)) ->
-            (eq_d6 (list_d4 A_1950)
-            ((fst_70)
-              ??14 ??15
-              match p0_1957 with
-              | (TupL_c4 xs0_1961 sz_1962) ->
-                (TupL_c4 (cons_c6 x_1953 xs0_1961) (S_c3 sz_1962)))
-            (cons_c6 x_1953 xs_1954))
+      ((match p_1998 as p0_2000 return
+          (eq_d6 (tupL_d3 (list_d4 A_1993) nat_d2) p0_2000
+          ((size_77) A_1993 xs_1997)) ->
+            (eq_d6 (list_d4 A_1993)
+            ((fst_68)
+              ??15 ??16
+              match p0_2000 with
+              | (TupL_c4 xs0_2004 sz_2005) ->
+                (TupL_c4 (cons_c6 x_1996 xs0_2004) (S_c3 sz_2005)))
+            (cons_c6 x_1996 xs_1997))
         with
-        | (TupL_c4 a_1963 b_1964) ->
-          fun e0_1965 ->
-            let H0_1966 :=
-              (@[(eq_d6 (list_d4 (@[U]A_1950))
-                 ((fst_70)
-                   (list_d4 (@[U]A_1950)) nat_d2 ((size_79) A_1950 xs_1954))
-                 xs_1954)]
-              ((induction_1949) A_1950 xs_1954))
+        | (TupL_c4 a_2006 b_2007) ->
+          fun e0_2008 ->
+            let H0_2009 :=
+              (@[(eq_d6 (list_d4 (@[U]A_1993))
+                 ((fst_68)
+                   (list_d4 (@[U]A_1993)) nat_d2 ((size_77) A_1993 xs_1997))
+                 xs_1997)]
+              ((induction_1992) A_1993 xs_1997))
             in
-            let H1_1967 :=
-              (@[(eq_d6 (list_d4 (@[U]A_1950))
-                 ((fst_70)
-                   (list_d4 (@[U]A_1950)) nat_d2 (TupL_c4 a_1963 b_1964))
-                 xs_1954)]
-              ((rwr_55)
-                (tupL_d3 (@[L](list_d4 (@[U]A_1950))) (@[U]nat_d2))
-                ((size_79) A_1950 xs_1954)
-                fun p0_1968 ->
-                  (eq_d6 (list_d4 (@[U]A_1950))
-                  ((fst_70) (list_d4 (@[U]A_1950)) nat_d2 p0_1968) xs_1954)
-                H0_1966 (TupL_c4 a_1963 b_1964) e0_1965))
+            let H1_2010 :=
+              (@[(eq_d6 (list_d4 (@[U]A_1993))
+                 ((fst_68)
+                   (list_d4 (@[U]A_1993)) nat_d2 (TupL_c4 a_2006 b_2007))
+                 xs_1997)]
+              ((rwr_53)
+                (tupL_d3 (@[L](list_d4 (@[U]A_1993))) (@[U]nat_d2))
+                ((size_77) A_1993 xs_1997)
+                fun p0_2011 ->
+                  (eq_d6 (list_d4 (@[U]A_1993))
+                  ((fst_68) (list_d4 (@[U]A_1993)) nat_d2 p0_2011) xs_1997)
+                H0_2009 (TupL_c4 a_2006 b_2007) e0_2008))
             in
-            ((rwr_55)
-              (list_d4 (@[U]A_1950)) xs_1954
-              fun l_1969 ->
-                (eq_d6 (list_d4 A_1950) (cons_c6 x_1953 l_1969)
-                (cons_c6 x_1953 xs_1954))
-              refl_c8 a_1963 H1_1967))
-        e_1956)
+            ((rwr_53)
+              (list_d4 (@[U]A_1993)) xs_1997
+              fun l_2012 ->
+                (eq_d6 (list_d4 A_1993) (cons_c6 x_1996 l_2012)
+                (cons_c6 x_1996 xs_1997))
+              refl_c8 a_2006 H1_2010))
+        e_1999)
 
 elab1 success---------------------------------------
 
@@ -638,27 +637,27 @@ inductive ex_d5 where
 inductive eq_d6 where
 | refl_c8 := 0
 
-def eq_sym_26 := □
+def rw_26 := □
 
-def rw_38 := □
+def eq_sym_43 := □
 
-def rwr_55 := □
+def rwr_53 := □
 
-def fst_70 :=
-  fun A_2539 B_2540 p_2541 ->
-    match p_2541<L>with
-    | (TupL_c4 a_2542 __2543) -> a_2542
+def fst_68 :=
+  fun A_2578 B_2579 p_2580 ->
+    match p_2580<L>with
+    | (TupL_c4 a_2581 __2582) -> a_2581
 
-def size_79 :=
-  fix loop_2544 A_2545 xs_2546 ->
-    match xs_2546<L>with
+def size_77 :=
+  fix loop_2583 A_2584 xs_2585 ->
+    match xs_2585<L>with
     | nil_c5 -> (TupL_c4 nil_c5 O_c2)
-    | (cons_c6 x_2547 xs_2548) ->
-      match ((loop_2544) □ xs_2548)<L>with
-      | (TupL_c4 xs_2549 sz_2550) ->
-        (TupL_c4 (cons_c6 x_2547 xs_2549) (S_c3 sz_2550))
+    | (cons_c6 x_2586 xs_2587) ->
+      match ((loop_2583) □ xs_2587)<L>with
+      | (TupL_c4 xs_2588 sz_2589) ->
+        (TupL_c4 (cons_c6 x_2586 xs_2588) (S_c3 sz_2589))
 
-def size_id_89 := □
+def size_id_87 := □
 
 dyntype1 success---------------------------------------
 

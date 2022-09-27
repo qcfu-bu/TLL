@@ -15,20 +15,19 @@ inductive list (A : U) : L where
 inductive ex (A : L) (P : A -> U) : L where
 | Ex : ∀ (x : A) -> {P x} -> ex A P
 
-inductive eq (A : L) (x : A) : A -> L where
+inductive eq (A : L) (x : A) : A -> U where
 | refl : eq A x x
 
-theorem eq_sym : ∀ (A : L) (m n : A) -> eq A m n -> eq A n m :=
-  fun A m n e ->
-    match e in (eq _ _ x) return eq A x m with
-    | refl -> refl
-
-theorem rw : ∀ (A : L) (m : A) (P : A -> L) (pf : P m) (n : A) -> eq A m n -> P n :=
+theorem rw : ∀ (A : L) (m : A) (P : A -> U) (pf : P m) (n : A) -> eq A m n -> P n :=
   fun A m P pf n e ->
     match e in (eq _ _ x) return P x with
     | refl -> pf
 
-theorem rwr : ∀ (A : L) (m : A) (P : A -> L) (pf : P m) (n : A) -> eq A n m -> P n :=
+theorem eq_sym : ∀ (A : L) (m n : A) -> eq A m n -> eq A n m :=
+  fun A m n e ->
+    rw A m (fun x -> eq _ x m) refl n e
+
+theorem rwr : ∀ (A : L) (m : A) (P : A -> U) (pf : P m) (n : A) -> eq A n m -> P n :=
   fun A m P pf n e ->
     rw A m (fun x -> P x) pf n (eq_sym _ _ _ e)
 
