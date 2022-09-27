@@ -105,7 +105,7 @@ let pcons_parser () =
     return (PCons (id, ids))
   | _ -> zero
 
-let pdata_parser () =
+let pdata0_parser () =
   let* ctx = get_user_state in
   let* id = id_parser in
   match find_d id ctx with
@@ -114,6 +114,10 @@ let pdata_parser () =
     let* ids = many1 id_parser in
     return (PData (id, ids))
   | _ -> zero
+
+let rec pdata_parser () =
+  let* _ = return () in
+  choice [ pdata0_parser (); parens (pdata_parser ()) ]
 
 let rec p_parser () =
   let* _ = return () in

@@ -2,6 +2,7 @@ open Fmt
 open Names
 open Syntax1
 open Equality1
+open Pprint1
 open Unify1
 
 type ctx =
@@ -75,7 +76,8 @@ let rec infer_sort ctx env eqns map a =
   | Type s -> (s, eqns, map)
   | _ -> failwith "infer_sort(%a : %a)" pp_tm a pp_tm srt
 
-and infer_tm ctx env eqns map = function
+and infer_tm ctx env eqns map m =
+  match m with
   | Ann (a, m) -> (
     match m with
     | Let (r, m, abs) ->

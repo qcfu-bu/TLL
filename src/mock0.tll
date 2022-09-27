@@ -1,19 +1,73 @@
+inductive unit : U where
+| tt : unit
+
 inductive nat : U where
 | O : nat
 | S : nat -> nat
 
-inductive vec (A : U) : nat -> U where
-| nil  : vec A O
-| cons : ∀ {n : nat} -> A -> vec A n -> vec A (S n)
+inductive list (A : U) : L where
+| nil  : list A
+| cons : A -> list A -> list A
 
-inductive ex (A : U) (P : A -> U) : U where
+inductive ex (A : L) (P : A -> U) : L where
 | Ex : ∀ (x : A) -> {P x} -> ex A P
 
 inductive eq (A : U) (x : A) : A -> U where
 | refl : eq A x x
 
-def len0 : ∀ {A : U} {n : nat} -> vec A n -> nat :=
-    fix loop {A} {n} ls -> 
-        match ls with
-        | nil -> O
-        | cons _ _ ls -> S (loop _ _ ls)
+theorem rw : ∀ (A : U) (m : A) (P : A -> U) (pf : P m) (n : A) -> eq A m n -> P n :=
+  fun A m P pf n e ->
+    match e in (eq _ _ x) return P x with
+    | refl -> pf
+
+def add : nat -> nat -> nat :=
+  fix loop x y ->
+    match x with
+    | O -> y
+    | S x -> S (loop x y)
+
+def append : ∀ {A : U} -> list A -> list A -o list A :=
+  fix loop {A} xs -> fun ys -o
+    match xs with
+    | nil -> ys
+    | cons x xs -> cons x (loop _ xs ys)
+
+theorem len : ∀ (A : U) -> list A -> nat :=
+  fix loop A xs ->
+    match xs with
+    | nil -> O
+    | cons _ xs -> S (loop _ xs)
+
+theorem append_len : ∀ (A : U) (xs ys : list A) ->
+  eq nat (len A (append A xs ys)) (add (len A xs) (len A ys)) :=
+  fix loop A xs ys ->
+    match xs as xs0 return
+      eq nat (len A (append A xs0 ys)) (add (len A xs0) (len A ys))
+    with
+    | nil -> refl
+    | cons x xs0 ->
+      rw
+        nat
+        (len A (append A xs0 ys))
+        (fun n -> eq nat (S (len A (append A xs0 ys)))
+                    (S n))
+        refl
+        (add (len A xs0) (len A ys))
+        (loop A xs0 ys)
+
+def test : ex (list nat) (fun ls -> eq nat (len nat ls) (S O)) :=
+  Ex (cons O nil) refl
+
+theorem _ : unit :=
+  match test with
+  | Ex ls pf -> tt
+
+def list_free : forall {A : U} -> list A -> unit :=
+  fix loop {A} ls ->
+    match ls with
+    | nil -> tt
+    | cons _ ls -> loop _ ls
+
+def _ : unit :=
+  match test with
+  | Ex ls pf -> list_free _ ls

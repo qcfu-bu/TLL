@@ -257,24 +257,16 @@ let rec simpl (env, m1, m2) =
       match (h1, h2) with
       | Meta _, _ -> [ (env, m1, m2) ]
       | _, Meta _ -> [ (env, m2, m1) ]
-      | Type s1, Type s2 ->
-        if s1 = s2 then
-          []
-        else
-          failwith "umeta_simpl(%a, %a)" pp_tm h1 pp_tm h2
-      | Var x1, Var x2 ->
-        if V.equal x1 x2 then
-          []
-        else
-          failwith "umeta_simpl(%a, %a)" pp_tm h1 pp_tm h2
+      | Type _, Type _ -> []
+      | Var _, Var _ -> []
       | Var x, _ -> (
         match VMap.find_opt x env with
         | Some m1 -> simpl (env, mkApps m1 sp1, m2)
-        | None -> failwith "umeta_simpl(%a, %a)" pp_tm m1 pp_tm m2)
+        | None -> [])
       | _, Var y -> (
         match VMap.find_opt y env with
         | Some m2 -> simpl (env, m1, mkApps m2 sp2)
-        | None -> failwith "umeta_simpl(%a, %a)" pp_tm m1 pp_tm m2)
+        | None -> [])
       | Pi (r1, s1, a1, abs1), Pi (r2, s2, a2, abs2) ->
         if r1 = r2 && s1 = s2 then
           let _, b1, b2 = unbind2_tm abs1 abs2 in
@@ -282,13 +274,13 @@ let rec simpl (env, m1, m2) =
           let eqns2 = simpl (env, b1, b2) in
           eqns1 @ eqns2
         else
-          failwith "umeta_simpl(%a, %a)" pp_tm h1 pp_tm h2
+          []
       | Lam (r1, s1, abs1), Lam (r2, s2, abs2) ->
         if r1 = r2 && s1 = s2 then
           let _, m1, m2 = unbind2_tm abs1 abs2 in
           simpl (env, m1, m2)
         else
-          failwith "umeta_simpl(%a, %a)" pp_tm h1 pp_tm h2
+          []
       | Let (r1, e1, abs1), Let (r2, e2, abs2) ->
         if r1 = r2 then
           let _, n1, n2 = unbind2_tm abs1 abs2 in
@@ -296,21 +288,21 @@ let rec simpl (env, m1, m2) =
           let eqns2 = simpl (env, n1, n2) in
           eqns1 @ eqns2
         else
-          failwith "umeta_simpl(%a, %a)" pp_tm m1 pp_tm m2
+          []
       | Data (d1, ms1), Data (d2, ms2) ->
         if D.equal d1 d2 then
           List.fold_left2
             (fun acc m1 m2 -> acc @ simpl (env, m1, m2))
             [] ms1 ms2
         else
-          failwith "umeta_simpl(%a, %a)" pp_tm h1 pp_tm h2
+          []
       | Cons (c1, ms1), Cons (c2, ms2) ->
         if C.equal c1 c2 then
           List.fold_left2
             (fun acc m1 m2 -> acc @ simpl (env, m1, m2))
             [] ms1 ms2
         else
-          failwith "umeta_simpl(%a, %a)" pp_tm h1 pp_tm h2
+          []
       | Match (m1, mot1, cls1), Match (m2, mot2, cls2) ->
         let eqns1 = simpl (env, m1, m2) in
         let eqns2 = simpl_mot (env, mot1, mot2) in
@@ -325,7 +317,7 @@ let rec simpl (env, m1, m2) =
       | Fix abs1, Fix abs2 ->
         let _, m1, m2 = unbind2_tm abs1 abs2 in
         simpl (env, m1, m2)
-      | _ -> failwith "umeta_simpl(%a, %a)" pp_tm m1 pp_tm m2
+      | _ -> []
     in
     eqns_h @ eqns_sp
 
@@ -342,7 +334,7 @@ and simpl_mot (env, mot1, mot2) =
     let _, abs1, abs2 = unbind2_ptm abs1 abs2 in
     let _, a1, a2 = unbindp2_tm abs1 abs2 in
     simpl (env, a1, a2)
-  | _ -> failwith "asimpl failure(%a, %a)" pp_mot mot1 pp_mot mot2
+  | _ -> []
 
 let meta_spine sp =
   List.map
@@ -359,7 +351,7 @@ let solve map (env, m1, m2) =
   | Meta _, Meta _ -> map
   | Meta (x, xs), _ ->
     if occurs x m2 then
-      failwith "occurs(%a, %a)" M.pp x pp_tm m2
+      map
     else
       let xs = meta_spine xs in
       let ctx = fv VSet.empty m2 in
@@ -367,8 +359,8 @@ let solve map (env, m1, m2) =
         let m = mLam R U xs m2 in
         MMap.add x (Some m, None) map
       else
-        failwith "solve0(%a{%a} ?= %a)" pp_tm m1 V.pps xs pp_tm m2
-  | _ -> failwith "solve1(%a ?= %a)" pp_tm m1 pp_tm m2
+        map
+  | _ -> map
 
 let rec resolve_tm map m =
   match m with

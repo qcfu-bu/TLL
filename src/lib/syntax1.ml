@@ -1,3 +1,4 @@
+open Fmt
 open Names
 
 type sort =
@@ -323,9 +324,9 @@ let equal_p p1 p2 =
   match (p1, p2) with
   | PVar _, PVar _ -> true
   | PData (d1, xs1), PData (d2, xs2) ->
-    D.equal d1 d2 && List.equal V.equal xs1 xs2
+    D.equal d1 d2 && List.length xs1 = List.length xs2
   | PCons (c1, xs1), PCons (c2, xs2) ->
-    C.equal c1 c2 && List.equal V.equal xs1 xs2
+    C.equal c1 c2 && List.length xs1 = List.length xs2
   | _ -> false
 
 let unbindp2_tm (Abs (p1, m)) (Abs (p2, n)) =
@@ -336,7 +337,7 @@ let unbindp2_tm (Abs (p1, m)) (Abs (p2, n)) =
     let n = unbindn_tm 0 xs n in
     (p, m, n)
   else
-    failwith "unbindp2"
+    failwith "unbindp2(%a, %a)" pp_p p1 pp_p p2
 
 let unbind2_ptm (Abs (x, ptm1)) (Abs (_, ptm2)) =
   let x = V.freshen x in
