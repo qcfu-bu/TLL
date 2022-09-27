@@ -83,10 +83,10 @@ let rec pp_dconss fmt = function
   | dcons :: dconss -> pf fmt "@[%a@]@;<1 2>%a" pp_dcons dcons pp_dconss dconss
 
 let pp_dcl fmt = function
-  | DTm (x, m) -> pf fmt "@[definition %a :=@;<1 2>%a@]" V.pp x pp_tm m
+  | DTm (x, m) -> pf fmt "@[def %a :=@;<1 2>%a@]" V.pp x pp_tm m
   | DData (d, dconss) ->
     pf fmt "@[<v 0>@[inductive %a where@]@;<1 2>%a@]" D.pp d pp_dconss dconss
-  | DAtom x -> pf fmt "@[parameter %a@]" V.pp x
+  | DAtom x -> pf fmt "@[param %a@]" V.pp x
 
 let rec pp_dcls fmt dcls =
   match dcls with
