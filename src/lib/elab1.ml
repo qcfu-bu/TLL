@@ -77,6 +77,7 @@ let rec infer_sort ctx env eqns map a =
   | _ -> failwith "infer_sort(%a : %a)" pp_tm a pp_tm srt
 
 and infer_tm ctx env eqns map m =
+  let _ = pr "elab_infer(%a)@." pp_tm m in
   match m with
   | Ann (a, m) -> (
     match m with
@@ -195,6 +196,7 @@ and check_tl ctx env eqns map ms tl =
   | _ -> failwith "check_tl(%a, %a)" pp_tms ms pp_tl tl
 
 and check_tm ctx env eqns map m a =
+  let _ = pr "elab_check(%a :? %a)@." pp_tm m pp_tm a in
   match m with
   | Meta (x, _) -> (eqns, add_m x a map)
   | Lam (r1, s1, abs) -> (
@@ -271,23 +273,23 @@ and coverage ctx env eqns map cls cs ms =
         let a, cs = remove_c k ctx cs in
         (a, c :: cs)
     | _ -> failwith "remove_c(%a)" C.pp k
-  and arity_ptl ctx eqns map a ms xs =
+  and ctx_ptl ctx eqns map a ms xs =
     match (a, ms) with
     | PBind (a, abs), m :: ms ->
       let b = asubst_ptl abs (Ann (a, m)) in
-      arity_ptl ctx eqns map b ms xs
-    | PBase a, _ -> arity_tl ctx eqns map a xs
-    | _ -> failwith "arity_ptl"
-  and arity_tl ctx eqns map a xs =
+      ctx_ptl ctx eqns map b ms xs
+    | PBase a, _ -> ctx_tl ctx eqns map a xs
+    | _ -> failwith "ctx_ptl"
+  and ctx_tl ctx eqns map a xs =
     match (a, xs) with
     | TBind (_, a, abs), x :: xs ->
       let _, eqns, map = infer_sort ctx env eqns map a in
       let ctx = add_v x a ctx in
       let b = asubst_tl abs (Var x) in
-      let ctx, b, eqns, map = arity_tl ctx eqns map b xs in
+      let ctx, b, eqns, map = ctx_tl ctx eqns map b xs in
       (ctx, b, eqns, map)
     | TBase a, [] -> (ctx, a, eqns, map)
-    | _ -> failwith "arity_tl"
+    | _ -> failwith "ctx_tl"
   in
   match cls with
   | cl :: cls -> (
@@ -296,7 +298,7 @@ and coverage ctx env eqns map cls cs ms =
     | PCons (c, xs) ->
       let cns = tm_of_p p in
       let ptl, cs = remove_c c ctx cs in
-      let ctx, a, eqns, map = arity_ptl ctx eqns map ptl ms xs in
+      let ctx, a, eqns, map = ctx_ptl ctx eqns map ptl ms xs in
       let rhs = resolve_tm map rhs in
       let cover, eqns, map = coverage ctx env eqns map cls cs ms in
       ((ctx, cns, a, rhs) :: cover, eqns, map)
@@ -368,15 +370,14 @@ let rec infer_dcl ctx env eqns map dcl =
       else
         (ctx, env, eqns, map))
   | DData (d, ptl, dconss) ->
-    let eqns, map = infer_ptl ctx env eqns map ptl U in
+    let s, eqns, map = arity_ptl ctx env eqns map ptl in
     let map = unify map eqns in
     let ptl = resolve_ptl map ptl in
     let ctx = add_d d ptl [] ctx in
     let eqns, map, cs, ctx =
       List.fold_right
         (fun (DCons (c, ptl)) (eqns, map, acc, ctx) ->
-          let eqns, map = infer_ptl ctx env eqns map ptl U in
-          let _ = param_ptl ptl d [] in
+          let eqns, map = param_ptl ctx env eqns map ptl d [] s in
           let ptl = resolve_ptl map ptl in
           let ctx = add_c c ptl ctx in
           (eqns, map, c :: acc, ctx))
@@ -396,68 +397,72 @@ and infer_dcls ctx env eqns map dcls =
     let ctx, env, eqns, map = infer_dcl ctx env eqns map dcl in
     infer_dcls ctx env eqns map dcls
 
-and param_ptl ptl d xs =
+and param_ptl ctx env eqns map ptl d xs s =
   match ptl with
-  | PBase a -> param_tl a d (List.rev xs)
-  | PBind (_, abs) ->
+  | PBase tl -> param_tl ctx env eqns map tl d (List.rev xs) s
+  | PBind (a, abs) ->
     let x, ptl = unbind_ptl abs in
-    param_ptl ptl d (x :: xs)
+    let _, eqns, map = infer_sort ctx env eqns map a in
+    let ctx = add_v x a ctx in
+    param_ptl ctx env eqns map ptl d (x :: xs) s
 
-and param_tl tl d xs =
-  let rec param xs ms =
+and param_tl ctx env eqns map tl d xs s =
+  let rec param eqns map xs ms =
     match (xs, ms) with
-    | [], _ -> ()
+    | [], _ -> (eqns, map)
     | x :: xs, Var y :: ms ->
       if V.equal x y then
-        param xs ms
+        param eqns map xs ms
       else
         failwith "param(%a, %a)" V.pp x V.pp y
     | _ -> failwith "param"
   in
   match tl with
-  | TBase b -> (
-    match b with
-    | Data (d', ms) ->
+  | TBase a -> (
+    let t, eqns, map = infer_sort ctx env eqns map a in
+    match a with
+    | Data (d', ms) when s = t ->
       if D.equal d d' then
-        param xs ms
+        param eqns map xs ms
       else
         failwith "param_tl(%a, %a)" D.pp d D.pp d'
-    | _ -> failwith "param_tl")
-  | TBind (_, _, abs) ->
-    let _, tl = unbind_tl abs in
-    param_tl tl d xs
-
-and infer_tl ctx env eqns map tl s =
-  match tl with
-  | TBase a ->
-    let t, eqns, map = infer_sort ctx env eqns map a in
-    if cmp_sort t s then
-      (eqns, map)
-    else
-      failwith "infer_tl"
-  | TBind (_, a, abs) ->
+    | _ -> failwith "param_tl(%a : %a)" pp_tl tl pp_sort s)
+  | TBind (N, a, abs) ->
+    let x, tl = unbind_tl abs in
+    let _ = infer_sort ctx env eqns map a in
+    let ctx = add_v x a ctx in
+    param_tl ctx env eqns map tl d xs s
+  | TBind (R, a, abs) ->
     let x, tl = unbind_tl abs in
     let t, eqns, map = infer_sort ctx env eqns map a in
     let ctx = add_v x a ctx in
-    infer_tl ctx env eqns map tl (min_sort s t)
+    if cmp_sort t s then
+      param_tl ctx env eqns map tl d xs s
+    else
+      failwith "param_tl(%a : %a <= %a)" pp_tm a pp_sort t pp_sort s
 
-and infer_ptl ctx env eqns map ptl s =
+and arity_ptl ctx env eqns map ptl =
   match ptl with
-  | PBase tl -> infer_tl ctx env eqns map tl s
+  | PBase tl -> arity_tl ctx env eqns map tl
   | PBind (a, abs) ->
     let x, ptl = unbind_ptl abs in
-    let t, eqns, map = infer_sort ctx env eqns map a in
+    let _, eqns, map = infer_sort ctx env eqns map a in
     let ctx = add_v x a ctx in
-    infer_ptl ctx env eqns map ptl (min_sort s t)
+    arity_ptl ctx env eqns map ptl
 
-and min_sort s1 s2 =
-  match s1 with
-  | U -> s2
-  | L -> s1
+and arity_tl ctx env eqns map tl =
+  match tl with
+  | TBase (Type s) -> (s, eqns, map)
+  | TBind (_, a, abs) ->
+    let x, tl = unbind_tl abs in
+    let _, eqns, map = infer_sort ctx env eqns map a in
+    let ctx = add_v x a ctx in
+    arity_tl ctx env eqns map tl
+  | _ -> failwith "arity_tl"
 
 and cmp_sort s1 s2 =
   match (s1, s2) with
-  | U, L -> false
+  | L, U -> false
   | _ -> true
 
 let elab_dcls dcls =

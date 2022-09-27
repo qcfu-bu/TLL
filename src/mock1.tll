@@ -1,0 +1,69 @@
+inductive unit : U where
+| tt : unit
+
+inductive nat : U where
+| O : nat
+| S : nat -> nat
+
+inductive tupL (A : L) (B : U) : L where
+| TupL : A -> B -> tupL A B
+
+inductive list (A : U) : L where
+| nil  : list A
+| cons : A -> list A -> list A
+
+inductive ex (A : L) (P : A -> U) : L where
+| Ex : ∀ (x : A) -> {P x} -> ex A P
+
+inductive eq (A : L) (x : A) : A -> L where
+| refl : eq A x x
+
+theorem eq_sym : ∀ (A : L) (m n : A) -> eq A m n -> eq A n m :=
+  fun A m n e ->
+    match e in (eq _ _ x) return eq A x m with
+    | refl -> refl
+
+theorem rw : ∀ (A : L) (m : A) (P : A -> L) (pf : P m) (n : A) -> eq A m n -> P n :=
+  fun A m P pf n e ->
+    match e in (eq _ _ x) return P x with
+    | refl -> pf
+
+theorem rwr : ∀ (A : L) (m : A) (P : A -> L) (pf : P m) (n : A) -> eq A n m -> P n :=
+  fun A m P pf n e ->
+    rw A m (fun x -> P x) pf n (eq_sym _ _ _ e)
+
+def fst : ∀ {A : L} {B : U} -> tupL A B -> A :=
+  fun {A} {B} p ->
+    match p with
+    | TupL a _ -> a
+
+def size : ∀ {A : U} -> list A -> tupL (list A) nat :=
+  fix loop {A} xs ->
+    match xs with
+    | nil -> TupL nil O
+    | cons x xs ->
+      match loop _ xs with
+      | TupL xs sz -> TupL (cons x xs) (S sz)
+
+theorem size_id : ∀ (A : U) (ls : list A) -> eq _ (fst _ _ (size _ ls)) ls :=
+  fix induction A ls ->
+    match ls as ls0 return eq (list A) (fst _ _ (size _ ls0)) ls0 with
+    | nil -> refl
+    | cons x xs ->
+      let p := size A xs in
+      let e : eq (tupL (list A) nat) p (size A xs) := refl in
+      (match p as p0 return
+        eq _ p0 (size A xs) ->
+        eq _
+           (fst _ _
+             (match p0 with
+             | TupL xs0 sz -> TupL (cons x xs0) (S sz)))
+           (cons x xs)
+      with
+      | TupL a b ->
+        fun e0 ->
+          let H0 : eq _ (fst _ _ (size A xs)) xs := induction A xs in
+          let H1 : eq _ (fst _ _ (TupL a b)) xs :=
+            rwr _ _ (fun p0 -> eq _ (fst _ _ p0) xs) H0 _ e0
+          in
+          rwr _ _ (fun l -> eq (list A) (cons x l) (cons x xs)) refl _ H1) e

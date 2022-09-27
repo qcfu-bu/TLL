@@ -153,7 +153,7 @@ let pp_dcons fmt (DCons (c, ptl)) = pf fmt "| %a %a" C.pp c pp_ptl ptl
 let rec pp_dconss fmt = function
   | [] -> ()
   | [ dcons ] -> pf fmt "@[%a@]" pp_dcons dcons
-  | dcons :: dconss -> pf fmt "@[%a@]@;<1 2>%a" pp_dcons dcons pp_dconss dconss
+  | dcons :: dconss -> pf fmt "@[%a@]@;<1 0>%a" pp_dcons dcons pp_dconss dconss
 
 let pp_dcl fmt = function
   | DTm (r, x, a_opt, m) -> (
@@ -165,7 +165,7 @@ let pp_dcl fmt = function
       pf fmt "@[definition %a :@;<1 2>%a :=@;<1 2>%a@]" V.pp x pp_tm a pp_tm m
     | R, None -> pf fmt "@[definition %a :=@;<1 2>%a@]" V.pp x pp_tm m)
   | DData (d, ptl, dconss) ->
-    pf fmt "@[<v 0>@[inductive %a %a where@]@;<1 2>%a@]" D.pp d pp_ptl ptl
+    pf fmt "@[<v 0>@[inductive %a %a where@]@;<1 0>%a@]" D.pp d pp_ptl ptl
       pp_dconss dconss
   | DAtom (r, x, a) -> (
     match r with

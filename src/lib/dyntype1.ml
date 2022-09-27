@@ -470,13 +470,12 @@ let rec infer_dcls ctx env dcls =
       let usage = merge usage1 usage2 in
       (Syntax2.(DTm (x, m_elab) :: dcls_elab), usage))
   | DData (d, ptl, dconss) :: dcls ->
-    let _ = Statype1.infer_ptl ctx env ptl U in
+    let s = Statype1.arity_ptl ctx env ptl in
     let ctx = add_d d ptl [] ctx in
     let dconss_elab, cs, ctx =
       List.fold_right
         (fun (DCons (c, ptl)) (dconss_elab, cs, ctx) ->
-          let _ = Statype1.infer_ptl ctx env ptl U in
-          let n = Statype1.param_ptl ptl d [] in
+          let n = Statype1.param_ptl ctx env ptl d [] s in
           let ctx = add_c c ptl ctx in
           Syntax2.(DCons (c, n) :: dconss_elab, c :: cs, ctx))
         dconss ([], [], ctx)

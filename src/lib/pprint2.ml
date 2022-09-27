@@ -80,12 +80,12 @@ let pp_dcons fmt (DCons (c, sz)) = pf fmt "| %a := %d" C.pp c sz
 let rec pp_dconss fmt = function
   | [] -> ()
   | [ dcons ] -> pf fmt "@[%a@]" pp_dcons dcons
-  | dcons :: dconss -> pf fmt "@[%a@]@;<1 2>%a" pp_dcons dcons pp_dconss dconss
+  | dcons :: dconss -> pf fmt "@[%a@]@;<1 0>%a" pp_dcons dcons pp_dconss dconss
 
 let pp_dcl fmt = function
   | DTm (x, m) -> pf fmt "@[def %a :=@;<1 2>%a@]" V.pp x pp_tm m
   | DData (d, dconss) ->
-    pf fmt "@[<v 0>@[inductive %a where@]@;<1 2>%a@]" D.pp d pp_dconss dconss
+    pf fmt "@[<v 0>@[inductive %a where@]@;<1 0>%a@]" D.pp d pp_dconss dconss
   | DAtom x -> pf fmt "@[param %a@]" V.pp x
 
 let rec pp_dcls fmt dcls =

@@ -44,4 +44,5 @@ let _ =
   if Array.length Sys.argv < 1 then
     epr "input file expected@."
   else
-    run Sys.argv.(1) "log.tll"
+    let s = Sys.argv.(1) in
+    run s (s ^ ".out")

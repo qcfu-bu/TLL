@@ -3,6 +3,7 @@ open Names
 open Syntax1
 open Context1
 open Equality1
+open Pprint1
 
 let assert_equal env m n =
   if equal rd_all env m n then
@@ -17,6 +18,7 @@ let rec infer_sort ctx env a =
   | _ -> failwith "infer_sort(%a : %a)" pp_tm a pp_tm srt
 
 and infer_tm ctx env m =
+  let _ = pr "sta_type1_infer(%a)@.@." pp_tm m in
   match m with
   | Ann (a, m) -> (
     match m with
@@ -199,23 +201,23 @@ and coverage ctx env cls cs ms =
         let a, cs = remove_c k ctx cs in
         (a, c :: cs)
     | _ -> failwith "remove_c(%a)" C.pp k
-  and arity_ptl ctx a ms xs =
+  and ctx_ptl ctx a ms xs =
     match (a, ms) with
     | PBind (a, abs), m :: ms ->
       let b = asubst_ptl abs (Ann (a, m)) in
-      arity_ptl ctx b ms xs
-    | PBase a, _ -> arity_tl ctx a xs
-    | _ -> failwith "arity_ptl"
-  and arity_tl ctx a xs =
+      ctx_ptl ctx b ms xs
+    | PBase a, _ -> ctx_tl ctx a xs
+    | _ -> failwith "ctx_ptl"
+  and ctx_tl ctx a xs =
     match (a, xs) with
     | TBind (_, a, abs), x :: xs ->
       let s = infer_sort ctx env a in
       let ctx = add_v x s a ctx in
       let tl = asubst_tl abs (Var x) in
-      let ctx, b = arity_tl ctx tl xs in
+      let ctx, b = ctx_tl ctx tl xs in
       (ctx, b)
     | TBase a, [] -> (ctx, a)
-    | _ -> failwith "arity_tl"
+    | _ -> failwith "ctx_tl"
   in
   match cls with
   | cl :: cls -> (
@@ -224,7 +226,7 @@ and coverage ctx env cls cs ms =
     | PCons (c, xs) ->
       let cns = tm_of_p p in
       let ptl, cs = remove_c c ctx cs in
-      let ctx, a = arity_ptl ctx ptl ms xs in
+      let ctx, a = ctx_ptl ctx ptl ms xs in
       let cover = coverage ctx env cls cs ms in
       (ctx, cns, a, rhs) :: cover
     | _ -> failwith "coverage")
@@ -269,67 +271,70 @@ and check_mot cover env mot =
     check_mot cover env mot
   | _ -> ()
 
-let rec param_ptl ptl d xs =
+let rec param_ptl ctx env ptl d xs s =
   match ptl with
-  | PBase a -> param_tl a d (List.rev xs)
-  | PBind (_, abs) ->
+  | PBase tl -> param_tl ctx env tl d (List.rev xs) s
+  | PBind (a, abs) ->
     let x, ptl = unbind_ptl abs in
-    param_ptl ptl d (x :: xs)
+    let t = infer_sort ctx env a in
+    let ctx = add_v x t a ctx in
+    param_ptl ctx env ptl d (x :: xs) s
 
-and param_tl tl d xs =
-  let rec param xs ms =
+and param_tl ctx env tl d xs s =
+  let rec param xs ms sz =
     match (xs, ms) with
-    | [], _ -> ()
+    | [], _ -> sz
     | x :: xs, Var y :: ms ->
       if V.equal x y then
-        param xs ms
+        param xs ms sz
       else
         failwith "param(%a, %a)" V.pp x V.pp y
     | _ -> failwith "param"
   in
   match tl with
-  | TBase b -> (
-    match b with
-    | Data (d', ms) ->
+  | TBase a -> (
+    let t = infer_sort ctx env a in
+    match a with
+    | Data (d', ms) when s = t ->
       if D.equal d d' then
-        let _ = param xs ms in
-        0
+        param xs ms 0
       else
         failwith "param_tl(%a, %a)" D.pp d D.pp d'
-    | _ -> failwith "param_tl")
-  | TBind (_, _, abs) ->
-    let _, tl = unbind_tl abs in
-    1 + param_tl tl d xs
-
-let rec infer_tl ctx env tl s =
-  match tl with
-  | TBase a ->
-    let t = infer_sort ctx env a in
-    if cmp_sort t s then
-      ()
-    else
-      failwith "infer_tl"
-  | TBind (_, a, abs) ->
+    | _ -> failwith "param_tl(%a : %a)" pp_tl tl pp_sort s)
+  | TBind (N, a, abs) ->
     let x, tl = unbind_tl abs in
     let t = infer_sort ctx env a in
     let ctx = add_v x t a ctx in
-    infer_tl ctx env tl (min_sort s t)
+    1 + param_tl ctx env tl d xs s
+  | TBind (R, a, abs) ->
+    let x, tl = unbind_tl abs in
+    let t = infer_sort ctx env a in
+    let ctx = add_v x t a ctx in
+    if cmp_sort t s then
+      1 + param_tl ctx env tl d xs s
+    else
+      failwith "param_tl(%a : %a <= %a)" pp_tl tl pp_sort t pp_sort s
 
-and infer_ptl ctx env ptl s =
+and arity_ptl ctx env ptl =
   match ptl with
-  | PBase tl -> infer_tl ctx env tl s
+  | PBase tl -> arity_tl ctx env tl
   | PBind (a, abs) ->
     let x, ptl = unbind_ptl abs in
     let t = infer_sort ctx env a in
     let ctx = add_v x t a ctx in
-    infer_ptl ctx env ptl (min_sort s t)
+    arity_ptl ctx env ptl
 
-and min_sort s1 s2 =
-  match s1 with
-  | U -> s2
-  | L -> s1
+and arity_tl ctx env tl =
+  match tl with
+  | TBase (Type s) -> s
+  | TBind (_, a, abs) ->
+    let x, tl = unbind_tl abs in
+    let t = infer_sort ctx env a in
+    let ctx = add_v x t a ctx in
+    arity_tl ctx env tl
+  | _ -> failwith "arity_tl"
 
 and cmp_sort s1 s2 =
   match (s1, s2) with
-  | U, L -> false
+  | L, U -> false
   | _ -> true

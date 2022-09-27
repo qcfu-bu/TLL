@@ -1,0 +1,664 @@
+[(DData ("unit", (PBase (TBase (Type U))),
+    [(DCons ("tt", (PBase (TBase (Id "unit")))))]));
+  (DData ("nat", (PBase (TBase (Type U))),
+     [(DCons ("O", (PBase (TBase (Id "nat")))));
+       (DCons ("S", (PBase (TBind (R, "", (Id "nat"), (TBase (Id "nat")))))))
+       ]
+     ));
+  (DData ("tupL",
+     (PBind ("A", (Type L), (PBind ("B", (Type U), (PBase (TBase (Type L)))))
+        )),
+     [(DCons ("TupL",
+         (PBind ("A", (Type L),
+            (PBind ("B", (Type U),
+               (PBase
+                  (TBind (R, "", (Id "A"),
+                     (TBind (R, "", (Id "B"),
+                        (TBase (App [(Id "tupL"); (Id "A"); (Id "B")]))))
+                     )))
+               ))
+            ))
+         ))
+       ]
+     ));
+  (DData ("list", (PBind ("A", (Type U), (PBase (TBase (Type L))))),
+     [(DCons ("nil",
+         (PBind ("A", (Type U), (PBase (TBase (App [(Id "list"); (Id "A")])))
+            ))
+         ));
+       (DCons ("cons",
+          (PBind ("A", (Type U),
+             (PBase
+                (TBind (R, "", (Id "A"),
+                   (TBind (R, "", (App [(Id "list"); (Id "A")]),
+                      (TBase (App [(Id "list"); (Id "A")]))))
+                   )))
+             ))
+          ))
+       ]
+     ));
+  (DData ("ex",
+     (PBind ("A", (Type L),
+        (PBind ("P", (Pi (R, U, "", (Id "A"), (Type U))),
+           (PBase (TBase (Type L)))))
+        )),
+     [(DCons ("Ex",
+         (PBind ("A", (Type L),
+            (PBind ("P", (Pi (R, U, "", (Id "A"), (Type U))),
+               (PBase
+                  (TBind (R, "x", (Id "A"),
+                     (TBind (N, "", (App [(Id "P"); (Id "x")]),
+                        (TBase (App [(Id "ex"); (Id "A"); (Id "P")]))))
+                     )))
+               ))
+            ))
+         ))
+       ]
+     ));
+  (DData ("eq",
+     (PBind ("A", (Type L),
+        (PBind ("x", (Id "A"),
+           (PBase (TBind (R, "", (Id "A"), (TBase (Type L)))))))
+        )),
+     [(DCons ("refl",
+         (PBind ("A", (Type L),
+            (PBind ("x", (Id "A"),
+               (PBase (TBase (App [(Id "eq"); (Id "A"); (Id "x"); (Id "x")])))
+               ))
+            ))
+         ))
+       ]
+     ));
+  (DTm (N, "eq_sym",
+     (Some (Pi (R, U, "A", (Type L),
+              (Pi (R, U, "m", (Id "A"),
+                 (Pi (R, U, "n", (Id "A"),
+                    (Pi (R, U, "",
+                       (App [(Id "eq"); (Id "A"); (Id "m"); (Id "n")]),
+                       (App [(Id "eq"); (Id "A"); (Id "n"); (Id "m")])))
+                    ))
+                 ))
+              ))),
+     (Lam (R, U, "A",
+        (Lam (R, U, "m",
+           (Lam (R, U, "n",
+              (Lam (R, U, "e",
+                 (Match ((Id "e"),
+                    (Mot2 ((PData ("eq", ["_"; "_"; "x"])),
+                       (App [(Id "eq"); (Id "A"); (Id "x"); (Id "m")]))),
+                    [((PCons ("refl", [])), (Id "refl"))]))
+                 ))
+              ))
+           ))
+        ))
+     ));
+  (DTm (N, "rw",
+     (Some (Pi (R, U, "A", (Type L),
+              (Pi (R, U, "m", (Id "A"),
+                 (Pi (R, U, "P", (Pi (R, U, "", (Id "A"), (Type L))),
+                    (Pi (R, U, "pf", (App [(Id "P"); (Id "m")]),
+                       (Pi (R, U, "n", (Id "A"),
+                          (Pi (R, U, "",
+                             (App [(Id "eq"); (Id "A"); (Id "m"); (Id "n")]),
+                             (App [(Id "P"); (Id "n")])))
+                          ))
+                       ))
+                    ))
+                 ))
+              ))),
+     (Lam (R, U, "A",
+        (Lam (R, U, "m",
+           (Lam (R, U, "P",
+              (Lam (R, U, "pf",
+                 (Lam (R, U, "n",
+                    (Lam (R, U, "e",
+                       (Match ((Id "e"),
+                          (Mot2 ((PData ("eq", ["_"; "_"; "x"])),
+                             (App [(Id "P"); (Id "x")]))),
+                          [((PCons ("refl", [])), (Id "pf"))]))
+                       ))
+                    ))
+                 ))
+              ))
+           ))
+        ))
+     ));
+  (DTm (N, "rwr",
+     (Some (Pi (R, U, "A", (Type L),
+              (Pi (R, U, "m", (Id "A"),
+                 (Pi (R, U, "P", (Pi (R, U, "", (Id "A"), (Type L))),
+                    (Pi (R, U, "pf", (App [(Id "P"); (Id "m")]),
+                       (Pi (R, U, "n", (Id "A"),
+                          (Pi (R, U, "",
+                             (App [(Id "eq"); (Id "A"); (Id "n"); (Id "m")]),
+                             (App [(Id "P"); (Id "n")])))
+                          ))
+                       ))
+                    ))
+                 ))
+              ))),
+     (Lam (R, U, "A",
+        (Lam (R, U, "m",
+           (Lam (R, U, "P",
+              (Lam (R, U, "pf",
+                 (Lam (R, U, "n",
+                    (Lam (R, U, "e",
+                       (App
+                          [(Id "rw"); (Id "A"); (Id "m");
+                            (Lam (R, U, "x", (App [(Id "P"); (Id "x")])));
+                            (Id "pf"); (Id "n");
+                            (App
+                               [(Id "eq_sym"); (Id "_"); (Id "_"); (Id "_");
+                                 (Id "e")])
+                            ])
+                       ))
+                    ))
+                 ))
+              ))
+           ))
+        ))
+     ));
+  (DTm (R, "fst",
+     (Some (Pi (N, U, "A", (Type L),
+              (Pi (N, U, "B", (Type U),
+                 (Pi (R, U, "", (App [(Id "tupL"); (Id "A"); (Id "B")]),
+                    (Id "A")))
+                 ))
+              ))),
+     (Lam (N, U, "A",
+        (Lam (N, U, "B",
+           (Lam (R, U, "p",
+              (Match ((Id "p"), Mot0,
+                 [((PCons ("TupL", ["a"; "_"])), (Id "a"))]))
+              ))
+           ))
+        ))
+     ));
+  (DTm (R, "size",
+     (Some (Pi (N, U, "A", (Type U),
+              (Pi (R, U, "", (App [(Id "list"); (Id "A")]),
+                 (App
+                    [(Id "tupL"); (App [(Id "list"); (Id "A")]); (Id "nat")])
+                 ))
+              ))),
+     (Fix ("loop",
+        (Lam (N, U, "A",
+           (Lam (R, U, "xs",
+              (Match ((Id "xs"), Mot0,
+                 [((PCons ("nil", [])),
+                   (App [(Id "TupL"); (Id "nil"); (Id "O")]));
+                   ((PCons ("cons", ["x"; "xs"])),
+                    (Match ((App [(Id "loop"); (Id "_"); (Id "xs")]), Mot0,
+                       [((PCons ("TupL", ["xs"; "sz"])),
+                         (App
+                            [(Id "TupL");
+                              (App [(Id "cons"); (Id "x"); (Id "xs")]);
+                              (App [(Id "S"); (Id "sz")])]))
+                         ]
+                       )))
+                   ]
+                 ))
+              ))
+           ))
+        ))
+     ));
+  (DTm (N, "size_id",
+     (Some (Pi (R, U, "A", (Type U),
+              (Pi (R, U, "ls", (App [(Id "list"); (Id "A")]),
+                 (App
+                    [(Id "eq"); (Id "_");
+                      (App
+                         [(Id "fst"); (Id "_"); (Id "_");
+                           (App [(Id "size"); (Id "_"); (Id "ls")])]);
+                      (Id "ls")])
+                 ))
+              ))),
+     (Fix ("induction",
+        (Lam (R, U, "A",
+           (Lam (R, U, "ls",
+              (Match ((Id "ls"),
+                 (Mot1 ("ls0",
+                    (App
+                       [(Id "eq"); (App [(Id "list"); (Id "A")]);
+                         (App
+                            [(Id "fst"); (Id "_"); (Id "_");
+                              (App [(Id "size"); (Id "_"); (Id "ls0")])]);
+                         (Id "ls0")])
+                    )),
+                 [((PCons ("nil", [])), (Id "refl"));
+                   ((PCons ("cons", ["x"; "xs"])),
+                    (Let (R, "p", (App [(Id "size"); (Id "A"); (Id "xs")]),
+                       (Let (R, "e",
+                          (Ann (
+                             (App
+                                [(Id "eq");
+                                  (App
+                                     [(Id "tupL");
+                                       (App [(Id "list"); (Id "A")]);
+                                       (Id "nat")]);
+                                  (Id "p");
+                                  (App [(Id "size"); (Id "A"); (Id "xs")])]),
+                             (Id "refl"))),
+                          (App
+                             [(Match ((Id "p"),
+                                 (Mot1 ("p0",
+                                    (Pi (R, U, "",
+                                       (App
+                                          [(Id "eq"); (Id "_"); (Id "p0");
+                                            (App
+                                               [(Id "size"); (Id "A");
+                                                 (Id "xs")])
+                                            ]),
+                                       (App
+                                          [(Id "eq"); (Id "_");
+                                            (App
+                                               [(Id "fst"); (Id "_");
+                                                 (Id "_");
+                                                 (Match ((Id "p0"), Mot0,
+                                                    [((PCons ("TupL",
+                                                         ["xs0"; "sz"])),
+                                                      (App
+                                                         [(Id "TupL");
+                                                           (App
+                                                              [(Id "cons");
+                                                                (Id "x");
+                                                                (Id "xs0")]);
+                                                           (App
+                                                              [(Id "S");
+                                                                (Id "sz")])
+                                                           ]))
+                                                      ]
+                                                    ))
+                                                 ]);
+                                            (App
+                                               [(Id "cons"); (Id "x");
+                                                 (Id "xs")])
+                                            ])
+                                       ))
+                                    )),
+                                 [((PCons ("TupL", ["a"; "b"])),
+                                   (Lam (R, U, "e0",
+                                      (Let (R, "H0",
+                                         (Ann (
+                                            (App
+                                               [(Id "eq"); (Id "_");
+                                                 (App
+                                                    [(Id "fst"); (Id "_");
+                                                      (Id "_");
+                                                      (App
+                                                         [(Id "size");
+                                                           (Id "A");
+                                                           (Id "xs")])
+                                                      ]);
+                                                 (Id "xs")]),
+                                            (App
+                                               [(Id "induction"); (Id "A");
+                                                 (Id "xs")])
+                                            )),
+                                         (Let (R, "H1",
+                                            (Ann (
+                                               (App
+                                                  [(Id "eq"); (Id "_");
+                                                    (App
+                                                       [(Id "fst"); (
+                                                         Id "_"); (Id "_");
+                                                         (App
+                                                            [(Id "TupL");
+                                                              (Id "a");
+                                                              (Id "b")])
+                                                         ]);
+                                                    (Id "xs")]),
+                                               (App
+                                                  [(Id "rwr"); (Id "_");
+                                                    (Id "_");
+                                                    (Lam (R, U, "p0",
+                                                       (App
+                                                          [(Id "eq");
+                                                            (Id "_");
+                                                            (App
+                                                               [(Id "fst");
+                                                                 (Id "_");
+                                                                 (Id "_");
+                                                                 (Id "p0")]);
+                                                            (Id "xs")])
+                                                       ));
+                                                    (Id "H0"); (Id "_");
+                                                    (Id "e0")])
+                                               )),
+                                            (App
+                                               [(Id "rwr"); (Id "_");
+                                                 (Id "_");
+                                                 (Lam (R, U, "l",
+                                                    (App
+                                                       [(Id "eq");
+                                                         (App
+                                                            [(Id "list");
+                                                              (Id "A")]);
+                                                         (App
+                                                            [(Id "cons");
+                                                              (Id "x");
+                                                              (Id "l")]);
+                                                         (App
+                                                            [(Id "cons");
+                                                              (Id "x");
+                                                              (Id "xs")])
+                                                         ])
+                                                    ));
+                                                 (Id "refl"); (Id "_");
+                                                 (Id "H1")])
+                                            ))
+                                         ))
+                                      )))
+                                   ]
+                                 ));
+                               (Id "e")])
+                          ))
+                       )))
+                   ]
+                 ))
+              ))
+           ))
+        ))
+     ))
+  ]
+parse success---------------------------------------
+
+inductive unit_d1 : U where
+| tt_c1 : unit_d1
+
+inductive nat_d2 : U where
+| O_c2 : nat_d2
+| S_c3 : nat_d2 -> nat_d2
+
+inductive tupL_d3 (A_112 : L) (B_113 : U) : L where
+| TupL_c4 (A_114 : L) (B_115 : U) : A_114 -> B_115 -> (tupL_d3 A_114 B_115)
+
+inductive list_d4 (A_119 : U) : L where
+| nil_c5 (A_120 : U) : (list_d4 A_120)
+| cons_c6 (A_121 : U) : A_121 -> (list_d4 A_121) -> (list_d4 A_121)
+
+inductive ex_d5 (A_125 : L) (P_126 : A_125 -> U) : L where
+| Ex_c7 (A_128 : L) (P_129 : A_128 -> U) :
+  ∀ (x_131 : A_128) -> {((P_129) x_131)} -> (ex_d5 A_128 P_129)
+
+inductive eq_d6 (A_133 : L) (x_134 : A_133) : A_133 -> L where
+| refl_c8 (A_136 : L) (x_137 : A_136) : (eq_d6 A_136 x_137 x_137)
+
+theorem eq_sym_26 :
+  ∀ (A_138 : L) ->
+    ∀ (m_140 : A_138) ->
+      ∀ (n_143 : A_138) ->
+        (eq_d6 A_138 m_140 n_143) -> (eq_d6 A_138 n_143 m_140) :=
+  fun A_146 m_147 n_148 e_149  ->
+    match e_149 in (eq_d6 __150 __151 x_152) return (eq_d6 A_146 x_152 m_147)
+    with
+    | refl_c8 -> refl_c8
+
+theorem rw_38 :
+  ∀ (A_153 : L) ->
+    ∀ (m_155 : A_153) ->
+      ∀ (P_159 : A_153 -> L) ->
+        ((P_159) m_155) ->
+          ∀ (n_165 : A_153) -> (eq_d6 A_153 m_155 n_165) -> ((P_159) n_165) :=
+  fun A_168 m_169 P_170 pf_171 n_172 e_173  ->
+    match e_173 in (eq_d6 __174 __175 x_176) return ((P_170) x_176) with
+    | refl_c8 -> pf_171
+
+theorem rwr_55 :
+  ∀ (A_177 : L) ->
+    ∀ (m_179 : A_177) ->
+      ∀ (P_183 : A_177 -> L) ->
+        ((P_183) m_179) ->
+          ∀ (n_189 : A_177) -> (eq_d6 A_177 n_189 m_179) -> ((P_183) n_189) :=
+  fun A_192 m_193 P_194 pf_195 n_196 e_197  ->
+    ((rw_38)
+      A_192 m_193 fun x_198 -> ((P_194) x_198) pf_195 n_196
+      ((eq_sym_26) ??1 ??2 ??3 e_197))
+
+definition fst_70 :
+  ∀ {A_199 : L} -> ∀ {B_202 : U} -> (tupL_d3 A_199 B_202) -> A_199 :=
+  fun {A_205 B_206} p_207 ->
+    match p_207 with
+    | (TupL_c4 a_208 __209) -> a_208
+
+definition size_79 :
+  ∀ {A_210 : U} -> (list_d4 A_210) -> (tupL_d3 (list_d4 A_210) nat_d2) :=
+  fix loop_213 {A_214} xs_215 ->
+    match xs_215 with
+    | nil_c5 -> (TupL_c4 nil_c5 O_c2)
+    | (cons_c6 x_216 xs_217) ->
+      match ((loop_213) ??4 xs_217) with
+      | (TupL_c4 xs_218 sz_219) ->
+        (TupL_c4 (cons_c6 x_216 xs_218) (S_c3 sz_219))
+
+theorem size_id_89 :
+  ∀ (A_220 : U) ->
+    ∀ (ls_222 : (list_d4 A_220)) ->
+      (eq_d6 ??5 ((fst_70) ??6 ??7 ((size_79) ??8 ls_222)) ls_222) :=
+  fix induction_223 A_224 ls_225  ->
+    match ls_225 as ls0_226 return
+      (eq_d6 (list_d4 A_224) ((fst_70) ??9 ??10 ((size_79) ??11 ls0_226))
+      ls0_226)
+    with
+    | nil_c5 -> refl_c8
+    | (cons_c6 x_227 xs_228) ->
+      let p_229 := ((size_79) A_224 xs_228) in
+      let e_230 :=
+        (@[(eq_d6 (tupL_d3 (list_d4 A_224) nat_d2) p_229
+           ((size_79) A_224 xs_228))]
+        refl_c8)
+      in
+      ((match p_229 as p0_231 return
+          (eq_d6 ??12 p0_231 ((size_79) A_224 xs_228)) ->
+            (eq_d6 ??13
+            ((fst_70)
+              ??14 ??15
+              match p0_231 with
+              | (TupL_c4 xs0_235 sz_236) ->
+                (TupL_c4 (cons_c6 x_227 xs0_235) (S_c3 sz_236)))
+            (cons_c6 x_227 xs_228))
+        with
+        | (TupL_c4 a_237 b_238) ->
+          fun e0_239 ->
+            let H0_240 :=
+              (@[(eq_d6 ??16 ((fst_70) ??17 ??18 ((size_79) A_224 xs_228))
+                 xs_228)]
+              ((induction_223) A_224 xs_228))
+            in
+            let H1_241 :=
+              (@[(eq_d6 ??19 ((fst_70) ??20 ??21 (TupL_c4 a_237 b_238))
+                 xs_228)]
+              ((rwr_55)
+                ??22 ??23
+                fun p0_242 -> (eq_d6 ??24 ((fst_70) ??25 ??26 p0_242) xs_228)
+                H0_240 ??27 e0_239))
+            in
+            ((rwr_55)
+              ??28 ??29
+              fun l_243 ->
+                (eq_d6 (list_d4 A_224) (cons_c6 x_227 l_243)
+                (cons_c6 x_227 xs_228))
+              refl_c8 ??30 H1_241))
+        e_230)
+
+trans01 success---------------------------------------
+
+inductive unit_d1 : U where
+| tt_c1 : unit_d1
+
+inductive nat_d2 : U where
+| O_c2 : nat_d2
+| S_c3 : nat_d2 -> nat_d2
+
+inductive tupL_d3 (A_1838 : L) (B_1839 : U) : L where
+| TupL_c4 (A_1840 : L) (B_1841 : U) :
+  A_1840 -> B_1841 -> (tupL_d3 A_1840 B_1841)
+
+inductive list_d4 (A_1845 : U) : L where
+| nil_c5 (A_1846 : U) : (list_d4 A_1846)
+| cons_c6 (A_1847 : U) : A_1847 -> (list_d4 A_1847) -> (list_d4 A_1847)
+
+inductive ex_d5 (A_1851 : L) (P_1852 : A_1851 -> U) : L where
+| Ex_c7 (A_1854 : L) (P_1855 : A_1854 -> U) :
+  ∀ (x_1857 : A_1854) -> {((P_1855) x_1857)} -> (ex_d5 A_1854 P_1855)
+
+inductive eq_d6 (A_1859 : L) (x_1860 : A_1859) : A_1859 -> L where
+| refl_c8 (A_1862 : L) (x_1863 : A_1862) : (eq_d6 A_1862 x_1863 x_1863)
+
+theorem eq_sym_26 :
+  ∀ (A_1864 : L) ->
+    ∀ (m_1866 : A_1864) ->
+      ∀ (n_1869 : A_1864) ->
+        (eq_d6 A_1864 m_1866 n_1869) -> (eq_d6 A_1864 n_1869 m_1866) :=
+  fun A_1872 m_1873 n_1874 e_1875  ->
+    match e_1875 in (eq_d6 __1876 __1877 x_1878) return
+      (eq_d6 A_1872 x_1878 m_1873)
+    with
+    | refl_c8 -> refl_c8
+
+theorem rw_38 :
+  ∀ (A_1879 : L) ->
+    ∀ (m_1881 : A_1879) ->
+      ∀ (P_1885 : A_1879 -> L) ->
+        ((P_1885) m_1881) ->
+          ∀ (n_1891 : A_1879) ->
+            (eq_d6 A_1879 m_1881 n_1891) -> ((P_1885) n_1891) :=
+  fun A_1894 m_1895 P_1896 pf_1897 n_1898 e_1899  ->
+    match e_1899 in (eq_d6 __1900 __1901 x_1902) return ((P_1896) x_1902)
+    with
+    | refl_c8 -> pf_1897
+
+theorem rwr_55 :
+  ∀ (A_1903 : L) ->
+    ∀ (m_1905 : A_1903) ->
+      ∀ (P_1909 : A_1903 -> L) ->
+        ((P_1909) m_1905) ->
+          ∀ (n_1915 : A_1903) ->
+            (eq_d6 A_1903 n_1915 m_1905) -> ((P_1909) n_1915) :=
+  fun A_1918 m_1919 P_1920 pf_1921 n_1922 e_1923  ->
+    ((rw_38)
+      A_1918 m_1919 fun x_1924 -> ((P_1920) x_1924) pf_1921 n_1922
+      ((eq_sym_26) A_1918 n_1922 m_1919 e_1923))
+
+definition fst_70 :
+  ∀ {A_1925 : L} -> ∀ {B_1928 : U} -> (tupL_d3 A_1925 B_1928) -> A_1925 :=
+  fun {A_1931 B_1932} p_1933 ->
+    match p_1933 with
+    | (TupL_c4 a_1934 __1935) -> a_1934
+
+definition size_79 :
+  ∀ {A_1936 : U} -> (list_d4 A_1936) -> (tupL_d3 (list_d4 A_1936) nat_d2) :=
+  fix loop_1939 {A_1940} xs_1941 ->
+    match xs_1941 with
+    | nil_c5 -> (TupL_c4 nil_c5 O_c2)
+    | (cons_c6 x_1942 xs_1943) ->
+      match ((loop_1939) A_1940 xs_1943) with
+      | (TupL_c4 xs_1944 sz_1945) ->
+        (TupL_c4 (cons_c6 x_1942 xs_1944) (S_c3 sz_1945))
+
+theorem size_id_89 :
+  ∀ (A_1946 : U) ->
+    ∀ (ls_1948 : (list_d4 A_1946)) ->
+      (eq_d6 (list_d4 A_1946)
+      ((fst_70) (list_d4 A_1946) nat_d2 ((size_79) A_1946 ls_1948)) ls_1948) :=
+  fix induction_1949 A_1950 ls_1951  ->
+    match ls_1951 as ls0_1952 return
+      (eq_d6 (list_d4 A_1950)
+      ((fst_70) (list_d4 A_1950) nat_d2 ((size_79) A_1950 ls0_1952))
+      ls0_1952)
+    with
+    | nil_c5 -> refl_c8
+    | (cons_c6 x_1953 xs_1954) ->
+      let p_1955 := ((size_79) A_1950 xs_1954) in
+      let e_1956 :=
+        (@[(eq_d6 (tupL_d3 (list_d4 A_1950) nat_d2) p_1955
+           ((size_79) A_1950 xs_1954))]
+        refl_c8)
+      in
+      ((match p_1955 as p0_1957 return
+          (eq_d6 (tupL_d3 (list_d4 A_1950) nat_d2) p0_1957
+          ((size_79) A_1950 xs_1954)) ->
+            (eq_d6 (list_d4 A_1950)
+            ((fst_70)
+              ??14 ??15
+              match p0_1957 with
+              | (TupL_c4 xs0_1961 sz_1962) ->
+                (TupL_c4 (cons_c6 x_1953 xs0_1961) (S_c3 sz_1962)))
+            (cons_c6 x_1953 xs_1954))
+        with
+        | (TupL_c4 a_1963 b_1964) ->
+          fun e0_1965 ->
+            let H0_1966 :=
+              (@[(eq_d6 (list_d4 (@[U]A_1950))
+                 ((fst_70)
+                   (list_d4 (@[U]A_1950)) nat_d2 ((size_79) A_1950 xs_1954))
+                 xs_1954)]
+              ((induction_1949) A_1950 xs_1954))
+            in
+            let H1_1967 :=
+              (@[(eq_d6 (list_d4 (@[U]A_1950))
+                 ((fst_70)
+                   (list_d4 (@[U]A_1950)) nat_d2 (TupL_c4 a_1963 b_1964))
+                 xs_1954)]
+              ((rwr_55)
+                (tupL_d3 (@[L](list_d4 (@[U]A_1950))) (@[U]nat_d2))
+                ((size_79) A_1950 xs_1954)
+                fun p0_1968 ->
+                  (eq_d6 (list_d4 (@[U]A_1950))
+                  ((fst_70) (list_d4 (@[U]A_1950)) nat_d2 p0_1968) xs_1954)
+                H0_1966 (TupL_c4 a_1963 b_1964) e0_1965))
+            in
+            ((rwr_55)
+              (list_d4 (@[U]A_1950)) xs_1954
+              fun l_1969 ->
+                (eq_d6 (list_d4 A_1950) (cons_c6 x_1953 l_1969)
+                (cons_c6 x_1953 xs_1954))
+              refl_c8 a_1963 H1_1967))
+        e_1956)
+
+elab1 success---------------------------------------
+
+inductive unit_d1 where
+| tt_c1 := 0
+
+inductive nat_d2 where
+| O_c2 := 0
+| S_c3 := 1
+
+inductive tupL_d3 where
+| TupL_c4 := 2
+
+inductive list_d4 where
+| nil_c5 := 0
+| cons_c6 := 2
+
+inductive ex_d5 where
+| Ex_c7 := 2
+
+inductive eq_d6 where
+| refl_c8 := 0
+
+def eq_sym_26 := □
+
+def rw_38 := □
+
+def rwr_55 := □
+
+def fst_70 :=
+  fun A_2539 B_2540 p_2541 ->
+    match p_2541<L>with
+    | (TupL_c4 a_2542 __2543) -> a_2542
+
+def size_79 :=
+  fix loop_2544 A_2545 xs_2546 ->
+    match xs_2546<L>with
+    | nil_c5 -> (TupL_c4 nil_c5 O_c2)
+    | (cons_c6 x_2547 xs_2548) ->
+      match ((loop_2544) □ xs_2548)<L>with
+      | (TupL_c4 xs_2549 sz_2550) ->
+        (TupL_c4 (cons_c6 x_2547 xs_2549) (S_c3 sz_2550))
+
+def size_id_89 := □
+
+dyntype1 success---------------------------------------
+
