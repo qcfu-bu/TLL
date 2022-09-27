@@ -77,7 +77,6 @@ let rec infer_sort ctx env eqns map a =
   | _ -> failwith "infer_sort(%a : %a)" pp_tm a pp_tm srt
 
 and infer_tm ctx env eqns map m =
-  let _ = pr "elab_infer(%a)@." pp_tm m in
   match m with
   | Ann (a, m) -> (
     match m with
@@ -196,7 +195,6 @@ and check_tl ctx env eqns map ms tl =
   | _ -> failwith "check_tl(%a, %a)" pp_tms ms pp_tl tl
 
 and check_tm ctx env eqns map m a =
-  let _ = pr "elab_check(%a :? %a)@." pp_tm m pp_tm a in
   match m with
   | Meta (x, _) -> (eqns, add_m x a map)
   | Lam (r1, s1, abs) -> (

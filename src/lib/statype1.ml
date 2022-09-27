@@ -18,7 +18,6 @@ let rec infer_sort ctx env a =
   | _ -> failwith "infer_sort(%a : %a)" pp_tm a pp_tm srt
 
 and infer_tm ctx env m =
-  let _ = pr "sta_type1_infer(%a)@.@." pp_tm m in
   match m with
   | Ann (a, m) -> (
     match m with

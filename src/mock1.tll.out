@@ -490,130 +490,130 @@ inductive nat_d2 : U where
 | O_c2 : nat_d2
 | S_c3 : nat_d2 -> nat_d2
 
-inductive tupL_d3 (A_1883 : L) (B_1884 : U) : L where
-| TupL_c4 (A_1885 : L) (B_1886 : U) :
-  A_1885 -> B_1886 -> (tupL_d3 A_1885 B_1886)
+inductive tupL_d3 (A_1148 : L) (B_1149 : U) : L where
+| TupL_c4 (A_1150 : L) (B_1151 : U) :
+  A_1150 -> B_1151 -> (tupL_d3 A_1150 B_1151)
 
-inductive list_d4 (A_1890 : U) : L where
-| nil_c5 (A_1891 : U) : (list_d4 A_1891)
-| cons_c6 (A_1892 : U) : A_1892 -> (list_d4 A_1892) -> (list_d4 A_1892)
+inductive list_d4 (A_1155 : U) : L where
+| nil_c5 (A_1156 : U) : (list_d4 A_1156)
+| cons_c6 (A_1157 : U) : A_1157 -> (list_d4 A_1157) -> (list_d4 A_1157)
 
-inductive ex_d5 (A_1896 : L) (P_1897 : A_1896 -> U) : L where
-| Ex_c7 (A_1899 : L) (P_1900 : A_1899 -> U) :
-  ∀ (x_1902 : A_1899) -> {((P_1900) x_1902)} -> (ex_d5 A_1899 P_1900)
+inductive ex_d5 (A_1161 : L) (P_1162 : A_1161 -> U) : L where
+| Ex_c7 (A_1164 : L) (P_1165 : A_1164 -> U) :
+  ∀ (x_1167 : A_1164) -> {((P_1165) x_1167)} -> (ex_d5 A_1164 P_1165)
 
-inductive eq_d6 (A_1904 : L) (x_1905 : A_1904) : A_1904 -> U where
-| refl_c8 (A_1907 : L) (x_1908 : A_1907) : (eq_d6 A_1907 x_1908 x_1908)
+inductive eq_d6 (A_1169 : L) (x_1170 : A_1169) : A_1169 -> U where
+| refl_c8 (A_1172 : L) (x_1173 : A_1172) : (eq_d6 A_1172 x_1173 x_1173)
 
 theorem rw_26 :
-  ∀ (A_1909 : L) ->
-    ∀ (m_1911 : A_1909) ->
-      ∀ (P_1915 : A_1909 -> U) ->
-        ((P_1915) m_1911) ->
-          ∀ (n_1921 : A_1909) ->
-            (eq_d6 A_1909 m_1911 n_1921) -> ((P_1915) n_1921) :=
-  fun A_1924 m_1925 P_1926 pf_1927 n_1928 e_1929  ->
-    match e_1929 in (eq_d6 __1930 __1931 x_1932) return ((P_1926) x_1932)
+  ∀ (A_1174 : L) ->
+    ∀ (m_1176 : A_1174) ->
+      ∀ (P_1180 : A_1174 -> U) ->
+        ((P_1180) m_1176) ->
+          ∀ (n_1186 : A_1174) ->
+            (eq_d6 A_1174 m_1176 n_1186) -> ((P_1180) n_1186) :=
+  fun A_1189 m_1190 P_1191 pf_1192 n_1193 e_1194  ->
+    match e_1194 in (eq_d6 __1195 __1196 x_1197) return ((P_1191) x_1197)
     with
-    | refl_c8 -> pf_1927
+    | refl_c8 -> pf_1192
 
 theorem eq_sym_43 :
-  ∀ (A_1933 : L) ->
-    ∀ (m_1935 : A_1933) ->
-      ∀ (n_1938 : A_1933) ->
-        (eq_d6 A_1933 m_1935 n_1938) -> (eq_d6 A_1933 n_1938 m_1935) :=
-  fun A_1941 m_1942 n_1943 e_1944  ->
+  ∀ (A_1198 : L) ->
+    ∀ (m_1200 : A_1198) ->
+      ∀ (n_1203 : A_1198) ->
+        (eq_d6 A_1198 m_1200 n_1203) -> (eq_d6 A_1198 n_1203 m_1200) :=
+  fun A_1206 m_1207 n_1208 e_1209  ->
     ((rw_26)
-      A_1941 m_1942 fun x_1945 -> (eq_d6 A_1941 x_1945 m_1942) refl_c8 n_1943
-      e_1944)
+      A_1206 m_1207 fun x_1210 -> (eq_d6 A_1206 x_1210 m_1207) refl_c8 n_1208
+      e_1209)
 
 theorem rwr_53 :
-  ∀ (A_1946 : L) ->
-    ∀ (m_1948 : A_1946) ->
-      ∀ (P_1952 : A_1946 -> U) ->
-        ((P_1952) m_1948) ->
-          ∀ (n_1958 : A_1946) ->
-            (eq_d6 A_1946 n_1958 m_1948) -> ((P_1952) n_1958) :=
-  fun A_1961 m_1962 P_1963 pf_1964 n_1965 e_1966  ->
+  ∀ (A_1211 : L) ->
+    ∀ (m_1213 : A_1211) ->
+      ∀ (P_1217 : A_1211 -> U) ->
+        ((P_1217) m_1213) ->
+          ∀ (n_1223 : A_1211) ->
+            (eq_d6 A_1211 n_1223 m_1213) -> ((P_1217) n_1223) :=
+  fun A_1226 m_1227 P_1228 pf_1229 n_1230 e_1231  ->
     ((rw_26)
-      A_1961 m_1962 fun x_1967 -> ((P_1963) x_1967) pf_1964 n_1965
-      ((eq_sym_43) A_1961 n_1965 m_1962 e_1966))
+      A_1226 m_1227 fun x_1232 -> ((P_1228) x_1232) pf_1229 n_1230
+      ((eq_sym_43) A_1226 n_1230 m_1227 e_1231))
 
 definition fst_68 :
-  ∀ {A_1968 : L} -> ∀ {B_1971 : U} -> (tupL_d3 A_1968 B_1971) -> A_1968 :=
-  fun {A_1974 B_1975} p_1976 ->
-    match p_1976 with
-    | (TupL_c4 a_1977 __1978) -> a_1977
+  ∀ {A_1233 : L} -> ∀ {B_1236 : U} -> (tupL_d3 A_1233 B_1236) -> A_1233 :=
+  fun {A_1239 B_1240} p_1241 ->
+    match p_1241 with
+    | (TupL_c4 a_1242 __1243) -> a_1242
 
 definition size_77 :
-  ∀ {A_1979 : U} -> (list_d4 A_1979) -> (tupL_d3 (list_d4 A_1979) nat_d2) :=
-  fix loop_1982 {A_1983} xs_1984 ->
-    match xs_1984 with
+  ∀ {A_1244 : U} -> (list_d4 A_1244) -> (tupL_d3 (list_d4 A_1244) nat_d2) :=
+  fix loop_1247 {A_1248} xs_1249 ->
+    match xs_1249 with
     | nil_c5 -> (TupL_c4 nil_c5 O_c2)
-    | (cons_c6 x_1985 xs_1986) ->
-      match ((loop_1982) A_1983 xs_1986) with
-      | (TupL_c4 xs_1987 sz_1988) ->
-        (TupL_c4 (cons_c6 x_1985 xs_1987) (S_c3 sz_1988))
+    | (cons_c6 x_1250 xs_1251) ->
+      match ((loop_1247) A_1248 xs_1251) with
+      | (TupL_c4 xs_1252 sz_1253) ->
+        (TupL_c4 (cons_c6 x_1250 xs_1252) (S_c3 sz_1253))
 
 theorem size_id_87 :
-  ∀ (A_1989 : U) ->
-    ∀ (ls_1991 : (list_d4 A_1989)) ->
-      (eq_d6 (list_d4 A_1989)
-      ((fst_68) (list_d4 A_1989) nat_d2 ((size_77) A_1989 ls_1991)) ls_1991) :=
-  fix induction_1992 A_1993 ls_1994  ->
-    match ls_1994 as ls0_1995 return
-      (eq_d6 (list_d4 A_1993)
-      ((fst_68) (list_d4 A_1993) nat_d2 ((size_77) A_1993 ls0_1995))
-      ls0_1995)
+  ∀ (A_1254 : U) ->
+    ∀ (ls_1256 : (list_d4 A_1254)) ->
+      (eq_d6 (list_d4 A_1254)
+      ((fst_68) (list_d4 A_1254) nat_d2 ((size_77) A_1254 ls_1256)) ls_1256) :=
+  fix induction_1257 A_1258 ls_1259  ->
+    match ls_1259 as ls0_1260 return
+      (eq_d6 (list_d4 A_1258)
+      ((fst_68) (list_d4 A_1258) nat_d2 ((size_77) A_1258 ls0_1260))
+      ls0_1260)
     with
     | nil_c5 -> refl_c8
-    | (cons_c6 x_1996 xs_1997) ->
-      let p_1998 := ((size_77) A_1993 xs_1997) in
-      let e_1999 :=
-        (@[(eq_d6 (tupL_d3 (list_d4 A_1993) nat_d2) p_1998
-           ((size_77) A_1993 xs_1997))]
+    | (cons_c6 x_1261 xs_1262) ->
+      let p_1263 := ((size_77) A_1258 xs_1262) in
+      let e_1264 :=
+        (@[(eq_d6 (tupL_d3 (list_d4 A_1258) nat_d2) p_1263
+           ((size_77) A_1258 xs_1262))]
         refl_c8)
       in
-      ((match p_1998 as p0_2000 return
-          (eq_d6 (tupL_d3 (list_d4 A_1993) nat_d2) p0_2000
-          ((size_77) A_1993 xs_1997)) ->
-            (eq_d6 (list_d4 A_1993)
+      ((match p_1263 as p0_1265 return
+          (eq_d6 (tupL_d3 (list_d4 A_1258) nat_d2) p0_1265
+          ((size_77) A_1258 xs_1262)) ->
+            (eq_d6 (list_d4 A_1258)
             ((fst_68)
               ??15 ??16
-              match p0_2000 with
-              | (TupL_c4 xs0_2004 sz_2005) ->
-                (TupL_c4 (cons_c6 x_1996 xs0_2004) (S_c3 sz_2005)))
-            (cons_c6 x_1996 xs_1997))
+              match p0_1265 with
+              | (TupL_c4 xs0_1269 sz_1270) ->
+                (TupL_c4 (cons_c6 x_1261 xs0_1269) (S_c3 sz_1270)))
+            (cons_c6 x_1261 xs_1262))
         with
-        | (TupL_c4 a_2006 b_2007) ->
-          fun e0_2008 ->
-            let H0_2009 :=
-              (@[(eq_d6 (list_d4 (@[U]A_1993))
+        | (TupL_c4 a_1271 b_1272) ->
+          fun e0_1273 ->
+            let H0_1274 :=
+              (@[(eq_d6 (list_d4 (@[U]A_1258))
                  ((fst_68)
-                   (list_d4 (@[U]A_1993)) nat_d2 ((size_77) A_1993 xs_1997))
-                 xs_1997)]
-              ((induction_1992) A_1993 xs_1997))
+                   (list_d4 (@[U]A_1258)) nat_d2 ((size_77) A_1258 xs_1262))
+                 xs_1262)]
+              ((induction_1257) A_1258 xs_1262))
             in
-            let H1_2010 :=
-              (@[(eq_d6 (list_d4 (@[U]A_1993))
+            let H1_1275 :=
+              (@[(eq_d6 (list_d4 (@[U]A_1258))
                  ((fst_68)
-                   (list_d4 (@[U]A_1993)) nat_d2 (TupL_c4 a_2006 b_2007))
-                 xs_1997)]
+                   (list_d4 (@[U]A_1258)) nat_d2 (TupL_c4 a_1271 b_1272))
+                 xs_1262)]
               ((rwr_53)
-                (tupL_d3 (@[L](list_d4 (@[U]A_1993))) (@[U]nat_d2))
-                ((size_77) A_1993 xs_1997)
-                fun p0_2011 ->
-                  (eq_d6 (list_d4 (@[U]A_1993))
-                  ((fst_68) (list_d4 (@[U]A_1993)) nat_d2 p0_2011) xs_1997)
-                H0_2009 (TupL_c4 a_2006 b_2007) e0_2008))
+                (tupL_d3 (@[L](list_d4 (@[U]A_1258))) (@[U]nat_d2))
+                ((size_77) A_1258 xs_1262)
+                fun p0_1276 ->
+                  (eq_d6 (list_d4 (@[U]A_1258))
+                  ((fst_68) (list_d4 (@[U]A_1258)) nat_d2 p0_1276) xs_1262)
+                H0_1274 (TupL_c4 a_1271 b_1272) e0_1273))
             in
             ((rwr_53)
-              (list_d4 (@[U]A_1993)) xs_1997
-              fun l_2012 ->
-                (eq_d6 (list_d4 A_1993) (cons_c6 x_1996 l_2012)
-                (cons_c6 x_1996 xs_1997))
-              refl_c8 a_2006 H1_2010))
-        e_1999)
+              (list_d4 (@[U]A_1258)) xs_1262
+              fun l_1277 ->
+                (eq_d6 (list_d4 A_1258) (cons_c6 x_1261 l_1277)
+                (cons_c6 x_1261 xs_1262))
+              refl_c8 a_1271 H1_1275))
+        e_1264)
 
 elab1 success---------------------------------------
 
@@ -644,18 +644,18 @@ def eq_sym_43 := □
 def rwr_53 := □
 
 def fst_68 :=
-  fun A_2578 B_2579 p_2580 ->
-    match p_2580<L>with
-    | (TupL_c4 a_2581 __2582) -> a_2581
+  fun A_1539 B_1540 p_1541 ->
+    match p_1541<L>with
+    | (TupL_c4 a_1542 __1543) -> a_1542
 
 def size_77 :=
-  fix loop_2583 A_2584 xs_2585 ->
-    match xs_2585<L>with
+  fix loop_1544 A_1545 xs_1546 ->
+    match xs_1546<L>with
     | nil_c5 -> (TupL_c4 nil_c5 O_c2)
-    | (cons_c6 x_2586 xs_2587) ->
-      match ((loop_2583) □ xs_2587)<L>with
-      | (TupL_c4 xs_2588 sz_2589) ->
-        (TupL_c4 (cons_c6 x_2586 xs_2588) (S_c3 sz_2589))
+    | (cons_c6 x_1547 xs_1548) ->
+      match ((loop_1544) □ xs_1548)<L>with
+      | (TupL_c4 xs_1549 sz_1550) ->
+        (TupL_c4 (cons_c6 x_1547 xs_1549) (S_c3 sz_1550))
 
 def size_id_87 := □
 

@@ -1,0 +1,492 @@
+[(DData ("unit", (PBase (TBase (Type U))),
+    [(DCons ("tt", (PBase (TBase (Id "unit")))))]));
+  (DData ("nat", (PBase (TBase (Type U))),
+     [(DCons ("O", (PBase (TBase (Id "nat")))));
+       (DCons ("S", (PBase (TBind (R, "", (Id "nat"), (TBase (Id "nat")))))))
+       ]
+     ));
+  (DData ("list", (PBind ("A", (Type U), (PBase (TBase (Type L))))),
+     [(DCons ("nil",
+         (PBind ("A", (Type U), (PBase (TBase (App [(Id "list"); (Id "A")])))
+            ))
+         ));
+       (DCons ("cons",
+          (PBind ("A", (Type U),
+             (PBase
+                (TBind (R, "", (Id "A"),
+                   (TBind (R, "", (App [(Id "list"); (Id "A")]),
+                      (TBase (App [(Id "list"); (Id "A")]))))
+                   )))
+             ))
+          ))
+       ]
+     ));
+  (DData ("ex",
+     (PBind ("A", (Type L),
+        (PBind ("P", (Pi (R, U, "", (Id "A"), (Type U))),
+           (PBase (TBase (Type L)))))
+        )),
+     [(DCons ("Ex",
+         (PBind ("A", (Type L),
+            (PBind ("P", (Pi (R, U, "", (Id "A"), (Type U))),
+               (PBase
+                  (TBind (R, "x", (Id "A"),
+                     (TBind (N, "", (App [(Id "P"); (Id "x")]),
+                        (TBase (App [(Id "ex"); (Id "A"); (Id "P")]))))
+                     )))
+               ))
+            ))
+         ))
+       ]
+     ));
+  (DData ("eq",
+     (PBind ("A", (Type U),
+        (PBind ("x", (Id "A"),
+           (PBase (TBind (R, "", (Id "A"), (TBase (Type U)))))))
+        )),
+     [(DCons ("refl",
+         (PBind ("A", (Type U),
+            (PBind ("x", (Id "A"),
+               (PBase (TBase (App [(Id "eq"); (Id "A"); (Id "x"); (Id "x")])))
+               ))
+            ))
+         ))
+       ]
+     ));
+  (DTm (N, "rw",
+     (Some (Pi (R, U, "A", (Type U),
+              (Pi (R, U, "m", (Id "A"),
+                 (Pi (R, U, "P", (Pi (R, U, "", (Id "A"), (Type U))),
+                    (Pi (R, U, "pf", (App [(Id "P"); (Id "m")]),
+                       (Pi (R, U, "n", (Id "A"),
+                          (Pi (R, U, "",
+                             (App [(Id "eq"); (Id "A"); (Id "m"); (Id "n")]),
+                             (App [(Id "P"); (Id "n")])))
+                          ))
+                       ))
+                    ))
+                 ))
+              ))),
+     (Lam (R, U, "A",
+        (Lam (R, U, "m",
+           (Lam (R, U, "P",
+              (Lam (R, U, "pf",
+                 (Lam (R, U, "n",
+                    (Lam (R, U, "e",
+                       (Match ((Id "e"),
+                          (Mot2 ((PData ("eq", ["_"; "_"; "x"])),
+                             (App [(Id "P"); (Id "x")]))),
+                          [((PCons ("refl", [])), (Id "pf"))]))
+                       ))
+                    ))
+                 ))
+              ))
+           ))
+        ))
+     ));
+  (DTm (R, "add",
+     (Some (Pi (R, U, "", (Id "nat"), (Pi (R, U, "", (Id "nat"), (Id "nat")))
+              ))),
+     (Fix ("loop",
+        (Lam (R, U, "x",
+           (Lam (R, U, "y",
+              (Match ((Id "x"), Mot0,
+                 [((PCons ("O", [])), (Id "y"));
+                   ((PCons ("S", ["x"])),
+                    (App [(Id "S"); (App [(Id "loop"); (Id "x"); (Id "y")])]))
+                   ]
+                 ))
+              ))
+           ))
+        ))
+     ));
+  (DTm (R, "append",
+     (Some (Pi (N, U, "A", (Type U),
+              (Pi (R, U, "", (App [(Id "list"); (Id "A")]),
+                 (Pi (R, L, "", (App [(Id "list"); (Id "A")]),
+                    (App [(Id "list"); (Id "A")])))
+                 ))
+              ))),
+     (Fix ("loop",
+        (Lam (N, U, "A",
+           (Lam (R, U, "xs",
+              (Lam (R, L, "ys",
+                 (Match ((Id "xs"), Mot0,
+                    [((PCons ("nil", [])), (Id "ys"));
+                      ((PCons ("cons", ["x"; "xs"])),
+                       (App
+                          [(Id "cons"); (Id "x");
+                            (App
+                               [(Id "loop"); (Id "_"); (Id "xs"); (Id "ys")])
+                            ]))
+                      ]
+                    ))
+                 ))
+              ))
+           ))
+        ))
+     ));
+  (DTm (N, "len",
+     (Some (Pi (R, U, "A", (Type U),
+              (Pi (R, U, "", (App [(Id "list"); (Id "A")]), (Id "nat")))))),
+     (Fix ("loop",
+        (Lam (R, U, "A",
+           (Lam (R, U, "xs",
+              (Match ((Id "xs"), Mot0,
+                 [((PCons ("nil", [])), (Id "O"));
+                   ((PCons ("cons", ["_"; "xs"])),
+                    (App [(Id "S"); (App [(Id "loop"); (Id "_"); (Id "xs")])]))
+                   ]
+                 ))
+              ))
+           ))
+        ))
+     ));
+  (DTm (N, "append_len",
+     (Some (Pi (R, U, "A", (Type U),
+              (Pi (R, U, "xs", (App [(Id "list"); (Id "A")]),
+                 (Pi (R, U, "ys", (App [(Id "list"); (Id "A")]),
+                    (App
+                       [(Id "eq"); (Id "nat");
+                         (App
+                            [(Id "len"); (Id "A");
+                              (App
+                                 [(Id "append"); (Id "A"); (Id "xs");
+                                   (Id "ys")])
+                              ]);
+                         (App
+                            [(Id "add");
+                              (App [(Id "len"); (Id "A"); (Id "xs")]);
+                              (App [(Id "len"); (Id "A"); (Id "ys")])])
+                         ])
+                    ))
+                 ))
+              ))),
+     (Fix ("loop",
+        (Lam (R, U, "A",
+           (Lam (R, U, "xs",
+              (Lam (R, U, "ys",
+                 (Match ((Id "xs"),
+                    (Mot1 ("xs0",
+                       (App
+                          [(Id "eq"); (Id "nat");
+                            (App
+                               [(Id "len"); (Id "A");
+                                 (App
+                                    [(Id "append"); (Id "A"); (Id "xs0");
+                                      (Id "ys")])
+                                 ]);
+                            (App
+                               [(Id "add");
+                                 (App [(Id "len"); (Id "A"); (Id "xs0")]);
+                                 (App [(Id "len"); (Id "A"); (Id "ys")])])
+                            ])
+                       )),
+                    [((PCons ("nil", [])), (Id "refl"));
+                      ((PCons ("cons", ["x"; "xs0"])),
+                       (App
+                          [(Id "rw"); (Id "nat");
+                            (App
+                               [(Id "len"); (Id "A");
+                                 (App
+                                    [(Id "append"); (Id "A"); (Id "xs0");
+                                      (Id "ys")])
+                                 ]);
+                            (Lam (R, U, "n",
+                               (App
+                                  [(Id "eq"); (Id "nat");
+                                    (App
+                                       [(Id "S");
+                                         (App
+                                            [(Id "len"); (Id "A");
+                                              (App
+                                                 [(Id "append"); (Id "A");
+                                                   (Id "xs0"); (Id "ys")])
+                                              ])
+                                         ]);
+                                    (App [(Id "S"); (Id "n")])])
+                               ));
+                            (Id "refl");
+                            (App
+                               [(Id "add");
+                                 (App [(Id "len"); (Id "A"); (Id "xs0")]);
+                                 (App [(Id "len"); (Id "A"); (Id "ys")])]);
+                            (App
+                               [(Id "loop"); (Id "A"); (Id "xs0"); (Id "ys")])
+                            ]))
+                      ]
+                    ))
+                 ))
+              ))
+           ))
+        ))
+     ));
+  (DTm (R, "test",
+     (Some (App
+              [(Id "ex"); (App [(Id "list"); (Id "nat")]);
+                (Lam (R, U, "ls",
+                   (App
+                      [(Id "eq"); (Id "nat");
+                        (App [(Id "len"); (Id "nat"); (Id "ls")]);
+                        (App [(Id "S"); (Id "O")])])
+                   ))
+                ])),
+     (App [(Id "Ex"); (App [(Id "cons"); (Id "O"); (Id "nil")]); (Id "refl")])
+     ));
+  (DTm (N, "_", (Some (Id "unit")),
+     (Match ((Id "test"), Mot0, [((PCons ("Ex", ["ls"; "pf"])), (Id "tt"))]))
+     ));
+  (DTm (R, "list_free",
+     (Some (Pi (N, U, "A", (Type U),
+              (Pi (R, U, "", (App [(Id "list"); (Id "A")]), (Id "unit")))))),
+     (Fix ("loop",
+        (Lam (N, U, "A",
+           (Lam (R, U, "ls",
+              (Match ((Id "ls"), Mot0,
+                 [((PCons ("nil", [])), (Id "tt"));
+                   ((PCons ("cons", ["_"; "ls"])),
+                    (App [(Id "loop"); (Id "_"); (Id "ls")]))
+                   ]
+                 ))
+              ))
+           ))
+        ))
+     ));
+  (DTm (R, "_", (Some (Id "unit")),
+     (Match ((Id "test"), Mot0,
+        [((PCons ("Ex", ["ls"; "pf"])),
+          (App [(Id "list_free"); (Id "_"); (Id "ls")]))]
+        ))
+     ))
+  ]
+parse success---------------------------------------
+
+inductive unit_d1 : U where
+| tt_c1 : unit_d1
+
+inductive nat_d2 : U where
+| O_c2 : nat_d2
+| S_c3 : nat_d2 -> nat_d2
+
+inductive list_d3 (A_91 : U) : L where
+| nil_c4 (A_92 : U) : (list_d3 A_92)
+| cons_c5 (A_93 : U) : A_93 -> (list_d3 A_93) -> (list_d3 A_93)
+
+inductive ex_d4 (A_97 : L) (P_98 : A_97 -> U) : L where
+| Ex_c6 (A_100 : L) (P_101 : A_100 -> U) :
+  ∀ (x_103 : A_100) -> {((P_101) x_103)} -> (ex_d4 A_100 P_101)
+
+inductive eq_d5 (A_105 : U) (x_106 : A_105) : A_105 -> U where
+| refl_c7 (A_108 : U) (x_109 : A_108) : (eq_d5 A_108 x_109 x_109)
+
+theorem rw_20 :
+  ∀ (A_110 : U) ->
+    ∀ (m_112 : A_110) ->
+      ∀ (P_116 : A_110 -> U) ->
+        ((P_116) m_112) ->
+          ∀ (n_122 : A_110) -> (eq_d5 A_110 m_112 n_122) -> ((P_116) n_122) :=
+  fun A_125 m_126 P_127 pf_128 n_129 e_130  ->
+    match e_130 in (eq_d5 __131 __132 x_133) return ((P_127) x_133) with
+    | refl_c7 -> pf_128
+
+definition add_37 : nat_d2 -> nat_d2 -> nat_d2 :=
+  fix loop_137 x_138 y_139  ->
+    match x_138 with
+    | O_c2 -> y_139 | (S_c3 x_140) -> (S_c3 ((loop_137) x_140 y_139))
+
+definition append_44 :
+  ∀ {A_141 : U} -> (list_d3 A_141) -> (list_d3 A_141) -o (list_d3 A_141) :=
+  fix loop_146 {A_147} xs_148 ->
+    fun ys_149 -o
+      match xs_148 with
+      | nil_c4 -> ys_149
+      | (cons_c5 x_150 xs_151) ->
+        (cons_c5 x_150 ((loop_146) ??1 xs_151 ys_149))
+
+theorem len_54 : ∀ (A_152 : U) -> (list_d3 A_152) -> nat_d2 :=
+  fix loop_155 A_156 xs_157  ->
+    match xs_157 with
+    | nil_c4 -> O_c2
+    | (cons_c5 __158 xs_159) -> (S_c3 ((loop_155) ??2 xs_159))
+
+theorem append_len_62 :
+  ∀ (A_160 : U) ->
+    ∀ (xs_162 : (list_d3 A_160)) ->
+      ∀ (ys_164 : (list_d3 A_160)) ->
+        (eq_d5 nat_d2 ((len_54) A_160 ((append_44) A_160 xs_162 ys_164))
+        ((add_37) ((len_54) A_160 xs_162) ((len_54) A_160 ys_164))) :=
+  fix loop_165 A_166 xs_167 ys_168  ->
+    match xs_167 as xs0_169 return
+      (eq_d5 nat_d2 ((len_54) A_166 ((append_44) A_166 xs0_169 ys_168))
+      ((add_37) ((len_54) A_166 xs0_169) ((len_54) A_166 ys_168)))
+    with
+    | nil_c4 -> refl_c7
+    | (cons_c5 x_170 xs0_171) ->
+      ((rw_20)
+        nat_d2 ((len_54) A_166 ((append_44) A_166 xs0_171 ys_168))
+        fun n_172 ->
+          (eq_d5 nat_d2
+          (S_c3 ((len_54) A_166 ((append_44) A_166 xs0_171 ys_168)))
+          (S_c3 n_172))
+        refl_c7 ((add_37) ((len_54) A_166 xs0_171) ((len_54) A_166 ys_168))
+        ((loop_165) A_166 xs0_171 ys_168))
+
+definition test_74 :
+  (ex_d4 (list_d3 nat_d2)
+  fun ls_173 -> (eq_d5 nat_d2 ((len_54) nat_d2 ls_173) (S_c3 O_c2))) :=
+  (Ex_c6 (cons_c5 O_c2 nil_c4) refl_c7)
+
+theorem __76 : unit_d1 := match test_74 with
+                          | (Ex_c6 ls_174 pf_175) -> tt_c1
+
+definition list_free_79 : ∀ {A_176 : U} -> (list_d3 A_176) -> unit_d1 :=
+  fix loop_179 {A_180} ls_181 ->
+    match ls_181 with
+    | nil_c4 -> tt_c1 | (cons_c5 __182 ls_183) -> ((loop_179) ??3 ls_183)
+
+definition __87 : unit_d1 :=
+  match test_74 with
+  | (Ex_c6 ls_184 pf_185) -> ((list_free_79) ??4 ls_184)
+
+trans01 success---------------------------------------
+
+inductive unit_d1 : U where
+| tt_c1 : unit_d1
+
+inductive nat_d2 : U where
+| O_c2 : nat_d2
+| S_c3 : nat_d2 -> nat_d2
+
+inductive list_d3 (A_819 : U) : L where
+| nil_c4 (A_820 : U) : (list_d3 A_820)
+| cons_c5 (A_821 : U) : A_821 -> (list_d3 A_821) -> (list_d3 A_821)
+
+inductive ex_d4 (A_825 : L) (P_826 : A_825 -> U) : L where
+| Ex_c6 (A_828 : L) (P_829 : A_828 -> U) :
+  ∀ (x_831 : A_828) -> {((P_829) x_831)} -> (ex_d4 A_828 P_829)
+
+inductive eq_d5 (A_833 : U) (x_834 : A_833) : A_833 -> U where
+| refl_c7 (A_836 : U) (x_837 : A_836) : (eq_d5 A_836 x_837 x_837)
+
+theorem rw_20 :
+  ∀ (A_838 : U) ->
+    ∀ (m_840 : A_838) ->
+      ∀ (P_844 : A_838 -> U) ->
+        ((P_844) m_840) ->
+          ∀ (n_850 : A_838) -> (eq_d5 A_838 m_840 n_850) -> ((P_844) n_850) :=
+  fun A_853 m_854 P_855 pf_856 n_857 e_858  ->
+    match e_858 in (eq_d5 __859 __860 x_861) return ((P_855) x_861) with
+    | refl_c7 -> pf_856
+
+definition add_37 : nat_d2 -> nat_d2 -> nat_d2 :=
+  fix loop_865 x_866 y_867  ->
+    match x_866 with
+    | O_c2 -> y_867 | (S_c3 x_868) -> (S_c3 ((loop_865) x_868 y_867))
+
+definition append_44 :
+  ∀ {A_869 : U} -> (list_d3 A_869) -> (list_d3 A_869) -o (list_d3 A_869) :=
+  fix loop_874 {A_875} xs_876 ->
+    fun ys_877 -o
+      match xs_876 with
+      | nil_c4 -> ys_877
+      | (cons_c5 x_878 xs_879) ->
+        (cons_c5 x_878 ((loop_874) A_875 xs_879 ys_877))
+
+theorem len_54 : ∀ (A_880 : U) -> (list_d3 A_880) -> nat_d2 :=
+  fix loop_883 A_884 xs_885  ->
+    match xs_885 with
+    | nil_c4 -> O_c2
+    | (cons_c5 __886 xs_887) -> (S_c3 ((loop_883) A_884 xs_887))
+
+theorem append_len_62 :
+  ∀ (A_888 : U) ->
+    ∀ (xs_890 : (list_d3 A_888)) ->
+      ∀ (ys_892 : (list_d3 A_888)) ->
+        (eq_d5 nat_d2 ((len_54) A_888 ((append_44) A_888 xs_890 ys_892))
+        ((add_37) ((len_54) A_888 xs_890) ((len_54) A_888 ys_892))) :=
+  fix loop_893 A_894 xs_895 ys_896  ->
+    match xs_895 as xs0_897 return
+      (eq_d5 nat_d2 ((len_54) A_894 ((append_44) A_894 xs0_897 ys_896))
+      ((add_37) ((len_54) A_894 xs0_897) ((len_54) A_894 ys_896)))
+    with
+    | nil_c4 -> refl_c7
+    | (cons_c5 x_898 xs0_899) ->
+      ((rw_20)
+        nat_d2 ((len_54) A_894 ((append_44) A_894 xs0_899 ys_896))
+        fun n_900 ->
+          (eq_d5 nat_d2
+          (S_c3 ((len_54) A_894 ((append_44) A_894 xs0_899 ys_896)))
+          (S_c3 n_900))
+        refl_c7 ((add_37) ((len_54) A_894 xs0_899) ((len_54) A_894 ys_896))
+        ((loop_893) A_894 xs0_899 ys_896))
+
+definition test_74 :
+  (ex_d4 (list_d3 nat_d2)
+  fun ls_901 -> (eq_d5 nat_d2 ((len_54) nat_d2 ls_901) (S_c3 O_c2))) :=
+  (Ex_c6 (cons_c5 O_c2 nil_c4) refl_c7)
+
+theorem __76 : unit_d1 := match test_74 with
+                          | (Ex_c6 ls_902 pf_903) -> tt_c1
+
+definition list_free_79 : ∀ {A_904 : U} -> (list_d3 A_904) -> unit_d1 :=
+  fix loop_907 {A_908} ls_909 ->
+    match ls_909 with
+    | nil_c4 -> tt_c1 | (cons_c5 __910 ls_911) -> ((loop_907) A_908 ls_911)
+
+definition __87 : unit_d1 :=
+  match test_74 with
+  | (Ex_c6 ls_912 pf_913) -> ((list_free_79) nat_d2 ls_912)
+
+elab1 success---------------------------------------
+
+inductive unit_d1 where
+| tt_c1 := 0
+
+inductive nat_d2 where
+| O_c2 := 0
+| S_c3 := 1
+
+inductive list_d3 where
+| nil_c4 := 0
+| cons_c5 := 2
+
+inductive ex_d4 where
+| Ex_c6 := 2
+
+inductive eq_d5 where
+| refl_c7 := 0
+
+def rw_20 := □
+
+def add_37 :=
+  fix loop_1178 x_1179 y_1180 ->
+    match x_1179<U>with
+    | O_c2 -> y_1180 | (S_c3 x_1181) -> (S_c3 ((loop_1178) x_1181 y_1180))
+
+def append_44 :=
+  fix loop_1182 A_1183 xs_1184 ->
+    fun ys_1185 ->
+      match xs_1184<L>with
+      | nil_c4 -> ys_1185
+      | (cons_c5 x_1186 xs_1187) ->
+        (cons_c5 x_1186 ((loop_1182) □ xs_1187 ys_1185))
+
+def len_54 := □
+
+def append_len_62 := □
+
+def test_74 := (Ex_c6 (cons_c5 O_c2 nil_c4) □)
+
+def __76 := □
+
+def list_free_79 :=
+  fix loop_1188 A_1189 ls_1190 ->
+    match ls_1190<L>with
+    | nil_c4 -> tt_c1 | (cons_c5 __1191 ls_1192) -> ((loop_1188) □ ls_1192)
+
+def __87 :=
+  match test_74<L>with
+  | (Ex_c6 ls_1193 pf_1194) -> ((list_free_79) □ ls_1193)
+
+dyntype1 success---------------------------------------
+
