@@ -1,0 +1,162 @@
+[(DData ("nat", (PBase (TBase (Type U))),
+    [(DCons ("O", (PBase (TBase (Id "nat")))));
+      (DCons ("S", (PBase (TBind (R, "", (Id "nat"), (TBase (Id "nat")))))))]
+    ));
+  (DData ("vec",
+     (PBind ("A", (Type U),
+        (PBase (TBind (R, "", (Id "nat"), (TBase (Type U))))))),
+     [(DCons ("nil",
+         (PBind ("A", (Type U),
+            (PBase (TBase (App [(Id "vec"); (Id "A"); (Id "O")])))))
+         ));
+       (DCons ("cons",
+          (PBind ("A", (Type U),
+             (PBase
+                (TBind (N, "n", (Id "nat"),
+                   (TBind (R, "", (Id "A"),
+                      (TBind (R, "", (App [(Id "vec"); (Id "A"); (Id "n")]),
+                         (TBase
+                            (App
+                               [(Id "vec"); (Id "A");
+                                 (App [(Id "S"); (Id "n")])]))
+                         ))
+                      ))
+                   )))
+             ))
+          ))
+       ]
+     ));
+  (DData ("ex",
+     (PBind ("A", (Type U),
+        (PBind ("P", (Pi (R, U, "", (Id "A"), (Type U))),
+           (PBase (TBase (Type U)))))
+        )),
+     [(DCons ("Ex",
+         (PBind ("A", (Type U),
+            (PBind ("P", (Pi (R, U, "", (Id "A"), (Type U))),
+               (PBase
+                  (TBind (R, "x", (Id "A"),
+                     (TBind (N, "", (App [(Id "P"); (Id "x")]),
+                        (TBase (App [(Id "ex"); (Id "A"); (Id "P")]))))
+                     )))
+               ))
+            ))
+         ))
+       ]
+     ));
+  (DData ("eq",
+     (PBind ("A", (Type U),
+        (PBind ("x", (Id "A"),
+           (PBase (TBind (R, "", (Id "A"), (TBase (Type U)))))))
+        )),
+     [(DCons ("refl",
+         (PBind ("A", (Type U),
+            (PBind ("x", (Id "A"),
+               (PBase (TBase (App [(Id "eq"); (Id "A"); (Id "x"); (Id "x")])))
+               ))
+            ))
+         ))
+       ]
+     ));
+  (DTm (R, "len0",
+     (Some (Pi (N, U, "A", (Type U),
+              (Pi (N, U, "n", (Id "nat"),
+                 (Pi (R, U, "", (App [(Id "vec"); (Id "A"); (Id "n")]),
+                    (Id "nat")))
+                 ))
+              ))),
+     (Fix ("loop",
+        (Lam (N, U, "A",
+           (Lam (N, U, "n",
+              (Lam (R, U, "ls",
+                 (Match ((Id "ls"), Mot0,
+                    [((PCons ("nil", [])), (Id "O"));
+                      ((PCons ("cons", ["_"; "_"; "ls"])),
+                       (App
+                          [(Id "S");
+                            (App [(Id "loop"); (Id "_"); (Id "_"); (Id "ls")])
+                            ]))
+                      ]
+                    ))
+                 ))
+              ))
+           ))
+        ))
+     ))
+  ]
+parse success---------------------------------------
+
+inductive nat_d1 : U where
+  | O_c1 : nat_d1
+  | S_c2 : nat_d1 -> nat_d1
+
+inductive vec_d2 (A_34 : U) : nat_d1 -> U where
+  | nil_c3 (A_36 : U) : (vec_d2 A_36 O_c1)
+  | cons_c4 (A_37 : U) :
+    ∀ {n_38 : nat_d1} ->
+      A_37 -> (vec_d2 A_37 n_38) -> (vec_d2 A_37 (S_c2 n_38))
+
+inductive ex_d3 (A_43 : U) (P_44 : A_43 -> U) : U where
+  | Ex_c5 (A_46 : U) (P_47 : A_46 -> U) :
+    ∀ (x_49 : A_46) -> {((P_47) x_49)} -> (ex_d3 A_46 P_47)
+
+inductive eq_d4 (A_51 : U) (x_52 : A_51) : A_51 -> U where
+  | refl_c6 (A_54 : U) (x_55 : A_54) : (eq_d4 A_54 x_55 x_55)
+
+definition len0_22 :
+  ∀ {A_56 : U} -> ∀ {n_59 : nat_d1} -> (vec_d2 A_56 n_59) -> nat_d1 :=
+  fix loop_62 {A_63 n_64} ls_65 ->
+    match ls_65 with
+    | nil_c3 -> O_c1
+    | (cons_c4 __66 __67 ls_68) -> (S_c2 ((loop_62) ??1 ??2 ls_68))
+
+trans01 success---------------------------------------
+
+inductive nat_d1 : U where
+  | O_c1 : nat_d1
+  | S_c2 : nat_d1 -> nat_d1
+
+inductive vec_d2 (A_189 : U) : nat_d1 -> U where
+  | nil_c3 (A_191 : U) : (vec_d2 A_191 O_c1)
+  | cons_c4 (A_192 : U) :
+    ∀ {n_193 : nat_d1} ->
+      A_192 -> (vec_d2 A_192 n_193) -> (vec_d2 A_192 (S_c2 n_193))
+
+inductive ex_d3 (A_198 : U) (P_199 : A_198 -> U) : U where
+  | Ex_c5 (A_201 : U) (P_202 : A_201 -> U) :
+    ∀ (x_204 : A_201) -> {((P_202) x_204)} -> (ex_d3 A_201 P_202)
+
+inductive eq_d4 (A_206 : U) (x_207 : A_206) : A_206 -> U where
+  | refl_c6 (A_209 : U) (x_210 : A_209) : (eq_d4 A_209 x_210 x_210)
+
+definition len0_22 :
+  ∀ {A_211 : U} -> ∀ {n_214 : nat_d1} -> (vec_d2 A_211 n_214) -> nat_d1 :=
+  fix loop_217 {A_218 n_219} ls_220 ->
+    match ls_220 with
+    | nil_c3 -> O_c1
+    | (cons_c4 __221 __222 ls_223) -> (S_c2 ((loop_217) A_218 __221 ls_223))
+
+elab1 success---------------------------------------
+
+inductive nat_d1 where
+  | O_c1 := 0
+  | S_c2 := 1
+
+inductive vec_d2 where
+  | nil_c3 := 0
+  | cons_c4 := 3
+
+inductive ex_d3 where
+  | Ex_c5 := 2
+
+inductive eq_d4 where
+  | refl_c6 := 0
+
+definition len0_22 :=
+  fix loop_271 A_272 n_273 ls_274 ->
+    match ls_274<U>with
+    | nil_c3 -> O_c1
+    | (cons_c4 __275 __276 ls_277) -> (S_c2 ((loop_271) □ □ ls_277))
+
+dyntype1 success---------------------------------------
+

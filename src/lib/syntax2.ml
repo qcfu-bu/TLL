@@ -1,6 +1,6 @@
 open Names
 
-type srt =
+type sort =
   | U
   | L
 [@@deriving show { with_path = false }]
@@ -9,11 +9,11 @@ type ('a, 'b) abs = Abs of 'a * 'b [@@deriving show { with_path = false }]
 
 and tm =
   | Var of V.t
-  | Lam of srt * (V.t, tm) abs
-  | App of srt * tm * tm
+  | Lam of sort * (V.t, tm) abs
+  | App of sort * tm * tm
   | Let of tm * (V.t, tm) abs
   | Cons of C.t * tms
-  | Match of srt * tm * cls
+  | Match of sort * tm * cls
   | Fix of (V.t, tm) abs
   | Box
 
@@ -173,9 +173,9 @@ let unbind_tm_abs (Abs (f, Abs (x, m))) =
   (f, x, unbindn_tm 0 [ Var f; Var x ] m)
 
 let unbindp_tm (Abs (p, rhs)) =
-  let ps = freshen_p p in
-  let xs = ps |> xs_of_p |> List.map var in
-  (ps, unbindn_tm 0 xs rhs)
+  let p = freshen_p p in
+  let xs = p |> xs_of_p |> List.map var in
+  (p, unbindn_tm 0 xs rhs)
 
 let equal_p p1 p2 =
   match (p1, p2) with

@@ -202,7 +202,7 @@ and coverage ctx env cls cs ms =
   and arity_ptl ctx a ms xs =
     match (a, ms) with
     | PBind (a, abs), m :: ms ->
-      let b = asubst_ptl abs (Ann (m, a)) in
+      let b = asubst_ptl abs (Ann (a, m)) in
       arity_ptl ctx b ms xs
     | PBase a, _ -> arity_tl ctx a xs
     | _ -> failwith "arity_ptl"
@@ -274,7 +274,7 @@ let rec param_ptl ptl d xs =
   | PBase a -> param_tl a d (List.rev xs)
   | PBind (_, abs) ->
     let x, ptl = unbind_ptl abs in
-    1 + param_ptl ptl d (x :: xs)
+    param_ptl ptl d (x :: xs)
 
 and param_tl tl d xs =
   let rec param xs ms =

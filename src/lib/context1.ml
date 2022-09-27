@@ -8,6 +8,7 @@ type ctx =
   ; cs : ptl CMap.t
   }
 
+let empty = { vs = VMap.empty; ds = DMap.empty; cs = CMap.empty }
 let add_v x s a ctx = { ctx with vs = VMap.add x (s, a) ctx.vs }
 let add_d d ptl cs ctx = { ctx with ds = DMap.add d (ptl, cs) ctx.ds }
 let add_c c ptl ctx = { ctx with cs = CMap.add c ptl ctx.cs }

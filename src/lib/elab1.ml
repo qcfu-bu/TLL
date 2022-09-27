@@ -272,7 +272,7 @@ and coverage ctx env eqns map cls cs ms =
   and arity_ptl ctx eqns map a ms xs =
     match (a, ms) with
     | PBind (a, abs), m :: ms ->
-      let b = asubst_ptl abs (Ann (m, a)) in
+      let b = asubst_ptl abs (Ann (a, m)) in
       arity_ptl ctx eqns map b ms xs
     | PBase a, _ -> arity_tl ctx eqns map a xs
     | _ -> failwith "arity_ptl"

@@ -32,6 +32,8 @@ let refine_equal usage1 usage2 =
   VMap.merge
     (fun _ opt1 opt2 ->
       match (opt1, opt2) with
+      | Some (U, false), None -> Some (U, false)
+      | None, Some (U, false) -> Some (U, false)
       | Some (s1, b1), Some (s2, b2) when s1 = s2 -> Some (s1, b1 && b2)
       | Some (_, true), None -> None
       | None, Some (_, true) -> None
@@ -44,6 +46,12 @@ let assert_pure usage =
     ()
   else
     failwith "assert_pure"
+
+let assert_empty usage =
+  if VMap.for_all (fun _ (_, b) -> b) usage then
+    ()
+  else
+    failwith "assert_empty"
 
 let remove x usage r s =
   match (r, s) with
@@ -330,7 +338,7 @@ and coverage ctx env cls cs ms =
   and arity_ptl ctx a ms xs =
     match (a, ms) with
     | PBind (a, abs), m :: ms ->
-      let b = asubst_ptl abs (Ann (m, a)) in
+      let b = asubst_ptl abs (Ann (a, m)) in
       arity_ptl ctx b ms xs
     | PBase a, _ -> arity_tl ctx a xs
     | _ -> failwith "arity_ptl"
@@ -419,7 +427,7 @@ and check_mot cover env mot =
     let cls_elab, usages = check_mot cover env mot in
     let p = Syntax2.(PCons (c, List.map (fun (_, _, x) -> x) rsx)) in
     (Syntax2.(bindp_tm p rhs_elab :: cls_elab), usage :: usages)
-  | _ -> failwith "TODO"
+  | _ -> ([], [])
 
 let rec infer_dcls ctx env dcls =
   match dcls with
@@ -481,7 +489,7 @@ let rec infer_dcls ctx env dcls =
     let ctx = add_v x s a ctx in
     let dcls_elab, usage = infer_dcls ctx env dcls in
     let usage = remove x usage N s in
-    (Syntax2.(DAtom x :: dcls_elab), usage)
+    (dcls_elab, usage)
   | DAtom (R, x, a) :: dcls ->
     let s = Statype1.infer_sort ctx env a in
     let ctx = add_v x s a ctx in
@@ -489,3 +497,8 @@ let rec infer_dcls ctx env dcls =
     let usage = remove x usage R s in
     (Syntax2.(DAtom x :: dcls_elab), usage)
   | [] -> ([], VMap.empty)
+
+let check_dcls dcls =
+  let dcls_elab, usage = infer_dcls empty VMap.empty dcls in
+  let _ = assert_empty usage in
+  dcls_elab

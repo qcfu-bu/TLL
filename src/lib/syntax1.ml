@@ -297,9 +297,9 @@ let unbind_tm (Abs (x, m)) =
   (x, unbindn_tm 0 [ Var x ] m)
 
 let unbindp_tm (Abs (p, m)) =
-  let ps = freshen_p p in
+  let p = freshen_p p in
   let xs = p |> xs_of_p |> List.map var in
-  (ps, unbindn_tm 0 xs m)
+  (p, unbindn_tm 0 xs m)
 
 let unbind_ptl (Abs (x, ptl)) =
   let x = V.freshen x in

@@ -74,8 +74,8 @@ let rec pp_tm fmt = function
     let rxs, m = lam_gather s m in
     let rxs = (r, x) :: rxs in
     match s with
-    | U -> pf fmt "@[fun %a =>@;<1 2>%a@]" pp_rxs rxs pp_tm m
-    | L -> pf fmt "@[lin %a =>@;<1 2>%a@]" pp_rxs rxs pp_tm m)
+    | U -> pf fmt "@[fun %a ->@;<1 2>%a@]" pp_rxs rxs pp_tm m
+    | L -> pf fmt "@[fun %a -o@;<1 2>%a@]" pp_rxs rxs pp_tm m)
   | App _ as m ->
     let m, ms = unApps m in
     pf fmt "@[((%a)@;<1 2>@[%a@])@]" pp_tm m (list ~sep:sp pp_tm) ms
@@ -83,8 +83,8 @@ let rec pp_tm fmt = function
     let x, n = unbind_tm abs in
     match r with
     | N ->
-      pf fmt "@[@[prf %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" V.pp x pp_tm m pp_tm
-        n
+      pf fmt "@[@[let {%a} :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" V.pp x pp_tm m
+        pp_tm n
     | R ->
       pf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" V.pp x pp_tm m pp_tm
         n)
@@ -97,13 +97,13 @@ let rec pp_tm fmt = function
     | [] -> C.pp fmt c
     | _ -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
   | Match (m, mot, cls) ->
-    pf fmt "@[<v 0>@[match %a%a@;<1 0>with@]@;<1 0>@[%a@]end@]" pp_tm m pp_mot
-      mot pp_cls cls
+    pf fmt "@[<v 0>@[match %a%a@;<1 0>with@]@;<1 0>@[%a@]@]" pp_tm m pp_mot mot
+      pp_cls cls
   | Fix m ->
     let x, m = unbind_tm m in
     let rxs, m = lam_gather U m in
     let rxs = (R, x) :: rxs in
-    pf fmt "@[fix %a =>@;<1 2>%a@]" pp_rxs rxs pp_tm m
+    pf fmt "@[fix %a ->@;<1 2>%a@]" pp_rxs rxs pp_tm m
 
 and pp_tms fmt ms = pf fmt "[%a]" (list ~sep:semi pp_tm) ms
 
@@ -122,13 +122,13 @@ and pp_mot fmt = function
 
 and pp_cl fmt abs =
   let p, m = unbindp_tm abs in
-  pf fmt "| %a =>@;<1 2>%a" pp_p p pp_tm m
+  pf fmt "| %a ->@;<1 2>%a" pp_p p pp_tm m
 
 and pp_cls fmt cls =
   match cls with
   | [] -> ()
   | [ cl ] -> pf fmt "@[%a@]" pp_cl cl
-  | cl :: cls -> pf fmt "@[%a@]@;<1 2>%a" pp_cl cl pp_cls cls
+  | cl :: cls -> pf fmt "@[%a@]@;<1 0>%a" pp_cl cl pp_cls cls
 
 let rec pp_ptl fmt = function
   | PBase tl -> pf fmt ":@;<1 2>%a" pp_tl tl

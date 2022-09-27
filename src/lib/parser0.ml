@@ -12,6 +12,7 @@ let reserved =
     ; "axiom"
     ; "param"
     ; "inductive"
+    ; "where"
     ; "forall"
     ; "fun"
     ; "fix"
@@ -21,7 +22,6 @@ let reserved =
     ; "as"
     ; "return"
     ; "with"
-    ; "end"
     ]
 
 type ctx =
@@ -184,9 +184,9 @@ and fix_parser () =
          ; (id_parser >>= fun id -> return (R, id))
          ])
   in
-  let* srt = kw "→" <|> kw "->" >>$ U <|> (kw "⊸" <|> kw "-o" >>$ L) in
+  let* _ = kw "→" <|> kw "->" in
   let* m = tm_parser () in
-  let lam = List.fold_right (fun (r, id) m -> Lam (r, srt, id, m)) args m in
+  let lam = List.fold_right (fun (r, id) m -> Lam (r, U, id, m)) args m in
   return (Fix (id, lam))
 
 and let_parser () =
@@ -224,7 +224,6 @@ and match_parser () =
   let* mot = mot_parser () in
   let* _ = kw "with" in
   let* cls = branches_parser () in
-  let* _ = kw "end" in
   return (Match (m, mot, cls))
 
 and mot1_parser () =
@@ -314,6 +313,7 @@ let rec make_tl a =
   | Pi (r, U, id, a, b) ->
     let tl, sz = make_tl b in
     (TBind (r, id, a, tl), 1 + sz)
+  | Pi (_, L, _, _, _) -> failwith "make_tl"
   | _ -> (TBase a, 0)
 
 let cons_parser args =
@@ -338,6 +338,7 @@ let ddate_parser =
   let* b = tm_parser () in
   let tl, sz = make_tl b in
   let* _ = update_user_state (add_d d sz) in
+  let* _ = kw "where" in
   let* conss = conss_parser args in
   let ptl =
     List.fold_right (fun (_, x, a) ptl -> PBind (x, a, ptl)) args (PBase tl)

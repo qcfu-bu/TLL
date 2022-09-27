@@ -1,0 +1,19 @@
+inductive nat : U where
+| O : nat
+| S : nat -> nat
+
+inductive vec (A : U) : nat -> U where
+| nil  : vec A O
+| cons : ∀ {n : nat} -> A -> vec A n -> vec A (S n)
+
+inductive ex (A : U) (P : A -> U) : U where
+| Ex : ∀ (x : A) -> {P x} -> ex A P
+
+inductive eq (A : U) (x : A) : A -> U where
+| refl : eq A x x
+
+def len0 : ∀ {A : U} {n : nat} -> vec A n -> nat :=
+    fix loop {A} {n} ls -> 
+        match ls with
+        | nil -> O
+        | cons _ _ ls -> S (loop _ _ ls)
