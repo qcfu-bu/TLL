@@ -87,9 +87,10 @@ let id_parser : id parser =
   let* s1 = many1_chars (letter <|> char '_') in
   let* s2 = many_chars (alphanum <|> char '_' <|> char '\'') in
   let s = s1 ^ s2 in
+  let* _ = ws in
   match SSet.find_opt s reserved with
-  | Some _ -> fail (str "not a valid identifier(%s)" s)
-  | None -> return s << ws
+  | Some _ -> zero
+  | None -> return s
 
 let pvar_parser () =
   let* id = id_parser in
@@ -101,7 +102,7 @@ let pcons_parser () =
   match find_c id ctx with
   | Some 0 -> return (PCons (id, []))
   | Some _ ->
-    let* ids = many1 id_parser in
+    let* ids = many1 (attempt id_parser) in
     return (PCons (id, ids))
   | _ -> zero
 
@@ -111,7 +112,7 @@ let pdata0_parser () =
   match find_d id ctx with
   | Some 0 -> return (PData (id, []))
   | Some _ ->
-    let* ids = many1 id_parser in
+    let* ids = many1 (attempt id_parser) in
     return (PData (id, ids))
   | _ -> zero
 

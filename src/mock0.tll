@@ -17,7 +17,7 @@ inductive eq (A : U) (x : A) : A -> U where
 
 theorem rw : ∀ (A : U) (m : A) (P : A -> U) (pf : P m) (n : A) -> eq A m n -> P n :=
   fun A m P pf n e ->
-    match e in (eq _ _ x) return P x with
+    match e in eq _ _ x return P x with
     | refl -> pf
 
 def add : nat -> nat -> nat :=

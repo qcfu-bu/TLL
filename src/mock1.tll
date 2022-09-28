@@ -20,7 +20,7 @@ inductive eq (A : L) (x : A) : A -> U where
 
 theorem rw : ∀ (A : L) (m : A) (P : A -> U) (pf : P m) (n : A) -> eq A m n -> P n :=
   fun A m P pf n e ->
-    match e in (eq _ _ x) return P x with
+    match e in eq _ _ x return P x with
     | refl -> pf
 
 theorem eq_sym : ∀ (A : L) (m n : A) -> eq A m n -> eq A n m :=
