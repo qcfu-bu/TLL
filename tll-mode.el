@@ -25,6 +25,7 @@
       `((,tll-type-regexp . font-lock-type-face)
         (,tll-keywords-regexp . font-lock-keyword-face)))
 
+;;;###autoload
 (define-derived-mode tll-mode prog-mode
   "tll mode"
   "Major mode for editing TLL"
@@ -33,6 +34,9 @@
   (setq-local comment-start-skip "--+[\t ]*")
   (setq-local comment-end "")
   (font-lock-add-keywords nil '(("--.+" . font-lock-comment-face))))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.tll" . tll-mode))
 
 (setq tll-keywords nil)
 (setq tll-types nil)
