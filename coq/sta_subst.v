@@ -85,12 +85,6 @@ Proof with eauto using sta_agree_subst, sta_type.
   apply: (@sta_type_mut _ (fun Γ2 wf => forall Γ1 σ, Γ1 ⊢ σ ⊣ Γ2 -> sta_wf Γ1))...
   { move=>Γ2 x A wf h hs Γ1 σ agr. asimpl.
     apply: sta_agree_subst_has... }
-  { move=>Γ2 A B s t tyB ihB Γ1 σ agr. asimpl.
-    have wf:=sta_type_wf tyB. inv wf.
-    apply: sta_pi0... }
-  { move=>Γ2 A B s t tyB ihB Γ1 σ agr. asimpl.
-    have wf:=sta_type_wf tyB. inv wf.
-    apply: sta_pi1... }
   { move=>Γ2 A B m s tym ihm Γ1 σ agr. asimpl.
     have wf:=sta_type_wf tym. inv wf.
     apply: sta_lam0... }

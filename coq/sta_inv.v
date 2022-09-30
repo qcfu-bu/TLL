@@ -12,7 +12,7 @@ Lemma sta_pi0_inv Γ A B C s :
 Proof with eauto.
   move e:(Pi0 A B s)=>m ty.
   elim: ty A B s e=>//{Γ C m}.
-  { move=>Γ A B s t tyB ihB A0 B0 s0 [e1 e2 e3]; subst.
+  { move=>Γ A B s r t tyA ihA tyB ihB A0 B0 s0 [e1 e2 e3]; subst.
     exists t... }
   { move=>Γ A B m s eq1 tym ihm tyB ihB A0 B0 s0 e; subst.
     have[t[tyB0 eq2]]:=ihm _ _ _ erefl.
@@ -28,7 +28,7 @@ Lemma sta_pi1_inv Γ A B C s :
 Proof with eauto.
   move e:(Pi1 A B s)=>m ty.
   elim: ty A B s e=>//{Γ C m}.
-  { move=>Γ A B s t tyB ihB A0 B0 s0 [e1 e2 e3]; subst.
+  { move=>Γ A B s r t tyA ihA tyB ihB A0 B0 s0 [e1 e2 e3]; subst.
     exists t... }
   { move=>Γ A B m s eq1 tym ihm tyB ihB A0 B0 s0 e; subst.
     have[t[tyB0 eq2]]:=ihm _ _ _ erefl.

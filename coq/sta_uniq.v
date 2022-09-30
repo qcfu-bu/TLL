@@ -102,10 +102,10 @@ Proof with eauto.
     apply: sta_sort_uniq... }
   { move=>Γ x A wf hs B ty.
     apply: sta_var_uniq... }
-  { move=>Γ A B s t tyB ihB B0 ty.
+  { move=>Γ A B s r t tyA ihA tyB ihB B0 ty.
     have[_[_ eq]]:=sta_pi0_inv ty.
     apply: conv_sym... }
-  { move=>Γ A B s t tyB ihB B0 ty.
+  { move=>Γ A B s r t tyA ihA tyB ihB B0 ty.
     have[_[_ eq]]:=sta_pi1_inv ty.
     apply: conv_sym... }
   { move=>Γ A B m s tym ihm B0 ty.

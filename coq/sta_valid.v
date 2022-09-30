@@ -11,8 +11,12 @@ Proof with eauto using sta_type.
   move=>ty. elim: ty=>{Γ m A}...
   { move=>Γ x A wf hs.
     apply: sta_wf_ok... }
-  { move=>Γ A B m s tym [t tyB]. exists s... }
-  { move=>Γ A B m s tym [t tyB]. exists s... }
+  { move=>Γ A B m s tym [t tyB].
+    have wf:=sta_type_wf tyB.
+    exists s. inv wf... }
+  { move=>Γ A B m s tym [t tyB].
+    have wf:=sta_type_wf tyB.
+    exists s. inv wf... }
   { move=>Γ A B m n s
       tym[s0/sta_pi0_inv[t[tyB/sort_inj e1]]]tyn _; subst.
     exists t. apply: sta_esubst...

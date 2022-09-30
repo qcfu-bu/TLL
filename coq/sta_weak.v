@@ -66,10 +66,10 @@ Proof with eauto using sta_type, sta_wf, sta_agree_ren.
   { move=>Γ x A wf h hs Γ' ξ agr. asimpl.
     apply: sta_var...
     apply: sta_agree_ren_has... }
-  { move=>Γ A B s t tyB ihB Γ' ξ agr. asimpl.
+  { move=>Γ A B s r t tyA ihA tyB ihB Γ' ξ agr. asimpl.
     have wf:=sta_type_wf tyB. inv wf.
     apply: sta_pi0... }
-  { move=>Γ A B s t tyB ihB Γ' ξ agr. asimpl.
+  { move=>Γ A B s r t tyA ihA tyB ihB Γ' ξ agr. asimpl.
     have wf:=sta_type_wf tyB. inv wf.
     apply: sta_pi1... }
   { move=>Γ A B m s tym ihm Γ' ξ agr. asimpl.

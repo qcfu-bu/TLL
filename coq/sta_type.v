@@ -67,10 +67,12 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
   sta_wf Γ ->
   sta_has Γ x A ->
   Γ ⊢ Var x : A
-| sta_pi0 Γ A B s t :
+| sta_pi0 Γ A B s r t :
+  Γ ⊢ A : Sort r ->
   (A :: Γ) ⊢ B : Sort t ->
   Γ ⊢ Pi0 A B s : Sort s
-| sta_pi1 Γ A B s t :
+| sta_pi1 Γ A B s r t :
+  Γ ⊢ A : Sort r ->
   (A :: Γ) ⊢ B : Sort t ->
   Γ ⊢ Pi1 A B s : Sort s
 | sta_lam0 Γ A B m s :
@@ -109,20 +111,12 @@ Proof with eauto.
   elim=>{Γ m A}...
   { move=>Γ A _ _ _ _ wf. inv wf... }
   { move=>Γ A _ _ _ _ wf. inv wf... }
-  { move=>Γ A _ _ _ _ wf. inv wf... }
-  { move=>Γ A _ _ _ _ wf. inv wf... }
 Qed.
 Hint Resolve sta_type_wf.
 
 Lemma sta_sta0_type Γ m A : Γ ⊢ m : A -> sta0_type Γ m A.
 Proof with eauto using sta0_type, sta0_wf.
   move:Γ m A. apply:(@sta_type_mut _ (fun Γ wf => sta0_wf Γ))...
-  { move=>Γ A B s t tyB ihB.
-    have wf0:=sta0_type_wf ihB. inv wf0.
-    apply: sta0_pi0... }
-  { move=>Γ A B s t tyB ihB.
-    have wf0:=sta0_type_wf ihB. inv wf0.
-    apply: sta0_pi1... }
   { move=>Γ A B m s tym ihm.
     have wf0:=sta0_type_wf ihm. inv wf0.
     apply: sta0_lam0... }
