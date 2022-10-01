@@ -215,12 +215,36 @@ let rec trans_dconss nspc dconss =
 
 let trans_dcl nspc dcl =
   match dcl with
-  | DTm (r, id, a_opt, m) ->
+  | DTm (r, id, args, b_opt, m) ->
     let x = V.mk id in
-    let a_opt = Option.map (trans_tm nspc) a_opt in
-    let m = trans_tm nspc m in
+    let f = V.mk id in
+    let args, nspc =
+      List.fold_left
+        (fun (args, nspc) (r, id, a) ->
+          let x = V.mk id in
+          let a = trans_tm nspc a in
+          let nspc = (id, V x) :: nspc in
+          ((trans_rel r, x, a) :: args, nspc))
+        ([], nspc) args
+    in
+    let b =
+      match b_opt with
+      | Some b -> trans_tm nspc b
+      | None -> Syntax1.Meta (M.mk (), spine_of_nspc nspc)
+    in
+    let a, m =
+      List.fold_left
+        (fun (b, m) (r, x, a) ->
+          Syntax1.(Pi (r, U, a, bind_tm x b), Lam (r, U, bind_tm x m)))
+        (b, trans_tm ((id, V f) :: nspc) m)
+        args
+    in
     let nspc = (id, V x) :: nspc in
-    (nspc, Syntax1.(DTm (trans_rel r, x, a_opt, m)))
+    if Syntax1.occurs_tm f m then
+      let m = Syntax1.(Fix (bind_tm f m)) in
+      (nspc, Syntax1.(DTm (trans_rel r, x, Some a, m)))
+    else
+      (nspc, Syntax1.(DTm (trans_rel r, x, Some a, m)))
   | DData (id, ptl, dconss) ->
     let d = D.mk id in
     let ptl = trans_ptl nspc ptl in

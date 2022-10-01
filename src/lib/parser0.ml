@@ -308,10 +308,11 @@ and tm_parser () = tm2_parser ()
 let dtm_parser =
   let* r = kw "def" >>$ R <|> (kw "theorem" >>$ N) in
   let* id = id_parser in
+  let* args = args_parser () in
   let* a_opt = option (kw ":" >> tm_parser ()) in
   let* _ = kw ":=" in
   let* m = tm_parser () in
-  return (DTm (r, id, a_opt, m))
+  return (DTm (r, id, args, a_opt, m))
 
 let rec make_tl a =
   match a with

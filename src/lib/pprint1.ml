@@ -162,15 +162,15 @@ let pp_dcl fmt = function
       pf fmt "@[theorem %a :@;<1 2>%a :=@;<1 2>%a@]" V.pp x pp_tm a pp_tm m
     | N, None -> pf fmt "@[theorem %a :=@;<1 2>%a@]" V.pp x pp_tm m
     | R, Some a ->
-      pf fmt "@[definition %a :@;<1 2>%a :=@;<1 2>%a@]" V.pp x pp_tm a pp_tm m
-    | R, None -> pf fmt "@[definition %a :=@;<1 2>%a@]" V.pp x pp_tm m)
+      pf fmt "@[def %a :@;<1 2>%a :=@;<1 2>%a@]" V.pp x pp_tm a pp_tm m
+    | R, None -> pf fmt "@[def %a :=@;<1 2>%a@]" V.pp x pp_tm m)
   | DData (d, ptl, dconss) ->
     pf fmt "@[<v 0>@[inductive %a %a where@]@;<1 0>%a@]" D.pp d pp_ptl ptl
       pp_dconss dconss
   | DAtom (r, x, a) -> (
     match r with
     | N -> pf fmt "@[axiom %a :@;<1 2>%a@]" V.pp x pp_tm a
-    | R -> pf fmt "@[parameter %a :@;<1 2>%a@]" V.pp x pp_tm a)
+    | R -> pf fmt "@[param %a :@;<1 2>%a@]" V.pp x pp_tm a)
 
 let rec pp_dcls fmt dcls =
   match dcls with

@@ -42,11 +42,13 @@ and cl = p * tm
 and cls = cl list
 
 type dcl =
-  | DTm of rel * id * tm_opt * tm
+  | DTm of rel * id * args * tm_opt * tm
   | DData of id * ptl * dconss
   | DAtom of rel * id * tm
 [@@deriving show { with_path = false }]
 
+and arg = rel * id * tm
+and args = arg list
 and dcls = dcl list
 and dcons = DCons of id * ptl
 and dconss = dcons list
