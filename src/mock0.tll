@@ -25,11 +25,10 @@ def add (x : nat) (y : nat) : nat :=
   | O -> y
   | S x -> S (add x y)
 
-def append {A : U} (xs : list A) : list A -o list A :=
-  fun ys -o
-    match xs with
-    | nil -> ys
-    | cons x xs -> cons x (append _ xs ys)
+def append {A : U} (xs : list A) : list A -o list A := λ ys -o
+  match xs with
+  | nil -> ys
+  | cons x xs -> cons x (append _ xs ys)
 
 theorem len (A : U) (xs : list A) : nat :=
   match xs with
@@ -45,13 +44,12 @@ theorem append_len (A : U) (xs ys : list A) :
   | cons x xs0 ->
     rw nat
       (len A (append A xs0 ys))
-      (fun n -> eq nat (S (len A (append A xs0 ys)))
-                  (S n))
+      (λ n -> eq nat (S (len A (append A xs0 ys))) (S n))
       refl
       (add (len A xs0) (len A ys))
       (append_len A xs0 ys)
 
-def test : ex (list nat) (fun ls -> eq nat (len nat ls) (S O)) :=
+def test : ex (list nat) (λ ls -> eq nat (len nat ls) (S O)) :=
   Ex (cons O nil) refl
 
 theorem _ : unit :=

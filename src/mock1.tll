@@ -24,11 +24,11 @@ theorem rw
   | refl -> pf
 
 theorem eq_sym (A : L) (m n : A) (e : eq A m n) : eq A n m :=
-  rw A m (fun x -> eq _ x m) refl n e
+  rw A m (λ x -> eq _ x m) refl n e
 
 theorem rwr
   (A : L) (m : A) (P : A -> U) (pf : P m) (n : A) (e : eq A n m) : P n :=
-  rw A m (fun x -> P x) pf n (eq_sym _ _ _ e)
+  rw A m (λ x -> P x) pf n (eq_sym _ _ _ e)
 
 def fst {A : L} {B : U} (p : tupL A B) : A :=
   match p with
@@ -54,9 +54,9 @@ theorem size_id (A : U) (ls : list A) : eq _ (fst _ _ (size _ ls)) ls :=
              | TupL xs0 sz -> TupL (cons x xs0) (S sz)))
            (cons x xs)
     with
-    | TupL a b -> fun e0 ->
+    | TupL a b -> λ e0 ->
       let H0 : eq _ (fst _ _ (size A xs)) xs := size_id A xs in
       let H1 : eq _ (fst _ _ (TupL a b)) xs :=
-        rwr _ _ (fun p0 -> eq _ (fst _ _ p0) xs) H0 _ e0
+        rwr _ _ (λ p0 -> eq _ (fst _ _ p0) xs) H0 _ e0
       in
-      rwr _ _ (fun l -> eq (list A) (cons x l) (cons x xs)) refl _ H1) e
+      rwr _ _ (λ l -> eq (list A) (cons x l) (cons x xs)) refl _ H1) e
