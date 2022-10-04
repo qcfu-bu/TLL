@@ -1,0 +1,249 @@
+[(DData ("unit", (PBase (TBase (Type L))),
+    [(DCons ("tt", (PBase (TBase (Id "unit")))))]));
+  (DData ("sum",
+     (PBind ("A", (Type L), (PBind ("B", (Type L), (PBase (TBase (Type L)))))
+        )),
+     [(DCons ("injL",
+         (PBind ("A", (Type L),
+            (PBind ("B", (Type L),
+               (PBase
+                  (TBind (R, "", (Id "A"),
+                     (TBase (App [(Id "sum"); (Id "A"); (Id "B")])))))
+               ))
+            ))
+         ));
+       (DCons ("injR",
+          (PBind ("A", (Type L),
+             (PBind ("B", (Type L),
+                (PBase
+                   (TBind (R, "", (Id "B"),
+                      (TBase (App [(Id "sum"); (Id "A"); (Id "B")])))))
+                ))
+             ))
+          ))
+       ]
+     ));
+  (DTm (N, "and", [(R, "A", (Type L)); (R, "B", (Type L))], (Some (Type L)),
+     (Pi (R, L, "h", (App [(Id "sum"); (Id "unit"); (Id "unit")]),
+        (Match ((Id "h"), Mot0,
+           [((PCons ("injL", ["_"])), (Id "A"));
+             ((PCons ("injR", ["_"])), (Id "B"))]
+           ))
+        ))
+     ));
+  (DTm (R, "proj1",
+     [(N, "A", (Type L)); (N, "B", (Type L));
+       (R, "m", (App [(Id "and"); (Id "A"); (Id "B")]))],
+     (Some (Id "A")), (App [(Id "m"); (App [(Id "injL"); (Id "tt")])])));
+  (DTm (R, "proj2",
+     [(N, "A", (Type L)); (N, "B", (Type L));
+       (R, "m", (App [(Id "and"); (Id "A"); (Id "B")]))],
+     (Some (Id "B")), (App [(Id "m"); (App [(Id "injR"); (Id "tt")])])));
+  (DTm (R, "self_and", [(N, "A", (Type L)); (R, "m", (Id "A"))],
+     (Some (App [(Id "and"); (Id "A"); (Id "A")])),
+     (Lam (R, L, "h",
+        (Match ((Id "h"),
+           (Mot1 ("h0",
+              (Match ((Id "h0"), Mot0,
+                 [((PCons ("injL", ["_"])), (Id "A"));
+                   ((PCons ("injR", ["_"])), (Id "A"))]
+                 ))
+              )),
+           [((PCons ("injL", ["x"])),
+             (Match ((Id "x"), Mot0, [((PCons ("tt", [])), (Id "m"))])));
+             ((PCons ("injR", ["x"])),
+              (Match ((Id "x"), Mot0, [((PCons ("tt", [])), (Id "m"))])))
+             ]
+           ))
+        ))
+     ));
+  (DTm (N, "plus", [(N, "A", (Type L)); (N, "B", (Type L))], (Some (Type L)),
+     (Pi (N, L, "C", (Type L),
+        (Pi (R, L, "",
+           (App
+              [(Id "and"); (Pi (R, L, "", (Id "A"), (Id "C")));
+                (Pi (R, L, "", (Id "B"), (Id "C")))]),
+           (Id "C")))
+        ))
+     ));
+  (DTm (R, "left",
+     [(N, "A", (Type L)); (N, "B", (Type L)); (R, "x", (Id "A"))],
+     (Some (App [(Id "plus"); (Id "A"); (Id "B")])),
+     (Lam (N, L, "C",
+        (Lam (R, L, "h",
+           (App [(Id "proj1"); (Id "_"); (Id "_"); (Id "h"); (Id "x")])))
+        ))
+     ));
+  (DTm (R, "right",
+     [(N, "A", (Type L)); (N, "B", (Type L)); (R, "x", (Id "B"))],
+     (Some (App [(Id "plus"); (Id "A"); (Id "B")])),
+     (Lam (N, L, "C",
+        (Lam (R, L, "h",
+           (App [(Id "proj2"); (Id "_"); (Id "_"); (Id "h"); (Id "x")])))
+        ))
+     ));
+  (DTm (R, "case",
+     [(N, "A", (Type L)); (N, "B", (Type L)); (N, "C", (Type L));
+       (R, "m", (App [(Id "plus"); (Id "A"); (Id "B")]))],
+     (Some (Pi (R, L, "",
+              (App
+                 [(Id "and"); (Pi (R, L, "", (Id "A"), (Id "C")));
+                   (Pi (R, L, "", (Id "B"), (Id "C")))]),
+              (Id "C")))),
+     (Lam (R, L, "n", (App [(Id "m"); (Id "_"); (Id "n")])))))
+  ]
+parse success---------------------------------------
+
+inductive unit_d1 : L where
+| tt_c1 : unit_d1
+
+inductive sum_d2 (A_108 : L) (B_109 : L) : L where
+| injL_c2 (A_110 : L) (B_111 : L) : A_110 -> (sum_d2 A_110 B_111)
+| injR_c3 (A_113 : L) (B_114 : L) : B_114 -> (sum_d2 A_113 B_114)
+
+theorem and_9 : L -> L -> L :=
+  fun A_119 B_120  ->
+    ∀ (h_121 : (sum_d2 unit_d1 unit_d1)) -o
+      match h_121 with
+      | (injL_c2 __124) -> A_119 | (injR_c3 __125) -> B_120
+
+def proj1_21 :
+  ∀ {A_126 : L} -> ∀ {B_129 : L} -> ((and_9) A_126 B_129) -> A_126 :=
+  fun {A_132 B_133} m_134 -> ((m_134) (injL_c2 tt_c1))
+
+def proj2_29 :
+  ∀ {A_135 : L} -> ∀ {B_138 : L} -> ((and_9) A_135 B_138) -> B_138 :=
+  fun {A_141 B_142} m_143 -> ((m_143) (injR_c3 tt_c1))
+
+def self_and_37 : ∀ {A_144 : L} -> A_144 -> ((and_9) A_144 A_144) :=
+  fun {A_147} m_148 ->
+    fun h_149 -o
+      match h_149 as h0_150 return
+        match h0_150 with
+        | (injL_c2 __151) -> A_147 | (injR_c3 __152) -> A_147
+      with
+      | (injL_c2 x_153) -> match x_153 with
+                           | tt_c1 -> m_148
+      | (injR_c3 x_154) -> match x_154 with
+                           | tt_c1 -> m_148
+
+theorem plus_55 : {L} -> {L} -> L :=
+  fun {A_158 B_159}  ->
+    ∀ {C_160 : L} -o ((and_9) A_158 -o C_160 B_159 -o C_160) -o C_160
+
+def left_69 :
+  ∀ {A_166 : L} -> ∀ {B_169 : L} -> A_166 -> ((plus_55) A_166 B_169) :=
+  fun {A_172 B_173} x_174 ->
+    fun {C_175} h_176 -o ((proj1_21) ??1 ??2 h_176 x_174)
+
+def right_81 :
+  ∀ {A_177 : L} -> ∀ {B_180 : L} -> B_180 -> ((plus_55) A_177 B_180) :=
+  fun {A_183 B_184} x_185 ->
+    fun {C_186} h_187 -o ((proj2_29) ??3 ??4 h_187 x_185)
+
+def case_93 :
+  ∀ {A_188 : L} ->
+    ∀ {B_192 : L} ->
+      ∀ {C_195 : L} ->
+        ((plus_55) A_188 B_192) ->
+          ((and_9) A_188 -o C_195 B_192 -o C_195) -o C_195 :=
+  fun {A_206 B_207 C_208} m_209 -> fun n_210 -o ((m_209) ??5 n_210)
+
+trans01 success---------------------------------------
+
+inductive unit_d1 : L where
+| tt_c1 : unit_d1
+
+inductive sum_d2 (A_609 : L) (B_610 : L) : L where
+| injL_c2 (A_611 : L) (B_612 : L) : A_611 -> (sum_d2 A_611 B_612)
+| injR_c3 (A_614 : L) (B_615 : L) : B_615 -> (sum_d2 A_614 B_615)
+
+theorem and_9 : L -> L -> L :=
+  fun A_620 B_621  ->
+    ∀ (h_622 : (sum_d2 unit_d1 unit_d1)) -o
+      match h_622 with
+      | (injL_c2 __625) -> A_620 | (injR_c3 __626) -> B_621
+
+def proj1_21 :
+  ∀ {A_627 : L} -> ∀ {B_630 : L} -> ((and_9) A_627 B_630) -> A_627 :=
+  fun {A_633 B_634} m_635 -> ((m_635) (injL_c2 tt_c1))
+
+def proj2_29 :
+  ∀ {A_636 : L} -> ∀ {B_639 : L} -> ((and_9) A_636 B_639) -> B_639 :=
+  fun {A_642 B_643} m_644 -> ((m_644) (injR_c3 tt_c1))
+
+def self_and_37 : ∀ {A_645 : L} -> A_645 -> ((and_9) A_645 A_645) :=
+  fun {A_648} m_649 ->
+    fun h_650 -o
+      match h_650 as h0_651 return
+        match h0_651 with
+        | (injL_c2 __652) -> A_648 | (injR_c3 __653) -> A_648
+      with
+      | (injL_c2 x_654) -> match x_654 with
+                           | tt_c1 -> m_649
+      | (injR_c3 x_655) -> match x_655 with
+                           | tt_c1 -> m_649
+
+theorem plus_55 : {L} -> {L} -> L :=
+  fun {A_659 B_660}  ->
+    ∀ {C_661 : L} -o ((and_9) A_659 -o C_661 B_660 -o C_661) -o C_661
+
+def left_69 :
+  ∀ {A_667 : L} -> ∀ {B_670 : L} -> A_667 -> ((plus_55) A_667 B_670) :=
+  fun {A_673 B_674} x_675 ->
+    fun {C_676} h_677 -o
+      ((proj1_21) A_673 -o C_676 B_674 -o C_676 h_677 x_675)
+
+def right_81 :
+  ∀ {A_680 : L} -> ∀ {B_683 : L} -> B_683 -> ((plus_55) A_680 B_683) :=
+  fun {A_686 B_687} x_688 ->
+    fun {C_689} h_690 -o
+      ((proj2_29) A_686 -o C_689 B_687 -o C_689 h_690 x_688)
+
+def case_93 :
+  ∀ {A_693 : L} ->
+    ∀ {B_697 : L} ->
+      ∀ {C_700 : L} ->
+        ((plus_55) A_693 B_697) ->
+          ((and_9) A_693 -o C_700 B_697 -o C_700) -o C_700 :=
+  fun {A_711 B_712 C_713} m_714 -> fun n_715 -o ((m_714) C_713 n_715)
+
+elab1 success---------------------------------------
+
+inductive unit_d1 where
+| tt_c1 := 0
+
+inductive sum_d2 where
+| injL_c2 := 1
+| injR_c3 := 1
+
+def and_9 := □
+
+def proj1_21 := fun A_806 B_807 m_808 -> ((m_808) (injL_c2 tt_c1))
+
+def proj2_29 := fun A_809 B_810 m_811 -> ((m_811) (injR_c3 tt_c1))
+
+def self_and_37 :=
+  fun A_812 m_813 ->
+    fun h_814 ->
+      match h_814<L>with
+      | (injL_c2 x_815) -> match x_815<L>with
+                           | tt_c1 -> m_813
+      | (injR_c3 x_816) -> match x_816<L>with
+                           | tt_c1 -> m_813
+
+def plus_55 := □
+
+def left_69 :=
+  fun A_817 B_818 x_819 ->
+    fun C_820 h_821 -> ((proj1_21) □ □ h_821 x_819)
+
+def right_81 :=
+  fun A_822 B_823 x_824 ->
+    fun C_825 h_826 -> ((proj2_29) □ □ h_826 x_824)
+
+def case_93 :=
+  fun A_827 B_828 C_829 m_830 -> fun n_831 -> ((m_830) □ n_831)
+
+dyntype1 success---------------------------------------
+

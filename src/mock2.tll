@@ -1,0 +1,68 @@
+-- Equivalence between & and ⊕
+-- We first define two primitive types, unit and ⊕ using
+-- inductive types. Let's assume these are viewed as primitive
+-- axioms part of the core type theory.
+inductive unit : L where
+| tt : unit
+
+inductive sum (A B : L) : L where
+| injL : A -> sum A B
+| injR : B -> sum A B
+
+-- Now we define a church encoded & as follows.
+-- The argument h of type unit ⊕ unit acts as a selector
+-- for projection in &'s elimination rules.
+theorem and (A B : L) : L :=
+  ∀ (h : sum unit unit) -o
+    match h with
+    | injL _ -> A
+    | injR _ -> B
+
+-- The first projection of A & B is derived from h = injL tt.
+def proj1 {A B : L} (m : and A B) : A :=
+  m (injL tt)
+
+-- The second projection of A & B is derived from h = injR tt.
+def proj2 {A B : L} (m : and A B) : B :=
+  m (injR tt)
+
+-- A pairing construction fills the role of introduction rule
+-- to A & B. This is a simple example of self-pairing, introducing
+-- a term of type A & A. Notice that the self-paired expression m
+-- is used additively twice in both injL and injR branches.
+-- For non-trivial A & B, the expression in injL branch must be of
+-- type A and the expression in injR branch must be of type B.
+def self_and {A : L} (m : A) : and A A :=
+  fun h -o
+    match h as h0 return
+      match h0 with
+      | injL _ -> A
+      | injR _ -> A
+    with
+    | injL x -> (
+      match x with
+      | tt -> m) -- For A & B, m must be of type A
+    | injR x -> (
+      match x with
+      | tt -> m) -- For A & B, m must be of type B
+
+-- Now the other direction holds true as well.
+-- Give &, we can encode ⊕ as follows. The left and right
+-- constructors are characterized by their choice of 
+-- elimination branch selected through proj1 or proj2.
+theorem plus {A B : L} : L := ∀ {C : L} -o and (A -o C) (B -o C) -o C
+
+def left {A B : L} (x : A) : plus A B :=
+  fun {C} -o fun h -o proj1 _ _ h x
+
+def right {A B : L} (x : B) : plus A B :=
+  fun {C} -o fun h -o proj2 _ _ h x
+
+-- The elimination rule of ⊕ simply applies the branch that awaits
+-- selection by m : A ⊕ B.
+def case {A B C : L} (m : plus A B) : and (A -o C) (B -o C) -o C :=
+  fun n -o m _ n
+
+-- The final observation to be made is that for proj1/proj2, the constructors
+-- injL/injR are arguments being applied, whereas for left/right, proj1/proj2 are
+-- functions getting called.
