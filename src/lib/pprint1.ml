@@ -97,8 +97,8 @@ let rec pp_tm fmt = function
     | [] -> C.pp fmt c
     | _ -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms)
   | Match (m, mot, cls) ->
-    pf fmt "@[<v 0>@[match %a%a@;<1 0>with@]@;<1 0>@[%a@]@]" pp_tm m pp_mot mot
-      pp_cls cls
+    pf fmt "(@[<v 0>@[match %a%a@;<1 0>with@]@;<1 0>@[%a@]@])" pp_tm m pp_mot
+      mot pp_cls cls
   | Fix m ->
     let x, m = unbind_tm m in
     let rxs, m = lam_gather U m in

@@ -104,8 +104,8 @@ inductive sum_d2 (A_108 : L) (B_109 : L) : L where
 theorem and_9 : L -> L -> L :=
   fun A_119 B_120  ->
     ∀ (h_121 : (sum_d2 unit_d1 unit_d1)) -o
-      match h_121 with
-      | (injL_c2 __124) -> A_119 | (injR_c3 __125) -> B_120
+      (match h_121 with
+       | (injL_c2 __124) -> A_119 | (injR_c3 __125) -> B_120)
 
 def proj1_21 :
   ∀ {A_126 : L} -> ∀ {B_129 : L} -> ((and_9) A_126 B_129) -> A_126 :=
@@ -118,14 +118,14 @@ def proj2_29 :
 def self_and_37 : ∀ {A_144 : L} -> A_144 -> ((and_9) A_144 A_144) :=
   fun {A_147} m_148 ->
     fun h_149 -o
-      match h_149 as h0_150 return
-        match h0_150 with
-        | (injL_c2 __151) -> A_147 | (injR_c3 __152) -> A_147
-      with
-      | (injL_c2 x_153) -> match x_153 with
-                           | tt_c1 -> m_148
-      | (injR_c3 x_154) -> match x_154 with
-                           | tt_c1 -> m_148
+      (match h_149 as h0_150 return
+         (match h0_150 with
+          | (injL_c2 __151) -> A_147 | (injR_c3 __152) -> A_147)
+       with
+       | (injL_c2 x_153) -> (match x_153 with
+                             | tt_c1 -> m_148)
+       | (injR_c3 x_154) -> (match x_154 with
+                             | tt_c1 -> m_148))
 
 theorem plus_55 : {L} -> {L} -> L :=
   fun {A_158 B_159}  ->
@@ -161,8 +161,8 @@ inductive sum_d2 (A_609 : L) (B_610 : L) : L where
 theorem and_9 : L -> L -> L :=
   fun A_620 B_621  ->
     ∀ (h_622 : (sum_d2 unit_d1 unit_d1)) -o
-      match h_622 with
-      | (injL_c2 __625) -> A_620 | (injR_c3 __626) -> B_621
+      (match h_622 with
+       | (injL_c2 __625) -> A_620 | (injR_c3 __626) -> B_621)
 
 def proj1_21 :
   ∀ {A_627 : L} -> ∀ {B_630 : L} -> ((and_9) A_627 B_630) -> A_627 :=
@@ -175,14 +175,14 @@ def proj2_29 :
 def self_and_37 : ∀ {A_645 : L} -> A_645 -> ((and_9) A_645 A_645) :=
   fun {A_648} m_649 ->
     fun h_650 -o
-      match h_650 as h0_651 return
-        match h0_651 with
-        | (injL_c2 __652) -> A_648 | (injR_c3 __653) -> A_648
-      with
-      | (injL_c2 x_654) -> match x_654 with
-                           | tt_c1 -> m_649
-      | (injR_c3 x_655) -> match x_655 with
-                           | tt_c1 -> m_649
+      (match h_650 as h0_651 return
+         (match h0_651 with
+          | (injL_c2 __652) -> A_648 | (injR_c3 __653) -> A_648)
+       with
+       | (injL_c2 x_654) -> (match x_654 with
+                             | tt_c1 -> m_649)
+       | (injR_c3 x_655) -> (match x_655 with
+                             | tt_c1 -> m_649))
 
 theorem plus_55 : {L} -> {L} -> L :=
   fun {A_659 B_660}  ->
@@ -226,11 +226,11 @@ def proj2_29 := fun A_809 B_810 m_811 -> ((m_811) (injR_c3 tt_c1))
 def self_and_37 :=
   fun A_812 m_813 ->
     fun h_814 ->
-      match h_814<L>with
-      | (injL_c2 x_815) -> match x_815<L>with
-                           | tt_c1 -> m_813
-      | (injR_c3 x_816) -> match x_816<L>with
-                           | tt_c1 -> m_813
+      (match h_814<L>with
+       | (injL_c2 x_815) -> (match x_815<L>with
+                             | tt_c1 -> m_813
+       | (injR_c3 x_816) -> (match x_816<L>with
+                             | tt_c1 -> m_813
 
 def plus_55 := □
 
