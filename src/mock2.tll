@@ -59,6 +59,10 @@ def right {A B : L} (x : B) : plus A B :=
 def case {A B C : L} (m : plus A B) : and (A -o C) (B -o C) -o C :=
   fun n -o m _ n
 
--- The final observation to be made is that for proj1/proj2, the constructors
--- injL/injR are arguments being applied, whereas for left/right, proj1/proj2 are
--- functions getting called.
+-- The final observation is that proj1/proj2 (elim rules of &)
+-- are defined in terms of injL/injR (intro rules of ⊕) and
+-- self_and (intro rule of &) is defined in terms of elim of ⊕.
+-- Similarly left/right (intro rules of ⊕) are defined in terms
+-- of proj1/proj2 (elim rules of &) and case is defined in terms
+-- of elim of &.
+
