@@ -6,6 +6,14 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Lemma era_var_form Γ Δ m x B :
+  Γ ; Δ ⊢ m ~ Var x : B -> exists x, m = Var x.
+Proof.
+  move e:(Var x)=>n er. elim: er x e=>//{Γ Δ m n B}.
+  move=>Γ Δ x s A wf shs dhs x0[e]; subst.
+  by exists x.
+Qed.
+
 Lemma era_lam0_form Γ Δ m n X B s :
   Γ ; Δ ⊢ m ~ Lam0 X n s : B -> exists A n, m = Lam0 A n s.
 Proof.

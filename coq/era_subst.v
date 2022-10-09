@@ -86,32 +86,32 @@ Proof with eauto using era_agree_subst.
 Qed.
 Hint Resolve era_agree_subst_refl.
 
-Lemma era_agree_subst_has Γ1 Γ2 σ1 σ2 Δ1 Δ2 x A :
-  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 -> dyn_wf Γ1 Δ1 -> dyn_has Δ2 x A ->
+Lemma era_agree_subst_has Γ1 Γ2 σ1 σ2 Δ1 Δ2 x s A :
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 -> dyn_wf Γ1 Δ1 -> dyn_has Δ2 x s A ->
   Γ1 ; Δ1 ⊢ (σ1 x) ~ (σ2 x) : A.[σ1].
 Proof with eauto using era_agree_subst, era_agree_subst_key.
-  move=>agr. elim: agr x A=>{Γ1 Γ2 σ1 σ2 Δ1 Δ2}...
-  { move=>σ x A wf hs. inv hs. }
-  { move=>Γ1 Δ1 σ1 σ2 Γ2 Δ2 A s agr ih tyA x B wf hs.
+  move=>agr. elim: agr x s A=>{Γ1 Γ2 σ1 σ2 Δ1 Δ2}...
+  { move=>σ x s A wf hs. inv hs. }
+  { move=>Γ1 Δ1 σ1 σ2 Γ2 Δ2 A s agr ih tyA x t B wf hs.
     inv wf. inv hs; asimpl.
     replace A.[σ1 >> ren (+1)] with A.[σ1].[ren (+1)] by autosubst.
     apply: era_var; constructor...
     replace A0.[σ1 >> ren (+1)] with A0.[σ1].[ren (+1)] by autosubst.
     apply: era_eweakenU... }
-  { move=>Γ1 Δ1 σ1 σ2 Γ2 Δ2 A s agr ih tyA x B wf hs.
+  { move=>Γ1 Δ1 σ1 σ2 Γ2 Δ2 A s agr ih tyA x t B wf hs.
     inv wf. inv hs; asimpl...
     replace A0.[σ1 >> ren (+1)] with A0.[σ1].[ren (+1)]
       by autosubst.
     apply: era_eweakenN... }
-  { move=>Γ1 Δ1 σ1 σ2 Γ2 Δ2 n n' A agr ih tyn x B wf hs. inv hs; asimpl... }
-  { move=>Γ1 Γ2 σ1 σ2 Δ1 Δ2 Δa Δb n n' A s k mrg agr ih tyn x B wf hs.
+  { move=>Γ1 Δ1 σ1 σ2 Γ2 Δ2 n n' A agr ih tyn x t B wf hs. inv hs; asimpl... }
+  { move=>Γ1 Γ2 σ1 σ2 Δ1 Δ2 Δa Δb n n' A s k mrg agr ih tyn x t B wf hs.
     inv hs; asimpl.
-    { have ka:=era_agree_subst_key agr H4.
+    { have ka:=era_agree_subst_key agr H5.
       have->//:=merge_pureL mrg ka. }
     { have->:=merge_pureR mrg k.
       apply: ih...
       have[]//:=dyn_wf_inv mrg wf. } }
-  { move=>Γ1 Δ1 σ1 σ2 Γ2 Δ2 A B s eq tyB1 tyB2 agr ih x C wf hs. inv hs.
+  { move=>Γ1 Δ1 σ1 σ2 Γ2 Δ2 A B s eq tyB1 tyB2 agr ih x t C wf hs. inv hs.
     { apply: era_conv.
       apply: sta_conv_subst.
       apply: sta_conv_subst...
@@ -186,7 +186,7 @@ Lemma era_substitution Γ1 Γ2 m m' A Δ1 Δ2 σ1 σ2 :
   Γ1 ; Δ1 ⊢ m.[σ1] ~ m'.[σ2] : A.[σ1].
 Proof with eauto using era_agree_subst, era_agree_subst_key, era_type.
   move=>ty. elim: ty Γ1 Δ1 σ1 σ2=>{Γ2 Δ2 m m' A}.
-  { move=>Γ Δ x A wf shs dhs Γ1 Δ1 σ1 σ2 agr. asimpl.
+  { move=>Γ Δ x s A wf shs dhs Γ1 Δ1 σ1 σ2 agr. asimpl.
     apply: era_agree_subst_has...
     apply: dyn_substitution_wf...
     apply: era_dyn_agree_subst... }
@@ -288,4 +288,3 @@ Proof with eauto using dyn_wf, era_agree_subst_refl.
   asimpl...
   asimpl...
 Qed.
-

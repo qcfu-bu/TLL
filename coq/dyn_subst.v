@@ -79,31 +79,31 @@ Proof with eauto using dyn_agree_subst.
 Qed.
 Hint Resolve dyn_agree_subst_refl.
 
-Lemma dyn_agree_subst_has Γ1 Γ2 σ Δ1 Δ2 x A :
-  Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> dyn_wf Γ1 Δ1 -> dyn_has Δ2 x A -> Γ1 ; Δ1 ⊢ (σ x) : A.[σ].
+Lemma dyn_agree_subst_has Γ1 Γ2 σ Δ1 Δ2 x s A :
+  Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> dyn_wf Γ1 Δ1 -> dyn_has Δ2 x s A -> Γ1 ; Δ1 ⊢ (σ x) : A.[σ].
 Proof with eauto using dyn_agree_subst, dyn_agree_subst_key.
-  move=>agr. elim: agr x A=>{Γ1 Γ2 σ Δ1 Δ2}...
-  { move=>σ x A wf hs. inv hs. }
-  { move=>Γ1 Δ1 σ Γ2 Δ2 A s agr ih tyA x B wf hs.
+  move=>agr. elim: agr x s A=>{Γ1 Γ2 σ Δ1 Δ2}...
+  { move=>σ x s A wf hs. inv hs. }
+  { move=>Γ1 Δ1 σ Γ2 Δ2 A s agr ih tyA x t B wf hs.
     inv wf. inv hs; asimpl.
     replace A.[σ >> ren (+1)] with A.[σ].[ren (+1)] by autosubst.
     apply: dyn_var; constructor...
     replace A0.[σ >> ren (+1)] with A0.[σ].[ren (+1)] by autosubst.
     apply: dyn_eweakenU... }
-  { move=>Γ1 Δ1 σ Γ2 Δ2 A s agr ih tyA x B wf hs.
+  { move=>Γ1 Δ1 σ Γ2 Δ2 A s agr ih tyA x t B wf hs.
     inv wf. inv hs; asimpl...
     replace A0.[σ >> ren (+1)] with A0.[σ].[ren (+1)]
       by autosubst.
     apply: dyn_eweakenN... }
-  { move=>Γ1 Δ1 σ Γ2 Δ2 n A agr ih tyn x B wf hs. inv hs; asimpl... }
-  { move=>Γ1 Γ2 σ Δ1 Δ2 Δa Δb n A s k mrg agr ih tyn x B wf hs.
+  { move=>Γ1 Δ1 σ Γ2 Δ2 n A agr ih tyn x s B wf hs. inv hs; asimpl... }
+  { move=>Γ1 Γ2 σ Δ1 Δ2 Δa Δb n A s k mrg agr ih tyn x t B wf hs.
     inv hs; asimpl.
-    { have ka:=dyn_agree_subst_key agr H4.
+    { have ka:=dyn_agree_subst_key agr H5.
       have->//:=merge_pureL mrg ka. }
     { have->:=merge_pureR mrg k.
       apply: ih...
       have[]//:=dyn_wf_inv mrg wf. } }
-  { move=>Γ1 Δ1 σ Γ2 Δ2 A B s eq tyB1 tyB2 agr ih x C wf hs. inv hs.
+  { move=>Γ1 Δ1 σ Γ2 Δ2 A B s eq tyB1 tyB2 agr ih x t C wf hs. inv hs.
     { apply: dyn_conv.
       apply: sta_conv_subst.
       apply: sta_conv_subst...
@@ -218,7 +218,7 @@ Lemma dyn_substitution Γ1 Γ2 m A Δ1 Δ2 σ :
 Proof with eauto using dyn_agree_subst, dyn_agree_subst_key, dyn_type.
   move=>ty. move:Γ2 Δ2 m A ty Γ1 Δ1 σ.
   apply:(@dyn_type_mut _ (fun Γ2 Δ2 wf => forall Γ1 Δ1 σ, Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> dyn_wf Γ1 Δ1)).
-  { move=>Γ Δ x A wf h shs dhs Γ1 Δ1 σ agr. asimpl.
+  { move=>Γ Δ x s A wf h shs dhs Γ1 Δ1 σ agr. asimpl.
     apply: dyn_agree_subst_has... }
   { move=>Γ Δ A B m s k tym ihm Γ1 Δ1 σ agr. asimpl.
     have wf:=dyn_type_wf tym. inv wf.

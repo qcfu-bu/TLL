@@ -10,10 +10,10 @@ Unset Printing Implicit Defensive.
 
 Reserved Notation "Γ ; Δ ⊢ m : A" (at level 50, Δ, m, A at next level).
 Inductive dyn_type : sta_ctx -> dyn_ctx -> term -> term -> Prop :=
-| dyn_var Γ Δ x A :
+| dyn_var Γ Δ x s A :
   dyn_wf Γ Δ ->
   sta_has Γ x A ->
-  dyn_has Δ x A ->
+  dyn_has Δ x s A ->
   Γ ; Δ ⊢ Var x : A
 | dyn_lam0 Γ Δ A B m s :
   Δ ▷ s ->

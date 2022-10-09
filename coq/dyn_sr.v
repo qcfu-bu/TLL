@@ -9,12 +9,40 @@ Unset Printing Implicit Defensive.
 Lemma dyn_sta_step m n : m ~>> n -> m ~> n.
 Proof with eauto using sta_step. elim... Qed.
 
+Lemma dyn_has_type Γ Δ x s A :
+  dyn_has Δ x s A -> dyn_wf Γ Δ -> Γ ⊢ A : Sort s.
+Proof with eauto.
+  move=>hs. elim: hs Γ=>{Δ x s A}.
+  { move=>Δ A s k Γ wf. inv wf.
+    apply: sta_eweaken...
+    by asimpl. }
+  { move=>Δ A B x s hs ih Γ wf. inv wf.
+    have tyA:=ih _ H2. 
+    apply: sta_eweaken...
+    by asimpl. }
+  { move=>Δ A x s hs ih Γ wf. inv wf.
+    have tyA:=ih _ H0. 
+    apply: sta_eweaken...
+    by asimpl. }
+Qed.
+
+Lemma dyn_has_key Δ x s A : dyn_has Δ x s A -> Δ ▷ s.
+Proof with eauto using key, key_impure.
+  elim=>{Δ x s A}.
+  { move=>Δ A [|] k... }
+  { move=>Δ A B x [|] hs k... }
+  { move=>Δ A x [|] hs k... }
+Qed.
+
 Lemma dyn_val_key Γ Δ m A s :
   Γ ; Δ ⊢ m : A -> Γ ⊢ A : Sort s -> dyn_val m -> Δ ▷ s.
 Proof with eauto using key_impure.
   destruct s...
   move=>ty. elim: ty=>{Γ Δ m A}.
-  { move=>Γ Δ x A shs dhs wf tyA vl. inv vl. }
+  { move=>Γ Δ x s A shs dhs wf tyA vl.
+    have tyAs:=dyn_has_type wf shs.
+    have/sort_inj e:=sta_uniq tyA tyAs. subst.
+    apply: dyn_has_key... }
   { move=>Γ Δ A B m s k tym ih tyP vl.
     have[_[_/sort_inj->//]]:=sta_pi0_inv tyP. }
   { move=>Γ Δ A B m s t k tym ih tyP vl.
@@ -34,7 +62,7 @@ Theorem dyn_sr Γ Δ m n A :
   Γ ; Δ ⊢ m : A -> m ~>> n -> Γ ; Δ ⊢ n : A.
 Proof with eauto using dyn_type, dyn_step, dyn_wf.
   move=>ty. elim: ty n=>{Γ Δ m A}...
-  { move=>Γ Δ x A wf shs dhs n st. inv st. }
+  { move=>Γ Δ x s A wf shs dhs n st. inv st. }
   { move=>Γ Δ A B m s k tym ihm n st. inv st. }
   { move=>Γ Δ A B m s t k tym ihm n st. inv st. }
   { move=>Γ Δ A B m n s tym ihm tyn n0 st. inv st.

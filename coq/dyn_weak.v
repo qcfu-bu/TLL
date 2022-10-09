@@ -60,23 +60,23 @@ Proof with eauto using key.
   { move=>Γ Γ' Δ Δ' ξ m _ agr ih [] /ih... }
 Qed.
 
-Lemma dyn_agree_ren_has Γ Γ' Δ Δ' ξ x A :
-  dyn_agree_ren ξ Γ Δ Γ' Δ' -> dyn_has Δ x A -> dyn_has Δ' (ξ x) A.[ren ξ].
+Lemma dyn_agree_ren_has Γ Γ' Δ Δ' ξ x s A :
+  dyn_agree_ren ξ Γ Δ Γ' Δ' -> dyn_has Δ x s A -> dyn_has Δ' (ξ x) s A.[ren ξ].
 Proof with eauto using dyn_agree_ren_key.
-  move=>agr. elim: agr x A=>{Γ Γ' Δ Δ' ξ}.
-  { move=>ξ x A hs. inv hs. }
-  { move=>Γ Γ' Δ Δ' ξ m s tym agr ih x A hs. inv hs; asimpl.
+  move=>agr. elim: agr x s A=>{Γ Γ' Δ Δ' ξ}.
+  { move=>ξ x s A hs. inv hs. }
+  { move=>Γ Γ' Δ Δ' ξ m s tym agr ih x t A hs. inv hs; asimpl.
     { replace m.[ren (ξ >>> (+1))] with m.[ren ξ].[ren (+1)] by autosubst.
       constructor... }
     { replace A0.[ren (ξ >>> (+1))] with A0.[ren ξ].[ren (+1)] by autosubst.
       constructor... } }
-  { move=>Γ Γ' Δ Δ' ξ m s tym agr ih x A hs. inv hs; asimpl.
+  { move=>Γ Γ' Δ Δ' ξ m s tym agr ih x t A hs. inv hs; asimpl.
     replace A0.[ren (ξ >>> (+1))] with A0.[ren ξ].[ren (+1)] by autosubst.
      constructor... }
-  { move=>Γ Γ' Δ Δ' ξ m tym agr ih x A hs.
+  { move=>Γ Γ' Δ Δ' ξ m tym agr ih x s A hs.
     replace A.[ren (ξ >>> (+1))] with A.[ren ξ].[ren (+1)] by autosubst.
     constructor... }
-  { move=>Γ Γ' Δ Δ' ξ m s tym agr ih x A hs.
+  { move=>Γ Γ' Δ Δ' ξ m s tym agr ih x t A hs.
     replace A.[ren (ξ >>> (+1))] with A.[ren ξ].[ren (+1)] by autosubst.
     constructor... }
 Qed.
@@ -155,7 +155,7 @@ Proof with eauto using dyn_type, dyn_agree_ren, dyn_agree_ren_key.
   move=>ty. move: Γ Δ m A ty Γ' Δ' ξ.
   apply:(@dyn_type_mut _
     (fun Γ Δ wf => forall Γ' Δ' ξ, dyn_agree_ren ξ Γ Δ Γ' Δ' -> dyn_wf Γ' Δ')).
-  { move=>Γ Δ x A wf h shs dhs Γ' Δ' ξ agr. asimpl.
+  { move=>Γ Δ x s A wf h shs dhs Γ' Δ' ξ agr. asimpl.
     apply: dyn_var...
     apply: sta_agree_ren_has...
     apply: dyn_sta_agree_ren...

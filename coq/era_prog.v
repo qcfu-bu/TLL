@@ -27,7 +27,7 @@ Lemma era_prog m m' A :
 Proof with eauto using dyn_step, dyn_val.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty. elim: ty e1 e2=>{Γ Δ m m' A}.
-  { move=>Γ Δ x A wf shs dhs e1 e2; subst. inv shs. }
+  { move=>Γ Δ x s A wf shs dhs e1 e2; subst. inv shs. }
   { move=>Γ Δ A B m m' s k tym ihm e1 e2; subst.
     right... }
   { move=>Γ Δ A B m m' s t k tym ihm e1 e2; subst.

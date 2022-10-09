@@ -13,7 +13,7 @@ Proof with eauto.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty.
   elim: ty A B s e1 e2=>//{Γ Δ m C}.
-  { move=>Γ Δ x A wf shs dhs A0 B s e1 e2; subst. inv shs. }
+  { move=>Γ Δ x s A wf shs dhs A0 B s0 e1 e2; subst. inv shs. }
   { move=>Γ Δ A B m s k tym ihm A0 B0 s0
       e1 e2/pi0_inj[eq1[eq2 e3]] vl; subst.
     exists A. exists m... }
@@ -35,7 +35,7 @@ Proof with eauto.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty.
   elim: ty A B s e1 e2=>//{Γ Δ m C}.
-  { move=>Γ Δ x A wf shs dhs A0 B s e1 e2; subst. inv shs. }
+  { move=>Γ Δ x s A wf shs dhs A0 B s0 e1 e2; subst. inv shs. }
   { move=>Γ Δ A B m s k tym _ A0 B0 s0 e1 e2 eq.
     exfalso. solve_conv. }
   { move=>Γ Δ A B m s t k tym ihm A0 B0 s0
@@ -54,7 +54,7 @@ Lemma dyn_prog m A : nil ; nil ⊢ m : A -> (exists n, m ~>> n) \/ dyn_val m.
 Proof with eauto using dyn_step, dyn_val.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty. elim: ty e1 e2=>{Γ Δ m A}.
-  { move=>Γ Δ x A wf shs dhs e1 e2; subst. inv shs. }
+  { move=>Γ Δ x s A wf shs dhs e1 e2; subst. inv shs. }
   { move=>Γ Δ A B m s k tym ihm e1 e2; subst.
     right... }
   { move=>Γ Δ A B m s t k tym ihm e1 e2; subst.

@@ -7,6 +7,7 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Inductive dyn_val : term -> Prop :=
+| dyn_val_var x : dyn_val (Var x)
 | dyn_val_lam0 A B s : dyn_val (Lam0 A B s)
 | dyn_val_lam1 A B s : dyn_val (Lam1 A B s).
 

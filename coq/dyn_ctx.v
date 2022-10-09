@@ -51,16 +51,16 @@ Inductive key : dyn_ctx -> sort -> Prop :=
   _: Δ ▷ s
 where "Δ ▷ s" := (key Δ s).
 
-Inductive dyn_has : dyn_ctx -> var -> term -> Prop :=
+Inductive dyn_has : dyn_ctx -> var -> sort -> term -> Prop :=
 | dyn_has_O Δ A s :
   Δ ▷ U ->
-  dyn_has (A :{s} Δ) 0 A.[ren (+1)]
-| dyn_has_S Δ A B x :
-  dyn_has Δ x A ->
-  dyn_has (B :U Δ) x.+1 A.[ren (+1)]
-| dyn_has_N Δ A x :
-  dyn_has Δ x A ->
-  dyn_has (_: Δ) x.+1 A.[ren (+1)].
+  dyn_has (A :{s} Δ) 0 s A.[ren (+1)]
+| dyn_has_S Δ A B x s :
+  dyn_has Δ x s A ->
+  dyn_has (B :U Δ) x.+1 s A.[ren (+1)]
+| dyn_has_N Δ A x s :
+  dyn_has Δ x s A ->
+  dyn_has (_: Δ) x.+1 s A.[ren (+1)].
 
 Lemma key_impure Δ : Δ ▷ L.
 Proof with eauto using key.

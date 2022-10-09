@@ -11,7 +11,7 @@ Lemma era_rename Γ Γ' Δ Δ' m m' A ξ :
   Γ' ; Δ' ⊢ m.[ren ξ] ~ m'.[ren ξ] : A.[ren ξ].
 Proof with eauto using era_type, dyn_agree_ren, dyn_agree_ren_key.
   move=>ty. elim: ty Γ' Δ' ξ=>{Γ Δ m m' A}.
-  { move=>Γ Δ x A wf shs dhs Γ' Δ' ξ agr. asimpl.
+  { move=>Γ Δ x s A wf shs dhs Γ' Δ' ξ agr. asimpl.
     apply: era_var.
     apply: dyn_rename_wf...
     apply: sta_agree_ren_has...

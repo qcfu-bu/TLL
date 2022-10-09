@@ -10,6 +10,7 @@ Lemma era_dyn_val Γ Δ m m' A :
   dyn_val m' -> Γ ; Δ ⊢ m ~ m' : A -> dyn_val m.
 Proof with eauto using dyn_val.
   move=>vl. inv vl.
+  { move=>/era_var_form[x' e]; subst... }
   { move=>/era_lam0_form[A'[m' e]]; subst... }
   { move=>/era_lam1_form[A'[m' e]]; subst... }
 Qed.
@@ -19,7 +20,7 @@ Theorem era_sr Γ Δ m m' n' A :
   exists2 n, m ~>> n & Γ ; Δ ⊢ n ~ n' : A.
 Proof with eauto using dyn_step, era_type.
   move=>er. elim: er n'=>{Γ Δ m m' A}.
-  { move=>Γ Δ x A wf shs dhs n' st. inv st. }
+  { move=>Γ Δ x s A wf shs dhs n' st. inv st. }
   { move=>Γ Δ A B m m' s k erm ihm n' st. inv st. }
   { move=>Γ Δ A B m m' s t k erm ihm n' st. inv st. }
   { move=>Γ Δ A B m m' n s erm ihm tyn n' st. inv st.
