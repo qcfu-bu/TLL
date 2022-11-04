@@ -864,6 +864,12 @@ Proof.
   apply confluence.
 Qed.
 
+Lemma sta_red_var_inv x y : Var x ~>* y -> y = Var x.
+Proof.
+  elim=>//{} y z r1 e r2; subst.
+  inv r2.
+Qed.
+
 Lemma sta_red_sort_inv s A :
   Sort s ~>* A -> A = Sort s.
 Proof.
@@ -878,7 +884,7 @@ Lemma sta_red_pi0_inv A B s x :
 Proof.
   elim.
   exists A. exists B=>//.
-  move=> y z rd [A'[B'[r1[r2 e]]]] st; subst.
+  move=> y z rd[A'[B'[r1[r2 e]]]] st; subst.
   inv st.
   exists A'0. exists B'.
   repeat constructor; eauto.
@@ -895,7 +901,7 @@ Lemma sta_red_pi1_inv A B s x :
 Proof.
   elim.
   exists A. exists B=>//.
-  move=> y z rd [A'[B'[r1[r2 e]]]] st; subst.
+  move=> y z rd[A'[B'[r1[r2 e]]]] st; subst.
   inv st.
   exists A'0. exists B'.
   repeat constructor; eauto.
@@ -905,12 +911,6 @@ Proof.
   apply: starSE; eauto.
 Qed.
 
-Lemma sta_red_var_inv x y : Var x ~>* y -> y = Var x.
-Proof.
-  elim=>//{} y z r1 e r2; subst.
-  inv r2.
-Qed.
-
 Lemma sta_red_lam0_inv A m x s :
   Lam0 A m s ~>* x ->
   exists A' m',
@@ -918,7 +918,7 @@ Lemma sta_red_lam0_inv A m x s :
 Proof.
   elim.
   exists A. exists m=>//.
-  move=>y z r1 [A'[m'[rA[rm e]]]] r2. subst.
+  move=>y z r1[A'[m'[rA[rm e]]]] r2. subst.
   inv r2.
   exists A'0. exists m'. eauto using star.
   exists A'. exists m'0. eauto using star.
@@ -931,10 +931,144 @@ Lemma sta_red_lam1_inv A m x s :
 Proof.
   elim.
   exists A. exists m=>//.
-  move=>y z r1 [A'[m'[rA[rm e]]]] r2. subst.
+  move=>y z r1[A'[m'[rA[rm e]]]] r2. subst.
   inv r2.
   exists A'0. exists m'. eauto using star.
   exists A'. exists m'0. eauto using star.
+Qed.
+
+Lemma sta_red_sig0_inv A B s x :
+  Sig0 A B s ~>* x ->
+  exists A' B',
+    A ~>* A' /\ B ~>* B' /\ x = Sig0 A' B' s.
+Proof.
+  elim.
+  exists A. exists B=>//.
+  move=> y z rd[A'[B'[r1[r2 e]]]] st; subst.
+  inv st.
+  exists A'0. exists B'.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+  exists A'. exists B'0.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+Qed.
+
+Lemma sta_red_sig1_inv A B s x :
+  Sig1 A B s ~>* x ->
+  exists A' B',
+    A ~>* A' /\ B ~>* B' /\ x = Sig1 A' B' s.
+Proof.
+  elim.
+  exists A. exists B=>//.
+  move=> y z rd[A'[B'[r1[r2 e]]]] st; subst.
+  inv st.
+  exists A'0. exists B'.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+  exists A'. exists B'0.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+Qed.
+
+Lemma sta_red_pair0_inv m n s x :
+  Pair0 m n s ~>* x ->
+  exists m' n',
+    m ~>* m' /\ n ~>* n' /\ x = Pair0 m' n' s.
+Proof.
+  elim.
+  exists m. exists n=>//.
+  move=> y z rd[m'[n'[r1[r2 e]]]] st; subst.
+  inv st.
+  exists m'0. exists n'.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+  exists m'. exists n'0.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+Qed.
+
+Lemma sta_red_pair1_inv m n s x :
+  Pair1 m n s ~>* x ->
+  exists m' n',
+    m ~>* m' /\ n ~>* n' /\ x = Pair1 m' n' s.
+Proof.
+  elim.
+  exists m. exists n=>//.
+  move=> y z rd[m'[n'[r1[r2 e]]]] st; subst.
+  inv st.
+  exists m'0. exists n'.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+  exists m'. exists n'0.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+Qed.
+
+Lemma sta_red_with_inv A B s x :
+  With A B s ~>* x ->
+  exists A' B',
+    A ~>* A' /\ B ~>* B' /\ x = With A' B' s.
+Proof.
+  elim.
+  exists A. exists B=>//.
+  move=> y z rd[A'[B'[r1[r2 e]]]] st; subst.
+  inv st.
+  exists A'0. exists B'.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+  exists A'. exists B'0.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+Qed.
+
+Lemma sta_red_apair_inv m n s x :
+  APair m n s ~>* x ->
+  exists m' n',
+    m ~>* m' /\ n ~>* n' /\ x = APair m' n' s.
+Proof.
+  elim.
+  exists m. exists n=>//.
+  move=> y z rd[m'[n'[r1[r2 e]]]] st; subst.
+  inv st.
+  exists m'0. exists n'.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+  exists m'. exists n'0.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+Qed.
+
+Lemma sta_red_id_inv A m n x :
+  Id A m n ~>* x ->
+  exists A' m' n',
+    A ~>* A' /\ m ~>* m' /\ n ~>* n' /\ x = Id A' m' n'.
+Proof.
+  elim.
+  exists A. exists m. exists n=>//.
+  move=>y z rd[A'[m'[n'[r1[r2[r3 e]]]]]] st; subst.
+  inv st.
+  exists A'0. exists m'. exists n'.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+  exists A'. exists m'0. exists n'.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+  exists A'. exists m'. exists n'0.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
+Qed.
+
+Lemma sta_red_refl_inv m x :
+  Refl m ~>* x ->
+  exists m', m ~>* m' /\ x = Refl m'.
+Proof.
+  elim.
+  exists m=>//.
+  move=>y z rd[m'[r e]] st; subst.
+  inv st. exists m'0.
+  repeat constructor; eauto.
+  apply: starSE; eauto.
 Qed.
 
 Lemma sort_inj s1 s2 :
@@ -975,14 +1109,89 @@ Proof.
   apply: conv_sym. by apply: star_conv.
 Qed.
 
+Lemma sig0_inj A A' B B' s s' :
+  Sig0 A B s === Sig0 A' B' s' ->
+    A === A' /\ B === B' /\ s = s'.
+Proof.
+  move/church_rosser=>
+    [x/sta_red_sig0_inv[A1[B1[rA1[rB1->]]]]
+      /sta_red_sig0_inv[A2[B2[rA2[rB2[]]]]]] eA eB es; subst.
+  repeat split.
+  apply: conv_trans.
+  apply: star_conv. by apply: rA1.
+  apply: conv_sym. by apply: star_conv.
+  apply: conv_trans.
+  apply: star_conv. by apply: rB1.
+  apply: conv_sym. by apply: star_conv.
+Qed.
+
+Lemma sig1_inj A A' B B' s s' :
+  Sig1 A B s === Sig1 A' B' s' ->
+    A === A' /\ B === B' /\ s = s'.
+Proof.
+  move/church_rosser=>
+    [x/sta_red_sig1_inv[A1[B1[rA1[rB1->]]]]
+      /sta_red_sig1_inv[A2[B2[rA2[rB2[]]]]]] eA eB es; subst.
+  repeat split.
+  apply: conv_trans.
+  apply: star_conv. by apply: rA1.
+  apply: conv_sym. by apply: star_conv.
+  apply: conv_trans.
+  apply: star_conv. by apply: rB1.
+  apply: conv_sym. by apply: star_conv.
+Qed.
+
+Lemma with_inj A A' B B' s s' :
+  With A B s === With A' B' s' ->
+    A === A' /\ B === B' /\ s = s'.
+Proof.
+  move/church_rosser=>
+    [x/sta_red_with_inv[A1[B1[rA1[rB1->]]]]
+      /sta_red_with_inv[A2[B2[rA2[rB2[]]]]]] eA eB es; subst.
+  repeat split.
+  apply: conv_trans.
+  apply: star_conv. by apply: rA1.
+  apply: conv_sym. by apply: star_conv.
+  apply: conv_trans.
+  apply: star_conv. by apply: rB1.
+  apply: conv_sym. by apply: star_conv.
+Qed.
+
+Lemma id_inj A A' m m' n n' :
+  Id A m n === Id A' m' n' ->
+    A === A' /\ m === m' /\ n === n'.
+Proof.
+  move/church_rosser=>
+    [x/sta_red_id_inv[A1[m1[n1[rA1[rm1[rn1->]]]]]]
+      /sta_red_id_inv[A2[m2[n2[rA2[rm2[rn2[]]]]]]]] eA em en; subst.
+  repeat split.
+  apply: conv_trans.
+  apply: star_conv. by apply: rA1.
+  apply: conv_sym. by apply: star_conv.
+  apply: conv_trans.
+  apply: star_conv. by apply: rm1.
+  apply: conv_sym. by apply: star_conv.
+  apply: conv_trans.
+  apply: star_conv. by apply: rn1.
+  apply: conv_sym. by apply: star_conv.
+Qed.
+
 Ltac red_inv m H :=
   match m with
-  | Var  => apply sta_red_var_inv in H
-  | Sort => apply sta_red_sort_inv in H
-  | Pi0  => apply sta_red_pi0_inv in H
-  | Pi1  => apply sta_red_pi1_inv in H
-  | Lam0 => apply sta_red_lam0_inv in H
-  | Lam1 => apply sta_red_lam1_inv in H
+  | Var   => apply sta_red_var_inv in H
+  | Sort  => apply sta_red_sort_inv in H
+  | Pi0   => apply sta_red_pi0_inv in H
+  | Pi1   => apply sta_red_pi1_inv in H
+  | Lam0  => apply sta_red_lam0_inv in H
+  | Lam1  => apply sta_red_lam1_inv in H
+  | Sig0  => apply sta_red_sig0_inv in H
+  | Sig1  => apply sta_red_sig1_inv in H
+  | Pair0 => apply sta_red_pair0_inv in H
+  | Pair1 => apply sta_red_pair1_inv in H
+  | With  => apply sta_red_with_inv in H
+  | APair => apply sta_red_apair_inv in H
+  | Id    => apply sta_red_id_inv in H
+  | Refl  => apply sta_red_refl in H
   end.
 
 Ltac solve_conv' :=
