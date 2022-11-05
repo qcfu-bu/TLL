@@ -8,6 +8,7 @@ Unset Printing Implicit Defensive.
 
 Lemma dyn_sta_step m n : m ~>> n -> m ~> n.
 Proof with eauto using sta_step. elim... Qed.
+Hint Resolve dyn_sta_step.
 
 Lemma dyn_has_type Γ Δ x s A :
   dyn_has Δ x s A -> dyn_wf Γ Δ -> Γ ⊢ A : Sort s.
@@ -89,8 +90,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf.
       have[r[tyB _]]:=sta_pi0_inv tyP.
       apply: dyn_conv.
       apply: sta_conv_beta.
-      apply: conv1i.
-      apply: dyn_sta_step...
+      apply: conv1i...
       apply: dyn_app0...
       have:=sta_subst tyB tyn.
       asimpl... }
@@ -107,8 +107,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf.
       have[r[tyB _]]:=sta_pi1_inv tyP.
       apply: dyn_conv.
       apply: sta_conv_beta.
-      apply: conv1i.
-      apply: dyn_sta_step...
+      apply: conv1i...
       apply: dyn_app1...
       have:=sta_subst tyB (dyn_sta_type tyn).
       asimpl... }
@@ -120,6 +119,73 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf.
       have wf:=dyn_type_wf tym0. inv wf.
       apply: dyn_subst1...
       apply: dyn_val_key... } }
+  { move=>Γ Δ A B m n t tyS tym ihm tyn n0 st. inv st.
+    have[s[r[ord[tyA[tyB _]]]]]:=sta_sig0_inv tyS.
+    apply: dyn_pair0...
+    apply: sta_conv.
+    apply: sta_conv_beta.
+    apply: conv1...
+    apply: tyn.
+    apply: sta_esubst...
+    by autosubst. }
+  { move=>Γ Δ1 Δ2 Δ A B m n t mrg tyS tym ihm tyn ihn n0 st. inv st.
+    { have[s[r[ord1[ord2[tyA[tyB _]]]]]]:=sta_sig1_inv tyS.
+      apply: dyn_pair1...
+      apply: dyn_conv.
+      apply: sta_conv_beta.
+      apply: conv1...
+      apply: tyn.
+      apply: sta_esubst...
+      by autosubst. }
+    { apply: dyn_pair1... } }
+  { move=>Γ Δ1 Δ2 Δ A B C m n s r t mrg tyC tym ihm tyn ihn n0 st. inv st.
+    { apply: dyn_conv.
+      apply: sta_conv_beta.
+      apply: conv1i...
+      apply: dyn_letin0...
+      apply: sta_esubst...
+      by autosubst. }
+    { inv H3.
+      have[e[tym1 tym2]]:=dyn_pair0_inv tym. subst.
+      have wf:=dyn_type_wf tyn. inv wf. inv H3.
+      replace C.[Pair0 m1 m2 t/]
+        with C.[Pair0 (Var 1) (Var 0) t .: ren (+2)].[m2,m1/] by autosubst.
+      apply: dyn_substitution...
+      apply: dyn_agree_subst_wk0...
+      apply: dyn_agree_subst_wk1.
+      apply: dyn_val_key tym1 H7 H0.
+      apply: merge_sym...
+      apply: dyn_agree_subst_refl...
+      by autosubst. }
+    { exfalso. apply: sta_pair1_sig0_false... } }
+  { move=>Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg tyC tym ihm tyn ihn n0 st. inv st.
+    { apply: dyn_conv.
+      apply: sta_conv_beta.
+      apply: conv1i...
+      apply: dyn_letin1...
+      apply: sta_esubst...
+      by autosubst. }
+    { exfalso. apply: sta_pair0_sig1_false... }
+    { inv H3.
+      have[Δ1'[Δ2'[mrg'[e[tym1 tym2]]]]]:=dyn_pair1_inv tym.
+      have wf:=dyn_type_wf tyn. inv wf. inv H3.
+      have k1:=dyn_val_key tym1 H8 H1.
+      have k2:=dyn_val_key tym2 (sta_subst H6 (dyn_sta_type tym1)) H4.
+      have[Δa[mrg1 mrg2]]:=merge_splitL mrg mrg'.
+      replace C.[Pair1 m1 m2 t/]
+        with C.[Pair1 (Var 1) (Var 0) t .: ren (+2)].[m2,m1/] by autosubst.
+      apply: dyn_substitution...
+      apply: dyn_agree_subst_wk1...
+      apply: dyn_agree_subst_wk1...
+      apply: merge_sym...
+      by autosubst. } }
+  { move=>Γ Δ A B m n t k tym ihm tyn ihn n0 st. inv st. }
+  { move=>Γ Δ A B m t tym ihm n st. inv st.
+    { apply: dyn_fst... }
+    { have[_[//]]:=dyn_apair_inv tym. } }
+  { move=>Γ Δ A B m t tym ihm n st. inv st.
+    { apply: dyn_snd... }
+    { have[_[//]]:=dyn_apair_inv tym. } }
 Qed.
 
 Corollary dyn_rd Γ Δ m n A :
