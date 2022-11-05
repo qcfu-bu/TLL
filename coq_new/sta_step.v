@@ -66,28 +66,19 @@ Inductive sta_step : term -> term -> Prop :=
 | sta_step_pair1R m n n' s :
   n ~> n' ->
   Pair1 m n s ~> Pair1 m n' s
-| sta_step_letin0A A A' m n :
+| sta_step_letinA A A' m n :
   A ~> A' ->
-  LetIn0 A m n ~> LetIn0 A' m n
-| sta_step_letin0L A m m' n :
+  LetIn A m n ~> LetIn A' m n
+| sta_step_letinL A m m' n :
   m ~> m' ->
-  LetIn0 A m n ~> LetIn0 A m' n
-| sta_step_letin0R A m n n' :
+  LetIn A m n ~> LetIn A m' n
+| sta_step_letinR A m n n' :
   n ~> n' ->
-  LetIn0 A m n ~> LetIn0 A m n'
-| sta_step_letin1A A A' m n :
-  A ~> A' ->
-  LetIn1 A m n ~> LetIn1 A' m n
-| sta_step_letin1L A m m' n :
-  m ~> m' ->
-  LetIn1 A m n ~> LetIn1 A m' n
-| sta_step_letin1R A m n n' :
-  n ~> n' ->
-  LetIn1 A m n ~> LetIn1 A m n'
+  LetIn A m n ~> LetIn A m n'
 | sta_step_iota0 A m1 m2 n s :
-  LetIn0 A (Pair0 m1 m2 s) n ~> n.[m2,m1/]
+  LetIn A (Pair0 m1 m2 s) n ~> n.[m2,m1/]
 | sta_step_iota1 A m1 m2 n s :
-  LetIn1 A (Pair1 m1 m2 s) n ~> n.[m2,m1/]
+  LetIn A (Pair1 m1 m2 s) n ~> n.[m2,m1/]
 | sta_step_withL A A' B s :
   A ~> A' ->
   With A B s ~> With A' B s
@@ -122,17 +113,17 @@ Inductive sta_step : term -> term -> Prop :=
 | sta_step_refl m m' :
   m ~> m' ->
   Refl m ~> Refl m'
-| sta_step_rewA A A' H P :
+| sta_step_jA A A' H P :
   A ~> A' ->
-  Rew A H P ~> Rew A' H P
-| sta_step_rewH A H H' P :
+  J A H P ~> J A' H P
+| sta_step_jH A H H' P :
   H ~> H' ->
-  Rew A H P ~> Rew A H' P
-| sta_step_rewP A H P P' :
+  J A H P ~> J A H' P
+| sta_step_jP A H P P' :
   P ~> P' ->
-  Rew A H P ~> Rew A H P'
-| sta_step_rewR A H m :
-  Rew A H (Refl m) ~> H.[m/]
+  J A H P ~> J A H P'
+| sta_step_jelim A H m :
+  J A H (Refl m) ~> H.[m/]
 where "m ~> n" := (sta_step m n).
 
 Notation sta_red := (star sta_step).

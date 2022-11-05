@@ -159,7 +159,7 @@ Proof with eauto using sta_type, sta_wf, sta_agree_ren.
     asimpl in ihH.
     replace A.[ren (ξ >>> (+2))] with A.[ren ξ].[ren (+2)] in ihB by autosubst.
     replace A.[ren (ξ >>> (+1))] with A.[ren ξ].[ren (+1)] in ihB by autosubst.
-    have pf:=sta_rew ihB. asimpl in pf.
+    have pf:=sta_j ihB. asimpl in pf.
     have:=pf _ _ _ _ ihH ihP.
     by autosubst. }
   { move=>Γ A B m s eq tym ihm tyB ihB Γ' ξ agr.

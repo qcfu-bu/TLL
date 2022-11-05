@@ -32,15 +32,14 @@ Inductive term : Type :=
 | Sig1 (A : term) (B : {bind term}) (s : sort) (* Σs (x : A).B *)
 | Pair0 (m n : term) (s : sort) (* {m, n}s *)
 | Pair1 (m n : term) (s : sort) (* ⟨m, n}s *)
-| LetIn0 (A : {bind term}) (m : term) (n : {bind 2 of term}) (* let {x, y} as A := m in n *)
-| LetIn1 (A : {bind term}) (m : term) (n : {bind 2 of term}) (* let ⟨x, y⟩ as A := m in n *)
+| LetIn (A : {bind term}) (m : term) (n : {bind 2 of term}) (* let {x, y} as A := m in n *)
 | With (A B : term) (s : sort)  (* A &s B *)
 | APair (m n : term) (s : sort) (* (m, n)s *)
 | Fst (m : term)
 | Snd (m : term)
 | Id (A m n : term)
 | Refl (m : term)
-| Rew (A : {bind 3 of term}) (H : {bind term}) (P : term)
+| J (A : {bind 3 of term}) (H : {bind term}) (P : term)
 | Box
 | Ptr (l : nat).
 

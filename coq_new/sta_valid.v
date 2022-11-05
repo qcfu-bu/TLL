@@ -25,6 +25,8 @@ Proof with eauto using sta_type.
       tym[s0/sta_pi1_inv[t[tyB/sort_inj e1]]]tyn _; subst.
     exists t. apply: sta_esubst...
     by autosubst. }
+  { move=>Γ A B C m n s t tyC _ tym.
+  }
   Unshelve. all: eauto.
 Qed.
 
