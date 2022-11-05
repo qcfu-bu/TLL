@@ -40,8 +40,7 @@ Inductive term : Type :=
 | Id (A m n : term)
 | Refl (m : term)
 | J (A : {bind 3 of term}) (H : {bind term}) (P : term)
-| Box
-| Ptr (l : nat).
+| Box.
 
 Instance Ids_term : Ids term. derive. Defined.
 Instance Rename_term : Rename term. derive. Defined.

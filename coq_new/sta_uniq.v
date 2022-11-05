@@ -39,8 +39,7 @@ Inductive head_sim : term -> term -> Prop :=
   head_sim (Id A1 m n) (Id A2 m n)
 | head_sim_refl m : head_sim (Refl m) (Refl m)
 | head_sim_j A H P : head_sim (J A H P) (J A H P)
-| head_sim_box : head_sim Box Box
-| head_sim_ptr l : head_sim (Ptr l) (Ptr l).
+| head_sim_box : head_sim Box Box.
 
 Inductive sim (m n : term) : Prop :=
 | Sim x y : m === x -> head_sim x y -> y === n -> sim m n.
@@ -128,8 +127,6 @@ Proof with eauto.
     have/sort_inj//:=conv_trans _ eq1 eq2. }
   { move=>s t eq1 eq2.
     have/sort_inj//:=conv_trans _ eq1 eq2. }
-  { move=>l s t eq1 eq2.
-    have/sort_inj//:=conv_trans _ eq1 eq2. }
 Qed.
 
 Lemma sim_pi0_inj A1 A2 B1 B2 s1 s2 :
@@ -158,9 +155,6 @@ Proof with eauto using sim.
     have/pi0_inj[eqA[eqB->]]:=conv_trans _ eq1 eq2.
     repeat split... }
   { move=>A1 A2 B1 B2 s1 s2 eq1 eq2.
-    have/pi0_inj[eqA[eqB->]]:=conv_trans _ eq1 eq2.
-    repeat split... }
-  { move=>l A1 A2 B1 B2 s1 s2 eq1 eq2.
     have/pi0_inj[eqA[eqB->]]:=conv_trans _ eq1 eq2.
     repeat split... }
 Qed.
@@ -193,9 +187,6 @@ Proof with eauto using sim.
   { move=>A1 A2 B1 B2 s1 s2 eq1 eq2.
     have/pi1_inj[eqA[eqB->]]:=conv_trans _ eq1 eq2.
     repeat split... }
-  { move=>l A1 A2 B1 B2 s1 s2 eq1 eq2.
-    have/pi1_inj[eqA[eqB->]]:=conv_trans _ eq1 eq2.
-    repeat split... }
 Qed.
 
 Lemma sim_with_inj A1 A2 B1 B2 s1 s2 :
@@ -224,9 +215,6 @@ Proof with eauto using sim.
     have/with_inj[eqA[eqB->]]:=conv_trans _ eq1 eq2.
     repeat split... }
   { move=>A1 A2 B1 B2 s1 s2 eq1 eq2.
-    have/with_inj[eqA[eqB->]]:=conv_trans _ eq1 eq2.
-    repeat split... }
-  { move=>l A1 A2 B1 B2 s1 s2 eq1 eq2.
     have/with_inj[eqA[eqB->]]:=conv_trans _ eq1 eq2.
     repeat split... }
 Qed.
@@ -259,9 +247,6 @@ Proof with eauto using sim.
     have/id_inj[eqA[eqm eqn]]:=conv_trans _ eq1 eq2.
     repeat split... }
   { move=>A1 A2 m1 m2 n1 n2 eq1 eq2.
-    have/id_inj[eqA[eqm eqn]]:=conv_trans _ eq1 eq2.
-    repeat split... }
-  { move=>l A1 A2 m1 m2 n1 n2 eq1 eq2.
     have/id_inj[eqA[eqm eqn]]:=conv_trans _ eq1 eq2.
     repeat split... }
 Qed.
