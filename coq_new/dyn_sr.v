@@ -41,7 +41,7 @@ Proof with eauto using key_impure.
   move=>ty. elim: ty=>{Γ Δ m A}.
   { move=>Γ Δ x s A shs dhs wf tyA vl.
     have tyAs:=dyn_has_type wf shs.
-    have/sort_inj e:=sta_uniq tyA tyAs. subst.
+    have e:=sta_unicity tyA tyAs. subst.
     apply: dyn_has_key... }
   { move=>Γ Δ A B m s k tym ih tyP vl.
     have[_[_/sort_inj->//]]:=sta_pi0_inv tyP. }
@@ -49,13 +49,29 @@ Proof with eauto using key_impure.
     have[_[_/sort_inj->//]]:=sta_pi1_inv tyP. }
   { move=>Γ Δ A B m n s tym ih tyn tyB vl. inv vl. }
   { move=>Γ Δ1 Δ2 Δ A B m n s mrg tym ihm tyn ihn tyB vl. inv vl. }
+  { move=>Γ Δ A B m n t tyS tym ihm tyn ty vl.
+    have[s[r[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv ty. subst.
+    inv ord. inv vl... }
+  { move=>Γ Δ1 Δ2 Δ A B m n t mrg tyS tym ihm tyn ihn ty vl.
+    have[s[r[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv ty. subst.
+    inv ord1. inv ord2. inv vl.
+    apply: key_merge...
+    apply: ihn...
+    apply: sta_esubst...
+    by autosubst. }
+  { move=>Γ Δ1 Δ2 Δ A B C m n s r t mrg tyC tym ihm tyn ihn ty vl. inv vl. }
+  { move=>Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg tyC tym ihm tyn ihn ty vl. inv vl. }
+  { move=>Γ Δ A B m n t k tym ihm tyn ihn ty vl.
+    have[_[_[_[_/sort_inj e]]]]:=sta_with_inv ty. subst... }
+  { move=>Γ Δ A B m t tym ihm tyA vl. inv vl. }
+  { move=>Γ Δ A B m t tym ihm tyA vl. inv vl. }
   { move=>Γ Δ A B m s eq tym ihm tyB1 tyB2 vl.
     have[r tyA]:=dyn_valid tym.
     have[C rd1 rd2]:=church_rosser eq.
     apply: ihm...
     have tyCr:=sta_rd tyA rd1.
     have tyCU:=sta_rd tyB2 rd2.
-    have/sort_inj<-:=sta_uniq tyCr tyCU... }
+    have<-:=sta_unicity tyCr tyCU... }
 Qed.
 
 Theorem dyn_sr Γ Δ m n A :
@@ -82,8 +98,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf.
       have tym0:=dyn_lam0_inv tym.
       apply: dyn_subst0... }
     { exfalso.
-      apply: sta_lam1_pi0_false...
-      apply: dyn_sta_type... } }
+      apply: sta_lam1_pi0_false... } }
   { move=>Γ Δ1 Δ2 Δ A B m n s mrg tym ihm tyn ihn n0 st. inv st.
     { have tym':=ihm _ H2.
       apply: dyn_app1... }
@@ -98,8 +113,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf.
       have:=sta_subst tyB (dyn_sta_type tyn).
       asimpl... }
     { exfalso.
-      apply: sta_lam0_pi1_false...
-      apply: dyn_sta_type... }
+      apply: sta_lam0_pi1_false... }
     { have[x tyP]:=dyn_valid tym.
       have[r[tyB _]]:=sta_pi1_inv tyP.
       have[t tym0]:=dyn_lam1_inv tym.

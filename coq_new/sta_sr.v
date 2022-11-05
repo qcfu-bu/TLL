@@ -137,7 +137,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step.
   { move=>Γ A B m n t tyS ihS tym ihm tyn ihn x st. inv st.
     { have/sta0_sta_type tym':=ihm _ H3.
       have tyS':=sta0_sta_type tyS.
-      have[r[tyB _]]:=sta_sig0_inv tyS'.
+      have[s[r[ord[tyA[tyB _]]]]]:=sta_sig0_inv tyS'.
       apply: sta0_pair0...
       apply: sta0_conv.
       apply: sta_conv_beta.
@@ -151,7 +151,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step.
   { move=>Γ A B m n t tyS ihS tym ihm tyn ihn x st. inv st.
     { have/sta0_sta_type tym':=ihm _ H3.
       have tyS':=sta0_sta_type tyS.
-      have[r[tyB _]]:=sta_sig1_inv tyS'.
+      have[s[r[ord1[ord2[tyA[tyB _]]]]]]:=sta_sig1_inv tyS'.
       apply: sta0_pair1...
       apply: sta0_conv.
       apply: sta_conv_beta.
@@ -168,8 +168,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step.
       move/sta0_sta_type in tym.
       have//=tyCm:=sta_subst tyC tym.
       have wf:=sta_type_wf tyC. inv wf.
-      have[r[tyB/sort_inj e]]:=sta_sig0_inv H2; subst.
-      have wf:=sta_type_wf tyB. inv wf.
+      have[s1[r[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv H2; subst.
       have wkA':((Sig0 A B t).[ren (+2)] :: B :: A :: Γ) ⊢ A'.[ren (upren (+2))] : Sort s.
       { replace (Sort s) with (Sort s).[ren (upren (+2))] by eauto.
         apply: sta_rename...
@@ -229,8 +228,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step.
       move/sta0_sta_type in tym.
       have//=tyCm:=sta_subst tyC tym.
       have wf:=sta_type_wf tyC. inv wf.
-      have[r[tyB/sort_inj e]]:=sta_sig1_inv H2; subst.
-      have wf:=sta_type_wf tyB. inv wf.
+      have[s1[r[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv H2; subst.
       have wkA':((Sig1 A B t).[ren (+2)] :: B :: A :: Γ) ⊢ A'.[ren (upren (+2))] : Sort s.
       { replace (Sort s) with (Sort s).[ren (upren (+2))] by eauto.
         apply: sta_rename...

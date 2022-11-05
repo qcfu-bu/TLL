@@ -114,8 +114,7 @@ Proof with eauto.
   elim: ty m n s e=>//{Γ C x}.
   { move=>Γ A B m n t ty1 _ tym _ tyn _ m0 n0 s[e1 e2 e3]A0 B0 r t0
       /sig0_inj[e4[e5 e6]]ty2; subst.
-    have[s[tyB0/sort_inj e]]:=sta_sig0_inv ty2; subst.
-    have tyA0:=sta_type_wf tyB0. inv tyA0.
+    have[s[r0[ord[tyA0[tyB0/sort_inj e]]]]]:=sta_sig0_inv ty2; subst.
     have tym0:Γ ⊢ m : A0 by apply: sta_conv; eauto.
     repeat split...
     apply: sta_conv.
@@ -139,8 +138,7 @@ Proof with eauto.
   elim: ty m n s e=>//{Γ C x}.
   { move=>Γ A B m n t ty1 _ tym _ tyn _ m0 n0 s[e1 e2 e3]A0 B0 r t0
       /sig1_inj[e4[e5 e6]]ty2; subst.
-    have[s[tyB0/sort_inj e]]:=sta_sig1_inv ty2; subst.
-    have tyA0:=sta_type_wf tyB0. inv tyA0.
+    have[s[r0[ord1[ord2[tyA0[tyB0/sort_inj e]]]]]]:=sta_sig1_inv ty2; subst.
     have tym0:Γ ⊢ m : A0 by apply: sta_conv; eauto.
     repeat split...
     apply: sta_conv.

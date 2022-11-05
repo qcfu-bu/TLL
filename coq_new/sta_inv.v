@@ -38,33 +38,35 @@ Proof with eauto.
     exact: eq2. }
 Qed.
 
-Lemma sta_sig0_inv Γ A B C s :
-  Γ ⊢ Sig0 A B s : C ->
-  exists t, (A :: Γ) ⊢ B : Sort t /\ C === Sort s.
+Lemma sta_sig0_inv Γ A B C t :
+  Γ ⊢ Sig0 A B t : C ->
+  exists s r, s ⊑ t /\ Γ ⊢ A : Sort s /\ (A :: Γ) ⊢ B : Sort r /\ C === Sort t.
 Proof with eauto.
-  move e:(Sig0 A B s)=>m ty.
-  elim: ty A B s e=>//{Γ C m}.
+  move e:(Sig0 A B t)=>m ty.
+  elim: ty A B t e=>//{Γ C m}.
   { move=>Γ A B s r t ord tyA ihA tyB ihB A0 B0 s0[e1 e2 e3]; subst.
-    exists r... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 s0 e; subst.
-    have[t[tyB0 eq']]:=ihm _ _ _ erefl.
-    exists t. split...
+    exists s. exists r... }
+  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 t e; subst.
+    have[s0[r[ord[tyA0[tyB0 eq']]]]]:=ihm _ _ _ erefl.
+    exists s0. exists r. repeat split...
     apply: conv_trans.
     apply: conv_sym...
     exact: eq'. }
 Qed.
 
-Lemma sta_sig1_inv Γ A B C s :
-  Γ ⊢ Sig1 A B s : C ->
-  exists t, (A :: Γ) ⊢ B : Sort t /\ C === Sort s.
+Lemma sta_sig1_inv Γ A B C t :
+  Γ ⊢ Sig1 A B t : C ->
+  exists s r,
+    s ⊑ t /\ r ⊑ t /\
+    Γ ⊢ A : Sort s /\ (A :: Γ) ⊢ B : Sort r /\ C === Sort t.
 Proof with eauto.
-  move e:(Sig1 A B s)=>m ty.
-  elim: ty A B s e=>//{Γ C m}.
+  move e:(Sig1 A B t)=>m ty.
+  elim: ty A B t e=>//{Γ C m}.
   { move=>Γ A B s r t ord1 ord2 tyA ihA tyB ihB A0 B0 s0[e1 e2 e3]; subst.
-    exists r... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 s0 e; subst.
-    have[t[tyB0 eq']]:=ihm _ _ _ erefl.
-    exists t. split...
+    exists s. exists r... }
+  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 t e; subst.
+    have[s0[r[ord1[ord2[tyA0[tyB0 eq']]]]]]:=ihm _ _ _ erefl.
+    exists s0. exists r. repeat split...
     apply: conv_trans.
     apply: conv_sym...
     exact: eq'. }

@@ -32,6 +32,40 @@ Inductive dyn_type : sta_ctx -> dyn_ctx -> term -> term -> Prop :=
   Γ ; Δ1 ⊢ m : Pi1 A B s ->
   Γ ; Δ2 ⊢ n : A ->
   Γ ; Δ ⊢ App m n : B.[n/]
+| dyn_pair0 Γ Δ A B m n t :
+  Γ ⊢ Sig0 A B t : Sort t ->
+  Γ ; Δ ⊢ m : A ->
+  Γ ⊢ n : B.[m/] ->
+  Γ ; Δ ⊢ Pair0 m n t : Sig0 A B t
+| dyn_pair1 Γ Δ1 Δ2 Δ A B m n t :
+  Δ1 ∘ Δ2 => Δ ->
+  Γ ⊢ Sig1 A B t : Sort t ->
+  Γ ; Δ1 ⊢ m : A ->
+  Γ ; Δ2 ⊢ n : B.[m/] ->
+  Γ ; Δ ⊢ Pair1 m n t : Sig1 A B t
+| dyn_letin0 Γ Δ1 Δ2 Δ A B C m n s r t :
+  Δ1 ∘ Δ2 => Δ ->
+  (Sig0 A B t :: Γ) ⊢ C : Sort s ->
+  Γ ; Δ1 ⊢ m : Sig0 A B t ->
+  (B :: A :: Γ) ; _: A :{r} Δ2 ⊢ n : C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] ->
+  Γ ; Δ ⊢ LetIn C m n : C.[m/]
+| dyn_letin1 Γ Δ1 Δ2 Δ A B C m n s r1 r2 t :
+  Δ1 ∘ Δ2 => Δ ->
+  (Sig1 A B t :: Γ) ⊢ C : Sort s ->
+  Γ ; Δ1 ⊢ m : Sig1 A B t ->
+  (B :: A :: Γ) ; B :{r2} A :{r1} Δ2 ⊢ n : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
+  Γ ; Δ ⊢ LetIn C m n : C.[m/]
+| dyn_apair Γ Δ A B m n t :
+  Δ ▷ t ->
+  Γ ; Δ ⊢ m : A ->
+  Γ ; Δ ⊢ n : B ->
+  Γ ; Δ ⊢ APair m n t : With A B t
+| dyn_fst Γ Δ A B m t :
+  Γ ; Δ ⊢ m : With A B t ->
+  Γ ; Δ ⊢ Fst m : A
+| dyn_snd Γ Δ A B m t :
+  Γ ; Δ ⊢ m : With A B t ->
+  Γ ; Δ ⊢ Snd m : B
 | dyn_conv Γ Δ A B m s :
   A === B ->
   Γ ; Δ ⊢ m : A ->
@@ -72,6 +106,14 @@ Proof with eauto using dyn_wf.
   { move=>Γ Δ A B m s k tym ih. inv ih... }
   { move=>Γ Δ A B m s t k tym ih. inv ih... }
   { move=>Γ Δ1 Δ2 Δ A B m n s mrg tym ihm tyn ihn.
+    apply: dyn_wf_merge... }
+  { move=>Γ Δ1 Δ2 Δ A B m n t mrg tyS tym ihm tyn ihn.
+    apply: dyn_wf_merge... }
+  { move=>Γ Δ1 Δ2 Δ A B C m n s r t mrg tyC tym ihm tyn ihn.
+    inv ihn. inv H2.
+    apply: dyn_wf_merge... }
+  { move=>Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg tyC tym ihm tyn ihn.
+    inv ihn. inv H2.
     apply: dyn_wf_merge... }
 Qed.
 Hint Resolve dyn_type_wf.

@@ -44,7 +44,7 @@ Proof with eauto.
     have[A0 rd1 rd2]:=church_rosser eq1.
     have tyA0t:=sta_rd H4 rd1.
     have tyA0s:=sta_rd H3 rd2.
-    have/sort_inj e:=sta_uniq tyA0t tyA0s. subst.
+    have e:=sta_unicity tyA0t tyA0s. subst.
     exists s.
     apply: dyn_ctx_conv1.
     apply: conv_sym...
@@ -71,4 +71,101 @@ Proof with eauto.
   move=>ty.
   have[t/sta_pi1_inv[r[tyB _]]]:=dyn_valid ty.
   apply: dyn_lam1_invX...
+Qed.
+
+Lemma dyn_pair0_invX Γ Δ A B m n s r t C :
+  Γ ; Δ ⊢ Pair0 m n s : C ->
+  C === Sig0 A B r ->
+  Γ ⊢ Sig0 A B r : Sort t ->
+  s = r /\ Γ ; Δ ⊢ m : A /\ Γ ⊢ n : B.[m/].
+Proof with eauto.
+  move e:(Pair0 m n s)=>x ty.
+  elim: ty A B m n s r t e=>//{Γ Δ x C}.
+  { move=>Γ Δ A B m n t ty1 tym ihm tyn A0 B0 m0 n0 s r t0[e1 e2 e3]
+      /sig0_inj[e4[e5 e6]]ty2; subst.
+    have[s[r0[ord[tyA0[tyB0/sort_inj e]]]]]:=sta_sig0_inv ty2. subst.
+    have tym0:Γ ; Δ ⊢ m : A0 by apply: dyn_conv; eauto.
+    repeat split...
+    apply: sta_conv.
+    apply: sta_conv_subst.
+    all: eauto.
+    apply: sta_esubst...
+    by autosubst. }
+  { move=>Γ Δ A B m s eq tym ihm tyB A0 B0 m0 n s0 r t e eq' ty.
+    apply: ihm...
+    apply: conv_trans... }
+Qed.
+
+Lemma dyn_pair1_invX Γ Δ A B m n s r t C :
+  Γ ; Δ ⊢ Pair1 m n s : C ->
+  C === Sig1 A B r ->
+  Γ ⊢ Sig1 A B r : Sort t ->
+  exists Δ1 Δ2,
+    Δ1 ∘ Δ2 => Δ /\ s = r /\
+    Γ ; Δ1 ⊢ m : A /\ Γ ; Δ2 ⊢ n : B.[m/].
+Proof with eauto.
+  move e:(Pair1 m n s)=>x ty.
+  elim: ty A B m n s r t e=>//{Γ Δ x C}.
+  { move=>Γ Δ1 Δ2 Δ A B m n t mrg ty1 tym _ tyn _ A0 B0 m0 n0 s r t0
+      [e1 e2 e3]/sig1_inj[e4[e5 e6]]ty2; subst.
+    exists Δ1. exists Δ2.
+    have[s[r0[ord1[ord2[tyA0[tyB0/sort_inj e]]]]]]:=sta_sig1_inv ty2. subst.
+    have tym0:Γ ; Δ1 ⊢ m : A0 by apply: dyn_conv; eauto.
+    repeat split...
+    apply: dyn_conv.
+    apply: sta_conv_subst.
+    all: eauto.
+    apply: sta_esubst...
+    by autosubst. }
+  { move=>Γ Δ A B m s eq tym ihm tyB A0 B0 m0 n s0 r t e eq' ty.
+    apply: ihm...
+    apply: conv_trans... }
+Qed.
+
+Lemma dyn_pair0_inv Γ Δ A B m n s r :
+  Γ ; Δ ⊢ Pair0 m n s : Sig0 A B r ->
+  s = r /\ Γ ; Δ ⊢ m : A /\ Γ ⊢ n : B.[m/].
+Proof with eauto.
+  move=>ty.
+  have[t tyS]:=dyn_valid ty.
+  apply: dyn_pair0_invX...
+Qed.
+
+Lemma dyn_pair1_inv Γ Δ A B m n s r :
+  Γ ; Δ ⊢ Pair1 m n s : Sig1 A B r ->
+  exists Δ1 Δ2,
+    Δ1 ∘ Δ2 => Δ /\ s = r /\
+    Γ ; Δ1 ⊢ m : A /\ Γ ; Δ2 ⊢ n : B.[m/].
+Proof with eauto.
+  move=>ty.
+  have[t tyS]:=dyn_valid ty.
+  apply: dyn_pair1_invX...
+Qed.
+
+Lemma dyn_apair_invX Γ Δ A B m n s r t C :
+  Γ ; Δ ⊢ APair m n s : C ->
+  C === With A B r ->
+  Γ ⊢ With A B r : Sort t ->
+  s = r /\ Γ ; Δ ⊢ m : A /\ Γ ; Δ ⊢ n : B.
+Proof with eauto.
+  move e:(APair m n s)=>x ty.
+  elim: ty A B m n s r t e=>//{Γ Δ x C}.
+  { move=>Γ Δ A B m n t k tym ihm tyn ihn A0 B0 m0 n0 s r t0
+      [e1 e2 e3]/with_inj[e4[e5 e6]]ty; subst.
+    have[s[r0[tyA0[tyB0 _]]]]:=sta_with_inv ty.
+    repeat split...
+    apply: dyn_conv...
+    apply: dyn_conv... }
+  { move=>Γ Δ A B m s eq tym ihm _ A0 B0 m0 n s0 r t e eq' tyw; subst.
+    apply: ihm...
+    apply: conv_trans... }
+Qed.
+
+Lemma dyn_apair_inv Γ Δ A B m n s r :
+  Γ ; Δ ⊢ APair m n s : With A B r ->
+  s = r /\ Γ ; Δ ⊢ m : A /\ Γ ; Δ ⊢ n : B.
+Proof with eauto.
+  move=>ty.
+  have[t tyW]:=dyn_valid ty.
+  apply: dyn_apair_invX...
 Qed.
