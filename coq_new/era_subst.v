@@ -208,6 +208,44 @@ Proof with eauto using era_agree_subst, era_agree_subst_key, era_type.
     have{}ihm:=ihm _ _ _ _ agra.
     have{}ihn:=ihn _ _ _ _ agrb.
     apply: era_app1... }
+  { move=>Γ Δ A B m m' n t tyS tym ihm tyn Γ1 Δ1 σ1 σ2 agr. asimpl.
+    have{}ihS:=sta_substitution tyS (dyn_sta_agree_subst (era_dyn_agree_subst agr)).
+    have{}ihm:=ihm _ _ _ _ agr.
+    have{}ihn:=sta_substitution tyn (dyn_sta_agree_subst (era_dyn_agree_subst agr)).
+    apply: era_pair0...
+    asimpl. asimpl in ihn... }
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg tyS tym ihm tyn ihn Γ1 Δ0 σ1 σ2 agr. asimpl.
+    have[Δa[Δb[mrg0[agra agrb]]]]:=era_agree_subst_merge agr mrg.
+    have{}ihS:=sta_substitution tyS (dyn_sta_agree_subst (era_dyn_agree_subst agr)).
+    have{}ihm:=ihm _ _ _ _ agra.
+    have{}ihn:=ihn _ _ _ _ agrb.
+    apply: era_pair1...
+    asimpl. asimpl in ihn... }
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg tyC tym ihm tyn ihn Γ1 Δ0 σ1 σ2 agr. asimpl.
+    have[Δa[Δb[mrg0[agra agrb]]]]:=era_agree_subst_merge agr mrg.
+    replace C.[m.[σ1] .: σ1] with C.[up σ1].[m.[σ1]/] by autosubst.
+    have wf:=sta_type_wf tyC. inv wf.
+    have wf:=dyn_type_wf (era_dyn_type tyn). inv wf. inv H4.
+    have{}ihC:=sta_substitution tyC
+      (sta_agree_subst_ty (dyn_sta_agree_subst (era_dyn_agree_subst agr)) H2).
+    have{}ihm:=ihm _ _ _ _ agra.
+    have{}ihn:=ihn _ _ _ _ (era_agree_subst_n (era_agree_subst_ty agrb H8) H5).
+    apply: era_letin0...
+    asimpl. asimpl in ihn... }
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg tyC tym ihm tyn ihn Γ1 Δ0 σ1 σ2 agr. asimpl.
+    have[Δa[Δb[mrg0[agra agrb]]]]:=era_agree_subst_merge agr mrg.
+    replace C.[m.[σ1] .: σ1] with C.[up σ1].[m.[σ1]/] by autosubst.
+    have wf:=sta_type_wf tyC. inv wf.
+    have wf:=dyn_type_wf (era_dyn_type tyn). inv wf. inv H4.
+    have{}ihC:=sta_substitution tyC
+      (sta_agree_subst_ty (dyn_sta_agree_subst (era_dyn_agree_subst agr)) H2).
+    have{}ihm:=ihm _ _ _ _ agra.
+    have{}ihn:=ihn _ _ _ _ (era_agree_subst_ty (era_agree_subst_ty agrb H8) H6).
+    apply: era_letin1...
+    asimpl. asimpl in ihn... }
+  { move=>Γ Δ A B m m' n n' t k tym ihm tyn ihn Γ1 Δ1 σ1 σ2 agr. asimpl. apply: era_apair... }
+  { move=>Γ Δ A B m m' t tym ihm Γ1 Δ1 σ1 σ2 agr. asimpl. apply: era_fst... }
+  { move=>Γ Δ A B m m' t tym ihm Γ1 Δ1 σ1 σ2 agr. asimpl. apply: era_snd... }
   { move=>Γ Δ A B m m' s eq tym ihm tyB Γ1 Δ1 σ1 σ2 agr.
     apply: era_conv.
     apply: sta_conv_subst...
