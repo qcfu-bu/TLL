@@ -83,7 +83,8 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
 | sta0_snd Γ A B m t :
   sta0_type Γ m (With A B t) ->
   sta0_type Γ (Snd m) B
-| sta0_id Γ A m n :
+| sta0_id Γ A m n s :
+  sta0_type Γ A (Sort s) ->
   sta0_type Γ m A ->
   sta0_type Γ n A ->
   sta0_type Γ (Id A m n) (Sort U)
@@ -191,7 +192,8 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
 | sta_snd Γ A B m t :
   Γ ⊢ m : With A B t ->
   Γ ⊢ Snd m : B
-| sta_id Γ A m n :
+| sta_id Γ A m n s :
+  Γ ⊢ A : Sort s ->
   Γ ⊢ m : A ->
   Γ ⊢ n : A ->
   Γ ⊢ Id A m n : Sort U
@@ -239,6 +241,7 @@ Proof with eauto using sta0_type, sta0_wf.
     apply: sta0_lam1... }
   Unshelve. eauto.
 Qed.
+Hint Resolve sta_sta0_type.
 
 Lemma sta0_sta_type Γ m A : sta0_type Γ m A -> Γ ⊢ m : A.
 Proof with eauto using sta_type, sta_wf.

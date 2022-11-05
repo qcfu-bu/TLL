@@ -555,7 +555,7 @@ Proof with eauto.
     apply: sta_fst_uniq... }
   { move=>Γ A B m t tym ihm B0 ty.
     apply: sta_snd_uniq... }
-  { move=>Γ A m n tym ihm tyn ihn B ty.
+  { move=>Γ A m n s tyA ihA tym ihm tyn ihn B ty.
     apply: sta_id_uniq... }
   { move=>Γ A m tym ihm B ty.
     apply: sta_refl_uniq... }
