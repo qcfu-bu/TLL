@@ -199,3 +199,30 @@ Proof with eauto.
   have[t tyW]:=sta_valid ty.
   apply: sta_apair_invX...
 Qed.
+
+Lemma sta_refl_invX Γ n C :
+  Γ ⊢ Refl n : C ->
+  forall A m1 m2 s,
+    C === Id A m1 m2 ->
+    Γ ⊢ Id A m1 m2 : Sort s ->
+    Γ ⊢ n : A /\ n === m1 /\ n === m2.
+Proof with eauto.
+  move e:(Refl n)=>x ty.
+  elim: ty n e=>//{Γ x C}.
+  { move=>Γ A m tym ihm n[e1]A0 m1 m2 s/id_inj[e2[e3 e4]]tyI; subst.
+    have[tym1 _]:=sta_id_inv tyI.
+    have[r tyA0]:=sta_valid tym1.
+    repeat split...
+    apply: sta_conv... }
+  { move=>Γ A B m s eqw tym ihm _ _ n e A0 m1 m2 s0 eq' tyI.
+    apply: ihm...
+    apply: conv_trans... }
+Qed.
+
+Lemma sta_refl_inv Γ A m1 m2 n :
+  Γ ⊢ Refl n : Id A m1 m2 -> Γ ⊢ n : A /\ n === m1 /\ n === m2.
+Proof with eauto.
+  move=>ty.
+  have[s tyI]:=sta_valid ty.
+  apply: sta_refl_invX...
+Qed.
