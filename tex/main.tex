@@ -1,0 +1,416 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage[mathletters]{ucs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage{mathpartir}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{csquotes}
+
+\title{A Two Level Linear Dependent Type Theory}
+
+\begin{document}
+
+\newcommand{\Un}{\text{U}}
+\newcommand{\Ln}{\text{L}}
+\newcommand{\ty}[1]{:_{#1}}
+\newcommand{\tL}{:_{\text{L}}}
+\newcommand{\tU}{:_{\text{U}}}
+\newcommand{\PiR}[3]{\Pi_{#1}({#2}).{#3}}
+\newcommand{\PiI}[3]{\Pi_{#1}\{{#2}\}.{#3}}
+\newcommand{\lamR}[3]{\lambda_{#1}({#2}).{#3}}
+\newcommand{\lamI}[3]{\lambda_{#1}\{{#2}\}.{#3}}
+\newcommand{\SigR}[3]{\Sigma_{#1}({#2}).{#3}}
+\newcommand{\SigI}[3]{\Sigma_{#1}({#2}).\{{#3}\}}
+\newcommand{\pairR}[3]{({#1},{#2})_{#3}}
+\newcommand{\pairI}[3]{({#1},\{{#2}\})_{#3}}
+\newcommand{\letin}[4]{\text{let }{#1}\text{ as }{#2}:={#3}\text{ in }{#4}}
+\newcommand{\with}[3]{{#1}\;\&_{#3}{#2}}
+\newcommand{\apair}[3]{[{#1}, {#2}]_{#3}}
+\newcommand{\projL}[1]{\pi_{1}\,{#1}}
+\newcommand{\projR}[1]{\pi_{2}\,{#1}}
+\newcommand{\iden}[3]{{#2}\equiv_{#1}{#3}}
+\newcommand{\refl}[1]{\text{refl}\;{#1}}
+\newcommand{\J}[3]{\text{J}\,{#1}\,{#2}\,{#3}}
+\newcommand{\dotcup}{\ensuremath{\mathbin{\mathaccent\cdot\cup}}}
+\newcommand{\fresh}[1]{\textit{fresh}({#1})}
+
+\maketitle
+
+\section{Syntax}
+\begin{center}
+  \begin{tabular}{r l r l}
+    variable    & $x, y, z, p$    &     &               \\
+    sorts       & $s, r, t$       & ::= & $\Un$ | $\Ln$ \\
+    expressions & $m,n,A,B,C,H,P$ & ::= & $x$ | $s$ \\
+                &                 & \;| & $\PiR{t}{x : A}{B}$ | $\PiI{t}{x : A}{B}$
+                                          | $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$ | $m\ n$ \\
+                &                 & \;| & $\SigR{t}{x : A}{B}$ | $\SigI{t}{x : A}{B}$
+                                          | $\pairR{m}{n}{t}$ | $\pairI{m}{n}{t}$ \\
+                &                 & \;| & $\letin{(x, y)}{A}{m}{n}$ \\
+                &                 & \;| & $\with{A}{B}{t}$ | $\apair{m}{n}{t}$ | $\projL{m}$ | $\projR{m}$ \\
+                &                 & \;| & $\iden{A}{m}{n}$ | $\refl{m}$ | $\J{A}{H}{P}$ | $\square$
+  \end{tabular}
+\end{center}
+
+\newpage
+
+\section{Static Fragment}
+\subsection*{Sort Order}
+\begin{mathpar}
+  \inferrule
+  { }
+  { \Un \sqsubseteq s }
+
+  \inferrule
+  { }
+  { \Ln \sqsubseteq \Ln }
+\end{mathpar}
+
+\subsection*{Static Context}
+\begin{mathpar}
+  \inferrule
+  {  }
+  { \epsilon \vdash }
+
+  \inferrule
+  { \Gamma \vdash \\
+    \Gamma \vdash A : s \\
+    x \notin \fresh{\Gamma} }
+  { \Gamma, x : A \vdash }
+\end{mathpar}
+
+\subsection*{Static Typing}
+\begin{mathpar}
+  \inferrule
+  { \Gamma \vdash }
+  { \Gamma \vdash s : \Un }
+
+  \inferrule
+  { \Gamma, x : A \vdash }
+  { \Gamma, x : A \vdash x : A }
+
+  \inferrule
+  { \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \PiR{t}{x : A}{B} : t }
+
+  \inferrule
+  { \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \PiI{t}{x : A}{B} : t }
+
+  \inferrule
+  { \Gamma, x : A \vdash m : B }
+  { \Gamma \vdash \lamR{t}{x : A}{m} : \PiR{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma, x : A \vdash m : B }
+  { \Gamma \vdash \lamI{t}{x : A}{m} : \PiI{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma \vdash m : \PiR{t}{x : A}{B} \\
+    \Gamma \vdash n : A }
+  { \Gamma \vdash m\ n : B[n/x] }
+
+  \inferrule
+  { \Gamma \vdash m : \PiI{t}{x : A}{B} \\
+    \Gamma \vdash n : A }
+  { \Gamma \vdash m\ n : B[n/x] }
+
+  \inferrule
+  { s \sqsubseteq t \\ r \sqsubseteq t \\
+    \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \SigR{t}{x : A}{B} : t }
+
+  \inferrule
+  { s \sqsubseteq t \\
+    \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \SigI{t}{x : A}{B} : t }
+
+  \inferrule
+  { \Gamma \vdash \SigR{t}{x : A}{B} \\
+    \Gamma \vdash m : A \\
+    \Gamma \vdash n : B[m/x] }
+  { \Gamma \vdash \pairR{m}{n}{t} : \SigR{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma \vdash \SigI{t}{x : A}{B} \\
+    \Gamma \vdash m : A \\
+    \Gamma \vdash n : B[m/x] }
+  { \Gamma \vdash \pairI{m}{n}{t} : \SigI{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma, z : \SigR{t}{x : A}{B} \vdash C : s \\
+    \Gamma \vdash m : \SigR{t}{x : A}{B} \\
+    \Gamma, x : A, y : B \vdash n : C[\pairR{x}{y}{t}/z] }
+  { \Gamma \vdash \letin{(x, y)}{C}{m}{n} : C[m/z] }
+
+  \inferrule
+  { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
+    \Gamma \vdash m : \SigI{t}{x : A}{B} \\
+    \Gamma, x : A, y : B \vdash n : C[\pairI{x}{y}{t}/z] }
+  { \Gamma \vdash \letin{(x, y)}{C}{m}{n} : C[m/z] }
+
+  \inferrule
+  { \Gamma \vdash A : s \\
+    \Gamma \vdash B : r }
+  { \Gamma \vdash \with{A}{B}{t} : t }
+
+  \inferrule
+  { \Gamma \vdash m : A \\
+    \Gamma \vdash n : B }
+  { \Gamma \vdash \apair{m}{n}{t} : \with{A}{B}{t} }
+
+  \inferrule
+  { \Gamma \vdash m : \with{A}{B}{t} }
+  { \Gamma \vdash \projL{m} : A }
+
+  \inferrule
+  { \Gamma \vdash m : \with{A}{B}{t} }
+  { \Gamma \vdash \projR{m} : B }
+
+  \inferrule
+  { \Gamma \vdash A : s \\
+    \Gamma \vdash m : A \\
+    \Gamma \vdash n : A }
+  { \Gamma \vdash \iden{A}{m}{n} : \Un }
+
+  \inferrule
+  { \Gamma \vdash m : A }
+  { \Gamma \vdash \refl{m} : \iden{A}{m}{m} }
+
+  \inferrule
+  { \Gamma, x : A, y : A, p : \iden{A}{x}{y} \vdash B : s \\
+    \Gamma, z : A \vdash H : B[z/x,z/y,\refl{z}/p] \\
+    \Gamma \vdash P : \iden{A}{m}{n} }
+  { \Gamma \vdash \J{B}{H}{P} : B[m/x,n/y,P/p] }
+
+  \inferrule
+  { \Gamma \vdash B : s \\
+    \Gamma \vdash m : A \\
+    A = B }
+  { \Gamma \vdash m : B }
+\end{mathpar}
+
+\newpage
+
+\section{Dynamic Fragment}
+\subsection*{Dynamic Context}
+\begin{mathpar}
+  \inferrule
+  { }
+  { \epsilon ; \epsilon \vdash }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash \\
+    \Gamma \vdash A : s \\
+    x \in \fresh{\Gamma} }
+  { \Gamma, x : A ; \Delta, x \ty{s} A \vdash }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash \\
+    \Gamma \vdash A : s \\
+    x \in \fresh{\Gamma} }
+  { \Gamma, x : A ; \Delta \vdash }
+\end{mathpar}
+
+\subsection*{Context Merge}
+\begin{mathpar}
+  \inferrule
+  { }
+  { \epsilon \dotcup \epsilon = \epsilon }
+
+  \inferrule
+  { \Delta_1 \dotcup \Delta_2 = \Delta \\
+    x \in \fresh{\Delta} }
+  { (\Delta_1, x \tU A) \dotcup (\Delta_2, x \tU A) = (\Delta, x \tU A) }
+  \\
+
+  \inferrule
+  { \Delta_1 \dotcup \Delta_2 = \Delta \\
+    x \in \fresh{\Delta} }
+  { (\Delta_1, x \tL A) \dotcup \Delta_2 = (\Delta, x \tL A) }
+
+  \inferrule
+  { \Delta_1 \dotcup \Delta_2 = \Delta \\
+    x \in \fresh{\Delta} }
+  { \Delta_1 \dotcup (\Delta_2, x \tL A) = (\Delta, x \tL A) }
+\end{mathpar}
+
+\subsection*{Context Constraint}
+\begin{mathpar}
+  \inferrule
+  { }
+  { \epsilon \triangleright s }
+
+  \inferrule
+  { \Delta \triangleright \Un }
+  { \Delta, x \tU A \triangleright \Un }
+
+  \inferrule
+  { \Delta \triangleright \Ln }
+  { \Delta, x \ty{s} A \triangleright \Ln }
+\end{mathpar}
+
+\subsection*{Dynamic Typing}
+\begin{mathpar}
+  \inferrule
+  { \Gamma, x : A ; \Delta, x \ty{s} A \vdash \\
+    \Delta \triangleright \Un }
+  { \Gamma, x : A ; \Delta, x \ty{s} A \vdash x : A }
+
+  \inferrule
+  { \Gamma, x : A; \Delta, x \ty{s} A \vdash m : B \\
+    \Delta \triangleright t }
+  { \Gamma ; \Delta \vdash \lamR{t}{x : A}{m} : \PiR{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma, x : A; \Delta \vdash m : B \\
+    \Delta \triangleright t }
+  { \Gamma ; \Delta \vdash \lamI{t}{x : A}{m} : \PiI{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma ; \Delta_1 \vdash m : \PiR{t}{x : A}{B} \\
+    \Gamma ; \Delta_2 \vdash n : A }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash m\ n : B[n/x] }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m : \PiI{t}{x : A}{B} \\
+    \Gamma \vdash n : A }
+  { \Gamma ; \Delta \vdash m\ n : B[n/x] }
+
+  \inferrule
+  { \Gamma \vdash \SigR{t}{x : A}{B} : t \\
+    \Gamma ; \Delta_1 \vdash m : A \\
+    \Gamma ; \Delta_2 \vdash n : B[m/x] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \pairR{m}{n}{t} : \SigR{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma \vdash \SigI{t}{x : A}{B} : t \\
+    \Gamma ; \Delta \vdash m : A \\
+    \Gamma \vdash n : B[m/x] }
+  { \Gamma ; \Delta \vdash \pairI{m}{n}{t} : \SigI{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma, z : \SigR{t}{x : A}{B} \vdash C : s \\
+    \Gamma ; \Delta_1 \vdash m : \SigR{t}{x : A}{B} \\
+    \Gamma, x : A, y : B; \Delta_2, x \ty{r1} A, y \ty{r2} B \vdash n : C[\pairR{x}{y}{t}/z] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \letin{(x, y)}{C}{m}{n} : C[m/z] }
+
+  \inferrule
+  { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
+    \Gamma ; \Delta_1 \vdash m : \SigI{t}{x : A}{B} \\
+    \Gamma, x : A, y : B; \Delta_2, x \ty{r} A \vdash n : C[\pairI{x}{y}{t}/z] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \letin{(x, y)}{C}{m}{n} : C[m/z] }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m : A \\
+    \Gamma ; \Delta \vdash n : B \\
+    \Delta \triangleright t }
+  { \Gamma ; \Delta \vdash \apair{m}{n}{t} : \with{A}{B}{t} }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m : \with{A}{B}{t} }
+  { \Gamma ; \Delta \vdash \projL{m} : A }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m : \with{A}{B}{t} }
+  { \Gamma ; \Delta \vdash \projR{m} : B }
+
+  \inferrule
+  { \Gamma \vdash B : s \\
+    \Gamma ; \Delta \vdash m : A \\
+    A = B }
+  { \Gamma ; \Delta \vdash m : B }
+\end{mathpar}
+
+\newpage
+
+\section{Erasure}
+
+\subsection*{Erasure Relation}
+\begin{mathpar}
+  \inferrule
+  { \Gamma, x : A ; \Delta, x \ty{s} A \vdash \\
+    \Delta \triangleright \Un }
+  { \Gamma, x : A ; \Delta, x \ty{s} A  \vdash x \sim x : A }
+
+  \inferrule
+  { \Gamma, x : A ; \Delta, x \ty{s} A \vdash m \sim m' : B \\
+    \Delta \triangleright t }
+  { \Gamma ; \Delta \vdash
+    \lamR{t}{x : A}{m} \sim \lamR{t}{x : \square}{m'} : \PiR{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma, x : A ; \Delta \vdash m \sim m' : B \\
+    \Delta \triangleright t }
+  { \Gamma ; \Delta \vdash
+    \lamI{t}{x : A}{m} \sim \lamI{t}{x : \square}{m'} : \PiI{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma ; \Delta_1 \vdash m \sim m' : \PiR{t}{x : A}{B} \\
+    \Gamma ; \Delta_2 \vdash n \sim n' : A }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash m\ n \sim m'\ n' : B[n/x] }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m \sim m' : \PiI{t}{x : A}{B} \\
+    \Gamma \vdash n : A }
+  { \Gamma ; \Delta \vdash m\ n \sim m'\ \square : B[n/x] }
+
+  \inferrule
+  { \Gamma \vdash \SigR{t}{x : A}{B} : t \\
+    \Gamma ; \Delta_1 \vdash m \sim m' : A \\
+    \Gamma ; \Delta_2 \vdash n \sim n' : B[m/x] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash
+    \pairR{m}{n}{t} \sim \pairR{m'}{n'}{t} : \SigR{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma \vdash \SigI{t}{x : A}{B} : t \\
+    \Gamma ; \Delta \vdash m \sim m' : A \\
+    \Gamma \vdash n : B[m/x] }
+  { \Gamma ; \Delta \vdash
+    \pairI{m}{n}{t} \sim \pairI{m'}{\square}{t} : \SigI{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma, z : \SigR{t}{x : A}{B} \vdash C : s \\
+    \Gamma ; \Delta_1 \vdash m \sim m' : \SigR{t}{x : A}{B} \\
+    \Gamma, x : A, y : B ; \Delta_2, x \ty{r1} A, y \ty{r2} B \vdash n \sim n' : C[\pairR{x}{y}{t}/z] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash
+    \letin{(x, y)}{C}{m}{n} \sim \letin{(x, y)}{\square}{m'}{n'} : C[m/z] }
+
+  \inferrule
+  { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
+    \Gamma ; \Delta_1 \vdash m \sim m' : \SigI{t}{x : A}{B} \\
+    \Gamma, x : A, y : B ; \Delta_2, x \ty{r} A \vdash n \sim n' : C[\pairI{x}{y}{t}/z] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash
+    \letin{(x, y)}{C}{m}{n} \sim \letin{(x, y)}{\square}{m'}{n'} : C[m/z] }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m \sim m' : A \\
+    \Gamma ; \Delta \vdash n \sim n' : B \\
+    \Delta \triangleright t }
+  { \Gamma ; \Delta \vdash \apair{m}{n}{t} \sim \apair{m'}{n'}{t} : \with{A}{B}{t} }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m \sim m' : \with{A}{B}{t} }
+  { \Gamma ; \Delta \vdash \projL{m} \sim \projL{m'} : A }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m \sim m' : \with{A}{B}{t} }
+  { \Gamma ; \Delta \vdash \projR{m} \sim \projR{m'} : B }
+
+  \inferrule
+  { \Gamma \vdash B : s \\
+    \Gamma ; \Delta \vdash m \sim m' : A \\
+    A = B }
+  { \Gamma ; \Delta \vdash m \sim m' : B }
+\end{mathpar}
+
+
+\end{document}
