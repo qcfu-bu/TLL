@@ -100,7 +100,6 @@ Lemma era_weakenU Γ Δ m m' A B :
   (B :: Γ) ; B :U Δ ⊢ m.[ren (+1)] ~ m'.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using dyn_agree_ren, dyn_agree_ren_refl.
   move=>tyB tym. apply: era_rename...
-  have:=era_dyn_type tym...
 Qed.
 
 Lemma era_weakenN Γ Δ m m' A B s :
@@ -109,7 +108,6 @@ Lemma era_weakenN Γ Δ m m' A B s :
   (B :: Γ) ; _: Δ ⊢ m.[ren (+1)] ~ m'.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using dyn_agree_ren, dyn_agree_ren_refl.
   move=>tyB tym. apply: era_rename...
-  have:=era_dyn_type tym...
 Qed.
 
 Lemma era_eweakenU Γ Δ m m' n n' A A' B :

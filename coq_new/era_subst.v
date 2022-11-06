@@ -60,9 +60,6 @@ Lemma era_dyn_agree_subst Γ1 Γ2 Δ1 Δ2 σ1 σ2 :
   Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 -> Γ1 ; Δ1 ⊢ σ1 ⊣ Γ2 ; Δ2.
 Proof with eauto using dyn_agree_subst.
   elim=>{Γ1 Γ2 Δ1 Δ2 σ1 σ2}...
-  move=>Γ1 Γ2 σ1 σ2 Δ1 Δ2 Δa Δb n n' A s k mrg agr ih tyn.
-  apply: dyn_agree_subst_wk1...
-  apply: era_dyn_type...
 Qed.
 
 Lemma era_sta_agree_subst Γ1 Γ2 Δ1 Δ2 σ1 σ2 :
@@ -157,18 +154,12 @@ Proof with eauto 6 using merge, era_agree_subst, era_agree_subst_key.
     { have[Δa'[Δb'[mrg'[agra agrb]]]]:=ih _ _ H2.
       have[Δc[mrg1 mrg2]]:=merge_splitL mrg mrg'.
       exists Δc. exists Δb'.
-      repeat split...
-      apply: era_agree_subst_wk0...
-      apply: dyn_sta_type...
-      apply: era_dyn_type... }
+      repeat split... }
     { have[Δa'[Δb'[mrg'[agra agrb]]]]:=ih _ _ H2.
       have[Δc[mrg1 mrg2]]:=merge_splitR mrg mrg'.
       exists Δa'. exists Δc.
       repeat split...
-      exact: merge_sym.
-      apply: era_agree_subst_wk0...
-      apply: dyn_sta_type...
-      apply: era_dyn_type... } }
+      exact: merge_sym. } }
   { move=>Γ1 Δ1 σ1 σ2 Γ2 Δ2 A B s eq tyB1 tyB2 agr ih Δa Δb mrg. inv mrg.
     have[Δa'[Δb'[mrg'[agra agrb]]]]:=ih _ _ (merge_null H2).
     exists Δa'. exists Δb'... }
