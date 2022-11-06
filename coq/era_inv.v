@@ -30,6 +30,30 @@ Proof.
   exists A. by exists m.
 Qed.
 
+Lemma era_pair0_form Γ Δ m m1' m2' A s :
+  Γ ; Δ ⊢ m ~ Pair0 m1' m2' s : A -> exists m1 m2, m = Pair0 m1 m2 s.
+Proof.
+  move e:(Pair0 m1' m2' s)=>x er. elim: er m1' m2' s e=>//{Γ Δ m x A}.
+  move=>Γ Δ A B m m' n t tyS tym ihm tyn m1' m2' s[e1 e2 e3]; subst.
+  exists m. by exists n.
+Qed.
+
+Lemma era_pair1_form Γ Δ m m1' m2' A s :
+  Γ ; Δ ⊢ m ~ Pair1 m1' m2' s : A -> exists m1 m2, m = Pair1 m1 m2 s.
+Proof.
+  move e:(Pair1 m1' m2' s)=>x er. elim: er m1' m2' s e=>//{Γ Δ m x A}.
+  move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg tyS tym ihm tyn ihn m1' m2' s[e1 e2 e3]; subst.
+  exists m. by exists n.
+Qed.
+
+Lemma era_apair_form Γ Δ m m1' m2' A s :
+  Γ ; Δ ⊢ m ~ APair m1' m2' s : A -> exists m1 m2, m = APair m1 m2 s.
+Proof.
+  move e:(APair m1' m2' s)=>x er. elim: er m1' m2' s e=>//{Γ Δ m x A}.
+  move=>Γ Δ A B m m' n n' t k tym ihm tyn ihn m1' m2' s[e1 e2 e3]; subst.
+  exists m. by exists n.
+Qed.
+
 Lemma era_box_form Γ Δ m A : ~Γ ; Δ ⊢ m ~ Box : A.
 Proof. move e:(Box)=>m' ty. elim: ty e=>//{Γ Δ m m' A}. Qed.
 
@@ -74,7 +98,7 @@ Proof with eauto.
     have[A0 rd1 rd2]:=church_rosser eq1.
     have tyA0t:=sta_rd H4 rd1.
     have tyA0s:=sta_rd H3 rd2.
-    have/sort_inj e:=sta_uniq tyA0t tyA0s. subst.
+    have e:=sta_unicity tyA0t tyA0s. subst.
     exists s.
     apply: era_ctx_conv1.
     apply: conv_sym...
@@ -103,4 +127,107 @@ Proof with eauto.
   move=>ty.
   have[t/sta_pi1_inv[r[tyB _]]]:=dyn_valid (era_dyn_type ty).
   apply: era_lam1_invX...
+Qed.
+
+Lemma era_pair0_invX Γ Δ A B m m' n n' s r t C :
+  Γ ; Δ ⊢ Pair0 m n s ~ Pair0 m' n' s : C ->
+  C === Sig0 A B r ->
+  Γ ⊢ Sig0 A B r : Sort t ->
+  s = r /\ n' = Box /\ Γ ; Δ ⊢ m ~ m' : A /\ Γ ⊢ n : B.[m/].
+Proof with eauto.
+  move e1:(Pair0 m n s)=>x.
+  move e2:(Pair0 m' n' s)=>y ty.
+  elim: ty A B m m' n n' s r t e1 e2=>//{Γ Δ x y C}.
+  { move=>Γ Δ A B m m' n t ty1 tym ihm tyn A0 B0 m0 m0' n0 n'
+      s r t0[e1 e2 e3][e4 e5 e6]/sig0_inj[e7[e8 e9]]ty2; subst.
+    have[s[r0[ord[tyA0[tyB0/sort_inj e]]]]]:=sta_sig0_inv ty2. subst.
+    have tym0:Γ ; Δ ⊢ m ~ m' : A0 by apply: era_conv; eauto.
+    repeat split...
+    apply: sta_conv.
+    apply: sta_conv_subst.
+    all: eauto.
+    apply: sta_esubst...
+    by autosubst. }
+  { move=>Γ Δ A B m m' s eq tym ihm tyB
+      A0 B0 m0 m0' n n' s0 r t e1 e2 eq' ty.
+    apply: ihm...
+    apply: conv_trans... }
+Qed.
+
+Lemma era_pair1_invX Γ Δ A B m m' n n' s r t C :
+  Γ ; Δ ⊢ Pair1 m n s ~ Pair1 m' n' s : C ->
+  C === Sig1 A B r ->
+  Γ ⊢ Sig1 A B r : Sort t ->
+  exists Δ1 Δ2,
+    Δ1 ∘ Δ2 => Δ /\ s = r /\
+    Γ ; Δ1 ⊢ m ~ m' : A /\ Γ ; Δ2 ⊢ n ~ n' : B.[m/].
+Proof with eauto.
+  move e1:(Pair1 m n s)=>x.
+  move e2:(Pair1 m' n' s)=>y ty.
+  elim: ty A B m m' n n' s r t e1 e2=>//{Γ Δ x y C}.
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg ty1 tym ihm tyn ihn A0 B0
+      m0 m0' n0 n0' s r t0[e1 e2 e3][e4 e5 e6]/sig1_inj[e7[e8 e9]]ty2; subst.
+    exists Δ1. exists Δ2.
+    have[s[r0[ord1[ord2[tyA0[tyB0/sort_inj e]]]]]]:=sta_sig1_inv ty2. subst.
+    have tym0:Γ ; Δ1 ⊢ m ~ m' : A0 by apply: era_conv; eauto.
+    repeat split...
+    apply: era_conv.
+    apply: sta_conv_subst.
+    all: eauto.
+    apply: sta_esubst...
+    by autosubst. }
+  { move=>Γ Δ A B m m' s eq tym ihm tyB
+      A0 B0 m0 m0' n n' s0 r t e1 e2 eq' ty.
+    apply: ihm...
+    apply: conv_trans... }
+Qed.
+
+Lemma era_pair0_inv Γ Δ A B m m' n n' s r :
+  Γ ; Δ ⊢ Pair0 m n s ~ Pair0 m' n' s : Sig0 A B r ->
+  s = r /\ n' = Box /\ Γ ; Δ ⊢ m ~ m' : A /\ Γ ⊢ n : B.[m/].
+Proof with eauto.
+  move=>ty.
+  have[t tyS]:=dyn_valid (era_dyn_type ty).
+  apply: era_pair0_invX...
+Qed.
+
+Lemma era_pair1_inv Γ Δ A B m m' n n' s r :
+  Γ ; Δ ⊢ Pair1 m n s ~ Pair1 m' n' s : Sig1 A B r ->
+  exists Δ1 Δ2,
+    Δ1 ∘ Δ2 => Δ /\ s = r /\
+    Γ ; Δ1 ⊢ m ~ m' : A /\ Γ ; Δ2 ⊢ n ~ n' : B.[m/].
+Proof with eauto.
+  move=>ty.
+  have[t tyS]:=dyn_valid (era_dyn_type ty).
+  apply: era_pair1_invX...
+Qed.
+
+Lemma era_apair_invX Γ Δ A B m m' n n' s r t C :
+  Γ ; Δ ⊢ APair m n s ~ APair m' n' s : C ->
+  C === With A B r ->
+  Γ ⊢ With A B r : Sort t ->
+  s = r /\ Γ ; Δ ⊢ m ~ m' : A /\ Γ ; Δ ⊢ n ~ n' : B.
+Proof with eauto.
+  move e1:(APair m n s)=>x.
+  move e2:(APair m' n' s)=>y ty.
+  elim: ty A B m m' n n' s r t e1 e2=>//{Γ Δ x y C}.
+  { move=>Γ Δ A B m m' n n' t k tym ihm tyn ihn A0 B0 m0 m0' n0 n0'
+      s r t0[e1 e2 e3][e4 e5 e6]/with_inj[e7[e8 e9]]ty; subst.
+    have[s[r0[tyA0[tyB0 _]]]]:=sta_with_inv ty.
+    repeat split...
+    apply: era_conv...
+    apply: era_conv... }
+  { move=>Γ Δ A B m m' s eq tym ihm _
+      A0 B0 m0 m0' n n' s0 r t e1 e2 eq' tyw; subst.
+    apply: ihm...
+    apply: conv_trans... }
+Qed.
+
+Lemma era_apair_inv Γ Δ A B m m' n n' s r :
+  Γ ; Δ ⊢ APair m n s ~ APair m' n' s : With A B r ->
+  s = r /\ Γ ; Δ ⊢ m ~ m' : A /\ Γ ; Δ ⊢ n ~ n' : B.
+Proof with eauto.
+  move=>ty.
+  have[t tyS]:=dyn_valid (era_dyn_type ty).
+  apply: era_apair_invX...
 Qed.

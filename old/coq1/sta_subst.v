@@ -105,61 +105,6 @@ Proof with eauto using sta_agree_subst, sta_type.
     apply: sta_app1.
     asimpl in ihm...
     asimpl in ihn... }
-  { move=>Γ A B m n t tyS ihS tym ihm tyn ihn Γ1 σ agr. asimpl.
-    have{}ihS:=ihS _ _ agr.
-    have{}ihm:=ihm _ _ agr.
-    have{}ihn:=ihn _ _ agr.
-    apply: sta_pair0.
-    asimpl in ihS...
-    asimpl in ihm...
-    asimpl in ihn...
-    by autosubst. }
-  { move=>Γ A B m n t tyS ihS tym ihm tyn ihn Γ1 σ agr. asimpl.
-    have{}ihS:=ihS _ _ agr.
-    have{}ihm:=ihm _ _ agr.
-    have{}ihn:=ihn _ _ agr.
-    apply: sta_pair1.
-    asimpl in ihS...
-    asimpl in ihm...
-    asimpl in ihn...
-    by autosubst. }
-  { move=>Γ A B C m n s t tyC ihC tym ihm tyn ihn Γ1 σ agr. asimpl.
-    replace C.[m.[σ] .: σ] with C.[up σ].[m.[σ]/] by autosubst.
-    have wf:=sta_type_wf tyC. inv wf.
-    have wf:=sta_type_wf tyn. inv wf. inv H3.
-    have{}ihC:=ihC _ _ (sta_agree_subst_ty agr H2).
-    have{}ihm:=ihm _ _ agr.
-    have{}ihn:=ihn _ _ (sta_agree_subst_ty (sta_agree_subst_ty agr H6) H4).
-    apply: sta_letin0.
-    asimpl in ihC...
-    asimpl in ihm...
-    asimpl in ihn...
-    by asimpl. }
-  { move=>Γ A B C m n s t tyC ihC tym ihm tyn ihn Γ1 σ agr. asimpl.
-    replace C.[m.[σ] .: σ] with C.[up σ].[m.[σ]/] by autosubst.
-    have wf:=sta_type_wf tyC. inv wf.
-    have wf:=sta_type_wf tyn. inv wf. inv H3.
-    have{}ihC:=ihC _ _ (sta_agree_subst_ty agr H2).
-    have{}ihm:=ihm _ _ agr.
-    have{}ihn:=ihn _ _ (sta_agree_subst_ty (sta_agree_subst_ty agr H6) H4).
-    apply: sta_letin1.
-    asimpl in ihC...
-    asimpl in ihm...
-    asimpl in ihn...
-    by asimpl. }
-  { move=>Γ A B H P m n s tyB ihB tyH ihH tyP ihP Γ1 σ agr. asimpl.
-    replace B.[P.[σ] .: n.[σ] .: m.[σ] .: σ] with B.[upn 3 σ].[P.[σ],n.[σ],m.[σ]/] by autosubst.
-    have wf:=sta_type_wf tyB. inv wf. inv H2. inv H4.
-    have{}ihB:=ihB _ _ (sta_agree_subst_ty (sta_agree_subst_ty (sta_agree_subst_ty agr H6) H5) H3).
-    have{}ihH:=ihH _ _ (sta_agree_subst_ty agr H6).
-    have{}ihP:=ihP _ _ agr.
-    apply: sta_j.
-    asimpl in ihB.
-    replace A.[σ >> ren (+2)] with A.[σ].[ren (+2)] in ihB by autosubst.
-    replace A.[σ >> ren (+1)] with A.[σ].[ren (+1)] in ihB by autosubst.
-    exact: ihB.
-    asimpl. asimpl in ihH...
-    asimpl in ihP... }
   { move=>Γ2 A B m s eq tym ihm tyB ihB Γ1 σ agr.
     apply: sta_conv.
     apply: sta_conv_subst.

@@ -38,54 +38,6 @@ Proof with eauto using era_type, dyn_agree_ren, dyn_agree_ren_key.
     have{}ihn:=ihn _ _ _ agr2.
     apply: era_app1...
     asimpl in ihm... }
-  { move=>Γ Δ A B m m' n t tyS tym ihm tyn Γ' Δ' ξ agr. asimpl.
-    have{}ihm:=ihm _ _ _ agr.
-    have{}ihn:=sta_rename tyn (dyn_sta_agree_ren agr).
-    have{}ihS:=sta_rename tyS (dyn_sta_agree_ren agr).
-    apply: era_pair0...
-    asimpl in ihS...
-    asimpl. asimpl in ihn... }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg tyS tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
-    have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg.
-    have{}ihm:=ihm _ _ _ agr1.
-    have{}ihn:=ihn _ _ _ agr2.
-    have{}ihS:=sta_rename tyS (dyn_sta_agree_ren agr).
-    apply: era_pair1...
-    asimpl in ihS...
-    asimpl. asimpl in ihn... }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg tyC tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
-    have wf:=sta_type_wf tyC. inv wf.
-    have wf:=dyn_type_wf (era_dyn_type tyn). inv wf. inv H4.
-    have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg.
-    have{}ihC:=sta_rename tyC (sta_agree_ren_cons H2 (dyn_sta_agree_ren agr)).
-    have{}ihm:=ihm _ _ _ agr1.
-    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (_: A :{r} Δ2)
-      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (_: A.[ren ξ] :{r} Δ2')...
-    asimpl in ihC.
-    asimpl in ihm.
-    replace C.[Pair0 (Var 1) (Var 0) t .: ren (+2)].[ren (upren (upren ξ))]
-      with C.[ren (upren ξ)].[Pair0 (Var 1) (Var 0) t .: ren (+2)]
-        in ihn by autosubst.
-    have:=era_letin0 mrg' ihC ihm ihn.
-    by autosubst. }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg tyC tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
-    have wf:=sta_type_wf tyC. inv wf.
-    have wf:=dyn_type_wf (era_dyn_type tyn). inv wf. inv H4.
-    have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg.
-    have{}ihC:=sta_rename tyC (sta_agree_ren_cons H2 (dyn_sta_agree_ren agr)).
-    have{}ihm:=ihm _ _ _ agr1.
-    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (B :{r2} A :{r1} Δ2)
-      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (B.[ren (upren ξ)] :{r2} A.[ren ξ] :{r1} Δ2')...
-    asimpl in ihC.
-    asimpl in ihm.
-    replace C.[Pair1 (Var 1) (Var 0) t .: ren (+2)].[ren (upren (upren ξ))]
-      with C.[ren (upren ξ)].[Pair1 (Var 1) (Var 0) t .: ren (+2)]
-        in ihn by autosubst.
-    have:=era_letin1 mrg' ihC ihm ihn.
-    by autosubst. }
-  { move=>Γ Δ A B m m' n n' t k tym ihm tyn ihn Γ' Δ' ξ agr. asimpl. apply:era_apair... }
-  { move=>Γ Δ A B m m' t tym ihm Γ' Δ' ξ agr. asimpl. apply:era_fst... }
-  { move=>Γ Δ A B m m' t tym ihm Γ' Δ' ξ agr. asimpl. apply:era_snd... }
   { move=>Γ Δ A B m m' s eq tym ihm tyB Γ' Δ' ξ agr.
     apply: era_conv.
     apply: sta_conv_subst...
@@ -100,6 +52,7 @@ Lemma era_weakenU Γ Δ m m' A B :
   (B :: Γ) ; B :U Δ ⊢ m.[ren (+1)] ~ m'.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using dyn_agree_ren, dyn_agree_ren_refl.
   move=>tyB tym. apply: era_rename...
+  have:=era_dyn_type tym...
 Qed.
 
 Lemma era_weakenN Γ Δ m m' A B s :
@@ -108,6 +61,7 @@ Lemma era_weakenN Γ Δ m m' A B s :
   (B :: Γ) ; _: Δ ⊢ m.[ren (+1)] ~ m'.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using dyn_agree_ren, dyn_agree_ren_refl.
   move=>tyB tym. apply: era_rename...
+  have:=era_dyn_type tym...
 Qed.
 
 Lemma era_eweakenU Γ Δ m m' n n' A A' B :
