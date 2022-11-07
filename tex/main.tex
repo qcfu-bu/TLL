@@ -9,10 +9,8 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{csquotes}
-
-\title{A Two Level Linear Dependent Type Theory}
-
-\begin{document}
+\usepackage{trimclip}
+\usepackage{tikz-cd}
 
 \newcommand{\Un}{\text{U}}
 \newcommand{\Ln}{\text{L}}
@@ -38,22 +36,34 @@
 \newcommand{\dotcup}{\ensuremath{\mathbin{\mathaccent\cdot\cup}}}
 \newcommand{\fresh}[1]{\textit{fresh}({#1})}
 
+\makeatletter
+\newcommand*{\Leadsto}{\leadsto\joinrel\mathrel{\mathpalette\@Leadsto\relax}}
+\newcommand*{\@Leadsto}[2]{%
+   \clipbox{{.68\width} 0pt 0pt {-.2\height}}{$\m@th#1\leadsto$}%
+}
+
+\title{A Two Level Linear Dependent Type Theory}
+
+\begin{document}
+
 \maketitle
 
 \section{Syntax}
 \begin{center}
-  \begin{tabular}{r l r l}
-    variable & $x, y, z, p$    &     &               \\
-    sorts    & $s, r, t$       & ::= & $\Un$ | $\Ln$ \\
-    terms    & $m,n,A,B,C,H,P$ & ::= & $x$ | $s$ \\
-             &                 & \;| & $\PiR{t}{x : A}{B}$ | $\PiI{t}{x : A}{B}$
-                                       | $\SigR{t}{x : A}{B}$ | $\SigI{t}{x : A}{B}$
-                                       | $\with{A}{B}{t}$ \\
-             &                 & \;| & $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$
-                                       | $\pairR{m}{n}{t}$ | $\pairI{m}{n}{t}$ | $\apair{m}{n}{t}$  \\
-             &                 & \;| & $m\ n$ | $\SigElim{[z]A}{m}{[x,y]n}$ | $\projL{m}$ | $\projR{m}$ \\
-             &                 & \;| & $\iden{A}{m}{n}$ | $\refl{m}$ | $\idenElim{[x,y,p]A}{[z]H}{P}$
-                                       | $\square$
+  \begin{tabular}{r l c l}
+    variables & $x, y, z, p$    &     &               \\
+    sorts     & $s, r, t$       & ::= & $\Un$ | $\Ln$ \\
+    terms     & $m,n,A,B,C,H,P$ & ::= & $x$ | $s$ \\
+              &                 & \;| & $\PiR{t}{x : A}{B}$ | $\PiI{t}{x : A}{B}$
+                                        | $\SigR{t}{x : A}{B}$ | $\SigI{t}{x : A}{B}$
+                                        | $\with{A}{B}{t}$ \\
+              &                 & \;| & $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$
+                                        | $\pairR{m}{n}{t}$ | $\pairI{m}{n}{t}$ | $\apair{m}{n}{t}$  \\
+              &                 & \;| & $m\ n$ | $\SigElim{[z]A}{m}{[x,y]n}$ | $\projL{m}$ | $\projR{m}$ \\
+              &                 & \;| & $\iden{A}{m}{n}$ | $\refl{m}$ | $\idenElim{[x,y,p]A}{[z]H}{P}$
+                                        | $\square$ \\
+    values    & $u, v$          & ::= & $x$ | $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$
+                                        | $\pairR{u}{v}{t}$ | $\pairI{v}{m}{t}$ | $\apair{m}{n}{t}$
   \end{tabular}
 \end{center}
 
@@ -383,14 +393,14 @@
     \Gamma ; \Delta_1 \vdash m \sim m' : \SigR{t}{x : A}{B} \\
     \Gamma, x : A, y : B ; \Delta_2, x \ty{r1} A, y \ty{r2} B \vdash n \sim n' : C[\pairR{x}{y}{t}/z] }
   { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash
-    \SigElim{[z]C}{m}{[x,y]n} \sim \SigElim{\square}{m'}{[x,y]n'} : C[m/z] }
+    \SigElim{[z]C}{m}{[x,y]n} \sim \SigElim{[z]\square}{m'}{[x,y]n'} : C[m/z] }
 
   \inferrule
   { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
     \Gamma ; \Delta_1 \vdash m \sim m' : \SigI{t}{x : A}{B} \\
     \Gamma, x : A, y : B ; \Delta_2, x \ty{r} A \vdash n \sim n' : C[\pairI{x}{y}{t}/z] }
   { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash
-    \SigElim{[z]C}{m}{[x,y]n} \sim \SigElim{\square}{m'}{[x,y]n'} : C[m/z] }
+    \SigElim{[z]C}{m}{[x,y]n} \sim \SigElim{[z]\square}{m'}{[x,y]n'} : C[m/z] }
 
   \inferrule
   { \Gamma ; \Delta \vdash m \sim m' : A \\
@@ -415,8 +425,8 @@
 
 \newpage
 
-\section{Semantics}
-\subsection*{Static}
+\section{Static Semantics}
+\subsection*{Static Reduction}
 \begin{mathpar}
   \inferrule
   { A \leadsto A' }
@@ -578,5 +588,99 @@
   { }
   { \idenElim{[x,y,p]A}{[z]H}{\refl{m}} \leadsto H[m/z] }
 \end{mathpar}
+
+\subsection*{Conversion}
+\begin{mathpar}
+  \inferrule
+  {  }
+  { A \simeq A }
+
+  \inferrule
+  { A \simeq B \\ B \leadsto C }
+  { A \simeq C }
+
+  \inferrule
+  { A \simeq B \\ C \leadsto B }
+  { A \simeq C }
+\end{mathpar}
+
+\newpage
+
+\section{Dynamic Semantics}
+\subsection*{Dynamic Reduction}
+\begin{mathpar}
+  \inferrule
+  { m \Leadsto m' }
+  { m\ n \Leadsto m'\ n }
+
+  \inferrule
+  { n \Leadsto n' }
+  { m\ n \Leadsto m\ n' }
+
+  \inferrule
+  { }
+  { (\lamR{t}{x : A}{m})\ v \Leadsto m[v/x] }
+
+  \inferrule
+  { }
+  { (\lamI{t}{x : A}{m})\ n \Leadsto m[n/x] }
+
+  \inferrule
+  { m \Leadsto m' }
+  { \pairR{m}{n}{t} \Leadsto \pairR{m'}{n}{t} }
+
+  \inferrule
+  { n \Leadsto n' }
+  { \pairR{m}{n}{t} \Leadsto \pairR{m}{n'}{t} }
+
+  \inferrule
+  { m \Leadsto m' }
+  { \pairI{m}{n}{t} \Leadsto \pairI{m'}{n}{t} }
+
+  \inferrule
+  { m \Leadsto m' }
+  { \SigElim{[z]A}{m}{[x,y]n} \Leadsto \SigElim{[z]A}{m'}{[x,y]n} }
+
+  \inferrule
+  { }
+  { \SigElim{[z]A}{\pairR{u}{v}{t}}{[x,y]n} \Leadsto n[u/x,v/y] }
+
+  \inferrule
+  { }
+  { \SigElim{[z]A}{\pairI{v}{m}{t}}{[x,y]n} \Leadsto n[v/x,m/y] }
+
+  \inferrule
+  { m \Leadsto m' }
+  { \projL{m} \Leadsto \projL{m'} }
+
+  \inferrule
+  { m \Leadsto m' }
+  { \projR{m} \Leadsto \projR{m'} }
+
+  \inferrule
+  { }
+  { \projL{\apair{m}{n}{t}} \Leadsto m }
+
+  \inferrule
+  { }
+  { \projR{\apair{m}{n}{t}} \Leadsto n }
+\end{mathpar}
+
+\subsection*{Erasure-Dynamic Reduction}
+\begin{center}
+  \begin{tikzcd}
+    {\Gamma ; \Delta } & m & {m'} & A \\
+    {\Gamma ; \Delta} & n & {n'} & A
+    \arrow["\sim"{description}, draw=none, from=1-2, to=1-3]
+    \arrow["\vdash"{description}, draw=none, from=1-1, to=1-2]
+    \arrow["{:}"{description}, draw=none, from=1-3, to=1-4]
+    \arrow["\leadsto"{marking}, draw=none, from=1-2, to=2-2]
+    \arrow["\Leadsto"{marking}, draw=none, from=1-3, to=2-3]
+    \arrow["\vdash"{description}, draw=none, from=2-1, to=2-2]
+    \arrow["{:}"{description}, draw=none, from=2-3, to=2-4]
+    \arrow["\sim"{marking}, draw=none, from=2-2, to=2-3]
+    \arrow[draw=none, from=2-3, to=2-4]
+  \end{tikzcd}
+\end{center}
 
 \end{document}
