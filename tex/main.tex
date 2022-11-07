@@ -24,17 +24,17 @@
 \newcommand{\lamR}[3]{\lambda_{#1}({#2}).{#3}}
 \newcommand{\lamI}[3]{\lambda_{#1}\{{#2}\}.{#3}}
 \newcommand{\SigR}[3]{\Sigma_{#1}({#2}).{#3}}
-\newcommand{\SigI}[3]{\Sigma_{#1}({#2}).\{{#3}\}}
-\newcommand{\pairR}[3]{({#1},{#2})_{#3}}
-\newcommand{\pairI}[3]{({#1},\{{#2}\})_{#3}}
-\newcommand{\letin}[4]{\text{let }{#1}\text{ as }{#2}:={#3}\text{ in }{#4}}
+\newcommand{\SigI}[3]{\Sigma_{#1}\{{#2}\}.{#3}}
+\newcommand{\pairR}[3]{\langle{{#1},{#2}}\rangle_{#3}}
+\newcommand{\pairI}[3]{\{{#1},{#2}\}_{#3}}
+\newcommand{\SigElim}[3]{\text{R}_{#1}^{\Sigma}({#2},{#3})}
 \newcommand{\with}[3]{{#1}\;\&_{#3}{#2}}
-\newcommand{\apair}[3]{[{#1}, {#2}]_{#3}}
+\newcommand{\apair}[3]{({#1}, {#2})_{#3}}
 \newcommand{\projL}[1]{\pi_{1}\,{#1}}
 \newcommand{\projR}[1]{\pi_{2}\,{#1}}
 \newcommand{\iden}[3]{{#2}\equiv_{#1}{#3}}
 \newcommand{\refl}[1]{\text{refl}\;{#1}}
-\newcommand{\J}[3]{\text{J}\,{#1}\,{#2}\,{#3}}
+\newcommand{\idenElim}[3]{\text{R}_{#1}^{\equiv}({#2},{#3})}
 \newcommand{\dotcup}{\ensuremath{\mathbin{\mathaccent\cdot\cup}}}
 \newcommand{\fresh}[1]{\textit{fresh}({#1})}
 
@@ -43,16 +43,17 @@
 \section{Syntax}
 \begin{center}
   \begin{tabular}{r l r l}
-    variable    & $x, y, z, p$    &     &               \\
-    sorts       & $s, r, t$       & ::= & $\Un$ | $\Ln$ \\
-    expressions & $m,n,A,B,C,H,P$ & ::= & $x$ | $s$ \\
-                &                 & \;| & $\PiR{t}{x : A}{B}$ | $\PiI{t}{x : A}{B}$
-                                          | $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$ | $m\ n$ \\
-                &                 & \;| & $\SigR{t}{x : A}{B}$ | $\SigI{t}{x : A}{B}$
-                                          | $\pairR{m}{n}{t}$ | $\pairI{m}{n}{t}$ \\
-                &                 & \;| & $\letin{(x, y)}{A}{m}{n}$ \\
-                &                 & \;| & $\with{A}{B}{t}$ | $\apair{m}{n}{t}$ | $\projL{m}$ | $\projR{m}$ \\
-                &                 & \;| & $\iden{A}{m}{n}$ | $\refl{m}$ | $\J{A}{H}{P}$ | $\square$
+    variable & $x, y, z, p$    &     &               \\
+    sorts    & $s, r, t$       & ::= & $\Un$ | $\Ln$ \\
+    terms    & $m,n,A,B,C,H,P$ & ::= & $x$ | $s$ \\
+             &                 & \;| & $\PiR{t}{x : A}{B}$ | $\PiI{t}{x : A}{B}$
+                                       | $\SigR{t}{x : A}{B}$ | $\SigI{t}{x : A}{B}$
+                                       | $\with{A}{B}{t}$ \\
+             &                 & \;| & $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$
+                                       | $\pairR{m}{n}{t}$ | $\pairI{m}{n}{t}$ | $\apair{m}{n}{t}$  \\
+             &                 & \;| & $m\ n$ | $\SigElim{[z]A}{m}{[x,y]n}$ | $\projL{m}$ | $\projR{m}$ \\
+             &                 & \;| & $\iden{A}{m}{n}$ | $\refl{m}$ | $\idenElim{[x,y,p]A}{[z]H}{P}$
+                                       | $\square$
   \end{tabular}
 \end{center}
 
@@ -149,13 +150,13 @@
   { \Gamma, z : \SigR{t}{x : A}{B} \vdash C : s \\
     \Gamma \vdash m : \SigR{t}{x : A}{B} \\
     \Gamma, x : A, y : B \vdash n : C[\pairR{x}{y}{t}/z] }
-  { \Gamma \vdash \letin{(x, y)}{C}{m}{n} : C[m/z] }
+  { \Gamma \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
 
   \inferrule
   { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
     \Gamma \vdash m : \SigI{t}{x : A}{B} \\
     \Gamma, x : A, y : B \vdash n : C[\pairI{x}{y}{t}/z] }
-  { \Gamma \vdash \letin{(x, y)}{C}{m}{n} : C[m/z] }
+  { \Gamma \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
 
   \inferrule
   { \Gamma \vdash A : s \\
@@ -189,12 +190,12 @@
   { \Gamma, x : A, y : A, p : \iden{A}{x}{y} \vdash B : s \\
     \Gamma, z : A \vdash H : B[z/x,z/y,\refl{z}/p] \\
     \Gamma \vdash P : \iden{A}{m}{n} }
-  { \Gamma \vdash \J{B}{H}{P} : B[m/x,n/y,P/p] }
+  { \Gamma \vdash \idenElim{[x,y,p]B}{[z]H}{P} : B[m/x,n/y,P/p] }
 
   \inferrule
   { \Gamma \vdash B : s \\
     \Gamma \vdash m : A \\
-    A = B }
+    A \simeq B }
   { \Gamma \vdash m : B }
 \end{mathpar}
 
@@ -301,13 +302,13 @@
   { \Gamma, z : \SigR{t}{x : A}{B} \vdash C : s \\
     \Gamma ; \Delta_1 \vdash m : \SigR{t}{x : A}{B} \\
     \Gamma, x : A, y : B; \Delta_2, x \ty{r1} A, y \ty{r2} B \vdash n : C[\pairR{x}{y}{t}/z] }
-  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \letin{(x, y)}{C}{m}{n} : C[m/z] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
 
   \inferrule
   { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
     \Gamma ; \Delta_1 \vdash m : \SigI{t}{x : A}{B} \\
     \Gamma, x : A, y : B; \Delta_2, x \ty{r} A \vdash n : C[\pairI{x}{y}{t}/z] }
-  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \letin{(x, y)}{C}{m}{n} : C[m/z] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
 
   \inferrule
   { \Gamma ; \Delta \vdash m : A \\
@@ -326,7 +327,7 @@
   \inferrule
   { \Gamma \vdash B : s \\
     \Gamma ; \Delta \vdash m : A \\
-    A = B }
+    A \simeq B }
   { \Gamma ; \Delta \vdash m : B }
 \end{mathpar}
 
@@ -382,14 +383,14 @@
     \Gamma ; \Delta_1 \vdash m \sim m' : \SigR{t}{x : A}{B} \\
     \Gamma, x : A, y : B ; \Delta_2, x \ty{r1} A, y \ty{r2} B \vdash n \sim n' : C[\pairR{x}{y}{t}/z] }
   { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash
-    \letin{(x, y)}{C}{m}{n} \sim \letin{(x, y)}{\square}{m'}{n'} : C[m/z] }
+    \SigElim{[z]C}{m}{[x,y]n} \sim \SigElim{\square}{m'}{[x,y]n'} : C[m/z] }
 
   \inferrule
   { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
     \Gamma ; \Delta_1 \vdash m \sim m' : \SigI{t}{x : A}{B} \\
     \Gamma, x : A, y : B ; \Delta_2, x \ty{r} A \vdash n \sim n' : C[\pairI{x}{y}{t}/z] }
   { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash
-    \letin{(x, y)}{C}{m}{n} \sim \letin{(x, y)}{\square}{m'}{n'} : C[m/z] }
+    \SigElim{[z]C}{m}{[x,y]n} \sim \SigElim{\square}{m'}{[x,y]n'} : C[m/z] }
 
   \inferrule
   { \Gamma ; \Delta \vdash m \sim m' : A \\
@@ -408,9 +409,174 @@
   \inferrule
   { \Gamma \vdash B : s \\
     \Gamma ; \Delta \vdash m \sim m' : A \\
-    A = B }
+    A \simeq B }
   { \Gamma ; \Delta \vdash m \sim m' : B }
 \end{mathpar}
 
+\newpage
+
+\section{Semantics}
+\subsection*{Static}
+\begin{mathpar}
+  \inferrule
+  { A \leadsto A' }
+  { \PiR{t}{x : A}{B} \leadsto \PiR{t}{x : A'}{B} }
+
+  \inferrule
+  { B \leadsto B' }
+  { \PiR{t}{x : A}{B} \leadsto \PiR{t}{x : A}{B'} }
+
+  \inferrule
+  { A \leadsto A' }
+  { \PiI{t}{x : A}{B} \leadsto \PiI{t}{x : A'}{B} }
+
+  \inferrule
+  { B \leadsto B' }
+  { \PiI{t}{x : A}{B} \leadsto \PiI{t}{x : A}{B'} }
+
+  \inferrule
+  { A \leadsto A' }
+  { \lamR{t}{x : A}{m} \leadsto \lamR{t}{x : A'}{m} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \lamR{t}{x : A}{m} \leadsto \lamR{t}{x : A}{m'} }
+
+  \inferrule
+  { A \leadsto A' }
+  { \lamI{t}{x : A}{m} \leadsto \lamI{t}{x : A'}{m} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \lamI{t}{x : A}{m} \leadsto \lamI{t}{x : A}{m'} }
+
+  \inferrule
+  { m \leadsto m' }
+  { m\ n \leadsto m'\ n }
+
+  \inferrule
+  { n \leadsto n' }
+  { m\ n \leadsto m\ n' }
+
+  \inferrule
+  { }
+  { (\lamR{t}{x : A}{m})\ n \leadsto m[n/x] }
+
+  \inferrule
+  { }
+  { (\lamI{t}{x : A}{m})\ n \leadsto m[n/x] }
+
+  \inferrule
+  { A \leadsto A' }
+  { \SigR{t}{x : A}{B} \leadsto \SigR{t}{x : A'}{B} }
+
+  \inferrule
+  { B \leadsto B' }
+  { \SigR{t}{x : A}{B} \leadsto \SigR{t}{x : A}{B'} }
+
+  \inferrule
+  { A \leadsto A' }
+  { \SigI{t}{x : A}{B} \leadsto \SigI{t}{x : A'}{B} }
+
+  \inferrule
+  { B \leadsto B' }
+  { \SigI{t}{x : A}{B} \leadsto \SigI{t}{x : A}{B'} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \pairR{m}{n}{t} \leadsto \pairR{m'}{n}{t} }
+
+  \inferrule
+  { n \leadsto n' }
+  { \pairR{m}{n}{t} \leadsto \pairR{m}{n'}{t} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \pairI{m}{n}{t} \leadsto \pairI{m'}{n}{t} }
+
+  \inferrule
+  { n \leadsto n' }
+  { \pairI{m}{n}{t} \leadsto \pairI{m}{n'}{t} }
+
+  \inferrule
+  { A \leadsto A' }
+  { \SigElim{[z]A}{m}{[x,y]n} \leadsto \SigElim{[z]A'}{m}{[x,y]n} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \SigElim{[z]A}{m}{[x,y]n} \leadsto \SigElim{[z]A}{m'}{[x,y]n} }
+
+  \inferrule
+  { n \leadsto n' }
+  { \SigElim{[z]A}{m}{[x,y]n} \leadsto \SigElim{[z]A}{m}{[x,y]n'} }
+
+  \inferrule
+  { }
+  { \SigElim{[z]A}{\pairR{m_1}{m_2}{t}}{[x,y]n} \leadsto n[m_1/x,m_2/y] }
+
+  \inferrule
+  { }
+  { \SigElim{[z]A}{\pairI{m_1}{m_2}{t}}{[x,y]n} \leadsto n[m_1/x,m_2/y] }
+
+  \inferrule
+  { A \leadsto A' }
+  { \with{A}{B}{t} \leadsto \with{A'}{B}{t} }
+
+  \inferrule
+  { B \leadsto B' }
+  { \with{A}{B}{t} \leadsto \with{A}{B'}{t} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \apair{m}{n}{t} \leadsto \apair{m'}{n}{t} }
+
+  \inferrule
+  { n \leadsto n' }
+  { \apair{m}{n}{t} \leadsto \apair{m}{n'}{t} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \projL{m} \leadsto \projL{m'} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \projR{m} \leadsto \projR{m'} }
+
+  \inferrule
+  { }
+  { \projL{\apair{m}{n}{t}} \leadsto m }
+
+  \inferrule
+  { }
+  { \projR{\apair{m}{n}{t}} \leadsto n }
+
+  \inferrule
+  { A \leadsto A' }
+  { \iden{A}{m}{n} \leadsto \iden{A'}{m}{n} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \iden{A}{m}{n} \leadsto \iden{A}{m'}{n} }
+
+  \inferrule
+  { n \leadsto n' }
+  { \iden{A}{m}{n} \leadsto \iden{A}{m}{n'} }
+
+  \inferrule
+  { A \leadsto A' }
+  { \idenElim{[x,y,p]A}{[z]H}{P} \leadsto \idenElim{[x,y,p]A'}{[z]H}{P} }
+
+  \inferrule
+  { H \leadsto H' }
+  { \idenElim{[x,y,p]A}{[z]H}{P} \leadsto \idenElim{[x,y,p]A}{[z]H'}{P} }
+
+  \inferrule
+  { P \leadsto P' }
+  { \idenElim{[x,y,p]A}{[z]H}{P} \leadsto \idenElim{[x,y,p]A}{[z]H}{P'} }
+
+  \inferrule
+  { }
+  { \idenElim{[x,y,p]A}{[z]H}{\refl{m}} \leadsto H[m/z] }
+\end{mathpar}
 
 \end{document}
