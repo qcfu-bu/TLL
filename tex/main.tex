@@ -35,6 +35,7 @@
 \newcommand{\idenElim}[3]{\text{R}_{#1}^{\equiv}({#2},{#3})}
 \newcommand{\dotcup}{\ensuremath{\mathbin{\mathaccent\cdot\cup}}}
 \newcommand{\fresh}[1]{\textit{fresh}({#1})}
+\newcommand{\val}{\textit{ value}}
 
 \makeatletter
 \newcommand*{\Leadsto}{\leadsto\joinrel\mathrel{\mathpalette\@Leadsto\relax}}
@@ -167,6 +168,7 @@
     \Gamma \vdash m : \SigI{t}{x : A}{B} \\
     \Gamma, x : A, y : B \vdash n : C[\pairI{x}{y}{t}/z] }
   { \Gamma \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
+  \\
 
   \inferrule
   { \Gamma \vdash A : s \\
@@ -607,6 +609,34 @@
 \newpage
 
 \section{Dynamic Semantics}
+
+\subsection*{Value}
+\begin{mathpar}
+  \inferrule
+  { }
+  { x \val }
+
+  \inferrule
+  { }
+  { \lamR{t}{x : A}{m} \val }
+
+  \inferrule
+  { }
+  { \lamI{t}{x : A}{m} \val }
+
+  \inferrule
+  { u \val \\ v \val }
+  { \pairR{u}{v}{t} \val }
+
+  \inferrule
+  { v \val }
+  { \pairI{v}{m}{t} \val }
+
+  \inferrule
+  { }
+  { \apair{m}{n}{t} \val }
+\end{mathpar}
+
 \subsection*{Dynamic Reduction}
 \begin{mathpar}
   \inferrule
@@ -618,7 +648,7 @@
   { m\ n \Leadsto m\ n' }
 
   \inferrule
-  { }
+  { v \val }
   { (\lamR{t}{x : A}{m})\ v \Leadsto m[v/x] }
 
   \inferrule
@@ -642,11 +672,11 @@
   { \SigElim{[z]A}{m}{[x,y]n} \Leadsto \SigElim{[z]A}{m'}{[x,y]n} }
 
   \inferrule
-  { }
+  { u \val \\ v \val }
   { \SigElim{[z]A}{\pairR{u}{v}{t}}{[x,y]n} \Leadsto n[u/x,v/y] }
 
   \inferrule
-  { }
+  { v \val }
   { \SigElim{[z]A}{\pairI{v}{m}{t}}{[x,y]n} \Leadsto n[v/x,m/y] }
 
   \inferrule
