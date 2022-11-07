@@ -32,14 +32,14 @@ Inductive term : Type :=
 | Sig1 (A : term) (B : {bind term}) (s : sort) (* Σs (x : A).B *)
 | Pair0 (m n : term) (s : sort) (* {m, n}s *)
 | Pair1 (m n : term) (s : sort) (* ⟨m, n}s *)
-| LetIn (A : {bind term}) (m : term) (n : {bind 2 of term}) (* let {x, y} as A := m in n *)
+| LetIn (A : {bind term}) (m : term) (n : {bind 2 of term}) (* RΣ([z]A, m, [x,y]n) *)
 | With (A B : term) (s : sort)  (* A &s B *)
 | APair (m n : term) (s : sort) (* (m, n)s *)
-| Fst (m : term)
-| Snd (m : term)
+| Fst (m : term) (* π1 m *)
+| Snd (m : term) (* π2 m *)
 | Id (A m n : term)
 | Refl (m : term)
-| J (A : {bind 3 of term}) (H : {bind term}) (P : term)
+| J (A : {bind 3 of term}) (H : {bind term}) (P : term) (* R≡([x,y,p]A,[z]H,P) *)
 | Box.
 
 Instance Ids_term : Ids term. derive. Defined.
