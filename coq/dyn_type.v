@@ -87,6 +87,9 @@ with dyn_wf : sta_ctx -> dyn_ctx -> Prop :=
 Scheme dyn_type_mut := Induction for dyn_type Sort Prop
 with dyn_wf_mut := Induction for dyn_wf Sort Prop.
 
+Lemma dyn_wf_size Γ Δ : dyn_wf Γ Δ -> size Γ = size Δ.
+Proof with eauto. elim=>//={Γ Δ}... Qed.
+
 Lemma dyn_wf_merge Γ Δ Δ1 Δ2 :
   Δ1 ∘ Δ2 => Δ -> dyn_wf Γ Δ1 -> dyn_wf Γ Δ2 -> dyn_wf Γ Δ.
 Proof with eauto using dyn_wf.

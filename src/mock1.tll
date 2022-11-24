@@ -34,6 +34,11 @@ def fst {A : L} {B : U} (p : tupL A B) : A :=
   match p with
   | TupL a _ -> a
 
+theorem len (A : U) (xs : list A) : nat :=
+  match xs with
+  | nil -> O
+  | cons _ xs -> S (len _ xs)
+
 def size {A : U} (xs : list A) : tupL (list A) nat :=
   match xs with
   | nil -> TupL nil O

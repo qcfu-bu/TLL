@@ -16,3 +16,5 @@ Inductive sta_has :
   sta_has Γ x A ->
   sta_has (B :: Γ) x.+1 A.[ren (+1)].
 
+Lemma sta_has_size Γ x A : sta_has Γ x A -> x < size Γ.
+Proof. elim=>//. Qed.

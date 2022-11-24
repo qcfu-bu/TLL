@@ -10,6 +10,16 @@ Lemma dyn_sta_step m n : m ~>> n -> m ~> n.
 Proof with eauto using sta_step. elim... Qed.
 Hint Resolve dyn_sta_step.
 
+Lemma dyn_sta_red m n : m ~>>* n -> m ~>* n.
+Proof with eauto.
+  move=>rd. elim: rd=>//{n}.
+  move=>y z rd1 rd2 st.
+  apply: star_trans...
+  apply: star1.
+  apply: dyn_sta_step...
+Qed.
+Hint Resolve dyn_sta_red.
+
 Lemma dyn_has_type Γ Δ x s A :
   dyn_has Δ x s A -> dyn_wf Γ Δ -> Γ ⊢ A : Sort s.
 Proof with eauto.

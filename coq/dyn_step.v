@@ -21,9 +21,11 @@ Inductive dyn_val : term -> Prop :=
   dyn_val m2 ->
   dyn_val (Pair1 m1 m2 s)
 | dyn_val_apair m1 m2 s :
-  dyn_val (APair m1 m2 s).
+  dyn_val (APair m1 m2 s)
+| dyn_val_ptr l :
+  dyn_val (Ptr l).
 
-Reserved Notation "m ~>> n" (at level 30).
+Reserved Notation "m ~>> n" (at level 50).
 Inductive dyn_step : term -> term -> Prop :=
 | dyn_step_appL m m' n :
   m ~>> m' ->
