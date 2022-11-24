@@ -46,7 +46,7 @@ Proof with eauto.
   exists m'. exists n'...
 Qed.
 
-Lemma era_prog m m' A :
+Theorem era_prog m m' A :
   nil ; nil ⊢ m ~ m' : A -> (exists n', m' ~>> n') \/ dyn_val m'.
 Proof with eauto using dyn_step, dyn_val.
   move e1:(nil)=>Γ.
