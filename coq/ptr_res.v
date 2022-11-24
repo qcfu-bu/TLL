@@ -111,6 +111,12 @@ Inductive resolved : term -> Prop :=
   resolved m ->
   resolved (Snd m).
 
+Lemma pad_key H H' s : pad H H' -> H ▷ s -> H' ▷ s.
+Proof with eauto using key.
+  move=>pd. elim: pd s=>//{H'}...
+  move=>H' m pd ih [|] k...
+Qed.
+
 Lemma pad_mergeL H1 H2 H H1p :
   pad H1 H1p -> H1 ∘ H2 => H ->
   exists H2p Hp, pad H2 H2p /\ pad H Hp /\ H1p ∘ H2p => Hp.
