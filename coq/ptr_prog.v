@@ -7,97 +7,89 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Lemma ptr_step_merge H1 H1' H2 H m n :
-  H1 ; m ~>> H1' ; n -> H1 ∘ H2 => H ->
-  exists H' H2', H ; m ~>> H' ; n /\ pad H2 H2' /\ H1' ∘ H2' => H'.
+  H1 ; m ~>> H1' ; n -> H1 ∘ H2 => H -> exists H' n', H ; m ~>> H' ; n'.
 Proof with eauto using ptr_step, pad, merge.
   move=>st. elim: st H2 H=>{H1 H1' m n}.
   { move=>H m [|] l e H2 H0 mrg; subst.
-    { have[->_]:=merge_size mrg.
-      exists (Lam0 Box m U :U H0).
-      exists (Lam0 Box m U :U H2).
+    { exists (Lam0 Box m U :U H0).
+      exists (Ptr (size H0)).
       repeat split... }
-    { have[->_]:=merge_size mrg.
-      exists (Lam0 Box m L :L H0).
-      exists (_: H2).
+    { exists (Lam0 Box m L :L H0).
+      exists (Ptr (size H0)).
       repeat split... } }
   { move=>H m [|] l e H2 H0 mrg; subst.
-    { have[->_]:=merge_size mrg.
-      exists (Lam1 Box m U :U H0).
-      exists (Lam1 Box m U :U H2).
+    { exists (Lam1 Box m U :U H0).
+      exists (Ptr (size H0)).
       repeat split... }
-    { have[->_]:=merge_size mrg.
-      exists (Lam1 Box m L :L H0).
-      exists (_: H2).
+    { exists (Lam1 Box m L :L H0).
+      exists (Ptr (size H0)).
       repeat split... } }
   { move=>H H' m m' n st ihm H2 H0 mrg.
-    have[H1'[H2'[st'[pd mrg']]]]:=ihm _ _ mrg.
-    exists H1'. exists H2'... }
+    have[H0'[mx st']]:=ihm _ _ mrg.
+    exists H0'. exists (App mx n)... }
   { move=>H H' m n n' st ihn H2 H0 mrg.
-    have[H1'[H2'[st'[pd mrg']]]]:=ihn _ _ mrg.
-    exists H1'. exists H2'... }
+    have[H0'[nx st']]:=ihn _ _ mrg.
+    exists H0'. exists (App m nx)... }
   { move=>H H' l m n s fr H2 H0 mrg.
     have[H4[fr' mrg']]:=free_merge fr mrg.
-    exists H4. exists H2... }
+    exists H4. exists (m.[Box/])... }
   { move=>H H' lf la m s fr H2 H0 mrg.
     have[H4[fr' mrg']]:=free_merge fr mrg.
-    exists H4. exists H2... }
+    exists H4. exists (m.[Ptr la/])... }
   { move=>H H' m m' t st ihm H2 H0 mrg.
-    have[H1'[H2'[st'[pd mrg']]]]:=ihm _ _ mrg.
-    exists H1'. exists H2'... }
+    have[H1'[mx st']]:=ihm _ _ mrg.
+    exists H1'. exists (Pair0 mx Box t)... }
   { move=>H l lm t e H2 H0 mrg; subst.
-    have[->_]:=merge_size mrg.
     destruct t.
     { exists (Pair0 (Ptr lm) Box U :{U} H0).
-      exists (Pair0 (Ptr lm) Box U :{U} H2).
+      exists (Ptr (size H0)).
       repeat split... }
     { exists (Pair0 (Ptr lm) Box L :{L} H0).
-      exists (_: H2).
+      exists (Ptr (size H0)).
       repeat split... } }
   { move=>H H' m m' n t st ihm H2 H0 mrg.
-    have[H1'[H2'[st'[pd mrg']]]]:=ihm _ _ mrg.
-    exists H1'. exists H2'... }
+    have[H1'[mx st']]:=ihm _ _ mrg.
+    exists H1'. exists (Pair1 mx n t)... }
   { move=>H H' m n n' t st ihn H2 H0 mrg.
-    have[H1'[H2'[st'[pd mrg']]]]:=ihn _ _ mrg.
-    exists H1'. exists H2'... }
+    have[H1'[nx st']]:=ihn _ _ mrg.
+    exists H1'. exists (Pair1 m nx t)... }
   { move=>H l lm ln t e H2 H0 mrg; subst.
-    have[->_]:=merge_size mrg.
     destruct t.
     { exists (Pair1 (Ptr lm) (Ptr ln) U :{U} H0).
-      exists (Pair1 (Ptr lm) (Ptr ln) U :{U} H2).
+      exists (Ptr (size H0)).
       repeat split... }
     { exists (Pair1 (Ptr lm) (Ptr ln) L :{L} H0).
-      exists (_: H2).
+      exists (Ptr (size H0)).
       repeat split... } }
   { move=>H H' m m' n st ihm H2 H0 mrg.
-    have[H1'[H2'[st'[pd mrg']]]]:=ihm _ _ mrg.
-    exists H1'. exists H2'... }
+    have[H1'[mx st']]:=ihm _ _ mrg.
+    exists H1'. exists (LetIn Box mx n)... }
   { move=>H H' lm x l n t fr H2 H0 mrg.
     have[H4[fr' mrg']]:=free_merge fr mrg.
-    exists H4. exists H2... }
+    exists H4. exists n.[Box,Ptr lm/]... }
   { move=>H H' lm ln l n t fr H2 H0 mrg.
     have[H4[fr' mrg']]:=free_merge fr mrg.
-    exists H4. exists H2... }
+    exists H4. exists n.[Ptr ln,Ptr lm/]... }
   { move=>H m n t l e H2 H0 mrg; subst.
-    have[->_]:=merge_size mrg.
     destruct t.
     { exists (APair m n U :{U} H0).
-      exists (APair m n U :{U} H2).
+      exists (Ptr (size H0)).
       repeat split... }
     { exists (APair m n L :{L} H0).
-      exists (_: H2).
+      exists (Ptr (size H0)).
       repeat split... } }
   { move=>H H' m m' st ihm H2 H0 mrg.
-    have[H1'[H2'[st'[pd mrg']]]]:=ihm _ _ mrg.
-    exists H1'. exists H2'... }
+    have[H1'[mx st']]:=ihm _ _ mrg.
+    exists H1'. exists (Fst mx)... }
   { move=>H H' m m' st ihm H2 H0 mrg.
-    have[H1'[H2'[st'[pd mrg']]]]:=ihm _ _ mrg.
-    exists H1'. exists H2'... }
+    have[H1'[mx st']]:=ihm _ _ mrg.
+    exists H1'. exists (Snd mx)... }
   { move=>H H' m n l t fr H2 H0 mrg.
     have[H4[fr' mrg']]:=free_merge fr mrg.
-    exists H4. exists H2... }
+    exists H4. exists m... }
   { move=>H H' m n l t fr H2 H0 mrg.
     have[H4[fr' mrg']]:=free_merge fr mrg.
-    exists H4. exists H2... }
+    exists H4. exists n... }
 Qed.
 
 Lemma free_pair0_canonical H H' m n l t :
@@ -167,11 +159,11 @@ Proof with eauto using ptr_step.
     { have//:=era_box_form ern. }
     { left. have[wr1 wr2]:=wr_merge_inv H5 wr.
       have[[H1'[m1 st1]]|[l1 e1]]:=ihm _ _ erefl erefl H8 wr1.
-      { have[H'[H2'[st'[pd mrg']]]]:=ptr_step_merge st1 H5.
-        exists H'. exists (App m1 n0)... }
+      { have[H'[m0' st']]:=ptr_step_merge st1 H5.
+        exists H'. exists (App m0' n0)... }
       { subst. have[[H2'[m2 st2]]|[l2 e2]]:=ihn _ _ erefl erefl H9 wr2.
-        { have[H'[H1'[st'[pd mrg']]]]:=ptr_step_merge st2 (merge_sym H5).
-          exists H'. exists (App (Ptr l1) m2)... }
+        { have[H'[m2' st']]:=ptr_step_merge st2 (merge_sym H5).
+          exists H'. exists (App (Ptr l1) m2')... }
         { subst.
           have vm':=wr_resolve_ptr wr1 H8.
           have vm:=era_dyn_val erm vm'.
@@ -192,11 +184,11 @@ Proof with eauto using ptr_step.
     subst; inv mrg. inv rs.
     { left. have[wr1 wr2]:=wr_merge_inv H8 wr.
       have[[H1'[m1 st1]]|[l1 e1]]:=ihm _ _ erefl erefl H9 wr1.
-      { have[H'[H2'[st'[pd mrg']]]]:=ptr_step_merge st1 H8.
-        exists H'. exists (Pair1 m1 n0 t)... }
+      { have[H'[m0' st']]:=ptr_step_merge st1 H8.
+        exists H'. exists (Pair1 m0' n0 t)... }
       { subst. have[[H2'[m2 st2]]|[l2 e2]]:=ihn _ _ erefl erefl H10 wr2.
-        { have[H'[H1'[st'[pd mrg']]]]:=ptr_step_merge st2 (merge_sym H8).
-          exists H'. exists (Pair1 (Ptr l1) m2 t)... }
+        { have[H'[n0' st']]:=ptr_step_merge st2 (merge_sym H8).
+          exists H'. exists (Pair1 (Ptr l1) n0' t)... }
         { subst.
           exists (Pair1 (Ptr l1) (Ptr l2) t :{t} H).
           exists (Ptr (size H))... } } }
@@ -205,8 +197,8 @@ Proof with eauto using ptr_step.
     subst; inv mrg. inv rs.
     { left. have[wr1 wr2]:=wr_merge_inv H5 wr.
       have[[H1'[m1 st]]|[l e]]:=ihm _ _ erefl erefl H8 wr1.
-      { have[H'[H2'[st'[pd mrg']]]]:=ptr_step_merge st H5.
-        exists H'. exists (LetIn Box m1 n0)... }
+      { have[H'[m0' st']]:=ptr_step_merge st H5.
+        exists H'. exists (LetIn Box m0' n0)... }
       { subst.
         have vm':=wr_resolve_ptr wr1 H8.
         have vm:=era_dyn_val erm vm'.
@@ -221,8 +213,8 @@ Proof with eauto using ptr_step.
     subst; inv mrg. inv rs.
     { left. have[wr1 wr2]:=wr_merge_inv H5 wr.
       have[[H1'[m1 st]]|[l e]]:=ihm _ _ erefl erefl H8 wr1.
-      { have[H'[H2'[st'[pd mrg']]]]:=ptr_step_merge st H5.
-        exists H'. exists (LetIn Box m1 n0)... }
+      { have[H'[m0' st']]:=ptr_step_merge st H5.
+        exists H'. exists (LetIn Box m0' n0)... }
       { subst.
         have vm':=wr_resolve_ptr wr1 H8.
         have vm:=era_dyn_val erm vm'.
