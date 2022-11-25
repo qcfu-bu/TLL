@@ -6,10 +6,6 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Declare Scope sort_scope.
-Delimit Scope sort_scope with srt.
-Open Scope sort_scope.
-
 Inductive term : Type :=
 | Var (x : var)
 | Ty
