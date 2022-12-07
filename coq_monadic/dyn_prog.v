@@ -174,7 +174,7 @@ Proof with eauto using dyn_mstep, dyn_mval.
   { move=>Γ Δ A B m n s tym ihm tyn e1 e2 R. subst. left.
     have[[x st]|vl]:=dyn_prog (dyn_app0 tym tyn).
     { exists R. exists x... }
-    { inv vl. exists R.+1. exists (Return (Num R))... } }
+    { inv vl. have[eq _]:=dyn_rand_inv tym. exfalso. solve_conv. } }
   { move=>Γ Δ1 Δ2 Δ A B m n s mrg tym ihm tyn ihn e1 e2 R. subst. left.
     have[[x st]|vl]:=dyn_prog (dyn_app1 mrg tym tyn).
     { exists R. exists x... }

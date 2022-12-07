@@ -208,6 +208,29 @@ Proof with eauto using era_agree_subst, era_agree_subst_key, era_type.
     have{}ihm:=ihm _ _ _ _ agra.
     have{}ihn:=ihn _ _ _ _ agrb.
     apply: era_app1... }
+  { move=>Γ Δ k wf Γ1 Δ1 σ1 σ2 agr. asimpl...
+    apply: era_it...
+    apply: dyn_substitution_wf...
+    apply: era_dyn_agree_subst... }
+  { move=>Γ Δ n k wf Γ1 Δ1 σ1 σ2 agr. asimpl.
+    apply: era_num...
+    apply: dyn_substitution_wf...
+    apply: era_dyn_agree_subst... }
+  { move=>Γ Δ k wf Γ1 Δ1 σ1 σ2 agr. asimpl.
+    apply: era_rand...
+    apply: dyn_substitution_wf...
+    apply: era_dyn_agree_subst... }
+  { move=>Γ Δ m m' A erm ihm Γ1 Δ1 σ1 σ2 agr. asimpl.
+    apply: era_return... }
+  { move=>Γ Δ1 Δ2 Δ m m' n n' A B s t mrg tyB
+      erm ihm ern ihn Γ1 Δ0 σ1 σ2 agr. asimpl.
+    have wf:=dyn_type_wf (era_dyn_type ern). inv wf.
+    have[Δa[Δb[mrg0[agra agrb]]]]:=era_agree_subst_merge agr mrg.
+    have{}tyB:=sta_substitution tyB (era_sta_agree_subst agr).
+    have{}ihm:=ihm _ _ _ _ agra.
+    have{}ihn:=ihn _ _ _ _ (era_agree_subst_ty agrb H4).
+    apply: era_letin...
+    asimpl in ihn. asimpl... }
   { move=>Γ Δ A B m m' s eq tym ihm tyB Γ1 Δ1 σ1 σ2 agr.
     apply: era_conv.
     apply: sta_conv_subst...

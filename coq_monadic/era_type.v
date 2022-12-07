@@ -30,6 +30,27 @@ Inductive era_type : sta_ctx -> dyn_ctx -> term -> term -> term -> Prop :=
   Γ ; Δ1 ⊢ m ~ m' : Pi1 A B s ->
   Γ ; Δ2 ⊢ n ~ n' : A ->
   Γ ; Δ ⊢ App m n ~ App m' n' : B.[n/]
+| era_it Γ Δ :
+  Δ ▷ U ->
+  dyn_wf Γ Δ ->
+  Γ ; Δ ⊢ It ~ It : Unit
+| era_num Γ Δ n :
+  Δ ▷ U ->
+  dyn_wf Γ Δ ->
+  Γ ; Δ ⊢ Num n ~ Num n : Nat
+| era_rand Γ Δ :
+  Δ ▷ U ->
+  dyn_wf Γ Δ ->
+  Γ ; Δ ⊢ Rand ~ Rand : Pi1 Unit (IO Nat) U
+| era_return Γ Δ m m' A :
+  Γ ; Δ ⊢ m ~ m' : A ->
+  Γ ; Δ ⊢ Return m ~ Return m' : IO A
+| era_letin Γ Δ1 Δ2 Δ m m' n n' A B s t :
+  Δ1 ∘ Δ2 => Δ ->
+  Γ ⊢ B : Sort t ->
+  Γ ; Δ1 ⊢ m ~ m' : IO A ->
+  (A :: Γ) ; (A :{s} Δ2) ⊢ n ~ n' : IO B.[ren (+1)] ->
+  Γ ; Δ ⊢ LetIn m n ~ LetIn m' n' : IO B
 | era_conv Γ Δ A B m m' s :
   A === B ->
   Γ ; Δ ⊢ m ~ m' : A ->
@@ -56,6 +77,12 @@ Proof with eauto using era_type.
   { move=>Γ Δ1 Δ2 Δ A B m n s mrg tym[m' erm]tyn[n' ern].
     exists (App m' n').
     apply: era_app1... }
+  { move=>Γ Δ k wf. exists It... }
+  { move=>Γ Δ n k wf. exists (Num n)... }
+  { move=>Γ Δ k wf. exists Rand... }
+  { move=>Γ Δ m A tym[m' erm]. exists (Return m')... }
+  { move=>Γ Δ1 Δ2 Δ m n A B s t mrg tyB tym[m' erm]tyn[n' ern].
+    exists (LetIn m' n')... }
   { move=>Γ Δ A B m s eq tym[m' er]tyB.
     exists m'. apply: era_conv... }
 Qed.

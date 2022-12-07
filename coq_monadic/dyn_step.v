@@ -60,10 +60,13 @@ Inductive dyn_mstep : (nat * term) -> (nat * term) -> Prop :=
 | dyn_mstep_letin R T m m' n :
   R ; m ~>> T ; m' ->
   R ; LetIn m n ~>> T ; LetIn m' n
-| dyn_mstep_letret R T v n :
+| dyn_mstep_letret R v n :
   dyn_val v ->
-  R ; LetIn (Return v) n ~>> T ; n.[v/]
+  R ; LetIn (Return v) n ~>> R ; n.[v/]
 where "R ; m ~>> T ; n" := (dyn_mstep (R, m) (T, n)).
+
+Lemma dyn_mval_val m : dyn_mval m -> dyn_val m.
+Proof with eauto using dyn_val. elim=>{m}... Qed.
 
 Lemma dyn_val_terminal m : dyn_val m -> ~exists n, m ~>> n.
 Proof.

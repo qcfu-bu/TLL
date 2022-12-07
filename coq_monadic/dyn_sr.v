@@ -135,10 +135,10 @@ Proof with eauto.
   apply: dyn_sr...
 Qed.
 
-Theorem dyn_msr Γ Δ m n A S T :
-  Γ ; Δ ⊢ m : A -> S ; m ~>> T ; n -> Γ ; Δ ⊢ n : A.
+Theorem dyn_msr Γ Δ m n A R T :
+  Γ ; Δ ⊢ m : A -> R ; m ~>> T ; n -> Γ ; Δ ⊢ n : A.
 Proof with eauto using dyn_type, dyn_step, dyn_wf, dyn_sr.
-  move=>ty. elim: ty n S T=>{Γ Δ m A}...
+  move=>ty. elim: ty n R T=>{Γ Δ m A}...
   { move=>Γ Δ x s A wf shs dhs n R T st. inv st. inv H0. }
   { move=>Γ Δ A B m s k tym ihm n R T st. inv st. inv H0. }
   { move=>Γ Δ A B m s t k tym ihm n R T st. inv st. inv H0. }

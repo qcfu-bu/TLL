@@ -38,6 +38,25 @@ Proof with eauto using era_type, dyn_agree_ren, dyn_agree_ren_key.
     have{}ihn:=ihn _ _ _ agr2.
     apply: era_app1...
     asimpl in ihm... }
+  { move=>Γ Δ k wf Γ' Δ' ξ agr. asimpl.
+    apply: era_it...
+    apply: dyn_rename_wf... }
+  { move=>Γ Δ n k wf Γ' Δ' ξ agr. asimpl.
+    apply: era_num...
+    apply: dyn_rename_wf... }
+  { move=>Γ Δ k wf Γ' Δ' ξ agr. asimpl.
+    apply: era_rand...
+    apply: dyn_rename_wf... }
+  { move=>Γ Δ m m' A tym ihm Γ' Δ' ξ agr. asimpl.
+    apply: era_return... }
+  { move=>Γ Δ1 Δ2 Δ m m' n n' A B s t mrg
+      tyB tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
+    have wf:=dyn_type_wf (era_dyn_type tyn). inv wf.
+    have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg.
+    have tyB':=sta_rename tyB (dyn_sta_agree_ren agr).
+    have tyn':=ihn _ _ _ (dyn_agree_ren_ty H4 agr2).
+    apply: era_letin...
+    asimpl in tyn'. asimpl... }
   { move=>Γ Δ A B m m' s eq tym ihm tyB Γ' Δ' ξ agr.
     apply: era_conv.
     apply: sta_conv_subst...
