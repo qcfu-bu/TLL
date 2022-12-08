@@ -128,10 +128,8 @@ Proof with eauto using dyn_step, dyn_val.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty. elim: ty e1 e2=>{Γ Δ m A}.
   { move=>Γ Δ x s A wf shs dhs e1 e2; subst. inv shs. }
-  { move=>Γ Δ A B m s k tym ihm e1 e2; subst.
-    right... }
-  { move=>Γ Δ A B m s t k tym ihm e1 e2; subst.
-    right... }
+  { move=>Γ Δ A B m s k tym ihm e1 e2; subst. right... }
+  { move=>Γ Δ A B m s t k tym ihm e1 e2; subst. right... }
   { move=>Γ Δ A B m n s tym ihm tyn e1 e2; subst.
     have[[x st]|vl]:=ihm erefl erefl.
     { left. exists (App x n)... }
