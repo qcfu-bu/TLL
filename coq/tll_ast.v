@@ -39,7 +39,7 @@ Inductive term : Type :=
 | Snd (m : term) (* π2 m *)
 | Id (A m n : term)
 | Refl (m : term)
-| J (A : {bind 3 of term}) (H : {bind term}) (P : term) (* R≡([x,y,p]A,[z]H,P) *)
+| J (A : {bind 3 of term}) (H : {bind term}) (P : term) (* R=([x,y,p]A,[z]H,P) *)
 | Box
 | Ptr (l : nat).
 
@@ -47,3 +47,11 @@ Instance Ids_term : Ids term. derive. Defined.
 Instance Rename_term : Rename term. derive. Defined.
 Instance Subst_term : Subst term. derive. Defined.
 Instance substLemmas_term : SubstLemmas term. derive. Qed.
+
+Lemma sort_leq_equiv s t :
+  ((t = U) -> (s = U)) <-> s ⊑ t.
+Proof with eauto using sort_leq.
+  destruct t; destruct s; split...
+  move=>h. have//:=h erefl.
+  move=>h. inv h.
+Qed.
