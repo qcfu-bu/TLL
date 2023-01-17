@@ -8,10 +8,11 @@ Unset Printing Implicit Defensive.
 
 Inductive agree_resolve :
   dyn_ctx -> dyn_ctx -> (var -> term) -> (var -> term) -> nat -> Prop :=
-| agree_resolve_nil H :
+| agree_resolve_nil Δ H :
   H ▷ U ->
+  dyn_empty Δ ->
   wr_heap H ->
-  agree_resolve nil H ids ids 0
+  agree_resolve Δ H ids ids 0
 | agree_resolve_upTy Δ H σ σ' A x s :
   agree_resolve Δ H σ σ' x ->
   agree_resolve (A :{s} Δ) H (up σ) (up σ') x.+1
@@ -39,7 +40,7 @@ Lemma agree_resolve_key Δ H σ σ' x s :
   agree_resolve Δ H σ σ' x -> Δ ▷ s -> H ▷ s.
 Proof with eauto using key, key_impure, merge_pure.
   move=>agr. elim: agr s=>//{Δ H σ σ' x}.
-  { move=>H k wr [|]... }
+  { move=>Δ H k dN wr [|]... }
   { move=>Δ H σ σ' A x s agr ih [|] k... inv k... }
   { move=>Δ H σ σ' x agr ih [|] k... inv k... }
   { move=>Δ H1 H2 H σ σ' m m' A mrg k1 wr rs agr ih [|] k2... inv k2... }
@@ -183,9 +184,10 @@ Lemma agree_resolve_merge_inv Δ1 Δ2 Δ H σ σ' x :
     agree_resolve Δ2 H2 σ σ' x.
 Proof with eauto using merge, agree_resolve.
   move=>agr. elim: agr Δ1 Δ2=>{Δ H σ σ' x}.
-  { move=>H k wr Δ1 Δ2 mrg. inv mrg.
-    have[H1[H2[k1[k2 mrg]]]]:=pure_split k.
-    have[wr1 wr2]:=wr_merge_inv mrg wr.
+  { move=>Δ H k dN wr Δ1 Δ2 mrg.
+    have[dN1 dN2]:=dyn_empty_split mrg dN.
+    have[H1[H2[k1[k2 mrg']]]]:=pure_split k.
+    have[wr1 wr2]:=wr_merge_inv mrg' wr.
     exists H1. exists H2... }
   { move=>Δ H σ σ' A x s agr ih Δ1 Δ2 mrg. inv mrg.
     { have[H1[H2[mrg[agr1 agr2]]]]:=ih _ _ H3. exists H1. exists H2... }
