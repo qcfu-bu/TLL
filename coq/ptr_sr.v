@@ -276,7 +276,7 @@ Proof with eauto 7 using
           constructor.
           apply: resolve_wkN... }
         { constructor... } } } }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 tyS erm ihm ern ihn H1 H2 H H' z z' dN rs wr mrg2 st; subst.
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 tyS erm ihm ern ihn H1 H2 H H' z z' dN rs wr mrg2 st.
     have[s[r[ord1[ord2[tyA[tyB _]]]]]]:=sta_sig1_inv tyS.
     have[dN1 dN2]:=dyn_empty_split mrg1 dN. inv rs; inv st.
     { have[H4[mrg3 mrg4]]:=merge_splitR mrg2 H10.
