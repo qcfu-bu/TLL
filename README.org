@@ -78,18 +78,18 @@ s ⊑ t    Γ ⊢ A : s    Γ, x : A ⊢ B : r
 
 Γ ⊢ A : s    Γ ⊢ m : A    Γ ⊢ n : A
 ——————————————————————————————————–
-Γ ⊢ m ≡A n : U
+Γ ⊢ m =A n : U
 
 Γ ⊢ m : A
 —————————–———————–—
-Γ ⊢ refl m : m ≡A m
+Γ ⊢ refl m : m =A m
 
-Γ, x : A, y : A, p : x ≡A y ⊢ B : s
-Γ, z : A ⊢ H : B[z/x,z/y,refl z/p]    Γ ⊢ P : m ≡A n
-—————————————————–———–——————————————————————————————
-Γ ⊢ J B H P : B[m/x,n/y,P/p]
+Γ, x : A, p : m =A y ⊢ B : s
+Γ ⊢ H : B[m/x,refl m/p]    Γ ⊢ P : m =A n
+—————————————————–———–————————————————————
+Γ ⊢ rw B H P : B[n/x,P/p]
 
-Γ ⊢ B : s    Γ ⊢ m : A    A = B
+Γ ⊢ B : s    Γ ⊢ m : A    A ≡ B
 ———————————————————————————————
 Γ ⊢ m : B
 #+end_src
@@ -148,19 +148,24 @@ s ⊑ t    Γ ⊢ A : s    Γ, x : A ⊢ B : r
 —————————————————
 Γ; Δ ⊢ snd m : B
 
-Γ ⊢ B : s    Γ; Δ ⊢ m : A     A = B
+Γ, x : A, p : m =A y ⊢ B : s
+Γ; Δ ⊢ H : B[m/x,refl m/p]    Γ ⊢ P : m =A n
+———————————————————–———–————————————————————
+Γ; Δ ⊢ rw B H P : B[n/x,P/p]
+
+Γ ⊢ B : s    Γ; Δ ⊢ m : A     A ≡ B
 ———————————————————————————————————
 Γ; Δ ⊢ m : B
 #+end_src
 
 ** Theorems
-- *Translation*\\
+- *Strong Normalization*\\
+  For static typing ~Γ ⊢ m : A~, ~m~ is strongly normalizing.
+- *Sort Uniqueness*\\
+  If there are static typings ~Γ ⊢ A : s~ and ~Γ ⊢ A : t~, then ~s = t~.
+- *Reflection*\\
   For dynamic typing ~Γ; Δ ⊢ m : A~ then static typing ~Γ ⊢ m : A~ is well-typed.
 - *Validity*\\
   For dynamic typing ~Γ; Δ ⊢ m : A~, there exists sort ~s~ such that static typing ~Γ ⊢ A : s~ is well-typed.
 - *Subject Reduction*\\
-  For dynamic typing ~Γ; Δ ⊢ m : A~, if there is reduction ~m ↝ n~ then ~Γ; Δ ⊢ n : A~ is well-typed.
-- *Sort Uniqueness*\\
-  If there are static typings ~Γ ⊢ A : s~ and ~Γ ⊢ A : t~, then ~s = t~.
-- *Strong Normalization*\\
-  For dynamic typing ~Γ; Δ ⊢ m : A~, ~m~ is strongly normalizing.
+  For dynamic typing ~ϵ; ϵ ⊢ m : A~, if there is reduction ~m ~>> n~ then ~ϵ; ϵ ⊢ n : A~ is well-typed.

@@ -32,9 +32,9 @@
 \newcommand{\apair}[3]{({#1}, {#2})_{#3}}
 \newcommand{\projL}[1]{\pi_{1}\,{#1}}
 \newcommand{\projR}[1]{\pi_{2}\,{#1}}
-\newcommand{\iden}[3]{{#2}\equiv_{#1}{#3}}
+\newcommand{\iden}[3]{{#2}=_{#1}{#3}}
 \newcommand{\refl}[1]{\text{refl}\;{#1}}
-\newcommand{\idenElim}[3]{\text{R}_{#1}^{\equiv}({#2},{#3})}
+\newcommand{\idenElim}[3]{\text{R}_{#1}^{=}({#2},{#3})}
 \newcommand{\dotcup}{\ensuremath{\mathbin{\mathaccent\cdot\cup}}}
 \newcommand{\fresh}[1]{\textit{fresh}({#1})}
 \newcommand{\val}{\text{ value}}
@@ -66,7 +66,7 @@
               &                 & \;| & $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$
                                         | $\pairR{m}{n}{t}$ | $\pairI{m}{n}{t}$ | $\apair{m}{n}{t}$  \\
               &                 & \;| & $m\ n$ | $\SigElim{[z]A}{m}{[x,y]n}$ | $\projL{m}$ | $\projR{m}$ \\
-              &                 & \;| & $\iden{A}{m}{n}$ | $\refl{m}$ | $\idenElim{[x,y,p]A}{[z]H}{P}$
+              &                 & \;| & $\iden{A}{m}{n}$ | $\refl{m}$ | $\idenElim{[x,p]A}{H}{P}$
                                         | $\square$ \\
     values    & $u, v$          & ::= & $x$ | $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$
                                         | $\pairR{u}{v}{t}$ | $\pairI{v}{m}{t}$ | $\apair{m}{n}{t}$
@@ -204,15 +204,15 @@
   { \Gamma \vdash \refl{m} : \iden{A}{m}{m} }
 
   \inferrule
-  { \Gamma, x : A, y : A, p : \iden{A}{x}{y} \vdash B : s \\
-    \Gamma, z : A \vdash H : B[z/x,z/y,\refl{z}/p] \\
+  { \Gamma, x : A, p : \iden{A}{m}{x} \vdash B : s \\
+    \Gamma \vdash H : B[m/x,\refl{m}/p] \\
     \Gamma \vdash P : \iden{A}{m}{n} }
-  { \Gamma \vdash \idenElim{[x,y,p]B}{[z]H}{P} : B[m/x,n/y,P/p] }
+  { \Gamma \vdash \idenElim{[x,p]B}{H}{P} : B[n/x,P/p] }
 
   \inferrule
   { \Gamma \vdash B : s \\
     \Gamma \vdash m : A \\
-    A \simeq B }
+    A \equiv B }
   { \Gamma \vdash m : B }
 \end{mathpar}
 
@@ -342,9 +342,15 @@
   { \Gamma ; \Delta \vdash \projR{m} : B }
 
   \inferrule
+  { \Gamma, x : A, p : \iden{A}{m}{x} \vdash B : s \\
+    \Gamma ; \Delta \vdash H : B[m/x,\refl{m}/p] \\
+    \Gamma \vdash P : \iden{A}{m}{n} }
+  { \Gamma ; \Delta \vdash \idenElim{[x,p]B}{H}{P} : B[n/x,P/p] }
+
+  \inferrule
   { \Gamma \vdash B : s \\
     \Gamma ; \Delta \vdash m : A \\
-    A \simeq B }
+    A \equiv B }
   { \Gamma ; \Delta \vdash m : B }
 \end{mathpar}
 
@@ -400,14 +406,14 @@
     \Gamma ; \Delta_1 \vdash m \sim m' : \SigR{t}{x : A}{B} \\
     \Gamma, x : A, y : B ; \Delta_2, x \ty{r1} A, y \ty{r2} B \vdash n \sim n' : C[\pairR{x}{y}{t}/z] }
   { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash
-    \SigElim{[z]C}{m}{[x,y]n} \sim \SigElim{[z]\square}{m'}{[x,y]n'} : C[m/z] }
+    \SigElim{[z]C}{m}{[x,y]n} \sim \SigElim{\square}{m'}{[x,y]n'} : C[m/z] }
 
   \inferrule
   { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
     \Gamma ; \Delta_1 \vdash m \sim m' : \SigI{t}{x : A}{B} \\
     \Gamma, x : A, y : B ; \Delta_2, x \ty{r} A \vdash n \sim n' : C[\pairI{x}{y}{t}/z] }
   { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash
-    \SigElim{[z]C}{m}{[x,y]n} \sim \SigElim{[z]\square}{m'}{[x,y]n'} : C[m/z] }
+    \SigElim{[z]C}{m}{[x,y]n} \sim \SigElim{\square}{m'}{[x,y]n'} : C[m/z] }
 
   \inferrule
   { \Gamma ; \Delta \vdash m \sim m' : A \\
@@ -424,9 +430,15 @@
   { \Gamma ; \Delta \vdash \projR{m} \sim \projR{m'} : B }
 
   \inferrule
+  { \Gamma, x : A, p : \iden{A}{m}{x} \vdash B : s \\
+    \Gamma ; \Delta \vdash H \sim H' : B[m/x,\refl{m}/p] \\
+    \Gamma \vdash P : \iden{A}{m}{n} }
+  { \Gamma ; \Delta \vdash \idenElim{[x,p]B}{H}{P} \sim \idenElim{\square}{H'}{\square} : B[n/x,P/p] }
+
+  \inferrule
   { \Gamma \vdash B : s \\
     \Gamma ; \Delta \vdash m \sim m' : A \\
-    A \simeq B }
+    A \equiv B }
   { \Gamma ; \Delta \vdash m \sim m' : B }
 \end{mathpar}
 
@@ -581,34 +593,34 @@
 
   \inferrule
   { A \leadsto A' }
-  { \idenElim{[x,y,p]A}{[z]H}{P} \leadsto \idenElim{[x,y,p]A'}{[z]H}{P} }
+  { \idenElim{[x,p]A}{H}{P} \leadsto \idenElim{[x,p]A'}{H}{P} }
 
   \inferrule
   { H \leadsto H' }
-  { \idenElim{[x,y,p]A}{[z]H}{P} \leadsto \idenElim{[x,y,p]A}{[z]H'}{P} }
+  { \idenElim{[x,p]A}{H}{P} \leadsto \idenElim{[x,p]A}{H'}{P} }
 
   \inferrule
   { P \leadsto P' }
-  { \idenElim{[x,y,p]A}{[z]H}{P} \leadsto \idenElim{[x,y,p]A}{[z]H}{P'} }
+  { \idenElim{[x,p]A}{H}{P} \leadsto \idenElim{[x,p]A}{H}{P'} }
 
   \inferrule
   { }
-  { \idenElim{[x,y,p]A}{[z]H}{\refl{m}} \leadsto H[m/z] }
+  { \idenElim{[x,p]A}{H}{\refl{m}} \leadsto H }
 \end{mathpar}
 
 \subsection*{Conversion}
 \begin{mathpar}
   \inferrule
   {  }
-  { A \simeq A }
+  { A \equiv A }
 
   \inferrule
-  { A \simeq B \\ B \leadsto C }
-  { A \simeq C }
+  { A \equiv B \\ B \leadsto C }
+  { A \equiv C }
 
   \inferrule
-  { A \simeq B \\ C \leadsto B }
-  { A \simeq C }
+  { A \equiv B \\ C \leadsto B }
+  { A \equiv C }
 \end{mathpar}
 
 \newpage
@@ -699,6 +711,10 @@
   \inferrule
   { }
   { \projR{\apair{m}{n}{t}} \Leadsto n }
+
+  \inferrule
+  { }
+  { \idenElim{[x,p]A}{H}{P} \Leadsto H }
 \end{mathpar}
 
 \newpage
@@ -710,8 +726,8 @@
   If $m \leadsto^{*} m_{1}$ and $m \leadsto^{*} m_{2}$, then there exists $n$ such that $m_{1} \leadsto^{*} n$ and $m_{2} \leadsto^{*} n$.
 \end{theorem}
 
-\begin{theorem}[Conversion]
-  Conversion $\simeq$ is an equivalence relation.
+\begin{theorem}[Equality]
+  Definitional equality $\equiv$ is an equivalence relation.
 \end{theorem}
 
 \begin{theorem}[Static Validity]
@@ -740,7 +756,7 @@
 \end{theorem}
 
 \begin{theorem}[Dynamic Subject Reduction]
-  If there is dynamic typing $\Gamma ; \Delta \vdash m : A$ and dynamic reduction $m \Leadsto n$, then $\Gamma ; \Delta \vdash n : A$ is derivable.
+  If there is dynamic typing $\epsilon ; \epsilon \vdash m : A$ and dynamic reduction $m \Leadsto n$, then $\epsilon ; \epsilon \vdash n : A$ is derivable.
 \end{theorem}
 
 \begin{theorem}[Dynamic Progress]
@@ -753,11 +769,11 @@
 \end{theorem}
 
 \begin{theorem}[Erasure Subject Reduction]
-  For any erasure relation $\Gamma ; \Delta \vdash m \sim m' : A$ and dynamic reduction $m' \Leadsto n'$, there exists $n$ such that the following diagram commutes.
+  For any erasure relation $\epsilon ; \epsilon \vdash m \sim m' : A$ and dynamic reduction $m' \Leadsto n'$, there exists $n$ such that the following diagram commutes.
   \begin{center}
     \begin{tikzcd}
-      {\Gamma ; \Delta } &[-18pt] m &[-7pt] {m'} &[-20pt] A \\
-      {\Gamma ; \Delta} &[-18pt] n &[-7pt] {n'} &[-20pt] A
+      {\epsilon ; \epsilon} &[-18pt] m &[-7pt] {m'} &[-20pt] A \\
+      {\epsilon ; \epsilon} &[-18pt] n &[-7pt] {n'} &[-20pt] A
       \arrow["\sim"{description}, draw=none, from=1-2, to=1-3]
       \arrow["\vdash"{description}, draw=none, from=1-1, to=1-2]
       \arrow["{:}"{description}, draw=none, from=1-3, to=1-4]
