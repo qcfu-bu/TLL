@@ -23,8 +23,8 @@ Proof with eauto.
 Qed.
 
 Lemma era_prog m m' A :
-  nil ; nil ⊢ m ~ m' : A -> (exists n', m' ~>>> n') \/ dyn_val m'.
-Proof with eauto using era_step, dyn_val.
+  nil ; nil ⊢ m ~ m' : A -> (exists n', m' ~>> n') \/ dyn_val m'.
+Proof with eauto using dyn_step, dyn_val.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty. elim: ty e1 e2=>{Γ Δ m m' A}.
   { move=>Γ Δ x s A wf shs dhs e1 e2; subst. inv shs. }

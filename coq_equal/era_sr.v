@@ -16,7 +16,7 @@ Proof with eauto using dyn_val.
 Qed.
 
 Theorem era_sr m m' n' A :
-  nil ; nil ⊢ m ~ m' : A -> m' ~>>> n' ->
+  nil ; nil ⊢ m ~ m' : A -> m' ~>> n' ->
   exists2 n, m ~>> n & nil ; nil ⊢ n ~ n' : A.
 Proof with eauto using dyn_step, era_type, merge.
   move e1:(nil)=>Γ.
@@ -91,7 +91,7 @@ Proof with eauto using dyn_step, era_type, merge.
 Qed.
 
 Corollary era_rd m m' n' A :
-  nil ; nil ⊢ m ~ m' : A -> m' ~>>>* n' ->
+  nil ; nil ⊢ m ~ m' : A -> m' ~>>* n' ->
   exists2 n, m ~>>* n & nil ; nil ⊢ n ~ n' : A.
 Proof with eauto.
   move=>ty rd. elim: rd m A ty=>{n'}...

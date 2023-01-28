@@ -24,8 +24,7 @@ Inductive dyn_step : term -> term -> Prop :=
 | dyn_step_beta1 A m v s :
   dyn_val v ->
   App (Lam1 A m s) v ~>> m.[v/]
-| dyn_step_rwE A H P m :
-  P ~>* Refl m ->
+| dyn_step_rwE A H P :
   Rw A H P ~>> H
 where "m ~>> n" := (dyn_step m n).
 

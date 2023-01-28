@@ -1,24 +1,42 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS dyn_inv.
+Require Export AutosubstSsr ARS sta_prog dyn_inv.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma dyn_sta_red m n : m ~>> n -> m ~>* n.
+Lemma dyn_sta_red m n A :
+  nil ⊢ m : A -> m ~>> n -> m ~>* n.
 Proof with eauto using sta_step.
-  elim=>{m n}...
-  { move=>m m' n st ih.
-    apply: sta_red_app... }
-  { move=>m m' n st ih.
-    apply: sta_red_app... }
-  { move=>A m n s. apply: star1... }
-  { move=>A m n s vl. apply: star1... }
-  { move=>A H P m rd.
+  move e:(nil)=>Γ ty. elim: ty e n=>{Γ m A}.
+  { move=>Γ s wf e n st. inv st. }
+  { move=>Γ x A wf shs e n st. inv st. }
+  { move=>Γ A B s r t tyA ihA tyB ihB e n st. inv st. }
+  { move=>Γ A B s r t tyA ihA tyB ihB e n st. inv st. }
+  { move=>Γ A B m s tym ihm e n st. inv st. }
+  { move=>Γ A B m s tym ihm e n st. inv st. }
+  { move=>Γ A B m n s tym ihm tyn ihn e n0 st. inv st.
+    { apply: sta_red_app... }
+    { apply: sta_red_app... }
+    { apply: star1... }
+    { apply: star1... } }
+  { move=>Γ A B m n s tym ihm tyn ihn e n0 st. inv st.
+    { apply: sta_red_app... }
+    { apply: sta_red_app... }
+    { apply: star1... }
+    { apply: star1... } }
+  { move=>Γ A m n s tyA ihA tym ihm tyn ihn e n0 st. inv st. }
+  { move=>Γ A m tym ihm e n st. inv st. }
+  { move=>Γ A B H P m n s tyB ihB tyH ihH tyP ihP e n0 st. inv st.
+    have[P0[rdP vlP]]:=sta_vn tyP.
+    have tyP0:=sta_rd tyP rdP.
+    have[n1 e]:=sta_id_canonical tyP0 (convR _ _) vlP. subst.
     apply: star_trans.
     apply: sta_red_rw...
     apply: star1... }
+  { move=>Γ A B m s eq tym ihm tyB ihB e n st. subst.
+    apply: ihm... }
 Qed.
 
 Lemma dyn_has_type Γ Δ x s A :
@@ -71,17 +89,19 @@ Proof with eauto using key_impure.
     have/sort_inj<-:=sta_uniq tyCr tyCU... }
 Qed.
 
-Theorem dyn_sr Γ Δ m n A :
-  Γ ; Δ ⊢ m : A -> m ~>> n -> Γ ; Δ ⊢ n : A.
-Proof with eauto using dyn_type, dyn_step, dyn_wf.
-  move=>ty. elim: ty n=>{Γ Δ m A}...
-  { move=>Γ Δ x s A wf shs dhs n st. inv st. }
-  { move=>Γ Δ A B m s k tym ihm n st. inv st. }
-  { move=>Γ Δ A B m s t k tym ihm n st. inv st. }
-  { move=>Γ Δ A B m n s tym ihm tyn n0 st. inv st.
-    { have tym':=ihm _ H2.
+
+Theorem dyn_sr m n A :
+  nil ; nil ⊢ m : A -> m ~>> n -> nil ; nil ⊢ n : A.
+Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
+  move e1:(nil)=>Γ.
+  move e2:(nil)=>Δ ty. elim: ty e1 e2 n=>{Γ Δ m A}...
+  { move=>Γ Δ x s A wf shs dhs e1 e2 n st. inv st. }
+  { move=>Γ Δ A B m s k tym ihm e1 e2 n st. inv st. }
+  { move=>Γ Δ A B m s t k tym ihm e1 e2 n st. inv st. }
+  { move=>Γ Δ A B m n s tym ihm tyn e1 e2 n0 st. inv st.
+    { have tym':=ihm erefl erefl _ H2.
       apply: dyn_app0... }
-    { have tyn':=sta_rd tyn (dyn_sta_red H2).
+    { have tyn':=sta_rd tyn (dyn_sta_red tyn H2).
       have[t tyP]:=dyn_valid tym.
       have[r[tyB _]]:=sta_pi0_inv tyP.
       apply: dyn_conv.
@@ -98,10 +118,11 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf.
     { exfalso.
       apply: sta_lam1_pi0_false...
       apply: dyn_sta_type... } }
-  { move=>Γ Δ1 Δ2 Δ A B m n s mrg tym ihm tyn ihn n0 st. inv st.
-    { have tym':=ihm _ H2.
+  { move=>Γ Δ1 Δ2 Δ A B m n s mrg tym ihm tyn ihn e1 e2 n0 st.
+    subst. inv mrg. inv st.
+    { have tym':=ihm erefl erefl _ H2.
       apply: dyn_app1... }
-    { have tyn':=ihn _ H2.
+    { have tyn':=ihn erefl erefl _ H2.
       have[x tyP]:=dyn_valid tym.
       have[r[tyB _]]:=sta_pi1_inv tyP.
       apply: dyn_conv.
@@ -109,6 +130,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf.
       apply: conv_sym.
       apply: star_conv.
       apply: dyn_sta_red...
+      apply: dyn_sta_type...
       apply: dyn_app1...
       have:=sta_subst tyB (dyn_sta_type tyn).
       asimpl... }
@@ -120,18 +142,20 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf.
       have[t tym0]:=dyn_lam1_inv tym.
       have wf:=dyn_type_wf tym0. inv wf.
       apply: dyn_subst1...
-      apply: dyn_val_key... } }
-  { move=>Γ Δ A B H P m n s tyB tyH ihH tyP n0 st. inv st.
-    have tyr:=sta_rd tyP H5.
+      apply: (dyn_val_key tyn)... } }
+  { move=>Γ Δ A B H P m n s tyB tyH ihH tyP n0 e1 e2 st. inv st.
+    have[P0[rdP vlP]]:=sta_vn tyP.
+    have tyP0:=sta_rd tyP rdP.
+    have[m0 e]:=sta_id_canonical tyP0 (convR _ _) vlP. subst.
     have[r tyI]:=sta_valid tyP.
     have[tym[tyn/sort_inj e]]:=sta_id_inv tyI. subst.
-    have[tym0[eq1 eq2]]:=sta_refl_inv tyr.
+    have[tym0[eq1 eq2]]:=sta_refl_inv tyP0.
     have sc:sconv (Refl m .: m .: ids) (P .: n .: ids).
     { move=>[|[|]]//=.
       apply: conv_trans. apply: sta_conv_refl. apply: conv_sym...
       apply: conv_sym. apply: star_conv...
       apply: conv_trans. apply: conv_sym... eauto. }
-    have wkB:Γ ⊢ B.[P,n/] : Sort s.
+    have wkB:nil ⊢ B.[P,n/] : Sort s.
     { replace (Sort s) with (Sort s).[P,n/] by eauto.
       apply: sta_substitution...
       repeat constructor...
@@ -141,11 +165,11 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf.
     all: eauto. }
 Qed.
 
-Corollary dyn_rd Γ Δ m n A :
-  Γ ; Δ ⊢ m : A -> m ~>>* n -> Γ ; Δ ⊢ n : A.
+Corollary dyn_rd m n A :
+  nil ; nil ⊢ m : A -> m ~>>* n -> nil ; nil ⊢ n : A.
 Proof with eauto.
-  move=>ty rd. elim: rd Γ A ty=>{n}...
-  move=>n z rd ih st Γ A tym.
-  have tyn:=ih _ _ tym.
+  move=>ty rd. elim: rd A ty=>{n}...
+  move=>n z rd ih st A tym.
+  have tyn:=ih _ tym.
   apply: dyn_sr...
 Qed.

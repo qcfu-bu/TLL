@@ -69,9 +69,6 @@ Proof with eauto using dyn_step, dyn_val.
       have[A0[n0 e]]:=dyn_pi1_canonical tym (convR _ _) vlm.
       subst. exists (n0.[n/])... } }
   { move=>Γ Δ A B H P m n s tyB tyH ihH tyP e1 e2; subst.
-    have[P0[rdP vlP]]:=sta_vn tyP.
-    have tyP0:=sta_rd tyP rdP.
-    have[n0 e]:=sta_id_canonical tyP0 (convR _ _) vlP. subst.
     left. exists H... }
   { move=>Γ Δ A B m s eq tym ihm tyB e1 e2; subst... }
 Qed.
