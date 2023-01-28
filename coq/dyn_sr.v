@@ -6,7 +6,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma dyn_sta_red m n A :
+Lemma dyn_sta_step m n A :
   nil ⊢ m : A -> m ~>> n -> m ~>* n.
 Proof with eauto using sta_step.
   move e:(nil)=>Γ ty. elim: ty e n=>{Γ m A}.
@@ -52,6 +52,19 @@ Proof with eauto using sta_step.
     apply: star1... }
   { move=>Γ A B m s eq tym ihm tyB ihB e n st. subst.
     apply: ihm... }
+Qed.
+
+Lemma dyn_sta_red m n A :
+  nil ⊢ m : A -> m ~>>* n -> m ~>* n.
+Proof with eauto.
+  move=>ty rd. elim: rd A ty=>{n}...
+  move=>m' n rd ih st A tym.
+  have rdm:=ih _ tym.
+  have tym':=sta_rd tym rdm.
+  have rdm':=dyn_sta_step tym' st.
+  apply: star_trans.
+  apply: rdm.
+  apply: rdm'.
 Qed.
 
 Lemma dyn_has_type Γ Δ x s A :
@@ -131,14 +144,14 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
   { move=>Γ Δ A B m n s tym ihm tyn e1 e2 n0 st. inv st.
     { have tym':=ihm erefl erefl _ H2.
       apply: dyn_app0... }
-    { have tyn':=sta_rd tyn (dyn_sta_red tyn H2).
+    { have tyn':=sta_rd tyn (dyn_sta_step tyn H2).
       have[t tyP]:=dyn_valid tym.
       have[r[tyB _]]:=sta_pi0_inv tyP.
       apply: dyn_conv.
       apply: sta_conv_beta.
       apply: conv_sym.
       apply: star_conv.
-      apply: dyn_sta_red...
+      apply: dyn_sta_step...
       apply: dyn_app0...
       have:=sta_subst tyB tyn.
       asimpl... }
@@ -158,7 +171,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       apply: sta_conv_beta.
       apply: conv_sym.
       apply: star_conv.
-      apply: dyn_sta_red...
+      apply: dyn_sta_step...
       apply: dyn_app1...
       have:=sta_subst tyB (dyn_sta_type tyn).
       asimpl... }
@@ -176,7 +189,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
     apply: sta_conv.
     apply: sta_conv_beta.
     apply: star_conv.
-    apply: (dyn_sta_red (dyn_sta_type tym))...
+    apply: (dyn_sta_step (dyn_sta_type tym))...
     apply: tyn.
     apply: sta_esubst...
     by autosubst. }
@@ -187,7 +200,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       apply: dyn_conv.
       apply: sta_conv_beta.
       apply: star_conv.
-      apply: (dyn_sta_red (dyn_sta_type tym))...
+      apply: (dyn_sta_step (dyn_sta_type tym))...
       apply: tyn.
       apply: sta_esubst...
       by autosubst. }
@@ -198,7 +211,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       apply: sta_conv_beta.
       apply: conv_sym.
       apply: star_conv.
-      apply: (dyn_sta_red (dyn_sta_type tym))...
+      apply: (dyn_sta_step (dyn_sta_type tym))...
       apply: dyn_letin0...
       apply: sta_esubst...
       by autosubst. }
@@ -221,7 +234,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       apply: sta_conv_beta.
       apply: conv_sym.
       apply: star_conv.
-      apply: (dyn_sta_red (dyn_sta_type tym))...
+      apply: (dyn_sta_step (dyn_sta_type tym))...
       apply: dyn_letin1...
       apply: sta_esubst...
       by autosubst. }

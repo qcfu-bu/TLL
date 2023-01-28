@@ -65,4 +65,6 @@ Inductive ptr_step : dyn_ctx -> term -> dyn_ctx -> term -> Prop :=
 | ptr_step_proj2 H H' m n l t :
   free H l (APair m n t) H' ->
   H ; Snd (Ptr l) ~>> H' ; n
+| ptr_step_rwE H m :
+  H ; Rw Box m Box ~>> H ; m
 where "H1 ; m ~>> H2 ; n" := (ptr_step H1 m H2 n).

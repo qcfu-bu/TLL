@@ -90,6 +90,8 @@ Proof with eauto using ptr_step, pad, merge.
   { move=>H H' m n l t fr H2 H0 mrg.
     have[H4[fr' mrg']]:=free_merge fr mrg.
     exists H4. exists n... }
+  { move=>H m H2 H0 mrg.
+    exists H0. exists m... }
 Qed.
 
 Lemma free_pair0_canonical H H' m n l t :
@@ -249,6 +251,9 @@ Proof with eauto using ptr_step.
         have[m1'[m2' e]]:=era_apair_canonical erm. subst. inv H4. inv H5.
         { exists H'. exists n... }
         { exfalso. apply: free_wr_ptr... } } }
+    { right. exists l... } }
+  { move=>Γ Δ A B x x' P m n s tyB erx ihx tyP H z e1 e2 rs wr; subst. inv rs.
+    { left. exists H. exists m0... }
     { right. exists l... } }
   { move=>Γ Δ A B m m' s eq erm ihm tyB H z e1 e2 rs wr; subst... }
 Qed.

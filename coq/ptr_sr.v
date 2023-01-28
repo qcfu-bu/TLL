@@ -216,7 +216,7 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
         apply: sta_conv.
         apply: sta_conv_beta.
         apply: star_conv.
-        apply: dyn_sta_red...
+        apply: (dyn_sta_red (dyn_sta_type (era_dyn_type erm)))...
         apply: tyn.
         apply: tyBx. }
       { apply: (star_hom ((Pair0^~ n)^~ t)) rd1=>x y.
@@ -259,7 +259,7 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
         apply: era_conv.
         apply: sta_conv_beta.
         apply: star_conv.
-        apply: dyn_sta_red...
+        apply: (dyn_sta_red (dyn_sta_type (era_dyn_type erm)))...
         apply: ern.
         apply: tyBx. }
       { econstructor.
@@ -548,6 +548,34 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
         apply: dyn_step_proj2. }
       { apply: star1.
         apply: dyn_step_proj2. } } }
+  { move=>Γ Δ A B x x' P m n s tyB erx ihx tyP H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
+    inv rs; inv st.
+    exists H1. exists H2. exists x. exists x'.
+    repeat split...
+    { have[P0[rdP vlP]]:=sta_vn tyP.
+      have tyP0:=sta_rd tyP rdP.
+      have[n0 e]:=sta_id_canonical tyP0 (convR _ _) vlP. subst.
+      have tyr:=sta_rd tyP rdP.
+      have[r tyI]:=sta_valid tyP.
+      have[tym[tyn/sort_inj e]]:=sta_id_inv tyI. subst.
+      have[tym0[eq1 eq2]]:=sta_refl_inv tyr.
+      have sc:sconv (Refl m .: m .: ids) (P .: n .: ids).
+      { move=>[|[|]]//=.
+        apply: conv_trans. apply: sta_conv_refl. apply: conv_sym...
+        apply: conv_sym. apply: star_conv...
+        apply: conv_trans. apply: conv_sym... eauto. }
+      have wkB:nil ⊢ B.[P,n/] : Sort s.
+      { replace (Sort s) with (Sort s).[P,n/] by eauto.
+        apply: sta_substitution...
+        repeat constructor...
+        all: asimpl... }
+      apply: era_conv.
+      apply: sta_conv_compat sc.
+      all: eauto. }
+    { apply: star1.
+      apply: dyn_step_rwE. }
+    { apply: star1.
+      apply: dyn_step_rwE. } }
   { move=>Γ Δ A B m m' s eq erm ihm tyB H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
     have[H1'[H2'[x'[y'[wrx[wr'[pd[mrg'[rd1 rd2]]]]]]]]]:=
       ihm _ _ _ _ _ _ erefl erefl rs wr mrg st. inv wrx.

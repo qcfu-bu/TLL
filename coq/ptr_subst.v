@@ -84,6 +84,8 @@ Proof with eauto using agree_resolve.
     asimpl. f_equal... }
   { move=>i m nfm ihm Δ H σ σ' j le agr.
     asimpl. f_equal... }
+  { move=>i m nfm ihm Δ H σ σ' j le agr.
+    asimpl. f_equal... }
 Qed.
 
 Lemma agree_resolve_wr Δ H σ σ' x :
@@ -115,10 +117,11 @@ Proof with eauto using id_ren_up.
   { move=>i m t nfm ihm ξ idr. rewrite<-ihm... }
   { move=>i m n t nfm ihm nfn ihn ξ idr. rewrite<-ihm... rewrite<-ihn... }
   { move=>i m n nfm ihm nfn ihn ξ idr. rewrite<-ihm...
-    replace (upn 2 (ren ξ)) with
-      (ren (upren (upren ξ))) by autosubst.
+    replace n.[upn 2 (ren ξ)] with
+      n.[ren (upren (upren ξ))] by autosubst.
     have<-:=ihn _ (id_ren_up (id_ren_up idr))... }
   { move=>i m n t nfm ihm nfn ihn ξ idr. rewrite<-ihm... rewrite<-ihn... }
+  { move=>i m nfm ihm ξ idr. rewrite<-ihm... }
   { move=>i m nfm ihm ξ idr. rewrite<-ihm... }
   { move=>i m nfm ihm ξ idr. rewrite<-ihm... }
 Qed.
@@ -360,6 +363,12 @@ Proof with eauto using
   { move=>Γ Δ A B m m' t erm ihm H1 H2 H n' σ σ' x mrg rsn wr agr.
     inv rsn; asimpl.
     { econstructor... }
+    { inv H4.
+      { have vl:=wr_free_dyn_val H3 wr. inv vl. }
+      { exfalso. apply: free_wr_ptr... } } }
+  { move=>Γ Δ A B x x' P m n s tyB erx ihx tyP H1 H2 H n' σ σ' x0 mrg rsn wr agr.
+    inv rsn; asimpl.
+    { constructor... }
     { inv H4.
       { have vl:=wr_free_dyn_val H3 wr. inv vl. }
       { exfalso. apply: free_wr_ptr... } } }

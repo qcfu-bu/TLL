@@ -67,6 +67,9 @@ Inductive resolve : dyn_ctx -> term -> term -> Prop :=
 | resolve_snd H m m' :
   H ; m ~ m' ->
   H ; Snd m ~ Snd m'
+| resolve_rw H m m' :
+  H ; m ~ m' ->
+  H ; Rw Box m Box ~ Rw Box m' Box
 | resolve_ptr H H' l m m' :
   free H l m H' ->
   H' ; m ~ m' ->
@@ -109,7 +112,10 @@ Inductive resolved : term -> Prop :=
   resolved (Fst m)
 | resolved_snd m :
   resolved m ->
-  resolved (Snd m).
+  resolved (Snd m)
+| resolved_rw m :
+  resolved m ->
+  resolved (Rw Box m Box).
 
 Lemma pad_key H H' s : pad H H' -> H ▷ s -> H' ▷ s.
 Proof with eauto using key.
@@ -235,6 +241,8 @@ Proof with eauto using resolve.
     have->//:=ihm _ _ H3. }
   { move=>Γ Δ A B m m' t erm ihm H z rs. inv rs.
     have->//:=ihm _ _ H3. }
+  { move=>Γ Δ A B x x' P m n s tyB erH ihH tyP H0 z rs. inv rs.
+    f_equal... }
 Qed.
 
 Lemma free_size H l m H' : free H l m H' -> l < size H.
@@ -440,6 +448,9 @@ Inductive nf : nat -> term -> Prop :=
 | nf_snd i m :
   nf i m ->
   nf i (Snd m)
+| nf_rw i m :
+  nf i m ->
+  nf i (Rw Box m Box)
 | nf_ptr i l :
   nf i (Ptr l).
 
@@ -568,6 +579,7 @@ Proof with eauto using nf.
   { move=>H m m' n n' t k rsm ihm rsn ihn i wr nfP. inv nfP... }
   { move=>H m m' rsm ihm i wr nfF. inv nfF... }
   { move=>H m m' rsm ihm i wr nfS. inv nfS... }
+  { move=>H m m' rsm ihm i wr nf. inv nf... }
 Qed.
 
 Lemma resolve_wr_nfi' H m m' i :
@@ -588,6 +600,7 @@ Proof with eauto using nf.
   { move=>H m m' n n' t k rsm ihm rsn ihn i wr nfP. inv nfP... }
   { move=>H m m' rsm ihn i wr nfF. inv nfF... }
   { move=>H m m' rsm ihn i wr nfS. inv nfS... }
+  { move=>H m m' rsm ihm i wr nf. inv nf... }
   { move=>H H' l m m' fr rsm ihm i wr nfP.
     apply: ihm.
     { apply: free_wr... }
@@ -771,6 +784,7 @@ Proof with eauto using key_impure.
     { exfalso. apply: free_wr_ptr... } }
   { move=>Γ Δ A B m m' t erm _ H z s e1 e2 rs tyA vl. inv vl. }
   { move=>Γ Δ A B m m' t erm _ H z s e1 e2 rs tyA vl. inv vl. }
+  { move=>Γ Δ A B x x' P m n s tyB erH _ tyP H z s0 e1 e2 rs tyB' vl. inv vl. }
   { move=>Γ Δ A B m m' s eq erm ihm tyB1 H z s0 e1 e2 rs tyB2 vl wr.
     have e:=sta_unicity tyB1 tyB2. subst.
     have[s tyA]:=dyn_valid (era_dyn_type erm).
@@ -799,6 +813,7 @@ Proof with eauto using dyn_val.
   { move=>H1 H2 H m m' n n' t mrg rsm ihm rsn ihn vl wr.
     have[wr1 wr2]:=wr_merge_inv mrg wr. inv vl... }
   { move=>H1 H2 H m m' n n' mrg rsm ihm rsn ihn vl. inv vl. }
+  { move=>H m m' rsm ihm vl. inv vl. }
   { move=>H m m' rsm ihm vl. inv vl. }
   { move=>H m m' rsm ihm vl. inv vl. }
   { move=>H H' l m m' fr rsm ihm _ wr.
