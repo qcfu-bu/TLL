@@ -61,11 +61,11 @@ Inductive mltt0_type : mltt_ctx -> term -> term -> Prop :=
 | mltt0_refl Γ A m :
   mltt0_type Γ m A ->
   mltt0_type Γ (Refl m) (Id A m m)
-| mltt0_j Γ A B H P m n :
-  mltt0_type (Id A.[ren (+2)] (Var 1) (Var 0) :: A.[ren (+1)] :: A :: Γ) B Ty ->
-  mltt0_type (A :: Γ) H B.[Refl (Var 0) .: Var 0 .: Var 0 .: ren (+1)] ->
+| mltt0_rw Γ A B H P m n :
+  mltt0_type (Id A.[ren (+1)] m.[ren (+1)] (Var 0) :: A :: Γ) B Ty ->
+  mltt0_type  Γ H B.[Refl m,m/] ->
   mltt0_type Γ P (Id A m n) ->
-  mltt0_type Γ (J B H P) B.[P,n,m/]
+  mltt0_type Γ (Rw B H P) B.[P,n/]
 | mltt0_conv Γ A B m :
   A === B ->
   mltt0_type Γ m A ->
@@ -141,11 +141,11 @@ Inductive mltt_type : mltt_ctx -> term -> term -> Prop :=
 | mltt_refl Γ A m :
   Γ ⊢ m : A ->
   Γ ⊢ Refl m : Id A m m
-| mltt_j Γ A B H P m n :
-  (Id A.[ren (+2)] (Var 1) (Var 0) :: A.[ren (+1)] :: A :: Γ) ⊢ B : Ty ->
-  (A :: Γ) ⊢ H : B.[Refl (Var 0) .: Var 0 .: Var 0 .: ren (+1)] ->
+| mltt_rw Γ A B H P m n :
+  (Id A.[ren (+1)] m.[ren (+1)] (Var 0) :: A :: Γ) ⊢ B : Ty ->
+  Γ ⊢ H : B.[Refl m,m/] ->
   Γ ⊢ P : Id A m n ->
-  Γ ⊢ J B H P : B.[P,n,m/]
+  Γ ⊢ Rw B H P : B.[P,n/]
 | mltt_conv Γ A B m :
   A === B ->
   Γ ⊢ m : A ->

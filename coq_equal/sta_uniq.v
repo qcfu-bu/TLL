@@ -164,3 +164,11 @@ Proof with eauto.
     apply: conv_sym...
     exact: ihm. }
 Qed.
+
+Theorem sta_unicity Γ m s t :
+  Γ ⊢ m : Sort s -> Γ ⊢ m : Sort t -> s = t.
+Proof.
+  move=>tym1 tym2.
+  apply: sort_inj.
+  apply: sta_uniq tym1 tym2.
+Qed.

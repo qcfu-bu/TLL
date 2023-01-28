@@ -24,6 +24,7 @@ Fixpoint interp (m : tll_ast.term) : mltt_ast.term :=
   | tll_ast.Refl m => mltt_ast.Refl (interp m)
   | tll_ast.Rw A H P => mltt_ast.Rw (interp A) (interp H) (interp P)
   | tll_ast.Box => mltt_ast.Ty
+  | tll_ast.Ptr l => mltt_ast.Ty
   end.
 
 Fixpoint interp_ctx (Γ : sta_ctx) : mltt_ctx :=

@@ -237,6 +237,20 @@ Proof with eauto using era_agree_subst, era_agree_subst_key, era_type.
   { move=>Γ Δ A B m m' n n' t k tym ihm tyn ihn Γ1 Δ1 σ1 σ2 agr. asimpl. apply: era_apair... }
   { move=>Γ Δ A B m m' t tym ihm Γ1 Δ1 σ1 σ2 agr. asimpl. apply: era_fst... }
   { move=>Γ Δ A B m m' t tym ihm Γ1 Δ1 σ1 σ2 agr. asimpl. apply: era_snd... }
+  { move=>Γ Δ A B H H' P m n s tyB erH ihH tyP Γ1 Δ1 σ1 σ2 agr. asimpl.
+    replace B.[P.[σ1] .: n.[σ1] .: σ1] with B.[upn 2 σ1].[P.[σ1],n.[σ1]/] by autosubst.
+    have wf:=sta_type_wf tyB. inv wf. inv H2.
+    have agr':=era_sta_agree_subst agr.
+    have ihB:=sta_substitution tyB (sta_agree_subst_ty (sta_agree_subst_ty agr' H5) H3).
+    have ihP:=sta_substitution tyP agr'.
+    have{}ihH:=ihH _ _ _ _ agr.
+    apply: era_rw.
+    asimpl in ihB.
+    replace A.[σ1 >> ren (+1)] with A.[σ1].[ren (+1)] in ihB by autosubst.
+    replace m.[σ1 >> ren (+1)] with m.[σ1].[ren (+1)] in ihB by autosubst.
+    exact: ihB.
+    asimpl. asimpl in ihH...
+    asimpl in ihP... }
   { move=>Γ Δ A B m m' s eq tym ihm tyB Γ1 Δ1 σ1 σ2 agr.
     apply: era_conv.
     apply: sta_conv_subst...

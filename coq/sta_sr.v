@@ -7,7 +7,7 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Theorem sta_sr Γ m n A : Γ ⊢ m : A -> m ~> n -> Γ ⊢ n : A.
-Proof with eauto using sta0_type, sta0_wf, sta_step.
+Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
   move=>/sta_sta0_type ty st. apply: sta0_sta_type.
   elim: ty n st=>{Γ m A}...
   { move=>Γ s wf n st. inv st. }
@@ -325,44 +325,41 @@ Proof with eauto using sta0_type, sta0_wf, sta_step.
       move/sta0_sta_type in tyP.
       have[r tyI]:=sta_valid tyP.
       have[tym[tyn/sort_inj e]]:=sta_id_inv tyI; subst.
-      have wkA':(A :: Γ) ⊢ A'.[Refl (Var 0),Var 0/] : Sort s.
-      { replace (Sort s) with (Sort s).[Refl (Var 0),Var 0/] by eauto.
+      have wkA':Γ ⊢ A'.[Refl m,m/] : Sort s.
+      { replace (Sort s) with (Sort s).[Refl m,m/] by eauto.
         apply: sta_substitution...
         repeat constructor...
-        asimpl. constructor.
-        asimpl. constructor. }
-      have wkB:Γ ⊢ B.[P,n,m/] : Sort s.
-      { replace (Sort s) with (Sort s).[P,n,m/] by eauto.
+        all: asimpl...  }
+      have wkB:Γ ⊢ B.[P,n/] : Sort s.
+      { replace (Sort s) with (Sort s).[P,n/] by eauto.
         apply: sta_substitution...
         repeat constructor...
         all: asimpl... }
       apply: sta0_conv.
       apply: sta_conv_subst.
       apply: conv1i...
-      apply: sta0_j...
+      apply: sta0_rw...
       apply: sta0_conv.
       apply: sta_conv_subst.
       apply: conv1...
-      eauto.
-      replace (Var 0 .: ren (+1)) with ids by autosubst...
-      eauto. }
-    { have tyH':=ihH _ H5. apply: sta0_j... }
+      all: eauto. }
+    { have tyH':=ihH _ H5. apply: sta0_rw... }
     { have/sta0_sta_type tyP':=ihP _ H5.
       move/sta0_sta_type in tyB.
       move/sta0_sta_type in tyH.
       move/sta0_sta_type in tyP.
       have[r tyI]:=sta_valid tyP.
       have[tym[tyn/sort_inj e]]:=sta_id_inv tyI; subst.
-      have sc:sconv (P' .: n .: m .: ids) (P .: n .: m .: ids).
+      have sc:sconv (P' .: n .: ids) (P .: n .: ids).
       { move=>[|]//=. apply: conv1i... }
-      have wkB:Γ ⊢ B.[P,n,m/] : Sort s.
-      { replace (Sort s) with (Sort s).[P,n,m/] by eauto.
+      have wkB:Γ ⊢ B.[P,n/] : Sort s.
+      { replace (Sort s) with (Sort s).[P,n/] by eauto.
         apply: sta_substitution...
         repeat constructor...
         all: asimpl... }
       apply: sta0_conv.
       apply: sta_conv_compat sc.
-      apply: sta0_j...
+      apply: sta0_rw...
       eauto. }
     { move/sta0_sta_type in tyB.
       move/sta0_sta_type in tyH.
@@ -370,16 +367,18 @@ Proof with eauto using sta0_type, sta0_wf, sta_step.
       have[tym0[eq1 eq2]]:=sta_refl_inv tyP.
       have[r tyI]:=sta_valid tyP.
       have[tym[tyn/sort_inj e]]:=sta_id_inv tyI; subst.
-      have sc:sconv (Refl m0 .: m0 .: m0 .: ids) (Refl m0 .: n .: m .: ids) by move=>[|[|[|]]]//=.
-      have wkB:Γ ⊢ B.[Refl m0,n,m/] : Sort s.
-      { replace (Sort s) with (Sort s).[Refl m0,n,m/] by eauto.
+      have sc:sconv (Refl m .: m .: ids) (Refl m0 .: n .: ids).
+      { move=>[|[|]]//=.
+        apply: sta_conv_refl. apply: conv_sym...
+        apply: conv_trans. apply: conv_sym... eauto. }
+      have wkB:Γ ⊢ B.[Refl m0,n/] : Sort s.
+      { replace (Sort s) with (Sort s).[Refl m0,n/] by eauto.
         apply: sta_substitution...
         repeat constructor...
         all: asimpl... }
       apply: sta0_conv.
       apply: sta_conv_compat sc.
-      have:=sta_subst tyH tym0. asimpl...
-      eauto. } }
+      all: eauto. } }
 Qed.
 
 Corollary sta_rd Γ m n A :

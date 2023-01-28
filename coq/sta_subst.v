@@ -147,16 +147,16 @@ Proof with eauto using sta_agree_subst, sta_type.
     asimpl in ihm...
     asimpl in ihn...
     by asimpl. }
-  { move=>Γ A B H P m n s tyB ihB tyH ihH tyP ihP Γ1 σ agr. asimpl.
-    replace B.[P.[σ] .: n.[σ] .: m.[σ] .: σ] with B.[upn 3 σ].[P.[σ],n.[σ],m.[σ]/] by autosubst.
-    have wf:=sta_type_wf tyB. inv wf. inv H2. inv H4.
-    have{}ihB:=ihB _ _ (sta_agree_subst_ty (sta_agree_subst_ty (sta_agree_subst_ty agr H6) H5) H3).
-    have{}ihH:=ihH _ _ (sta_agree_subst_ty agr H6).
+  { move=>Γ2 A B H P m n s tyB ihB tyH ihH tyP ihP Γ1 σ agr. asimpl.
+    replace B.[P.[σ] .: n.[σ] .: σ] with B.[upn 2 σ].[P.[σ],n.[σ]/] by autosubst.
+    have wf:=sta_type_wf tyB. inv wf. inv H2.
+    have{}ihB:=ihB _ _ (sta_agree_subst_ty (sta_agree_subst_ty agr H5) H3).
+    have{}ihH:=ihH _ _ agr.
     have{}ihP:=ihP _ _ agr.
-    apply: sta_j.
+    apply: sta_rw.
     asimpl in ihB.
-    replace A.[σ >> ren (+2)] with A.[σ].[ren (+2)] in ihB by autosubst.
     replace A.[σ >> ren (+1)] with A.[σ].[ren (+1)] in ihB by autosubst.
+    replace m.[σ >> ren (+1)] with m.[σ].[ren (+1)] in ihB by autosubst.
     exact: ihB.
     asimpl. asimpl in ihH...
     asimpl in ihP... }

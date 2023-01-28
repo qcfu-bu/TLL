@@ -66,7 +66,9 @@ Inductive dyn_step : term -> term -> Prop :=
   Fst (APair m n s) ~>> m
 | dyn_step_proj2 m n s :
   Snd (APair m n s) ~>> n
+| dyn_step_rwE A H P :
+  Rw A H P ~>> H
 where "m ~>> n" := (dyn_step m n).
 
 Notation dyn_red := (star dyn_step).
-Notation "m ~>>* n" := (dyn_red m n) (at level 30).
+Notation "m ~>>* n" := (dyn_red m n) (at level 50).

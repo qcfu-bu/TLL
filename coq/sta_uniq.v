@@ -38,7 +38,7 @@ Inductive head_sim : term -> term -> Prop :=
   head_sim A1 A2 ->
   head_sim (Id A1 m n) (Id A2 m n)
 | head_sim_refl m : head_sim (Refl m) (Refl m)
-| head_sim_j A H P : head_sim (J A H P) (J A H P)
+| head_sim_rw A H P : head_sim (Rw A H P) (Rw A H P)
 | head_sim_box : head_sim Box Box
 | head_sim_ptr l : head_sim (Ptr l) (Ptr l).
 
@@ -500,13 +500,13 @@ Proof with eauto.
     apply: sim_transL... }
 Qed.
 
-Lemma sta_j_uniq Γ A B C H P m n :
-  Γ ⊢ J B H P : C -> (forall X, Γ ⊢ P : X -> sim (Id A m n) X) -> sim B.[P,n,m/] C.
+Lemma sta_rw_uniq Γ A B C H P m n :
+  Γ ⊢ Rw B H P : C -> (forall X, Γ ⊢ P : X -> sim (Id A m n) X) -> sim B.[P,n/] C.
 Proof with eauto.
-  move e:(J B H P)=>x ty. elim: ty B H P e=>//{Γ x C}.
+  move e:(Rw B H P)=>x ty. elim: ty B H P e=>//{Γ x C}.
   { move=>Γ A0 B H P m0 n0 s tyB ihB tyH ihH tyP ihP B0 H0 P0[e1 e2 e3]h; subst.
     have/sim_id_inj[_[eq1 eq2]]:=h _ tyP.
-    have sc:sconv (P .: n .: m .: ids) (P .: n0 .: m0 .: ids) by move=>[|[|[|]]]//.
+    have sc:sconv (P .: n .: ids) (P .: n0 .: ids) by move=>[|[|]]//.
     econstructor.
     apply: sta_conv_compat...
     all: eauto... }
@@ -560,7 +560,7 @@ Proof with eauto.
   { move=>Γ A m tym ihm B ty.
     apply: sta_refl_uniq... }
   { move=>Γ A B H P m n s tyB ihB tyH ihH tyP ihP B0 ty.
-    apply: sta_j_uniq... }
+    apply: sta_rw_uniq... }
   { move=>Γ A B m s eq tym1 ihm tyB ihB B0 tym2.
     apply: sim_transR.
     apply: ihm...

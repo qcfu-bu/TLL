@@ -6,6 +6,11 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Section Model.
+
+Declare Scope model_scope.
+Open Scope model_scope.
+
 Fixpoint interp (m : tll_ast.term) : mltt_ast.term :=
   match m with
   | tll_ast.Var x => mltt_ast.Var x
@@ -26,7 +31,7 @@ Fixpoint interp (m : tll_ast.term) : mltt_ast.term :=
   | tll_ast.Snd m => mltt_ast.Snd (interp m)
   | tll_ast.Id A m n => mltt_ast.Id (interp A) (interp m) (interp n)
   | tll_ast.Refl m => mltt_ast.Refl (interp m)
-  | tll_ast.J A H P => mltt_ast.J (interp A) (interp H) (interp P)
+  | tll_ast.Rw A H P => mltt_ast.Rw (interp A) (interp H) (interp P)
   | tll_ast.Box => mltt_ast.Ty
   | tll_ast.Ptr _ => mltt_ast.Ty
   end.
@@ -141,9 +146,9 @@ Proof with eauto using interp_subst_up.
     rewrite (ihn _ τ)... }
   { move=>m ihm σ τ h. rewrite (ihm _ τ)... }
   { move=>A ihA H ihH P ihP σ τ h.
-    replace (upn 3 σ) with (up (up (up σ))) by autosubst.
-    rewrite (ihA _ (up (up (up τ))))...
-    rewrite (ihH _ (up τ))...
+    replace (upn 2 σ) with (up (up σ)) by autosubst.
+    rewrite (ihA _ (up (up τ)))...
+    rewrite (ihH _ τ)...
     rewrite (ihP _ τ)... }
 Qed.
 
@@ -165,10 +170,6 @@ Proof with eauto using mltt_step.
     erewrite interp_subst_com.
     constructor. move=>x.
     destruct x=>//.
-    destruct x=>//. }
-  { move=>A H m.
-    erewrite interp_subst_com.
-    constructor. move=>x.
     destruct x=>//. }
 Qed.
 
@@ -239,11 +240,11 @@ Proof with eauto using mltt_type, mltt_wf.
     move=>x. destruct x=>//. }
   { move=>Γ A B H P m n s tyB ihB tyH ihH tyP ihP.
     erewrite interp_subst_com...
-    apply: mltt_j...
+    apply: mltt_rw...
     rewrite!interp_ren_com...
     erewrite<-interp_subst_com...
-    move=>x. destruct x=>//=. destruct x=>//=. destruct x=>//=.
-    move=>x. destruct x=>//=. destruct x=>//=. destruct x=>//=. }
+    move=>x. destruct x=>//=. destruct x=>//=.
+    move=>x. destruct x=>//=. destruct x=>//=. }
   { move=>Γ A B m s eq tym ihm tyB ihB.
     apply: mltt_conv.
     apply: interp_conv...
@@ -302,3 +303,5 @@ Proof with eauto.
   { have[//|h3]:=classic (sn sta_step m).
     exfalso. apply: h2. apply: not_sn_nn... }
 Qed.
+
+End Model.

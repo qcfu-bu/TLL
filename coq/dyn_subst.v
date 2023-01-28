@@ -266,6 +266,20 @@ Proof with eauto using dyn_agree_subst, dyn_agree_subst_key, dyn_type.
   { move=>Γ Δ A B m n t k tym ihm tyn ihn Γ1 Δ1 σ agr. asimpl. apply: dyn_apair... }
   { move=>Γ Δ A B m t tym ihm Γ1 Δ1 σ agr. asimpl. apply: dyn_fst... }
   { move=>Γ Δ A B m t tym ihm Γ1 Δ1 σ agr. asimpl. apply: dyn_snd... }
+  { move=>Γ Δ A B H P m n s tyB tyH ihH tyP Γ1 Δ1 σ agr. asimpl.
+    replace B.[P.[σ] .: n.[σ] .: σ] with B.[upn 2 σ].[P.[σ],n.[σ]/] by autosubst.
+    have wf:=sta_type_wf tyB. inv wf. inv H2.
+    have agr':=dyn_sta_agree_subst agr.
+    have ihB:=sta_substitution tyB (sta_agree_subst_ty (sta_agree_subst_ty agr' H5) H3).
+    have ihP:=sta_substitution tyP agr'.
+    have{}ihH:=ihH _ _ _ agr.
+    apply: dyn_rw.
+    asimpl in ihB.
+    replace A.[σ >> ren (+1)] with A.[σ].[ren (+1)] in ihB by autosubst.
+    replace m.[σ >> ren (+1)] with m.[σ].[ren (+1)] in ihB by autosubst.
+    exact: ihB.
+    asimpl. asimpl in ihH...
+    asimpl in ihP... }
   { move=>Γ Δ A B m s eq tym ihm tyB Γ1 Δ1 σ agr.
     apply: dyn_conv.
     apply: sta_conv_subst...

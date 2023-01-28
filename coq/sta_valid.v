@@ -35,10 +35,9 @@ Proof with eauto using sta_type.
   { move=>Γ A m tym[s tyA]. exists U... }
   { move=>Γ A B H P m n s tyB _ tyH _ tyP[r tyI].
     have[tym[tyn _]]:=sta_id_inv tyI. exists s.
-    replace (Sort s) with (Sort s).[P,n,m/] by autosubst.
+    replace (Sort s) with (Sort s).[P,n/] by autosubst.
     apply: sta_substitution...
     repeat constructor; asimpl... }
-  Unshelve. all: eauto.
 Qed.
 
 Lemma sta_lam0_invX Γ A1 A2 B C m s1 s2 t :

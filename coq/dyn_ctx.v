@@ -62,56 +62,6 @@ Inductive dyn_has : dyn_ctx -> var -> sort -> term -> Prop :=
   dyn_has Δ x s A ->
   dyn_has (_: Δ) x.+1 s A.[ren (+1)].
 
-Inductive dyn_empty : dyn_ctx -> Prop :=
-| dyn_empty_O : dyn_empty nil
-| dyn_empty_S Δ : dyn_empty Δ -> dyn_empty (_: Δ).
-
-Lemma dyn_has_empty Δ x s A :
-  dyn_has Δ x s A -> dyn_empty Δ -> False.
-Proof with eauto.
-  elim=>{Δ x s A}.
-  { move=>Δ A s k dN. inv dN. }
-  { move=>Δ A B x s hs ih dN. inv dN. }
-  { move=>Δ A x s hs ih dN. inv dN... }
-Qed.
-
-Lemma dyn_empty_merge Δ1 Δ2 Δ :
-  Δ1 ∘ Δ2 => Δ -> dyn_empty Δ1 -> dyn_empty Δ2 -> dyn_empty Δ.
-Proof with eauto using dyn_empty.
-  elim=>{Δ1 Δ2 Δ}...
-  { move=>Δ1 Δ2 Δ m mrg ih dN1 dN2. inv dN1. }
-  { move=>Δ1 Δ2 Δ m mrg ih dN1 dN2. inv dN1. }
-  { move=>Δ1 Δ2 Δ m mrg ih dN1 dN2. inv dN2. }
-  { move=>Δ1 Δ2 mrg ih1 ih2 dN1 dN2. inv dN1. inv dN2... }
-Qed.
-
-Lemma dyn_empty_split Δ1 Δ2 Δ :
-  Δ1 ∘ Δ2 => Δ -> dyn_empty Δ -> dyn_empty Δ1 /\ dyn_empty Δ2.
-Proof with eauto using dyn_empty.
-  elim=>{Δ1 Δ2 Δ}...
-  { move=>Δ1 Δ2 Δ m mrg ih dN. inv dN. }
-  { move=>Δ1 Δ2 Δ m mrg ih dN. inv dN. }
-  { move=>Δ1 Δ2 Δ m mrg ih dN. inv dN. }
-  { move=>Δ1 Δ2 Δ mrg ih dN. inv dN.
-    have[dN1 dN2]:=ih H0. split... }
-Qed.
-
-Lemma dyn_empty_uniq Δ1 Δ2 :
-  dyn_empty Δ1 -> dyn_empty Δ2 -> size Δ1 = size Δ2 -> Δ1 = Δ2.
-Proof with eauto.
-  move=>dN1. elim: dN1 Δ2=>{Δ1}.
-  { move=>Δ2 dN2 e. inv dN2... inv e. }
-  { move=>Δ1 dN1 ih1 Δ2 dN2 e. inv dN2. inv e.
-    have{}e:size Δ1 = size Δ...
-    have->//:=ih1 _ H e. }
-Qed.
-
-Lemma dyn_empty_key Δ s : dyn_empty Δ -> Δ ▷ s.
-Proof with eauto using key. elim... Qed.
-
-Lemma dyn_empty_self Δ : dyn_empty Δ -> Δ ∘ Δ => Δ.
-Proof with eauto using merge. elim... Qed.
-
 Lemma key_impure Δ : Δ ▷ L.
 Proof with eauto using key.
   elim: Δ... move=>[[A s]|] Δ k...

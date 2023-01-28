@@ -73,15 +73,14 @@ Inductive pstep : term -> term -> Prop :=
 | pstep_refl m m' :
   pstep m m' ->
   pstep (Refl m) (Refl m')
-| pstep_j A A' H H' P P' :
+| pstep_rw A A' H H' P P' :
   pstep A A' ->
   pstep H H' ->
   pstep P P' ->
-  pstep (J A H P) (J A' H' P')
-| pstep_jelim A H H' m m' :
+  pstep (Rw A H P) (Rw A' H' P')
+| pstep_rwE A H H' m :
   pstep H H' ->
-  pstep m m' ->
-  pstep (J A H (Refl m)) H'.[m'/].
+  pstep (Rw A H (Refl m)) H'.
 
 Definition sred σ τ := forall x : var, (σ x) ~>* (τ x).
 
@@ -94,9 +93,6 @@ Proof.
   { move=>A m1 m2 n σ.
     replace (n.[m2,m1/].[σ]) with (n.[upn 2 σ].[m2.[σ],m1.[σ]/]).
     apply: mltt_step_iota. autosubst. }
-  { move=>A H m σ.
-    replace (H.[m/].[σ]) with (H.[up σ].[m.[σ]/]).
-    apply: mltt_step_jelim. autosubst. }
 Qed.
 
 Lemma mltt_red_app m m' n n' :
@@ -205,15 +201,15 @@ Proof.
   apply: (star_hom Refl) r=>x y. exact: mltt_step_refl.
 Qed.
 
-Lemma mltt_red_j A A' H H' P P' :
-  A ~>* A' -> H ~>* H' -> P ~>* P' -> J A H P ~>* J A' H' P'.
+Lemma mltt_red_rw A A' H H' P P' :
+  A ~>* A' -> H ~>* H' -> P ~>* P' -> Rw A H P ~>* Rw A' H' P'.
 Proof.
   move=>r1 r2 r3.
-  apply: (star_trans (J A' H P)).
-  apply: (star_hom ((J^~ H)^~ P)) r1=>x y. exact: mltt_step_jA.
-  apply: (star_trans (J A' H' P)).
-  apply: (star_hom (J A'^~P)) r2=>x y. exact: mltt_step_jH.
-  apply: (star_hom (J A' H')) r3=>x y. exact: mltt_step_jP.
+  apply: (star_trans (Rw A' H P)).
+  apply: (star_hom ((Rw^~ H)^~ P)) r1=>x y. exact: mltt_step_rwA.
+  apply: (star_trans (Rw A' H' P)).
+  apply: (star_hom (Rw A'^~P)) r2=>x y. exact: mltt_step_rwH.
+  apply: (star_hom (Rw A' H')) r3=>x y. exact: mltt_step_rwP.
 Qed.
 
 Lemma mltt_red_subst m n σ : m ~>* n -> m.[σ] ~>* n.[σ].
@@ -242,7 +238,7 @@ Hint Resolve
   mltt_red_app mltt_red_lam mltt_red_pi
   mltt_red_sig mltt_red_dpair mltt_red_letin
   mltt_red_tuple mltt_red_pair mltt_red_fst mltt_red_snd
-  mltt_red_id mltt_red_refl mltt_red_j
+  mltt_red_id mltt_red_refl mltt_red_rw
   sred_up sred_upn : mltt_red_congr.
 
 Lemma mltt_red_compat σ τ s : sred σ τ -> mltt_red s.[σ] s.[τ].
@@ -356,15 +352,15 @@ Proof.
   apply: (conv_hom Refl) r=>x y. exact: mltt_step_refl.
 Qed.
 
-Lemma mltt_conv_j A A' H H' P P' :
-  A === A' -> H === H' -> P === P' -> J A H P === J A' H' P'.
+Lemma mltt_conv_rw A A' H H' P P' :
+  A === A' -> H === H' -> P === P' -> Rw A H P === Rw A' H' P'.
 Proof.
   move=>r1 r2 r3.
-  apply: (conv_trans (J A' H P)).
-  apply: (conv_hom ((J^~ H)^~ P)) r1=>x y. exact: mltt_step_jA.
-  apply: (conv_trans (J A' H' P)).
-  apply: (conv_hom (J A'^~ P)) r2=>x y. exact: mltt_step_jH.
-  apply: (conv_hom (J A' H')) r3=>x y. exact: mltt_step_jP.
+  apply: (conv_trans (Rw A' H P)).
+  apply: (conv_hom ((Rw^~ H)^~ P)) r1=>x y. exact: mltt_step_rwA.
+  apply: (conv_trans (Rw A' H' P)).
+  apply: (conv_hom (Rw A'^~ P)) r2=>x y. exact: mltt_step_rwH.
+  apply: (conv_hom (Rw A' H')) r3=>x y. exact: mltt_step_rwP.
 Qed.
 
 Lemma mltt_conv_subst σ m n :
@@ -389,7 +385,7 @@ Hint Resolve
   mltt_conv_app mltt_conv_lam mltt_conv_pi
   mltt_conv_sig mltt_conv_dpair mltt_conv_letin
   mltt_conv_tuple mltt_conv_pair mltt_conv_fst mltt_conv_snd
-  mltt_conv_id mltt_conv_refl mltt_conv_j
+  mltt_conv_id mltt_conv_refl mltt_conv_rw
   sconv_up sconv_upn : mltt_conv_congr.
 
 Lemma mltt_conv_compat σ τ s :
@@ -421,10 +417,8 @@ Proof with eauto.
     apply: starES. by constructor. eauto. }
   { move=>m m' n p r.
     apply: starES. by constructor. eauto. }
-  { move=>A H H' m m' p1 r1 p2 r2.
-    apply: starES. by constructor.
-    apply: (star_trans H'.[m/]). exact: mltt_red_subst.
-    by apply: mltt_red_compat=>-[|-[]]. }
+  { move=>A H H' m p r.
+    apply: starES. by constructor. eauto. }
 Qed.
 
 Lemma pstep_subst m n σ : pstep m n -> pstep m.[σ] n.[σ].
@@ -438,10 +432,6 @@ Proof with eauto using pstep, pstep_reflexive.
     asimpl.
     pose proof (pstep_iota A.[up σ] (ihm1 σ) (ihm2 σ) (ihn (upn 2 σ))).
     by asimpl in H. }
-  { move=>A H H' m m' pH ihH pm ihm σ.
-    asimpl.
-    pose proof (pstep_jelim A.[upn 3 σ] (ihH (up σ)) (ihm σ)).
-    by asimpl in H0. }
 Qed.
 
 Definition psstep (σ τ : var -> term) := forall x, pstep (σ x) (τ x).
@@ -475,10 +465,7 @@ Proof with eauto 6 using pstep, psstep_up.
     pose proof (pstep_iota A.[up σ] (ihm1 _ _ pss) (ihm2 _ _ pss) (ihn _ _ (psstep_upn 2 pss))).
     by asimpl in H. }
   { move=>A A' H H' P P' pA ihA pH ihH pP ihP σ τ pss. asimpl.
-    pose proof (pstep_j (ihA _ _ (psstep_upn 3 pss)) (ihH _ _ (psstep_up pss)) (ihP _ _ pss)).
-    by asimpl in H0. }
-  { move=>A H H' m m' pH ihH pm ihm σ τ pss. asimpl.
-    pose proof (pstep_jelim A.[upn 3 σ] (ihH _ _ (psstep_up pss)) (ihm _ _ pss)).
+    pose proof (pstep_rw (ihA _ _ (psstep_upn 2 pss)) (ihH _ _ pss) (ihP _ _ pss)).
     by asimpl in H0. }
 Qed.
 
@@ -596,20 +583,16 @@ Proof with eauto 6 using
     { have[A0 pA1 pA2]:=ihA _ H4.
       have[H0 pH1 pH2]:=ihH _ H6.
       have[P0 pP1 pP2]:=ihP _ H7.
-      exists (J A0 H0 P0)... }
+      exists (Rw A0 H0 P0)... }
     { inv pP.
       have[H0 pH1 pH2]:=ihH _ H5.
-      have/ihP[x p1 p2]:pstep (Refl m) (Refl m')...
-      inv p1. inv p2.
-      exists H0.[m'1/]... } }
-  { move=>A H H' m m' pH ihH pm ihm x p. inv p.
+      have/ihP[x p1 p2]:pstep (Refl m) (Refl m')... } }
+  { move=>A H H' m pH ihH x p. inv p.
     { inv H7.
       have[H0 pH1 pH2]:=ihH _ H6.
-      have[m0 pm1 pm2]:=ihm _ H1.
-      exists H0.[m0/]... }
+      exists H0... }
     { have[H0 pH1 pH2]:=ihH _ H5.
-      have[m0 pm1 pm2]:=ihm _ H6.
-      exists H0.[m0/]... } }
+      exists H0... } }
 Qed.
 
 Lemma strip m m1 m2 :

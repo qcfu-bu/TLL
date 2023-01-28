@@ -55,7 +55,8 @@ Inductive pstep : term -> term -> Prop :=
 | pstep_rwE A H H' m :
   pstep H H' ->
   pstep (Rw A H (Refl m)) H'
-| pstep_box : pstep Box Box.
+| pstep_box : pstep Box Box
+| pstep_ptr l : pstep (Ptr l) (Ptr l).
 
 Definition sred σ τ := forall x : var, (σ x) ~>* (τ x).
 

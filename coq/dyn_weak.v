@@ -151,7 +151,8 @@ Qed.
 
 Lemma dyn_rename Γ Γ' Δ Δ' m A ξ :
   Γ ; Δ ⊢ m : A -> dyn_agree_ren ξ Γ Δ Γ' Δ' -> Γ' ; Δ' ⊢ m.[ren ξ] : A.[ren ξ].
-Proof with eauto using dyn_type, dyn_agree_ren, dyn_agree_ren_key.
+Proof with eauto using
+  dyn_type, sta_agree_ren, dyn_agree_ren, dyn_agree_ren_key.
   move=>ty. move: Γ Δ m A ty Γ' Δ' ξ.
   apply:(@dyn_type_mut _
     (fun Γ Δ wf => forall Γ' Δ' ξ, dyn_agree_ren ξ Γ Δ Γ' Δ' -> dyn_wf Γ' Δ')).
@@ -229,6 +230,24 @@ Proof with eauto using dyn_type, dyn_agree_ren, dyn_agree_ren_key.
   { move=>Γ Δ A B m n t k tym ihm tyn ihn Γ' Δ' ξ agr. asimpl. apply:dyn_apair... }
   { move=>Γ Δ A B m t tym ihm Γ' Δ' ξ agr. asimpl. apply:dyn_fst... }
   { move=>Γ Δ A B m t tym ihm Γ' Δ' ξ agr. asimpl. apply:dyn_snd... }
+  { move=>Γ Δ A B H P m n s tyB tyH ihH tyP Γ' Δ' ξ agr. asimpl.
+    have wf:=sta_type_wf tyB. inv wf. inv H2.
+    have ihP:=sta_rename tyP (dyn_sta_agree_ren agr).
+    have agr':=dyn_sta_agree_ren agr.
+    have{}agr':
+      sta_agree_ren (upren (upren ξ))
+        (Id A.[ren (+1)] m.[ren (+1)] (Var 0) :: A :: Γ)
+        ((Id A.[ren (+1)] m.[ren (+1)] (Var 0)).[ren (upren ξ)] :: A.[ren ξ] :: Γ')...
+    have ihB:=sta_rename tyB agr'.
+    have{}ihH:=ihH _ _ _ agr.
+    asimpl in ihP.
+    asimpl in ihB.
+    asimpl in ihH.
+    replace A.[ren (ξ >>> (+1))] with A.[ren ξ].[ren (+1)] in ihB by autosubst.
+    replace m.[ren (ξ >>> (+1))] with m.[ren ξ].[ren (+1)] in ihB by autosubst.
+    have pf:=dyn_rw ihB. asimpl in pf.
+    have:=pf _ _ _ _ ihH ihP.
+    by autosubst. }
   { move=>Γ Δ A B m s eq tym ihm tyB Γ' Δ' ξ agr.
     apply: dyn_conv.
     apply: sta_conv_subst...

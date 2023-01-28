@@ -64,6 +64,11 @@ Inductive era_type : sta_ctx -> dyn_ctx -> term -> term -> term -> Prop :=
 | era_snd Γ Δ A B m m' t :
   Γ ; Δ ⊢ m ~ m' : With A B t ->
   Γ ; Δ ⊢ Snd m ~ Snd m' : B
+| era_rw Γ Δ A B H H' P m n s :
+  (Id A.[ren (+1)] m.[ren (+1)] (Var 0) :: A :: Γ) ⊢ B : Sort s ->
+  Γ ; Δ ⊢ H ~ H' : B.[Refl m,m/] ->
+  Γ ⊢ P : Id A m n ->
+  Γ ; Δ ⊢ Rw B H P ~ Rw Box H' Box : B.[P,n/]
 | era_conv Γ Δ A B m m' s :
   A === B ->
   Γ ; Δ ⊢ m ~ m' : A ->
@@ -103,6 +108,9 @@ Proof with eauto using era_type.
     exists (Fst m')... }
   { move=>Γ Δ A B m t tym[m' tym'].
     exists (Snd m')... }
+  { move=>Γ Δ A B H P m n s tyB tyH[H' erH]tyP.
+    exists (Rw Box H' Box).
+    apply: era_rw... }
   { move=>Γ Δ A B m s eq tym[m' er]tyB.
     exists m'. apply: era_conv... }
 Qed.

@@ -85,19 +85,19 @@ Inductive mltt_step : term -> term -> Prop :=
 | mltt_step_refl m m' :
   m ~> m' ->
   Refl m ~> Refl m'
-| mltt_step_jA A A' H P :
+| mltt_step_rwA A A' H P :
   A ~> A' ->
-  J A H P ~> J A' H P
-| mltt_step_jH A H H' P :
+  Rw A H P ~> Rw A' H P
+| mltt_step_rwH A H H' P :
   H ~> H' ->
-  J A H P ~> J A H' P
-| mltt_step_jP A H P P' :
+  Rw A H P ~> Rw A H' P
+| mltt_step_rwP A H P P' :
   P ~> P' ->
-  J A H P ~> J A H P'
-| mltt_step_jelim A H m :
-  J A H (Refl m) ~> H.[m/]
+  Rw A H P ~> Rw A H P'
+| mltt_step_rwE A H m :
+  Rw A H (Refl m) ~> H
 where "m ~> n" := (mltt_step m n).
 
 Notation mltt_red := (star mltt_step).
-Notation "m ~>* n" := (mltt_red m n) (at level 30).
+Notation "m ~>* n" := (mltt_red m n) (at level 50).
 Notation "m === n" := (conv mltt_step m n) (at level 50).

@@ -104,21 +104,20 @@ Proof with eauto using mltt_type, mltt_wf, mltt_agree_ren.
     have:=mltt_letin ihC ihm ihn.
     by autosubst. }
   { move=>Γ A B H P m n tyB ihB tyH ihH tyP ihP Γ' ξ agr. asimpl.
-    have wf:=mltt_type_wf tyH. inv wf.
-    have wf:=mltt_type_wf tyB. inv wf. inv H4. inv H6.
+    have wf:=mltt_type_wf tyB. inv wf. inv H2.
     have{}ihP:=ihP _ _ agr.
     have/ihB{}ihB:
-      mltt_agree_ren (upren (upren (upren ξ)))
-        (Id A.[ren (+2)] (Var 1) (Var 0) :: A.[ren (+1)] :: A :: Γ)
-        ((Id A.[ren (+2)] (Var 1) (Var 0)).[ren (upren (upren ξ))] :: A.[ren (+1)].[ren (upren ξ)] :: A.[ren ξ] :: Γ')...
-    have/ihH{}ihH:mltt_agree_ren (upren ξ) (A :: Γ) (A.[ren ξ] :: Γ')...
+      mltt_agree_ren (upren (upren ξ))
+        (Id A.[ren (+1)] m.[ren (+1)] (Var 0) :: A :: Γ)
+        ((Id A.[ren (+1)] m.[ren (+1)] (Var 0)).[ren (upren ξ)] :: A.[ren ξ] :: Γ')...
+    have{}ihH:=ihH _ _ agr.
     asimpl in ihP.
     asimpl in ihB.
     asimpl in ihH.
-    replace A.[ren (ξ >>> (+2))] with A.[ren ξ].[ren (+2)] in ihB by autosubst.
     replace A.[ren (ξ >>> (+1))] with A.[ren ξ].[ren (+1)] in ihB by autosubst.
-    have pf:=mltt_j ihB. asimpl in pf.
-    have:=pf _ _ _ _ ihH ihP.
+    replace m.[ren (ξ >>> (+1))] with m.[ren ξ].[ren (+1)] in ihB by autosubst.
+    have pf:=mltt_rw ihB. asimpl in pf.
+    have:=pf _ _ _ ihH ihP.
     by autosubst. }
   { move=>Γ A B m eq tym ihm tyB ihB Γ' ξ agr.
     apply: mltt_conv.

@@ -9,7 +9,8 @@ Unset Printing Implicit Defensive.
 Lemma era_rename Γ Γ' Δ Δ' m m' A ξ :
   Γ ; Δ ⊢ m ~ m' : A -> dyn_agree_ren ξ Γ Δ Γ' Δ' ->
   Γ' ; Δ' ⊢ m.[ren ξ] ~ m'.[ren ξ] : A.[ren ξ].
-Proof with eauto using era_type, dyn_agree_ren, dyn_agree_ren_key.
+Proof with eauto using
+  era_type, sta_agree_ren, dyn_agree_ren, dyn_agree_ren_key.
   move=>ty. elim: ty Γ' Δ' ξ=>{Γ Δ m m' A}.
   { move=>Γ Δ x s A wf shs dhs Γ' Δ' ξ agr. asimpl.
     apply: era_var.
@@ -86,6 +87,24 @@ Proof with eauto using era_type, dyn_agree_ren, dyn_agree_ren_key.
   { move=>Γ Δ A B m m' n n' t k tym ihm tyn ihn Γ' Δ' ξ agr. asimpl. apply:era_apair... }
   { move=>Γ Δ A B m m' t tym ihm Γ' Δ' ξ agr. asimpl. apply:era_fst... }
   { move=>Γ Δ A B m m' t tym ihm Γ' Δ' ξ agr. asimpl. apply:era_snd... }
+  { move=>Γ Δ A B H H' P m n s tyB erH ihH tyP Γ' Δ' ξ agr. asimpl.
+    have wf:=sta_type_wf tyB. inv wf. inv H2.
+    have ihP:=sta_rename tyP (dyn_sta_agree_ren agr).
+    have agr':=dyn_sta_agree_ren agr.
+    have{}agr':
+      sta_agree_ren (upren (upren ξ))
+        (Id A.[ren (+1)] m.[ren (+1)] (Var 0) :: A :: Γ)
+        ((Id A.[ren (+1)] m.[ren (+1)] (Var 0)).[ren (upren ξ)] :: A.[ren ξ] :: Γ')...
+    have ihB:=sta_rename tyB agr'.
+    have{}ihH:=ihH _ _ _ agr.
+    asimpl in ihP.
+    asimpl in ihB.
+    asimpl in ihH.
+    replace A.[ren (ξ >>> (+1))] with A.[ren ξ].[ren (+1)] in ihB by autosubst.
+    replace m.[ren (ξ >>> (+1))] with m.[ren ξ].[ren (+1)] in ihB by autosubst.
+    have pf:=era_rw ihB. asimpl in pf.
+    have:=pf _ _ _ _ _ ihH ihP.
+    by autosubst. }
   { move=>Γ Δ A B m m' s eq tym ihm tyB Γ' Δ' ξ agr.
     apply: era_conv.
     apply: sta_conv_subst...

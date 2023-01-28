@@ -91,11 +91,11 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
 | sta0_refl Γ A m :
   sta0_type Γ m A ->
   sta0_type Γ (Refl m) (Id A m m)
-| sta0_j Γ A B H P m n s :
-  sta0_type (Id A.[ren (+2)] (Var 1) (Var 0) :: A.[ren (+1)] :: A :: Γ) B (Sort s) ->
-  sta0_type (A :: Γ) H B.[Refl (Var 0) .: Var 0 .: Var 0 .: ren (+1)] ->
+| sta0_rw Γ A B H P m n s :
+  sta0_type (Id A.[ren (+1)] m.[ren (+1)] (Var 0) :: A :: Γ) B (Sort s) ->
+  sta0_type Γ H B.[Refl m,m/] ->
   sta0_type Γ P (Id A m n) ->
-  sta0_type Γ (J B H P) B.[P,n,m/]
+  sta0_type Γ (Rw B H P) B.[P,n/]
 | sta0_conv Γ A B m s :
   A === B ->
   sta0_type Γ m A ->
@@ -200,11 +200,11 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
 | sta_refl Γ A m :
   Γ ⊢ m : A ->
   Γ ⊢ Refl m : Id A m m
-| sta_j Γ A B H P m n s :
-  (Id A.[ren (+2)] (Var 1) (Var 0) :: A.[ren (+1)] :: A :: Γ) ⊢ B : Sort s ->
-  (A :: Γ) ⊢ H : B.[Refl (Var 0) .: Var 0 .: Var 0 .: ren (+1)] ->
+| sta_rw Γ A B H P m n s :
+  (Id A.[ren (+1)] m.[ren (+1)] (Var 0) :: A :: Γ) ⊢ B : Sort s ->
+  Γ ⊢ H : B.[Refl m,m/] ->
   Γ ⊢ P : Id A m n ->
-  Γ ⊢ J B H P : B.[P,n,m/]
+  Γ ⊢ Rw B H P : B.[P,n/]
 | sta_conv Γ A B m s :
   A === B ->
   Γ ⊢ m : A ->

@@ -39,7 +39,7 @@ Inductive term : Type :=
 | Snd (m : term) (* π2 m *)
 | Id (A m n : term)
 | Refl (m : term)
-| J (A : {bind 3 of term}) (H : {bind term}) (P : term) (* R=([x,y,p]A,[z]H,P) *)
+| Rw (A : {bind 2 of term}) (H P : term) (* R=([x,p]A,H,P) *)
 | Box
 | Ptr (l : nat).
 

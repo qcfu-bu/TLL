@@ -157,15 +157,14 @@ Qed.
 Lemma ptr_resolve_resolved H m m' : H ; m ~ m' -> resolved m'.
 Proof with eauto using resolved. elim=>{H m m'}... Qed.
 
-Reserved Notation "Γ ; H ⊢ x ~ y ~ z : A" (at level 50, H, x, y, z, A at next level).
+Reserved Notation "H ; x ~ y ~ z : A" (at level 50, x, y, z, A at next level).
 Inductive ptr_well_resolved :
-  sta_ctx -> dyn_ctx -> term -> term -> term -> term -> Prop :=
-| Ptr_well_resolved Γ Δ H x y z A :
-  dyn_empty Δ ->
-  Γ ; Δ ⊢ x ~ y : A ->
+  dyn_ctx -> term -> term -> term -> term -> Prop :=
+| Ptr_well_resolved H x y z A :
+  nil ; nil ⊢ x ~ y : A ->
   H ; z ~ y ->
-  Γ ; H ⊢ x ~ y ~ z : A
-where "Γ ; H ⊢ x ~ y ~ z : A" := (ptr_well_resolved Γ H x y z A).
+  H ; x ~ y ~ z : A
+where "H ; x ~ y ~ z : A" := (ptr_well_resolved H x y z A).
 
 Lemma resolve_wkU H m m' n : H ; m ~ m' -> (n :U H) ; m ~ m'.
 Proof with eauto using resolve, key, merge.
@@ -469,59 +468,13 @@ Inductive wr_heap : dyn_ctx -> Prop :=
   wr_heap H ->
   wr_heap (_: H).
 
-Inductive dyn_iempty : dyn_ctx -> nat -> Prop :=
-| dyn_iempty_O Δ :
-  dyn_empty Δ ->
-  dyn_iempty Δ 0
-| dyn_iempty_S Δ i a :
-  dyn_iempty Δ i ->
-  dyn_iempty (a :: Δ) i.+1.
-
-Lemma dyn_iempty_split Δ1 Δ2 Δ i :
-  Δ1 ∘ Δ2 => Δ -> dyn_iempty Δ i -> dyn_iempty Δ1 i /\ dyn_iempty Δ2 i.
-Proof with eauto using dyn_empty, dyn_iempty.
-  move=>mrg. elim: mrg i=>{Δ1 Δ2 Δ}.
-  { move=>i dN. inv dN. split... }
-  { move=>Δ1 Δ2 Δ m mrg ih i dN. inv dN. inv H.
-    have[dN1 dN2]:=ih _ H2. split... }
-  { move=>Δ1 Δ2 Δ m mrg ih i dN. inv dN. inv H.
-    have[dN1 dN2]:=ih _ H2. split... }
-  { move=>Δ1 Δ2 Δ m mrg ih i dN. inv dN. inv H.
-    have[dN1 dN2]:=ih _ H2. split... }
-  { move=>Δ1 Δ2 Δ mrg ih i dN. inv dN.
-    { inv H. have[dN1 dN2]:=dyn_empty_split mrg H1.
-      split... }
-    { have[dN1 dN2]:=ih _ H2. split... } }
-Qed.
-
-Lemma dyn_has_iempty Δ x s A i :
-  dyn_has Δ x s A -> dyn_iempty Δ i -> x < i.
-Proof with eauto.
-  move=>hs. elim: hs i=>{Δ x s A}.
-  { move=>Δ A s k i dN. inv dN... inv H. }
-  { move=>Δ A B x s hs ih i dN. inv dN... inv H. }
-  { move=>Δ A x s hs ih i dN. inv dN... inv H.
-    exfalso. apply: dyn_has_empty... }
-Qed.
-
-Lemma nf_typing Γ Δ m n A i :
-  Γ ; Δ ⊢ m ~ n : A -> dyn_iempty Δ i -> nf i n.
-Proof with eauto using nf, dyn_iempty.
-  move=>er. elim: er i=>{Γ Δ m n A}...
-  { move=>Γ Δ x s A wf shs dhs i dN.
-    constructor. apply: dyn_has_iempty... }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' s mrg erm ihm ern ihn i dN.
-    have[dN1 dN2]:=dyn_iempty_split mrg dN.
-    constructor... }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg tyS erm ihm ern ihn i dN.
-    have[dN1 dN2]:=dyn_iempty_split mrg dN.
-    constructor... }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg tyC erm ihm ern ihn i dN.
-    have[dN1 dN2]:=dyn_iempty_split mrg dN.
-    constructor... }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg tyC erm ihm ern ihn i dN.
-    have[dN1 dN2]:=dyn_iempty_split mrg dN.
-    constructor... }
+Lemma nf_typing Γ Δ m n A :
+  Γ ; Δ ⊢ m ~ n : A -> nf (size Γ) n.
+Proof with eauto using nf.
+  elim=>//{Γ Δ m n A}...
+  move=>Γ Δ x s A wf shs dhs.
+  constructor.
+  apply:sta_has_size shs.
 Qed.
 
 Lemma free_wr_nf H l m H' :
@@ -754,68 +707,71 @@ Proof with eauto using key_impure.
     { exfalso. apply: free_wr_ptr... } }
 Qed.
 
-Theorem resolution Γ H x y z A s :
-  Γ ; H ⊢ x ~ y ~ z : A ->
-  Γ ⊢ A : Sort s ->
+Theorem resolution H x y z A s :
+  H ; x ~ y ~ z : A ->
+  nil ⊢ A : Sort s ->
   dyn_val y -> wr_heap H -> H ▷ s.
 Proof with eauto using key_impure.
   move=>wr. inv wr.
-  elim: H2 H z s H1 H3=>{Γ Δ x y A}.
-  { move=>Γ Δ x s A wf shs dhs H z s0 dN rs tyA vl wr.
-    exfalso. apply: dyn_has_empty... }
-  { move=>Γ Δ A B m m' s k erm _ H z s0 dN rs tyP vl wr.
+  move:H1 H2.
+  move e1:(nil)=>Γ.
+  move e2:(nil)=>Δ ty.
+  elim: ty H z s e1 e2=>{Γ Δ x y A}.
+  { move=>Γ Δ x s A wf shs dhs H z s0 e1 e2 rs tyA vl wr; subst.
+    inv shs. }
+  { move=>Γ Δ A B m m' s k erm _ H z s0 e1 e2 rs tyP vl wr; subst.
     have[_[_/sort_inj e]]:=sta_pi0_inv tyP. subst.
     destruct s...
     apply: resolve_lam0_inv... }
-  { move=>Γ Δ A B m m' s t k erm _ H z s0 dN rs tyP vl wr.
+  { move=>Γ Δ A B m m' s t k erm _ H z s0 e1 e2 rs tyP vl wr; subst.
     have[_[_/sort_inj e]]:=sta_pi1_inv tyP. subst.
     destruct s...
     apply: resolve_lam1_inv... }
   { move=>Γ Δ A B m m' n s erm _ tyn
-      H z s0 dN rs tyB vl. inv vl. }
+      H z s0 e1 e2 rs tyB vl. inv vl. }
   { move=>Γ Δ1 Δ2 Δ A B m m' n n' s mrg erm _ ern _
-      H z s0 dN rs tyB vl. inv vl. }
+      H z s0 e1 e2 rs tyB vl. inv vl. }
   { move=>Γ Δ A B m m' n t tyS1 erm ihm tyn
-      H z s dN rs tyS2 vl wr.
+      H z s e1 e2 rs tyS2 vl wr; subst.
     have[s0[r[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv tyS2. subst.
     destruct t... inv ord. inv vl.
     inv rs... have wr':=free_wr H2 wr. inv H3.
-    { have k':=ihm _ _ _ dN H7 tyA H1 wr'.
+    { have k':=ihm _ _ _ erefl erefl H7 tyA H1 wr'.
       have->//:=free_wr_pair0 H2 wr. }
     { exfalso. apply: free_wr_ptr... } }
   { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg tyS1 erm ihm ern ihn
-      H z s dN rs tyS2 vl wr.
-    have[dN1 dN2]:=dyn_empty_split mrg dN. inv vl.
+      H z s e1 e2 rs tyS2 vl wr; subst.
+    inv mrg. inv vl.
     have[s0[r[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv tyS2. subst.
     destruct t... inv ord1. inv ord2.
     inv rs.
     { have[wr1 wr2]:=wr_merge_inv H10 wr.
       have tym:=dyn_sta_type (era_dyn_type erm).
       have tyBm:=sta_subst tyB tym. asimpl in tyBm.
-      have k1:=ihm _ _ _ dN1 H11 tyA H2 wr1.
-      have k2:=ihn _ _ _ dN2 H12 tyBm H4 wr2.
+      have k1:=ihm _ _ _ erefl erefl H11 tyA H2 wr1.
+      have k2:=ihn _ _ _ erefl erefl H12 tyBm H4 wr2.
       apply: merge_pure... }
     { have wr':=free_wr H1 wr. inv H3.
       { have[wr1 wr2]:=wr_merge_inv H12 wr'.
         have tym:=dyn_sta_type (era_dyn_type erm).
         have tyBm:=sta_subst tyB tym. asimpl in tyBm.
-        have k1:=ihm _ _ _ dN1 H13 tyA H2 wr1.
-        have k2:=ihn _ _ _ dN2 H14 tyBm H4 wr2.
+        have k1:=ihm _ _ _ erefl erefl H13 tyA H2 wr1.
+        have k2:=ihn _ _ _ erefl erefl H14 tyBm H4 wr2.
         have->:=free_wr_pair1 H1 wr.
         apply: merge_pure... }
       { exfalso. apply: free_wr_ptr... } } }
   { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg tyC1 erm _ ern _
-      H z s0 dN rs tyC2 vl. inv vl. }
+      H z s0 e1 e2 rs tyC2 vl. inv vl. }
   { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg tyC1 erm _ ern _
-      H z s0 dN rs tyC2 vl. inv vl. }
-  { move=>Γ Δ A B m m' n n' t k erm ihm ern ihn H z s dN rs tyW vl wr.
-    have[s0[r[tyA[tyB/sort_inj e0]]]]:=sta_with_inv tyW. subst.
+      H z s0 e1 e2 rs tyC2 vl. inv vl. }
+  { move=>Γ Δ A B m m' n n' t k erm ihm ern ihn H z s e1 e2 rs tyW vl wr.
+    have[s0[r[tyA[tyB/sort_inj e]]]]:=sta_with_inv tyW. subst.
     destruct t... inv rs... inv H2.
     { have->//:=free_wr_apair H1 wr. }
     { exfalso. apply: free_wr_ptr... } }
-  { move=>Γ Δ A B m m' t erm _ H z s dN rs tyA vl. inv vl. }
-  { move=>Γ Δ A B m m' t erm _ H z s dN rs tyA vl. inv vl. }
-  { move=>Γ Δ A B m m' s eq erm ihm tyB1 H z s0 dN rs tyB2 vl wr.
+  { move=>Γ Δ A B m m' t erm _ H z s e1 e2 rs tyA vl. inv vl. }
+  { move=>Γ Δ A B m m' t erm _ H z s e1 e2 rs tyA vl. inv vl. }
+  { move=>Γ Δ A B m m' s eq erm ihm tyB1 H z s0 e1 e2 rs tyB2 vl wr.
     have e:=sta_unicity tyB1 tyB2. subst.
     have[s tyA]:=dyn_valid (era_dyn_type erm).
     have[x r1 r2]:=church_rosser eq.
