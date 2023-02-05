@@ -288,12 +288,10 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
 | sta_stop Γ r :
   sta_wf Γ ->
   Γ ⊢ Stop r : Proto
-| sta_act0 Γ r A B s :
-  Γ ⊢ A : Sort s ->
+| sta_act0 Γ r A B :
   (A :: Γ) ⊢ B : Proto ->
   Γ ⊢ Act0 r A B : Proto
-| sta_act1 Γ r A B s :
-  Γ ⊢ A : Sort s ->
+| sta_act1 Γ r A B :
   (A :: Γ) ⊢ B : Proto ->
   Γ ⊢ Act1 r A B : Proto
 | sta_ch Γ r A :
@@ -352,6 +350,8 @@ Proof with eauto.
   elim=>{Γ m A}...
   { move=>Γ A _ _ _ _ wf. inv wf... }
   { move=>Γ A _ _ _ _ wf. inv wf... }
+  { move=>Γ _ A _ _ wf. inv wf... }
+  { move=>Γ _ A _ _ wf. inv wf... }
   { move=>Γ _ r A _ wf. inv wf... }
 Qed.
 Hint Resolve sta_type_wf.
@@ -365,6 +365,12 @@ Proof with eauto using sta0_type, sta0_wf.
   { move=>Γ A B m s tym ihm.
     have wf0:=sta0_type_wf ihm. inv wf0.
     apply: sta0_lam1... }
+  { move=>Γ r A B tyB ihB.
+    have wf0:=sta0_type_wf ihB. inv wf0.
+    apply: sta0_act0... }
+  { move=>Γ r A B tyB ihB.
+    have wf0:=sta0_type_wf ihB. inv wf0.
+    apply: sta0_act1... }
   Unshelve. all: eauto using nat, bool.
 Qed.
 

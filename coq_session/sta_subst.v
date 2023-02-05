@@ -105,6 +105,83 @@ Proof with eauto using sta_agree_subst, sta_type.
     apply: sta_app1.
     asimpl in ihm...
     asimpl in ihn... }
+  { move=>Γ A B m n t tyS ihS tym ihm tyn ihn Γ1 σ agr. asimpl.
+    have{}ihS:=ihS _ _ agr.
+    have{}ihm:=ihm _ _ agr.
+    have{}ihn:=ihn _ _ agr.
+    apply: sta_pair0.
+    asimpl in ihS...
+    asimpl in ihm...
+    asimpl in ihn...
+    by autosubst. }
+  { move=>Γ A B m n t tyS ihS tym ihm tyn ihn Γ1 σ agr. asimpl.
+    have{}ihS:=ihS _ _ agr.
+    have{}ihm:=ihm _ _ agr.
+    have{}ihn:=ihn _ _ agr.
+    apply: sta_pair1.
+    asimpl in ihS...
+    asimpl in ihm...
+    asimpl in ihn...
+    by autosubst. }
+  { move=>Γ A B C m n s t tyC ihC tym ihm tyn ihn Γ1 σ agr. asimpl.
+    replace C.[m.[σ] .: σ] with C.[up σ].[m.[σ]/] by autosubst.
+    have wf:=sta_type_wf tyC. inv wf.
+    have wf:=sta_type_wf tyn. inv wf. inv H3.
+    have{}ihC:=ihC _ _ (sta_agree_subst_ty agr H2).
+    have{}ihm:=ihm _ _ agr.
+    have{}ihn:=ihn _ _ (sta_agree_subst_ty (sta_agree_subst_ty agr H6) H4).
+    apply: sta_letin0.
+    asimpl in ihC...
+    asimpl in ihm...
+    asimpl in ihn...
+    by asimpl. }
+  { move=>Γ A B C m n s t tyC ihC tym ihm tyn ihn Γ1 σ agr. asimpl.
+    replace C.[m.[σ] .: σ] with C.[up σ].[m.[σ]/] by autosubst.
+    have wf:=sta_type_wf tyC. inv wf.
+    have wf:=sta_type_wf tyn. inv wf. inv H3.
+    have{}ihC:=ihC _ _ (sta_agree_subst_ty agr H2).
+    have{}ihm:=ihm _ _ agr.
+    have{}ihn:=ihn _ _ (sta_agree_subst_ty (sta_agree_subst_ty agr H6) H4).
+    apply: sta_letin1.
+    asimpl in ihC...
+    asimpl in ihm...
+    asimpl in ihn...
+    by asimpl. }
+  { move=>Γ A m tyA ihA tym ihm Γ1 σ agr. asimpl.
+    have{}ihA:=ihA _ _ agr.
+    have{}ihm:=ihm _ _ (sta_agree_subst_ty agr tyA).
+    apply: sta_fix...
+    asimpl in ihm. asimpl... }
+  { move=>Γ A m n1 n2 s tym ihm tyA ihA tyn1 ihn1 tyn2 ihn2 Γ1 σ agr. asimpl.
+    have wf:=sta_type_wf tym.
+    have tyBool:=sta_bool wf.
+    have{}ihm:=ihm _ _ agr.
+    have{}ihA:=ihA _ _ (sta_agree_subst_ty agr tyBool).
+    have{}ihn1:=ihn1 _ _ agr.
+    have{}ihn2:=ihn2 _ _ agr.
+    replace A.[m.[σ] .: σ]
+      with A.[up σ].[m.[σ]/] by autosubst.
+    apply: sta_ifte...
+    asimpl in ihn1. by asimpl.
+    asimpl in ihn2. by asimpl. }
+  { move=>Γ m n A B s tyB ihB tym ihm tyn ihn Γ1 σ agr. asimpl.
+    have wf:=sta_type_wf tyn. inv wf.
+    have{}ihB:=ihB _ _ agr.
+    have{}ihn:=ihn _ _ (sta_agree_subst_ty agr H2).
+    apply: sta_bind...
+    asimpl in ihn. by asimpl. }
+  { move=>Γ r A B tyB ihB Γ1 σ agr. asimpl.
+    have wf:=sta_type_wf tyB. inv wf.
+    have{}ihB:=ihB _ _ (sta_agree_subst_ty agr H2).
+    apply: sta_act0... }
+  { move=>Γ r A B tyB ihB Γ1 σ agr. asimpl.
+    have wf:=sta_type_wf tyB. inv wf.
+    have{}ihB:=ihB _ _ (sta_agree_subst_ty agr H2).
+    apply: sta_act1... }
+  { move=>Γ m r A tym ihm Γ1 σ agr. asimpl.
+    have wf:=sta_type_wf tym. inv wf.
+    have{}ihm:=ihm _ _ (sta_agree_subst_ty agr H2).
+    apply: sta_fork... }
   { move=>Γ2 A B m s eq tym ihm tyB ihB Γ1 σ agr.
     apply: sta_conv.
     apply: sta_conv_subst.

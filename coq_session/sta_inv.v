@@ -38,6 +38,70 @@ Proof with eauto.
     exact: eq2. }
 Qed.
 
+Lemma sta_sig0_inv Γ A B C t :
+  Γ ⊢ Sig0 A B t : C ->
+  exists s r, s ⊑ t /\ Γ ⊢ A : Sort s /\ (A :: Γ) ⊢ B : Sort r /\ C === Sort t.
+Proof with eauto.
+  move e:(Sig0 A B t)=>m ty.
+  elim: ty A B t e=>//{Γ C m}.
+  { move=>Γ A B s r t ord tyA ihA tyB ihB A0 B0 s0[e1 e2 e3]; subst.
+    exists s. exists r... }
+  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 t e; subst.
+    have[s0[r[ord[tyA0[tyB0 eq']]]]]:=ihm _ _ _ erefl.
+    exists s0. exists r. repeat split...
+    apply: conv_trans.
+    apply: conv_sym...
+    exact: eq'. }
+Qed.
+
+Lemma sta_sig1_inv Γ A B C t :
+  Γ ⊢ Sig1 A B t : C ->
+  exists s r,
+    s ⊑ t /\ r ⊑ t /\
+    Γ ⊢ A : Sort s /\ (A :: Γ) ⊢ B : Sort r /\ C === Sort t.
+Proof with eauto.
+  move e:(Sig1 A B t)=>m ty.
+  elim: ty A B t e=>//{Γ C m}.
+  { move=>Γ A B s r t ord1 ord2 tyA ihA tyB ihB A0 B0 s0[e1 e2 e3]; subst.
+    exists s. exists r... }
+  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 t e; subst.
+    have[s0[r[ord1[ord2[tyA0[tyB0 eq']]]]]]:=ihm _ _ _ erefl.
+    exists s0. exists r. repeat split...
+    apply: conv_trans.
+    apply: conv_sym...
+    exact: eq'. }
+Qed.
+
+Lemma sta_io_inv Γ A B :
+  Γ ⊢ IO A : B ->
+  exists s, Γ ⊢ A : Sort s /\ B === Sort L.
+Proof with eauto.
+  move e:(IO A)=>m ty.
+  elim: ty A e=>//{Γ B m}.
+  { move=>Γ A s tyA ihA A0[e]; subst. exists s... }
+  { move=>Γ A B m s eq1 tym ihm tyB ihB A0 e; subst.
+    have[s0[tyA0 eq2]]:=ihm _ erefl.
+    exists s0. split...
+    apply: conv_trans.
+    apply: conv_sym...
+    exact: eq2. }
+Qed.
+
+Lemma sta_return_inv Γ m B :
+  Γ ⊢ Return m : B ->
+  exists A, Γ ⊢ m : A /\ B === IO A.
+Proof with eauto.
+  move e:(Return m)=>x ty.
+  elim: ty m e=>//{Γ B x}.
+  { move=>Γ m A tym ihm m0[e]; subst. exists A... }
+  { move=>Γ A B m s eq1 tym ihm tyB ihB m0 e; subst.
+    have[A0[tym0 eq2]]:=ihm _ erefl.
+    exists A0. split...
+    apply: conv_trans.
+    apply: conv_sym...
+    exact: eq2. }
+Qed.
+
 Lemma sta_lam0_pi1_false Γ A1 A2 B C m s1 s2 :
   Γ ⊢ Lam0 A1 m s1 : C -> C === Pi1 A2 B s2 -> False.
 Proof with eauto.
@@ -64,3 +128,24 @@ Proof with eauto.
     apply: conv_trans... }
 Qed.
 
+Lemma sta_pair0_sig1_false Γ A B C m1 m2 s1 s2 :
+  Γ ⊢ Pair0 m1 m2 s1 : C -> C === Sig1 A B s2 -> False.
+Proof with eauto.
+  move e:(Pair0 m1 m2 s1)=>n tyP.
+  elim: tyP A B m1 m2 s1 s2 e=>//{Γ C n}.
+  { move=>*. solve_conv. }
+  { move=>Γ A B m s eq1 tym ihm tyB ihB A0 B0 m1 m2 s1 s2 e eq2; subst.
+    apply: ihm...
+    apply: conv_trans... }
+Qed.
+
+Lemma sta_pair1_sig0_false Γ A B C m1 m2 s1 s2 :
+  Γ ⊢ Pair1 m1 m2 s1 : C -> C === Sig0 A B s2 -> False.
+Proof with eauto.
+  move e:(Pair1 m1 m2 s1)=>n tyP.
+  elim: tyP A B m1 m2 s1 s2 e=>//{Γ C n}.
+  { move=>*. solve_conv. }
+  { move=>Γ A B m s eq1 tym ihm tyB ihB A0 B0 m1 m2 s1 s2 e eq2; subst.
+    apply: ihm...
+    apply: conv_trans... }
+Qed.
