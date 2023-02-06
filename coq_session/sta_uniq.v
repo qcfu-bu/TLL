@@ -47,7 +47,7 @@ Inductive head_sim : term -> term -> Prop :=
 | head_sim_act1 r A B : head_sim (Act1 r A B) (Act1 r A B)
 | head_sim_ch r1 r2 A1 A2 : head_sim (Ch r1 A1) (Ch r2 A2)
 | head_sim_cvar x : head_sim (CVar x) (CVar x)
-| head_sim_fork m : head_sim (Fork m) (Fork m)
+| head_sim_fork A m : head_sim (Fork A m) (Fork A m)
 | head_sim_recv m : head_sim (Recv m) (Recv m)
 | head_sim_send m : head_sim (Send m) (Send m)
 | head_sim_close m : head_sim (Close m) (Close m)
@@ -425,7 +425,7 @@ Qed.
 Lemma sta_fix_uniq Γ A B m : Γ ⊢ Fix A m : B -> sim A B.
 Proof with eauto.
   move e:(Fix A m)=>n ty. elim: ty A m e=>//{Γ B n}.
-  move=>Γ A m tyA ihA tym ihm A0 m0[e1 e2]; subst...
+  move=>Γ A m tym ihm A0 m0[e1 e2]; subst...
   move=>Γ A B m s eq tym ihm tyB ihB A0 m0 e; subst.
   { have eq':=ihm _ _ erefl.
     apply: sim_transL... }
@@ -572,15 +572,15 @@ Proof with eauto.
     apply: sim_transL... }
 Qed.
 
-Lemma sta_fork_uniq Γ m A B r :
-  Γ ⊢ Fork m : B -> sim (IO (Ch (~~r) A)) B.
+Lemma sta_fork_uniq Γ m A B :
+  Γ ⊢ Fork A m : B -> sim (IO (Ch false A)) B.
 Proof with eauto.
-  move e:(Fork m)=>x ty. elim: ty A m r e=>//{Γ x B}.
+  move e:(Fork A m)=>x ty. elim: ty A m e=>//{Γ x B}.
   { move=>*.
     econstructor. eauto.
     econstructor. eauto. }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 m0 r e; subst.
-    have eq':=ihm _ _ _ erefl.
+  { move=>Γ A B m s eq tym ihm tyB ihB A0 m0 e; subst.
+    have eq':=ihm _ _ erefl.
     apply: sim_transL... }
 Qed.
 

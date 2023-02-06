@@ -6,7 +6,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Reserved Notation "m ~> n" (at level 30).
+Reserved Notation "m ~> n" (at level 50).
 Inductive sta_step : term -> term -> Prop :=
 (* core *)
 | sta_step_pi0L A A' B s :
@@ -136,9 +136,12 @@ Inductive sta_step : term -> term -> Prop :=
 | sta_step_ch r A A' :
   A ~> A' ->
   Ch r A ~> Ch r A'
-| sta_step_fork m m' :
+| sta_step_forkL A A' m :
+  A ~> A' ->
+  Fork A m ~> Fork A' m
+| sta_step_forkR A m m' :
   m ~> m' ->
-  Fork m ~> Fork m'
+  Fork A m ~> Fork A m'
 | sta_step_recv m m' :
   m ~> m' ->
   Recv m ~> Recv m'

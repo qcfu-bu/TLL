@@ -128,9 +128,10 @@ Inductive pstep : term -> term -> Prop :=
   pstep (Ch r A) (Ch r A')
 | pstep_cvar x :
   pstep (CVar x) (CVar x)
-| pstep_fork m m' :
+| pstep_fork A A' m m' :
+  pstep A A' ->
   pstep m m' ->
-  pstep (Fork m) (Fork m')
+  pstep (Fork A m) (Fork A' m')
 | pstep_recv m m' :
   pstep m m' ->
   pstep (Recv m) (Recv m')
@@ -323,9 +324,14 @@ Proof.
   move=>c. apply: (star_hom (Ch r)) c=>x y. exact: sta_step_ch.
 Qed.
 
-Lemma sta_red_fork m m' :
-  m ~>* m' ->  Fork m ~>* Fork m'. 
-Proof. move=>r. apply: (star_hom Fork) r=>x y. exact: sta_step_fork. Qed.
+Lemma sta_red_fork A A' m m' :
+  A ~>* A' -> m ~>* m' ->  Fork A m ~>* Fork A' m'.
+Proof.
+  move=>r1 r2.
+  apply: (star_trans (Fork A' m)).
+  apply: (star_hom (Fork^~ m)) r1=>x y. exact: sta_step_forkL.
+  apply: (star_hom (Fork A')) r2=>x y. exact: sta_step_forkR.
+Qed.
 
 Lemma sta_red_recv m m' :
   m ~>* m' -> Recv m ~>* Recv m'.
@@ -536,9 +542,14 @@ Proof.
   move=>c. apply: (conv_hom (Ch r)) c=>x y. exact: sta_step_ch.
 Qed.
 
-Lemma sta_conv_fork m m' :
-  m === m' ->  Fork m === Fork m'. 
-Proof. move=>r. apply: (conv_hom Fork) r=>x y. exact: sta_step_fork. Qed.
+Lemma sta_conv_fork A A' m m' :
+  A === A' -> m === m' ->  Fork A m === Fork A' m'. 
+Proof.
+  move=>r1 r2.
+  apply: (conv_trans (Fork A' m)).
+  apply: (conv_hom (Fork^~ m)) r1=>x y. exact: sta_step_forkL.
+  apply: (conv_hom (Fork A')) r2=>x y. exact: sta_step_forkR.
+Qed.
 
 Lemma sta_conv_recv m m' :
   m === m' -> Recv m === Recv m'.
@@ -892,9 +903,10 @@ Proof with eauto 8 using
   { move=>r A A' pA ihA m0 p. inv p.
     have[Ax pA1 pA2]:=ihA _ H2.
     exists (Ch r Ax)... }
-  { move=>m m' pm ihm m0 p. inv p.
-    have[mx pm1 pm2]:=ihm _ H0.
-    exists (Fork mx)... }
+  { move=>A A' m m' pA ihA pm ihm m0 p. inv p.
+    have[Ax pA1 pA2]:=ihA _ H1.
+    have[mx pm1 pm2]:=ihm _ H3.
+    exists (Fork Ax mx)... }
   { move=>m m' pm ihm m0 p. inv p.
     have[mx pm1 pm2]:=ihm _ H0.
     exists (Recv mx)... }
@@ -1202,15 +1214,16 @@ Proof.
   move=>y0 z rd e st. subst. inv st.
 Qed.
 
-Lemma sta_red_fork_inv m x :
-  Fork m ~>* x ->
-  exists m',
-    m ~>* m' /\ x = Fork m'.
+Lemma sta_red_fork_inv A m x :
+  Fork A m ~>* x ->
+  exists A' m',
+    A ~>* A' /\ m ~>* m' /\ x = Fork A' m'.
 Proof.
   elim.
-  by exists m.
-  move=>y z rd1[m'[rd2 e]]st. subst. inv st.
-  exists m'0. eauto using star.
+  exists A. by exists m.
+  move=>y z rd[A'[m'[rdA[rdm e]]]]st. subst. inv st.
+  exists A'0. exists m'. eauto using star.
+  exists A'. exists m'0. eauto using star.
 Qed.
 
 Lemma sta_red_recv_inv m x :

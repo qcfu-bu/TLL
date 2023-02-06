@@ -6,6 +6,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+
 Theorem sta_valid Γ m A : Γ ⊢ m : A -> exists s, Γ ⊢ A : Sort s.
 Proof with eauto using sta_type.
   move=>ty. elim: ty=>{Γ m A}...
@@ -25,6 +26,35 @@ Proof with eauto using sta_type.
       tym[s0/sta_pi1_inv[t[tyB/sort_inj e1]]]tyn _; subst.
     exists t. apply: sta_esubst...
     by autosubst. }
+  { move=>Γ A B C m n s t tyC _ tym _ _ _.
+    have//={}tyC:=sta_subst tyC tym. exists s... }
+  { move=>Γ A B C m n s t tyC _ tym _ _ _.
+    have//={}tyC:=sta_subst tyC tym. exists s... }
+  { move=>Γ A m tym _.
+    have wf:=sta_type_wf tym. inv wf. exists s... }
+  { move=>Γ A m n1 n2 s tym _ tyA _ _ _ _ _.
+    exists s. apply: sta_esubst...
+    by autosubst. }
+  { move=>Γ m A tym [s tyA]. exists L... }
+  { move=>Γ m A tym ihm.
+    have wf:=sta_type_wf tym. inv wf.
+    have tyA:=sta_ch_inv H2. exists L... }
+  { move=>Γ r1 r2 A B m xor tym[s tyC].
+    have tyAct:=sta_ch_inv tyC.
+    have tyB:=sta_act0_inv tyAct.
+    have wf:=sta_type_wf tyB. inv wf. exists L... }
+  { move=>Γ r1 r2 A B m xor tym[s tyC].
+    have tyAct:=sta_ch_inv tyC.
+    have tyB:=sta_act1_inv tyAct.
+    have wf:=sta_type_wf tyB. inv wf. exists L... }
+  { move=>Γ r1 r2 A B m xor tym[s tyC].
+    have tyAct:=sta_ch_inv tyC.
+    have tyB:=sta_act0_inv tyAct.
+    have wf:=sta_type_wf tyB. inv wf. exists L... }
+  { move=>Γ r1 r2 A B m xor tym[s tyC].
+    have tyAct:=sta_ch_inv tyC.
+    have tyB:=sta_act1_inv tyAct.
+    have wf:=sta_type_wf tyB. inv wf. exists L... }
   Unshelve. all: eauto.
 Qed.
 
@@ -90,3 +120,68 @@ Proof with eauto.
   apply: sta_lam1_invX...
 Qed.
 
+Lemma sta_pair0_invX Γ m n s C :
+  Γ ⊢ Pair0 m n s : C ->
+  forall A B r t,
+    C === Sig0 A B r ->
+    Γ ⊢ Sig0 A B r : Sort t ->
+    s = r /\ Γ ⊢ m : A /\ Γ ⊢ n : B.[m/].
+Proof with eauto.
+  move e:(Pair0 m n s)=>x ty.
+  elim: ty m n s e=>//{Γ C x}.
+  { move=>Γ A B m n t ty1 _ tym _ tyn _ m0 n0 s[e1 e2 e3]A0 B0 r t0
+      /sig0_inj[e4[e5 e6]]ty2; subst.
+    have[s[r0[ord[tyA0[tyB0/sort_inj e]]]]]:=sta_sig0_inv ty2; subst.
+    have tym0:Γ ⊢ m : A0 by apply: sta_conv; eauto.
+    repeat split...
+    apply: sta_conv.
+    apply: sta_conv_subst.
+    all: eauto.
+    apply: sta_esubst...
+    by autosubst. }
+  { move=>Γ A B m s eq tym ihm _ _ m0 n s0 e A0 B0 r t eq' ty.
+    apply: ihm...
+    apply: conv_trans... }
+Qed.
+
+Lemma sta_pair1_invX Γ m n s C :
+  Γ ⊢ Pair1 m n s : C ->
+  forall A B r t,
+    C === Sig1 A B r ->
+    Γ ⊢ Sig1 A B r : Sort t ->
+    s = r /\ Γ ⊢ m : A /\ Γ ⊢ n : B.[m/].
+Proof with eauto.
+  move e:(Pair1 m n s)=>x ty.
+  elim: ty m n s e=>//{Γ C x}.
+  { move=>Γ A B m n t ty1 _ tym _ tyn _ m0 n0 s[e1 e2 e3]A0 B0 r t0
+      /sig1_inj[e4[e5 e6]]ty2; subst.
+    have[s[r0[ord1[ord2[tyA0[tyB0/sort_inj e]]]]]]:=sta_sig1_inv ty2; subst.
+    have tym0:Γ ⊢ m : A0 by apply: sta_conv; eauto.
+    repeat split...
+    apply: sta_conv.
+    apply: sta_conv_subst.
+    all: eauto.
+    apply: sta_esubst...
+    by autosubst. }
+  { move=>Γ A B m s eq tym ihm _ _ m0 n s0 e A0 B0 r t eq' ty.
+    apply: ihm...
+    apply: conv_trans... }
+Qed.
+
+Lemma sta_pair0_inv Γ A B m n s r :
+  Γ ⊢ Pair0 m n s : Sig0 A B r ->
+  s = r /\ Γ ⊢ m : A /\ Γ ⊢ n : B.[m/].
+Proof with eauto.
+  move=>ty.
+  have[t tyS]:=sta_valid ty.
+  apply: sta_pair0_invX...
+Qed.
+
+Lemma sta_pair1_inv Γ A B m n s r :
+  Γ ⊢ Pair1 m n s : Sig1 A B r ->
+  s = r /\ Γ ⊢ m : A /\ Γ ⊢ n : B.[m/].
+Proof with eauto.
+  move=>ty.
+  have[t tyS]:=sta_valid ty.
+  apply: sta_pair1_invX...
+Qed.

@@ -70,8 +70,8 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
   sta0_type Γ m (Sig1 A B t) ->
   sta0_type (B :: A :: Γ) n C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   sta0_type Γ (LetIn C m n) C.[m/]
-| sta0_fix Γ A m :
-  sta0_type Γ A (Sort U) ->
+| sta0_fix Γ A m s :
+  sta0_type Γ A (Sort s) ->
   sta0_type (A :: Γ) m A.[ren (+1)] ->
   sta0_type Γ (Fix A m) A
 (* data *)
@@ -129,31 +129,32 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
 | sta0_cvar Γ r x A :
   sta0_type Γ A Proto ->
   sta0_type Γ (CVar x) (Ch r A)
-| sta0_fork Γ r A m :
-  sta0_type (Ch r A :: Γ) m (IO Unit) ->
-  sta0_type Γ (Fork m) (IO (Ch (~~r) A))
+| sta0_fork Γ A m s :
+  sta0_type Γ (Ch true A) (Sort s) ->
+  sta0_type (Ch true A :: Γ) m (IO Unit) ->
+  sta0_type Γ (Fork A m) (IO (Ch false A))
 | sta0_recv0 Γ r1 r2 A B m :
-  addb r1 r2 = false ->
+  r1 (+) r2 = false ->
   sta0_type Γ m (Ch r1 (Act0 r2 A B)) ->
   sta0_type Γ (Recv m) (IO (Sig0 A (Ch r1 B) L))
 | sta0_recv1 Γ r1 r2 A B m :
-  addb r1 r2 = false ->
+  r1 (+) r2 = false ->
   sta0_type Γ m (Ch r1 (Act1 r2 A B)) ->
   sta0_type Γ (Recv m) (IO (Sig1 A (Ch r1 B) L))
 | sta0_send0 Γ r1 r2 A B m :
-  addb r1 r2 = true ->
+  r1 (+) r2 = true ->
   sta0_type Γ m (Ch r1 (Act0 r2 A B)) ->
   sta0_type Γ (Send m) (Pi0 A (IO (Ch r1 B)) L)
 | sta0_send1 Γ r1 r2 A B m :
-  addb r1 r2 = true ->
+  r1 (+) r2 = true ->
   sta0_type Γ m (Ch r1 (Act1 r2 A B)) ->
   sta0_type Γ (Send m) (Pi1 A (IO (Ch r1 B)) L)
 | sta0_wait Γ r1 r2 m :
-  andb r1 r2 = false ->
+  r1 (+) r2 = false ->
   sta0_type Γ m (Ch r1 (Stop r2)) ->
   sta0_type Γ (Wait m) (IO Unit)
 | sta0_close Γ r1 r2 m :
-  andb r1 r2 = true ->
+  r1 (+) r2 = true ->
   sta0_type Γ m (Ch r1 (Stop r2)) ->
   sta0_type Γ (Close m) (IO Unit)
 (* conversion *)
@@ -174,10 +175,7 @@ Scheme sta0_type_mut := Induction for sta0_type Sort Prop
 with sta0_wf_mut := Induction for sta0_wf Sort Prop.
 
 Lemma sta0_type_wf Γ m A : sta0_type Γ m A -> sta0_wf Γ.
-Proof with eauto.
-  elim=>{Γ m A}...
-  move=>Γ r A _ _ wf. inv wf...
-Qed.
+Proof with eauto. elim=>{Γ m A}... Qed.
 Hint Resolve sta0_type_wf.
 
 Reserved Notation "Γ ⊢ m : A" (at level 50, m, A at next level).
@@ -244,7 +242,6 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
   (B :: A :: Γ) ⊢ n : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   Γ ⊢ LetIn C m n : C.[m/]
 | sta_fix Γ A m :
-  Γ ⊢ A : Sort U ->
   (A :: Γ) ⊢ m : A.[ren (+1)] ->
   Γ ⊢ Fix A m : A
 (* data *)
@@ -300,31 +297,31 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
 | sta_cvar Γ r x A :
   Γ ⊢ A : Proto ->
   Γ ⊢ CVar x : Ch r A
-| sta_fork Γ m r A :
-  (Ch r A :: Γ) ⊢ m : IO Unit ->
-  Γ ⊢ Fork m : IO (Ch (~~r) A)
+| sta_fork Γ m A :
+  (Ch true A :: Γ) ⊢ m : IO Unit ->
+  Γ ⊢ Fork A m : IO (Ch false A)
 | sta_recv0 Γ r1 r2 A B m :
-  addb r1 r2 = false ->
+  r1 (+) r2 = false ->
   Γ ⊢ m : Ch r1 (Act0 r2 A B) ->
   Γ ⊢ Recv m : IO (Sig0 A (Ch r1 B) L)
 | sta_recv1 Γ r1 r2 A B m :
-  addb r1 r2 = false ->
+  r1 (+) r2 = false ->
   Γ ⊢ m : Ch r1 (Act1 r2 A B) ->
   Γ ⊢ Recv m : IO (Sig1 A (Ch r1 B) L)
 | sta_send0 Γ r1 r2 A B m :
-  addb r1 r2 = true ->
+  r1 (+) r2 = true ->
   Γ ⊢ m : Ch r1 (Act0 r2 A B) ->
   Γ ⊢ Send m : Pi0 A (IO (Ch r1 B)) L
 | sta_send1 Γ r1 r2 A B m :
-  addb r1 r2 = true ->
+  r1 (+) r2 = true ->
   Γ ⊢ m : Ch r1 (Act1 r2 A B) ->
   Γ ⊢ Send m : Pi1 A (IO (Ch r1 B)) L
 | sta_wait Γ r1 r2 m :
-  andb r1 r2 = false ->
+  r1 (+) r2 = false ->
   Γ ⊢ m : Ch r1 (Stop r2) ->
   Γ ⊢ Wait m : IO Unit
 | sta_close Γ r1 r2 m :
-  andb r1 r2 = true ->
+  r1 (+) r2 = true ->
   Γ ⊢ m : Ch r1 (Stop r2) ->
   Γ ⊢ Close m : IO Unit
 (* conversion *)
@@ -350,9 +347,10 @@ Proof with eauto.
   elim=>{Γ m A}...
   { move=>Γ A _ _ _ _ wf. inv wf... }
   { move=>Γ A _ _ _ _ wf. inv wf... }
+  { move=>Γ A _ _ wf. inv wf... }
   { move=>Γ _ A _ _ wf. inv wf... }
   { move=>Γ _ A _ _ wf. inv wf... }
-  { move=>Γ _ r A _ wf. inv wf... }
+  { move=>Γ _ A _ wf. inv wf... }
 Qed.
 Hint Resolve sta_type_wf.
 
@@ -365,14 +363,21 @@ Proof with eauto using sta0_type, sta0_wf.
   { move=>Γ A B m s tym ihm.
     have wf0:=sta0_type_wf ihm. inv wf0.
     apply: sta0_lam1... }
+  { move=>Γ A m tym ihm.
+    have wf0:=sta0_type_wf ihm. inv wf0.
+    apply: sta0_fix... }
   { move=>Γ r A B tyB ihB.
     have wf0:=sta0_type_wf ihB. inv wf0.
     apply: sta0_act0... }
   { move=>Γ r A B tyB ihB.
     have wf0:=sta0_type_wf ihB. inv wf0.
     apply: sta0_act1... }
+  { move=>Γ m A tym ihm.
+    have wf0:=sta0_type_wf ihm. inv wf0.
+    apply: sta0_fork... }
   Unshelve. all: eauto using nat, bool.
 Qed.
+Hint Resolve sta_sta0_type.
 
 Lemma sta0_sta_type Γ m A : sta0_type Γ m A -> Γ ⊢ m : A.
 Proof with eauto using sta_type, sta_wf.

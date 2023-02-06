@@ -27,6 +27,10 @@ Inductive sort_leq : sort -> sort -> Prop :=
   sort_leq L L.
 Notation "s ⊑ t" := (sort_leq s t) (at level 30) : sort_scope.
 
+Lemma sort_leq_Lgt s : s ⊑ L.
+Proof with eauto using sort_leq. destruct s... Qed.
+Hint Resolve sort_leq_Lgt.
+
 Inductive term : Type :=
 (* core *)
 | Var (x : var)
@@ -57,7 +61,7 @@ Inductive term : Type :=
 | Act1 (r : bool) (A : term) (B : {bind term}) (* ρ(x : A).B *)
 | Ch (r : bool) (A : term)
 | CVar (x : nat)
-| Fork (m : {bind term})
+| Fork (A : term) (m : {bind term})
 | Recv (m : term)
 | Send (m : term)
 | Close (m : term)

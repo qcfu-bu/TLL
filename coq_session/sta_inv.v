@@ -72,6 +72,23 @@ Proof with eauto.
     exact: eq'. }
 Qed.
 
+Lemma sta_ifte_inv Γ m n1 n2 A C :
+  Γ ⊢ Ifte A m n1 n2 : C ->
+  A.[m/] === C /\
+  Γ ⊢ m : Bool /\
+  Γ ⊢ n1 : A.[TT/] /\
+  Γ ⊢ n2 : A.[FF/].
+Proof with eauto.
+  move e:(Ifte A m n1 n2)=>x ty. elim: ty A m n1 n2 e=>//{Γ x C}.
+  { move=>Γ A m n1 n2 s tym ihm tyA ihA tyn1 ihn1 tyn2 ihn2 A0 m0 n0 n3
+      [e1 e2 e3 e4]; subst.
+    repeat split... }
+  { move=>Γ A B m s eq tym ihm tyB ihB A0 m0 n1 n2 e; subst.
+    have[eqA[tym0[tyn1 tyn2]]]:=ihm _ _ _ _ erefl.
+    repeat split...
+    apply: conv_trans... }
+Qed.
+
 Lemma sta_io_inv Γ A B :
   Γ ⊢ IO A : B ->
   exists s, Γ ⊢ A : Sort s /\ B === Sort L.
@@ -100,6 +117,27 @@ Proof with eauto.
     apply: conv_trans.
     apply: conv_sym...
     exact: eq2. }
+Qed.
+
+Lemma sta_act0_inv Γ r A B C :
+  Γ ⊢ Act0 r A B : C -> (A :: Γ) ⊢ B : Proto.
+Proof with eauto.
+  move e:(Act0 r A B)=>n tp. elim:tp r A B e=>//{Γ C n}.
+  move=>Γ r A B tyB ihB r0 A0 B0[e1 e2 e3]; subst...
+Qed.
+
+Lemma sta_act1_inv Γ r A B C :
+  Γ ⊢ Act1 r A B : C -> (A :: Γ) ⊢ B : Proto.
+Proof with eauto.
+  move e:(Act1 r A B)=>n tp. elim:tp r A B e=>//{Γ C n}.
+  move=>Γ r A B tyB ihB r0 A0 B0[e1 e2 e3]; subst...
+Qed.
+
+Lemma sta_ch_inv Γ r A B :
+  Γ ⊢ Ch r A : B -> Γ ⊢ A : Proto.
+Proof.
+  move e:(Ch r A)=>n tp. elim: tp r A e=>//{Γ B n}.
+  move=>Γ r A tyA ihA r0 A0 [e1 e2]; subst=>//.
 Qed.
 
 Lemma sta_lam0_pi1_false Γ A1 A2 B C m s1 s2 :
