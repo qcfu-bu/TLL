@@ -10,8 +10,8 @@ Reserved Notation "Γ1 ⊢ σ ⊣ Γ2" (at level 50, σ, Γ2 at next level).
 
 Inductive sta_agree_subst :
   sta_ctx -> (var -> term) -> sta_ctx -> Prop :=
-| sta_agree_subst_nil σ :
-  nil ⊢ σ ⊣ nil
+| sta_agree_subst_nil :
+  nil ⊢ ids ⊣ nil
 | sta_agree_subst_ty Γ1 σ Γ2 A s :
   Γ1 ⊢ σ ⊣ Γ2 ->
   Γ2 ⊢ A : Sort s ->
@@ -41,7 +41,7 @@ Lemma sta_agree_subst_has Γ1 σ Γ2 x A :
   Γ1 ⊢ σ ⊣ Γ2 -> sta_wf Γ1 -> sta_has Γ2 x A -> Γ1 ⊢ σ x : A.[σ].
 Proof with eauto using sta_agree_subst.
   move=>agr. elim: agr x A=>{Γ1 σ Γ2}.
-  { move=>σ x A wf hs. inv hs. }
+  { move=>x A wf hs. inv hs. }
   { move=>Γ1 σ Γ2 A s agr ih tyA x B wf hs.
     inv hs; asimpl.
     replace A.[σ >> ren (+1)] with A.[σ].[ren (+1)] by autosubst.
@@ -76,6 +76,14 @@ Proof with eauto using sta_wf.
   move e:(A :: Γ2)=>Γ0 agr. elim: agr Γ2 A s e=>//{Γ0 Γ1 σ}...
   move=>Γ1 σ Γ2 A s agr ih tyA Γ0 A0 s0 [e1 e2] wf h1 h2; subst.
   apply: sta_wf_cons...
+Qed.
+
+Lemma sta_agree_subst_size Γ Γ' σ :
+  Γ' ⊢ σ ⊣ Γ -> ((+size Γ) >>> σ) = ren (+size Γ').
+Proof.
+  elim=>//={σ Γ Γ'}.
+  move=>Γ1 σ Γ2 A s agr ih tyA. asimpl.
+  rewrite ih. by asimpl.
 Qed.
 
 Lemma sta_substitution Γ1 Γ2 m A σ :
@@ -152,7 +160,7 @@ Proof with eauto using sta_agree_subst, sta_type.
     have{}ihm:=ihm _ _ (sta_agree_subst_ty agr H2).
     apply: sta_fix...
     asimpl in ihm. asimpl... }
-  { move=>Γ A m n1 n2 s tym ihm tyA ihA tyn1 ihn1 tyn2 ihn2 Γ1 σ agr. asimpl.
+  { move=>Γ A m n1 n2 s tyA ihA tym ihm tyn1 ihn1 tyn2 ihn2 Γ1 σ agr. asimpl.
     have wf:=sta_type_wf tym.
     have tyBool:=sta_bool wf.
     have{}ihm:=ihm _ _ agr.
@@ -178,6 +186,8 @@ Proof with eauto using sta_agree_subst, sta_type.
     have wf:=sta_type_wf tyB. inv wf.
     have{}ihB:=ihB _ _ (sta_agree_subst_ty agr H2).
     apply: sta_act1... }
+  { move=>Γ r x A wf ih tyA ihA Γ1 σ agr. asimpl.
+    rewrite (sta_agree_subst_size agr)... }
   { move=>Γ m A tym ihm Γ1 σ agr. asimpl.
     have wf:=sta_type_wf tym. inv wf.
     have{}ihm:=ihm _ _ (sta_agree_subst_ty agr H2).

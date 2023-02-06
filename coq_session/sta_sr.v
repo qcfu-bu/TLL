@@ -309,7 +309,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
   { move=>Γ wf n st. inv st. }
   { move=>Γ wf n st. inv st. }
   { move=>Γ wf n st. inv st. }
-  { move=>Γ A m n1 n2 s tym ihm tyA ihA tyn1 ihn1 tyn2 ihn2 n st. inv st...
+  { move=>Γ A m n1 n2 s tyA ihA tym ihm tyn1 ihn1 tyn2 ihn2 n st. inv st...
     { have tyA':=ihA _ H4.
       have wf:=sta_type_wf (sta0_sta_type tym).
       have/=tyA'TT:=sta_subst (sta0_sta_type tyA') (sta_tt wf).
@@ -365,7 +365,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
     apply: sta0_sta_type...
     apply: sta0_sta_type... }
   { move=>Γ r A tyA ihA n st. inv st... }
-  { move=>Γ r x A tyA ihA n st. inv st. }
+  { move=>Γ r x A clA tyA ihA n st. inv st. }
   { move=>Γ A m s tyCh ihCh tym ihm n st. inv st...
     have{}tyCh:=sta0_sta_type tyCh.
     have tyA:=sta_ch_inv tyCh.

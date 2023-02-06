@@ -91,8 +91,8 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
   sta0_wf Γ ->
   sta0_type Γ FF Bool
 | sta0_ifte Γ A m n1 n2 s :
-  sta0_type Γ m Bool ->
   sta0_type (Bool :: Γ) A (Sort s) ->
+  sta0_type Γ m Bool ->
   sta0_type Γ n1 A.[TT/] ->
   sta0_type Γ n2 A.[FF/] ->
   sta0_type Γ (Ifte A m n1 n2) A.[m/]
@@ -127,8 +127,9 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
   sta0_type Γ A Proto ->
   sta0_type Γ (Ch r A) (Sort L)
 | sta0_cvar Γ r x A :
-  sta0_type Γ A Proto ->
-  sta0_type Γ (CVar x) (Ch r A)
+  sta0_wf Γ ->
+  sta0_type nil A Proto ->
+  sta0_type Γ (CVar x) (Ch r A.[ren (+size Γ)])
 | sta0_fork Γ A m s :
   sta0_type Γ (Ch true A) (Sort s) ->
   sta0_type (Ch true A :: Γ) m (IO Unit) ->
@@ -261,8 +262,8 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
   sta_wf Γ ->
   Γ ⊢ FF : Bool
 | sta_ifte Γ A m n1 n2 s :
-  Γ ⊢ m : Bool ->
   (Bool :: Γ) ⊢ A : Sort s ->
+  Γ ⊢ m : Bool ->
   Γ ⊢ n1 : A.[TT/] ->
   Γ ⊢ n2 : A.[FF/] ->
   Γ ⊢ Ifte A m n1 n2 : A.[m/]
@@ -295,8 +296,9 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
   Γ ⊢ A : Proto ->
   Γ ⊢ Ch r A : Sort L
 | sta_cvar Γ r x A :
-  Γ ⊢ A : Proto ->
-  Γ ⊢ CVar x : Ch r A
+  sta_wf Γ ->
+  nil ⊢ A : Proto ->
+  Γ ⊢ CVar x : Ch r A.[ren (+size Γ)]
 | sta_fork Γ m A :
   (Ch true A :: Γ) ⊢ m : IO Unit ->
   Γ ⊢ Fork A m : IO (Ch false A)

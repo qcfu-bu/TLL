@@ -8,8 +8,8 @@ Unset Printing Implicit Defensive.
 
 Inductive sta_agree_ren : (var -> var) ->
   sta_ctx -> sta_ctx -> Prop :=
-| sta_agree_ren_nil ξ :
-  sta_agree_ren ξ nil nil
+| sta_agree_ren_nil :
+  sta_agree_ren id nil nil
 | sta_agree_ren_cons Γ Γ' ξ m s :
   Γ ⊢ m : Sort s ->
   sta_agree_ren ξ Γ Γ' ->
@@ -31,7 +31,7 @@ Lemma sta_agree_ren_has Γ Γ' ξ x A :
   sta_agree_ren ξ Γ Γ' -> sta_has Γ x A -> sta_has Γ' (ξ x) A.[ren ξ].
 Proof with eauto.
   move=>agr. elim: agr x A=>{Γ Γ' ξ}.
-  { move=>ξ x A hs. inv hs. }
+  { move=>x A hs. inv hs. }
   { move=>Γ Γ' ξ m s tym agr ih x A hs. inv hs; asimpl.
     { replace m.[ren (ξ >>> (+1))] with m.[ren ξ].[ren (+1)] by autosubst.
       constructor. }
@@ -42,10 +42,13 @@ Proof with eauto.
     constructor... }
 Qed.
 
-Lemma sta_agree_weak_wf_nil Γ' ξ : sta_agree_ren ξ nil Γ' -> sta_wf Γ'.
+Lemma sta_agree_weak_nil_wf Γ' ξ : sta_agree_ren ξ nil Γ' -> sta_wf Γ'.
 Proof with eauto using sta_wf.
   move e:(nil)=>Γ agr. elim: agr e=>//{Γ Γ' ξ}...
 Qed.
+
+Lemma sta_agree_weak_wf_nil Γ' : sta_wf Γ' -> sta_agree_ren (+size Γ') nil Γ'.
+Proof with eauto using sta_agree_ren. elim=>//={Γ'}... Qed.
 
 Lemma sta_agree_weak_wf_cons Γ Γ' A s ξ :
   sta_agree_ren ξ (A :: Γ) Γ' -> sta_wf Γ -> 
@@ -56,6 +59,16 @@ Proof with eauto using sta_wf.
   move e:(A :: Γ)=>Γ0 agr. elim: agr Γ A s e=>//{Γ0 Γ' ξ}...
   move=>Γ Γ' ξ m s tym agr _ Γ0 A s0 [e1 e2] wf h1 h2; subst.
   apply: sta_wf_cons...
+Qed.
+
+Lemma sta_agree_ren_size ξ Γ Γ' :
+  sta_agree_ren ξ Γ Γ' -> ((+size Γ) >>> ξ) = (+size Γ').
+Proof.
+  elim=>//={ξ Γ Γ'}.
+  { move=>Γ Γ' ξ m s tym agr ih. asimpl.
+    rewrite ih. by asimpl. }
+  { move=>Γ Γ' ξ m s tym agr ih. asimpl.
+    rewrite ih. by asimpl. }
 Qed.
 
 Lemma sta_rename Γ Γ' m A ξ :
@@ -151,7 +164,7 @@ Proof with eauto using sta_type, sta_wf, sta_agree_ren.
     apply: sta_fix...
     asimpl in ihm.
     by asimpl. }
-  { move=>Γ A m n1 n2 s tym ihm tyA ihA tyn1 ihn1 tyn2 ihn2 Γ' ξ agr. asimpl.
+  { move=>Γ A m n1 n2 s tyA ihA tym ihm tyn1 ihn1 tyn2 ihn2 Γ' ξ agr. asimpl.
     have wf:=sta_type_wf tym.
     have tyBool:=sta_bool wf.
     have{}ihm:=ihm _ _ agr.
@@ -182,6 +195,9 @@ Proof with eauto using sta_type, sta_wf, sta_agree_ren.
     have wf:=sta_type_wf tyB. inv wf.
     have{}ihB:=ihB _ _ (sta_agree_ren_cons H2 agr).
     apply: sta_act1... }
+  { move=>Γ r x A wf ih tyA ihA Γ' ξ agr. asimpl.
+    rewrite (sta_agree_ren_size agr).
+    apply: sta_cvar... }
   { move=>Γ m A tym ihm Γ' ξ agr. asimpl.
     have wf:=sta_type_wf tym. inv wf.
     have{}ihm:=ihm _ _ (sta_agree_ren_cons H2 agr).
@@ -194,7 +210,7 @@ Proof with eauto using sta_type, sta_wf, sta_agree_ren.
     by apply: ihm.
     have:=ihB _ _ agr.
     asimpl... }
-  { exact: sta_agree_weak_wf_nil. }
+  { exact: sta_agree_weak_nil_wf. }
   { move=>Γ A s wf ih tyA ihA Γ' ξ agr.
     apply: sta_agree_weak_wf_cons... }
 Qed.

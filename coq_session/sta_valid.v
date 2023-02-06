@@ -36,6 +36,10 @@ Proof with eauto using sta_type.
     exists s. apply: sta_esubst...
     by autosubst. }
   { move=>Γ m A tym [s tyA]. exists L... }
+  { move=>Γ r x A wf tyA _. exists L...
+    have tyCh:=sta_ch r tyA.
+    have agr:=sta_agree_weak_wf_nil wf.
+    have//:=sta_rename tyCh agr. }
   { move=>Γ m A tym ihm.
     have wf:=sta_type_wf tym. inv wf.
     have tyA:=sta_ch_inv H2. exists L... }
