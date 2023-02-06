@@ -176,10 +176,22 @@ Qed.
 Lemma dyn_type_wf Θ Γ Δ m A : Θ ; Γ ; Δ ⊢ m : A -> dyn_wf Γ Δ.
 Proof with eauto 8 using dyn_wf.
   elim=>{Θ Γ Δ m A}...
-  { move=>Γ Δ Θ A B m s k1 k2 tym ih. inv ih... }
-  { move=>Γ Δ Θ A B m s t k1 k2 tym ih. inv ih... }
-  { move=>Γ Δ1 Δ2 Δ Θ1 Θ2 Θ A B m n s mrg tym ihm tyn ihn.
+  { move=>Θ Γ Δ A B m s k1 k2 tym wf. inv wf... }
+  { move=>Θ Γ Δ A B m s t k1 k2 tym wf. inv wf... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym wf1 tyn wf2.
     apply: dyn_wf_merge... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2 tyS tym wf1 tyn wf2.
+    apply: dyn_wf_merge... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t mrg1 mrg2 tyC tym wf1 wf2 wf.
+    inv wf. inv H2. apply: dyn_wf_merge... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2 tyC tym wf1 tyn wf2.
+    inv wf2. inv H2. apply: dyn_wf_merge... }
+  { move=>Θ Γ Δ A m k1 k2 tym wf. inv wf... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2 tyA tym wf1 tyn1 wf2 tyn2 _.
+    apply: dyn_wf_merge... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2 tyB tym wf1 tyn wf2.
+    inv wf2. apply: dyn_wf_merge... }
+  { move=>Θ Γ Δ m A tym wf. inv wf... }
 Qed.
 Hint Resolve dyn_type_wf.
 
