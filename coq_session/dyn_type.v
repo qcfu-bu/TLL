@@ -64,23 +64,23 @@ Inductive dyn_type : dyn_ctx -> sta_ctx -> dyn_ctx -> term -> term -> Prop :=
   Θ1 ; Γ ; Δ1 ⊢ m : Sig1 A B t ->
   Θ2 ; (B :: A :: Γ) ; B :{r2} A :{r1} Δ2 ⊢ n : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   Θ ; Γ ; Δ ⊢ LetIn C m n : C.[m/]
-| dyn_sta_fix Θ Γ Δ A m :
+| dyn_fix Θ Γ Δ A m :
   Θ ▷ U ->
   Δ ▷ U ->
   Θ ; (A :: Γ) ; A :U Δ ⊢ m : A.[ren (+1)] ->
   Θ ; Γ ; Δ ⊢ Fix A m : A
 (* data *)
-| dyn_ii Γ Δ Θ :
+| dyn_ii Θ Γ Δ :
   dyn_empty Θ ->
   dyn_wf Γ Δ ->
   Δ ▷ U ->
   Θ ; Γ ; Δ ⊢ II : Unit
-| dyn_tt Γ Δ Θ :
+| dyn_tt Θ Γ Δ :
   dyn_empty Θ ->
   dyn_wf Γ Δ ->
   Δ ▷ U ->
   Θ ; Γ ; Δ ⊢ TT : Bool
-| dyn_ff Γ Δ Θ :
+| dyn_ff Θ Γ Δ :
   dyn_empty Θ ->
   dyn_wf Γ Δ ->
   Δ ▷ U ->

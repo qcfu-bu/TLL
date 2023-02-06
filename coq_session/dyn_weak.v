@@ -8,8 +8,8 @@ Unset Printing Implicit Defensive.
 
 Inductive dyn_agree_ren : (var -> var) ->
   sta_ctx -> dyn_ctx -> sta_ctx -> dyn_ctx -> Prop :=
-| dyn_agree_ren_nil ξ :
-  dyn_agree_ren ξ nil nil nil nil
+| dyn_agree_ren_nil :
+  dyn_agree_ren id nil nil nil nil
 | dyn_agree_ren_ty Γ Γ' Δ Δ' ξ m s :
   Γ ⊢ m : Sort s ->
   dyn_agree_ren ξ Γ Δ Γ' Δ' ->
@@ -64,7 +64,7 @@ Lemma dyn_agree_ren_has Γ Γ' Δ Δ' ξ x s A :
   dyn_agree_ren ξ Γ Δ Γ' Δ' -> dyn_has Δ x s A -> dyn_has Δ' (ξ x) s A.[ren ξ].
 Proof with eauto using dyn_agree_ren_key.
   move=>agr. elim: agr x s A=>{Γ Γ' Δ Δ' ξ}.
-  { move=>ξ x s A hs. inv hs. }
+  { move=>x s A hs. inv hs. }
   { move=>Γ Γ' Δ Δ' ξ m s tym agr ih x t A hs. inv hs; asimpl.
     { replace m.[ren (ξ >>> (+1))] with m.[ren ξ].[ren (+1)] by autosubst.
       constructor... }
@@ -89,7 +89,7 @@ Lemma dyn_agree_ren_merge Γ Γ' Δ Δ' Δ1 Δ2 ξ :
     dyn_agree_ren ξ Γ Δ2 Γ' Δ2'.
 Proof with eauto 6 using merge, dyn_agree_ren.
   move=>agr. elim: agr Δ1 Δ2=>{Γ Γ' Δ Δ' ξ}.
-  { move=>ξ Δ1 Δ2 mrg. inv mrg.
+  { move=>Δ1 Δ2 mrg. inv mrg.
     exists nil. exists nil... }
   { move=>Γ Γ' Δ Δ' ξ m s tym agr ih Δ1 Δ2 mrg. inv mrg.
     { have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=ih _ _ H2.
@@ -149,39 +149,138 @@ Proof with eauto using dyn_wf.
   asimpl...
 Qed.
 
-Lemma dyn_rename Γ Γ' Δ Δ' m A ξ :
-  Γ ; Δ ⊢ m : A -> dyn_agree_ren ξ Γ Δ Γ' Δ' -> Γ' ; Δ' ⊢ m.[ren ξ] : A.[ren ξ].
+Lemma dyn_agree_ren_size ξ Γ Γ' Δ Δ' :
+  dyn_agree_ren ξ Γ Δ Γ' Δ' -> ((+size Γ) >>> ξ) = (+size Γ').
+Proof.
+  elim=>//={ξ Γ Γ' Δ Δ'}.
+  { move=>Γ Γ' Δ Δ' ξ m s tym agr ih. asimpl.
+    rewrite ih. by asimpl. }
+  { move=>Γ Γ' Δ Δ' ξ m s tym agr ih. asimpl.
+    rewrite ih. by asimpl. }
+  { move=>Γ Γ' Δ Δ' ξ m tym agr ih. asimpl.
+    rewrite ih. by asimpl. }
+  { move=>Γ Γ' Δ Δ' ξ m s tym agr ih. asimpl.
+    rewrite ih. by asimpl. }
+Qed.
+
+Lemma dyn_rename Θ Γ Γ' Δ Δ' m A ξ :
+  Θ ; Γ ; Δ ⊢ m : A -> dyn_agree_ren ξ Γ Δ Γ' Δ' -> Θ ; Γ' ; Δ' ⊢ m.[ren ξ] : A.[ren ξ].
 Proof with eauto using dyn_type, dyn_agree_ren, dyn_agree_ren_key.
-  move=>ty. move: Γ Δ m A ty Γ' Δ' ξ.
+  move=>ty. move: Θ Γ Δ m A ty Γ' Δ' ξ.
   apply:(@dyn_type_mut _
     (fun Γ Δ wf => forall Γ' Δ' ξ, dyn_agree_ren ξ Γ Δ Γ' Δ' -> dyn_wf Γ' Δ')).
-  { move=>Γ Δ x s A wf h shs dhs Γ' Δ' ξ agr. asimpl.
+  { move=>Θ Γ Δ x s A emp wf h shs dhs Γ' Δ' ξ agr. asimpl.
     apply: dyn_var...
     apply: sta_agree_ren_has...
     apply: dyn_sta_agree_ren...
     apply: dyn_agree_ren_has... }
-  { move=>Γ Δ A B m s k tym ihm Γ' Δ' ξ agr. asimpl.
+  { move=>Θ Γ Δ A B m s k1 k2 tym ihm Γ' Δ' ξ agr. asimpl.
     have wf:=dyn_type_wf tym. inv wf.
     apply: dyn_lam0... }
-  { move=>Γ Δ A B m s t k tym ihm Γ' Δ' ξ agr. asimpl.
+  { move=>Θ Γ Δ A B m s t k1 k2 tym ihm Γ' Δ' ξ agr. asimpl.
     have wf:=dyn_type_wf tym. inv wf.
     apply: dyn_lam1... }
-  { move=>Γ Δ A B m n s tym ihm tyn Γ' Δ' ξ agr. asimpl.
+  { move=>Θ Γ Δ A B m n s tym ihm tyn Γ' Δ' ξ agr. asimpl.
     replace B.[n.[ren ξ] .: ren ξ] with B.[ren (upren ξ)].[n.[ren ξ]/]
       by autosubst.
     have{}ihm:=ihm _ _ _ agr.
     have{}ihn:=sta_rename tyn (dyn_sta_agree_ren agr).
     apply: dyn_app0...
     asimpl in ihm... }
-  { move=>Γ Δ1 Δ2 Δ A B m n s mrg tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
     replace B.[n.[ren ξ] .: ren ξ] with B.[ren (upren ξ)].[n.[ren ξ]/]
       by autosubst.
-    have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg.
+    have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg2.
     have{}ihm:=ihm _ _ _ agr1.
     have{}ihn:=ihn _ _ _ agr2.
     apply: dyn_app1...
     asimpl in ihm... }
-  { move=>Γ Δ A B m s eq tym ihm tyB Γ' Δ' ξ agr.
+  { move=>Θ Γ Δ A B m n t tyS tym ihm tyn Γ' Δ' ξ agr. asimpl.
+    have{}ihm:=ihm _ _ _ agr.
+    have{}ihn:=sta_rename tyn (dyn_sta_agree_ren agr).
+    have{}ihS:=sta_rename tyS (dyn_sta_agree_ren agr).
+    apply: dyn_pair0...
+    asimpl in ihS...
+    asimpl. asimpl in ihn... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2 tyS tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
+    have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg2.
+    have{}ihm:=ihm _ _ _ agr1.
+    have{}ihn:=ihn _ _ _ agr2.
+    have{}ihS:=sta_rename tyS (dyn_sta_agree_ren agr).
+    apply: dyn_pair1...
+    asimpl in ihS...
+    asimpl. asimpl in ihn... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t mrg1 mrg2 tyC tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
+    have wf:=sta_type_wf tyC. inv wf.
+    have wf:=dyn_type_wf tyn. inv wf. inv H4.
+    have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg2.
+    have{}ihC:=sta_rename tyC (sta_agree_ren_cons H2 (dyn_sta_agree_ren agr)).
+    have{}ihm:=ihm _ _ _ agr1.
+    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (_: A :{r} Δ2)
+      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (_: A.[ren ξ] :{r} Δ2')...
+    asimpl in ihC.
+    asimpl in ihm.
+    replace C.[Pair0 (Var 1) (Var 0) t .: ren (+2)].[ren (upren (upren ξ))]
+      with C.[ren (upren ξ)].[Pair0 (Var 1) (Var 0) t .: ren (+2)]
+        in ihn by autosubst.
+    have:=dyn_letin0 mrg1 mrg' ihC ihm ihn.
+    by autosubst. }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2 tyC tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
+    have wf:=sta_type_wf tyC. inv wf.
+    have wf:=dyn_type_wf tyn. inv wf. inv H4.
+    have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg2.
+    have{}ihC:=sta_rename tyC (sta_agree_ren_cons H2 (dyn_sta_agree_ren agr)).
+    have{}ihm:=ihm _ _ _ agr1.
+    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (B :{r2} A :{r1} Δ2)
+      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (B.[ren (upren ξ)] :{r2} A.[ren ξ] :{r1} Δ2')...
+    asimpl in ihC.
+    asimpl in ihm.
+    replace C.[Pair1 (Var 1) (Var 0) t .: ren (+2)].[ren (upren (upren ξ))]
+      with C.[ren (upren ξ)].[Pair1 (Var 1) (Var 0) t .: ren (+2)]
+        in ihn by autosubst.
+    have:=dyn_letin1 mrg1 mrg' ihC ihm ihn.
+    by autosubst. }
+  { move=>Θ Γ Δ A m k1 k2 tym ihm Γ' Δ' ξ agr. asimpl.
+    have wf:=dyn_type_wf tym. inv wf.
+    have{}ihm:=ihm _ _ _ (dyn_agree_ren_ty H4 agr).
+    apply: dyn_fix... asimpl. asimpl in ihm... }
+  { move=>Θ Γ Δ emp wf ih k Γ' Δ' ξ agr. asimpl... }
+  { move=>Θ Γ Δ emp wf ih k Γ' Δ' ξ agr. asimpl... }
+  { move=>Θ Γ Δ emp wf ih k Γ' Δ' ξ agr. asimpl... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2 tyA tym ihm tyn1 ihn1 tyn2 ihn2 Γ' Δ' ξ agr. asimpl.
+    replace A.[m.[ren ξ] .: ren ξ] with A.[ren (upren ξ)].[m.[ren ξ]/] by autosubst.
+    have wf:=sta_type_wf tyA. inv wf.
+    have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg2.
+    have{}ihn1:=ihn1 _ _ _ agr2.
+    have{}ihn2:=ihn2 _ _ _ agr2.
+    have agr':=sta_agree_ren_cons H2 (dyn_sta_agree_ren agr).
+    have/=tyA':=sta_rename tyA agr'.
+    apply: dyn_ifte...
+    asimpl in ihn1. asimpl...
+    asimpl in ihn2. asimpl... }
+  { move=>Θ Γ Δ m A tym ihm Γ' Δ' ξ agr. asimpl... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2 tyB tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
+    have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg2.
+    have wf:=dyn_type_wf tyn. inv wf.
+    have{}ihn:=ihn _ _ _ (dyn_agree_ren_ty H4 agr2).
+    have/=tyB':=sta_rename tyB (dyn_sta_agree_ren agr).
+    apply: dyn_bind...
+    asimpl in ihn. asimpl... }
+  { move=>Θ Γ Δ r x A js wf ih k tyA Γ' Δ' ξ agr. asimpl.
+    rewrite (dyn_agree_ren_size agr).
+    apply: dyn_cvar... }
+  { move=>Θ Γ Δ m A tym ihm Γ' Δ' ξ agr. asimpl.
+    have wf:=dyn_type_wf tym. inv wf.
+    have{}ihm:=ihm _ _ _ (dyn_agree_ren_ty H4 agr).
+    apply: dyn_fork.
+    asimpl in ihm... }
+  { move=>Θ Γ Δ r1 r2 A B m xor tym ihm Γ' Δ' ξ agr... }
+  { move=>Θ Γ Δ r1 r2 A B m xor tym ihm Γ' Δ' ξ agr... }
+  { move=>Θ Γ Δ r1 r2 A B m xor tym ihm Γ' Δ' ξ agr... }
+  { move=>Θ Γ Δ r1 r2 A B m xor tym ihm Γ' Δ' ξ agr... }
+  { move=>Θ Γ Δ r1 r2 m xor tym ihm Γ' Δ' ξ agr... }
+  { move=>Θ Γ Δ r1 r2 m xor tym ihm Γ' Δ' ξ agr... }
+  { move=>Θ Γ Δ A B m s eq tym ihm tyB Γ' Δ' ξ agr.
     apply: dyn_conv.
     apply: sta_conv_subst...
     apply: ihm...
@@ -203,38 +302,38 @@ Proof with eauto using dyn_wf.
   { move=>*. apply: dyn_agree_weak_wf_n... }
 Qed.
 
-Lemma dyn_weakenU Γ Δ m A B :
+Lemma dyn_weakenU Θ Γ Δ m A B :
   Γ ⊢ B : Sort U ->
-  Γ ; Δ ⊢ m : A ->
-  (B :: Γ) ; B :U Δ ⊢ m.[ren (+1)] : A.[ren (+1)].
+  Θ ; Γ ; Δ ⊢ m : A ->
+  Θ ; (B :: Γ) ; B :U Δ ⊢ m.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using dyn_agree_ren, dyn_agree_ren_refl.
   move=>tyB tym. apply: dyn_rename...
 Qed.
 
-Lemma dyn_weakenN Γ Δ m A B s :
+Lemma dyn_weakenN Θ Γ Δ m A B s :
   Γ ⊢ B : Sort s ->
-  Γ ; Δ ⊢ m : A ->
-  (B :: Γ) ; _: Δ ⊢ m.[ren (+1)] : A.[ren (+1)].
+  Θ ; Γ ; Δ ⊢ m : A ->
+  Θ ; (B :: Γ) ; _: Δ ⊢ m.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using dyn_agree_ren, dyn_agree_ren_refl.
   move=>tyB tym. apply: dyn_rename...
 Qed.
 
-Lemma dyn_eweakenU Γ Δ m m' A A' B :
+Lemma dyn_eweakenU Θ Γ Δ m m' A A' B :
   m' = m.[ren (+1)] ->
   A' = A.[ren (+1)] ->
   Γ ⊢ B : Sort U ->
-  Γ ; Δ ⊢ m : A ->
-  (B :: Γ) ; B :U Δ ⊢ m' : A'.
+  Θ ; Γ ; Δ ⊢ m : A ->
+  Θ ; (B :: Γ) ; B :U Δ ⊢ m' : A'.
 Proof.
   move=>*; subst. exact: dyn_weakenU.
 Qed.
 
-Lemma dyn_eweakenN Γ Δ m m' A A' B s :
+Lemma dyn_eweakenN Θ Γ Δ m m' A A' B s :
   m' = m.[ren (+1)] ->
   A' = A.[ren (+1)] ->
   Γ ⊢ B : Sort s ->
-  Γ ; Δ ⊢ m : A ->
-  (B :: Γ) ; _: Δ ⊢ m' : A'.
+  Θ ; Γ ; Δ ⊢ m : A ->
+  Θ ; (B :: Γ) ; _: Δ ⊢ m' : A'.
 Proof.
   move=>*; subst. apply: dyn_weakenN; eauto.
 Qed.

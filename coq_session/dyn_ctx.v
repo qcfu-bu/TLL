@@ -82,6 +82,64 @@ Proof with eauto using key.
   elim: Δ... move=>[[A s]|] Δ k...
 Qed.
 
+Lemma key_empty Δ s : dyn_empty Δ -> Δ ▷ s.
+Proof with eauto using key. elim... Qed.
+
+Lemma empty_split Δ1 Δ2 Δ : Δ1 ∘ Δ2 => Δ -> dyn_empty Δ -> dyn_empty Δ1 /\ dyn_empty Δ2.
+Proof with eauto using dyn_empty.
+  elim=>{Δ1 Δ2 Δ}...
+  { move=>Δ1 Δ2 Δ m mrg ih emp. inv emp. }
+  { move=>Δ1 Δ2 Δ m mrg ih emp. inv emp. }
+  { move=>Δ1 Δ2 Δ m mrg ih emp. inv emp. }
+  { move=>Δ1 Δ2 Δ mrg ih emp. inv emp.
+    have[emp1 emp2]:=ih H0... }
+Qed.
+
+Lemma merge_empty Δ1 Δ2 Δ : Δ1 ∘ Δ2 => Δ -> dyn_empty Δ1 -> dyn_empty Δ2 -> dyn_empty Δ.
+Proof with eauto using dyn_empty.
+  elim=>{Δ1 Δ2 Δ}...
+  { move=>Δ1 Δ2 Δ m mrg ih emp1 emp2. inv emp1. }
+  { move=>Δ1 Δ2 Δ m mrg ih emp1 emp2. inv emp1. }
+  { move=>Δ1 Δ2 Δ m mrg ih emp1 emp2. inv emp2. }
+  { move=>Δ1 Δ2 Δ mrg ih emp1 emp2. inv emp1. inv emp2... }
+Qed.
+
+Lemma merge_emptyL Δ1 Δ2 Δ : Δ1 ∘ Δ2 => Δ -> dyn_empty Δ1 -> Δ2 = Δ.
+Proof with eauto.
+  elim=>{Δ1 Δ2 Δ}...
+  { move=>Δ1 Δ2 Δ m mrg ih emp. inv emp. }
+  { move=>Δ1 Δ2 Δ m mrg ih emp. inv emp. }
+  { move=>Δ1 Δ2 Δ m mrg ih emp. inv emp. rewrite ih... }
+  { move=>Δ1 Δ2 Δ mrg ih emp. inv emp. rewrite ih... }
+Qed.
+
+Lemma merge_emptyR Δ1 Δ2 Δ : Δ1 ∘ Δ2 => Δ -> dyn_empty Δ2 -> Δ1 = Δ.
+Proof with eauto.
+  elim=>{Δ1 Δ2 Δ}...
+  { move=>Δ1 Δ2 Δ m mrg ih emp. inv emp. }
+  { move=>Δ1 Δ2 Δ m mrg ih emp. inv emp. rewrite ih... }
+  { move=>Δ1 Δ2 Δ m mrg ih emp. inv emp. }
+  { move=>Δ1 Δ2 Δ mrg ih emp. inv emp. rewrite ih... }
+Qed.
+
+Lemma empty_merge_self Δ : dyn_empty Δ -> Δ ∘ Δ => Δ.
+Proof with eauto using merge. elim... Qed.
+
+Lemma just_empty Δ x A : dyn_just Δ x A -> exists Δ0, dyn_empty Δ0 /\ Δ0 ∘ Δ => Δ.
+Proof with eauto.
+  elim=>{Δ x A}...
+  { move=>Δ A emp. exists (_: Δ). split; constructor... apply: empty_merge_self... }
+  { move=>Δ A x js[Δ0[emp mrg]]. exists (_: Δ0). split; constructor...  }
+Qed.
+
+Lemma empty_just Δ x A : dyn_empty Δ -> ~dyn_just Δ x A.
+Proof with eauto.
+  move=>emp. elim: emp x A=>{Δ}.
+  { move=>x A js. inv js. }
+  { move=>Δ emp ih x A js. inv js.
+    apply: ih... }
+Qed.
+
 Lemma key_merge Δ1 Δ2 Δ s : Δ1 ∘ Δ2 => Δ -> Δ1 ▷ s -> Δ2 ▷ s -> Δ ▷ s.
 Proof with eauto using key.
   move=>mrg. elim: mrg s=>{Δ1 Δ2 Δ}...
@@ -93,6 +151,16 @@ Qed.
 
 Lemma merge_sym Δ1 Δ2 Δ : Δ1 ∘ Δ2 => Δ -> Δ2 ∘ Δ1 => Δ.
 Proof with eauto using merge. elim... Qed.
+
+Lemma merge_inj Δ1 Δ2 Δx Δy : Δ1 ∘ Δ2 => Δx -> Δ1 ∘ Δ2 => Δy -> Δx = Δy.
+Proof with eauto.
+  move=>mrg. elim: mrg Δy=>{Δ1 Δ2 Δx}.
+  { move=>Δy mrg. inv mrg... }
+  { move=>Δ1 Δ2 Δ m mrg1 ih Δy mrg2. inv mrg2. rewrite (ih _ H3)... }
+  { move=>Δ1 Δ2 Δ m mrg1 ih Δy mrg2. inv mrg2. rewrite (ih _ H3)... }
+  { move=>Δ1 Δ2 Δ m mrg1 ih Δy mrg2. inv mrg2. rewrite (ih _ H3)... }
+  { move=>Δ1 Δ2 Δ mrg1 ih Δy mrg2. inv mrg2. rewrite (ih _ H1)... }
+Qed.
 
 Lemma merge_pureL Δ1 Δ2 Δ : Δ1 ∘ Δ2 => Δ -> Δ1 ▷ U -> Δ = Δ2.
 Proof.
@@ -144,4 +212,40 @@ Proof with eauto using merge.
     have[Δc[mrga mrgb]]:=ih _ _ H2. exists (m :L Δc)... }
   { move=>Δ1 Δ2 Δ mrg1 ih Δa Δb mrg2. inv mrg2.
     have[Δc[mrga mrgb]]:=ih _ _ H2. exists (_: Δc)... }
+Qed.
+
+Lemma merge_distr Γ1 Γ2 Γ :
+  Γ1 ∘ Γ2 => Γ ->
+  forall Δ11 Δ12 Δ21 Δ22,
+    Δ11 ∘ Δ12 => Γ1 ->
+    Δ21 ∘ Δ22 => Γ2 ->
+    exists Δ1 Δ2,
+      Δ1 ∘ Δ2 => Γ /\
+      Δ11 ∘ Δ21 => Δ1 /\
+      Δ12 ∘ Δ22 => Δ2.
+Proof with eauto using merge.
+  elim=>{Γ1 Γ2 Γ}.
+  { move=>D11 D12 D21 D22 mrg1 mrg2.
+    inv mrg1. inv mrg2. exists nil. exists nil... }
+  { move=>G1 G2 G m mrg ih D11 D12 D21 D22 mrg1 mrg2.
+    inv mrg1. inv mrg2.
+    have{ih}[D1[D2[mrg3[mrg4 mrg5]]]]:=ih _ _ _ _ H2 H3.
+    exists (m :U D1). exists (m :U D2).
+    repeat split... }
+  { move=>G1 G2 G m mrg ih D11 D12 D21 D22 mrg1 mrg2.
+    inv mrg1; inv mrg2.
+    have{ih}[D1[D2[mrg3[mrg4 mrg5]]]]:=ih _ _ _ _ H2 H3.
+    exists (m :L D1). exists (_: D2). repeat split...
+    have{ih}[D1[D2[mrg3[mrg4 mrg5]]]]:=ih _ _ _ _ H2 H3.
+    exists (_: D1). exists (m :L D2). repeat split... }
+  { move=>G1 G2 G m mrg ih D11 D12 D21 D22 mrg1 mrg2.
+    inv mrg1; inv mrg2.
+    have{ih}[D1[D2[mrg3[mrg4 mrg5]]]]:=ih _ _ _ _ H2 H3.
+    exists (m :L D1). exists (_: D2). repeat split...
+    have{ih}[D1[D2[mrg3[mrg4 mrg5]]]]:=ih _ _ _ _ H2 H3.
+    exists (_: D1). exists (m :L D2). repeat split... }
+  { move=>G1 G2 G mrg ih D11 D12 D21 D22 mrg1 mrg2.
+    inv mrg1; inv mrg2.
+    have{ih}[D1[D2[mrg3[mrg4 mrg5]]]]:=ih _ _ _ _ H2 H3.
+    exists (_: D1). exists (_: D2). repeat split... }
 Qed.
