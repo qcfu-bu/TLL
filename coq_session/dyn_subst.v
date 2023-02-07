@@ -92,15 +92,18 @@ Proof with eauto using dyn_type, key_empty.
     have[Θx[Θy[mrgx[mrgy mrgz]]]]:=merge_distr mrg1 mrgm mrgn.
     have e:=merge_inj mrg1 mrgz. subst.
     exists Θx. split... apply: merge_empty... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2 tyS tym[Θm[empm mrgm]]tyn[Θn[empn mrgn]].
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2 tyS
+           tym[Θm[empm mrgm]]tyn[Θn[empn mrgn]].
     have[Θx[Θy[mrgx[mrgy mrgz]]]]:=merge_distr mrg1 mrgm mrgn.
     have e:=merge_inj mrg1 mrgz. subst.
     exists Θx. split... apply: merge_empty... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t mrg1 mrg2 tyC tym[Θm[empm mrgm]]tyn[Θn[empn mrgn]].
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t mrg1 mrg2 tyC
+           tym[Θm[empm mrgm]]tyn[Θn[empn mrgn]].
     have[Θx[Θy[mrgx[mrgy mrgz]]]]:=merge_distr mrg1 mrgm mrgn.
     have e:=merge_inj mrg1 mrgz. subst.
     exists Θx. split... apply: merge_empty... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2 tyC tym[Θm[empm mrgm]]tyn[Θn[empn mrgn]].
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2 tyC
+           tym[Θm[empm mrgm]]tyn[Θn[empn mrgn]].
     have[Θx[Θy[mrgx[mrgy mrgz]]]]:=merge_distr mrg1 mrgm mrgn.
     have e:=merge_inj mrg1 mrgz. subst.
     exists Θx. split... apply: merge_empty... }
@@ -112,7 +115,8 @@ Proof with eauto using dyn_type, key_empty.
     have[Θx[Θy[mrgx[mrgy mrgz]]]]:=merge_distr mrg1 mrgm mrgn1.
     have e:=merge_inj mrg1 mrgz. subst.
     exists Θx. split... apply: merge_empty... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2 tyB tym[Θm[empm mrgm]]tyn[Θn[empn mrgn]].
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2 tyB
+           tym[Θm[empm mrgm]]tyn[Θn[empn mrgn]].
     have[Θx[Θy[mrgx[mrgy mrgz]]]]:=merge_distr mrg1 mrgm mrgn.
     have e:=merge_inj mrg1 mrgz. subst.
     exists Θx. split... apply: merge_empty... }
