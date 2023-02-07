@@ -279,7 +279,8 @@ Lemma dyn_substitution Θ1 Θ2 Θ Γ1 Γ2 m A Δ1 Δ2 σ :
   Θ1 ; Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> Θ ; Γ1 ; Δ1 ⊢ m.[σ] : A.[σ].
 Proof with eauto using dyn_agree_subst, dyn_type, key_merge.
   move=>ty. move:Θ2 Γ2 Δ2 m A ty Θ1 Θ Γ1 Δ1 σ.
-  apply:(@dyn_type_mut _ (fun Γ2 Δ2 wf => forall Θ1 Γ1 Δ1 σ, Θ1 ; Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> dyn_wf Γ1 Δ1)).
+  apply:(@dyn_type_mut _
+           (fun Γ2 Δ2 wf => forall Θ1 Γ1 Δ1 σ, Θ1 ; Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> dyn_wf Γ1 Δ1)).
   { move=>Θ2 Γ Δ x s A emp wf ih shs dhs Θ1 Θ Γ1 Δ1 σ mrg agr. asimpl.
     apply: dyn_agree_subst_has... }
   { move=>Θ Γ Δ A B m s k1 k2 tym ihm Θ1 Θ0 Γ1 Δ1 σ mrg agr. asimpl.
