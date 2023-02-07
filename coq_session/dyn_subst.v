@@ -471,7 +471,9 @@ Qed.
 Lemma dyn_esubst0 Θ Γ Δ m m' n A B B' :
   m' = m.[n/] ->
   B' = B.[n/] ->
-  Θ ; (A :: Γ) ; _: Δ ⊢ m : B -> Γ ⊢ n : A -> Θ ; Γ ; Δ ⊢ m': B'.
+  Θ ; (A :: Γ) ; _: Δ ⊢ m : B ->
+  Γ ⊢ n : A ->
+  Θ ; Γ ; Δ ⊢ m': B'.
 Proof.
   move=>*; subst. apply: dyn_subst0; eauto.
 Qed.
