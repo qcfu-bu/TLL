@@ -61,12 +61,7 @@ Qed.
 
 Lemma dyn_sta_agree_subst Θ1 Γ1 Γ2 Δ1 Δ2 σ :
   Θ1 ; Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> Γ1 ⊢ σ ⊣ Γ2.
-Proof with eauto using sta_agree_subst.
-  elim=>{Θ1 Γ1 Γ2 Δ1 Δ2 σ}...
-  move=>Θa Θb Θ1 Γ1 Γ2 σ Δ1 Δ2 Δa Δb n A s _ _ _ _ agr ih tyn.
-  constructor...
-  apply: dyn_sta_type...
-Qed.
+Proof with eauto using sta_agree_subst. elim... Qed.
 
 Lemma dyn_agree_subst_refl Θ Γ Δ :
   dyn_empty Θ -> dyn_wf Γ Δ -> Θ ; Γ ; Δ ⊢ ids ⊣ Γ ; Δ.
@@ -210,18 +205,14 @@ Proof with eauto 6 using merge, dyn_agree_subst, dyn_agree_subst_key.
       have[Θc[mrg1a mrg1b]]:=merge_splitL mrg1 mrg1'.
       have[Δc[mrg2a mrg2b]]:=merge_splitL mrg2 mrg2'.
       exists Θc. exists Θb'. exists Δc. exists Δb'.
-      repeat split...
-      apply: dyn_agree_subst_wk0...
-      apply: dyn_sta_type... }
+      repeat split... }
     { have[Θa'[Θb'[Δa'[Δb'[mrg1'[mrg2'[agra agrb]]]]]]]:=ih _ _ H2.
       have[Θc[mrg1a mrg1b]]:=merge_splitR mrg1 mrg1'.
       have[Δc[mrg2a mrg2b]]:=merge_splitR mrg2 mrg2'.
       exists Θa'. exists Θc. exists Δa'. exists Δc.
       repeat split...
       apply: merge_sym...
-      apply: merge_sym...
-      apply: dyn_agree_subst_wk0...
-      apply: dyn_sta_type... } }
+      apply: merge_sym... } }
   { move=>Θ1 Γ1 Δ1 σ Γ2 Δ2 A B s eq tyB1 tyB2 agr ih Δa Δb mrg. inv mrg.
     have[Θa'[Θb'[Δa'[Δb'[mrg1'[mrg2'[agra agrb]]]]]]]:=ih _ _ (merge_null H2).
     exists Θa'. exists Θb'. exists Δa'. exists Δb'... }
@@ -309,10 +300,10 @@ Proof with eauto using dyn_agree_subst, dyn_type, key_merge.
     have{}ihm:=ihm _ _ _ _ _ mrg4 agra.
     have{}ihn:=ihn _ _ _ _ _ mrg5 agrb.
     apply: dyn_app1... }
-  { move=>Θ Γ Δ A B m n t tyS tym ihm tyn Θ1 Θ2 Γ1 Δ1 σ mrg agr. asimpl.
-    have{}ihS:=sta_substitution tyS (dyn_sta_agree_subst agr).
-    have{}ihm:=ihm _ _ _ _ _ mrg agr.
-    have{}ihn:=sta_substitution tyn (dyn_sta_agree_subst agr).
+  { move=>Θ Γ Δ A B m n t tyS tym tyn ihn Θ1 Θ2 Γ1 Δ1 σ mrg agr. asimpl.
+    have{}tyS:=sta_substitution tyS (dyn_sta_agree_subst agr).
+    have{}tym:=sta_substitution tym (dyn_sta_agree_subst agr).
+    have{}ihn:=ihn _ _ _ _ _ mrg agr.
     apply: dyn_pair0...
     asimpl. asimpl in ihn... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2 tyS tym ihm tyn ihn
@@ -334,7 +325,7 @@ Proof with eauto using dyn_agree_subst, dyn_type, key_merge.
     have[Θx[Θy[mrg3[mrg4 mrg5]]]]:=merge_distr mrg mrgx mrg1.
     have{}ihm:=ihm _ _ _ _ _ mrg4 agra.
     have{}ihn:=ihn _ _ _ _ _ mrg5
-                 (dyn_agree_subst_n (dyn_agree_subst_ty agrb H8) H5).
+                 (dyn_agree_subst_ty (dyn_agree_subst_n agrb H7) H6).
     apply: dyn_letin0...
     asimpl. asimpl in ihn... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2 tyC tym ihm tyn ihn

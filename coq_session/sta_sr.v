@@ -368,9 +368,9 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
   { move=>Γ r x A clA tyA ihA n st. inv st. }
   { move=>Γ A m s tyCh ihCh tym ihm n st. inv st...
     have{}tyCh:=sta0_sta_type tyCh.
-    have tyA:=sta_ch_inv tyCh.
+    have [tyA _]:=sta_ch_inv tyCh.
     have/sta0_sta_type tyCh':=ihCh _ (sta_step_ch true H2).
-    have tyA':=sta_ch_inv tyCh'.
+    have [tyA' _]:=sta_ch_inv tyCh'.
     apply: sta0_conv.
     apply: sta_conv_io.
     apply: sta_conv_ch.

@@ -48,8 +48,10 @@ Inductive head_sim : term -> term -> Prop :=
 | head_sim_ch r1 r2 A1 A2 : head_sim (Ch r1 A1) (Ch r2 A2)
 | head_sim_cvar x : head_sim (CVar x) (CVar x)
 | head_sim_fork A m : head_sim (Fork A m) (Fork A m)
-| head_sim_recv m : head_sim (Recv m) (Recv m)
-| head_sim_send m : head_sim (Send m) (Send m)
+| head_sim_recv0 m : head_sim (Recv0 m) (Recv0 m)
+| head_sim_recv1 m : head_sim (Recv1 m) (Recv1 m)
+| head_sim_send0 m : head_sim (Send0 m) (Send0 m)
+| head_sim_send1 m : head_sim (Send1 m) (Send1 m)
 | head_sim_close m : head_sim (Close m) (Close m)
 | head_sim_wait m : head_sim (Wait m) (Wait m).
 
@@ -585,12 +587,9 @@ Proof with eauto.
 Qed.
 
 Lemma sta_recv0_uniq Γ m A B C r :
-  Γ ⊢ Recv m : C -> sim (IO (Sig0 A (Ch r B) L)) C.
+  Γ ⊢ Recv0 m : C -> sim (IO (Sig0 A (Ch r B) L)) C.
 Proof with eauto.
-  move e:(Recv m)=>x ty. elim: ty A B m r e=>//{Γ x C}.
-  { move=>*.
-    econstructor. eauto.
-    econstructor. eauto. }
+  move e:(Recv0 m)=>x ty. elim: ty A B m r e=>//{Γ x C}.
   { move=>*.
     econstructor. eauto.
     econstructor. eauto. }
@@ -600,12 +599,9 @@ Proof with eauto.
 Qed.
 
 Lemma sta_recv1_uniq Γ m A B C r :
-  Γ ⊢ Recv m : C -> sim (IO (Sig1 A (Ch r B) L)) C.
+  Γ ⊢ Recv1 m : C -> sim (IO (Sig1 A (Ch r B) L)) C.
 Proof with eauto.
-  move e:(Recv m)=>x ty. elim: ty A B m r e=>//{Γ x C}.
-  { move=>*.
-    econstructor. eauto.
-    econstructor. eauto. }
+  move e:(Recv1 m)=>x ty. elim: ty A B m r e=>//{Γ x C}.
   { move=>*.
     econstructor. eauto.
     econstructor. eauto. }
@@ -615,16 +611,12 @@ Proof with eauto.
 Qed.
 
 Lemma sta_send0_uniq Γ m A B C r :
-  Γ ⊢ Send m : C → sim (Pi0 A (IO (Ch r B)) L) C.
+  Γ ⊢ Send0 m : C → sim (Pi0 A (IO (Ch r B)) L) C.
 Proof with eauto.
-  move e:(Send m)=>x ty. elim: ty A B m r e=>//{Γ x C}.
+  move e:(Send0 m)=>x ty. elim: ty A B m r e=>//{Γ x C}.
   { move=>Γ r1 r2 A B m xor tym ihm A0 B0 m0 r[e]; subst.
     econstructor. eauto.
     apply: head_sim_pi00. apply: A.
-    econstructor. eauto. }
-  { move=>Γ r1 r2 A B m xor tym ihm A0 B0 m0 r[e]; subst.
-    econstructor. eauto.
-    apply: head_sim_pi01. apply: A.
     econstructor. eauto. }
   { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 r e; subst.
     have eq':=ihm _ _ _ _ erefl.
@@ -632,13 +624,9 @@ Proof with eauto.
 Qed.
 
 Lemma sta_send1_uniq Γ m A B C r :
-  Γ ⊢ Send m : C → sim (Pi1 A (IO (Ch r B)) L) C.
+  Γ ⊢ Send1 m : C → sim (Pi1 A (IO (Ch r B)) L) C.
 Proof with eauto.
-  move e:(Send m)=>x ty. elim: ty A B m r e=>//{Γ x C}.
-  { move=>Γ r1 r2 A B m xor tym ihm A0 B0 m0 r[e]; subst.
-    econstructor. eauto.
-    apply: head_sim_pi10. apply: A.
-    econstructor. eauto. }
+  move e:(Send1 m)=>x ty. elim: ty A B m r e=>//{Γ x C}.
   { move=>Γ r1 r2 A B m xor tym ihm A0 B0 m0 r[e]; subst.
     econstructor. eauto.
     apply: head_sim_pi11. apply: A.

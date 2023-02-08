@@ -40,8 +40,8 @@ Inductive dyn_type : dyn_ctx -> sta_ctx -> dyn_ctx -> term -> term -> Prop :=
   Θ ; Γ ; Δ ⊢ App m n : B.[n/]
 | dyn_pair0 Θ Γ Δ A B m n t :
   Γ ⊢ Sig0 A B t : Sort t ->
-  Θ ; Γ ; Δ ⊢ m : A ->
-  Γ ⊢ n : B.[m/] ->
+  Γ ⊢ m : A ->
+  Θ ; Γ ; Δ ⊢ n : B.[m/] ->
   Θ ; Γ ; Δ ⊢ Pair0 m n t : Sig0 A B t
 | dyn_pair1 Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t :
   Θ1 ∘ Θ2 => Θ ->
@@ -55,7 +55,7 @@ Inductive dyn_type : dyn_ctx -> sta_ctx -> dyn_ctx -> term -> term -> Prop :=
   Δ1 ∘ Δ2 => Δ ->
   (Sig0 A B t :: Γ) ⊢ C : Sort s ->
   Θ1 ; Γ ; Δ1 ⊢ m : Sig0 A B t ->
-  Θ2 ; (B :: A :: Γ) ; _: A :{r} Δ2 ⊢ n : C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] ->
+  Θ2 ; (B :: A :: Γ) ; B :{r} _: Δ2 ⊢ n : C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] ->
   Θ ; Γ ; Δ ⊢ LetIn C m n : C.[m/]
 | dyn_letin1 Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t :
   Θ1 ∘ Θ2 => Θ ->
@@ -117,19 +117,19 @@ Inductive dyn_type : dyn_ctx -> sta_ctx -> dyn_ctx -> term -> term -> Prop :=
 | dyn_recv0 Θ Γ Δ r1 r2 A B m :
   r1 (+) r2 = false ->
   Θ ; Γ ; Δ ⊢ m : Ch r1 (Act0 r2 A B) ->
-  Θ ; Γ ; Δ ⊢ Recv m : IO (Sig0 A (Ch r1 B) L)
+  Θ ; Γ ; Δ ⊢ Recv0 m : IO (Sig0 A (Ch r1 B) L)
 | dyn_recv1 Θ Γ Δ r1 r2 A B m :
   r1 (+) r2 = false ->
   Θ ; Γ ; Δ ⊢ m : Ch r1 (Act1 r2 A B) ->
-  Θ ; Γ ; Δ ⊢ Recv m : IO (Sig1 A (Ch r1 B) L)
+  Θ ; Γ ; Δ ⊢ Recv1 m : IO (Sig1 A (Ch r1 B) L)
 | dyn_send0 Θ Γ Δ r1 r2 A B m :
   r1 (+) r2 = true ->
   Θ ; Γ ; Δ ⊢ m : Ch r1 (Act0 r2 A B) ->
-  Θ ; Γ ; Δ ⊢ Send m : Pi0 A (IO (Ch r1 B)) L
+  Θ ; Γ ; Δ ⊢ Send0 m : Pi0 A (IO (Ch r1 B)) L
 | dyn_send1 Θ Γ Δ r1 r2 A B m :
   r1 (+) r2 = true ->
   Θ ; Γ ; Δ ⊢ m : Ch r1 (Act1 r2 A B) ->
-  Θ ; Γ ; Δ ⊢ Send m : Pi1 A (IO (Ch r1 B)) L
+  Θ ; Γ ; Δ ⊢ Send1 m : Pi1 A (IO (Ch r1 B)) L
 | dyn_wait Θ Γ Δ r1 r2 m :
   r1 (+) r2 = false ->
   Θ ; Γ ; Δ ⊢ m : Ch r1 (Stop r2) ->

@@ -62,8 +62,10 @@ Inductive term : Type :=
 | Ch (r : bool) (A : term)
 | CVar (x : nat)
 | Fork (A : term) (m : {bind term})
-| Recv (m : term)
-| Send (m : term)
+| Recv0 (m : term)
+| Recv1 (m : term)
+| Send0 (m : term)
+| Send1 (m : term)
 | Close (m : term)
 | Wait (m : term).
 

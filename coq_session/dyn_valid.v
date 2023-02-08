@@ -12,6 +12,7 @@ Proof with eauto using sta_type, sta_wf.
   apply:(@dyn_type_mut _ (fun Γ Δ wf => sta_wf Γ))...
   Unshelve. all: eauto using bool.
 Qed.
+Hint Resolve dyn_sta_type.
 
 Theorem dyn_valid Θ Γ Δ m A : Θ ; Γ ; Δ ⊢ m : A -> exists s, Γ ⊢ A : Sort s.
 Proof.

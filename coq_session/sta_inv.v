@@ -40,7 +40,7 @@ Qed.
 
 Lemma sta_sig0_inv Γ A B C t :
   Γ ⊢ Sig0 A B t : C ->
-  exists s r, s ⊑ t /\ Γ ⊢ A : Sort s /\ (A :: Γ) ⊢ B : Sort r /\ C === Sort t.
+  exists s r, r ⊑ t /\ Γ ⊢ A : Sort s /\ (A :: Γ) ⊢ B : Sort r /\ C === Sort t.
 Proof with eauto.
   move e:(Sig0 A B t)=>m ty.
   elim: ty A B t e=>//{Γ C m}.
@@ -134,10 +134,15 @@ Proof with eauto.
 Qed.
 
 Lemma sta_ch_inv Γ r A B :
-  Γ ⊢ Ch r A : B -> Γ ⊢ A : Proto.
-Proof.
+  Γ ⊢ Ch r A : B -> Γ ⊢ A : Proto /\ B === Sort L.
+Proof with eauto.
   move e:(Ch r A)=>n tp. elim: tp r A e=>//{Γ B n}.
-  move=>Γ r A tyA ihA r0 A0 [e1 e2]; subst=>//.
+  { move=>Γ r A tyA ihA r0 A0[e1 e2]; subst=>//. }
+  { move=>Γ A B m s eq1 tym ihm tyB ihB r A0 e; subst.
+    have[tyA0 eq2]:=ihm _ _ erefl. split...
+    apply: conv_trans.
+    apply: conv_sym...
+    exact: eq2. }
 Qed.
 
 Lemma sta_lam0_pi1_false Γ A1 A2 B C m s1 s2 :

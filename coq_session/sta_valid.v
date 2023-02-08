@@ -42,21 +42,21 @@ Proof with eauto using sta_type.
     have//:=sta_rename tyCh agr. }
   { move=>Γ m A tym ihm.
     have wf:=sta_type_wf tym. inv wf.
-    have tyA:=sta_ch_inv H2. exists L... }
+    have[tyA _]:=sta_ch_inv H2. exists L... }
   { move=>Γ r1 r2 A B m xor tym[s tyC].
-    have tyAct:=sta_ch_inv tyC.
+    have [tyAct _]:=sta_ch_inv tyC.
     have tyB:=sta_act0_inv tyAct.
     have wf:=sta_type_wf tyB. inv wf. exists L... }
   { move=>Γ r1 r2 A B m xor tym[s tyC].
-    have tyAct:=sta_ch_inv tyC.
+    have [tyAct _]:=sta_ch_inv tyC.
     have tyB:=sta_act1_inv tyAct.
     have wf:=sta_type_wf tyB. inv wf. exists L... }
   { move=>Γ r1 r2 A B m xor tym[s tyC].
-    have tyAct:=sta_ch_inv tyC.
+    have [tyAct _]:=sta_ch_inv tyC.
     have tyB:=sta_act0_inv tyAct.
     have wf:=sta_type_wf tyB. inv wf. exists L... }
   { move=>Γ r1 r2 A B m xor tym[s tyC].
-    have tyAct:=sta_ch_inv tyC.
+    have [tyAct _]:=sta_ch_inv tyC.
     have tyB:=sta_act1_inv tyAct.
     have wf:=sta_type_wf tyB. inv wf. exists L... }
   Unshelve. all: eauto.

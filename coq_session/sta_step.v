@@ -142,12 +142,18 @@ Inductive sta_step : term -> term -> Prop :=
 | sta_step_forkR A m m' :
   m ~> m' ->
   Fork A m ~> Fork A m'
-| sta_step_recv m m' :
+| sta_step_recv0 m m' :
   m ~> m' ->
-  Recv m ~> Recv m'
-| sta_step_send m m' :
+  Recv0 m ~> Recv0 m'
+| sta_step_recv1 m m' :
   m ~> m' ->
-  Send m ~> Send m'
+  Recv1 m ~> Recv1 m'
+| sta_step_send0 m m' :
+  m ~> m' ->
+  Send0 m ~> Send0 m'
+| sta_step_send1 m m' :
+  m ~> m' ->
+  Send1 m ~> Send1 m'
 | sta_step_close m m' :
   m ~> m' ->
   Close m ~> Close m'

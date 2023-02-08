@@ -11,7 +11,7 @@ Inductive dyn_val : term -> Prop :=
 | dyn_val_lam0 A m s : dyn_val (Lam0 A m s)
 | dyn_val_lam1 A m s : dyn_val (Lam1 A m s)
 | dyn_val_pair0 m1 m2 s :
-  dyn_val m1 ->
+  dyn_val m2 ->
   dyn_val (Pair0 m1 m2 s)
 | dyn_val_pair1 m1 m2 s :
   dyn_val m1 ->
@@ -22,12 +22,14 @@ Inductive dyn_val : term -> Prop :=
 | dyn_val_ff : dyn_val FF
 | dyn_val_return v : dyn_val v -> dyn_val (Return v)
 | dyn_val_bind v n : dyn_val v -> dyn_val (Bind v n)
-| dyn_val_cvar x : dyn_val (CVar x)
-| dyn_val_fork A v : dyn_val v -> dyn_val (Fork A v)
-| dyn_val_recv v : dyn_val v -> dyn_val (Recv v)
-| dyn_val_send v : dyn_val v -> dyn_val (Send v)
-| dyn_val_close v : dyn_val v -> dyn_val (Close v)
-| dyn_val_wait v : dyn_val v -> dyn_val (Wait v).
+| dyn_val_cvar x   : dyn_val (CVar x)
+| dyn_val_fork A m : dyn_val (Fork A m)
+| dyn_val_recv0 v  : dyn_val v -> dyn_val (Recv0 v)
+| dyn_val_recv1 v  : dyn_val v -> dyn_val (Recv1 v)
+| dyn_val_send0 v  : dyn_val v -> dyn_val (Send0 v)
+| dyn_val_send1 v  : dyn_val v -> dyn_val (Send1 v)
+| dyn_val_close v  : dyn_val v -> dyn_val (Close v)
+| dyn_val_wait v   : dyn_val v -> dyn_val (Wait v).
 
 Reserved Notation "m ~>> n" (at level 50).
 Inductive dyn_step : term -> term -> Prop :=
@@ -43,9 +45,9 @@ Inductive dyn_step : term -> term -> Prop :=
 | dyn_step_beta1 A m v s :
   dyn_val v ->
   App (Lam1 A m s) v ~>> m.[v/]
-| dyn_step_pair0L m m' n s :
-  m ~>> m' ->
-  Pair0 m n s ~>> Pair0 m' n s
+| dyn_step_pair0R m n n' s :
+  n ~>> n' ->
+  Pair0 m n s ~>> Pair0 m n' s
 | dyn_step_pair1L m m' n s :
   m ~>> m' ->
   Pair1 m n s ~>> Pair1 m' n s
@@ -79,15 +81,18 @@ Inductive dyn_step : term -> term -> Prop :=
   m ~>> m' ->
   Bind m n ~>> Bind m' n
 (* session *)
-| dyn_step_forkR A m m' :
+| dyn_step_recv0 m m' :
   m ~>> m' ->
-  Fork A m ~>> Fork A m'
-| dyn_step_recv m m' :
+  Recv0 m ~>> Recv0 m'
+| dyn_step_recv1 m m' :
   m ~>> m' ->
-  Recv m ~>> Recv m'
-| dyn_step_send m m' :
+  Recv1 m ~>> Recv1 m'
+| dyn_step_send0 m m' :
   m ~>> m' ->
-  Send m ~>> Send m'
+  Send0 m ~>> Send0 m'
+| dyn_step_send1 m m' :
+  m ~>> m' ->
+  Send1 m ~>> Send1 m'
 | dyn_step_close m m' :
   m ~>> m' ->
   Close m ~>> Close m'

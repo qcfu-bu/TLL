@@ -195,12 +195,12 @@ Proof with eauto using dyn_type, dyn_agree_ren, dyn_agree_ren_key.
     have{}ihn:=ihn _ _ _ agr2.
     apply: dyn_app1...
     asimpl in ihm... }
-  { move=>Θ Γ Δ A B m n t tyS tym ihm tyn Γ' Δ' ξ agr. asimpl.
-    have{}ihm:=ihm _ _ _ agr.
-    have{}ihn:=sta_rename tyn (dyn_sta_agree_ren agr).
-    have{}ihS:=sta_rename tyS (dyn_sta_agree_ren agr).
+  { move=>Θ Γ Δ A B m n t tyS tym tyn ihn Γ' Δ' ξ agr. asimpl.
+    have{}tym:=sta_rename tym (dyn_sta_agree_ren agr).
+    have{}ihn:=ihn _ _ _ agr.
+    have{}tyS:=sta_rename tyS (dyn_sta_agree_ren agr).
     apply: dyn_pair0...
-    asimpl in ihS...
+    asimpl in tyS...
     asimpl. asimpl in ihn... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2 tyS tym ihm tyn ihn Γ' Δ' ξ agr. asimpl.
     have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg2.
@@ -216,8 +216,8 @@ Proof with eauto using dyn_type, dyn_agree_ren, dyn_agree_ren_key.
     have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg2.
     have{}ihC:=sta_rename tyC (sta_agree_ren_cons H2 (dyn_sta_agree_ren agr)).
     have{}ihm:=ihm _ _ _ agr1.
-    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (_: A :{r} Δ2)
-      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (_: A.[ren ξ] :{r} Δ2')...
+    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (B :{r} _: Δ2)
+      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (B.[ren (upren ξ)] :{r} _: Δ2')...
     asimpl in ihC.
     asimpl in ihm.
     replace C.[Pair0 (Var 1) (Var 0) t .: ren (+2)].[ren (upren (upren ξ))]

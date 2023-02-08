@@ -132,12 +132,18 @@ Inductive pstep : term -> term -> Prop :=
   pstep A A' ->
   pstep m m' ->
   pstep (Fork A m) (Fork A' m')
-| pstep_recv m m' :
+| pstep_recv0 m m' :
   pstep m m' ->
-  pstep (Recv m) (Recv m')
-| pstep_send m m' :
+  pstep (Recv0 m) (Recv0 m')
+| pstep_recv1 m m' :
   pstep m m' ->
-  pstep (Send m) (Send m')
+  pstep (Recv1 m) (Recv1 m')
+| pstep_send0 m m' :
+  pstep m m' ->
+  pstep (Send0 m) (Send0 m')
+| pstep_send1 m m' :
+  pstep m m' ->
+  pstep (Send1 m) (Send1 m')
 | pstep_close m m' :
   pstep m m' ->
   pstep (Close m) (Close m')
@@ -333,13 +339,21 @@ Proof.
   apply: (star_hom (Fork A')) r2=>x y. exact: sta_step_forkR.
 Qed.
 
-Lemma sta_red_recv m m' :
-  m ~>* m' -> Recv m ~>* Recv m'.
-Proof. move=>r. apply: (star_hom Recv) r=>x y. exact: sta_step_recv. Qed.
+Lemma sta_red_recv0 m m' :
+  m ~>* m' -> Recv0 m ~>* Recv0 m'.
+Proof. move=>r. apply: (star_hom Recv0) r=>x y. exact: sta_step_recv0. Qed.
 
-Lemma sta_red_send m m' :
-  m ~>* m' -> Send m ~>* Send m'.
-Proof. move=>r. apply: (star_hom Send) r=>x y. exact: sta_step_send. Qed.
+Lemma sta_red_recv1 m m' :
+  m ~>* m' -> Recv1 m ~>* Recv1 m'.
+Proof. move=>r. apply: (star_hom Recv1) r=>x y. exact: sta_step_recv1. Qed.
+
+Lemma sta_red_send0 m m' :
+  m ~>* m' -> Send0 m ~>* Send0 m'.
+Proof. move=>r. apply: (star_hom Send0) r=>x y. exact: sta_step_send0. Qed.
+
+Lemma sta_red_send1 m m' :
+  m ~>* m' -> Send1 m ~>* Send1 m'.
+Proof. move=>r. apply: (star_hom Send1) r=>x y. exact: sta_step_send1. Qed.
 
 Lemma sta_red_close m m' :
   m ~>* m' -> Close m ~>* Close m'.
@@ -379,7 +393,9 @@ Hint Resolve
   sta_red_fix sta_red_ifte
   sta_red_io sta_red_return sta_red_bind
   sta_red_act0 sta_red_act1 sta_red_ch
-  sta_red_fork sta_red_recv sta_red_send
+  sta_red_fork
+  sta_red_recv0 sta_red_send0
+  sta_red_recv1 sta_red_send1
   sta_red_close sta_red_wait
   sred_up sred_upn : sta_red_congr.
 
@@ -551,13 +567,21 @@ Proof.
   apply: (conv_hom (Fork A')) r2=>x y. exact: sta_step_forkR.
 Qed.
 
-Lemma sta_conv_recv m m' :
-  m === m' -> Recv m === Recv m'.
-Proof. move=>r. apply: (conv_hom Recv) r=>x y. exact: sta_step_recv. Qed.
+Lemma sta_conv_recv0 m m' :
+  m === m' -> Recv0 m === Recv0 m'.
+Proof. move=>r. apply: (conv_hom Recv0) r=>x y. exact: sta_step_recv0. Qed.
 
-Lemma sta_conv_send m m' :
-  m === m' -> Send m === Send m'.
-Proof. move=>r. apply: (conv_hom Send) r=>x y. exact: sta_step_send. Qed.
+Lemma sta_conv_recv1 m m' :
+  m === m' -> Recv1 m === Recv1 m'.
+Proof. move=>r. apply: (conv_hom Recv1) r=>x y. exact: sta_step_recv1. Qed.
+
+Lemma sta_conv_send0 m m' :
+  m === m' -> Send0 m === Send0 m'.
+Proof. move=>r. apply: (conv_hom Send0) r=>x y. exact: sta_step_send0. Qed.
+
+Lemma sta_conv_send1 m m' :
+  m === m' -> Send1 m === Send1 m'.
+Proof. move=>r. apply: (conv_hom Send1) r=>x y. exact: sta_step_send1. Qed.
 
 Lemma sta_conv_close m m' :
   m === m' -> Close m === Close m'.
@@ -593,7 +617,9 @@ Hint Resolve
   sta_conv_fix sta_conv_ifte
   sta_conv_io sta_conv_return sta_conv_bind
   sta_conv_act0 sta_conv_act1 sta_conv_ch
-  sta_conv_fork sta_conv_recv sta_conv_send
+  sta_conv_fork
+  sta_conv_recv0 sta_conv_send0
+  sta_conv_recv1 sta_conv_send1
   sta_conv_close sta_conv_wait
   sconv_up sconv_upn : sta_conv_congr.
 
@@ -909,10 +935,16 @@ Proof with eauto 8 using
     exists (Fork Ax mx)... }
   { move=>m m' pm ihm m0 p. inv p.
     have[mx pm1 pm2]:=ihm _ H0.
-    exists (Recv mx)... }
+    exists (Recv0 mx)... }
   { move=>m m' pm ihm m0 p. inv p.
     have[mx pm1 pm2]:=ihm _ H0.
-    exists (Send mx)... }
+    exists (Recv1 mx)... }
+  { move=>m m' pm ihm m0 p. inv p.
+    have[mx pm1 pm2]:=ihm _ H0.
+    exists (Send0 mx)... }
+  { move=>m m' pm ihm m0 p. inv p.
+    have[mx pm1 pm2]:=ihm _ H0.
+    exists (Send1 mx)... }
   { move=>m m' pm ihm m0 p. inv p.
     have[mx pm1 pm2]:=ihm _ H0.
     exists (Close mx)... }
@@ -1226,10 +1258,10 @@ Proof.
   exists A'. exists m'0. eauto using star.
 Qed.
 
-Lemma sta_red_recv_inv m x :
-  Recv m ~>* x ->
+Lemma sta_red_recv0_inv m x :
+  Recv0 m ~>* x ->
   exists m',
-    m ~>* m' /\ x = Recv m'.
+    m ~>* m' /\ x = Recv0 m'.
 Proof.
   elim.
   by exists m.
@@ -1237,10 +1269,32 @@ Proof.
   exists m'0. eauto using star.
 Qed.
 
-Lemma sta_red_send_inv m x :
-  Send m ~>* x ->
+Lemma sta_red_recv1_inv m x :
+  Recv1 m ~>* x ->
   exists m',
-    m ~>* m' /\ x = Send m'.
+    m ~>* m' /\ x = Recv1 m'.
+Proof.
+  elim.
+  by exists m.
+  move=>y z rd1[m'[rd2 e]]st. subst. inv st.
+  exists m'0. eauto using star.
+Qed.
+
+Lemma sta_red_send0_inv m x :
+  Send0 m ~>* x ->
+  exists m',
+    m ~>* m' /\ x = Send0 m'.
+Proof.
+  elim.
+  by exists m.
+  move=>y z rd1[m'[rd2 e]]st. subst. inv st.
+  exists m'0. eauto using star.
+Qed.
+
+Lemma sta_red_send1_inv m x :
+  Send1 m ~>* x ->
+  exists m',
+    m ~>* m' /\ x = Send1 m'.
 Proof.
   elim.
   by exists m.
@@ -1404,8 +1458,10 @@ Ltac red_inv m H :=
   | Ch     => apply sta_red_ch_inv in H
   | CVar   => apply sta_red_cvar_inv in H
   | Fork   => apply sta_red_fork_inv in H
-  | Recv   => apply sta_red_recv_inv in H
-  | Send   => apply sta_red_send_inv in H
+  | Recv0  => apply sta_red_recv0_inv in H
+  | Recv1  => apply sta_red_recv1_inv in H
+  | Send0  => apply sta_red_send0_inv in H
+  | Send1  => apply sta_red_send1_inv in H
   | Close  => apply sta_red_close_inv in H
   | Wait   => apply sta_red_wait_inv in H
   end.

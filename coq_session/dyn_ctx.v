@@ -140,6 +140,18 @@ Proof with eauto.
     apply: ih... }
 Qed.
 
+Lemma pure_just Δ x A : dyn_just Δ x A -> ~Δ ▷ U.
+Proof with eauto using key.
+  elim=>{Δ x A}.
+  { move=>Δ A emp k. inv k. }
+  { move=>Δ A x js ih k. inv k... }
+Qed.
+
+Lemma pure_merge_self Δ : Δ ▷ U -> Δ ∘ Δ => Δ.
+Proof with eauto using merge.
+  move e:(U)=>s k. elim: k e=>//{Δ s}...
+Qed.
+
 Lemma key_merge Δ1 Δ2 Δ s : Δ1 ∘ Δ2 => Δ -> Δ1 ▷ s -> Δ2 ▷ s -> Δ ▷ s.
 Proof with eauto using key.
   move=>mrg. elim: mrg s=>{Δ1 Δ2 Δ}...
@@ -147,6 +159,15 @@ Proof with eauto using key.
   { move=>Δ1 Δ2 Δ m mrg ih s k1 k2. inv k1; inv k2... }
   { move=>Δ1 Δ2 Δ m mrg ih s k1 k2. inv k1; inv k2... }
   { move=>Δ1 Δ2 Δ m mrg ih k1 k2. inv k1; inv k2... }
+Qed.
+
+Lemma pure_split Δ1 Δ2 Δ : Δ1 ∘ Δ2 => Δ -> Δ ▷ U -> Δ1 ▷ U /\ Δ2 ▷ U.
+Proof with eauto using key.
+  elim=>{Δ1 Δ2 Δ}...
+  { move=>Δ1 Δ2 Δ m mrg ih k. inv k. have[]:=ih H0... }
+  { move=>Δ1 Δ2 Δ m mrg ih k. inv k. }
+  { move=>Δ1 Δ2 Δ m mrg ih k. inv k. }
+  { move=>Δ1 Δ2 Δ mrg ih k. inv k. have[]:=ih H0... }
 Qed.
 
 Lemma merge_sym Δ1 Δ2 Δ : Δ1 ∘ Δ2 => Δ -> Δ2 ∘ Δ1 => Δ.

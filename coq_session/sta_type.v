@@ -40,7 +40,7 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
   sta0_type Γ n A ->
   sta0_type Γ (App m n) B.[n/]
 | sta0_sig0 Γ A B s r t :
-  s ⊑ t ->
+  r ⊑ t ->
   sta0_type Γ A (Sort s) ->
   sta0_type (A :: Γ) B (Sort r) ->
   sta0_type Γ (Sig0 A B t) (Sort t)
@@ -137,19 +137,19 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
 | sta0_recv0 Γ r1 r2 A B m :
   r1 (+) r2 = false ->
   sta0_type Γ m (Ch r1 (Act0 r2 A B)) ->
-  sta0_type Γ (Recv m) (IO (Sig0 A (Ch r1 B) L))
+  sta0_type Γ (Recv0 m) (IO (Sig0 A (Ch r1 B) L))
 | sta0_recv1 Γ r1 r2 A B m :
   r1 (+) r2 = false ->
   sta0_type Γ m (Ch r1 (Act1 r2 A B)) ->
-  sta0_type Γ (Recv m) (IO (Sig1 A (Ch r1 B) L))
+  sta0_type Γ (Recv1 m) (IO (Sig1 A (Ch r1 B) L))
 | sta0_send0 Γ r1 r2 A B m :
   r1 (+) r2 = true ->
   sta0_type Γ m (Ch r1 (Act0 r2 A B)) ->
-  sta0_type Γ (Send m) (Pi0 A (IO (Ch r1 B)) L)
+  sta0_type Γ (Send0 m) (Pi0 A (IO (Ch r1 B)) L)
 | sta0_send1 Γ r1 r2 A B m :
   r1 (+) r2 = true ->
   sta0_type Γ m (Ch r1 (Act1 r2 A B)) ->
-  sta0_type Γ (Send m) (Pi1 A (IO (Ch r1 B)) L)
+  sta0_type Γ (Send1 m) (Pi1 A (IO (Ch r1 B)) L)
 | sta0_wait Γ r1 r2 m :
   r1 (+) r2 = false ->
   sta0_type Γ m (Ch r1 (Stop r2)) ->
@@ -212,7 +212,7 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
   Γ ⊢ n : A ->
   Γ ⊢ App m n : B.[n/]
 | sta_sig0 Γ A B s r t :
-  s ⊑ t ->
+  r ⊑ t ->
   Γ ⊢ A : Sort s ->
   (A :: Γ) ⊢ B : Sort r ->
   Γ ⊢ Sig0 A B t : Sort t
@@ -305,19 +305,19 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
 | sta_recv0 Γ r1 r2 A B m :
   r1 (+) r2 = false ->
   Γ ⊢ m : Ch r1 (Act0 r2 A B) ->
-  Γ ⊢ Recv m : IO (Sig0 A (Ch r1 B) L)
+  Γ ⊢ Recv0 m : IO (Sig0 A (Ch r1 B) L)
 | sta_recv1 Γ r1 r2 A B m :
   r1 (+) r2 = false ->
   Γ ⊢ m : Ch r1 (Act1 r2 A B) ->
-  Γ ⊢ Recv m : IO (Sig1 A (Ch r1 B) L)
+  Γ ⊢ Recv1 m : IO (Sig1 A (Ch r1 B) L)
 | sta_send0 Γ r1 r2 A B m :
   r1 (+) r2 = true ->
   Γ ⊢ m : Ch r1 (Act0 r2 A B) ->
-  Γ ⊢ Send m : Pi0 A (IO (Ch r1 B)) L
+  Γ ⊢ Send0 m : Pi0 A (IO (Ch r1 B)) L
 | sta_send1 Γ r1 r2 A B m :
   r1 (+) r2 = true ->
   Γ ⊢ m : Ch r1 (Act1 r2 A B) ->
-  Γ ⊢ Send m : Pi1 A (IO (Ch r1 B)) L
+  Γ ⊢ Send1 m : Pi1 A (IO (Ch r1 B)) L
 | sta_wait Γ r1 r2 m :
   r1 (+) r2 = false ->
   Γ ⊢ m : Ch r1 (Stop r2) ->
