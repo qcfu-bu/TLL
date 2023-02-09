@@ -391,7 +391,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_agree_cren.
     apply: dyn_agree_cren_wf_n... }
 Qed.
 
-Lemma dyn_strengthen Θ m A :
+Lemma dyn_cstrengthen Θ m A :
   _: Θ ; nil ; nil ⊢ term_cren m (+1) : term_cren A (+1) ->
   Θ ; nil ; nil ⊢ m : A.
 Proof with eauto using dyn_empty, dyn_type, dyn_agree_cren.
@@ -411,7 +411,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_agree_cren.
   rewrite e. apply: term_cren_id.
 Qed.
 
-Lemma dyn_weaken Θ m A :
+Lemma dyn_cweaken Θ m A :
   Θ ; nil ; nil ⊢ m : A ->
   _: Θ ; nil ; nil ⊢ term_cren m (+1) : term_cren A (+1).
 Proof with eauto using dyn_empty, dyn_type, dyn_agree_cren.
@@ -420,4 +420,3 @@ Proof with eauto using dyn_empty, dyn_type, dyn_agree_cren.
   constructor.
   constructor.
 Qed.
-
