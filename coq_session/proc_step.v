@@ -1,26 +1,10 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS tll_ast tll_cren.
+Require Export AutosubstSsr ARS proc_cren.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
-
-Inductive proc :=
-| Exp (m : term)
-| Par (p q : proc)
-| Nu (p : proc).
-
-Notation "⟨ m ⟩" := (Exp m).
-Notation "p ∣ q" := (Par p q) (at level 20).
-Notation "'ν.' p" := (Nu p) (at level 20).
-
-Fixpoint proc_cren (p : proc) (ξ : cvar -> cvar) : proc :=
-  match p with
-  | ⟨ m ⟩ => ⟨ term_cren m ξ ⟩
-  | p ∣ q => (proc_cren p ξ) ∣ (proc_cren q ξ)
-  | ν.p => ν.(proc_cren p (upren (upren ξ)))
-  end.
 
 Inductive proc_congr0 : proc -> proc -> Prop :=
 | proc_congr0_par_sym p q :
