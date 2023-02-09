@@ -6,7 +6,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Inductive sta_agree_cren : (nat -> nat) -> sta_ctx -> sta_ctx -> Prop :=
+Inductive sta_agree_cren : (cvar -> cvar) -> sta_ctx -> sta_ctx -> Prop :=
 | sta_agree_cren_nil ξ :
   sta_agree_cren ξ nil nil
 | sta_agree_cren_cons Γ Γ' ξ m m' s :

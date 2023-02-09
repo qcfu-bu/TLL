@@ -196,4 +196,44 @@ Proof with eauto. move e:(TT)=>m ty. elim: ty e=>//{Θ Γ Δ A}. Qed.
 
 Lemma dyn_ff_inv Θ Γ Δ A : Θ ; Γ ; Δ ⊢ FF : A -> dyn_empty Θ.
 Proof with eauto. move e:(FF)=>m ty. elim: ty e=>//{Θ Γ Δ A}. Qed.
+
+Lemma dyn_send0_inv Θ Γ Δ m C :
+  Θ ; Γ ; Δ ⊢ Send0 m : C ->
+  exists r1 r2 A B,
+    r1 (+) r2 = true /\
+    C === Pi0 A (IO (Ch r1 B)) L /\
+    Θ ; Γ ; Δ ⊢ m : Ch r1 (Act0 r2 A B).
+Proof with eauto.
+  move e:(Send0 m)=>n ty. elim: ty m e=>//{Θ Γ Δ n C}.
+  { move=>Θ Γ Δ r1 r2 A B m xor tym ihm m0[e]. subst.
+    exists r1. exists r2. exists A. exists B.
+    repeat split... }
+  { move=>Θ Γ Δ A B m s eq1 tym ihm tyB m0 e. subst.
+    have[r1[r2[A0[B0[xor[eq2 tym0]]]]]]:=ihm _ erefl.
+    exists r1. exists r2. exists A0. exists B0.
+    repeat split...
+    apply: conv_trans.
+    apply: conv_sym...
+    apply: eq2. }
+Qed.
+  
+Lemma dyn_send1_inv Θ Γ Δ m C :
+  Θ ; Γ ; Δ ⊢ Send1 m : C ->
+  exists r1 r2 A B,
+    r1 (+) r2 = true /\
+    C === Pi1 A (IO (Ch r1 B)) L /\
+    Θ ; Γ ; Δ ⊢ m : Ch r1 (Act1 r2 A B).
+Proof with eauto.
+  move e:(Send1 m)=>n ty. elim: ty m e=>//{Θ Γ Δ n C}.
+  { move=>Θ Γ Δ r1 r2 A B m xor tym ihm m0[e]. subst.
+    exists r1. exists r2. exists A. exists B.
+    repeat split... }
+  { move=>Θ Γ Δ A B m s eq1 tym ihm tyB m0 e. subst.
+    have[r1[r2[A0[B0[xor[eq2 tym0]]]]]]:=ihm _ erefl.
+    exists r1. exists r2. exists A0. exists B0.
+    repeat split...
+    apply: conv_trans.
+    apply: conv_sym...
+    apply: eq2. }
+Qed.
   

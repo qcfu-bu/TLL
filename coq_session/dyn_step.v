@@ -28,6 +28,13 @@ Inductive dyn_val : term -> Prop :=
 | dyn_val_recv1 v  : dyn_val v -> dyn_val (Recv1 v)
 | dyn_val_send0 v  : dyn_val v -> dyn_val (Send0 v)
 | dyn_val_send1 v  : dyn_val v -> dyn_val (Send1 v)
+| dyn_val_send0_app v m :
+  dyn_val v ->
+  dyn_val (App (Send0 v) m)
+| dyn_val_send1_app v1 v2  :
+  dyn_val v1 ->
+  dyn_val v2 ->
+  dyn_val (App (Send1 v1) v2)
 | dyn_val_close v  : dyn_val v -> dyn_val (Close v)
 | dyn_val_wait v   : dyn_val v -> dyn_val (Wait v).
 

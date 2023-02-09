@@ -71,8 +71,36 @@ Proof with eauto using key_impure, key_empty, key_merge.
     have[_[_/sort_inj e]]:=sta_pi0_inv tyP. subst... }
   { move=>Θ Γ Δ A B m s t k1 k2 tym ihm tyP vl.
     have[_[_/sort_inj e]]:=sta_pi1_inv tyP. subst... }
-  { move=>Θ Γ Δ A B m n s tym ihm tyn tyB vl. inv vl. }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn tyB vl. inv vl. }
+  { move=>Θ Γ Δ A B m n s tym ihm tyn tyB vl. inv vl.
+    { have[r1[r2[A0[B0[xor[/pi0_inj[eqA[eqB e] tyv]]]]]]]:=dyn_send0_inv tym. subst.
+      have[s tyCh]:=dyn_valid tyv.
+      have[tyAct/sort_inj e]:=sta_ch_inv tyCh. subst.
+      have tyB0:=sta_act0_inv tyAct.
+      have[s tyA]:=sta_valid tyn.
+      have{}tyB0:=sta_ctx_conv eqA tyA tyB0.
+      have/={}tyIO:=sta_io (sta_ch r1 (sta_subst tyB0 tyn)).
+      have/church_rosser[x rd1 rd2]:B.[n/] === (IO (Ch r1 B0)).[n/].
+      apply: sta_conv_subst...
+      have tyx1:=sta_rd tyB rd1.
+      have tyx2:=sta_rd tyIO rd2.
+      have//:=sta_unicity tyx1 tyx2. }
+    { have[r1[r2[A0[B0[xor[eq _]]]]]]:=dyn_send1_inv tym.
+      exfalso. solve_conv. } }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn tyB vl. inv vl.
+    { have[r1[r2[A0[B0[xor[eq _]]]]]]:=dyn_send0_inv tym.
+      exfalso. solve_conv. }
+    { have[r1[r2[A0[B0[xor[/pi1_inj[eqA[eqB e] tyv]]]]]]]:=dyn_send1_inv tym. subst.
+      have[s tyCh]:=dyn_valid tyv.
+      have[tyAct/sort_inj e]:=sta_ch_inv tyCh. subst.
+      have tyB0:=sta_act1_inv tyAct.
+      have[s tyA]:=dyn_valid tyn.
+      have{}tyB0:=sta_ctx_conv eqA tyA tyB0.
+      have/={}tyIO:=sta_io (sta_ch r1 (sta_subst tyB0 (dyn_sta_type tyn))).
+      have/church_rosser[x rd1 rd2]:B.[n/] === (IO (Ch r1 B0)).[n/].
+      apply: sta_conv_subst...
+      have tyx1:=sta_rd tyB rd1.
+      have tyx2:=sta_rd tyIO rd2.
+      have//:=sta_unicity tyx1 tyx2. } }
   { move=>Θ Γ Δ A B m n t tyS1 tym tyn ihn tyS2 vl.
     have[s[r[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv tyS2. subst.
     inv ord. inv vl.

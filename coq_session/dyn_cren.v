@@ -6,9 +6,16 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Inductive dyn_ctx_cren : (nat -> nat) -> dyn_ctx -> dyn_ctx -> Prop :=
+Inductive dyn_ctx_cren : (cvar -> cvar) -> dyn_ctx -> dyn_ctx -> Prop :=
 | dyn_ctx_cren_O Θ :
   dyn_ctx_cren id Θ Θ
+| dyn_ctx_cren_ty ξ r A Θ Θ' :
+  nil ⊢ A : Proto ->
+  dyn_ctx_cren ξ Θ Θ' ->
+  dyn_ctx_cren (upren ξ) (Ch r A :L Θ) (Ch r (term_cren A ξ) :L Θ')
+| dyn_ctx_cren_n ξ Θ Θ' :
+  dyn_ctx_cren ξ Θ Θ' ->
+  dyn_ctx_cren (upren ξ) (_: Θ) (_: Θ')
 | dyn_ctx_cren_plus ξ Θ Θ' :
   dyn_ctx_cren ξ Θ Θ' ->
   dyn_ctx_cren (ξ >>> (+1)) Θ (_: Θ')
@@ -16,7 +23,7 @@ Inductive dyn_ctx_cren : (nat -> nat) -> dyn_ctx -> dyn_ctx -> Prop :=
   dyn_ctx_cren ξ Θ Θ' ->
   dyn_ctx_cren ((subn^~ 1) >>> ξ) (_: Θ) Θ'.
 
-Inductive dyn_agree_cren : (nat -> nat) ->
+Inductive dyn_agree_cren : (cvar -> cvar) ->
   dyn_ctx -> sta_ctx -> dyn_ctx -> dyn_ctx -> sta_ctx -> dyn_ctx -> Prop :=
 | dyn_agree_cren_nil ξ Θ Θ' :
   dyn_ctx_cren ξ Θ Θ' ->
@@ -42,6 +49,8 @@ Lemma dyn_ctx_cren_empty Θ Θ' ξ :
   dyn_ctx_cren ξ Θ Θ' -> dyn_empty Θ -> dyn_empty Θ'.
 Proof with eauto using dyn_empty.
   elim=>{ξ Θ Θ'}...
+  { move=>ξ r A Θ Θ' tyA agr ih emp. inv emp. }
+  { move=>ξ Θ Θ' agr ih emp. inv emp... }
   { move=>ξ Θ Θ' agr ih emp. inv emp... }
 Qed.
 
@@ -57,6 +66,8 @@ Lemma dyn_ctx_cren_key Θ Θ' ξ s :
   dyn_ctx_cren ξ Θ Θ' -> Θ ▷ s -> Θ' ▷ s.
 Proof with eauto using key.
   move=>agr. elim: agr s=>{Θ Θ' ξ}...
+  { move=>ξ r A Θ Θ' tyA agr ih s k. inv k... }
+  { move=>ξ Θ Θ' agr ih s k. inv k... }
   { move=>ξ Θ Θ' agr ih s k. inv k... }
 Qed.
 
@@ -101,6 +112,21 @@ Proof with eauto.
   move=>agr. elim: agr A x=>//={Θ Θ' ξ}...
   { move=>Θ A x js.
     by rewrite term_cren_id. }
+  { move=>ξ r A Θ Θ' tyA agr ih A0 x js. inv js.
+    asimpl.
+    rewrite<-term_cren_comp.
+    have->:((+1) >>> upren ξ) = (ξ >>> (+1)) by autosubst.
+    have->:(term_cren A (ξ >>> (+1))) = (term_cren (term_cren A ξ) (+1)).
+    by rewrite<-term_cren_comp.
+    constructor.
+    apply: dyn_ctx_cren_empty... }
+  { move=>ξ Θ Θ' agr ih A x js. inv js.
+    asimpl.
+    rewrite<-term_cren_comp.
+    have->:((+1) >>> upren ξ) = (ξ >>> (+1)) by autosubst.
+    have->:(term_cren A0 (ξ >>> (+1))) = (term_cren (term_cren A0 ξ) (+1)).
+    by rewrite<-term_cren_comp.
+    constructor... }
   { move=>ξ Θ Θ' agr ih A x js.
     rewrite term_cren_comp.
     constructor... }
@@ -133,6 +159,17 @@ Lemma dyn_ctx_cren_merge Θ1 Θ2 Θ Θ' ξ :
 Proof with eauto using dyn_ctx_cren.
   move=>agr. elim: agr Θ1 Θ2=>{Θ Θ' ξ}.
   { move=>Θ Θ1 Θ2 mrg. exists Θ1. exists Θ2... }
+  { move=>ξ r A Θ Θ' tyA agr ih Θ1 Θ2 mrg. inv mrg.
+    { have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=ih _ _ H2.
+      exists (Ch r (term_cren A ξ) :L Θ1'). exists (_: Θ2').
+      repeat constructor... }
+    { have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=ih _ _ H2.
+      exists (_: Θ1'). exists (Ch r (term_cren A ξ) :L Θ2').
+      repeat constructor... } }
+  { move=>ξ Θ Θ' agr ih Θ1 Θ2 mrg. inv mrg.
+    have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=ih _ _ H2.
+    exists (_: Θ1'). exists (_: Θ2').
+    repeat constructor... }
   { move=>ξ Θ Θ' agr ih Θ1 Θ2 mrg.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=ih _ _ mrg.
     exists (_: Θ1'). exists (_: Θ2').
