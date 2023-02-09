@@ -13,13 +13,6 @@ Open Scope sort_scope.
 Inductive sort : Type := U | L.
 Bind Scope sort_scope with sort.
 
-Definition sort_plus (s t : sort) :=
-  match s with
-  | U => t
-  | L => L
-  end.
-Infix "+" := sort_plus : sort_scope.
-
 Inductive sort_leq : sort -> sort -> Prop :=
 | sort_leqU s :
   sort_leq U s
@@ -73,3 +66,55 @@ Instance Ids_term : Ids term. derive. Defined.
 Instance Rename_term : Rename term. derive. Defined.
 Instance Subst_term : Subst term. derive. Defined.
 Instance substLemmas_term : SubstLemmas term. derive. Qed.
+
+Fixpoint term_cren (m : term) (ξ : nat -> nat) : term :=
+  match m with
+  (* core *)
+  | Var x => Var x
+  | Sort s => Sort s
+  | Pi0 A B s => Pi0 (term_cren A ξ) (term_cren B ξ) s
+  | Pi1 A B s => Pi1 (term_cren A ξ) (term_cren B ξ) s
+  | Lam0 A m s => Lam0 (term_cren A ξ) (term_cren m ξ) s
+  | Lam1 A m s => Lam1 (term_cren A ξ) (term_cren m ξ) s
+  | App m n => App (term_cren m ξ) (term_cren n ξ)
+  | Sig0 A B s => Sig0 (term_cren A ξ) (term_cren B ξ) s
+  | Sig1 A B s => Sig1 (term_cren A ξ) (term_cren B ξ) s
+  | Pair0 m n s => Pair0 (term_cren m ξ) (term_cren n ξ) s
+  | Pair1 m n s => Pair1 (term_cren m ξ) (term_cren n ξ) s
+  | LetIn A m n =>
+      LetIn
+        (term_cren A ξ)
+        (term_cren m ξ)
+        (term_cren n ξ)
+  | Fix A m => Fix (term_cren A ξ) (term_cren m ξ)
+  (* data *)
+  | Unit => Unit
+  | II => II
+  | Bool => Bool
+  | TT => TT
+  | FF => FF
+  | Ifte A m n1 n2 =>
+      Ifte
+        (term_cren A ξ)
+        (term_cren m ξ)
+        (term_cren n1 ξ)
+        (term_cren n2 ξ)
+  (* monadic *)
+  | IO A => IO (term_cren A ξ)
+  | Return m => Return (term_cren m ξ)
+  | Bind m n => Bind (term_cren m ξ) (term_cren n ξ)
+  (* session *)
+  | Proto => Proto
+  | Stop r => Stop r
+  | Act0 r A B => Act0 r (term_cren A ξ) (term_cren B ξ)
+  | Act1 r A B => Act1 r (term_cren A ξ) (term_cren B ξ)
+  | Ch r A => Ch r (term_cren A ξ)
+  | CVar x => CVar (ξ x)
+  | Fork A m => Fork (term_cren A ξ) (term_cren m ξ)
+  | Recv0 m => Recv0 (term_cren m ξ)
+  | Recv1 m => Recv1 (term_cren m ξ)
+  | Send0 m => Send0 (term_cren m ξ)
+  | Send1 m => Send1 (term_cren m ξ)
+  | Close m => Close (term_cren m ξ)
+  | Wait m => Wait (term_cren m ξ)
+  end.

@@ -1,6 +1,6 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Classical Utf8.
-Require Import AutosubstSsr ARS tll_ast.
+Require Import AutosubstSsr ARS tll_ast tll_cren.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -72,10 +72,10 @@ Inductive dyn_has : dyn_ctx -> var -> sort -> term -> Prop :=
 Inductive dyn_just : dyn_ctx -> var -> term -> Prop :=
 | dyn_just_O Δ A :
   dyn_empty Δ ->
-  dyn_just (A :L Δ) 0 A
+  dyn_just (A :L Δ) 0 (term_cren A (+1))
 | dyn_just_N Δ A x :
   dyn_just Δ x A ->
-  dyn_just (_: Δ) x.+1 A.
+  dyn_just (_: Δ) x.+1 (term_cren A (+1)).
 
 Lemma key_impure Δ : Δ ▷ L.
 Proof with eauto using key.
