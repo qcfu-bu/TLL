@@ -88,6 +88,36 @@ Qed.
 Theorem proc_sr Θ p q : Θ ⊢ p -> p ≈>> q -> Θ ⊢ q.
 Proof with eauto using merge, merge_sym, sta_type, dyn_type.
   move=>ty st. elim: st Θ ty=>{p q}.
+  { move=>m m' st Θ ty. inv ty.
+    constructor. apply: dyn_sr... }
+  { move=>v n vl Θ ty. inv ty.
+    have[Θ1[Θ2[Δ1[Δ2[A0[B[s[t[/merge_sym mrg1[mrg2[tyB[tyR[tyn/io_inj eq1]]]]]]]]]]]]]:=
+      dyn_bind_inv H1. inv mrg2.
+    have wf:=dyn_type_wf tyn. inv wf.
+    have[A[tyv/io_inj eq]]:=dyn_return_inv tyR.
+    have[r tyA]:=dyn_valid tyv.
+    have[x rd1 rd2]:=church_rosser eq.
+    have tyx1:=sta_rd H5 rd1.
+    have tyx2:=sta_rd tyA rd2.
+    have e:=sta_unicity tyx1 tyx2. subst.
+    have[k1 k2]:=dyn_val_stability tyv tyA vl.
+    have tyIO:(A0 :: nil) ⊢ (IO Unit).[ren (+1)] : (Sort L).[ren (+1)].
+    { apply: sta_weaken... }
+    constructor.
+    replace (IO Unit) with (IO Unit).[v/] by eauto.
+    apply: dyn_subst1.
+    apply: k1.
+    apply: mrg1.
+    apply: k2.
+    constructor.
+    replace (IO Unit) with (IO Unit.[ren (+1)]) by eauto.
+    apply: dyn_conv.
+    apply: sta_conv_io. apply: sta_conv_subst. apply: conv_sym...
+    apply: tyn.
+    apply: tyIO.
+    apply: dyn_conv.
+    apply: conv_sym...
+    all: eauto. }
   { move=>A m m' n n' e1 e2 Θ ty. inv ty.
     have{H1}ty:=dyn_cweaken (dyn_cweaken H1).
     rewrite<-!term_cren_comp in ty.
@@ -134,5 +164,34 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
         by autosubst.
       repeat constructor...
       apply: H5. }
-
-  }
+    { have wf:=dyn_type_wf tyn. inv wf.
+      have wf:=dyn_type_wf tym. inv wf.
+      have wf:=dyn_type_proc_wf tym. inv wf. inv H0.
+      have[Θx[emp mrg1]]:=proc_wf_empty H1.
+      have{}mrg1: _: _: Δ0 ∘ _: Ch true A :L Θx => _: Ch true A :L Δ0...
+      have[tyA _]:=sta_ch_inv H7.
+      have[x eq3 eq4]:=church_rosser eq2.
+      have tyx1:=sta_rd H5 eq3.
+      have tyx2:=sta_rd (sta_ch false tyA) eq4.
+      have e:=sta_unicity tyx1 tyx2. subst.
+      econstructor.
+      replace (IO Unit) with (IO Unit).[CVar 1/] by eauto.
+      apply: dyn_esubst1...
+      apply: key_impure.
+      apply: key_impure.
+      replace (Ch true (term_cren A (+2)))
+        with (Ch true (term_cren A (+2)).[ren (+@size (elem term) nil)])
+        by autosubst.
+      repeat constructor...
+      replace (Ch true (term_cren A (+2)))
+        with (term_cren (Ch true (term_cren A (+1))) (+1)).
+      repeat constructor...
+      simpl. rewrite<-term_cren_comp.
+      by autosubst. } }
+  { move=>o p q st ih Θ ty... inv ty. econstructor... }
+  { move=>p q st ih Θ ty. inv ty. econstructor... }
+  { move=>p p' q q' eq1 st ih eq2 Θ ty.
+    have{}ty:=proc_congr_type ty eq1.
+    move/ih in ty.
+    have{}ty//:=proc_congr_type ty eq2. }
+Qed.
