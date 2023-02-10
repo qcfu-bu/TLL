@@ -33,7 +33,7 @@ Inductive dyn_agree_cren : (cvar -> cvar) ->
   Γ ⊢ m : Sort s ->
   dyn_agree_cren ξ Θ Γ Δ Θ' Γ' Δ' ->
   dyn_agree_cren ξ
-    Θ (m :: Γ) (m :{s} Δ) Θ' (m' :: Γ') (m' :{s} Δ')
+    Θ (m :: Γ) (m .{s} Δ) Θ' (m' :: Γ') (m' .{s} Δ')
 | dyn_agree_cren_n Θ Θ' Γ Γ' Δ Δ' ξ m m' s :
   m' = term_cren m ξ ->
   Γ ⊢ m : Sort s ->
@@ -233,12 +233,12 @@ Proof with eauto using dyn_wf.
 Qed.
 
 Lemma dyn_agree_cren_wf_ty Θ Θ' Γ Γ' Δ Δ' A s ξ :
-  dyn_agree_cren ξ Θ (A :: Γ) (A :{s} Δ) Θ' Γ' Δ' -> dyn_wf Γ Δ ->
+  dyn_agree_cren ξ Θ (A :: Γ) (A .{s} Δ) Θ' Γ' Δ' -> dyn_wf Γ Δ ->
   (∀ Θ Θ' Γ' Δ' ξ, dyn_agree_cren ξ Θ Γ Δ Θ' Γ' Δ' → dyn_wf Γ' Δ') ->
   dyn_wf Γ' Δ'.
 Proof with eauto using dyn_wf.
   move e1:(A :: Γ)=>Γ0.
-  move e2:(A :{s} Δ)=>Δ0 agr.
+  move e2:(A .{s} Δ)=>Δ0 agr.
   elim: agr A Γ Δ s e1 e2=>//{Θ Θ' Γ0 Δ0 Γ' Δ' ξ}...
   move=>Θ Θ' Γ Γ' Δ Δ' ξ m m' s e tym agr _ A Γ0 Δ0 s0
          [e1 e2][_ e4 e5]wf h; subst.

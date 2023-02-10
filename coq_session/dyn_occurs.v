@@ -35,7 +35,7 @@ Inductive dyn_occurs :
 | dyn_occurs_lam1 Θ Γ Δ A B m s t i j :
   Θ ▷ s ->
   Δ ▷ s ->
-  dyn_occurs Θ (A :: Γ) (A :{t} Δ) m B i j ->
+  dyn_occurs Θ (A :: Γ) (A .{t} Δ) m B i j ->
   dyn_occurs Θ Γ Δ (Lam1 A m s) (Pi1 A B s) i j
 | dyn_occurs_app0 Θ Γ Δ A B m n s i j :
   dyn_occurs Θ Γ Δ m (Pi0 A B s) i j ->
@@ -64,7 +64,7 @@ Inductive dyn_occurs :
   Δ1 ∘ Δ2 => Δ ->
   (Sig0 A B t :: Γ) ⊢ C : Sort s ->
   dyn_occurs Θ1 Γ Δ1 m (Sig0 A B t) i j1 ->
-  dyn_occurs Θ2 (B :: A :: Γ) (B :{r} _: Δ2) n
+  dyn_occurs Θ2 (B :: A :: Γ) (B .{r} _: Δ2) n
     C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] i j2 ->
   dyn_occurs Θ Γ Δ (LetIn C m n) C.[m/] i (j1 + j2)
 | dyn_occurs_letin1 Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t i j1 j2 :
@@ -72,7 +72,7 @@ Inductive dyn_occurs :
   Δ1 ∘ Δ2 => Δ ->
   (Sig1 A B t :: Γ) ⊢ C : Sort s ->
   dyn_occurs Θ1 Γ Δ1 m (Sig1 A B t) i j1 ->
-  dyn_occurs Θ2 (B :: A :: Γ) (B :{r2} A :{r1} Δ2) n
+  dyn_occurs Θ2 (B :: A :: Γ) (B .{r2} A .{r1} Δ2) n
     C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] i j2 ->
   dyn_occurs Θ Γ Δ (LetIn C m n) C.[m/] i (j1 + j2)
 | dyn_occurs_fix Θ Γ Δ A m i j :
@@ -113,7 +113,7 @@ Inductive dyn_occurs :
   Δ1 ∘ Δ2 => Δ ->
   Γ ⊢ B : Sort t ->
   dyn_occurs Θ1 Γ Δ1 m (IO A) i j1 ->
-  dyn_occurs Θ2 (A :: Γ) (A :{s} Δ2) n (IO B.[ren (+1)]) i j2 ->
+  dyn_occurs Θ2 (A :: Γ) (A .{s} Δ2) n (IO B.[ren (+1)]) i j2 ->
   dyn_occurs Θ Γ Δ (Bind m n) (IO B) i (j1 + j2)
 (* session *)
 | dyn_occurs_cvar Θ Γ Δ r x A i j :

@@ -188,7 +188,39 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       repeat constructor...
       simpl. rewrite<-term_cren_comp.
       by autosubst. } }
-  { admit. }
+  { move=>m n1 n2 Θ ty. inv ty. inv H2. inv H1; inv H3.
+    { inv H5.
+      have[Θ1[Θ2[Δ1[Δ2[A0[B[s[t[mrg1[mrg2[tyB[tyR[tyn/io_inj eq]]]]]]]]]]]]]:=
+        dyn_bind_inv H1. inv mrg2. inv mrg1. inv H5.
+      have[r3[r4[A1[B0[_[_ tyv]]]]]]:=dyn_recv0_inv tyR.
+      have[r[A2[js _]]]:=dyn_cvar_inv tyv. inv js. inv H5. }
+    { inv H4. inv H5.
+      have[Θ1[Θ2[Δ1[Δ2[A0[B[s[t[mrg1[mrg2[tyB[tyR[tyn/io_inj eq]]]]]]]]]]]]]:=
+        dyn_bind_inv H1. inv mrg2. inv mrg1; inv H5.
+      2:{
+      }
+      admit.
+
+
+
+
+    }
+    { inv H5.
+      have[Θ1[Θ2[Δ1[Δ2[A0[B[s[t[mrg1[mrg2[tyB[tyR[tyn/io_inj eq]]]]]]]]]]]]]:=
+        dyn_bind_inv H1. inv mrg2. inv mrg1; inv H5.
+      have[r3[r4[A1[B0[_[_ tyv]]]]]]:=dyn_recv0_inv tyR.
+      have[r[A2[js _]]]:=dyn_cvar_inv tyv. inv js.
+      have[r3[r4[A1[B0[_[_ tyv]]]]]]:=dyn_recv0_inv tyR.
+      have[r[A2[js _]]]:=dyn_cvar_inv tyv. inv js. inv H5. }
+    { inv H4.
+      have[Θ1[Θ2[Δ1[Δ2[A0[B[s[t[mrg1[mrg2[tyB[tyApp[tyn/io_inj eq]]]]]]]]]]]]]:=
+        dyn_bind_inv H1. inv mrg2. inv mrg1. inv H4.
+      have[A1[B1[s0[[tyS _]|[Θ1[Θ2[Δ1[Δ2[mrg1[mrg2[tyS _]]]]]]]]]]]:=dyn_app_inv tyApp.
+      have[r3[r4[A2[B2[_[_ tyv]]]]]]:=dyn_send0_inv tyS.
+      have[r[A3[js _]]]:=dyn_cvar_inv tyv. inv js.
+      inv mrg1.
+      have[r3[r4[A2[B2[_[_ tyv]]]]]]:=dyn_send0_inv tyS.
+      have[r[A3[js _]]]:=dyn_cvar_inv tyv. inv js. } }
   { admit. }
   { admit. }
   { admit. }

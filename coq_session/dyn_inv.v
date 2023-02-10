@@ -33,7 +33,7 @@ Lemma dyn_lam1_invX Θ Γ Δ A1 A2 B C m s1 s2 t :
   Θ ; Γ ; Δ ⊢ Lam1 A1 m s1 : C ->
   C === Pi1 A2 B s2 ->
   (A2 :: Γ) ⊢ B : Sort t ->
-  exists r, Θ ; (A2 :: Γ) ; A2 :{r} Δ ⊢ m : B.
+  exists r, Θ ; (A2 :: Γ) ; A2 .{r} Δ ⊢ m : B.
 Proof with eauto.
   move e:(Lam1 A1 m s1)=>n tyL.
   elim: tyL A1 A2 B m s1 s2 t e=>//{Θ Γ Δ C n}.
@@ -66,7 +66,7 @@ Proof with eauto.
 Qed.
 
 Lemma dyn_lam1_inv Θ Γ Δ m A1 A2 B s1 s2 :
-  Θ ; Γ ; Δ ⊢ Lam1 A2 m s2 : Pi1 A1 B s1 -> exists r, Θ ; (A1 :: Γ) ; A1 :{r} Δ ⊢ m : B.
+  Θ ; Γ ; Δ ⊢ Lam1 A2 m s2 : Pi1 A1 B s1 -> exists r, Θ ; (A1 :: Γ) ; A1 .{r} Δ ⊢ m : B.
 Proof with eauto.
   move=>ty.
   have[t/sta_pi1_inv[r[tyB _]]]:=dyn_valid ty.
@@ -204,7 +204,7 @@ Lemma dyn_bind_inv Θ Γ Δ m n C :
     Δ1 ∘ Δ2 => Δ /\
     Γ ⊢ B : Sort t /\
     Θ1 ; Γ ; Δ1 ⊢ m : IO A /\
-    Θ2 ; (A :: Γ) ; (A :{s} Δ2) ⊢ n : IO B.[ren (+1)] /\
+    Θ2 ; (A :: Γ) ; (A .{s} Δ2) ⊢ n : IO B.[ren (+1)] /\
     C === IO B.                    
 Proof with eauto.
   move e:(Bind m n)=>x ty. elim: ty m n e=>//{Θ Γ Δ x C}.
@@ -254,6 +254,44 @@ Proof with eauto.
     apply: conv_trans.
     apply: conv_sym...
     exact: eq2. }
+Qed.
+
+Lemma dyn_recv0_inv Θ Γ Δ m C :
+  Θ ; Γ ; Δ ⊢ Recv0 m : C ->
+  exists r1 r2 A B,
+    r1 (+) r2 = false /\
+    C === IO (Sig0 A (Ch r1 B) L) /\
+    Θ ; Γ ; Δ ⊢ m : Ch r1 (Act0 r2 A B).
+Proof with eauto.
+  move e:(Recv0 m)=>n ty. elim: ty m e=>//{Θ Γ Δ n C}.
+  { move=>Θ Γ Δ r1 r2 A B m xor tym ihm m0[e]. subst.
+    exists r1. exists r2. exists A. exists B... }
+  { move=>Θ Γ Δ A B m s eq1 tym ihm tyB m0 e. subst.
+    have[r1[r2[A0[B0[xor[eq2 tym0]]]]]]:=ihm _ erefl.
+    exists r1. exists r2. exists A0. exists B0.
+    repeat split...
+    apply: conv_trans.
+    apply: conv_sym...
+    apply: eq2. }
+Qed.
+
+Lemma dyn_recv1_inv Θ Γ Δ m C :
+  Θ ; Γ ; Δ ⊢ Recv1 m : C ->
+  exists r1 r2 A B,
+    r1 (+) r2 = false /\
+    C === IO (Sig1 A (Ch r1 B) L) /\
+    Θ ; Γ ; Δ ⊢ m : Ch r1 (Act1 r2 A B).
+Proof with eauto.
+  move e:(Recv1 m)=>n ty. elim: ty m e=>//{Θ Γ Δ n C}.
+  { move=>Θ Γ Δ r1 r2 A B m xor tym ihm m0[e]. subst.
+    exists r1. exists r2. exists A. exists B... }
+  { move=>Θ Γ Δ A B m s eq1 tym ihm tyB m0 e. subst.
+    have[r1[r2[A0[B0[xor[eq2 tym0]]]]]]:=ihm _ erefl.
+    exists r1. exists r2. exists A0. exists B0.
+    repeat split...
+    apply: conv_trans.
+    apply: conv_sym...
+    apply: eq2. }
 Qed.
 
 Lemma dyn_send0_inv Θ Γ Δ m C :

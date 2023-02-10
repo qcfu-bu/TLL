@@ -26,7 +26,7 @@ Inductive dyn_type : dyn_ctx -> sta_ctx -> dyn_ctx -> term -> term -> Prop :=
 | dyn_lam1 Θ Γ Δ A B m s t :
   Θ ▷ s ->
   Δ ▷ s ->
-  Θ ; (A :: Γ) ; A :{t} Δ ⊢ m : B ->
+  Θ ; (A :: Γ) ; A .{t} Δ ⊢ m : B ->
   Θ ; Γ ; Δ ⊢ Lam1 A m s : Pi1 A B s
 | dyn_app0 Θ Γ Δ A B m n s :
   Θ ; Γ ; Δ ⊢ m : Pi0 A B s ->
@@ -55,14 +55,14 @@ Inductive dyn_type : dyn_ctx -> sta_ctx -> dyn_ctx -> term -> term -> Prop :=
   Δ1 ∘ Δ2 => Δ ->
   (Sig0 A B t :: Γ) ⊢ C : Sort s ->
   Θ1 ; Γ ; Δ1 ⊢ m : Sig0 A B t ->
-  Θ2 ; (B :: A :: Γ) ; B :{r} _: Δ2 ⊢ n : C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] ->
+  Θ2 ; (B :: A :: Γ) ; B .{r} _: Δ2 ⊢ n : C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] ->
   Θ ; Γ ; Δ ⊢ LetIn C m n : C.[m/]
 | dyn_letin1 Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t :
   Θ1 ∘ Θ2 => Θ ->
   Δ1 ∘ Δ2 => Δ ->
   (Sig1 A B t :: Γ) ⊢ C : Sort s ->
   Θ1 ; Γ ; Δ1 ⊢ m : Sig1 A B t ->
-  Θ2 ; (B :: A :: Γ) ; B :{r2} A :{r1} Δ2 ⊢ n : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
+  Θ2 ; (B :: A :: Γ) ; B .{r2} A .{r1} Δ2 ⊢ n : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   Θ ; Γ ; Δ ⊢ LetIn C m n : C.[m/]
 | dyn_fix Θ Γ Δ A m :
   Θ ▷ U ->
@@ -102,7 +102,7 @@ Inductive dyn_type : dyn_ctx -> sta_ctx -> dyn_ctx -> term -> term -> Prop :=
   Δ1 ∘ Δ2 => Δ ->
   Γ ⊢ B : Sort t ->
   Θ1 ; Γ ; Δ1 ⊢ m : IO A ->
-  Θ2 ; (A :: Γ) ; (A :{s} Δ2) ⊢ n : IO B.[ren (+1)] ->
+  Θ2 ; (A :: Γ) ; (A .{s} Δ2) ⊢ n : IO B.[ren (+1)] ->
   Θ ; Γ ; Δ ⊢ Bind m n : IO B
 (* session *)
 | dyn_cvar Θ Γ Δ r x A :
@@ -151,7 +151,7 @@ with dyn_wf : sta_ctx -> dyn_ctx -> Prop :=
 | dyn_wf_ty Γ Δ A s :
   dyn_wf Γ Δ ->
   Γ ⊢ A : Sort s ->
-  dyn_wf (A :: Γ) (A :{s} Δ)
+  dyn_wf (A :: Γ) (A .{s} Δ)
 | dyn_wf_n Γ Δ A s :
   dyn_wf Γ Δ ->
   Γ ⊢ A : Sort s ->

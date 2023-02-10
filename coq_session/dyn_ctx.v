@@ -13,8 +13,8 @@ Notation "m :U Γ" := (Some (m, U) :: Γ)
   (at level 30, right associativity).
 Notation "m :L Γ" := (Some (m, L) :: Γ)
   (at level 30, right associativity).
-Notation "m :{ s } Γ" := (Some (m, s) :: Γ)
-  (at level 30, right associativity, format "m  :{ s }  Γ").
+Notation "m .{ s } Γ" := (Some (m, s) :: Γ)
+  (at level 30, right associativity, format "m  .{ s }  Γ").
 Notation "_: Γ" := (None :: Γ)
   (at level 30, right associativity).
 
@@ -45,7 +45,7 @@ Inductive key : dyn_ctx -> sort -> Prop :=
   m :U Δ ▷ U
 | key_l Δ m s :
   Δ ▷ L ->
-  m :{s} Δ ▷ L
+  m .{s} Δ ▷ L
 | key_n Δ s :
   Δ ▷ s ->
   _: Δ ▷ s
@@ -61,7 +61,7 @@ Inductive dyn_empty : dyn_ctx -> Prop :=
 Inductive dyn_has : dyn_ctx -> var -> sort -> term -> Prop :=
 | dyn_has_O Δ A s :
   Δ ▷ U ->
-  dyn_has (A :{s} Δ) 0 s A.[ren (+1)]
+  dyn_has (A .{s} Δ) 0 s A.[ren (+1)]
 | dyn_has_S Δ A B x s :
   dyn_has Δ x s A ->
   dyn_has (B :U Δ) x.+1 s A.[ren (+1)]
