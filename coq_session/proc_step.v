@@ -62,15 +62,15 @@ Inductive proc_step : proc -> proc -> Prop :=
   ν.(⟨ Bind (App (Send1 (CVar 1)) v) n1 ⟩ ∣ ⟨ Bind (Recv1 (CVar 0)) n2 ⟩) ≈>>
   ν.(⟨ Bind (Return (CVar 1)) n1 ⟩ ∣ ⟨ Bind (Return (Pair1 v (CVar 0) L)) n2 ⟩)
 | proc_step_end m m' n n' :
-  m' = term_cren m (+2) ->
-  n' = term_cren n (+2) ->
-  ν.(⟨ Bind (Close (CVar 0)) m' ⟩ ∣ ⟨ Bind (Wait (CVar 1)) n' ⟩) ≈>>
-  ⟨ Bind (Return II) m ⟩ ∣ ⟨ Bind (Return II) n ⟩
+  m' = term_cren m (-2) ->
+  n' = term_cren n (-2) ->
+  ν.(⟨ Bind (Close (CVar 0)) m ⟩ ∣ ⟨ Bind (Wait (CVar 1)) n ⟩) ≈>>
+  ⟨ Bind (Return II) m' ⟩ ∣ ⟨ Bind (Return II) n' ⟩
 | proc_step_endi m m' n n' :
-  m' = term_cren m (+2) ->
-  n' = term_cren n (+2) ->
-  ν.(⟨ Bind (Close (CVar 1)) m' ⟩ ∣ ⟨ Bind (Wait (CVar 0)) n' ⟩) ≈>>
-  ⟨ Bind (Return II) m ⟩ ∣ ⟨ Bind (Return II) n ⟩
+  m' = term_cren m (-2) ->
+  n' = term_cren n (-2) ->
+  ν.(⟨ Bind (Close (CVar 1)) m ⟩ ∣ ⟨ Bind (Wait (CVar 0)) n ⟩) ≈>>
+  ⟨ Bind (Return II) m' ⟩ ∣ ⟨ Bind (Return II) n' ⟩
 (* congruence *)
 | proc_par o p q :
   p ≈>> q ->

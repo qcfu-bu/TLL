@@ -21,7 +21,7 @@ Inductive dyn_ctx_cren : (cvar -> cvar) -> dyn_ctx -> dyn_ctx -> Prop :=
   dyn_ctx_cren (ξ >>> (+1)) Θ (_: Θ')
 | dyn_ctx_cren_minus ξ Θ Θ' :
   dyn_ctx_cren ξ Θ Θ' ->
-  dyn_ctx_cren ((subn^~ 1) >>> ξ) (_: Θ) Θ'.
+  dyn_ctx_cren ((-1) >>> ξ) (_: Θ) Θ'.
 
 Inductive dyn_agree_cren : (cvar -> cvar) ->
   dyn_ctx -> sta_ctx -> dyn_ctx -> dyn_ctx -> sta_ctx -> dyn_ctx -> Prop :=
@@ -134,7 +134,7 @@ Proof with eauto.
     have{}ih:=ih _ _ H0.
     rewrite<-term_cren_comp.
     replace (x0.+1 - 1) with x0 by lia. asimpl.
-    have->:((+1) >>> subn_rec^~ 1 >>> ξ) = ξ.
+    have->:((+1) >>> (-1) >>> ξ) = ξ.
     f_ext. move=>x/=. fold subn. f_equal. lia.
     eauto. }
 Qed.
@@ -433,10 +433,10 @@ Lemma dyn_cstrengthen Θ m A :
   Θ ; nil ; nil ⊢ m : A.
 Proof with eauto using dyn_empty, dyn_type, dyn_agree_cren.
   move=>ty.
-  have e:((+1) >>> subn_rec^~ 1) = id.
+  have e:((+1) >>> (-1)) = id.
   { f_ext. move=>x. asimpl. fold subn. lia. }
-  replace m with (term_cren (term_cren m (+1)) (subn^~ 1 >>> id)).
-  replace A with (term_cren (term_cren A (+1)) (subn^~ 1 >>> id)).
+  replace m with (term_cren (term_cren m (+1)) ((-1) >>> id)).
+  replace A with (term_cren (term_cren A (+1)) ((-1) >>> id)).
   apply: dyn_crename.
   apply: ty.
   constructor.

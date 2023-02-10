@@ -14,7 +14,7 @@ Inductive cvar_pos : dyn_ctx -> cvar -> bool -> Prop :=
   cvar_pos (A :L Θ) 0 true
 | cvar_pos_n Θ :
   cvar_pos (_: Θ) 0 false
-| cvar_pos_conv Θ x A b :
+| cvar_pos_cons Θ x A b :
   cvar_pos Θ x b ->
   cvar_pos (A :: Θ) x.+1 b.
 

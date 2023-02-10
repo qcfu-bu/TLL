@@ -222,6 +222,25 @@ Proof with eauto.
     exact: eq'. }
 Qed.
 
+Lemma dyn_cvar_inv Θ Γ Δ x B :
+  Θ ; Γ ; Δ ⊢ CVar x : B ->
+  exists r A,
+    dyn_just Θ x (Ch r A) /\
+    nil ⊢ A : Proto /\
+    B === Ch r A.[ren (+size Γ)].
+Proof with eauto.
+  move e:(CVar x)=>m ty. elim: ty x e=>//{Θ Γ Δ m B}.
+  { move=>Θ Γ Δ r x A js _ _ tyA x0[e]. subst.
+    exists r. exists A... }
+  { move=>Θ Γ Δ A B m s eq1 tym ihm tyB x e. subst.
+    have[r[A0[js[tyA0 eq2]]]]:=ihm _ erefl.
+    exists r. exists A0.
+    repeat split...
+    apply: conv_trans.
+    apply: conv_sym...
+    apply: eq2. }
+Qed.
+
 Lemma dyn_fork_inv Θ Γ Δ A m B :
   Θ ; Γ ; Δ ⊢ Fork A m : B ->
   Θ ; (Ch true A :: Γ) ; Ch true A :L Δ ⊢ m : IO Unit /\
@@ -276,3 +295,41 @@ Proof with eauto.
     apply: conv_sym...
     apply: eq2. }
 Qed.
+
+Lemma dyn_wait_inv Θ Γ Δ m C :
+  Θ ; Γ ; Δ ⊢ Wait m : C ->
+  exists r1 r2,
+    r1 (+) r2 = false /\
+    C === IO Unit /\
+    Θ ; Γ ; Δ ⊢ m : Ch r1 (Stop r2).
+ Proof with eauto. 
+   move e:(Wait m)=>x ty. elim: ty m e=>//{Θ Γ Δ x C}.
+   { move=>Θ Γ Δ r1 r2 m xor tym ihm m0[e]. subst.
+     exists r1. exists r2. repeat split... }
+   { move=>Θ Γ Δ A B m s eq1 tym ihm tyB m0 e. subst.
+     have[r1[r2[xor[eq2 tym0]]]]:=ihm _ erefl.
+     exists r1. exists r2.
+     repeat split...
+     apply: conv_trans.
+     apply: conv_sym...
+     apply: eq2. }
+ Qed.
+
+Lemma dyn_close_inv Θ Γ Δ m C :
+  Θ ; Γ ; Δ ⊢ Close m : C ->
+  exists r1 r2,
+    r1 (+) r2 = true /\
+    C === IO Unit /\
+    Θ ; Γ ; Δ ⊢ m : Ch r1 (Stop r2).
+ Proof with eauto. 
+   move e:(Close m)=>x ty. elim: ty m e=>//{Θ Γ Δ x C}.
+   { move=>Θ Γ Δ r1 r2 m xor tym ihm m0[e]. subst.
+     exists r1. exists r2. repeat split... }
+   { move=>Θ Γ Δ A B m s eq1 tym ihm tyB m0 e. subst.
+     have[r1[r2[xor[eq2 tym0]]]]:=ihm _ erefl.
+     exists r1. exists r2.
+     repeat split...
+     apply: conv_trans.
+     apply: conv_sym...
+     apply: eq2. }
+ Qed.

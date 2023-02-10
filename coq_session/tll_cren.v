@@ -6,6 +6,8 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Notation "( - n )" := (subn^~ n).
+
 Fixpoint term_cren (m : term) (ξ : cvar -> cvar) : term :=
   match m with
   (* core *)

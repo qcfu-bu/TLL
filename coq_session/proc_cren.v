@@ -61,9 +61,9 @@ Qed.
 Lemma proc_cstrengthen Θ p : _: Θ ⊢ proc_cren p (+1) -> Θ ⊢ p.
 Proof.
   move=>ty.
-  have e:((+1) >>> subn_rec^~ 1) = id.
+  have e:((+1) >>> (-1)) = id.
   { f_ext. move=>x. asimpl. fold subn. lia. }
-  replace p with (proc_cren (proc_cren p (+1)) (subn^~ 1 >>> id)).
+  replace p with (proc_cren (proc_cren p (+1)) ((-1) >>> id)).
   apply: proc_crename.
   apply: ty.
   constructor.
