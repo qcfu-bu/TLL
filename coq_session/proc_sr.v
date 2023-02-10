@@ -1,6 +1,6 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS proc_type proc_step.
+Require Export AutosubstSsr ARS proc_type proc_step proc_occurs.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -50,7 +50,16 @@ Proof with eauto using proc_type, proc_congr0.
         apply: proc_cstrengthen.
         rewrite<-proc_cren_comp.
         by asimpl. }
-      { have:=dyn_occurs_iren.
-      }
-    }
-  }
+      { have oc:=proc_occurs_iren H4 iren1.
+        have pos:=proc_occurs_pos0 oc.
+        inv pos. inv H6. }
+      { have oc:=proc_occurs_iren H4 iren0.
+        have pos:=proc_occurs_pos0 oc.
+        inv pos. }
+      { have oc:=proc_occurs_iren H4 iren0.
+        have pos:=proc_occurs_pos0 oc.
+        inv pos. } }
+    { econstructor... }
+    { have{}ihp:=ihp _ (proc_congr0_sym H0).
+      econstructor... } }
+Qed.

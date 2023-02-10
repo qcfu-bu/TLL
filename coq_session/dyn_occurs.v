@@ -190,7 +190,7 @@ Proof with eauto using cvar_pos.
     have[pos1 pos2]:=ih _ H3... }
 Qed.
 
-Lemma cvar_pos_merge_true Θ1 Θ2 Θ i :
+Lemma cvar_pos_split_true Θ1 Θ2 Θ i :
   Θ1 ∘ Θ2 => Θ -> cvar_pos Θ i true ->
   (cvar_pos Θ1 i false /\ cvar_pos Θ2 i true) \/
   (cvar_pos Θ1 i true /\ cvar_pos Θ2 i false).
@@ -314,22 +314,22 @@ Proof with eauto using dyn_occurs, dyn_type_occurs0.
   { move=>Θ Γ Δ x s A emp wf shs dhs i pos.
     exfalso. apply: dyn_empty_pos_true... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn i pos.
-    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_merge_true mrg1 pos.
+    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
     { replace 1 with (0 + 1) by eauto... }
     { replace 1 with (1 + 0) by eauto... } }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2
             tyS tym ihm tyn ihn i pos.
-    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_merge_true mrg1 pos.
+    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
     { replace 1 with (0 + 1) by eauto... }
     { replace 1 with (1 + 0) by eauto... } }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t mrg1 mrg2
             tyC tym ihm tyn ihn i pos.
-    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_merge_true mrg1 pos.
+    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
     { replace 1 with (0 + 1) by eauto... }
     { replace 1 with (1 + 0) by eauto... } }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2
             tyC tym ihm tyn ihn i pos.
-    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_merge_true mrg1 pos.
+    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
     { replace 1 with (0 + 1) by eauto... }
     { replace 1 with (1 + 0) by eauto... } }
   { move=>Θ Γ Δ emp wf k i pos.
@@ -340,12 +340,12 @@ Proof with eauto using dyn_occurs, dyn_type_occurs0.
     exfalso. apply: dyn_empty_pos_true... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2
            tyA tym ihm tyn1 ihn1 tyn2 ihn2 i pos.
-    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_merge_true mrg1 pos.
+    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
     { replace 1 with (0 + maxn 1 1) by eauto... }
     { replace 1 with (1 + maxn 0 0) by eauto... } }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2
            tyB tym ihm tyn ihn i pos.
-    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_merge_true mrg1 pos.
+    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
     { replace 1 with (0 + 1) by eauto... }
     { replace 1 with (1 + 0) by eauto... } }
   { move=>Θ Γ Δ r x A js wf k tyA i pos.
@@ -397,6 +397,14 @@ Proof. elim; simpl; eauto. Qed.
 
 Lemma iren1 : iren 1 (+2).
 Proof. elim; simpl; eauto. Qed.
+
+Lemma iren_upren i ξ : iren i ξ -> iren i.+1 (upren ξ).
+Proof.
+  move=> ir x.
+  elim: x.
+  asimpl; eauto.
+  asimpl=>n e; eauto.
+Qed.
 
 Lemma dyn_occurs_iren Θ Γ Δ m A i ξ :
   Θ ; Γ ; Δ ⊢ term_cren m ξ : A ->
