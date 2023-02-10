@@ -47,22 +47,20 @@ Inductive proc_step : proc -> proc -> Prop :=
   m' = term_cren m (+2) ->
   n' = term_cren n (+2) ->
   ⟨ Bind (Fork A m) n ⟩ ≈>> ν.(⟨ n'.[CVar 0/] ⟩ ∣ ⟨ m'.[CVar 1/] ⟩)
-| proc_step_com0 v n1 n2 :
-  dyn_val v ->
-  ν.(⟨ Bind (App (Send0 (CVar 0)) v) n1 ⟩ ∣ ⟨ Bind (Recv0 (CVar 1)) n2 ⟩) ≈>>
-  ν.(⟨ Bind (Return (CVar 0)) n1 ⟩ ∣ ⟨ Bind (Pair0 v (CVar 1) L) n2 ⟩)
-| proc_step_com0i v n1 n2 :
-  dyn_val v ->
-  ν.(⟨ Bind (App (Send0 (CVar 1)) v) n1 ⟩ ∣ ⟨ Bind (Recv0 (CVar 0)) n2 ⟩) ≈>>
-  ν.(⟨ Bind (Return (CVar 1)) n1 ⟩ ∣ ⟨ Bind (Pair0 v (CVar 0) L) n2 ⟩)
+| proc_step_com0 m n1 n2 :
+  ν.(⟨ Bind (App (Send0 (CVar 0)) m) n1 ⟩ ∣ ⟨ Bind (Recv0 (CVar 1)) n2 ⟩) ≈>>
+  ν.(⟨ Bind (Return (CVar 0)) n1 ⟩ ∣ ⟨ Bind (Return (Pair0 m (CVar 1) L)) n2 ⟩)
+| proc_step_com0i m n1 n2 :
+  ν.(⟨ Bind (App (Send0 (CVar 1)) m) n1 ⟩ ∣ ⟨ Bind (Recv0 (CVar 0)) n2 ⟩) ≈>>
+  ν.(⟨ Bind (Return (CVar 1)) n1 ⟩ ∣ ⟨ Bind (Return (Pair0 m (CVar 0) L)) n2 ⟩)
 | proc_step_com1 v n1 n2 :
   dyn_val v ->
   ν.(⟨ Bind (App (Send1 (CVar 0)) v) n1 ⟩ ∣ ⟨ Bind (Recv1 (CVar 1)) n2 ⟩) ≈>>
-  ν.(⟨ Bind (Return (CVar 0)) n1 ⟩ ∣ ⟨ Bind (Pair1 v (CVar 1) L) n2 ⟩)
+  ν.(⟨ Bind (Return (CVar 0)) n1 ⟩ ∣ ⟨ Bind (Return (Pair1 v (CVar 1) L)) n2 ⟩)
 | proc_step_com1i v n1 n2 :
   dyn_val v ->
   ν.(⟨ Bind (App (Send1 (CVar 1)) v) n1 ⟩ ∣ ⟨ Bind (Recv1 (CVar 0)) n2 ⟩) ≈>>
-  ν.(⟨ Bind (Return (CVar 1)) n1 ⟩ ∣ ⟨ Bind (Pair1 v (CVar 0) L) n2 ⟩)
+  ν.(⟨ Bind (Return (CVar 1)) n1 ⟩ ∣ ⟨ Bind (Return (Pair1 v (CVar 0) L)) n2 ⟩)
 | proc_step_end m m' n n' :
   m' = term_cren m (+2) ->
   n' = term_cren n (+2) ->
