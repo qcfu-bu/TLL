@@ -50,7 +50,7 @@ Proof with eauto using proc_type, proc_congr0.
         apply: proc_cstrengthen.
         rewrite<-proc_cren_comp.
         by asimpl. }
-      {
+      { have:=dyn_occurs_iren.
       }
     }
   }

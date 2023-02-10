@@ -9,16 +9,10 @@ Unset Printing Implicit Defensive.
 Inductive head_sim : term -> term -> Prop :=
 | head_sim_var x : head_sim (Var x) (Var x)
 | head_sim_sort s : head_sim (Sort s) (Sort s)
-| head_sim_pi00 A1 A2 B1 B2 s :
+| head_sim_pi0 A1 A2 B1 B2 s :
   head_sim B1 B2 ->
   head_sim (Pi0 A1 B1 s) (Pi0 A2 B2 s)
-| head_sim_pi01 A1 A2 B1 B2 s :
-  head_sim B1 B2 ->
-  head_sim (Pi0 A1 B1 s) (Pi1 A2 B2 s)
-| head_sim_pi10 A1 A2 B1 B2 s :
-  head_sim B1 B2 ->
-  head_sim (Pi1 A1 B1 s) (Pi0 A2 B2 s)
-| head_sim_pi11 A1 A2 B1 B2 s :
+| head_sim_pi1 A1 A2 B1 B2 s :
   head_sim B1 B2 ->
   head_sim (Pi1 A1 B1 s) (Pi1 A2 B2 s)
 | head_sim_lam0 A m s : head_sim (Lam0 A m s) (Lam0 A m s)
@@ -58,9 +52,19 @@ Inductive head_sim : term -> term -> Prop :=
 Inductive sim (m n : term) : Prop :=
 | Sim x y : m === x -> head_sim x y -> y === n -> sim m n.
 
+Inductive sta_ctx_sim : sta_ctx -> sta_ctx -> Prop :=
+| sta_ctx_sim_nil : sta_ctx_sim nil nil
+| sta_ctx_sim_ty A B Γ1 Γ2 :
+  sim A B ->
+  sta_ctx_sim Γ1 Γ2 ->
+  sta_ctx_sim (A :: Γ1) (B :: Γ2).
+
 Lemma head_sim_reflexive m : head_sim m m.
 Proof with eauto using head_sim. elim: m... Qed.
 Hint Resolve head_sim_reflexive.
+
+Lemma head_sim_sym m n : head_sim m n -> head_sim n m.
+Proof with eauto using head_sim. elim... Qed.
 
 Lemma head_sim_subst m1 m2 σ : head_sim m1 m2 -> head_sim m1.[σ] m2.[σ].
 Proof with eauto using head_sim.
@@ -87,6 +91,15 @@ Proof with eauto using head_sim.
   apply: H1.
 Qed.
 
+Lemma sim_sym x y : sim x y -> sim y x.
+Proof with eauto using head_sim.
+  move=>sm. inv sm.
+  have{}H:=conv_sym H.
+  have{}H1:=conv_sym H1.
+  have{}H0:=head_sim_sym H0.
+  econstructor...
+Qed.
+
 Lemma sim_subst x y σ : sim x y -> sim x.[σ] y.[σ].
 Proof with eauto.
   move=>sm. inv sm.
@@ -95,6 +108,13 @@ Proof with eauto.
   apply: head_sim_subst...
   apply: sta_conv_subst...
 Qed.
+
+Lemma sta_ctx_sim_sym Γ1 Γ2 : sta_ctx_sim Γ1 Γ2 -> sta_ctx_sim Γ2 Γ1.
+Proof with eauto using sim_sym, sta_ctx_sim. elim... Qed.
+
+Lemma sta_ctx_sim_reflexive Γ : sta_ctx_sim Γ Γ.
+Proof with eauto using sta_ctx_sim. elim: Γ... Qed.
+Hint Resolve sta_ctx_sim_reflexive.
 
 Ltac solve_sim :=
   match goal with
@@ -129,7 +149,7 @@ Proof with eauto.
     have/sort_inj//:=conv_trans _ eq1 eq2. }
 Qed.
 
-Lemma sim_pi00_inj A1 A2 B1 B2 s1 s2 :
+Lemma sim_pi0_inj A1 A2 B1 B2 s1 s2 :
   sim (Pi0 A1 B1 s1) (Pi0 A2 B2 s2) ->
   sim B1 B2 /\ s1 = s2.
 Proof with eauto using sim.
@@ -156,61 +176,7 @@ Proof with eauto using sim.
     repeat split... }
 Qed.
 
-Lemma sim_pi01_inj A1 A2 B1 B2 s1 s2 :
-  sim (Pi0 A1 B1 s1) (Pi1 A2 B2 s2) ->
-  sim B1 B2 /\ s1 = s2.
-Proof with eauto using sim.
-  move=>sm. inv sm.
-  elim: H0 A1 A2 B1 B2 s1 s2 H H1=>{x y}.
-  all: try solve[intros; exfalso; solve_conv].
-  { move=>A1 A2 B1 B2 s hB ihB A0 A3 B0 B3 s1 s2
-      /pi0_inj[eqA1[eqB1 e1]]/pi1_inj[eqA2[eqB2 e2]]; subst.
-    repeat split... }
-  { move=>m n A1 A2 B1 B2 s1 s2 eq1 eq2.
-    exfalso. have eq:=conv_trans _ eq1 eq2.
-    solve_conv. }
-  { move=>A m n A1 A2 B1 B2 s1 s2 eq1 eq2.
-    exfalso. have eq:=conv_trans _ eq1 eq2.
-    solve_conv. }
-  { move=>A m A1 A2 B1 B2 s1 s2 eq1 eq2.
-    exfalso. have eq:=conv_trans _ eq1 eq2.
-    solve_conv. }
-  { move=>A m n1 n2 A1 A2 B1 B2 s1 s2 eq1 eq2.
-    exfalso. have eq:=conv_trans _ eq1 eq2.
-    solve_conv. }
-  { move=>m n A1 A2 B1 B2 s1 s2 eq1 eq2.
-    exfalso. have eq:=conv_trans _ eq1 eq2.
-    solve_conv. }
-Qed.
-
-Lemma sim_pi10_inj A1 A2 B1 B2 s1 s2 :
-  sim (Pi1 A1 B1 s1) (Pi0 A2 B2 s2) ->
-  sim B1 B2 /\ s1 = s2.
-Proof with eauto using sim.
-  move=>sm. inv sm.
-  elim: H0 A1 A2 B1 B2 s1 s2 H H1=>{x y}.
-  all: try solve[intros; exfalso; solve_conv].
-  { move=>A1 A2 B1 B2 s hB ihB A0 A3 B0 B3 s1 s2
-      /pi1_inj[eqA1[eqB1 e1]]/pi0_inj[eqA2[eqB2 e2]]; subst.
-    repeat split... }
-  { move=>m n A1 A2 B1 B2 s1 s2 eq1 eq2.
-    exfalso. have eq:=conv_trans _ eq1 eq2.
-    solve_conv. }
-  { move=>A m n A1 A2 B1 B2 s1 s2 eq1 eq2.
-    exfalso. have eq:=conv_trans _ eq1 eq2.
-    solve_conv. }
-  { move=>A m A1 A2 B1 B2 s1 s2 eq1 eq2.
-    exfalso. have eq:=conv_trans _ eq1 eq2.
-    solve_conv. }
-  { move=>A m n1 n2 A1 A2 B1 B2 s1 s2 eq1 eq2.
-    exfalso. have eq:=conv_trans _ eq1 eq2.
-    solve_conv. }
-  { move=>m n A1 A2 B1 B2 s1 s2 eq1 eq2.
-    exfalso. have eq:=conv_trans _ eq1 eq2.
-    solve_conv. }
-Qed.
-
-Lemma sim_pi11_inj A1 A2 B1 B2 s1 s2 :
+Lemma sim_pi1_inj A1 A2 B1 B2 s1 s2 :
   sim (Pi1 A1 B1 s1) (Pi1 A2 B2 s2) ->
   sim B1 B2 /\ s1 = s2.
 Proof with eauto using sim.
@@ -267,35 +233,41 @@ Proof with eauto.
   apply: sim_transL...
 Qed.
 
-Lemma sta_has_uniq Γ x A B : sta_has Γ x A -> sta_has Γ x B -> A = B.
+Lemma sta_has_uniq Γ1 Γ2 x A B :
+  sta_has Γ1 x A -> sta_has Γ2 x B -> sta_ctx_sim Γ1 Γ2 -> sim A B.
 Proof with eauto.
-  move=>hs. elim: hs B=>{Γ x A}.
-  { move=>Γ A B hs. inv hs... }
-  { move=>Γ A B x hs ih C hs'. inv hs'.
-    rewrite (ih _ H3)... }
+  move=>hs. elim: hs Γ2 B=>{Γ1 x A}.
+  { move=>Γ A Γ2 B hs csm. inv hs. inv csm. by apply: sim_subst. }
+  { move=>Γ A B x hs ih Γ2 C hs' csm. inv hs'. inv csm.
+    apply: sim_subst.
+    apply: ih... }
 Qed.
 
-Lemma sta_var_uniq Γ A B x :
-  Γ ⊢ Var x : B -> sta_has Γ x A -> sim A B.
+Lemma sta_var_uniq Γ1 Γ2 A B x :
+  Γ1 ⊢ Var x : B -> sta_has Γ2 x A -> sta_ctx_sim Γ1 Γ2 -> sim A B.
 Proof with eauto using sim_reflexive.
-  move e:(Var x)=>n ty. elim: ty A x e=>//{Γ n B}.
-  { move=>Γ x A wf hs1 A0 x0 [e] hs2; subst.
-    rewrite (sta_has_uniq hs1 hs2)... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 x e hs; subst.
-    have eq':=ihm _ _ erefl hs.
+  move e:(Var x)=>n ty. elim: ty A x e Γ2=>//{Γ1 n B}.
+  { move=>Γ1 x A wf hs1 A0 x0 [e] Γ2 hs2 csm; subst.
+    have sm:=(sta_has_uniq hs1 hs2 csm)...
+    apply: sim_sym... }
+  { move=>Γ A B m s eq tym ihm tyB ihB A0 x e Γ2 hs csm; subst.
+    have eq':=ihm _ _ erefl _ hs csm.
     apply: sim_transL... }
 Qed.
 
-Lemma sta_lam0_uniq Γ A B C m s :
-  Γ ⊢ Lam0 A m s : C -> (forall C, (A :: Γ) ⊢ m : C -> sim B C) -> sim (Pi0 A B s) C.
+Lemma sta_lam0_uniq Γ1 Γ2 A B C m s :
+  Γ2 ⊢ Lam0 A m s : C ->
+  (forall Γ2 C, Γ2 ⊢ m : C -> sta_ctx_sim (A :: Γ1) Γ2 -> sim B C) ->
+  sta_ctx_sim Γ1 Γ2 ->
+  sim (Pi0 A B s) C.
 Proof with eauto.
-  move e:(Lam0 A m s)=>n ty. elim: ty A B m s e=>//{Γ n C}.
-  { move=>Γ A B m s tym ihm A0 B0 m0 s0 [e1 e2 e3] h; subst.
-    have eq:=h _ tym. inv eq.
+  move e:(Lam0 A m s)=>n ty. elim: ty A B m s e Γ1=>//{Γ2 n C}.
+  { move=>Γ A B m s tym ihm A0 B0 m0 s0 [e1 e2 e3] Γ1 h csm; subst.
+    have eq:=h _ _ tym (sta_ctx_sim_ty (sim_reflexive _) csm). inv eq.
     econstructor. apply: sta_conv_pi0...
     constructor... apply: sta_conv_pi0... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 s0 e h; subst.
-    have eq':=ihm _ _ _ _ erefl h.
+  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 s0 e Γ1 h csm; subst.
+    have eq':=ihm _ _ _ _ erefl _ h csm.
     apply: sim_transL... }
 Qed.
 
@@ -319,44 +291,34 @@ Proof with eauto.
     apply: sim_transL... }
 Qed.
 
-Lemma sta_lam1_uniq Γ A B C m s :
-  Γ ⊢ Lam1 A m s : C -> (forall C, (A :: Γ) ⊢ m : C -> sim B C) -> sim (Pi1 A B s) C.
+Lemma sta_lam1_uniq Γ1 Γ2 A B C m s :
+  Γ2 ⊢ Lam1 A m s : C ->
+  (forall Γ2 C, Γ2 ⊢ m : C -> sta_ctx_sim (A :: Γ1) Γ2 -> sim B C) ->
+  sta_ctx_sim Γ1 Γ2 ->
+  sim (Pi1 A B s) C.
 Proof with eauto.
-  move e:(Lam1 A m s)=>n ty. elim: ty A B m s e=>//{Γ n C}.
-  { move=>Γ A B m s tym ihm A0 B0 m0 s0 [e1 e2 e3] h; subst.
-    have eq:=h _ tym. inv eq.
+  move e:(Lam1 A m s)=>n ty. elim: ty A B m s e Γ1=>//{Γ2 n C}.
+  { move=>Γ A B m s tym ihm A0 B0 m0 s0 [e1 e2 e3] Γ1 h csm; subst.
+    have eq:=h _ _ tym (sta_ctx_sim_ty (sim_reflexive _) csm). inv eq.
     econstructor. apply: sta_conv_pi1...
-    apply: head_sim_pi11.
-    apply: A. apply: H0. apply: sta_conv_pi1... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 s0 e h; subst.
-    have eq':=ihm _ _ _ _ erefl h.
+    constructor... apply: sta_conv_pi1... }
+  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 s0 e Γ1 h csm; subst.
+    have eq':=ihm _ _ _ _ erefl _ h csm.
     apply: sim_transL... }
 Qed.
 
-Lemma sta_app0_uniq Γ A B C m n s :
-  Γ ⊢ App m n : C -> (forall C, Γ ⊢ m : C -> sim (Pi0 A B s) C) -> sim B.[n/] C.
+Lemma sta_app_uniq Γ A B C m n s :
+  Γ ⊢ App m n : C ->
+  (forall C, Γ ⊢ m : C -> sim (Pi0 A B s) C \/ sim (Pi1 A B s) C) -> sim B.[n/] C.
 Proof with eauto.
   move e:(App m n)=>x ty. elim: ty A B m n s e=>//{Γ x C}.
   { move=>Γ A B m n s tym ihm tyn ihn A0 B0 m0 n0 s0 [e1 e2] h; subst.
-    have/sim_pi00_inj[eq' _]:=h _ tym.
-    apply: sim_subst... }
+    have[/sim_pi0_inj[eq' _]|eq']:=h _ tym.
+    apply: sim_subst...
+    exfalso. solve_sim. }
   { move=>Γ A B m n s tym ihm tyn ihn A0 B0 m0 n0 s0 [e1 e2] h; subst.
-    have/sim_pi01_inj[eq' _]:=h _ tym.
-    apply: sim_subst... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 n s0 e h; subst.
-    have eq':=ihm _ _ _ _ _ erefl h.
-    apply: sim_transL... }
-Qed.
-
-Lemma sta_app1_uniq Γ A B C m n s :
-  Γ ⊢ App m n : C -> (forall C, Γ ⊢ m : C -> sim (Pi1 A B s) C) -> sim B.[n/] C.
-Proof with eauto.
-  move e:(App m n)=>x ty. elim: ty A B m n s e=>//{Γ x C}.
-  { move=>Γ A B m n s tym ihm tyn ihn A0 B0 m0 n0 s0 [e1 e2] h; subst.
-    have/sim_pi10_inj[eq' _]:=h _ tym.
-    apply: sim_subst... }
-  { move=>Γ A B m n s tym ihm tyn ihn A0 B0 m0 n0 s0 [e1 e2] h; subst.
-    have/sim_pi11_inj[eq' _]:=h _ tym.
+    have[eq'|/sim_pi1_inj[eq' _]]:=h _ tym.
+    exfalso. solve_sim.
     apply: sim_subst... }
   { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 n s0 e h; subst.
     have eq':=ihm _ _ _ _ _ erefl h.
@@ -616,7 +578,7 @@ Proof with eauto.
   move e:(Send0 m)=>x ty. elim: ty A B m r e=>//{Γ x C}.
   { move=>Γ r1 r2 A B m xor tym ihm A0 B0 m0 r[e]; subst.
     econstructor. eauto.
-    apply: head_sim_pi00. apply: A.
+    apply: head_sim_pi0. apply: A.
     econstructor. eauto. }
   { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 r e; subst.
     have eq':=ihm _ _ _ _ erefl.
@@ -629,7 +591,7 @@ Proof with eauto.
   move e:(Send1 m)=>x ty. elim: ty A B m r e=>//{Γ x C}.
   { move=>Γ r1 r2 A B m xor tym ihm A0 B0 m0 r[e]; subst.
     econstructor. eauto.
-    apply: head_sim_pi11. apply: A.
+    apply: head_sim_pi1. apply: A.
     econstructor. eauto. }
   { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 r e; subst.
     have eq':=ihm _ _ _ _ erefl.
@@ -654,18 +616,18 @@ Proof with eauto.
   apply: sim_transL...
 Qed.
 
-Lemma sta_uniq Γ m A B :
-  Γ ⊢ m : A -> Γ ⊢ m : B -> sim A B.
-Proof with eauto.
-  move=>ty. elim: ty B=>{Γ m A}.
+Lemma sta_uniq Γ1 Γ2 m A B :
+  Γ1 ⊢ m : A -> Γ2 ⊢ m : B -> sta_ctx_sim Γ1 Γ2 -> sim A B.
+Proof with eauto using sta_ctx_sim_sym.
+  move=>ty. elim: ty Γ2 B=>{Γ1 m A}.
   { move=>*. apply: sta_sort_uniq... }
   { move=>*. apply: sta_var_uniq... }
   { move=>*. apply: sta_pi0_uniq... }
   { move=>*. apply: sta_pi1_uniq... }
   { move=>*. apply: sta_lam0_uniq... }
   { move=>*. apply: sta_lam1_uniq... }
-  { move=>*. apply: sta_app0_uniq... }
-  { move=>*. apply: sta_app1_uniq... }
+  { move=>*. apply: sta_app_uniq... }
+  { move=>*. apply: sta_app_uniq... }
   { move=>*. apply: sta_sig0_uniq... }
   { move=>*. apply: sta_sig1_uniq... }
   { move=>*. apply: sta_pair0_uniq... }
@@ -695,7 +657,7 @@ Proof with eauto.
   { move=>*. apply: sta_send1_uniq... }
   { move=>*. apply: sta_wait_uniq... }
   { move=>*. apply: sta_close_uniq... }
-  { move=>Γ A B m s eq tym1 ihm tyB ihB B0 tym2.
+  { move=>Γ A B m s eq tym1 ihm tyB ihB Γ2 csm B0 tym2.
     apply: sim_transR.
     apply: ihm...
     apply: conv_sym... }
@@ -706,5 +668,5 @@ Theorem sta_unicity Γ m s t :
 Proof.
   move=>tym1 tym2.
   apply: sim_sort.
-  apply: sta_uniq tym1 tym2.
+  apply: sta_uniq tym1 tym2 (sta_ctx_sim_reflexive _).
 Qed.
