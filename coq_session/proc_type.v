@@ -100,3 +100,13 @@ Proof with eauto using proc_wf.
   { move=>Θ1 Θ2 Θ p q mrg typ ihp tyq ihq. apply: proc_wf_merge... }
   { move=>Θ p r1 r2 A e typ wf. inv wf. inv H1... }
 Qed.
+
+Lemma proc_wf_empty Θ : proc_wf Θ -> exists Θ', dyn_empty Θ' /\ Θ' ∘ Θ => Θ.
+Proof with eauto using merge, dyn_empty.
+  elim=>{Θ}.
+  exists nil...
+  move=>Θ r A wf[Θ'[emp mrg]]tyA. exists (_: Θ')...
+  move=>Θ wf[Θ'[emp mrg]]. exists (_: Θ')...
+Qed.
+
+         

@@ -148,21 +148,6 @@ Proof with eauto.
   apply: dyn_pair1_invX...
 Qed.
 
-Lemma dyn_return_inv Θ Γ Δ m B :
-  Θ ; Γ ; Δ ⊢ Return m : B ->
-  exists A, Θ ; Γ ; Δ ⊢ m : A /\ B === IO A.
-Proof with eauto.
-  move e:(Return m)=>x ty.
-  elim: ty m e=>//{Θ Γ Δ B x}.
-  { move=>Θ Γ Δ m A tym ihm m0[e]; subst. exists A... }
-  { move=>Θ Γ Δ A B m s eq1 tym ihm tyB m0 e; subst.
-    have[A0[tym0 eq2]]:=ihm _ erefl.
-    exists A0. split...
-    apply: conv_trans.
-    apply: conv_sym...
-    exact: eq2. }
-Qed.
-
 Lemma dyn_app_inv Θ Γ Δ m n C :
   Θ ; Γ ; Δ ⊢ App m n : C ->
   exists A B s,
@@ -196,6 +181,61 @@ Proof with eauto. move e:(TT)=>m ty. elim: ty e=>//{Θ Γ Δ A}. Qed.
 
 Lemma dyn_ff_inv Θ Γ Δ A : Θ ; Γ ; Δ ⊢ FF : A -> dyn_empty Θ.
 Proof with eauto. move e:(FF)=>m ty. elim: ty e=>//{Θ Γ Δ A}. Qed.
+
+Lemma dyn_return_inv Θ Γ Δ m B :
+  Θ ; Γ ; Δ ⊢ Return m : B ->
+  exists A, Θ ; Γ ; Δ ⊢ m : A /\ B === IO A.
+Proof with eauto.
+  move e:(Return m)=>x ty.
+  elim: ty m e=>//{Θ Γ Δ B x}.
+  { move=>Θ Γ Δ m A tym ihm m0[e]; subst. exists A... }
+  { move=>Θ Γ Δ A B m s eq1 tym ihm tyB m0 e; subst.
+    have[A0[tym0 eq2]]:=ihm _ erefl.
+    exists A0. split...
+    apply: conv_trans.
+    apply: conv_sym...
+    exact: eq2. }
+Qed.
+
+Lemma dyn_bind_inv Θ Γ Δ m n C :
+  Θ ; Γ ; Δ ⊢ Bind m n : C ->
+  exists Θ1 Θ2 Δ1 Δ2 A B s t,
+    Θ1 ∘ Θ2 => Θ /\
+    Δ1 ∘ Δ2 => Δ /\
+    Γ ⊢ B : Sort t /\
+    Θ1 ; Γ ; Δ1 ⊢ m : IO A /\
+    Θ2 ; (A :: Γ) ; (A :{s} Δ2) ⊢ n : IO B.[ren (+1)] /\
+    C === IO B.                    
+Proof with eauto.
+  move e:(Bind m n)=>x ty. elim: ty m n e=>//{Θ Γ Δ x C}.
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2 tyB
+           tym _ tyn _ m0 n0[e1 e2]. subst.
+    exists Θ1. exists Θ2. exists Δ1. exists Δ2. exists A. exists B. exists s. exists t.
+    repeat split... }
+  { move=>Θ Γ Δ A B m s eq tym ihm tyB m0 n e. subst.
+    have[Θ1[Θ2[Δ1[Δ2[A0[B0[s0[t[mrg1[mrg2[tyB0[tym0[tyn eq']]]]]]]]]]]]]:=
+      ihm _ _ erefl.
+    exists Θ1. exists Θ2. exists Δ1. exists Δ2. exists A0. exists B0. exists s0. exists t.
+    repeat split...
+    apply: conv_trans.
+    apply: conv_sym...
+    exact: eq'. }
+Qed.
+
+Lemma dyn_fork_inv Θ Γ Δ A m B :
+  Θ ; Γ ; Δ ⊢ Fork A m : B ->
+  Θ ; (Ch true A :: Γ) ; Ch true A :L Δ ⊢ m : IO Unit /\
+  B === IO (Ch false A).
+Proof with eauto.
+  move e:(Fork A m)=>x ty. elim: ty A m e=>//{Θ Γ Δ x B}.
+  { move=>Θ Γ Δ m A tym ihm A0 m0[e1 e2]. subst... }
+  { move=>Θ Γ Δ A B m s eq1 tym ihm tyB A0 m0 e. subst.
+    have[tym0 eq2]:=ihm _ _ erefl.
+    split...
+    apply: conv_trans.
+    apply: conv_sym...
+    exact: eq2. }
+Qed.
 
 Lemma dyn_send0_inv Θ Γ Δ m C :
   Θ ; Γ ; Δ ⊢ Send0 m : C ->
@@ -236,4 +276,3 @@ Proof with eauto.
     apply: conv_sym...
     apply: eq2. }
 Qed.
-  

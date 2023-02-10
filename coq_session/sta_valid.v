@@ -84,14 +84,6 @@ Proof with eauto.
     apply: conv_trans... }
 Qed.
 
-Lemma sta_lam0_invY Γ A C m s :
-  Γ ⊢ Lam0 A m s : C -> exists B, (A :: Γ) ⊢ m : B.
-Proof with eauto.
-  move e:(Lam0 A m s)=>n tyL.
-  elim: tyL A m s e=>//{Γ C n}.
-  move=>Γ A B m s tym _ A0 m0 s0[e1 e2 e3]. subst. exists B...
-Qed.
-
 Lemma sta_lam1_invX Γ A1 A2 B C m s1 s2 t :
   Γ ⊢ Lam1 A1 m s1 : C ->
   C === Pi1 A2 B s2 ->
@@ -113,14 +105,6 @@ Proof with eauto.
       s1 s2 t e eq2 tyB0; subst.
     apply: ihm...
     apply: conv_trans... }
-Qed.
-
-Lemma sta_lam1_invY Γ A C m s :
-  Γ ⊢ Lam1 A m s : C -> exists B, (A :: Γ) ⊢ m : B.
-Proof with eauto.
-  move e:(Lam1 A m s)=>n tyL.
-  elim: tyL A m s e=>//{Γ C n}.
-  move=>Γ A B m s tym _ A0 m0 s0[e1 e2 e3]. subst. exists B...
 Qed.
 
 Lemma sta_lam0_inv Γ m A1 A2 B s1 s2 :

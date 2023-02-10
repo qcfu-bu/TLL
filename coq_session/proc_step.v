@@ -32,3 +32,11 @@ Inductive proc_congr0 : proc -> proc -> Prop :=
   proc_congr0 p p' ->
   proc_congr0 (ν.p') (ν.p).
 Notation "p ≡ q" := (conv proc_congr0 p q) (at level 50).
+
+Reserved Notation "p ≈>> q" (at level 50).
+Inductive proc_step : proc -> proc -> Prop :=
+| proc_step_fork A m m' n n' :
+  m' = term_cren m (+2) ->
+  n' = term_cren n (+2) ->
+  ⟨ Bind (Fork A m) n ⟩ ≈>> ν.(⟨ n'.[CVar 0/] ⟩ ∣ ⟨ m'.[CVar 1/] ⟩)
+where "p ≈>> q" := (proc_step p q).
