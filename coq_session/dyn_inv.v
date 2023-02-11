@@ -182,7 +182,7 @@ Proof with eauto. move e:(TT)=>m ty. elim: ty e=>//{Θ Γ Δ A}. Qed.
 Lemma dyn_ff_inv Θ Γ Δ A : Θ ; Γ ; Δ ⊢ FF : A -> dyn_empty Θ.
 Proof with eauto. move e:(FF)=>m ty. elim: ty e=>//{Θ Γ Δ A}. Qed.
 
-Lemma dyn_return_inv Θ Γ Δ m B :
+Lemma dyn_return_invX Θ Γ Δ m B :
   Θ ; Γ ; Δ ⊢ Return m : B ->
   exists A, Θ ; Γ ; Δ ⊢ m : A /\ B === IO A.
 Proof with eauto.
@@ -197,7 +197,20 @@ Proof with eauto.
     exact: eq2. }
 Qed.
 
-Lemma dyn_bind_inv Θ Γ Δ m n C :
+Lemma dyn_return_inv Θ Γ Δ m A :
+  Θ ; Γ ; Δ ⊢ Return m : IO A -> Θ ; Γ ; Δ ⊢ m : A.
+Proof with eauto.
+  move=>ty.
+  have[B[tym/io_inj eq]]:=dyn_return_invX ty.
+  have[s tyIO]:=dyn_valid ty.
+  have[r[tyA/sort_inj e]]:=sta_io_inv tyIO. subst.
+  apply: dyn_conv.
+  apply: conv_sym...
+  apply: tym.
+  apply: tyA.
+Qed.
+
+Lemma dyn_bind_invX Θ Γ Δ m n C :
   Θ ; Γ ; Δ ⊢ Bind m n : C ->
   exists Θ1 Θ2 Δ1 Δ2 A B s t,
     Θ1 ∘ Θ2 => Θ /\
@@ -220,6 +233,30 @@ Proof with eauto.
     apply: conv_trans.
     apply: conv_sym...
     exact: eq'. }
+Qed.
+
+Lemma dyn_bind_inv Θ Γ Δ m n B :
+  Θ ; Γ ; Δ ⊢ Bind m n : IO B ->
+  exists Θ1 Θ2 Δ1 Δ2 A s,
+    Θ1 ∘ Θ2 => Θ /\
+    Δ1 ∘ Δ2 => Δ /\
+    Θ1 ; Γ ; Δ1 ⊢ m : IO A /\
+    Θ2 ; (A :: Γ) ; (A .{s} Δ2) ⊢ n : IO B.[ren (+1)].
+Proof with eauto.
+  move=>ty.
+  have[Θ1[Θ2[Δ1[Δ2[A0[B0[s[t[mrg1[mrg2[tyB0[tym[tyn/io_inj eq]]]]]]]]]]]]]:=
+    dyn_bind_invX ty.
+  have[s0 tyIO]:=dyn_valid ty.
+  have wf:=dyn_type_wf tyn. inv wf.
+  have/={}tyIO:=sta_weaken tyIO H4.
+  exists Θ1. exists Θ2. exists Δ1. exists Δ2. exists A0. exists s.
+  repeat split...
+  apply: dyn_conv.
+  apply: sta_conv_io.
+  apply: sta_conv_subst.
+  apply: conv_sym...
+  apply: tyn.
+  apply: tyIO.
 Qed.
 
 Lemma dyn_cvar_inv Θ Γ Δ x B :
