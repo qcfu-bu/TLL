@@ -203,7 +203,7 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       apply: dyn_conv.
       apply: conv_sym...
       replace (Ch false (term_cren A (+2)))
-        with (Ch false (term_cren A (+2)).[ren (+@size (elem term) nil)])
+        with (Ch false (term_cren A (+2)).[ren (+0)])
         by autosubst.
       repeat constructor...
       apply: H5. }
@@ -223,7 +223,7 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       apply: key_impure.
       apply: key_impure.
       replace (Ch true (term_cren A (+2)))
-        with (Ch true (term_cren A (+2)).[ren (+@size (elem term) nil)])
+        with (Ch true (term_cren A (+2)).[ren (+0)])
         by autosubst.
       repeat constructor...
       replace (Ch true (term_cren A (+2)))
@@ -298,7 +298,7 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
               apply: conv_sym...
               simpl.
               replace (term_cren B2.[m/] (+2))
-                with (term_cren B2.[m/] (+2)).[ren (+@size (elem term) nil)] by autosubst.
+                with (term_cren B2.[m/] (+2)).[ren (+0)] by autosubst.
               repeat constructor.
               replace (Ch (~~ r) (term_cren B2.[m/] (+2)))
                 with (term_cren (Ch (~~ r) (term_cren B2.[m/] (+1))) (+1)).
@@ -341,7 +341,7 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       rewrite term_cren_beta1.
       simpl.
       replace (term_cren B2 (+2)).[term_cren m (+2)/]
-        with (term_cren B2 (+2)).[term_cren m (+2)/].[ren (+@size (elem term) nil)] by autosubst.
+        with (term_cren B2 (+2)).[term_cren m (+2)/].[ren (+0)] by autosubst.
       repeat constructor.
       rewrite<-term_cren_beta1.
       replace (Ch r (term_cren B2.[m/] (+2)))
@@ -369,8 +369,170 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       inv mrg1.
       have[r3[r4[A2[B2[_[_ tyv]]]]]]:=dyn_send0_inv tyS.
       have[r[A3[js _]]]:=dyn_cvar_inv tyv. inv js. } }
-  { admit. }
-  { admit. }
+  { admit.}
+  { move=>v n1 n2 vl Θ ty. inv ty. inv H2. inv H1; inv H3.
+    { inv H5.
+      have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyR/=tyn]]]]]]]]]:=
+        dyn_bind_inv H1. inv mrg2. inv mrg1. inv H5.
+      have[r3[r4[A1[B1[_[_ tyv]]]]]]:=dyn_recv1_inv tyR.
+      have[r[A2[js _]]]:=dyn_cvar_inv tyv. inv js. inv H5. }
+    { inv H4. inv H5.
+      have{H3}[Θ1[Θ2[Δ1[Δ2[A0[s0[mrg1[mrg2[tyR/=tyn2]]]]]]]]]:=
+        dyn_bind_inv H3. inv mrg2. inv mrg1. inv H4.
+      2:{ have[r3[r4[A1[B1[_[_ tyv]]]]]]:=dyn_recv1_inv tyR.
+          have[r[A2[js _]]]:=dyn_cvar_inv tyv. inv js. inv H4. }
+      have{H1}[Θ3[Θ4[Δ6[Δ7[A1[s1[mrg3[mrg4[tyApp/=tyn1]]]]]]]]]:=
+        dyn_bind_inv H1. inv mrg4. inv mrg3.
+      2:{ have[A2[B2[r[[tyS _]|[Θ1[Θ2[Δ8[Δ9[mrg1[mrg2[tyS _]]]]]]]]]]]:= dyn_app_inv tyApp.
+          have[r3[r4[A3[B3[_[_ tyv]]]]]]:=dyn_send1_inv tyS.
+          have[r0[A4[js _]]]:=dyn_cvar_inv tyv. inv js.
+          inv mrg1.
+          have[r3[r4[A3[B3[_[_ tyv]]]]]]:=dyn_send1_inv tyS.
+          have[r0[A4[js _]]]:=dyn_cvar_inv tyv. inv js. }
+      inv H3.
+      have[r3[r4[A2[B2[xor1[/io_inj eq0 tyv1]]]]]]:=dyn_recv1_inv tyR.
+      have[r5[A3[js[tyA3/=eq1]]]]:=dyn_cvar_inv tyv1. asimpl in eq1. inv js. inv H3.
+      rewrite<-term_cren_comp in H1. asimpl in H1.
+      have{eq1}[e eq1]:=ch_inj eq1. subst. inv H1.
+      have e:=merge_emptyL H5 H0. subst.
+      have[A3[B3[s3[[tyS[tyvl eq2]]|[Θ5[Θ6[Δ8[Δ9[mrg1[mrg2[tyS[tyvl eq2]]]]]]]]]]]]:=
+        dyn_app_inv tyApp.
+      { have[r1[r2[A4[B4[_[eq _]]]]]]:=dyn_send1_inv tyS.
+        exfalso. solve_conv. }
+      inv mrg2. inv mrg1.
+      2:{ have[r1[r2[A4[B4[_[_ ty]]]]]]:=dyn_send1_inv tyS.
+          have[r[A5[js _]]]:=dyn_cvar_inv ty. inv js. }
+      inv H6.
+      have[r1[r2[A4[B4[xor2[/pi1_inj[eqA3[tyB3 e]] tyv0]]]]]]:=dyn_send1_inv tyS. subst.
+      have[r[A5[js[tyA5/=eq3]]]]:=dyn_cvar_inv tyv0.
+      have{eq3}[e eq3]:=ch_inj eq3. subst. inv js. inv H6.
+      asimpl in eq3.
+      rewrite<-term_cren_comp in eq3. asimpl in eq3.
+      rewrite<-term_cren_comp in tyA5. asimpl in tyA5.
+      have e:=merge_emptyL H7 H1. subst.
+      have[Δ1[_[_[mrg _]]]]:=merge_distr H2 H4 H5.
+      have e:=merge_emptyR mrg H0. subst.
+      have{mrg H7}[Δx[mrg _]]:=merge_splitL mrg H7.
+      have e:=merge_emptyL mrg H1. subst.
+      have e:=merge_emptyR mrg H0. subst.
+      have/=/io_inj eqA1:IO A1 === (IO (Ch (~~r5) B4)).[v/].
+      { apply:conv_trans.
+        apply: eq2.
+        apply:sta_conv_subst... }
+      have/act1_inj[eqA2[eqB2 e]]:=conv_trans _ eq1 (conv_sym eq3). subst.
+      have wf:=dyn_type_wf tyn1. inv wf. inv H7.
+      have wf:=dyn_type_wf tyn2. inv wf. inv H7.
+      have[s2 tyCh0]:=dyn_valid tyv0.
+      have[s3 tyCh1]:=dyn_valid tyv1.
+      have{tyCh0}[tyAct0/sort_inj e]:=sta_ch_inv tyCh0. subst.
+      have{tyCh1}[tyAct1/sort_inj e]:=sta_ch_inv tyCh1. subst.
+      have tyB4:=sta_act1_inv tyAct0.
+      have tyB2:=sta_act1_inv tyAct1.
+      have wf:=sta_type_wf tyB4. inv wf. inv H6.
+      have wf:=sta_type_wf tyB2. inv wf. inv H6.
+      have tyvl3:=dyn_sta_type tyvl.
+      have tyvl4:=sta_conv eqA3 tyvl3 H7.
+      have/=tyB4v:=sta_subst tyB4 tyvl4.
+      have tyvl2:=sta_conv (conv_sym eqA2) tyvl4 H8.
+      have/=tyB2v:=sta_subst tyB2 tyvl2.
+      have{mrg}[_[Δ4[_[_ mrg]]]]:=merge_distr H2 H4 (merge_sym H5).
+      have e:=merge_emptyR mrg H1. subst.
+      have[Δy[mrg1 mrg2]]:=merge_splitR (merge_sym H4) mrg.
+      have[Δz[mrg3 mrg4]]:=merge_splitL H2 mrg2.
+      econstructor...
+      econstructor.
+      2:{ constructor.
+          econstructor.
+          2:{ constructor. }
+          2:{ constructor... }
+          3:{ apply: tyn1. }
+          2:{ constructor.
+              apply: dyn_conv.
+              apply: sta_cren_conv0.
+              apply: (+2).
+              apply: conv_sym...
+              2:{ apply: H9. }
+              simpl.
+              replace (term_cren B4.[v/] (+2))
+                with (term_cren B4.[v/] (+2)).[ren (+0)] by autosubst.
+              constructor...
+              2:{ constructor. }
+              2:{ apply: sta_crename0... }
+              replace (Ch (~~ r5) (term_cren B4.[v/] (+2)))
+                with (term_cren (Ch (~~ r5) (term_cren B4.[v/] (+1))) (+1)).
+              constructor.
+              apply: dyn_empty_n...
+              simpl. rewrite<-term_cren_comp. by asimpl. }
+          constructor.
+          constructor.
+          apply: merge_sym... }
+      2:{ constructor.
+          econstructor.
+          2:{ constructor. }
+          2:{ constructor... }
+          3:{ apply: tyn2. }
+          2:{ constructor.
+              apply: dyn_conv.
+              apply: conv_sym...
+              2:{ apply: H10. }
+              econstructor.
+              2:{ constructor. }
+              3:{ apply: dyn_conv.
+                  apply: conv_sym.
+                  apply: conv_trans.
+                  apply: eqA2.
+                  apply: conv_sym eqA3.
+                  apply: tyvl.
+                  eauto. }
+              2:{ econstructor... }
+              2:{ asimpl.
+                  have eq:term_cren (Ch r5 B4.[v/]) (+2) === Ch r5 B2.[v/].
+                  { apply: conv_trans.
+                    apply: sta_cren_conv0.
+                    apply: sta_conv_ch.
+                    apply: sta_conv_subst.
+                    apply: conv_sym...
+                    eauto. }
+                  apply: dyn_conv.
+                  apply: eq.
+                  2:{ constructor... }
+                  simpl.
+                  replace (Ch r5 (term_cren B4.[v/] (+2)))
+                    with (Ch r5 (term_cren B4.[v/] (+2))).[ren (+0)] by autosubst.
+                  constructor...
+                  replace (Ch r5 (term_cren B4.[v/] (+2)))
+                    with (term_cren (term_cren (Ch r5 B4.[v/]) (+1)) (+1)).
+                  constructor.
+                  constructor.
+                  eauto.
+                  simpl. rewrite<-term_cren_comp. by asimpl.
+                  constructor.
+                  apply: sta_crename0... }
+              constructor.
+              constructor.
+              apply: merge_sym... }
+          repeat constructor... }
+      constructor.
+      constructor.
+      apply: merge_sym... }
+    { inv H4.
+      have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyR/=tyn]]]]]]]]]:=
+        dyn_bind_inv H1. inv mrg2. inv mrg1.
+      have[A1[B1[r[[tyS _]|[Θ1[Θ2[Δ4[Δ5[mrg1[mrg2[tyS _]]]]]]]]]]]:=dyn_app_inv tyR.
+      have[r3[r4[A2[B2[_[_ tyv]]]]]]:=dyn_send1_inv tyS.
+      have[r5[A3[js _]]]:=dyn_cvar_inv tyv. inv js.
+      inv mrg1.
+      have[r3[r4[A2[B2[_[_ tyv]]]]]]:=dyn_send1_inv tyS.
+      have[r5[A3[js _]]]:=dyn_cvar_inv tyv. inv js. }
+    { inv H4.
+      have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyR/=tyn]]]]]]]]]:=
+        dyn_bind_inv H1. inv mrg2. inv mrg1.
+      have[A1[B1[r[[tyS _]|[Θ1[Θ2[Δ4[Δ5[mrg1[mrg2[tyS _]]]]]]]]]]]:=dyn_app_inv tyR.
+      have[r3[r4[A2[B2[_[_ tyv]]]]]]:=dyn_send1_inv tyS.
+      have[r5[A3[js _]]]:=dyn_cvar_inv tyv. inv js.
+      inv mrg1.
+      have[r3[r4[A2[B2[_[_ tyv]]]]]]:=dyn_send1_inv tyS.
+      have[r5[A3[js _]]]:=dyn_cvar_inv tyv. inv js. } }
   { admit. }
   { move=>m m' n n' e1 e2 Θ ty. inv ty. inv H2. inv H1; inv H3.
     { inv H5.
