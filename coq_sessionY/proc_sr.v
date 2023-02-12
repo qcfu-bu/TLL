@@ -321,7 +321,28 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       inv mrg1.
       have[r3[r4[A2[B2[_[_ tyv]]]]]]:=dyn_send0_inv tyS.
       have[r[A3[js _]]]:=dyn_cvar_inv tyv. inv js. } }
-  { admit.}
+  { move=>m n1 n2 Θ ty. inv ty. inv H2. inv H1; inv H3.
+    { inv H5.
+      have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyR/=tyn]]]]]]]]]:=
+        dyn_bind_inv H1. inv mrg2. inv mrg1.
+      have[r3[r4[A1[B1[_[_ tyv]]]]]]:=dyn_recv0_inv tyR.
+      have[r[A2[js _]]]:=dyn_cvar_inv tyv. inv js. }
+    { inv H5.
+      have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyR/=tyn]]]]]]]]]:=
+        dyn_bind_inv H1. inv mrg2. inv mrg1.
+      have[r1[r3[A1[B1[_[_ tyv]]]]]]:=dyn_recv0_inv tyR.
+      have[r[A2[js _]]]:=dyn_cvar_inv tyv. inv js. }
+    { admit.
+    }
+    { inv H4.
+      have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyApp/=tyn]]]]]]]]]:=
+        dyn_bind_inv H1. inv mrg2. inv mrg1. inv H4.
+      have[A1[B1[s0[[tyS _]|[Θ1[Θ2[Δ1[Δ2[mrg1[mrg2[tyS _]]]]]]]]]]]:=dyn_app_inv tyApp.
+      { have[r1[r3[A2[B2[_[_ tyv]]]]]]:=dyn_send0_inv tyS.
+        have[r[A3[js _]]]:=dyn_cvar_inv tyv. inv js. inv H4. }
+      { inv mrg2. inv mrg1. inv H4.
+        have[r1[r3[A2[B2[_[_ tyv]]]]]]:=dyn_send0_inv tyS.
+        have[r[A3[js _]]]:=dyn_cvar_inv tyv. inv js. inv H4. } } }
   { move=>v n1 n2 vl Θ ty. inv ty. inv H2. inv H1; inv H3.
     { inv H5.
       have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyR/=tyn]]]]]]]]]:=
