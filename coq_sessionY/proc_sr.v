@@ -7,54 +7,6 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma sta_conv_act0_inv X r A B C ξ :
-  term_cren X ξ === Act0 r A B ->
-  nil ⊢ X : C ->
-  exists A' B',
-    nil ⊢ Act0 r A' B' : C /\
-    term_cren (Act0 r A' B') ξ === term_cren X ξ /\
-    term_cren (Act0 r A' B') ξ === Act0 r A B.
-Proof with eauto.
-  move=>/church_rosser[x rd1 rd2]tyX.
-  have[A'[B'[rdA[rdB e]]]]:=sta_pred_act0_inv rd2. subst.
-  have tyAct:=sta_prd (sta_crename0 ξ tyX) rd1.
-  exists A'. exists B'.
-  repeat split...
-  apply: conv_trans.
-  apply: sta_cren_conv0...
-  apply: conv_sym.
-  apply: star_conv...
-  apply: conv_trans.
-  apply: sta_cren_conv0...
-  apply: sta_conv_act0.
-  apply: conv_sym. apply: star_conv...
-  apply: conv_sym. apply: star_conv...
-Qed.
-
-Lemma sta_conv_act1_inv X r A B C ξ :
-  term_cren X ξ === Act1 r A B ->
-  nil ⊢ X : C ->
-  exists A' B',
-    nil ⊢ Act1 r A' B' : C /\
-    term_cren (Act1 r A' B') ξ === term_cren X ξ /\
-    term_cren (Act1 r A' B') ξ === Act1 r A B.
-Proof with eauto.
-  move=>/church_rosser[x rd1 rd2]tyX.
-  have[A'[B'[rdA[rdB e]]]]:=sta_pred_act1_inv rd2. subst.
-  have tyAct:=sta_prd (sta_crename0 ξ tyX) rd1.
-  exists A'. exists B'.
-  repeat split...
-  apply: conv_trans.
-  apply: sta_cren_conv0...
-  apply: conv_sym.
-  apply: star_conv...
-  apply: conv_trans.
-  apply: sta_cren_conv0...
-  apply: sta_conv_act1.
-  apply: conv_sym. apply: star_conv...
-  apply: conv_sym. apply: star_conv...
-Qed.
-
 Lemma proc_congr0_sym p q : proc_congr0 p q -> proc_congr0 q p.
 Proof. elim; move=>*; eauto using proc_congr0. Qed.
 
