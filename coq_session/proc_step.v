@@ -30,7 +30,11 @@ Inductive proc_congr0 : proc -> proc -> Prop :=
   proc_congr0 (ν.p) (ν.p')
 | proc_congr0_nui p p' :
   proc_congr0 p p' ->
-  proc_congr0 (ν.p') (ν.p).
+  proc_congr0 (ν.p') (ν.p)
+| proc_congr0_end p :
+  proc_congr0 (p ∣ ⟨ Return II ⟩) p
+| proc_congr0_endi p :
+  proc_congr0 p (p ∣ ⟨ Return II ⟩).
 Notation "p ≡ q" := (conv proc_congr0 p q) (at level 50).
 
 Reserved Notation "p ≈>> q" (at level 50).

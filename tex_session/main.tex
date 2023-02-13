@@ -62,6 +62,9 @@
 \newcommand{\wait}[1]{\text{wait}\,{#1}}
 \newcommand{\defeq}{\simeq}
 \newcommand{\xor}{\,\text{xor}\,}
+\newcommand{\scope}[2]{\nu{#1}.{#2}}
+\newcommand{\FV}[1]{\textit{FV}({#1})}
+\newcommand{\FC}[1]{\textit{FC}({#1})}
 
 \makeatletter
 \newcommand*{\Leadsto}{\leadsto\joinrel\mathrel{\mathpalette\@Leadsto\relax}}
@@ -103,7 +106,8 @@
                                     | $\pairR{u}{v}{t}$ | $\pairI{v}{m}{t}$ \\
               &             & \;| & $\ii$ | $\btrue$ | $\bfalse$ | $\return{v}$ | $\letin{x}{v}{m}$ \\
               &             & \;| & $\fork{x : A}{m}$ | $\recvR{v}$ | $\recvI{v}$ | $\sendR{v}$ | $\sendI{v}$ \\
-              &             & \;| & $\sendR{u}\ v$ | $\sendI{v}\ m$ | $\close{v}$ | $\wait{v}$
+              &             & \;| & $\sendR{u}\ v$ | $\sendI{v}\ m$ | $\close{v}$ | $\wait{v}$ \\
+    process   & $o, p, q$   & \;| & $\langle m \rangle$ | $p \mid q$ | $\scope{cd}{p}$
   \end{tabular}
 \end{center}
 
@@ -299,24 +303,24 @@
   { \Gamma \vdash \fork{x : A}{m} : \T{(\Ch{-}{A})} }\\
 
   \inferrule
-  { \Gamma \vdash m : \Ch{\rho_1}{(\actI{\rho_2}{x : A}{B})} \\
-    \rho_1 \xor \rho_2 = ? }
-  { \Gamma \vdash \recvI{m} : \T{(\SigI{\Ln}{x : A}{\Ch{\rho_1}{B}})} }
-
-  \inferrule
   { \Gamma \vdash m : \Ch{\rho_1}{(\actR{\rho_2}{x : A}{B})} \\
     \rho_1 \xor \rho_2 = ? }
   { \Gamma \vdash \recvR{m} : \T{(\SigR{\Ln}{x : A}{\Ch{\rho_1}{B}})} }
 
   \inferrule
   { \Gamma \vdash m : \Ch{\rho_1}{(\actI{\rho_2}{x : A}{B})} \\
-    \rho_1 \xor \rho_2 = ! }
-  { \Gamma \vdash \sendI{m} : \PiI{\Ln}{x : A}{\T{(\Ch{\rho_1}{B})}} }
+    \rho_1 \xor \rho_2 = ? }
+  { \Gamma \vdash \recvI{m} : \T{(\SigI{\Ln}{x : A}{\Ch{\rho_1}{B}})} }
 
   \inferrule
   { \Gamma \vdash m : \Ch{\rho_1}{(\actR{\rho_2}{x : A}{B})} \\
     \rho_1 \xor \rho_2 = ! }
   { \Gamma \vdash \sendR{m} : \PiR{\Ln}{x : A}{\T{(\Ch{\rho_1}{B})}} }
+
+  \inferrule
+  { \Gamma \vdash m : \Ch{\rho_1}{(\actI{\rho_2}{x : A}{B})} \\
+    \rho_1 \xor \rho_2 = ! }
+  { \Gamma \vdash \sendI{m} : \PiI{\Ln}{x : A}{\T{(\Ch{\rho_1}{B})}} }
 
   \inferrule
   { \Gamma \vdash m : \Ch{\rho_1}{(\protoEnd{\rho_2})} \\
@@ -504,24 +508,24 @@
   { \Theta ; \Gamma ; \Delta \vdash \fork{x : A}{m} : \T{(\Ch{-}{A})} }
 
   \inferrule
-  { \Theta ; \Gamma ; \Delta \vdash m : \Ch{\rho_1}{(\actI{\rho_2}{x : A}{B})} \\
-    \rho_1 \xor \rho_2 = ? }
-  { \Theta ; \Gamma ; \Delta \vdash \recvI{m} : \T{(\SigI{\Ln}{x : A}{\Ch{\rho_1}{B}})} }
-
-  \inferrule
   { \Theta ; \Gamma ; \Delta \vdash m : \Ch{\rho_1}{(\actR{\rho_2}{x : A}{B})} \\
     \rho_1 \xor \rho_2 = ? }
   { \Theta ; \Gamma ; \Delta \vdash \recvR{m} : \T{(\SigR{\Ln}{x : A}{\Ch{\rho_1}{B}})} }
 
   \inferrule
   { \Theta ; \Gamma ; \Delta \vdash m : \Ch{\rho_1}{(\actI{\rho_2}{x : A}{B})} \\
-    \rho_1 \xor \rho_2 = ! }
-  { \Theta ; \Gamma ; \Delta \vdash \sendI{m} : \PiI{\Ln}{x : A}{\T{(\Ch{\rho_1}{B})}} }
+    \rho_1 \xor \rho_2 = ? }
+  { \Theta ; \Gamma ; \Delta \vdash \recvI{m} : \T{(\SigI{\Ln}{x : A}{\Ch{\rho_1}{B}})} }
 
   \inferrule
   { \Theta ; \Gamma ; \Delta \vdash m : \Ch{\rho_1}{(\actR{\rho_2}{x : A}{B})} \\
     \rho_1 \xor \rho_2 = ! }
   { \Theta ; \Gamma ; \Delta \vdash \sendR{m} : \PiR{\Ln}{x : A}{\T{(\Ch{\rho_1}{B})}} }
+
+  \inferrule
+  { \Theta ; \Gamma ; \Delta \vdash m : \Ch{\rho_1}{(\actI{\rho_2}{x : A}{B})} \\
+    \rho_1 \xor \rho_2 = ! }
+  { \Theta ; \Gamma ; \Delta \vdash \sendI{m} : \PiI{\Ln}{x : A}{\T{(\Ch{\rho_1}{B})}} }
 
   \inferrule
   { \Theta ; \Gamma ; \Delta \vdash m : \Ch{\rho_1}{(\protoEnd{\rho_2})} \\
@@ -532,6 +536,49 @@
   { \Theta ; \Gamma ; \Delta \vdash m : \Ch{\rho_1}{(\protoEnd{\rho_2})} \\
     \rho_1 \xor \rho_2 = ! }
   { \Theta ; \Gamma ; \Delta \vdash \close{m} : \T{\unit} }
+\end{mathpar}
+
+\newpage
+
+\section{Process Fragment}
+
+\subsection*{Process Typing}
+\begin{mathpar}
+  \inferrule
+  { \Theta ; \epsilon ; \epsilon \vdash m : \T{\unit} }
+  { \Theta \vdash \langle m \rangle }
+
+  \inferrule
+  { \Theta_1 \vdash p \\ \Theta_2 \vdash q }
+  { \Theta_1 \dotcup \Theta_2 \vdash p \mid q }
+
+  \inferrule
+  { \Theta, c \tL \Ch{\rho}{A}, d \tL \Ch{\neg\rho}{A} \vdash p }
+  { \Theta \vdash \scope{cd}{p} }
+\end{mathpar}
+
+\subsection*{Structural Congruence}
+Structural congruence is the least congruence relation with the following properties.
+\begin{mathpar}
+  \inferrule
+  { }
+  { p \mid q \equiv q \mid p }
+
+  \inferrule
+  { }
+  { o \mid (p \mid q) \equiv (o \mid p) \mid q }
+
+  \inferrule
+  { }
+  { \scope{cd}{p} \mid q \equiv \scope{cd}{(p \mid q)} }\\
+
+  \inferrule
+  { }
+  { \scope{cd}{p} \equiv \scope{dc}{p} }
+
+  \inferrule
+  { }
+  { \scope{cd}{\scope{c'd'}{p}} \equiv \scope{c'd'}{\scope{cd}{p}} }
 \end{mathpar}
 
 \end{document}

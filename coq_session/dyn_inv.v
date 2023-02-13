@@ -176,6 +176,9 @@ Proof with eauto.
       exact: eq2. } }
 Qed.
 
+Lemma dyn_ii_inv Θ Γ Δ A : Θ ; Γ ; Δ ⊢ II : A -> dyn_empty Θ.
+Proof with eauto. move e:(II)=>m ty. elim: ty e=>//{Θ Γ Δ A}. Qed.
+
 Lemma dyn_tt_inv Θ Γ Δ A : Θ ; Γ ; Δ ⊢ TT : A -> dyn_empty Θ.
 Proof with eauto. move e:(TT)=>m ty. elim: ty e=>//{Θ Γ Δ A}. Qed.
 

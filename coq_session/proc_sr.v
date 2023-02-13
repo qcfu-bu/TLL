@@ -8,12 +8,16 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Lemma proc_congr0_sym p q : proc_congr0 p q -> proc_congr0 q p.
-Proof. elim; move=>*; eauto using proc_congr0. Qed.
+Proof. elim; intros; eauto using proc_congr0. Qed.
 
 Lemma proc_congr0_type Θ p q : Θ ⊢ p -> proc_congr0 p q -> Θ ⊢ q.
 Proof with eauto using proc_type, proc_congr0.
   move=>ty. elim: ty q=>{Θ p}.
-  { move=>Θ m tym q cgr. inv cgr. }
+  { move=>Θ m tym q cgr. inv cgr.
+    have[Θ0[emp mrg]]:=dyn_type_empty tym.
+    econstructor.
+    apply: merge_sym...
+    all: repeat constructor... }
   { move=>Θ1 Θ2 Θ p q mrg typ ihp tyq ihq q0 cgr. inv cgr.
     { econstructor. apply: merge_sym. all: eauto. }
     { inv tyq.
@@ -42,7 +46,22 @@ Proof with eauto using proc_type, proc_congr0.
     { econstructor.
       apply: mrg.
       apply: ihp. apply: proc_congr0_sym...
-      apply: ihq. apply: proc_congr0_sym... } }
+      apply: ihq. apply: proc_congr0_sym... }
+    { inv tyq.
+      have ty:=dyn_return_inv H1.
+      have emp:=dyn_ii_inv ty.
+      have e:=merge_emptyR mrg emp. subst... }
+    { have wf1:=proc_type_wf typ.
+      have wf2:=proc_type_wf tyq.
+      have[Θ3[emp1 mrg1]]:=proc_wf_empty wf1.
+      have[Θ4[emp2 mrg2]]:=proc_wf_empty wf2.
+      have[Θ5[Θ6[mrg3[mrg4 mrg5]]]]:=merge_distr mrg mrg1 mrg2.
+      have e:=merge_emptyL mrg4 emp1. subst.
+      have e:=merge_emptyR mrg4 emp2. subst.
+      econstructor.
+      apply: merge_sym mrg3.
+      econstructor...
+      repeat constructor... } }
   { move=>Θ p r1 r2 A d typ ihp q cgr. inv cgr.
     { inv typ. inv H1; inv H5.
       { econstructor. apply: H2.
@@ -62,7 +81,13 @@ Proof with eauto using proc_type, proc_congr0.
         inv pos. } }
     { econstructor... }
     { have{}ihp:=ihp _ (proc_congr0_sym H0).
-      econstructor... } }
+      econstructor... }
+    { have wf:=proc_type_wf typ. inv wf. inv H1.
+      have[Θ0[emp mrg]]:=proc_wf_empty H2.
+      econstructor.
+      apply: merge_sym mrg.
+      eauto...
+      repeat constructor... } }
 Qed.
 
 Lemma proc_congr_type Θ p q : Θ ⊢ p -> p ≡ q -> Θ ⊢ q.
@@ -76,13 +101,6 @@ Proof with eauto.
     apply: proc_congr0_type.
     apply: ih...
     apply: proc_congr0_sym... }
-Qed.
-
-Lemma proc_congr_exp_inj m p : ⟨ m ⟩ ≡ p -> p = ⟨ m ⟩.
-Proof.
-  elim=>//={p}.
-  move=>y z e1 e2 cr; subst. inv cr.
-  move=>y z e1 e2 cr; subst. inv cr.
 Qed.
 
 Theorem proc_sr Θ p q : Θ ⊢ p -> p ≈>> q -> Θ ⊢ q.
