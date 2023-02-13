@@ -1,0 +1,908 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage[mathletters]{ucs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage{mathpartir}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{csquotes}
+\usepackage{trimclip}
+\usepackage{tikz-cd}
+\usepackage{authblk}
+\newtheorem{theorem}{Theorem}
+
+\newcommand{\Un}{\text{U}}
+\newcommand{\Ln}{\text{L}}
+\newcommand{\ty}[1]{:_{#1}}
+\newcommand{\tL}{:_{\text{L}}}
+\newcommand{\tU}{:_{\text{U}}}
+\newcommand{\PiR}[3]{\Pi_{#1}({#2}).{#3}}
+\newcommand{\PiI}[3]{\Pi_{#1}\{{#2}\}.{#3}}
+\newcommand{\lamR}[3]{\lambda_{#1}({#2}).{#3}}
+\newcommand{\lamI}[3]{\lambda_{#1}\{{#2}\}.{#3}}
+\newcommand{\SigR}[3]{\Sigma_{#1}({#2}).{#3}}
+\newcommand{\SigI}[3]{\Sigma_{#1}\{{#2}\}.{#3}}
+\newcommand{\pairR}[3]{\langle{{#1},{#2}}\rangle_{#3}}
+\newcommand{\pairI}[3]{\{{#1},{#2}\}_{#3}}
+\newcommand{\SigElim}[3]{\text{R}_{#1}^{\Sigma}({#2},{#3})}
+\newcommand{\with}[3]{{#1}\;\&_{#3}{#2}}
+\newcommand{\apair}[3]{({#1}, {#2})_{#3}}
+\newcommand{\projL}[1]{\pi_{1}\,{#1}}
+\newcommand{\projR}[1]{\pi_{2}\,{#1}}
+\newcommand{\iden}[3]{{#2}=_{#1}{#3}}
+\newcommand{\refl}[1]{\text{refl}\;{#1}}
+\newcommand{\idenElim}[3]{\mathbf{R}_{#1}^{=}({#2},{#3})}
+\newcommand{\dotcup}{\ensuremath{\mathbin{\mathaccent\cdot\cup}}}
+\newcommand{\fresh}[1]{\textit{fresh}({#1})}
+\newcommand{\val}{\text{ value}}
+\newcommand{\fix}[2]{\mu({#1}).{#2}}
+\newcommand{\unit}{\text{1}}
+\newcommand{\ii}{\text{()}}
+\newcommand{\bool}{\text{2}}
+\newcommand{\btrue}{\text{true}}
+\newcommand{\bfalse}{\text{false}}
+\newcommand{\boolElim}[4]{\text{R}_{#1}^{\bool}({#2},{#3},{#4})}
+\newcommand{\T}[1]{\text{T}\,{#1}}
+\newcommand{\return}[1]{\text{return }{#1}}
+\newcommand{\letin}[3]{\text{let}\,{#1}\leftarrow{#2}\text{ in }{#3}}
+\newcommand{\proto}{\text{proto}}
+\newcommand{\protoEnd}[1]{\text{end}{#1}}
+\newcommand{\actI}[3]{{#1}\{{#2}\}.{#3}}
+\newcommand{\actR}[3]{{#1}({#2}).{#3}}
+\newcommand{\Ch}[2]{{#1}\text{Ch}\,{#2}}
+\newcommand{\fork}[2]{\text{fork}\,({#1}).{#2}}
+\newcommand{\recvI}[1]{\text{recv}\,\{{#1}\}}
+\newcommand{\recvR}[1]{\text{recv}\,{#1}}
+\newcommand{\sendI}[1]{\text{send}\,\{{#1}\}}
+\newcommand{\sendR}[1]{\text{send}\,{#1}}
+\newcommand{\close}[1]{\text{close}\,{#1}}
+\newcommand{\wait}[1]{\text{wait}\,{#1}}
+\newcommand{\defeq}{\simeq}
+\newcommand{\xor}{\,\text{xor}\,}
+
+\makeatletter
+\newcommand*{\Leadsto}{\leadsto\joinrel\mathrel{\mathpalette\@Leadsto\relax}}
+\newcommand*{\@Leadsto}[2]{%
+   \clipbox{{.68\width} 0pt 0pt {-.2\height}}{$\m@th#1\leadsto$}%
+}
+
+\title{A Two Level Dependent Session Type Theory}
+\author[1]{Qiancheng Fu}
+\author[1]{Hongwei Xi}
+\affil[1]{Boston University}
+
+\begin{document}
+
+\maketitle
+
+\section{Syntax}
+\begin{center}
+  \begin{tabular}{r l c l}
+    variables & $x, y, z$   &     &               \\
+    channels  & $c, d$      &     &               \\
+    sorts     & $s, r, t$   & ::= & $\Un$ | $\Ln$ \\
+    roles     & $\rho$      & ::= & $+$ | $-$ \\
+    terms     & $m,n,A,B,C$ & ::= & $x$ | $c$ | $s$ \\
+              &             & \;| & $\PiR{t}{x : A}{B}$ | $\PiI{t}{x : A}{B}$
+                                    | $\SigR{t}{x : A}{B}$ | $\SigI{t}{x : A}{B}$ \\
+              &             & \;| & $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$
+                                    | $\pairR{m}{n}{t}$ | $\pairI{m}{n}{t}$ \\
+              &             & \;| & $m\ n$ | $\SigElim{[z]A}{m}{[x,y]n}$ | $\fix{x : A}{m}$ \\
+              &             & \;| & $\unit$ | $\ii$ | $\bool$ | $\btrue$ | $\bfalse$
+                                    | $\boolElim{[z]A}{m}{n_{1}}{n_{2}}$ \\
+              &             & \;| & $\T{A}$ | $\return{m}$ | $\letin{x}{m}{n}$ \\
+              &             & \;| & $\proto$ | $\protoEnd{\rho}$
+                                    | $\actI{\rho}{x : A}{B}$ | $\actR{\rho}{x : A}{B}$ | $\Ch{\rho}{A}$ \\
+              &             & \;| & $\fork{x : A}{m}$ | $\recvI{m}$ | $\recvR{m}$
+                                    | $\sendI{m}$ | $\sendR{m}$ \\
+              &             & \;| & $\close{m}$ | $\wait{m}$ \\
+    values    & $u, v$      & ::= & $x$ | $c$ | $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$
+                                    | $\pairR{u}{v}{t}$ | $\pairI{v}{m}{t}$ \\
+              &             & \;| & $\ii$ | $\btrue$ | $\bfalse$ | $\return{v}$ | $\letin{x}{v}{m}$ \\
+              &             & \;| & $\fork{x : A}{m}$ | $\recvI{v}$ | $\recvR{v}$ | $\sendI{v}$ | $\sendR{v}$ \\
+              &             & \;| & $\sendI{v}\ m$ | $\sendR{u}\ v$ | $\close{v}$ | $\wait{v}$
+  \end{tabular}
+\end{center}
+
+\newpage
+
+\section{Static Fragment}
+\subsection*{Sort Order}
+\begin{mathpar}
+  \inferrule
+  { }
+  { \Un \sqsubseteq s }
+
+  \inferrule
+  { }
+  { \Ln \sqsubseteq \Ln }
+\end{mathpar}
+
+\subsection*{Static Context}
+\begin{mathpar}
+  \inferrule
+  {  }
+  { \epsilon \vdash }
+
+  \inferrule
+  { \Gamma \vdash \\
+    \Gamma \vdash A : s \\
+    x \in \fresh{\Gamma} }
+  { \Gamma, x : A \vdash }
+\end{mathpar}
+
+\subsection*{Core Typing}
+\begin{mathpar}
+  \inferrule
+  { \Gamma \vdash }
+  { \Gamma \vdash s : \Un }
+
+  \inferrule
+  { \Gamma, x : A \vdash }
+  { \Gamma, x : A \vdash x : A }
+
+  \inferrule
+  { \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \PiR{t}{x : A}{B} : t }
+
+  \inferrule
+  { \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \PiI{t}{x : A}{B} : t }
+
+  \inferrule
+  { \Gamma, x : A \vdash m : B }
+  { \Gamma \vdash \lamR{t}{x : A}{m} : \PiR{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma, x : A \vdash m : B }
+  { \Gamma \vdash \lamI{t}{x : A}{m} : \PiI{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash m : A }
+  { \Gamma \vdash \fix{x : A}{m} : A }
+
+  \inferrule
+  { \Gamma \vdash m : \PiR{t}{x : A}{B} \\
+    \Gamma \vdash n : A }
+  { \Gamma \vdash m\ n : B[n/x] }
+
+  \inferrule
+  { \Gamma \vdash m : \PiI{t}{x : A}{B} \\
+    \Gamma \vdash n : A }
+  { \Gamma \vdash m\ n : B[n/x] }
+
+  \inferrule
+  { s \sqsubseteq t \\ r \sqsubseteq t \\
+    \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \SigR{t}{x : A}{B} : t }
+
+  \inferrule
+  { r \sqsubseteq t \\
+    \Gamma \vdash A : s \\
+    \Gamma, x : A \vdash B : r }
+  { \Gamma \vdash \SigI{t}{x : A}{B} : t }
+
+  \inferrule
+  { \Gamma \vdash \SigR{t}{x : A}{B} \\
+    \Gamma \vdash m : A \\
+    \Gamma \vdash n : B[m/x] }
+  { \Gamma \vdash \pairR{m}{n}{t} : \SigR{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma \vdash \SigI{t}{x : A}{B} \\
+    \Gamma \vdash m : A \\
+    \Gamma \vdash n : B[m/x] }
+  { \Gamma \vdash \pairI{m}{n}{t} : \SigI{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma, z : \SigR{t}{x : A}{B} \vdash C : s \\
+    \Gamma \vdash m : \SigR{t}{x : A}{B} \\
+    \Gamma, x : A, y : B \vdash n : C[\pairR{x}{y}{t}/z] }
+  { \Gamma \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
+
+  \inferrule
+  { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
+    \Gamma \vdash m : \SigI{t}{x : A}{B} \\
+    \Gamma, x : A, y : B \vdash n : C[\pairI{x}{y}{t}/z] }
+  { \Gamma \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
+
+  \inferrule
+  { \Gamma \vdash B : s \\
+    \Gamma \vdash m : A \\
+    A \defeq B }
+  { \Gamma \vdash m : B }
+\end{mathpar}
+\newpage
+
+\subsection*{Data Typing}
+\begin{mathpar}
+  \inferrule
+  { \Gamma \vdash }
+  { \Gamma \vdash \unit : \Un }
+
+  \inferrule
+  { \Gamma \vdash }
+  { \Gamma \vdash \ii : \unit }
+
+  \inferrule
+  { \Gamma \vdash }
+  { \Gamma \vdash \bool : \Un }
+
+  \inferrule
+  { \Gamma \vdash }
+  { \Gamma \vdash \btrue : \bool }
+
+  \inferrule
+  { \Gamma \vdash }
+  { \Gamma \vdash \bfalse : \bool }\\
+
+  \inferrule
+  { \Gamma, z : \bool \vdash A : s \\
+    \Gamma \vdash m : \bool \\
+    \Gamma \vdash n_1 : A[\btrue/z] \\
+    \Gamma \vdash n_2 : A[\bfalse/z] }
+  { \Gamma \vdash \boolElim{[z]A}{m}{n_1}{n_2} : A[m/z] }\\
+\end{mathpar}
+
+\subsection*{Monadic Typing}
+\begin{mathpar}
+  \inferrule
+  { \Gamma \vdash A : s }
+  { \Gamma \vdash \T{A} : \Ln }
+
+  \inferrule
+  { \Gamma \vdash m : A }
+  { \Gamma \vdash \return{m} : \T{A} }
+
+  \inferrule
+  { \Gamma \vdash B : s \\
+    \Gamma \vdash m : \T{A} \\
+    \Gamma, x : A \vdash n : \T{B} }
+  { \Gamma \vdash \letin{x : A}{m}{n} : \T{B} }\\
+\end{mathpar}
+
+\subsection*{Session Typing}
+\begin{mathpar}
+  \inferrule
+  { \Gamma \vdash }
+  { \Gamma \vdash \proto : \Un }
+
+  \inferrule
+  { \Gamma \vdash }
+  { \Gamma \vdash \protoEnd{\rho} : \proto }
+
+  \inferrule
+  { \Gamma, x : A \vdash B : \proto }
+  { \Gamma \vdash \actI{\rho}{x : A}{B} : \proto }
+
+  \inferrule
+  { \Gamma, x : A \vdash B : \proto }
+  { \Gamma \vdash \actR{\rho}{x : A}{B} : \proto }
+
+  \inferrule
+  { \Gamma \vdash A : \proto }
+  { \Gamma \vdash \Ch{\rho}{A} : \Ln }
+
+  \inferrule
+  { \Gamma \vdash \\
+    \epsilon \vdash A : \proto }
+  { \Gamma \vdash c : \Ch{\rho}{A} }
+
+  \inferrule
+  { \Gamma, x : \Ch{+}{A} \vdash m : \T{\unit}  }
+  { \Gamma \vdash \fork{x : A}{m} : \T{(\Ch{-}{A})} }\\
+
+  \inferrule
+  { \Gamma \vdash m : \Ch{\rho_1}{(\actI{\rho_2}{x : A}{B})} \\
+    \rho_1 \xor \rho_2 = ? }
+  { \Gamma \vdash \recvI{m} : \T{(\SigI{\Ln}{x : A}{\Ch{\rho_1}{B}})} }
+
+  \inferrule
+  { \Gamma \vdash m : \Ch{\rho_1}{(\actR{\rho_2}{x : A}{B})} \\
+    \rho_1 \xor \rho_2 = ? }
+  { \Gamma \vdash \recvR{m} : \T{(\SigR{\Ln}{x : A}{\Ch{\rho_1}{B}})} }
+
+  \inferrule
+  { \Gamma \vdash m : \Ch{\rho_1}{(\actI{\rho_2}{x : A}{B})} \\
+    \rho_1 \xor \rho_2 = ! }
+  { \Gamma \vdash \sendI{m} : \PiI{\Ln}{x : A}{\T{(\Ch{\rho_1}{B})}} }
+
+  \inferrule
+  { \Gamma \vdash m : \Ch{\rho_1}{(\actR{\rho_2}{x : A}{B})} \\
+    \rho_1 \xor \rho_2 = ! }
+  { \Gamma \vdash \sendR{m} : \PiR{\Ln}{x : A}{\T{(\Ch{\rho_1}{B})}} }
+
+  \inferrule
+  { \Gamma \vdash m : \Ch{\rho_1}{(\protoEnd{\rho_2})} \\
+    \rho_1 \xor \rho_2 = ? }
+  { \Gamma \vdash \wait{m} : \T{\unit} }
+
+  \inferrule
+  { \Gamma \vdash m : \Ch{\rho_1}{(\protoEnd{\rho_2})} \\
+    \rho_1 \xor \rho_2 = ! }
+  { \Gamma \vdash \close{m} : \T{\unit} }
+\end{mathpar}
+
+\newpage
+
+\section{Dynamic Fragment}
+\subsection*{Dynamic Context}
+\begin{mathpar}
+  \inferrule
+  { }
+  { \epsilon ; \epsilon \vdash }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash \\
+    \Gamma \vdash A : s \\
+    x \in \fresh{\Gamma} }
+  { \Gamma, x : A ; \Delta, x \ty{s} A \vdash }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash \\
+    \Gamma \vdash A : s \\
+    x \in \fresh{\Gamma} }
+  { \Gamma, x : A ; \Delta \vdash }
+\end{mathpar}
+
+\subsection*{Context Merge}
+\begin{mathpar}
+  \inferrule
+  { }
+  { \epsilon \dotcup \epsilon = \epsilon }
+
+  \inferrule
+  { \Delta_1 \dotcup \Delta_2 = \Delta \\
+    x \in \fresh{\Delta} }
+  { (\Delta_1, x \tU A) \dotcup (\Delta_2, x \tU A) = (\Delta, x \tU A) }
+  \\
+
+  \inferrule
+  { \Delta_1 \dotcup \Delta_2 = \Delta \\
+    x \in \fresh{\Delta} }
+  { (\Delta_1, x \tL A) \dotcup \Delta_2 = (\Delta, x \tL A) }
+
+  \inferrule
+  { \Delta_1 \dotcup \Delta_2 = \Delta \\
+    x \in \fresh{\Delta} }
+  { \Delta_1 \dotcup (\Delta_2, x \tL A) = (\Delta, x \tL A) }
+\end{mathpar}
+
+\subsection*{Context Constraint}
+\begin{mathpar}
+  \inferrule
+  { }
+  { \epsilon \triangleright s }
+
+  \inferrule
+  { \Delta \triangleright \Un }
+  { \Delta, x \tU A \triangleright \Un }
+
+  \inferrule
+  { \Delta \triangleright \Ln }
+  { \Delta, x \ty{s} A \triangleright \Ln }
+\end{mathpar}
+
+\subsection*{Dynamic Typing}
+\begin{mathpar}
+  \inferrule
+  { \Gamma, x : A ; \Delta, x \ty{s} A \vdash \\
+    \Delta \triangleright \Un }
+  { \Gamma, x : A ; \Delta, x \ty{s} A \vdash x : A }
+
+  \inferrule
+  { \Gamma, x : A; \Delta, x \ty{s} A \vdash m : B \\
+    \Delta \triangleright t }
+  { \Gamma ; \Delta \vdash \lamR{t}{x : A}{m} : \PiR{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma, x : A; \Delta \vdash m : B \\
+    \Delta \triangleright t }
+  { \Gamma ; \Delta \vdash \lamI{t}{x : A}{m} : \PiI{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma ; \Delta_1 \vdash m : \PiR{t}{x : A}{B} \\
+    \Gamma ; \Delta_2 \vdash n : A }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash m\ n : B[n/x] }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m : \PiI{t}{x : A}{B} \\
+    \Gamma \vdash n : A }
+  { \Gamma ; \Delta \vdash m\ n : B[n/x] }
+
+  \inferrule
+  { \Gamma \vdash \SigR{t}{x : A}{B} : t \\
+    \Gamma ; \Delta_1 \vdash m : A \\
+    \Gamma ; \Delta_2 \vdash n : B[m/x] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \pairR{m}{n}{t} : \SigR{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma \vdash \SigI{t}{x : A}{B} : t \\
+    \Gamma ; \Delta \vdash m : A \\
+    \Gamma \vdash n : B[m/x] }
+  { \Gamma ; \Delta \vdash \pairI{m}{n}{t} : \SigI{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma, z : \SigR{t}{x : A}{B} \vdash C : s \\
+    \Gamma ; \Delta_1 \vdash m : \SigR{t}{x : A}{B} \\
+    \Gamma, x : A, y : B; \Delta_2, x \ty{r1} A, y \ty{r2} B \vdash n : C[\pairR{x}{y}{t}/z] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
+
+  \inferrule
+  { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
+    \Gamma ; \Delta_1 \vdash m : \SigI{t}{x : A}{B} \\
+    \Gamma, x : A, y : B; \Delta_2, x \ty{r} A \vdash n : C[\pairI{x}{y}{t}/z] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \SigElim{[z]C}{m}{[x,y]n} : C[m/z] }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m : A \\
+    \Gamma ; \Delta \vdash n : B \\
+    \Delta \triangleright t }
+  { \Gamma ; \Delta \vdash \apair{m}{n}{t} : \with{A}{B}{t} }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m : \with{A}{B}{t} }
+  { \Gamma ; \Delta \vdash \projL{m} : A }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m : \with{A}{B}{t} }
+  { \Gamma ; \Delta \vdash \projR{m} : B }
+
+  \inferrule
+  { \Gamma, x : A, p : \iden{A}{m}{x} \vdash B : s \\
+    \Gamma ; \Delta \vdash H : B[m/x,\refl{m}/p] \\
+    \Gamma \vdash P : \iden{A}{m}{n} }
+  { \Gamma ; \Delta \vdash \idenElim{[x,p]B}{H}{P} : B[n/x,P/p] }
+
+  \inferrule
+  { \Gamma \vdash B : s \\
+    \Gamma ; \Delta \vdash m : A \\
+    A \equiv B }
+  { \Gamma ; \Delta \vdash m : B }
+\end{mathpar}
+
+\newpage
+
+\section{Erasure}
+
+\subsection*{Erasure Relation}
+\begin{mathpar}
+  \inferrule
+  { \Gamma, x : A ; \Delta, x \ty{s} A \vdash \\
+    \Delta \triangleright \Un }
+  { \Gamma, x : A ; \Delta, x \ty{s} A  \vdash x \sim x : A }
+
+  \inferrule
+  { \Gamma, x : A ; \Delta, x \ty{s} A \vdash m \sim m' : B \\
+    \Delta \triangleright t }
+  { \Gamma ; \Delta \vdash
+    \lamR{t}{x : A}{m} \sim \lamR{t}{x : \square}{m'} : \PiR{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma, x : A ; \Delta \vdash m \sim m' : B \\
+    \Delta \triangleright t }
+  { \Gamma ; \Delta \vdash
+    \lamI{t}{x : A}{m} \sim \lamI{t}{x : \square}{m'} : \PiI{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma ; \Delta_1 \vdash m \sim m' : \PiR{t}{x : A}{B} \\
+    \Gamma ; \Delta_2 \vdash n \sim n' : A }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash m\ n \sim m'\ n' : B[n/x] }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m \sim m' : \PiI{t}{x : A}{B} \\
+    \Gamma \vdash n : A }
+  { \Gamma ; \Delta \vdash m\ n \sim m'\ \square : B[n/x] }
+
+  \inferrule
+  { \Gamma \vdash \SigR{t}{x : A}{B} : t \\
+    \Gamma ; \Delta_1 \vdash m \sim m' : A \\
+    \Gamma ; \Delta_2 \vdash n \sim n' : B[m/x] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash
+    \pairR{m}{n}{t} \sim \pairR{m'}{n'}{t} : \SigR{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma \vdash \SigI{t}{x : A}{B} : t \\
+    \Gamma ; \Delta \vdash m \sim m' : A \\
+    \Gamma \vdash n : B[m/x] }
+  { \Gamma ; \Delta \vdash
+    \pairI{m}{n}{t} \sim \pairI{m'}{\square}{t} : \SigI{t}{x : A}{B} }
+
+  \inferrule
+  { \Gamma, z : \SigR{t}{x : A}{B} \vdash C : s \\
+    \Gamma ; \Delta_1 \vdash m \sim m' : \SigR{t}{x : A}{B} \\
+    \Gamma, x : A, y : B ; \Delta_2, x \ty{r1} A, y \ty{r2} B \vdash n \sim n' : C[\pairR{x}{y}{t}/z] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash
+    \SigElim{[z]C}{m}{[x,y]n} \sim \SigElim{\square}{m'}{[x,y]n'} : C[m/z] }
+
+  \inferrule
+  { \Gamma, z : \SigI{t}{x : A}{B} \vdash C : s \\
+    \Gamma ; \Delta_1 \vdash m \sim m' : \SigI{t}{x : A}{B} \\
+    \Gamma, x : A, y : B ; \Delta_2, x \ty{r} A \vdash n \sim n' : C[\pairI{x}{y}{t}/z] }
+  { \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash
+    \SigElim{[z]C}{m}{[x,y]n} \sim \SigElim{\square}{m'}{[x,y]n'} : C[m/z] }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m \sim m' : A \\
+    \Gamma ; \Delta \vdash n \sim n' : B \\
+    \Delta \triangleright t }
+  { \Gamma ; \Delta \vdash \apair{m}{n}{t} \sim \apair{m'}{n'}{t} : \with{A}{B}{t} }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m \sim m' : \with{A}{B}{t} }
+  { \Gamma ; \Delta \vdash \projL{m} \sim \projL{m'} : A }
+
+  \inferrule
+  { \Gamma ; \Delta \vdash m \sim m' : \with{A}{B}{t} }
+  { \Gamma ; \Delta \vdash \projR{m} \sim \projR{m'} : B }
+
+  \inferrule
+  { \Gamma, x : A, p : \iden{A}{m}{x} \vdash B : s \\
+    \Gamma ; \Delta \vdash H \sim H' : B[m/x,\refl{m}/p] \\
+    \Gamma \vdash P : \iden{A}{m}{n} }
+  { \Gamma ; \Delta \vdash \idenElim{[x,p]B}{H}{P} \sim \idenElim{\square}{H'}{\square} : B[n/x,P/p] }
+
+  \inferrule
+  { \Gamma \vdash B : s \\
+    \Gamma ; \Delta \vdash m \sim m' : A \\
+    A \equiv B }
+  { \Gamma ; \Delta \vdash m \sim m' : B }
+\end{mathpar}
+
+\newpage
+
+\section{Static Semantics}
+\subsection*{Static Reduction}
+\begin{mathpar}
+  \inferrule
+  { A \leadsto A' }
+  { \PiR{t}{x : A}{B} \leadsto \PiR{t}{x : A'}{B} }
+
+  \inferrule
+  { B \leadsto B' }
+  { \PiR{t}{x : A}{B} \leadsto \PiR{t}{x : A}{B'} }
+
+  \inferrule
+  { A \leadsto A' }
+  { \PiI{t}{x : A}{B} \leadsto \PiI{t}{x : A'}{B} }
+
+  \inferrule
+  { B \leadsto B' }
+  { \PiI{t}{x : A}{B} \leadsto \PiI{t}{x : A}{B'} }
+
+  \inferrule
+  { A \leadsto A' }
+  { \lamR{t}{x : A}{m} \leadsto \lamR{t}{x : A'}{m} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \lamR{t}{x : A}{m} \leadsto \lamR{t}{x : A}{m'} }
+
+  \inferrule
+  { A \leadsto A' }
+  { \lamI{t}{x : A}{m} \leadsto \lamI{t}{x : A'}{m} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \lamI{t}{x : A}{m} \leadsto \lamI{t}{x : A}{m'} }
+
+  \inferrule
+  { m \leadsto m' }
+  { m\ n \leadsto m'\ n }
+
+  \inferrule
+  { n \leadsto n' }
+  { m\ n \leadsto m\ n' }
+
+  \inferrule
+  { }
+  { (\lamR{t}{x : A}{m})\ n \leadsto m[n/x] }
+
+  \inferrule
+  { }
+  { (\lamI{t}{x : A}{m})\ n \leadsto m[n/x] }
+
+  \inferrule
+  { A \leadsto A' }
+  { \SigR{t}{x : A}{B} \leadsto \SigR{t}{x : A'}{B} }
+
+  \inferrule
+  { B \leadsto B' }
+  { \SigR{t}{x : A}{B} \leadsto \SigR{t}{x : A}{B'} }
+
+  \inferrule
+  { A \leadsto A' }
+  { \SigI{t}{x : A}{B} \leadsto \SigI{t}{x : A'}{B} }
+
+  \inferrule
+  { B \leadsto B' }
+  { \SigI{t}{x : A}{B} \leadsto \SigI{t}{x : A}{B'} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \pairR{m}{n}{t} \leadsto \pairR{m'}{n}{t} }
+
+  \inferrule
+  { n \leadsto n' }
+  { \pairR{m}{n}{t} \leadsto \pairR{m}{n'}{t} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \pairI{m}{n}{t} \leadsto \pairI{m'}{n}{t} }
+
+  \inferrule
+  { n \leadsto n' }
+  { \pairI{m}{n}{t} \leadsto \pairI{m}{n'}{t} }
+
+  \inferrule
+  { A \leadsto A' }
+  { \SigElim{[z]A}{m}{[x,y]n} \leadsto \SigElim{[z]A'}{m}{[x,y]n} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \SigElim{[z]A}{m}{[x,y]n} \leadsto \SigElim{[z]A}{m'}{[x,y]n} }
+
+  \inferrule
+  { n \leadsto n' }
+  { \SigElim{[z]A}{m}{[x,y]n} \leadsto \SigElim{[z]A}{m}{[x,y]n'} }
+
+  \inferrule
+  { }
+  { \SigElim{[z]A}{\pairR{m_1}{m_2}{t}}{[x,y]n} \leadsto n[m_1/x,m_2/y] }
+
+  \inferrule
+  { }
+  { \SigElim{[z]A}{\pairI{m_1}{m_2}{t}}{[x,y]n} \leadsto n[m_1/x,m_2/y] }
+
+  \inferrule
+  { A \leadsto A' }
+  { \with{A}{B}{t} \leadsto \with{A'}{B}{t} }
+
+  \inferrule
+  { B \leadsto B' }
+  { \with{A}{B}{t} \leadsto \with{A}{B'}{t} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \apair{m}{n}{t} \leadsto \apair{m'}{n}{t} }
+
+  \inferrule
+  { n \leadsto n' }
+  { \apair{m}{n}{t} \leadsto \apair{m}{n'}{t} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \projL{m} \leadsto \projL{m'} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \projR{m} \leadsto \projR{m'} }
+
+  \inferrule
+  { }
+  { \projL{\apair{m}{n}{t}} \leadsto m }
+
+  \inferrule
+  { }
+  { \projR{\apair{m}{n}{t}} \leadsto n }
+
+  \inferrule
+  { A \leadsto A' }
+  { \iden{A}{m}{n} \leadsto \iden{A'}{m}{n} }
+
+  \inferrule
+  { m \leadsto m' }
+  { \iden{A}{m}{n} \leadsto \iden{A}{m'}{n} }
+
+  \inferrule
+  { n \leadsto n' }
+  { \iden{A}{m}{n} \leadsto \iden{A}{m}{n'} }
+
+  \inferrule
+  { A \leadsto A' }
+  { \idenElim{[x,p]A}{H}{P} \leadsto \idenElim{[x,p]A'}{H}{P} }
+
+  \inferrule
+  { H \leadsto H' }
+  { \idenElim{[x,p]A}{H}{P} \leadsto \idenElim{[x,p]A}{H'}{P} }
+
+  \inferrule
+  { P \leadsto P' }
+  { \idenElim{[x,p]A}{H}{P} \leadsto \idenElim{[x,p]A}{H}{P'} }
+
+  \inferrule
+  { }
+  { \idenElim{[x,p]A}{H}{\refl{m}} \leadsto H }
+\end{mathpar}
+
+\subsection*{Conversion}
+\begin{mathpar}
+  \inferrule
+  {  }
+  { A \equiv A }
+
+  \inferrule
+  { A \equiv B \\ B \leadsto C }
+  { A \equiv C }
+
+  \inferrule
+  { A \equiv B \\ C \leadsto B }
+  { A \equiv C }
+\end{mathpar}
+
+\newpage
+
+\section{Dynamic Semantics}
+
+\subsection*{Value}
+\begin{mathpar}
+  \inferrule
+  { }
+  { x \val }
+
+  \inferrule
+  { }
+  { \lamR{t}{x : A}{m} \val }
+
+  \inferrule
+  { }
+  { \lamI{t}{x : A}{m} \val }
+
+  \inferrule
+  { u \val \\ v \val }
+  { \pairR{u}{v}{t} \val }
+
+  \inferrule
+  { v \val }
+  { \pairI{v}{m}{t} \val }
+
+  \inferrule
+  { }
+  { \apair{m}{n}{t} \val }
+\end{mathpar}
+
+\subsection*{Dynamic Reduction}
+\begin{mathpar}
+  \inferrule
+  { m \Leadsto m' }
+  { m\ n \Leadsto m'\ n }
+
+  \inferrule
+  { n \Leadsto n' }
+  { m\ n \Leadsto m\ n' }
+
+  \inferrule
+  { v \val }
+  { (\lamR{t}{x : A}{m})\ v \Leadsto m[v/x] }
+
+  \inferrule
+  { }
+  { (\lamI{t}{x : A}{m})\ n \Leadsto m[n/x] }
+
+  \inferrule
+  { m \Leadsto m' }
+  { \pairR{m}{n}{t} \Leadsto \pairR{m'}{n}{t} }
+
+  \inferrule
+  { n \Leadsto n' }
+  { \pairR{m}{n}{t} \Leadsto \pairR{m}{n'}{t} }
+
+  \inferrule
+  { m \Leadsto m' }
+  { \pairI{m}{n}{t} \Leadsto \pairI{m'}{n}{t} }
+
+  \inferrule
+  { m \Leadsto m' }
+  { \SigElim{[z]A}{m}{[x,y]n} \Leadsto \SigElim{[z]A}{m'}{[x,y]n} }
+
+  \inferrule
+  { u \val \\ v \val }
+  { \SigElim{[z]A}{\pairR{u}{v}{t}}{[x,y]n} \Leadsto n[u/x,v/y] }
+
+  \inferrule
+  { v \val }
+  { \SigElim{[z]A}{\pairI{v}{m}{t}}{[x,y]n} \Leadsto n[v/x,m/y] }
+
+  \inferrule
+  { m \Leadsto m' }
+  { \projL{m} \Leadsto \projL{m'} }
+
+  \inferrule
+  { m \Leadsto m' }
+  { \projR{m} \Leadsto \projR{m'} }
+
+  \inferrule
+  { }
+  { \projL{\apair{m}{n}{t}} \Leadsto m }
+
+  \inferrule
+  { }
+  { \projR{\apair{m}{n}{t}} \Leadsto n }
+
+  \inferrule
+  { }
+  { \idenElim{[x,p]A}{H}{P} \Leadsto H }
+\end{mathpar}
+
+\newpage
+
+\section{Meta Theory}
+
+\subsection*{Static Meta Theory}
+\begin{theorem}[Confluence]
+  If $m \leadsto^{*} m_{1}$ and $m \leadsto^{*} m_{2}$, then there exists $n$ such that $m_{1} \leadsto^{*} n$ and $m_{2} \leadsto^{*} n$.
+\end{theorem}
+
+\begin{theorem}[Equality]
+  Definitional equality $\equiv$ is an equivalence relation.
+\end{theorem}
+
+\begin{theorem}[Static Validity]
+  For any static typing $\Gamma \vdash m : A$, there exists sort $s$ such that $\Gamma \vdash A : s$ is derivable.
+\end{theorem}
+
+\begin{theorem}[Sort Uniqueness]
+  If there are static typings $\Gamma \vdash A : s$ and $\Gamma \vdash A : t$, then $s = t$.
+\end{theorem}
+
+\begin{theorem}[Static Subject Reduction]
+  If there is static typing $\Gamma \vdash m : A$ and static reduction $m \leadsto n$, then $\Gamma \vdash n : A$ is derivable.
+\end{theorem}
+
+\begin{theorem}[Static Normalization]
+  For any $m$ with static typing $\Gamma \vdash m : A$, it is strongly normalizing.
+\end{theorem}
+
+\subsection*{Dynamic Meta Theory}
+\begin{theorem}[Dynamic Reflection]
+  For any dynamic typing $\Gamma ; \Delta \vdash m : A$, static typing $\Gamma \vdash m : A$ is derivable.
+\end{theorem}
+
+\begin{theorem}[Value Stability]
+  If there is value $v$ with dynamic typing $\Gamma ; \Delta \vdash v : A$ and $\Gamma \vdash A : s$, then $\Delta \triangleright s$.
+\end{theorem}
+
+\begin{theorem}[Dynamic Subject Reduction]
+  If there is dynamic typing $\epsilon ; \epsilon \vdash m : A$ and dynamic reduction $m \Leadsto n$, then $\epsilon ; \epsilon \vdash n : A$ is derivable.
+\end{theorem}
+
+\begin{theorem}[Dynamic Progress]
+  If there is dynamic typing $\epsilon ; \epsilon \vdash m : A$, then $m$ is a value or there exists $n$ such that $m \Leadsto n$.
+\end{theorem}
+
+\subsection*{Erasure-Dynamic Meta Theory}
+\begin{theorem}[Erasure Existence]
+  For any dynamic typing $\Gamma ; \Delta \vdash m : A$, there exists $m'$ such that erasure relation $\Gamma ; \Delta \vdash m \sim m' : A$ is derivable.
+\end{theorem}
+
+\begin{theorem}[Erasure Subject Reduction]
+  For any erasure relation $\epsilon ; \epsilon \vdash m \sim m' : A$ and dynamic reduction $m' \Leadsto n'$, there exists $n$ such that the following diagram commutes.
+  \begin{center}
+    \begin{tikzcd}
+      {\epsilon ; \epsilon} &[-18pt] m &[-7pt] {m'} &[-20pt] A \\
+      {\epsilon ; \epsilon} &[-18pt] n &[-7pt] {n'} &[-20pt] A
+      \arrow["\sim"{description}, draw=none, from=1-2, to=1-3]
+      \arrow["\vdash"{description}, draw=none, from=1-1, to=1-2]
+      \arrow["{:}"{description}, draw=none, from=1-3, to=1-4]
+      \arrow["\Leadsto"{marking}, draw=none, from=1-2, to=2-2]
+      \arrow["\Leadsto"{marking}, draw=none, from=1-3, to=2-3]
+      \arrow["\vdash"{description}, draw=none, from=2-1, to=2-2]
+      \arrow["{:}"{description}, draw=none, from=2-3, to=2-4]
+      \arrow["\sim"{marking}, draw=none, from=2-2, to=2-3]
+      \arrow[draw=none, from=2-3, to=2-4]
+    \end{tikzcd}
+  \end{center}
+\end{theorem}
+
+\begin{theorem}[Erasure Progress]
+  For any erasure relation $\epsilon ; \epsilon \vdash m \sim m' : A$, then $m'$ is a value or there exists $n'$ such that $m' \Leadsto n'$.
+\end{theorem}
+
+\end{document}
