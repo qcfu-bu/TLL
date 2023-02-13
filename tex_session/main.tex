@@ -570,7 +570,11 @@ Structural congruence is the least congruence relation with the following proper
 
   \inferrule
   { }
-  { \scope{cd}{p} \mid q \equiv \scope{cd}{(p \mid q)} }\\
+  { p \mid \langle \return{\ii} \rangle \equiv p }\\
+
+  \inferrule
+  { }
+  { \scope{cd}{p} \mid q \equiv \scope{cd}{(p \mid q)} }
 
   \inferrule
   { }
@@ -579,6 +583,61 @@ Structural congruence is the least congruence relation with the following proper
   \inferrule
   { }
   { \scope{cd}{\scope{c'd'}{p}} \equiv \scope{c'd'}{\scope{cd}{p}} }
+\end{mathpar}
+
+\subsection*{Reductions}
+\begin{mathpar}
+  \inferrule
+  { p \Rrightarrow q }
+  { o \mid p \Rrightarrow o \mid q }
+
+  \inferrule
+  { p \Rrightarrow q }
+  { \scope{cd}{p} \Rrightarrow \scope{cd}{q} }
+
+  \inferrule
+  { p \equiv p' \\ p' \Rrightarrow q' \\ q' \equiv q \\ }
+  { p \Rrightarrow q }
+
+  \inferrule
+  { m \Leadsto m' }
+  { \langle m \rangle \Rrightarrow \langle m' \rangle }
+
+  \inferrule
+  { }
+  { \langle \letin{x}{\return{v}}{m} \rangle \Rrightarrow
+    \langle m[v/x] \rangle }
+
+  \inferrule
+  { }
+  { \langle \letin{x}{\fork{y : A}{m}}{n} \rangle \Rrightarrow
+    \scope{cd}{(\langle n[c/x] \rangle \mid \langle m[d/y] \rangle)} }
+
+  \inferrule
+  { }
+  { \scope{cd}{(
+      \langle \letin{x}{\sendR{c}\ v}{n_1} \rangle \mid
+      \langle \letin{y}{\recvR{d}}{n_2} \rangle)} \Rrightarrow \\
+    \scope{cd}{(
+      \langle \letin{x}{\return{c}}{n_1} \rangle \mid
+      \langle \letin{y}{\return{\pairR{v}{d}{L}}}{n_2} \rangle)} }
+
+  \inferrule
+  { }
+  { \scope{cd}{(
+      \langle \letin{x}{\sendI{c}\ m}{n_1} \rangle \mid
+      \langle \letin{y}{\recvI{d}}{n_2} \rangle)} \Rrightarrow \\
+    \scope{cd}{(
+      \langle \letin{x}{\return{c}}{n_1} \rangle \mid
+      \langle \letin{y}{\return{\pairI{m}{d}{L}}}{n_2} \rangle)} }
+
+  \inferrule
+  { }
+  { \scope{cd}{(
+      \langle \letin{x}{\close{c}}{m} \rangle \mid
+      \langle \letin{y}{\wait{d}}{n} \rangle)} \Rrightarrow \\\\
+    {\langle \letin{x}{\return \ii}{m} \rangle \mid
+      \langle \letin{x}{\return \ii}{n} \rangle} }
 \end{mathpar}
 
 \end{document}
