@@ -29,18 +29,22 @@ Inductive sta_pstep : term -> term -> Prop :=
   A ≈> A' ->
   m ≈> m' ->
   Lam1 A m s ≈> Lam1 A' m' s
-| sta_pstep_app m m' n n' :
+| sta_pstep_app0 m m' n n' :
   m ≈> m' ->
   n ≈> n' ->
-  App m n ≈> App m' n'
+  App0 m n ≈> App0 m' n'
+| sta_pstep_app1 m m' n n' :
+  m ≈> m' ->
+  n ≈> n' ->
+  App1 m n ≈> App1 m' n'
 | sta_pstep_beta0 A m m' n n' s :
   m ≈> m' ->
   n ≈> n' ->
-  App (Lam0 A m s) n ≈> m'.[n'/]
+  App0 (Lam0 A m s) n ≈> m'.[n'/]
 | sta_pstep_beta1 A m m' n n' s :
   m ≈> m' ->
   n ≈> n' ->
-  App (Lam1 A m s) n ≈> m'.[n'/]
+  App1 (Lam1 A m s) n ≈> m'.[n'/]
 | sta_pstep_sig0 A A' B B' s :
   A ≈> A' ->
   B ≈> B' ->
@@ -218,13 +222,22 @@ Proof.
   apply: (star_hom ((Lam1 A')^~ s)) r2=>x y. exact: sta_step_lam1R.
 Qed.
 
-Lemma sta_red_app m m' n n' :
-  m ~>* m' -> n ~>* n' -> App m n ~>* App m' n'.
+Lemma sta_red_app0 m m' n n' :
+  m ~>* m' -> n ~>* n' -> App0 m n ~>* App0 m' n'.
 Proof.
   move=> r1 r2.
-  apply: (star_trans (App m' n)).
-  apply: (star_hom (App^~ n)) r1=>x y. exact: sta_step_appL.
-  apply: star_hom r2. exact: sta_step_appR.
+  apply: (star_trans (App0 m' n)).
+  apply: (star_hom (App0^~ n)) r1=>x y. exact: sta_step_app0L.
+  apply: star_hom r2. exact: sta_step_app0R.
+Qed.
+
+Lemma sta_red_app1 m m' n n' :
+  m ~>* m' -> n ~>* n' -> App1 m n ~>* App1 m' n'.
+Proof.
+  move=> r1 r2.
+  apply: (star_trans (App1 m' n)).
+  apply: (star_hom (App1^~ n)) r1=>x y. exact: sta_step_app1L.
+  apply: star_hom r2. exact: sta_step_app1R.
 Qed.
 
 Lemma sta_red_sig0 A A' B B' s :
@@ -393,7 +406,8 @@ Qed.
 
 Hint Resolve
   sta_red_pi0 sta_red_pi1
-  sta_red_lam0 sta_red_lam1 sta_red_app
+  sta_red_lam0 sta_red_lam1
+  sta_red_app0 sta_red_app1
   sta_red_sig0 sta_red_sig1
   sta_red_pair0 sta_red_pair1 sta_red_letin
   sta_red_fix sta_red_ifte
@@ -485,13 +499,22 @@ Proof with eauto using sta_pstep_refl.
   apply: (conv_hom ((Lam1 A')^~ s)) r2=>x y p. apply: sta_pstep_lam1...
 Qed.
 
-Lemma sta_conv_app m m' n n' :
-  m === m' -> n === n' -> App m n === App m' n'.
+Lemma sta_conv_app0 m m' n n' :
+  m === m' -> n === n' -> App0 m n === App0 m' n'.
 Proof with eauto using sta_pstep_refl.
   move=> r1 r2.
-  apply: (conv_trans (App m' n)).
-  apply: (conv_hom (App^~ n)) r1=>x y p. apply: sta_pstep_app...
-  apply: conv_hom r2=>x y p. apply: sta_pstep_app...
+  apply: (conv_trans (App0 m' n)).
+  apply: (conv_hom (App0^~ n)) r1=>x y p. apply: sta_pstep_app0...
+  apply: conv_hom r2=>x y p. apply: sta_pstep_app0...
+Qed.
+
+Lemma sta_conv_app1 m m' n n' :
+  m === m' -> n === n' -> App1 m n === App1 m' n'.
+Proof with eauto using sta_pstep_refl.
+  move=> r1 r2.
+  apply: (conv_trans (App1 m' n)).
+  apply: (conv_hom (App1^~ n)) r1=>x y p. apply: sta_pstep_app1...
+  apply: conv_hom r2=>x y p. apply: sta_pstep_app1...
 Qed.
 
 Lemma sta_conv_sig0 A A' B B' s :
@@ -658,7 +681,8 @@ Qed.
 
 Hint Resolve
   sta_conv_pi0 sta_conv_pi1
-  sta_conv_lam0 sta_conv_lam1 sta_conv_app
+  sta_conv_lam0 sta_conv_lam1
+  sta_conv_app0 sta_conv_app1
   sta_conv_sig0 sta_conv_sig1
   sta_conv_pair0 sta_conv_pair1 sta_conv_letin
   sta_conv_fix sta_conv_ifte
@@ -763,12 +787,16 @@ Proof with eauto 8 using
   { move=>m m' n n' pm ihm pn ihn m2 p. inv p.
     { have[m0 pm1 pm2]:=ihm _ H1.
       have[n0 pn1 pn2]:=ihn _ H3.
-      exists (App m0 n0)... }
+      exists (App0 m0 n0)... }
     { inv pm.
       have/ihm[mx pm1 pm2]:(Lam0 A m0 s) ≈> (Lam0 A m'0 s)...
       inv pm1. inv pm2.
       have[n0 pn1 pn2]:=ihn _ H3.
-      exists (m'.[n0/])... }
+      exists (m'.[n0/])... } }
+  { move=>m m' n n' pm ihm pn ihn m2 p. inv p.
+    { have[m0 pm1 pm2]:=ihm _ H1.
+      have[n0 pn1 pn2]:=ihn _ H3.
+      exists (App1 m0 n0)... }
     { inv pm.
       have/ihm[mx pm1 pm2]:(Lam1 A m0 s) ≈> (Lam1 A m'0 s)...
       inv pm1. inv pm2.

@@ -91,9 +91,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       apply: sta_conv_beta.
       apply: conv1i...
       apply: sta_esubst...
-      apply: tyBn. }
-    { exfalso. apply: sta_lam1_pi0_false.
-      apply: sta0_sta_type... eauto. } }
+      apply: tyBn. } }
   { move=>Γ A B m n s tym ihm tyn ihn x st. inv st.
     { have tym':=ihm _ H1...
       have tyn':=ihn _ H3.
@@ -106,8 +104,6 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       apply: sta_sta0_type.
       apply: sta_esubst...
       by autosubst. }
-    { exfalso. apply: sta_lam0_pi1_false.
-      apply: sta0_sta_type... eauto. }
     { have/ihm tym':Lam1 A0 m0 s0 ≈> Lam1 A0 m' s0 by constructor...
       have tyn':=ihn _ H3.
       have[x tyP]:=sta_valid (sta0_sta_type tym').

@@ -41,21 +41,11 @@ Lemma dyn_just_proc_wf Θ x r A :
 Proof with eauto.
   move e:(Ch r A)=>B js. elim: js r A e=>{Θ x B}.
   { move=>Θ A emp r A0 e tyA0. destruct A; inv e.
-    have/={}tyA0:=sta_crename tyA0 (sta_agree_cren_nil (subn^~ 1)).
-    rewrite<-term_cren_comp in tyA0.
-    have e: ((+1) >>> (subn^~ 1)) = id.
-    { f_ext. move=>x. simpl. lia. }
-    rewrite e in tyA0.
-    rewrite term_cren_id in tyA0.
+    have/={}tyA0:=sta_crename_inv tyA0.
     constructor...
     apply: dyn_empty_proc_wf... }
   { move=>Θ A x js ih r A0 e tyA0. destruct A; inv e.
-    have/={}tyA0:=sta_crename tyA0 (sta_agree_cren_nil (subn^~ 1)).
-    rewrite<-term_cren_comp in tyA0.
-    have e: ((+1) >>> (subn^~ 1)) = id.
-    { f_ext. move=>x0. simpl. lia. }
-    rewrite e in tyA0.
-    rewrite term_cren_id in tyA0.
+    have/={}tyA0:=sta_crename_inv tyA0.
     constructor... }
 Qed.
 

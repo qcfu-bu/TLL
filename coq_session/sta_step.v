@@ -33,16 +33,22 @@ Inductive sta_step : term -> term -> Prop :=
 | sta_step_lam1R A m m' s :
   m ~> m' ->
   Lam1 A m s ~> Lam1 A m' s
-| sta_step_appL m m' n :
+| sta_step_app0L m m' n :
   m ~> m' ->
-  App m n ~> App m' n
-| sta_step_appR m n n' :
+  App0 m n ~> App0 m' n
+| sta_step_app0R m n n' :
   n ~> n' ->
-  App m n ~> App m n'
+  App0 m n ~> App0 m n'
+| sta_step_app1L m m' n :
+  m ~> m' ->
+  App1 m n ~> App1 m' n
+| sta_step_app1R m n n' :
+  n ~> n' ->
+  App1 m n ~> App1 m n'
 | sta_step_beta0 A m n s :
-  App (Lam0 A m s) n ~> m.[n/]
+  App0 (Lam0 A m s) n ~> m.[n/]
 | sta_step_beta1 A m n s :
-  App (Lam1 A m s) n ~> m.[n/]
+  App1 (Lam1 A m s) n ~> m.[n/]
 | sta_step_sig0L A A' B s :
   A ~> A' ->
   Sig0 A B s ~> Sig0 A' B s

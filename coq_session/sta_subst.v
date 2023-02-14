@@ -16,10 +16,14 @@ Inductive sta_agree_subst :
   Γ1 ⊢ σ ⊣ Γ2 ->
   Γ2 ⊢ A : Sort s ->
   (A.[σ] :: Γ1) ⊢ up σ ⊣ (A :: Γ2)
-| sta_agree_subst_wk Γ1 σ Γ2 n A :
+| sta_agree_subst_wk1 Γ1 σ Γ2 n A :
   Γ1 ⊢ σ ⊣ Γ2 ->
   Γ1 ⊢ n : A.[σ] ->
   Γ1 ⊢ n .: σ ⊣ (A :: Γ2)
+| sta_agree_subst_wk2 Γ1 σ Γ2 A s :
+  Γ1 ⊢ σ ⊣ Γ2 ->
+  Γ1 ⊢ A : Sort s ->
+  (A :: Γ1) ⊢ (σ >> ren (+1)) ⊣ Γ2
 | sta_agree_subst_conv Γ1 σ Γ2 A B s :
   A === B ->
   Γ1 ⊢ B.[ren (+1)].[σ] : Sort s ->
@@ -50,6 +54,10 @@ Proof with eauto using sta_agree_subst.
     replace A0.[σ >> ren (+1)] with A0.[σ].[ren (+1)] by autosubst.
     inv wf. apply: sta_eweaken... }
   { move=>Γ1 σ Γ2 n A agr ih tyn x B wf hs. inv hs; asimpl... }
+  { move=>Γ1 σ Γ2 A s agr ih tyA x B wf hs. inv wf.
+    have ty:=ih _ _ H1 hs.
+    have:=sta_weaken ty H2.
+    by asimpl. }
   { move=>Γ1 σ Γ2 A B s eq tyB1 tyB2 agr ih x C wf hs. inv hs.
     { apply: sta_conv.
       apply: sta_conv_subst.
@@ -82,8 +90,8 @@ Lemma sta_agree_subst_size Γ Γ' σ :
   Γ' ⊢ σ ⊣ Γ -> ((+size Γ) >>> σ) = ren (+size Γ').
 Proof.
   elim=>//={σ Γ Γ'}.
-  move=>Γ1 σ Γ2 A s agr ih tyA. asimpl.
-  rewrite ih. by asimpl.
+  move=>Γ1 σ Γ2 A s agr ih tyA. asimpl. rewrite ih. by asimpl.
+  move=>Γ1 σ Γ2 A s agr ih tyA. asimpl. rewrite ih. by asimpl.
 Qed.
 
 Lemma sta_substitution Γ1 Γ2 m A σ :
@@ -209,7 +217,7 @@ Lemma sta_subst Γ m n A B :
 Proof with eauto using sta_agree_subst_refl.
   move=>tym tyn.
   apply: sta_substitution...
-  apply: sta_agree_subst_wk...
+  apply: sta_agree_subst_wk1...
   by asimpl.
 Qed.
 

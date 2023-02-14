@@ -31,13 +31,13 @@ Inductive dyn_type : dyn_ctx -> sta_ctx -> dyn_ctx -> term -> term -> Prop :=
 | dyn_app0 Θ Γ Δ A B m n s :
   Θ ; Γ ; Δ ⊢ m : Pi0 A B s ->
   Γ ⊢ n : A ->
-  Θ ; Γ ; Δ ⊢ App m n : B.[n/]
+  Θ ; Γ ; Δ ⊢ App0 m n : B.[n/]
 | dyn_app1 Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s :
   Θ1 ∘ Θ2 => Θ ->
   Δ1 ∘ Δ2 => Δ ->
   Θ1 ; Γ ; Δ1 ⊢ m : Pi1 A B s ->
   Θ2 ; Γ ; Δ2 ⊢ n : A ->
-  Θ ; Γ ; Δ ⊢ App m n : B.[n/]
+  Θ ; Γ ; Δ ⊢ App1 m n : B.[n/]
 | dyn_pair0 Θ Γ Δ A B m n t :
   Γ ⊢ Sig0 A B t : Sort t ->
   Γ ⊢ m : A ->
@@ -194,6 +194,9 @@ Proof with eauto 8 using dyn_wf.
   { move=>Θ Γ Δ m A tym wf. inv wf... }
 Qed.
 Hint Resolve dyn_type_wf.
+
+Lemma dyn_sta_wf Γ Δ : dyn_wf Γ Δ -> sta_wf Γ.
+Proof with eauto using sta_wf. elim... Qed.
 
 Lemma dyn_wf_inv Γ Δ Δ1 Δ2 :
   Δ1 ∘ Δ2 => Δ -> dyn_wf Γ Δ -> dyn_wf Γ Δ1 /\ dyn_wf Γ Δ2.

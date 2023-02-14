@@ -1,7 +1,7 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq zify.
 From Coq Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS
-  sta_conf sta_uniq dyn_type dyn_cren dyn_valid.
+  sta_conf sta_uniq dyn_type dyn_cren dyn_valid dyn_subst.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -18,148 +18,45 @@ Inductive cvar_pos : dyn_ctx -> cvar -> bool -> Prop :=
   cvar_pos Θ x b ->
   cvar_pos (A :: Θ) x.+1 b.
 
-Inductive dyn_occurs :
-  dyn_ctx -> sta_ctx -> dyn_ctx -> term -> term -> cvar -> nat -> Prop :=
-(* core *)
-| dyn_occurs_var Θ Γ Δ x s A i :
-  dyn_empty Θ ->
-  dyn_wf Γ Δ ->
-  sta_has Γ x A ->
-  dyn_has Δ x s A ->
-  dyn_occurs Θ Γ Δ (Var x) A i 0
-| dyn_occurs_lam0 Θ Γ Δ A B m s i j :
-  Θ ▷ s ->
-  Δ ▷ s ->
-  dyn_occurs Θ (A :: Γ) (_: Δ) m B i j ->
-  dyn_occurs Θ Γ Δ (Lam0 A m s) (Pi0 A B s) i j
-| dyn_occurs_lam1 Θ Γ Δ A B m s t i j :
-  Θ ▷ s ->
-  Δ ▷ s ->
-  dyn_occurs Θ (A :: Γ) (A .{t} Δ) m B i j ->
-  dyn_occurs Θ Γ Δ (Lam1 A m s) (Pi1 A B s) i j
-| dyn_occurs_app0 Θ Γ Δ A B m n s i j :
-  dyn_occurs Θ Γ Δ m (Pi0 A B s) i j ->
-  Γ ⊢ n : A ->
-  dyn_occurs Θ Γ Δ (App m n) B.[n/] i j
-| dyn_occurs_app1 Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s i j1 j2 :
-  Θ1 ∘ Θ2 => Θ ->
-  Δ1 ∘ Δ2 => Δ ->
-  dyn_occurs Θ1 Γ Δ1 m (Pi1 A B s) i j1 ->
-  dyn_occurs Θ2 Γ Δ2 n A i j2 ->
-  dyn_occurs Θ Γ Δ (App m n) B.[n/] i (j1 + j2)
-| dyn_occurs_pair0 Θ Γ Δ A B m n t i j :
-  Γ ⊢ Sig0 A B t : Sort t ->
-  Γ ⊢ m : A ->
-  dyn_occurs Θ Γ Δ n B.[m/] i j ->
-  dyn_occurs Θ Γ Δ (Pair0 m n t) (Sig0 A B t) i j
-| dyn_occurs_pair1 Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t i j1 j2 :
-  Θ1 ∘ Θ2 => Θ ->
-  Δ1 ∘ Δ2 => Δ ->
-  Γ ⊢ Sig1 A B t : Sort t ->
-  dyn_occurs Θ1 Γ Δ1 m A i j1 ->
-  dyn_occurs Θ2 Γ Δ2 n B.[m/] i j2 ->
-  dyn_occurs Θ Γ Δ (Pair1 m n t) (Sig1 A B t) i (j1 + j2)
-| dyn_occurs_letin0 Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t i j1 j2 :
-  Θ1 ∘ Θ2 => Θ ->
-  Δ1 ∘ Δ2 => Δ ->
-  (Sig0 A B t :: Γ) ⊢ C : Sort s ->
-  dyn_occurs Θ1 Γ Δ1 m (Sig0 A B t) i j1 ->
-  dyn_occurs Θ2 (B :: A :: Γ) (B .{r} _: Δ2) n
-    C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] i j2 ->
-  dyn_occurs Θ Γ Δ (LetIn C m n) C.[m/] i (j1 + j2)
-| dyn_occurs_letin1 Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t i j1 j2 :
-  Θ1 ∘ Θ2 => Θ ->
-  Δ1 ∘ Δ2 => Δ ->
-  (Sig1 A B t :: Γ) ⊢ C : Sort s ->
-  dyn_occurs Θ1 Γ Δ1 m (Sig1 A B t) i j1 ->
-  dyn_occurs Θ2 (B :: A :: Γ) (B .{r2} A .{r1} Δ2) n
-    C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] i j2 ->
-  dyn_occurs Θ Γ Δ (LetIn C m n) C.[m/] i (j1 + j2)
-| dyn_occurs_fix Θ Γ Δ A m i j :
-  Θ ▷ U ->
-  Δ ▷ U ->
-  dyn_occurs Θ (A :: Γ) (A :U Δ) m A.[ren (+1)] i j ->
-  dyn_occurs Θ Γ Δ (Fix A m) A i j
-(* data *)
-| dyn_occurs_ii Θ Γ Δ i :
-  dyn_empty Θ ->
-  dyn_wf Γ Δ ->
-  Δ ▷ U ->
-  dyn_occurs Θ Γ Δ II Unit i 0
-| dyn_occurs_tt Θ Γ Δ i :
-  dyn_empty Θ ->
-  dyn_wf Γ Δ ->
-  Δ ▷ U ->
-  dyn_occurs Θ Γ Δ TT Bool i 0
-| dyn_occurs_ff Θ Γ Δ i :
-  dyn_empty Θ ->
-  dyn_wf Γ Δ ->
-  Δ ▷ U ->
-  dyn_occurs Θ Γ Δ FF Bool i 0
-| dyn_occurs_ifte Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s i j0 j1 j2 :
-  Θ1 ∘ Θ2 => Θ ->
-  Δ1 ∘ Δ2 => Δ ->
-  (Bool :: Γ) ⊢ A : Sort s ->
-  dyn_occurs Θ1 Γ Δ1 m Bool i j0 ->
-  dyn_occurs Θ2 Γ Δ2 n1 A.[TT/] i j1 ->
-  dyn_occurs Θ2 Γ Δ2 n2 A.[FF/] i j2 ->
-  dyn_occurs Θ Γ Δ (Ifte A m n1 n2) A.[m/] i (j0 + maxn j1 j2)
-(* monadic *)
-| dyn_occurs_return Θ Γ Δ m A i j :
-  dyn_occurs Θ Γ Δ m A i j ->
-  dyn_occurs Θ Γ Δ (Return m) (IO A) i j
-| dyn_occurs_bind Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t i j1 j2 :
-  Θ1 ∘ Θ2 => Θ ->
-  Δ1 ∘ Δ2 => Δ ->
-  Γ ⊢ B : Sort t ->
-  dyn_occurs Θ1 Γ Δ1 m (IO A) i j1 ->
-  dyn_occurs Θ2 (A :: Γ) (A .{s} Δ2) n (IO B.[ren (+1)]) i j2 ->
-  dyn_occurs Θ Γ Δ (Bind m n) (IO B) i (j1 + j2)
-(* session *)
-| dyn_occurs_cvar Θ Γ Δ r x A i j :
-  j = (if x == i then 1 else 0) ->
-  dyn_just Θ x (Ch r A) ->
-  dyn_wf Γ Δ ->
-  Δ ▷ U ->
-  nil ⊢ A : Proto ->
-  dyn_occurs Θ Γ Δ (CVar x) (Ch r A.[ren (+size Γ)]) i j
-| dyn_occurs_fork Θ Γ Δ m A i j :
-  dyn_occurs Θ (Ch true A :: Γ) (Ch true A :L Δ) m (IO Unit) i j ->
-  dyn_occurs Θ Γ Δ (Fork A m) (IO (Ch false A)) i j
-| dyn_ocurrs_recv0 Θ Γ Δ r1 r2 A B m i j :
-  r1 (+) r2 = false ->
-  dyn_occurs Θ Γ Δ m (Ch r1 (Act0 r2 A B)) i j ->
-  dyn_occurs Θ Γ Δ (Recv0 m) (IO (Sig0 A (Ch r1 B) L)) i j
-| dyn_occurs_recv1 Θ Γ Δ r1 r2 A B m i j :
-  r1 (+) r2 = false ->
-  dyn_occurs Θ Γ Δ m (Ch r1 (Act1 r2 A B)) i j ->
-  dyn_occurs Θ Γ Δ (Recv1 m) (IO (Sig1 A (Ch r1 B) L)) i j
-| dyn_occurs_send0 Θ Γ Δ r1 r2 A B m i j :
-  r1 (+) r2 = true ->
-  dyn_occurs Θ Γ Δ m (Ch r1 (Act0 r2 A B)) i j ->
-  dyn_occurs Θ Γ Δ (Send0 m) (Pi0 A (IO (Ch r1 B)) L) i j
-| dyn_occurs_send1 Θ Γ Δ r1 r2 A B m i j :
-  r1 (+) r2 = true ->
-  dyn_occurs Θ Γ Δ m (Ch r1 (Act1 r2 A B)) i j ->
-  dyn_occurs Θ Γ Δ (Send1 m) (Pi1 A (IO (Ch r1 B)) L) i j
-| dyn_occurs_wait Θ Γ Δ r1 r2 m i j :
-  r1 (+) r2 = false ->
-  dyn_occurs Θ Γ Δ m (Ch r1 (Stop r2)) i j ->
-  dyn_occurs Θ Γ Δ (Wait m) (IO Unit) i j
-| dyn_occurs_close Θ Γ Δ r1 r2 m i j :
-  r1 (+) r2 = true ->
-  dyn_occurs Θ Γ Δ m (Ch r1 (Stop r2)) i j ->
-  dyn_occurs Θ Γ Δ (Close m) (IO Unit) i j
-(* conversion *)
-| dyn_occurs_conv Θ Γ Δ A B m s i j :
-  A === B ->
-  dyn_occurs Θ Γ Δ m A i j ->
-  Γ ⊢ B : Sort s ->
-  dyn_occurs Θ Γ Δ m B i j.
-
-Lemma dyn_occurs_type Θ Γ Δ m A i j :
-  dyn_occurs Θ Γ Δ m A i j -> Θ ; Γ ; Δ ⊢ m : A.
-Proof with eauto using dyn_type. elim... Qed.
+Fixpoint dyn_occurs (i : cvar) (m : term) : nat :=
+  match m with
+  | Var _ => 0
+  | Sort _ => 0
+  | Pi0 _ _ _ => 0
+  | Pi1 _ _ _ => 0
+  | Lam0 _ m _ => dyn_occurs i m
+  | Lam1 _ m _ => dyn_occurs i m
+  | App0 m _ => dyn_occurs i m
+  | App1 m n => dyn_occurs i m + dyn_occurs i n
+  | Sig0 _ _ _ => 0
+  | Sig1 _ _ _ => 0
+  | Pair0 _ n _ => dyn_occurs i n
+  | Pair1 m n _ => dyn_occurs i m + dyn_occurs i n
+  | LetIn _ m n => dyn_occurs i m + dyn_occurs i n
+  | Fix _ m => dyn_occurs i m
+  | Unit => 0
+  | Bool => 0
+  | II => 0
+  | TT => 0
+  | FF => 0
+  | Ifte _ m n1 n2  => dyn_occurs i m + maxn (dyn_occurs i n1) (dyn_occurs i n2)
+  | IO _ => 0
+  | Return m => dyn_occurs i m
+  | Bind m n => dyn_occurs i m + dyn_occurs i n
+  | Proto => 0
+  | Stop _ => 0
+  | Act0 _ _ _ => 0
+  | Act1 _ _ _ => 0
+  | Ch _ _ => 0
+  | CVar x => if x == i then 1 else 0
+  | Fork _ m => dyn_occurs i m
+  | Recv0 m => dyn_occurs i m
+  | Recv1 m => dyn_occurs i m
+  | Send0 m => dyn_occurs i m
+  | Send1 m => dyn_occurs i m
+  | Close m => dyn_occurs i m
+  | Wait m => dyn_occurs i m
+  end.
 
 Lemma cvar_pos_merge_false Θ1 Θ2 Θ i :
   Θ1 ∘ Θ2 => Θ -> 
@@ -263,75 +160,72 @@ Proof with eauto.
 Qed.
 
 Lemma dyn_type_occurs0 Θ Γ Δ m A i :
-  Θ ; Γ ; Δ ⊢ m : A -> cvar_pos Θ i false -> dyn_occurs Θ Γ Δ m A i 0.
+  Θ ; Γ ; Δ ⊢ m : A -> cvar_pos Θ i false -> dyn_occurs i m = 0.
 Proof with eauto using dyn_occurs.
-  move=>ty. elim: ty i=>{Θ Γ Δ m A}...
+  move=>ty. elim: ty i=>//={Θ Γ Δ m A}...
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn i pos.
     have[pos1 pos2]:=cvar_pos_split_false mrg1 pos.
-    have{}ihm:=ihm _ pos1.
-    have{}ihn:=ihn _ pos2.
-    have//:=dyn_occurs_app1 mrg1 mrg2 ihm ihn. }
+    have->:=ihm _ pos1.
+    have->//:=ihn _ pos2. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2 tyS tym ihm tyn ihn i pos.
     have[pos1 pos2]:=cvar_pos_split_false mrg1 pos.
-    have{}ihm:=ihm _ pos1.
-    have{}ihn:=ihn _ pos2.
-    have//:=dyn_occurs_pair1 mrg1 mrg2 tyS ihm ihn. }
+    have->:=ihm _ pos1.
+    have->//:=ihn _ pos2. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t mrg1 mrg2
            tyC tym ihm tyn ihn i pos.
     have[pos1 pos2]:=cvar_pos_split_false mrg1 pos.
-    have{}ihm:=ihm _ pos1.
-    have{}ihn:=ihn _ pos2.
-    have//:=dyn_occurs_letin0 mrg1 mrg2 tyC ihm ihn. }
+    have->:=ihm _ pos1.
+    have->//:=ihn _ pos2. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2
            tyC tym ihm tyn ihn i pos.
     have[pos1 pos2]:=cvar_pos_split_false mrg1 pos.
-    have{}ihm:=ihm _ pos1.
-    have{}ihn:=ihn _ pos2.
-    have//:=dyn_occurs_letin1 mrg1 mrg2 tyC ihm ihn. }
+    have->:=ihm _ pos1.
+    have->//:=ihn _ pos2. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2
             tyA tym ihm tyn1 ihn1 tyn2 ihn2 i pos.
     have[pos1 pos2]:=cvar_pos_split_false mrg1 pos.
-    have{}ihm:=ihm _ pos1.
-    have{}ihn1:=ihn1 _ pos2.
-    have{}ihn2:=ihn2 _ pos2.
-    have//:=dyn_occurs_ifte mrg1 mrg2 tyA ihm ihn1 ihn2. }
+    have->:=ihm _ pos1.
+    have->:=ihn1 _ pos2.
+    have->//:=ihn2 _ pos2. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2
            tyB tym ihm tyn ihn i pos.
     have[pos1 pos2]:=cvar_pos_split_false mrg1 pos.
-    have{}ihm:=ihm _ pos1.
-    have{}ihn:=ihn _ pos2.
-    have//:=dyn_occurs_bind mrg1 mrg2 tyB ihm ihn. }
+    have->:=ihm _ pos1.
+    have->//:=ihn _ pos2. }
   { move=>Θ Γ Δ r x A js wf k tyA i pos.
-    apply: dyn_occurs_cvar...
     move/(dyn_just_pos_false _ js) in pos.
     rewrite pos... }
 Qed.
 
 Lemma dyn_type_occurs1 Θ Γ Δ m A i :
-  Θ ; Γ ; Δ ⊢ m : A -> cvar_pos Θ i true -> dyn_occurs Θ Γ Δ m A i 1.
+  Θ ; Γ ; Δ ⊢ m : A -> cvar_pos Θ i true -> dyn_occurs i m = 1.
 Proof with eauto using dyn_occurs, dyn_type_occurs0.
-  move=>ty. elim: ty i=>{Θ Γ Δ m A}...
+  move=>ty. elim: ty i=>//={Θ Γ Δ m A}...
   { move=>Θ Γ Δ x s A emp wf shs dhs i pos.
     exfalso. apply: dyn_empty_pos_true... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn i pos.
     have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
-    { replace 1 with (0 + 1) by eauto... }
-    { replace 1 with (1 + 0) by eauto... } }
+    { erewrite ihn...
+      erewrite dyn_type_occurs0... }
+    { rewrite ihm... } }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2
             tyS tym ihm tyn ihn i pos.
     have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
-    { replace 1 with (0 + 1) by eauto... }
-    { replace 1 with (1 + 0) by eauto... } }
+    { erewrite ihn...
+      erewrite dyn_type_occurs0... }
+    { erewrite ihm... } }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t mrg1 mrg2
             tyC tym ihm tyn ihn i pos.
     have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
-    { replace 1 with (0 + 1) by eauto... }
-    { replace 1 with (1 + 0) by eauto... } }
+    { erewrite ihn...
+      erewrite dyn_type_occurs0... }
+    { erewrite ihm... } }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2
             tyC tym ihm tyn ihn i pos.
     have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
-    { replace 1 with (0 + 1) by eauto... }
-    { replace 1 with (1 + 0) by eauto... } }
+    { erewrite ihn...
+      erewrite dyn_type_occurs0... }
+    { erewrite ihm... } }
   { move=>Θ Γ Δ emp wf k i pos.
     exfalso. apply: dyn_empty_pos_true... }
   { move=>Θ Γ Δ emp wf k i pos.
@@ -341,53 +235,21 @@ Proof with eauto using dyn_occurs, dyn_type_occurs0.
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2
            tyA tym ihm tyn1 ihn1 tyn2 ihn2 i pos.
     have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
-    { replace 1 with (0 + maxn 1 1) by eauto... }
-    { replace 1 with (1 + maxn 0 0) by eauto... } }
+    { erewrite ihn1...
+      erewrite ihn2...
+      erewrite dyn_type_occurs0... }
+    { erewrite ihm...
+      erewrite dyn_type_occurs0...
+      erewrite dyn_type_occurs0... } }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2
            tyB tym ihm tyn ihn i pos.
     have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
-    { replace 1 with (0 + 1) by eauto... }
-    { replace 1 with (1 + 0) by eauto... } }
+    { erewrite ihn...
+      erewrite dyn_type_occurs0... }
+    { erewrite ihm... } }
   { move=>Θ Γ Δ r x A js wf k tyA i pos.
-    constructor...
     move/(dyn_just_pos_true _ js) in pos.
     rewrite pos... }
-Qed.
-
-Lemma dyn_occurs_pos0 Θ Γ Δ m A i :
-  dyn_occurs Θ Γ Δ m A i 0 -> cvar_pos Θ i false.
-Proof with eauto using cvar_pos.
-  move e:(0)=>j ty. elim: ty e=>{Θ Γ Δ m A i j}...
-  { move=>Θ Γ Δ x s A i emp wf shs dhs _.
-    apply: dyn_empty_pos_false... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s i j1 j2 mrg1 mrg2 tym ihm tyn ihn e.
-    destruct j1; destruct j2; inv e.
-    apply: cvar_pos_merge_false... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t i j1 j2 mrg1 mrg2 tyS tym ihm tyn ihn e.
-    destruct j1; destruct j2; inv e.
-    apply: cvar_pos_merge_false... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t i j1 j2 mrg1 mrg2 tyC tym ihm tyn ihn e.
-    destruct j1; destruct j2; inv e.
-    apply: cvar_pos_merge_false... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t i j1 j2 mrg1 mrg2 tyC tym ihm tyn ihn e.
-    destruct j1; destruct j2; inv e.
-    apply: cvar_pos_merge_false... }
-  { move=>Θ Γ Δ i emp wf k _.
-    apply: dyn_empty_pos_false... }
-  { move=>Θ Γ Δ i emp wf k _.
-    apply: dyn_empty_pos_false... }
-  { move=>Θ Γ Δ i emp wf k _.
-    apply: dyn_empty_pos_false... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s i j0 j1 j2 mrg1 mrg2 tyA tym ihm tyn1 ihn1 tyn2 ihn2 e.
-    destruct j0; destruct j1; destruct j2; inv e.
-    { apply: cvar_pos_merge_false... }
-    { rewrite maxnSS in H0. inv H0. } }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t i j1 j2 mrg1 mrg2 tyB tym ihm tyn ihn e.
-    destruct j1; destruct j2; inv e.
-    apply: cvar_pos_merge_false... }
-  { move=>Θ Γ Δ r x A i j e1 js wf k ty. subst.
-    case_eq (x == i)=>e1 e2//.
-    rewrite dyn_just_pos_false... }
 Qed.
 
 Definition iren i (ξ : cvar -> cvar) := forall x, ξ x == i = false.
@@ -407,11 +269,10 @@ Proof.
 Qed.
 
 Lemma dyn_occurs_iren Θ Γ Δ m A i ξ :
-  Θ ; Γ ; Δ ⊢ term_cren m ξ : A ->
-  iren i ξ -> dyn_occurs Θ Γ Δ (term_cren m ξ) A i 0.
+  Θ ; Γ ; Δ ⊢ term_cren m ξ : A -> iren i ξ -> dyn_occurs i (term_cren m ξ) = 0.
 Proof with eauto using dyn_occurs.
   move e:(term_cren m ξ)=>x ty.
-  elim: ty m ξ e i=>{Θ Γ Δ x A}...
+  elim: ty m ξ e i=>//={Θ Γ Δ x A}...
   { move=>Θ Γ Δ A B m s k1 k2 tym ihm m0 ξ e i h.
     destruct m0; inv e... }
   { move=>Θ Γ Δ A B m s t k1 k2 tym ihm m0 ξ e i h.
@@ -419,40 +280,31 @@ Proof with eauto using dyn_occurs.
   { move=>Θ Γ Δ A B m n s tym ihm tyn m0 ξ e i h.
     destruct m0; inv e... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn m0 ξ e i h.
-    destruct m0; inv e.
-    replace 0 with (0 + 0) by eauto.
-    apply: dyn_occurs_app1... }
+    destruct m0; inv e. erewrite ihm... }
   { move=>Θ Γ Δ A B m n t tyS tym tyn ihn m0 ξ e i h.
     destruct m0; inv e... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2
            tyS tym ihm tyn ihn m0 ξ e i h.
-    destruct m0; inv e.
-    replace 0 with (0 + 0) by eauto... }
+    destruct m0; inv e. erewrite ihm... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t mrg1 mrg2
            tyC tym ihm tyn ihn m0 ξ e i h.
-    destruct m0; inv e.
-    replace 0 with (0 + 0) by eauto.
-    apply: dyn_occurs_letin0... }
+    destruct m0; inv e. erewrite ihm... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2
            tyC tym ihm tyn ihn m0 ξ e i h.
-    destruct m0; inv e.
-    replace 0 with (0 + 0) by eauto.
-    apply: dyn_occurs_letin1... }
+    destruct m0; inv e. erewrite ihm... }
   { move=>Θ Γ Δ A m k1 k2 tym ihm m0 ξ e i h.
     destruct m0; inv e... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2
            tyA tym ihm tyn1 ihn1 tyn2 ihn2 m0 ξ e i h.
     destruct m0; inv e.
-    replace 0 with (0 + maxn 0 0) by eauto... }
+    erewrite ihm... erewrite ihn1... erewrite ihn2... }
   { move=>Θ Γ Δ m A tym ihm m0 ξ e i h.
     destruct m0; inv e... }
   { move=>θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2
            tyB tym ihm tyn ihn m0 ξ e i h.
-    destruct m0; inv e.
-    replace 0 with (0 + 0) by eauto... }
+    destruct m0; inv e. erewrite ihm... }
   { move=>Θ Γ Δ r x A js wf k tyA m ξ e i h.
     destruct m; inv e.
-    constructor...
     by rewrite h. }
   { move=>Θ Γ Δ m A tym ihm m0 ξ e i h.
     destruct m0; inv e... }
@@ -468,4 +320,300 @@ Proof with eauto using dyn_occurs.
     destruct m0; inv e... }
   { move=>Θ Γ Δ r1 r2 m xor tym ihm m0 ξ e i h.
     destruct m0; inv e... }
+Qed.
+
+Lemma dyn_occurs_cren_id Θ Γ Δ m A i j ξ :
+  Θ ; Γ ; Δ ⊢ term_cren m ξ : A ->
+  dyn_occurs i m = 0 ->
+  dyn_occurs j m = 0 ->
+  (forall x, x == i = false -> x == j = false -> ξ x = x) ->
+  Θ ; Γ ; Δ ⊢ m : A.
+Proof with eauto using dyn_type.
+  move e:(term_cren m ξ)=>m' ty.
+  elim: ty m ξ e i j=>{Θ Γ Δ m' A}.
+  all: try solve[intros;
+                 match goal with
+                 | [ H : term_cren ?m _ = _ |- _ ] =>
+                     destruct m; inv H; eauto using dyn_type
+                 end].
+  { move=>Θ Γ Δ A B m s k1 k2 tym ihm m0 ξ e i j oc1 oc2 h.
+    destruct m0; inv e. simpl in oc1. simpl in oc2.
+    have[r tyB]:=dyn_valid tym.
+    have wf:=sta_type_wf tyB. inv wf.
+    apply: dyn_conv.
+    apply: sta_conv_pi0.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    eauto.
+    econstructor...
+    apply: dyn_ctx_conv0.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    apply: sta_crename_inv...
+    apply: ihm.
+    eauto.
+    apply: oc1.
+    apply: oc2.
+    apply: h.
+    econstructor... }
+  { move=>Θ Γ Δ A B m s t k1 k2 tym ihm m0 ξ e i j oc1 oc2 h.
+    destruct m0; inv e. simpl in oc1. simpl in oc2.
+    have[r tyB]:=dyn_valid tym.
+    have wf:=dyn_type_wf tym. inv wf.
+    apply: dyn_conv.
+    apply: sta_conv_pi1.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    eauto.
+    econstructor...
+    apply: dyn_ctx_conv1.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    apply: sta_crename_inv...
+    apply: ihm.
+    eauto.
+    apply: oc1.
+    apply: oc2.
+    apply: h.
+    econstructor... }
+  { move=>Θ Γ Δ A B m n s tym ihm tyn m0 ξ e i j oc1 oc2 h.
+    destruct m0; inv e. simpl in oc1. simpl in oc2.
+    have[r tyP]:=dyn_valid tym.
+    have[t[tyB/sort_inj e]]:=sta_pi0_inv tyP. subst.
+    apply: dyn_conv.
+    apply: sta_conv_beta.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    econstructor...
+    apply: sta_crename_inv...
+    have:=sta_subst tyB tyn... }
+  { move=>Θ1 Θ2 θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn m0 ξ e i j oc1 oc2 h.
+    destruct m0; inv e. simpl in oc1. simpl in oc2.
+    have[r tyP]:=dyn_valid tym.
+    have[t[tyB/sort_inj e]]:=sta_pi1_inv tyP. subst.
+    move:oc1. case_eq (dyn_occurs i m0_1); case_eq (dyn_occurs i m0_2)=>//e1 e2 _.
+    move:oc2. case_eq (dyn_occurs j m0_1); case_eq (dyn_occurs j m0_2)=>//e3 e4 _.
+    apply: dyn_conv.
+    apply: sta_conv_beta.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    econstructor...
+    have:=sta_subst tyB (dyn_sta_type tyn)... }
+  { move=>Θ Γ Δ A B m n t tyS tym tyn ihn m0 ξ e i j oc1 oc2 h.
+    destruct m0; inv e. simpl in oc1. simpl in oc2.
+    have[s[r[ord[tyA[tyB _]]]]]:=sta_sig0_inv tyS.
+    econstructor...
+    apply: sta_crename_inv...
+    apply: dyn_conv.
+    apply: sta_conv_beta.
+    apply: sta_cren_conv0...
+    apply: ihn.
+    eauto.
+    apply: oc1.
+    apply: oc2.
+    eauto.
+    have/=:=sta_subst tyB (sta_crename_inv tym)... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2 tyS tym ihm tyn ihn m0 ξ e i j oc1 oc2 h.
+    destruct m0; inv e. simpl in oc1. simpl in oc2.
+    move:oc1. case_eq (dyn_occurs i m0_1); case_eq (dyn_occurs i m0_2)=>//e1 e2 _.
+    move:oc2. case_eq (dyn_occurs j m0_1); case_eq (dyn_occurs j m0_2)=>//e3 e4 _.
+    have[s[r[ord1[ord2[tyA[tyB _]]]]]]:=sta_sig1_inv tyS.
+    econstructor...
+    apply: dyn_conv.
+    apply: sta_conv_beta.
+    apply: sta_cren_conv0...
+    apply: ihn.
+    eauto.
+    apply: e1.
+    apply: e3.
+    eauto.
+    have/=:=sta_subst tyB (sta_crename_inv (dyn_sta_type tym))... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t mrg1 mrg2 tyC tym ihm tyn ihn m0 ξ e i j oc1 oc2 h.
+    destruct m0; inv e. simpl in oc1. simpl in oc2.
+    move:oc1. case_eq (dyn_occurs i m0); case_eq (dyn_occurs i n0)=>//e1 e2 _.
+    move:oc2. case_eq (dyn_occurs j m0); case_eq (dyn_occurs j n0)=>//e3 e4 _.
+    have tyA0:=sta_crename_inv tyC.
+    have wf:=sta_type_wf tyA0. inv wf.
+    have[s1[r1[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv H2. subst.
+    have agr:sta_agree_subst (B :: A :: Γ) (Pair0 (Var 1) (Var 0) t .: ren (+2)) (Sig0 A B t :: Γ).
+    { econstructor.
+      replace (ren (+2)) with (ids >> (ren (+1)) >> (ren (+1))) by autosubst.
+      econstructor...
+      econstructor...
+      asimpl.
+      econstructor.
+      replace (Sig0 A.[ren (+2)] B.[ren (0 .: (+3))] t)
+        with (Sig0 A B t).[ren (+2)] by autosubst.
+      replace (Sort t) with (Sort t).[ren (+2)] by eauto.
+      apply: sta_rename...
+      replace (+2) with ((+1) >>> (+1) >>> id) by autosubst.
+      econstructor...
+      econstructor...
+      apply: sta_agree_ren_refl...
+      repeat constructor...
+      replace A.[ren (+2)] with A.[ren (+1)].[ren (+1)] by autosubst.
+      repeat constructor.
+      asimpl.
+      repeat constructor... }
+    have eq: A0.[m0/] === (term_cren A0 ξ).[term_cren m0 ξ/].
+    apply: conv_trans.
+    apply: sta_conv_beta.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    apply: sta_conv_subst.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    apply: dyn_conv...
+    econstructor...
+    apply: dyn_conv.
+    apply: sta_conv_subst.
+    apply: sta_cren_conv0...
+    apply: ihn.
+    eauto.
+    apply: e1.
+    apply: e3.
+    eauto.
+    have/=:=sta_substitution tyA0 agr...
+    have/=:=sta_subst tyC (dyn_sta_type tym)... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2 tyC tym ihm tyn ihn m0 ξ e i j oc1 oc2 h.
+    destruct m0; inv e. simpl in oc1. simpl in oc2.
+    move:oc1. case_eq (dyn_occurs i m0); case_eq (dyn_occurs i n0)=>//e1 e2 _.
+    move:oc2. case_eq (dyn_occurs j m0); case_eq (dyn_occurs j n0)=>//e3 e4 _.
+    have tyA0:=sta_crename_inv tyC.
+    have wf:=sta_type_wf tyA0. inv wf.
+    have[s1[t1[ord1[ord[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv H2. subst.
+    have agr:sta_agree_subst (B :: A :: Γ) (Pair1 (Var 1) (Var 0) t .: ren (+2)) (Sig1 A B t :: Γ).
+    { econstructor.
+      replace (ren (+2)) with (ids >> (ren (+1)) >> (ren (+1))) by autosubst.
+      econstructor...
+      econstructor...
+      asimpl.
+      econstructor.
+      replace (Sig1 A.[ren (+2)] B.[ren (0 .: (+3))] t)
+        with (Sig1 A B t).[ren (+2)] by autosubst.
+      replace (Sort t) with (Sort t).[ren (+2)] by eauto.
+      apply: sta_rename...
+      replace (+2) with ((+1) >>> (+1) >>> id) by autosubst.
+      econstructor...
+      econstructor...
+      apply: sta_agree_ren_refl...
+      repeat constructor...
+      replace A.[ren (+2)] with A.[ren (+1)].[ren (+1)] by autosubst.
+      repeat constructor.
+      asimpl.
+      repeat constructor... }
+    have eq: A0.[m0/] === (term_cren A0 ξ).[term_cren m0 ξ/].
+    apply: conv_trans.
+    apply: sta_conv_beta.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    apply: sta_conv_subst.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    apply: dyn_conv...
+    apply: dyn_letin1...
+    apply: dyn_conv.
+    apply: sta_conv_subst.
+    apply: sta_cren_conv0...
+    apply: ihn.
+    eauto.
+    apply: e1.
+    apply: e3.
+    eauto.
+    have/=:=sta_substitution tyA0 agr...
+    have/=:=sta_subst tyC (dyn_sta_type tym)... }
+  { move=>Θ Γ Δ A m k1 k2 tym ihm m0 ξ e i j oc1 oc2 h.
+    destruct m0; inv e. simpl in oc1. simpl in oc2.
+    have{}ihm:=ihm _ _ erefl _ _ oc1 oc2 h.
+    have wf:=dyn_type_wf ihm. inv wf.
+    apply: dyn_conv.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    2:{ eauto. }
+    econstructor...
+    apply: dyn_ctx_conv1.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    apply: sta_crename_inv...
+    apply: dyn_conv.
+    apply: sta_conv_subst.
+    apply: sta_cren_conv0...
+    apply: ihm.
+    have/=:=sta_weaken (sta_crename_inv H4) H4... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2 tyA
+           tym ihm tyn1 ihn1 tyn2 ihn2 m0 ξ e i j oc1 oc2 h.
+    destruct m0; inv e. simpl in oc1. simpl in oc2.
+    have wf:=sta_type_wf tyA. inv wf.
+    move:oc1.
+    case_eq (dyn_occurs i m0_1);
+      case_eq (dyn_occurs i m0_2);
+      case_eq (dyn_occurs i m0_3)=>//=.
+    2:{ move=>n1 e1 n2 e2 e3 e4.
+        rewrite maxnSS in e4. inv e4. }
+    move=>e11 e12 e13 _.
+    move:oc2.
+    case_eq (dyn_occurs j m0_1);
+      case_eq (dyn_occurs j m0_2);
+      case_eq (dyn_occurs j m0_3)=>//=.
+    2:{ move=>n1 e1 n2 e2 e3 e4.
+        rewrite maxnSS in e4. inv e4. }
+    move=>e21 e22 e23 _.
+    have{}ihm:=ihm _ _ erefl _ _ e13 e23 h.
+    have{}ihn1:=ihn1 _ _ erefl _ _ e12 e22 h.
+    have{}ihn2:=ihn2 _ _ erefl _ _ e11 e21 h.
+    have eq: A0.[m0_1/] === (term_cren A0 ξ).[term_cren m0_1 ξ/].
+    apply: conv_trans.
+    apply: sta_conv_beta.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    apply: sta_conv_subst.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    apply: dyn_conv...
+    econstructor...
+    apply: sta_crename_inv...
+    apply: dyn_conv.
+    apply: sta_conv_subst.
+    apply: sta_cren_conv0...
+    eauto.
+    have/=:=sta_subst (sta_crename_inv tyA) (sta_tt H1)...
+    apply: dyn_conv.
+    apply: sta_conv_subst.
+    apply: sta_cren_conv0...
+    eauto.
+    have/=:=sta_subst (sta_crename_inv tyA) (sta_ff H1)...
+    have/=:=sta_subst tyA (dyn_sta_type tym)... }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2 tyB tym ihm tyn ihn m0 ξ e i j oc1 oc2 h.
+    destruct m0; inv e. simpl in oc1. simpl in oc2.
+    move:oc1. case_eq (dyn_occurs i m0); case_eq (dyn_occurs i n0)=>//e1 e2 _.
+    move:oc2. case_eq (dyn_occurs j m0); case_eq (dyn_occurs j n0)=>//e3 e4 _.
+    have{}ihm:=ihm _ _ erefl _ _ e2 e4 h.
+    have{}ihn:=ihn _ _ erefl _ _ e1 e3 h.
+    econstructor... }
+  { move=>Θ Γ Δ r x A js wf k tyA m ξ e i j oc1 oc2 h.
+    destruct m; inv e.
+    move: oc1 oc2=>/=.
+    case_eq (x0 == i); case_eq (x0 == j)=>// e1 e2 _ _.
+    constructor...
+    rewrite h in js... }
+  { move=>Θ Γ Δ m A tym ihm m0 ξ e i j oc1 oc2 h.
+    destruct m0; inv e. simpl in oc1. simpl in oc2.
+    have{}ihm:=ihm _ _ erefl _ _ oc1 oc2 h.
+    have wf:=dyn_type_wf ihm. inv wf.
+    have[tym0 _]:=sta_ch_inv H4.
+    apply: dyn_conv.
+    3:{ econstructor.
+        constructor... }
+    apply: sta_conv_io.
+    apply: sta_conv_ch.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    econstructor.
+    apply: dyn_ctx_conv1.
+    3:{ apply: ihm. }
+    apply: sta_conv_ch.
+    apply: conv_sym.
+    apply: sta_cren_conv0...
+    econstructor.
+    apply: sta_crename_inv... }
 Qed.

@@ -17,7 +17,8 @@ Fixpoint term_cren (m : term) (ξ : cvar -> cvar) : term :=
   | Pi1 A B s => Pi1 (term_cren A ξ) (term_cren B ξ) s
   | Lam0 A m s => Lam0 (term_cren A ξ) (term_cren m ξ) s
   | Lam1 A m s => Lam1 (term_cren A ξ) (term_cren m ξ) s
-  | App m n => App (term_cren m ξ) (term_cren n ξ)
+  | App0 m n => App0 (term_cren m ξ) (term_cren n ξ)
+  | App1 m n => App1 (term_cren m ξ) (term_cren n ξ)
   | Sig0 A B s => Sig0 (term_cren A ξ) (term_cren B ξ) s
   | Sig1 A B s => Sig1 (term_cren A ξ) (term_cren B ξ) s
   | Pair0 m n s => Pair0 (term_cren m ξ) (term_cren n ξ) s
@@ -74,6 +75,8 @@ Proof with eauto.
     rewrite ihA. rewrite ihm... }
   { move=>m ihm n ihn ξ ξ'. asimpl.
     rewrite ihm. rewrite ihn... }
+  { move=>m ihm n ihn ξ ξ'. asimpl.
+    rewrite ihm. rewrite ihn... }
   { move=>A ihA B ihB s ξ ξ'. asimpl.
     rewrite ihA. rewrite ihB... }
   { move=>A ihA B ihB s ξ ξ'. asimpl.
@@ -121,6 +124,7 @@ Proof with eauto.
   { move=>A ihA B ihB s. rewrite ihA. by rewrite ihB. }
   { move=>A ihA B ihB s. rewrite ihA. by rewrite ihB. }
   { move=>m ihm n ihn s. rewrite ihm. by rewrite ihn. }
+  { move=>m ihm n ihn s. rewrite ihm. by rewrite ihn. }
   { move=>A ihA m ihm n ihn. rewrite ihA. rewrite ihm. by rewrite ihn. }
   { move=>A ihA m ihm. rewrite ihA. by rewrite ihm. }
   { move=>A ihA m ihm n1 ihn1 n2 ihn2.
@@ -148,6 +152,7 @@ Proof with eauto.
   { move=>A ihA B ihB s ξ1 ξ2. rewrite ihA. by rewrite ihB. }
   { move=>A ihA m ihm s ξ1 ξ2. rewrite ihA. by rewrite ihm. }
   { move=>A ihA m ihm s ξ1 ξ2. rewrite ihA. by rewrite ihm. }
+  { move=>m ihm n ihn ξ1 ξ2. rewrite ihm. by rewrite ihn. }
   { move=>m ihm n ihn ξ1 ξ2. rewrite ihm. by rewrite ihn. }
   { move=>A ihA B ihB s ξ1 ξ2. rewrite ihA. by rewrite ihB. }
   { move=>A ihA B ihB s ξ1 ξ2. rewrite ihA. by rewrite ihB. }

@@ -34,11 +34,11 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
 | sta0_app0 Γ A B m n s :
   sta0_type Γ m (Pi0 A B s) ->
   sta0_type Γ n A ->
-  sta0_type Γ (App m n) B.[n/]
+  sta0_type Γ (App0 m n) B.[n/]
 | sta0_app1 Γ A B m n s :
   sta0_type Γ m (Pi1 A B s) ->
   sta0_type Γ n A ->
-  sta0_type Γ (App m n) B.[n/]
+  sta0_type Γ (App1 m n) B.[n/]
 | sta0_sig0 Γ A B s r t :
   r ⊑ t ->
   sta0_type Γ A (Sort s) ->
@@ -206,11 +206,11 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
 | sta_app0 Γ A B m n s :
   Γ ⊢ m : Pi0 A B s ->
   Γ ⊢ n : A ->
-  Γ ⊢ App m n : B.[n/]
+  Γ ⊢ App0 m n : B.[n/]
 | sta_app1 Γ A B m n s :
   Γ ⊢ m : Pi1 A B s ->
   Γ ⊢ n : A ->
-  Γ ⊢ App m n : B.[n/]
+  Γ ⊢ App1 m n : B.[n/]
 | sta_sig0 Γ A B s r t :
   r ⊑ t ->
   Γ ⊢ A : Sort s ->
@@ -386,3 +386,12 @@ Proof with eauto using sta_type, sta_wf.
   move:Γ m A. apply:(@sta0_type_mut _ (fun Γ wf => sta_wf Γ))...
   Unshelve. all: eauto using nat, bool.
 Qed.
+
+Lemma sta0_sta_wf Γ : sta0_wf Γ -> sta_wf Γ.
+Proof with eauto using sta_wf.
+  elim=>{Γ}...
+  move=>Γ A s wf0 wf ty.
+  econstructor...
+  apply: sta0_sta_type...
+Qed.
+  

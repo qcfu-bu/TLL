@@ -148,32 +148,42 @@ Proof with eauto.
   apply: dyn_pair1_invX...
 Qed.
 
-Lemma dyn_app_inv Θ Γ Δ m n C :
-  Θ ; Γ ; Δ ⊢ App m n : C ->
+Lemma dyn_app0_inv Θ Γ Δ m n C :
+  Θ ; Γ ; Δ ⊢ App0 m n : C ->
   exists A B s,
-    (Θ ; Γ ; Δ ⊢ m : Pi0 A B s /\ Γ ⊢ n : A /\ C === B.[n/]) \/
-    (exists Θ1 Θ2 Δ1 Δ2,
-        Θ1 ∘ Θ2 => Θ /\
-        Δ1 ∘ Δ2 => Δ /\
-        Θ1 ; Γ ; Δ1 ⊢ m : Pi1 A B s /\ Θ2 ; Γ ; Δ2 ⊢ n : A /\ C === B.[n/]).
+    Θ ; Γ ; Δ ⊢ m : Pi0 A B s /\ Γ ⊢ n : A /\ C === B.[n/].
 Proof with eauto.
-  move e:(App m n)=>x ty.
+  move e:(App0 m n)=>x ty.
   elim: ty m n e=>//{Θ Γ Δ x C}.
   { move=>Θ Γ Δ A B m n s tym ihm tyn m0 n0[e1 e2]; subst.
-    exists A. exists B. exists s. left. split... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn m0 n0[e1 e2]; subst.
-    exists A. exists B. exists s. right. exists Θ1. exists Θ2. exists Δ1. exists Δ2. split... }
+    exists A. exists B. exists s. split... }
   { move=>Θ Γ Δ A B m s eq1 tym ihm tyB m0 n0 e; subst.
-    have [A0[B0[s0[[tym0[tyn0 eq2]]
-                  |[Θ1[Θ2[Δ1[Δ2[mrg1[mrg2[tym0[tyn0 eq2]]]]]]]]]]]]:=ihm _ _ erefl.
-    { exists A0. exists B0. exists s0. left. repeat split...
-      apply: conv_trans.
-      apply: conv_sym...
-      exact: eq2. }
-    { exists A0. exists B0. exists s0. right. exists Θ1. exists Θ2. exists Δ1. exists Δ2. repeat split...
-      apply: conv_trans.
-      apply: conv_sym...
-      exact: eq2. } }
+    have [A0[B0[s0[tym0[tyn0 eq2]]]]]:=ihm _ _ erefl.
+    exists A0. exists B0. exists s0. repeat split...
+    apply: conv_trans.
+    apply: conv_sym...
+    exact: eq2. }
+Qed.
+
+Lemma dyn_app1_inv Θ Γ Δ m n C :
+  Θ ; Γ ; Δ ⊢ App1 m n : C ->
+  exists A B s Θ1 Θ2 Δ1 Δ2,
+    Θ1 ∘ Θ2 => Θ /\
+    Δ1 ∘ Δ2 => Δ /\
+    Θ1 ; Γ ; Δ1 ⊢ m : Pi1 A B s /\
+    Θ2 ; Γ ; Δ2 ⊢ n : A /\
+    C === B.[n/].
+Proof with eauto.
+  move e:(App1 m n)=>x ty.
+  elim: ty m n e=>//{Θ Γ Δ x C}.
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn m0 n0[e1 e2]; subst.
+    exists A. exists B. exists s. exists Θ1. exists Θ2. exists Δ1. exists Δ2. split... }
+  { move=>Θ Γ Δ A B m s eq1 tym ihm tyB m0 n0 e; subst.
+    have [A0[B0[s0[Θ1[Θ2[Δ1[Δ2[mrg1[mrg2[tym0[tyn0 eq2]]]]]]]]]]]:=ihm _ _ erefl.
+    exists A0. exists B0. exists s0. exists Θ1. exists Θ2. exists Δ1. exists Δ2. repeat split...
+    apply: conv_trans.
+    apply: conv_sym...
+    exact: eq2. }
 Qed.
 
 Lemma dyn_ii_inv Θ Γ Δ A : Θ ; Γ ; Δ ⊢ II : A -> dyn_empty Θ.

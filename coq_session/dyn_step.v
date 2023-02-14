@@ -30,28 +30,31 @@ Inductive dyn_val : term -> Prop :=
 | dyn_val_send1 v  : dyn_val v -> dyn_val (Send1 v)
 | dyn_val_send0_app v m :
   dyn_val v ->
-  dyn_val (App (Send0 v) m)
+  dyn_val (App0 (Send0 v) m)
 | dyn_val_send1_app v1 v2  :
   dyn_val v1 ->
   dyn_val v2 ->
-  dyn_val (App (Send1 v1) v2)
+  dyn_val (App1 (Send1 v1) v2)
 | dyn_val_close v  : dyn_val v -> dyn_val (Close v)
 | dyn_val_wait v   : dyn_val v -> dyn_val (Wait v).
 
 Reserved Notation "m ~>> n" (at level 50).
 Inductive dyn_step : term -> term -> Prop :=
 (* core *)
-| dyn_step_appL m m' n :
+| dyn_step_app0L m m' n :
   m ~>> m' ->
-  App m n ~>> App m' n
-| dyn_step_appR m n n' :
+  App0 m n ~>> App0 m' n
+| dyn_step_app1L m m' n :
+  m ~>> m' ->
+  App1 m n ~>> App1 m' n
+| dyn_step_app1R m n n' :
   n ~>> n' ->
-  App m n ~>> App m n'
+  App1 m n ~>> App1 m n'
 | dyn_step_beta0 A m n s :
-  App (Lam0 A m s) n ~>> m.[n/]
+  App0 (Lam0 A m s) n ~>> m.[n/]
 | dyn_step_beta1 A m v s :
   dyn_val v ->
-  App (Lam1 A m s) v ~>> m.[v/]
+  App1 (Lam1 A m s) v ~>> m.[v/]
 | dyn_step_pair0R m n n' s :
   n ~>> n' ->
   Pair0 m n s ~>> Pair0 m n' s

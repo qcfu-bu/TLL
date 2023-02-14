@@ -71,6 +71,10 @@ Proof.
     rewrite ih. by asimpl. }
 Qed.
 
+Lemma sta_wf_agree_ren Γ :
+  sta_wf Γ -> sta_agree_ren (+size Γ) nil Γ.
+Proof with eauto using sta_agree_ren. elim=>/={Γ}... Qed.
+
 Lemma sta_rename Γ Γ' m A ξ :
   Γ ⊢ m : A -> sta_agree_ren ξ Γ Γ' -> Γ' ⊢ m.[ren ξ] : A.[ren ξ].
 Proof with eauto using sta_type, sta_wf, sta_agree_ren.

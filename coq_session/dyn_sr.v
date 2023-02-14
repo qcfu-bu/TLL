@@ -72,35 +72,31 @@ Proof with eauto using key_impure, key_empty, key_merge.
   { move=>Θ Γ Δ A B m s t k1 k2 tym ihm tyP vl.
     have[_[_/sort_inj e]]:=sta_pi1_inv tyP. subst... }
   { move=>Θ Γ Δ A B m n s tym ihm tyn tyB vl. inv vl.
-    { have[r1[r2[A0[B0[xor[/pi0_inj[eqA[eqB e] tyv]]]]]]]:=dyn_send0_inv tym. subst.
-      have[s tyCh]:=dyn_valid tyv.
-      have[tyAct/sort_inj e]:=sta_ch_inv tyCh. subst.
-      have tyB0:=sta_act0_inv tyAct.
-      have[s tyA]:=sta_valid tyn.
-      have{}tyB0:=sta_ctx_conv eqA tyA tyB0.
-      have/={}tyIO:=sta_io (sta_ch r1 (sta_subst tyB0 tyn)).
-      have/church_rosser[x rd1 rd2]:B.[n/] === (IO (Ch r1 B0)).[n/].
-      apply: sta_conv_subst...
-      have tyx1:=sta_prd tyB rd1.
-      have tyx2:=sta_prd tyIO rd2.
-      have//:=sta_unicity tyx1 tyx2. }
-    { have[r1[r2[A0[B0[xor[eq _]]]]]]:=dyn_send1_inv tym.
-      exfalso. solve_conv. } }
+    have[r1[r2[A0[B0[xor[/pi0_inj[eqA[eqB e] tyv]]]]]]]:=dyn_send0_inv tym. subst.
+    have[s tyCh]:=dyn_valid tyv.
+    have[tyAct/sort_inj e]:=sta_ch_inv tyCh. subst.
+    have tyB0:=sta_act0_inv tyAct.
+    have[s tyA]:=sta_valid tyn.
+    have{}tyB0:=sta_ctx_conv eqA tyA tyB0.
+    have/={}tyIO:=sta_io (sta_ch r1 (sta_subst tyB0 tyn)).
+    have/church_rosser[x rd1 rd2]:B.[n/] === (IO (Ch r1 B0)).[n/].
+    apply: sta_conv_subst...
+    have tyx1:=sta_prd tyB rd1.
+    have tyx2:=sta_prd tyIO rd2.
+    have//:=sta_unicity tyx1 tyx2. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn tyB vl. inv vl.
-    { have[r1[r2[A0[B0[xor[eq _]]]]]]:=dyn_send0_inv tym.
-      exfalso. solve_conv. }
-    { have[r1[r2[A0[B0[xor[/pi1_inj[eqA[eqB e] tyv]]]]]]]:=dyn_send1_inv tym. subst.
-      have[s tyCh]:=dyn_valid tyv.
-      have[tyAct/sort_inj e]:=sta_ch_inv tyCh. subst.
-      have tyB0:=sta_act1_inv tyAct.
-      have[s tyA]:=dyn_valid tyn.
-      have{}tyB0:=sta_ctx_conv eqA tyA tyB0.
-      have/={}tyIO:=sta_io (sta_ch r1 (sta_subst tyB0 (dyn_sta_type tyn))).
-      have/church_rosser[x rd1 rd2]:B.[n/] === (IO (Ch r1 B0)).[n/].
-      apply: sta_conv_subst...
-      have tyx1:=sta_prd tyB rd1.
-      have tyx2:=sta_prd tyIO rd2.
-      have//:=sta_unicity tyx1 tyx2. } }
+    have[r1[r2[A0[B0[xor[/pi1_inj[eqA[eqB e] tyv]]]]]]]:=dyn_send1_inv tym. subst.
+    have[s tyCh]:=dyn_valid tyv.
+    have[tyAct/sort_inj e]:=sta_ch_inv tyCh. subst.
+    have tyB0:=sta_act1_inv tyAct.
+    have[s tyA]:=dyn_valid tyn.
+    have{}tyB0:=sta_ctx_conv eqA tyA tyB0.
+    have/={}tyIO:=sta_io (sta_ch r1 (sta_subst tyB0 (dyn_sta_type tyn))).
+    have/church_rosser[x rd1 rd2]:B.[n/] === (IO (Ch r1 B0)).[n/].
+    apply: sta_conv_subst...
+    have tyx1:=sta_prd tyB rd1.
+    have tyx2:=sta_prd tyIO rd2.
+    have//:=sta_unicity tyx1 tyx2. }
   { move=>Θ Γ Δ A B m n t tyS1 tym tyn ihn tyS2 vl.
     have[s[r[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv tyS2. subst.
     inv ord. inv vl.
@@ -176,23 +172,9 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
   { move=>Θ Γ Δ A B m n s tym ihm tyn e1 e2 n0 st. inv st.
     { have tym':=ihm erefl erefl _ H2.
       apply: dyn_app0... }
-    { have tyn':=sta_rd tyn (dyn_sta_step tyn H2).
-      have[t tyP]:=dyn_valid tym.
-      have[r[tyB _]]:=sta_pi0_inv tyP.
-      apply: dyn_conv.
-      apply: sta_conv_beta.
-      apply: conv_sym.
-      apply: star_conv.
-      apply: sta_red_pred.
-      apply: dyn_sta_step...
-      apply: dyn_app0...
-      have:=sta_subst tyB tyn.
-      asimpl... }
     { have[x tyP]:=dyn_valid tym.
       have tym0:=dyn_lam0_inv tym.
-      apply: dyn_subst0... }
-    { exfalso.
-      apply: sta_lam1_pi0_false... } }
+      apply: dyn_subst0... } }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn e1 e2 n0 st.
     subst. inv mrg2. inv st.
     { have tym':=ihm erefl erefl _ H2.
@@ -209,8 +191,6 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       apply: dyn_app1...
       have:=sta_subst tyB (dyn_sta_type tyn).
       asimpl... }
-    { exfalso.
-      apply: sta_lam0_pi1_false... }
     { have[x tyP]:=dyn_valid tym.
       have[r[tyB _]]:=sta_pi1_inv tyP.
       have[t tym0]:=dyn_lam1_inv tym.

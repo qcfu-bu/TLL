@@ -37,9 +37,7 @@ Proof with eauto.
   { move=>Θ m tym Θ' ξ agr/=.
     constructor.
     replace (IO Unit) with (term_cren (IO Unit) ξ) by eauto.
-    apply: dyn_crename.
-    apply: tym.
-    constructor... }
+    apply: dyn_crename... }
   { move=>Θ1 Θ2 Θ p q mrg typ ihp tyq ihq Θ' ξ agr/=.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg.
     econstructor... }
