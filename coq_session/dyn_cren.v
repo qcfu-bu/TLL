@@ -23,24 +23,6 @@ Inductive dyn_ctx_cren : (cvar -> cvar) -> dyn_ctx -> dyn_ctx -> Prop :=
   dyn_ctx_cren ξ Θ Θ' ->
   dyn_ctx_cren ((-1) >>> ξ) (_: Θ) Θ'.
 
-(* Inductive dyn_agree_cren : (cvar -> cvar) -> *)
-(*   dyn_ctx -> sta_ctx -> dyn_ctx -> dyn_ctx -> sta_ctx -> dyn_ctx -> Prop := *)
-(* | dyn_agree_cren_nil ξ Θ Θ' : *)
-(*   dyn_ctx_cren ξ Θ Θ' -> *)
-(*   dyn_agree_cren ξ Θ nil nil Θ' nil nil *)
-(* | dyn_agree_cren_ty Θ Θ' Γ Γ' Δ Δ' ξ m m' s : *)
-(*   m' = term_cren m ξ -> *)
-(*   Γ ⊢ m : Sort s -> *)
-(*   dyn_agree_cren ξ Θ Γ Δ Θ' Γ' Δ' -> *)
-(*   dyn_agree_cren ξ *)
-(*     Θ (m :: Γ) (m .{s} Δ) Θ' (m' :: Γ') (m' .{s} Δ') *)
-(* | dyn_agree_cren_n Θ Θ' Γ Γ' Δ Δ' ξ m m' s : *)
-(*   m' = term_cren m ξ -> *)
-(*   Γ ⊢ m : Sort s -> *)
-(*   dyn_agree_cren ξ Θ Γ Δ Θ' Γ' Δ' -> *)
-(*   dyn_agree_cren ξ *)
-(*     Θ (m :: Γ) (_: Δ) Θ' (m' :: Γ') (_: Δ'). *)
-
 Lemma dyn_ctx_cren_empty Θ Θ' ξ :
   dyn_ctx_cren ξ Θ Θ' -> dyn_empty Θ -> dyn_empty Θ'.
 Proof with eauto using dyn_empty.
@@ -50,14 +32,6 @@ Proof with eauto using dyn_empty.
   { move=>ξ Θ Θ' agr ih emp. inv emp... }
 Qed.
 
-(* Lemma dyn_agree_cren_empty Θ Θ' Γ Γ' Δ Δ' ξ : *)
-(*   dyn_agree_cren ξ Θ Γ Δ Θ' Γ' Δ' -> dyn_empty Θ -> dyn_empty Θ'. *)
-(* Proof with eauto. *)
-(*   elim=>{Θ Θ' Γ Γ' Δ Δ' ξ}... *)
-(*   move=>ξ Θ Θ' agr emp. *)
-(*   apply: dyn_ctx_cren_empty... *)
-(* Qed. *)
-
 Lemma dyn_ctx_cren_key Θ Θ' ξ s :
   dyn_ctx_cren ξ Θ Θ' -> Θ ▷ s -> Θ' ▷ s.
 Proof with eauto using key.
@@ -66,39 +40,6 @@ Proof with eauto using key.
   { move=>ξ Θ Θ' agr ih s k. inv k... }
   { move=>ξ Θ Θ' agr ih s k. inv k... }
 Qed.
-
-(* Lemma dyn_agree_cren_key1 Θ Θ' Γ Γ' Δ Δ' ξ s : *)
-(*   dyn_agree_cren ξ Θ Γ Δ Θ' Γ' Δ' -> Θ ▷ s -> Θ' ▷ s. *)
-(* Proof with eauto using key. *)
-(*   move=>agr. elim: agr s=>{Θ Θ' Γ Γ' Δ Δ' ξ}... *)
-(*   move=>ξ Θ Θ' agr s. apply: dyn_ctx_cren_key... *)
-(* Qed. *)
-
-(* Lemma dyn_agree_cren_key2 Θ Θ' Γ Γ' Δ Δ' ξ s : *)
-(*   dyn_agree_cren ξ Θ Γ Δ Θ' Γ' Δ' -> Δ ▷ s -> Δ' ▷ s. *)
-(* Proof with eauto using key. *)
-(*   move=>agr. elim: agr s=>{Θ Θ' Γ Γ' Δ Δ' ξ}... *)
-(*   { move=>Θ Θ' Γ Γ' Δ Δ' ξ m m' s e tym agr ih r k. inv k... } *)
-(*   { move=>Θ Θ' Γ Γ' Δ Δ' ξ m m' s e tym agr ih r k. inv k... } *)
-(* Qed. *)
-
-(* Lemma dyn_agree_cren_has Θ Θ' Γ Γ' Δ Δ' A x s ξ : *)
-(*   dyn_agree_cren ξ Θ Γ Δ Θ' Γ' Δ' -> *)
-(*   dyn_has Δ x s A -> *)
-(*   dyn_has Δ' x s (term_cren A ξ). *)
-(* Proof with eauto. *)
-(*   move=>agr. elim: agr A x s=>{Θ Θ' Γ Γ' Δ Δ' ξ}. *)
-(*   { move=>ξ Θ Θ' agr A x s dhs. inv dhs. } *)
-(*   { move=>Θ Θ' Γ Γ' Δ Δ' ξ m m' s e tym agr ih A x s0 dhs. inv dhs. *)
-(*     { rewrite term_cren_ren. *)
-(*       constructor. *)
-(*       apply: dyn_agree_cren_key2... } *)
-(*     { rewrite term_cren_ren. *)
-(*       constructor... } } *)
-(*   { move=>Θ Θ' Γ Γ' Δ Δ' ξ m m' s e tym agr ih A x s0 dhs. inv dhs. *)
-(*     rewrite term_cren_ren. *)
-(*     constructor... } *)
-(* Qed. *)
 
 Lemma dyn_ctx_cren_just Θ Θ' A x ξ :
   dyn_ctx_cren ξ Θ Θ' ->
@@ -135,16 +76,6 @@ Proof with eauto.
     eauto. }
 Qed.
 
-(* Lemma dyn_agree_cren_just Θ Θ' Γ Γ' Δ Δ' A x ξ : *)
-(*   dyn_agree_cren ξ Θ Γ Δ Θ' Γ' Δ' -> *)
-(*   dyn_just Θ x A -> *)
-(*   dyn_just Θ' (ξ x) (term_cren A ξ). *)
-(* Proof with eauto. *)
-(*   move=>agr. elim: agr A x=>{Θ Θ' Γ Γ' Δ Δ' ξ}... *)
-(*   move=>ξ Θ Θ' agr A x js. *)
-(*   apply: dyn_ctx_cren_just... *)
-(* Qed. *)
-
 Lemma dyn_ctx_cren_merge Θ1 Θ2 Θ Θ' ξ :
   dyn_ctx_cren ξ Θ Θ' -> 
   Θ1 ∘ Θ2 => Θ ->
@@ -175,93 +106,6 @@ Proof with eauto using dyn_ctx_cren.
     exists Θ1'. exists Θ2'.
     repeat constructor... }
 Qed.
-
-(* Lemma dyn_agree_cren_merge Θ1 Θ2 Θ Θ' Γ Γ' Δ1 Δ2 Δ Δ' ξ : *)
-(*   dyn_agree_cren ξ Θ Γ Δ Θ' Γ' Δ' ->  *)
-(*   Θ1 ∘ Θ2 => Θ -> *)
-(*   Δ1 ∘ Δ2 => Δ -> *)
-(*   exists Θ1' Θ2' Δ1' Δ2', *)
-(*     Θ1' ∘ Θ2' => Θ' /\ *)
-(*     Δ1' ∘ Δ2' => Δ' /\ *)
-(*     dyn_agree_cren ξ Θ1 Γ Δ1 Θ1' Γ' Δ1' /\ *)
-(*     dyn_agree_cren ξ Θ2 Γ Δ2 Θ2' Γ' Δ2'. *)
-(* Proof with eauto using dyn_agree_cren. *)
-(*   move=>agr. elim: agr Θ1 Θ2 Δ1 Δ2=>{Θ Θ' Γ Γ' Δ Δ' ξ}. *)
-(*   { move=>ξ Θ Θ' agr Θ1 Θ2 Δ1 Δ2 mrg1 mrg2. inv mrg2. *)
-(*     have[Θ1'[Θ2'[mrg1'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1. *)
-(*     exists Θ1'. exists Θ2'. exists nil. exists nil. *)
-(*     repeat constructor... } *)
-(*   { move=>Θ Θ' Γ Γ' Δ Δ' ξ m m' s e tym agr ih Θ1 Θ2 Δ1 Δ2 mrg1 mrg2. *)
-(*     inv mrg2. *)
-(*     { have[Θ1'[Θ2'[Δ1'[Δ2'[mrg1'[mrg2'[arg1 arg2]]]]]]]:= *)
-(*         ih _ _ _ _ mrg1 H2. *)
-(*       exists Θ1'. exists Θ2'. *)
-(*       exists (term_cren m ξ :U Δ1'). *)
-(*       exists (term_cren m ξ :U Δ2'). *)
-(*       repeat constructor... } *)
-(*     { have[Θ1'[Θ2'[Δ1'[Δ2'[mrg1'[mrg2'[arg1 arg2]]]]]]]:= *)
-(*         ih _ _ _ _ mrg1 H2. *)
-(*       exists Θ1'. exists Θ2'. *)
-(*       exists (term_cren m ξ :L Δ1'). *)
-(*       exists (_: Δ2'). *)
-(*       repeat constructor... } *)
-(*     { have[Θ1'[Θ2'[Δ1'[Δ2'[mrg1'[mrg2'[arg1 arg2]]]]]]]:= *)
-(*         ih _ _ _ _ mrg1 H2. *)
-(*       exists Θ1'. exists Θ2'. *)
-(*       exists (_: Δ1'). *)
-(*       exists (term_cren m ξ :L Δ2'). *)
-(*       repeat constructor... } } *)
-(*   { move=>Θ Θ' Γ Γ' Δ Δ' ξ m m' s e tym agr ih Θ1 Θ2 Δ1 Δ2 mrg1 mrg2. *)
-(*     inv mrg2. *)
-(*     have[Θ1'[Θ2'[Δ1'[Δ2'[mrg1'[mrg2'[arg1 arg2]]]]]]]:= *)
-(*         ih _ _ _ _ mrg1 H2. *)
-(*     exists Θ1'. exists Θ2'. *)
-(*     exists (_: Δ1'). exists (_: Δ2'). *)
-(*     repeat constructor... } *)
-(* Qed. *)
-
-(* Lemma dyn_agree_cren_wf_nil Θ Θ' Γ' Δ' ξ : *)
-(*   dyn_agree_cren ξ Θ [::] [::] Θ' Γ' Δ' -> dyn_wf Γ' Δ'. *)
-(* Proof with eauto using dyn_wf. *)
-(*   move e1:(nil)=>Γ. *)
-(*   move e2:(nil)=>Δ agr. *)
-(*   elim: agr e1 e2=>//{Γ Γ' Δ Δ' ξ}... *)
-(* Qed. *)
-
-(* Lemma dyn_agree_cren_wf_ty Θ Θ' Γ Γ' Δ Δ' A s ξ : *)
-(*   dyn_agree_cren ξ Θ (A :: Γ) (A .{s} Δ) Θ' Γ' Δ' -> dyn_wf Γ Δ -> *)
-(*   (∀ Θ Θ' Γ' Δ' ξ, dyn_agree_cren ξ Θ Γ Δ Θ' Γ' Δ' → dyn_wf Γ' Δ') -> *)
-(*   dyn_wf Γ' Δ'. *)
-(* Proof with eauto using dyn_wf. *)
-(*   move e1:(A :: Γ)=>Γ0. *)
-(*   move e2:(A .{s} Δ)=>Δ0 agr. *)
-(*   elim: agr A Γ Δ s e1 e2=>//{Θ Θ' Γ0 Δ0 Γ' Δ' ξ}... *)
-(*   move=>Θ Θ' Γ Γ' Δ Δ' ξ m m' s e tym agr _ A Γ0 Δ0 s0 *)
-(*          [e1 e2][_ e4 e5]wf h; subst. *)
-(*   apply: dyn_wf_ty... *)
-(*   replace (Sort s) with (term_cren (Sort s) ξ) by eauto. *)
-(*   apply: sta_conv. *)
-(*   apply: conv_sym. *)
-(*   apply: sta_cren_conv0... *)
-(*   apply: sta_crename... *)
-(*   apply: dyn_sta_agree_cren... *)
-(* Qed. *)
-
-(* Lemma dyn_agree_cren_wf_n Θ Θ' Γ Γ' Δ Δ' A ξ : *)
-(*   dyn_agree_cren ξ Θ (A :: Γ) (_: Δ) Θ' Γ' Δ' -> dyn_wf Γ Δ -> *)
-(*   (∀ Θ Θ' Γ' Δ' ξ, dyn_agree_cren ξ Θ Γ Δ Θ' Γ' Δ' → dyn_wf Γ' Δ') -> *)
-(*   dyn_wf Γ' Δ'. *)
-(* Proof with eauto using dyn_wf. *)
-(*   move e1:(A :: Γ)=>Γ0. *)
-(*   move e2:(_: Δ)=>Δ0 agr. *)
-(*   elim: agr A Γ Δ e1 e2=>//{Θ Θ' Γ0 Δ0 Γ' Δ' ξ}... *)
-(*   move=>Θ Θ' Γ Γ' Δ Δ' ξ m m' s e tym agr _ A Γ0 Δ0 *)
-(*          [e1 e2][e4] wf h; subst. *)
-(*   apply: dyn_wf_n... *)
-(*   apply: sta_ecrename... *)
-(*   simpl. eauto. *)
-(*   apply: dyn_sta_agree_cren... *)
-(* Qed. *)
 
 Lemma dyn_crename Θ Θ' Γ Δ m A ξ :
   Θ ; Γ ; Δ ⊢ m : A -> dyn_ctx_cren ξ Θ Θ' ->
