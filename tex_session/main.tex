@@ -23,6 +23,8 @@
 \newcommand{\PiI}[3]{\Pi_{#1}\{{#2}\}.{#3}}
 \newcommand{\lamR}[3]{\lambda_{#1}({#2}).{#3}}
 \newcommand{\lamI}[3]{\lambda_{#1}\{{#2}\}.{#3}}
+\newcommand{\appR}[2]{{#1}\;{#2}}
+\newcommand{\appI}[2]{{#1}\;\{{#2}\}}
 \newcommand{\SigR}[3]{\Sigma_{#1}({#2}).{#3}}
 \newcommand{\SigI}[3]{\Sigma_{#1}\{{#2}\}.{#3}}
 \newcommand{\pairR}[3]{\langle{{#1},{#2}}\rangle_{#3}}
@@ -54,9 +56,9 @@
 \newcommand{\actR}[3]{{#1}({#2}).{#3}}
 \newcommand{\Ch}[2]{{#1}\text{Ch}\,{#2}}
 \newcommand{\fork}[2]{\text{fork}\,({#1}).{#2}}
-\newcommand{\recvI}[1]{\text{recv}\,\{{#1}\}}
+\newcommand{\recvI}[1]{\underline{\text{recv}}\,{#1}}
 \newcommand{\recvR}[1]{\text{recv}\,{#1}}
-\newcommand{\sendI}[1]{\text{send}\,\{{#1}\}}
+\newcommand{\sendI}[1]{\underline{\text{send}}\,{#1}}
 \newcommand{\sendR}[1]{\text{send}\,{#1}}
 \newcommand{\close}[1]{\text{close}\,{#1}}
 \newcommand{\wait}[1]{\text{wait}\,{#1}}
@@ -93,7 +95,7 @@
                                     | $\SigR{t}{x : A}{B}$ | $\SigI{t}{x : A}{B}$ \\
               &             & \;| & $\lamR{t}{x : A}{m}$ | $\lamI{t}{x : A}{m}$
                                     | $\pairR{m}{n}{t}$ | $\pairI{m}{n}{t}$ \\
-              &             & \;| & $m\ n$ | $\SigElim{[z]A}{m}{[x,y]n}$ | $\fix{x : A}{m}$ \\
+              &             & \;| & $\appR{m}{n}$ | $\appI{m}{n}$ | $\SigElim{[z]A}{m}{[x,y]n}$ | $\fix{x : A}{m}$ \\
               &             & \;| & $\unit$ | $\ii$ | $\bool$ | $\btrue$ | $\bfalse$
                                     | $\boolElim{[z]A}{m}{n_{1}}{n_{2}}$ \\
               &             & \;| & $\T{A}$ | $\return{m}$ | $\letin{x}{m}{n}$ \\
@@ -106,7 +108,7 @@
                                     | $\pairR{u}{v}{t}$ | $\pairI{v}{m}{t}$ \\
               &             & \;| & $\ii$ | $\btrue$ | $\bfalse$ | $\return{v}$ | $\letin{x}{v}{m}$ \\
               &             & \;| & $\fork{x : A}{m}$ | $\recvR{v}$ | $\recvI{v}$ | $\sendR{v}$ | $\sendI{v}$ \\
-              &             & \;| & $\sendR{u}\ v$ | $\sendI{v}\ m$ | $\close{v}$ | $\wait{v}$ \\
+              &             & \;| & $\appR{\sendR{u}}{v}$ | $\appI{\sendI{v}}{m}$ | $\close{v}$ | $\wait{v}$ \\
     process   & $o, p, q$   & \;| & $\langle m \rangle$ | $p \mid q$ | $\scope{cd}{p}$
   \end{tabular}
 \end{center}
@@ -173,12 +175,12 @@
   \inferrule
   { \Gamma \vdash m : \PiR{t}{x : A}{B} \\
     \Gamma \vdash n : A }
-  { \Gamma \vdash m\ n : B[n/x] }
+  { \Gamma \vdash \appR{m}{n} : B[n/x] }
 
   \inferrule
   { \Gamma \vdash m : \PiI{t}{x : A}{B} \\
     \Gamma \vdash n : A }
-  { \Gamma \vdash m\ n : B[n/x] }
+  { \Gamma \vdash \appI{m}{n} : B[n/x] }
 
   \inferrule
   { s \sqsubseteq t \\ r \sqsubseteq t \\
@@ -420,12 +422,12 @@
   \inferrule
   { \Theta_1 ; \Gamma ; \Delta_1 \vdash m : \PiR{t}{x : A}{B} \\
     \Theta_2 ; \Gamma ; \Delta_2 \vdash n : A }
-  { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash m\ n : B[n/x] }
+  { \Theta_1 \dotcup \Theta_2 ; \Gamma ; \Delta_1 \dotcup \Delta_2 \vdash \appR{m}{n} : B[n/x] }
 
   \inferrule
   { \Theta ; \Gamma ; \Delta \vdash m : \PiI{t}{x : A}{B} \\
     \Gamma \vdash n : A }
-  { \Theta ; \Gamma ; \Delta \vdash m\ n : B[n/x] }
+  { \Theta ; \Gamma ; \Delta \vdash \appI{m}{n} : B[n/x] }
 
   \inferrule
   { \Gamma \vdash \SigR{t}{x : A}{B} : t \\
@@ -604,7 +606,7 @@ Structural congruence is the least congruence relation with the following proper
   \inferrule
   { }
   { \scope{cd}{(
-      \langle \letin{x}{\sendR{c}\ v}{n_1} \rangle \mid
+      \langle \letin{x}{\appR{\sendR{c}}{v}}{n_1} \rangle \mid
       \langle \letin{y}{\recvR{d}}{n_2} \rangle)} \Rrightarrow \\
     \scope{cd}{(
       \langle \letin{x}{\return{c}}{n_1} \rangle \mid
@@ -613,7 +615,7 @@ Structural congruence is the least congruence relation with the following proper
   \inferrule
   { }
   { \scope{cd}{(
-      \langle \letin{x}{\sendI{c}\ m}{n_1} \rangle \mid
+      \langle \letin{x}{\appI{\sendI{c}}{m}}{n_1} \rangle \mid
       \langle \letin{y}{\recvI{d}}{n_2} \rangle)} \Rrightarrow \\
     \scope{cd}{(
       \langle \letin{x}{\return{c}}{n_1} \rangle \mid
