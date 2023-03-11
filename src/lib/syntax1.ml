@@ -1,5 +1,7 @@
-(* open Fmt *)
+open Fmt
 open Names
+
+(* syntax definitions *)
 
 type sort = U | L
 [@@deriving show { with_path = false }]
@@ -21,9 +23,9 @@ type tm =
   | Type of sort
   | Var of V.t
   | Pi of rel * sort * tm * (V.t, tm) abs
-  | Lam of rel * sort * (V.t, tm) abs
+  | Lam of rel * sort * (V.t * tm_opt, tm) abs
   | App of tm * tm
-  | Let of rel * tm * (V.t, tm) abs
+  | Let of rel * tm * (V.t * tm_opt, tm) abs
   | Fix of (V.t, tm) abs
   (* data *)
   | Sig of rel * sort * tm * (V.t, tm) abs
@@ -34,12 +36,11 @@ type tm =
   (* equality *)
   | Eq of tm * tm
   | Refl of tm
-  | EqElim of
-      (V.t, (V.t, tm) abs) abs * tm * tm
+  | EqElim of (V.t * V.t, tm) abs * tm * tm
   (* monadic *)
   | IO of tm
   | Return of tm
-  | Bind of tm * (V.t, tm) abs
+  | Bind of tm * (V.t * tm_opt, tm) abs
   (* session *)
   | Proto
   | End of role
@@ -55,8 +56,8 @@ type tm =
   | Ptr of tm * tm
   | Cap of tm * tm
   | PtrElim of
-      (V.t, (V.t, tm) abs) abs *
-      (V.t, (V.t, tm) abs) abs * tm
+      (V.t * V.t, tm) abs *
+      (V.t * V.t, tm) abs * tm
   | Alloc of tm
   | Get of tm * tm
   | Set of tm * tm * tm
@@ -69,11 +70,11 @@ and mot =
   | Mot0
   | Mot1 of (V.t, tm) abs
   | Mot2 of (p, tm) abs
-  | Mot3 of (V.t, (p, tm) abs) abs
+  | Mot3 of (V.t * p, tm) abs
 
 and p =
   | PVar of V.t
-  | PPair of V.t * V.t
+  | PPair of rel * sort * V.t * V.t
   | PData of D.t * V.t list
   | PCons of C.t * V.t list
 
@@ -95,20 +96,40 @@ and tl =
   | TBind of rel * tm * (V.t, tl) abs
 [@@deriving show { with_path = false }]
 
+(* utility *)
 
 let var x = Var x
 
 let freshen_p = function
   | PVar x -> PVar (V.freshen x)
-  | PPair (x, y) -> PPair (V.freshen x, V.freshen y)
+  | PPair (rel, s, x, y) -> PPair (rel, s, V.freshen x, V.freshen y)
   | PData (d, xs) -> PData (d, List.map V.freshen xs)
   | PCons (c, xs) -> PCons (c, List.map V.freshen xs)
 
 let xs_of_p = function
   | PVar x -> [ x ]
-  | PPair (x, y) -> [x; y]
+  | PPair (_, _, x, y) -> [x; y]
   | PData (_, xs) -> xs
   | PCons (_, xs) -> xs
+
+let equal_p p1 p2 =
+  match p1, p2 with
+  | PVar _, PVar _ -> true
+  | PPair (rel1, s1, _, _), PPair (rel2, s2, _, _) ->
+    rel1 = rel2 && s1 = s2 
+  | PData (d1, xs1), PData (d2, xs2) ->
+    D.equal d1 d2 && List.length xs1 = List.length xs2
+  | PCons (c1, xs1), PCons (c2, xs2) ->
+    C.equal c1 c2 && List.length xs1 = List.length xs2
+  | _ -> false
+
+let equal_abs eq (Abs (_, m)) (Abs (_, n)) = eq m n
+let equal_ann eq (Abs ((_, a_opt), m)) (Abs ((_, b_opt), n)) =
+  match a_opt, b_opt with
+  | Some a, Some b ->
+    eq a b && eq m n
+  | _ -> eq m n
+let equal_pabs eq (Abs (p1, m)) (Abs (p2, n)) = equal_p p1 p2 && eq m n
 
 let findi_opt f ls =
   let rec aux k = function
@@ -121,13 +142,15 @@ let findi_opt f ls =
   in
   aux 0 ls
 
+(* variable binding/unbinding *)
+
 let bindn_tm k xs m =
   let rec aux k = function
     (* inference *)
-    | Ann (a, m) ->
-      let a = aux k a in
+    | Ann (m, a) ->
       let m = aux k m in
-      Ann (a, m)
+      let a = aux k a in
+      Ann (m, a)
     | Meta (x, ms) ->
       let ms = List.map (aux k) ms in
       Meta (x, ms)
@@ -142,17 +165,19 @@ let bindn_tm k xs m =
       let a = aux k a in
       let b = aux (k + 1) b in
       Pi (rel, s, a, Abs (x, b))
-    | Lam (rel, s, Abs (x, m)) ->
+    | Lam (rel, s, Abs ((x, a_opt), m)) ->
+      let a_opt = Option.map (aux k) a_opt in
       let m = aux (k + 1) m in
-      Lam (rel, s, Abs (x, m))
+      Lam (rel, s, Abs ((x, a_opt), m))
     | App (m, n) ->
       let m = aux k m in
       let n = aux k n in
       App (m, n)
-    | Let (rel, m, Abs (x, n)) ->
+    | Let (rel, m, Abs ((x, a_opt), n)) ->
       let m = aux k m in
+      let a_opt = Option.map (aux k) a_opt in
       let n = aux (k + 1) n in
-      Let (rel, m, Abs (x, n))
+      Let (rel, m, Abs ((x, a_opt), n))
     | Fix (Abs (x, m)) ->
       let m = aux (k + 1) m in
       Fix (Abs (x, m))
@@ -190,18 +215,19 @@ let bindn_tm k xs m =
       let n = aux k n in
       Eq (m, n)
     | Refl m -> Refl (aux k m)
-    | EqElim (Abs (x, Abs (y, c)), h, p) ->
+    | EqElim (Abs ((x, y), c), h, p) ->
       let c = aux (k + 2) c in
       let h = aux k h in
       let p = aux k p in
-      EqElim (Abs (x, Abs (y, c)), h, p)
+      EqElim (Abs ((x, y), c), h, p)
     (* monadic *)
     | IO a -> IO (aux k a)
     | Return m -> Return (aux k m)
-    | Bind (m, Abs (x, n)) ->
+    | Bind (m, Abs ((x, a_opt), n)) ->
       let m = aux k m in
+      let a_opt = Option.map (aux k) a_opt in
       let n = aux (k + 1) n in
-      Bind (m, Abs (x, n))
+      Bind (m, Abs ((x, a_opt), n))
     (* session *)
     | Proto -> Proto
     | End rol -> End rol
@@ -222,13 +248,13 @@ let bindn_tm k xs m =
     | Print m -> Print (aux k m)
     | Ptr (l, a) -> Ptr (l, aux k a)
     | Cap (l, m) -> Cap (l, aux k m)
-    | PtrElim (Abs (x1, Abs (y1, a)),
-               Abs (x2, Abs (y2, n)), c) ->
+    | PtrElim (Abs ((x1, y1), a),
+               Abs ((x2, y2), n), c) ->
       let a = aux (k + 2) a in
       let n = aux (k + 2) n in
       let c = aux k c in
-      PtrElim (Abs (x1, Abs (y1, a)),
-               Abs (x2, Abs (y2, n)), c)
+      PtrElim (Abs ((x1, y1), a),
+               Abs ((x2, y2), n), c)
     | Alloc m -> Alloc (aux k m)
     | Get (l, c) ->
       let l = aux k l in
@@ -249,15 +275,13 @@ let bindn_tm k xs m =
       let a = aux (k + 1) a in
       Mot1 (Abs (x, a))
     | Mot2 (Abs (p, a)) ->
-      let xs = xs_of_p p in
-      let k = k + List.length xs in
+      let k = k + List.length (xs_of_p p) in
       let a = aux k a in
       Mot2 (Abs (p, a))
-    | Mot3 (Abs (x, Abs (p, a))) ->
-      let xs = xs_of_p p in
-      let k = k + 1 + List.length xs in
+    | Mot3 (Abs ((x, p), a)) ->
+      let k = k + 1 + List.length (xs_of_p p) in
       let a = aux k a in
-      Mot3 (Abs (x, Abs (p, a)))
+      Mot3 (Abs ((x, p), a))
   in
   aux k m
 
@@ -265,10 +289,10 @@ let unbindn_tm k xs m =
   let sz = List.length xs in
   let rec aux k = function
     (* inference *)
-    | Ann (a, m) ->
-      let a = aux k a in
+    | Ann (m, a) ->
       let m = aux k m in
-      Ann (a, m)
+      let a = aux k a in
+      Ann (m, a)
     | Meta (x, ms) ->
       let ms = List.map (aux k) ms in
       Meta (x, ms)
@@ -330,11 +354,11 @@ let unbindn_tm k xs m =
       let n = aux k n in
       Eq (m, n)
     | Refl m -> Refl (aux k m)
-    | EqElim (Abs (x, Abs (y, c)), h, p) ->
+    | EqElim (Abs ((x, y), c), h, p) ->
       let c = aux (k + 2) c in
       let h = aux k h in
       let p = aux k p in
-      EqElim (Abs (x, Abs (y, c)), h, p)
+      EqElim (Abs ((x, y), c), h, p)
     (* monadic *)
     | IO a -> IO (aux k a)
     | Return m -> Return (aux k m)
@@ -362,13 +386,13 @@ let unbindn_tm k xs m =
     | Print m -> Print (aux k m)
     | Ptr (l, a) -> Ptr (l, aux k a)
     | Cap (l, m) -> Cap (l, aux k m)
-    | PtrElim (Abs (x1, Abs (y1, a)),
-               Abs (x2, Abs (y2, n)), c) ->
+    | PtrElim (Abs ((x1, y1), a),
+               Abs ((x2, y2), n), c) ->
       let a = aux (k + 2) a in
       let n = aux (k + 2) n in
       let c = aux k c in
-      PtrElim (Abs (x1, Abs (y1, a)),
-               Abs (x2, Abs (y2, n)), c)
+      PtrElim (Abs ((x1, y1), a),
+               Abs ((x2, y2), n), c)
     | Alloc m -> Alloc (aux k m)
     | Get (l, c) ->
       let l = aux k l in
@@ -389,14 +413,152 @@ let unbindn_tm k xs m =
       let a = aux (k + 1) a in
       Mot1 (Abs (x, a))
     | Mot2 (Abs (p, a)) ->
-      let xs = xs_of_p p in
-      let k = k + List.length xs in
+      let k = k + List.length (xs_of_p p) in
       let a = aux k a in
       Mot2 (Abs (p, a))
-    | Mot3 (Abs (x, Abs (p, a))) ->
-      let xs = xs_of_p p in
-      let k = k + 1 + List.length xs in
+    | Mot3 (Abs ((x, p), a)) ->
+      let k = k + 1 + List.length (xs_of_p p) in
       let a = aux k a in
-      Mot3 (Abs (x, Abs (p, a)))
+      Mot3 (Abs ((x, p), a))
   in
   aux k m
+
+let rec bindn_tl k xs tl =
+  let rec aux k tl =
+    match tl with
+    | TBase b -> TBase (bindn_tm k xs b)
+    | TBind (r, a, Abs (x, tl)) ->
+      let a = bindn_tm k xs a in
+      let tl = aux (k + 1) tl in
+      TBind (r, a, Abs (x, tl))
+  in
+  aux k tl
+
+let rec unbindn_tl k xs tl =
+  let rec aux k tl =
+    match tl with
+    | TBase a -> TBase (unbindn_tm k xs a)
+    | TBind (r, a, Abs (x, tl)) ->
+      let a = unbindn_tm k xs a in
+      let tl = aux (k + 1) tl in
+      TBind (r, a, Abs (x, tl))
+  in
+  aux k tl
+
+let bind_tm x m = Abs (x, bindn_tm 0 [x] m)
+let bind_ann x a_opt m = Abs ((x, a_opt), bindn_tm 0 [x] m)
+let bind_tm2 x y m = Abs ((x, y), bindn_tm 0 [x; y] m)
+let bindp_tm p m =
+  let xs = xs_of_p p in
+  Abs (p, bindn_tm 0 xs m)
+let bindp_tm2 x p m =
+  let xs = xs_of_p p in
+  Abs ((x, p), bindn_tm 0 (x :: xs) m)
+let bind_tl x tl = Abs (x, bindn_tl 0 [x] tl)
+
+let unbind_tm (Abs (x, m)) =
+  let x = V.freshen x in
+  (x, unbindn_tm 0 [Var x] m)
+let unbind_ann (Abs ((x, a_opt), m)) =
+  let x = V.freshen x in
+  ((x, a_opt), unbindn_tm 0 [Var x] m)
+let unbind_tm2 (Abs ((x, y), m)) =
+  let x = V.freshen x in
+  let y = V.freshen y in
+  ((x, y), unbindn_tm 0 [Var x; Var y] m)
+let unbindp_tm (Abs (p, m)) =
+  let p = freshen_p p in
+  let xs = p |> xs_of_p |> List.map var in
+  (p, unbindn_tm 0 xs m)
+let unbindp_tm2 (Abs ((x, p), m)) =
+  let x = V.freshen x in
+  let p = freshen_p p in
+  let xs = p |> xs_of_p |> List.map var in
+  ((x, p), unbindn_tm 0 (Var x :: xs) m)
+let unbind_tl (Abs (x, tl)) =
+  let x = V.freshen x in
+  (x, unbindn_tl 0 [Var x] tl)
+
+let unbind2_tm (Abs (x, m)) (Abs (_, n)) =
+  let x = V.freshen x in
+  let m = unbindn_tm 0 [Var x] m in
+  let n = unbindn_tm 0 [Var x] n in
+  (x, m, n)
+let unbind2_ann (Abs ((x, a_opt), m)) (Abs ((_, b_opt), n)) =
+  let x = V.freshen x in
+  let m = unbindn_tm 0 [Var x] m in
+  let n = unbindn_tm 0 [Var x] n in
+  ((x, a_opt, b_opt), m, n)
+
+let unbindp2_tm (Abs (p1, m)) (Abs (p2, n)) =
+  if equal_p p1 p2 then
+    let p = freshen_p p1 in
+    let xs = p |> xs_of_p |> List.map var in
+    let m = unbindn_tm 0 xs m in
+    let n = unbindn_tm 0 xs n in
+    (p, m, n)
+  else
+    failwith "unbindp2(%a, %a)" pp_p p1 pp_p p2
+
+(* substitution *)
+
+let asubst_tm (Abs (_, m)) n = unbindn_tm 0 [n] m
+let asubst_ann (Abs ((_, _), m)) n = unbindn_tm 0 [n] m
+let asubst_tl (Abs (_, tl)) n = unbindn_tl 0 [n] tl
+
+let match_p p m =
+  match p, m with
+  | PVar _, _ -> [m]
+  | PPair (rel1, s1, _, _), Pair (rel2, s2, m, n) ->
+    if rel1 = rel2 && s1 = s2 then
+      [m; n]
+    else
+      failwith "match_p"
+  | PData (d1, xs), Data (d2, ms) ->
+    let xs_sz = List.length xs in
+    let ms_sz = List.length ms in
+    if D.equal d1 d2 && xs_sz = ms_sz then
+      ms
+    else
+      failwith "match_p"
+  | PCons (c1, xs), Cons (c2, ms) ->
+    let xs_sz = List.length xs in
+    let ms_sz = List.length ms in
+    if C.equal c1 c2 && xs_sz = ms_sz then
+      ms
+    else
+      failwith "match_p"
+  | _ -> failwith "match_p"
+
+let subst_tm x m n = unbindn_tm 0 [n] (bindn_tm 0 [x] m)
+let substp_tm p m n =
+  let xs = xs_of_p p in
+  let ns = match_p p n in
+  unbindn_tm 0 ns (bindn_tm 0 xs m)
+
+(* miscellaneous *)
+
+let lam rel s x a_opt m = Lam (rel, s, bind_ann x a_opt m)
+let mLam r s args m =
+  List.fold_right (fun (x, a_opt) -> lam r s x a_opt) args m
+
+let rec fold_tl f acc tl =
+  match tl with
+  | TBase b -> (acc, b)
+  | TBind (r, a, abs) ->
+    let x, tl = unbind_tl abs in
+    let acc, tl = f acc r a x tl in
+    fold_tl f acc tl
+
+let rec mkApps hd ms =
+  match ms with
+  | m :: ms -> mkApps (App (hd, m)) ms
+  | [] -> hd
+
+let unApps m =
+  let rec aux m ns =
+    match m with
+    | App (m, n) -> aux m (n :: ns)
+    | _ -> (m, ns)
+  in
+  aux m []

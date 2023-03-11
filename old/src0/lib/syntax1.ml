@@ -100,10 +100,10 @@ let bindn_tm k xs m =
       Meta (x, ms)
     | Type s -> Type s
     | Var y -> (
-      let opt = findi_opt (fun _ x -> V.equal x y) xs in
-      match opt with
-      | Some (i, _) -> Var (V.bind (i + k))
-      | None -> Var y)
+        let opt = findi_opt (fun _ x -> V.equal x y) xs in
+        match opt with
+        | Some (i, _) -> Var (V.bind (i + k))
+        | None -> Var y)
     | Pi (r, s, a, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
@@ -131,10 +131,10 @@ let bindn_tm k xs m =
       let cls =
         List.map
           (fun (Abs (p, m)) ->
-            let xs = xs_of_p p in
-            let k = k + List.length xs in
-            let m = aux k m in
-            Abs (p, m))
+             let xs = xs_of_p p in
+             let k = k + List.length xs in
+             let m = aux k m in
+             Abs (p, m))
           cls
       in
       Match (m, mot, cls)
@@ -171,9 +171,9 @@ let unbindn_tm k xs m =
       Meta (x, ms)
     | Type s -> Type s
     | Var y -> (
-      match V.is_bound y sz k with
-      | Some i -> List.nth xs (i - k)
-      | None -> Var y)
+        match V.is_bound y sz k with
+        | Some i -> List.nth xs (i - k)
+        | None -> Var y)
     | Pi (r, s, a, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
@@ -201,10 +201,10 @@ let unbindn_tm k xs m =
       let cls =
         List.map
           (fun (Abs (p, m)) ->
-            let xs = xs_of_p p in
-            let k = k + List.length xs in
-            let m = aux k m in
-            Abs (p, m))
+             let xs = xs_of_p p in
+             let k = k + List.length xs in
+             let m = aux k m in
+             Abs (p, m))
           cls
       in
       Match (m, mot, cls)
@@ -423,8 +423,8 @@ let rec occurs_tm x = function
     let cls_res =
       List.exists
         (fun abs ->
-          let _, m = unbindp_tm abs in
-          occurs_tm x m)
+           let _, m = unbindp_tm abs in
+           occurs_tm x m)
         cls
     in
     m_res || mot_res || cls_res
@@ -448,8 +448,8 @@ and occurs_mot x = function
 let occurs_cls x cls =
   List.fold_left
     (fun acc pabs ->
-      let _, m = unbindp_tm pabs in
-      acc || occurs_tm x m)
+       let _, m = unbindp_tm pabs in
+       acc || occurs_tm x m)
     false cls
 
 let rec occurs_tl x = function
