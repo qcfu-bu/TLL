@@ -34,7 +34,8 @@ type tm =
   (* equality *)
   | Eq of tm * tm
   | Refl of tm
-  | EqElim of tm * tm * (V.t, (V.t, tm) abs) abs
+  | EqElim of
+      (V.t, (V.t, tm) abs) abs * tm * tm
   (* monadic *)
   | IO of tm
   | Return of tm
@@ -47,7 +48,7 @@ type tm =
   | Fork of tm * (V.t, tm) abs
   | Recv of rel * tm
   | Send of rel * tm
-  | Close of role * tm
+  | Close of tm
   (* effectful *)
   | Read of tm
   | Print of tm
@@ -57,9 +58,9 @@ type tm =
       (V.t, (V.t, tm) abs) abs *
       (V.t, (V.t, tm) abs) abs * tm
   | Alloc of tm
-  | Get of tm
-  | Set of tm
-  | Free of tm
+  | Get of tm * tm
+  | Set of tm * tm * tm
+  | Free of tm * tm
 
 and tms = tm list
 and tm_opt = tm option
@@ -137,33 +138,33 @@ let bindn_tm k xs m =
        match opt with
        | Some (i, _) -> Var (V.bind (i + k))
        | None -> Var y)
-    | Pi (r, s, a, Abs (x, b)) ->
+    | Pi (rel, s, a, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
-      Pi (r, s, a, Abs (x, b))
-    | Lam (r, s, Abs (x, m)) ->
+      Pi (rel, s, a, Abs (x, b))
+    | Lam (rel, s, Abs (x, m)) ->
       let m = aux (k + 1) m in
-      Lam (r, s, Abs (x, m))
+      Lam (rel, s, Abs (x, m))
     | App (m, n) ->
       let m = aux k m in
       let n = aux k n in
       App (m, n)
-    | Let (r, m, Abs (x, n)) ->
+    | Let (rel, m, Abs (x, n)) ->
       let m = aux k m in
       let n = aux (k + 1) n in
-      Let (r, m, Abs (x, n))
+      Let (rel, m, Abs (x, n))
     | Fix (Abs (x, m)) ->
       let m = aux (k + 1) m in
       Fix (Abs (x, m))
     (* data *)
-    | Sig (r, s, a, Abs (x, b)) ->
+    | Sig (rel, s, a, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
-      Sig (r, s, a, Abs (x, b))
-    | Pair (r, s, m, n) ->
+      Sig (rel, s, a, Abs (x, b))
+    | Pair (rel, s, m, n) ->
       let m = aux k m in
       let n = aux k n in
-      Pair (r, s, m, n)
+      Pair (rel, s, m, n)
     | Data (d, ms) ->
       let ms = List.map (aux k) ms in
       Data (d, ms)
@@ -183,7 +184,205 @@ let bindn_tm k xs m =
           cls
       in
       Match (m, mot, cls)
-    | _ -> __
+    (* equality *)
+    | Eq (m, n) ->
+      let m = aux k m in
+      let n = aux k n in
+      Eq (m, n)
+    | Refl m -> Refl (aux k m)
+    | EqElim (Abs (x, Abs (y, c)), h, p) ->
+      let c = aux (k + 2) c in
+      let h = aux k h in
+      let p = aux k p in
+      EqElim (Abs (x, Abs (y, c)), h, p)
+    (* monadic *)
+    | IO a -> IO (aux k a)
+    | Return m -> Return (aux k m)
+    | Bind (m, Abs (x, n)) ->
+      let m = aux k m in
+      let n = aux (k + 1) n in
+      Bind (m, Abs (x, n))
+    (* session *)
+    | Proto -> Proto
+    | End rol -> End rol
+    | Act (rel, rol, a, Abs (x, b)) ->
+      let a = aux k a in
+      let b = aux (k + 1) b in
+      Act (rel, rol, a, Abs (x, b))
+    | Ch (rol, a) -> Ch (rol, aux k a)
+    | Fork (a, Abs (x, m)) ->
+      let a = aux k a in
+      let m = aux (k + 1) m in
+      Fork (a, Abs (x, m))
+    | Recv (rel, m) -> Recv (rel, aux k m)
+    | Send (rel, m) -> Send (rel, aux k m)
+    | Close m -> Close (aux k m)
+    (* effectful *)
+    | Read m -> Read (aux k m)
+    | Print m -> Print (aux k m)
+    | Ptr (l, a) -> Ptr (l, aux k a)
+    | Cap (l, m) -> Cap (l, aux k m)
+    | PtrElim (Abs (x1, Abs (y1, a)),
+               Abs (x2, Abs (y2, n)), c) ->
+      let a = aux (k + 2) a in
+      let n = aux (k + 2) n in
+      let c = aux k c in
+      PtrElim (Abs (x1, Abs (y1, a)),
+               Abs (x2, Abs (y2, n)), c)
+    | Alloc m -> Alloc (aux k m)
+    | Get (l, c) ->
+      let l = aux k l in
+      let c = aux k c  in
+      Get (l, c)
+    | Set (l, c, m) ->
+      let l = aux k l in
+      let c = aux k c in
+      let m = aux k m in
+      Set (l, c, m)
+    | Free (l, c) ->
+      let l = aux k l in
+      let c = aux k c in
+      Free (l, c)
+  and aux_mot k = function
+    | Mot0 -> Mot0
+    | Mot1 (Abs (x, a)) ->
+      let a = aux (k + 1) a in
+      Mot1 (Abs (x, a))
+    | Mot2 (Abs (p, a)) ->
+      let xs = xs_of_p p in
+      let k = k + List.length xs in
+      let a = aux k a in
+      Mot2 (Abs (p, a))
+    | Mot3 (Abs (x, Abs (p, a))) ->
+      let xs = xs_of_p p in
+      let k = k + 1 + List.length xs in
+      let a = aux k a in
+      Mot3 (Abs (x, Abs (p, a)))
+  in
+  aux k m
+
+let unbindn_tm k xs m =
+  let sz = List.length xs in
+  let rec aux k = function
+    (* inference *)
+    | Ann (a, m) ->
+      let a = aux k a in
+      let m = aux k m in
+      Ann (a, m)
+    | Meta (x, ms) ->
+      let ms = List.map (aux k) ms in
+      Meta (x, ms)
+    (* core *)
+    | Type s -> Type s
+    | Var y ->
+      (match V.is_bound y sz k with
+       | Some i -> List.nth xs (i - k)
+       | None -> Var y)
+    | Pi (rel, s, a, Abs (x, b)) ->
+      let a = aux k a in
+      let b = aux (k + 1) b in
+      Pi (rel, s, a, Abs (x, b))
+    | Lam (rel, s, Abs (x, m)) ->
+      let m = aux (k + 1) m in
+      Lam (rel, s, Abs (x, m))
+    | App (m, n) ->
+      let m = aux k m in
+      let n = aux k n in
+      App (m, n)
+    | Let (rel, m, Abs (x, n)) ->
+      let m = aux k m in
+      let n = aux (k + 1) n in
+      Let (rel, m, Abs (x, n))
+    | Fix (Abs (x, m)) ->
+      let m = aux (k + 1) m in
+      Fix (Abs (x, m))
+    (* data *)
+    | Sig (rel, s, a, Abs (x, b)) ->
+      let a = aux k a in
+      let b = aux (k + 1) b in
+      Sig (rel, s, a, Abs (x, b))
+    | Pair (rel, s, m, n) ->
+      let m = aux k m in
+      let n = aux k n in
+      Pair (rel, s, m, n)
+    | Data (d, ms) ->
+      let ms = List.map (aux k) ms in
+      Data (d, ms)
+    | Cons (c, ms) ->
+      let ms = List.map (aux k) ms in
+      Cons (c, ms)
+    | Match (m, mot, cls) ->
+      let m = aux k m in
+      let mot = aux_mot k mot in
+      let cls = 
+        List.map 
+          (fun (Abs (p, m)) ->
+             let xs = xs_of_p p in
+             let k = k + List.length xs in
+             let m = aux k m in
+             Abs (p, m))
+          cls
+      in
+      Match (m, mot, cls)
+    (* equality *)
+    | Eq (m, n) ->
+      let m = aux k m in
+      let n = aux k n in
+      Eq (m, n)
+    | Refl m -> Refl (aux k m)
+    | EqElim (Abs (x, Abs (y, c)), h, p) ->
+      let c = aux (k + 2) c in
+      let h = aux k h in
+      let p = aux k p in
+      EqElim (Abs (x, Abs (y, c)), h, p)
+    (* monadic *)
+    | IO a -> IO (aux k a)
+    | Return m -> Return (aux k m)
+    | Bind (m, Abs (x, n)) ->
+      let m = aux k m in
+      let n = aux (k + 1) n in
+      Bind (m, Abs (x, n))
+    (* session *)
+    | Proto -> Proto
+    | End rol -> End rol
+    | Act (rel, rol, a, Abs (x, b)) ->
+      let a = aux k a in
+      let b = aux (k + 1) b in
+      Act (rel, rol, a, Abs (x, b))
+    | Ch (rol, a) -> Ch (rol, aux k a)
+    | Fork (a, Abs (x, m)) ->
+      let a = aux k a in
+      let m = aux (k + 1) m in
+      Fork (a, Abs (x, m))
+    | Recv (rel, m) -> Recv (rel, aux k m)
+    | Send (rel, m) -> Send (rel, aux k m)
+    | Close m -> Close (aux k m)
+    (* effectful *)
+    | Read m -> Read (aux k m)
+    | Print m -> Print (aux k m)
+    | Ptr (l, a) -> Ptr (l, aux k a)
+    | Cap (l, m) -> Cap (l, aux k m)
+    | PtrElim (Abs (x1, Abs (y1, a)),
+               Abs (x2, Abs (y2, n)), c) ->
+      let a = aux (k + 2) a in
+      let n = aux (k + 2) n in
+      let c = aux k c in
+      PtrElim (Abs (x1, Abs (y1, a)),
+               Abs (x2, Abs (y2, n)), c)
+    | Alloc m -> Alloc (aux k m)
+    | Get (l, c) ->
+      let l = aux k l in
+      let c = aux k c  in
+      Get (l, c)
+    | Set (l, c, m) ->
+      let l = aux k l in
+      let c = aux k c in
+      let m = aux k m in
+      Set (l, c, m)
+    | Free (l, c) ->
+      let l = aux k l in
+      let c = aux k c in
+      Free (l, c)
   and aux_mot k = function
     | Mot0 -> Mot0
     | Mot1 (Abs (x, a)) ->
