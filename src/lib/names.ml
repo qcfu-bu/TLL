@@ -1,5 +1,6 @@
 open Fmt
 
+(* standard variables *)
 module V : sig
   type t
 
@@ -61,6 +62,69 @@ end = struct
     | x :: xs -> pf fmt "%a %a" pp x pps xs
 end
 
+(* sort variables *)
+module S : sig
+  type t
+
+  val mk : string -> t
+  val bind : int -> t
+  val blank : unit -> t
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val freshen : t -> t
+  val is_bound : t -> int -> int -> int option
+  val pp : Format.formatter -> t -> unit
+  val pps : Format.formatter -> t list -> unit
+end = struct
+  type t =
+    | Free of string * Z.t
+    | Bound of int
+
+  let stamp = ref Z.zero
+
+  let mk s =
+    let _ = stamp := Z.succ !stamp in
+    Free (s, !stamp)
+
+  let bind k = Bound k
+  let blank () = mk ""
+
+  let equal x y =
+    match (x, y) with
+    | Free (_, x), Free (_, y) -> Z.equal x y
+    | Bound x, Bound y -> x = y
+    | _ -> false
+
+  let compare x y = compare x y
+
+  let freshen x =
+    match x with
+    | Bound _ -> x
+    | Free (x, _) ->
+      let _ = stamp := Z.succ !stamp in
+      Free (x, !stamp)
+
+  let is_bound x sz k =
+    match x with
+    | Bound i ->
+      if k <= i && i < k + sz then
+        Some i
+      else
+        None
+    | Free _ -> None
+
+  let pp fmt x =
+    match x with
+    | Bound x -> pf fmt "_v%d" x
+    | Free (x, id) -> pf fmt "%s_%s" x (Z.to_string id)
+
+  let rec pps fmt xs =
+    match xs with
+    | [] -> ()
+    | x :: xs -> pf fmt "%a %a" pp x pps xs
+end
+
+(* meta variables *)
 module M : sig
   type t
 
@@ -82,6 +146,7 @@ end = struct
   let pp fmt id = pf fmt "??%d" id
 end
 
+(* data identifiers *)
 module D : sig
   type t
 
@@ -103,6 +168,7 @@ end = struct
   let pp fmt (s, id) = pf fmt "%s_d%d" s id
 end
 
+(* constructor identifiers *)
 module C : sig
   type t
 
@@ -126,13 +192,17 @@ end = struct
   let pp fmt (s, id) = pf fmt "%s_c%d" s id
 end
 
-module SSet = Set.Make (String)
+(* sets *)
+module StrSet = Set.Make (String)
 module VSet = Set.Make (V)
+module SSet = Set.Make (S)
 module MSet = Set.Make (M)
 module CSet = Set.Make (C)
 module DSet = Set.Make (D)
-module SMap = Map.Make (String)
+(* maps *)
+module StrMap = Map.Make (String)
 module VMap = Map.Make (V)
+module SMap = Map.Make (S)
 module MMap = Map.Make (M)
 module CMap = Map.Make (C)
 module DMap = Map.Make (D)

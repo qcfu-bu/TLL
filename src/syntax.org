@@ -111,9 +111,77 @@ send c
 close c
 #+end_src
 
-* Effectful
+* Effects
 #+begin_src 
 l ↦ A
-(l; m)
-ptr_elim (l1; x) = m as [l2, c] A in n
+(l @ m)
+ptr_elim (l1 @ x) = m as [l2, c] A in n
+#+end_src
+
+* Notes
+#+begin_src 
+inductive array : loc -> nat -> Sort s -> L :=
+| array_nil  : ∀ {l : loc} -> array l 0 A
+| array_cons : ∀ {n : nat} -> (l + n ↦ A) -> array l n A -> array l (S n) A
+
+Γ ⊢ l : loc    Γ ⊢ A : s
+—————————————————————————
+Γ ⊢ l ↦ A : L
+
+ϵ ⊢ l : loc    ϵ; ϵ ⊢ m : A
+————————————————————————————
+ϵ; ϵ ⊢ (l @ m) : l ↦ A
+
+Γ, l2 : loc, z : l2 ↦ A ⊢ C : s 
+Γ ⊢ m : l ↦ A    Γ, l1 : loc, x : A ⊢ n : C[l1/l2,(l1 @ x)/z]
+——————————————————————————————————————————————————————————————
+Γ ⊢ ptr_elim (l1 @ x) = m as [l2, z] C in n : C[l/l2,m/z]
+
+Γ; Δ ⊢ sz : nat
+——————————————————————————————————————————————————
+Γ; Δ ⊢ alloc sz : IO ({l : loc} ⊗ hunk l sz unit)
+
+Γ; Δ1 ⊢ c : l ↦ unit    Γ; Δ2 ⊢ m : A
+——————————————————————————————————————
+Γ; Δ1 ⊍ Δ2 ⊢ set c m : IO (l ↦ A)
+
+Γ; Δ ⊢ c : l ↦ A
+——————————————————————————————————
+Γ; Δ ⊢ get c : IO (A ⊗ (l ↦ unit))
+
+Γ; Δ ⊢ c : l ↦ unit
+————————————————————————
+Γ; Δ ⊢ free c : IO unit
+
+
+set : ∀ (l : loc) → (l ↦ unit) → A -> (l ↦ A)
+get : ∀ (l : loc) → (l ↦ 
+#+end_src
+
+#+begin_src 
+inductive Sigma‹s,r,t› (A : Sort(s)) (B : A → Sort(r)) : Sort(t) :=
+| SigmaIntro : ∀ (x : A) → B x → Sigma‹s,r,t› A B
+
+SigmaIntro constraint : s ⊑ t ∧ r ⊑ t
+
+inductive Subset‹s,r,t› (A : Sort(s)) (B : A → Sort(r)) : Sort(t) :=
+| SubsetIntro : ∀ (x : A) → {B x} → Subset‹s,r,t› A B
+
+SubsetIntro constraint : s ⊑ t
+
+inductive Array‹s› (A : Sort(s)) (l : loc) (sz : size) : L :=
+| ArrayNil  : Array‹s› A l 0
+| ArrayCons :
+  ∀ {sz0 : size} → {sz ≡ sz0.+1} -> (l + sz ↦ A) →
+  Array‹s› A l sz0 → Array‹s› A l sz
+
+ArrayNil  constraint : T
+ArrayCons constraint : L ⊑ L ∧ L ⊑ L
+
+inductive List‹s,t› (A : Sort(s)) : Sort(t) :=
+| ListNil  : List‹s,t› A
+| ListCons : A → List‹s,t› A → List‹s,t› A
+
+ListNil  constraint : T
+ListCons constraint : s ⊑ t ∧ t ⊑ t
 #+end_src

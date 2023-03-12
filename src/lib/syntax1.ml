@@ -22,6 +22,7 @@ type tm =
   (* core *)
   | Type of sort
   | Var of V.t
+  | Srt of S.t
   | Pi of rel * sort * tm * (V.t, tm) abs
   | Lam of rel * sort * (V.t * tm_opt, tm) abs
   | App of tm * tm
@@ -30,8 +31,8 @@ type tm =
   (* data *)
   | Sig of rel * sort * tm * (V.t, tm) abs
   | Pair of rel * sort * tm * tm
-  | Data of D.t * tms
-  | Cons of C.t * tms
+  | Data of D.t * s_args * tms
+  | Cons of C.t * s_args * tms
   | Match of tm * mot * cls
   (* equality *)
   | Eq of tm * tm
@@ -50,18 +51,9 @@ type tm =
   | Recv of rel * tm
   | Send of rel * tm
   | Close of tm
-  (* effectful *)
+  (* effects *)
   | Read of tm
   | Print of tm
-  | Ptr of tm * tm
-  | Cap of tm * tm
-  | PtrElim of
-      (V.t * V.t, tm) abs *
-      (V.t * V.t, tm) abs * tm
-  | Alloc of tm
-  | Get of tm * tm
-  | Set of tm * tm * tm
-  | Free of tm * tm
 
 and tms = tm list
 and tm_opt = tm option
@@ -81,15 +73,24 @@ and p =
 and ps = p list
 and cl = (p, tm) abs
 and cls = cl list
+
+and s_arg = S of sort | M of M.t
+and s_args = s_arg list
 [@@deriving show { with_path = false }]
 
 type dcl =
   | DTm of rel * V.t * tm_opt * tm
-  | DData of D.t * tl * dconss
+  | DData of D.t * stl * dconss
 
 and dcls = dcl list
-and dcons = DCons of C.t * tl
+and dcons = DCons of C.t * stl
 and dconss = dcons list
+
+and stl = SBase of (S.t list, ptl) abs
+
+and ptl =
+  | PBase of tl
+  | PBind of tm * (V.t, ptl) abs
 
 and tl =
   | TBase of tm
@@ -161,6 +162,7 @@ let bindn_tm k xs m =
        match opt with
        | Some (i, _) -> Var (V.bind (i + k))
        | None -> Var y)
+    | Srt s -> Srt s
     | Pi (rel, s, a, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
@@ -190,12 +192,12 @@ let bindn_tm k xs m =
       let m = aux k m in
       let n = aux k n in
       Pair (rel, s, m, n)
-    | Data (d, ms) ->
+    | Data (d, ss, ms) ->
       let ms = List.map (aux k) ms in
-      Data (d, ms)
-    | Cons (c, ms) ->
+      Data (d, ss, ms)
+    | Cons (c, ss, ms) ->
       let ms = List.map (aux k) ms in
-      Cons (c, ms)
+      Cons (c, ss, ms)
     | Match (m, mot, cls) ->
       let m = aux k m in
       let mot = aux_mot k mot in
@@ -246,29 +248,6 @@ let bindn_tm k xs m =
     (* effectful *)
     | Read m -> Read (aux k m)
     | Print m -> Print (aux k m)
-    | Ptr (l, a) -> Ptr (l, aux k a)
-    | Cap (l, m) -> Cap (l, aux k m)
-    | PtrElim (Abs ((x1, y1), a),
-               Abs ((x2, y2), n), c) ->
-      let a = aux (k + 2) a in
-      let n = aux (k + 2) n in
-      let c = aux k c in
-      PtrElim (Abs ((x1, y1), a),
-               Abs ((x2, y2), n), c)
-    | Alloc m -> Alloc (aux k m)
-    | Get (l, c) ->
-      let l = aux k l in
-      let c = aux k c  in
-      Get (l, c)
-    | Set (l, c, m) ->
-      let l = aux k l in
-      let c = aux k c in
-      let m = aux k m in
-      Set (l, c, m)
-    | Free (l, c) ->
-      let l = aux k l in
-      let c = aux k c in
-      Free (l, c)
   and aux_mot k = function
     | Mot0 -> Mot0
     | Mot1 (Abs (x, a)) ->
@@ -302,6 +281,7 @@ let unbindn_tm k xs m =
       (match V.is_bound y sz k with
        | Some i -> List.nth xs (i - k)
        | None -> Var y)
+    | Srt s -> Srt s
     | Pi (rel, s, a, Abs (x, b)) ->
       let a = aux k a in
       let b = aux (k + 1) b in
@@ -329,12 +309,12 @@ let unbindn_tm k xs m =
       let m = aux k m in
       let n = aux k n in
       Pair (rel, s, m, n)
-    | Data (d, ms) ->
+    | Data (d, ss, ms) ->
       let ms = List.map (aux k) ms in
-      Data (d, ms)
-    | Cons (c, ms) ->
+      Data (d, ss, ms)
+    | Cons (c, ss, ms) ->
       let ms = List.map (aux k) ms in
-      Cons (c, ms)
+      Cons (c, ss, ms)
     | Match (m, mot, cls) ->
       let m = aux k m in
       let mot = aux_mot k mot in
@@ -384,29 +364,6 @@ let unbindn_tm k xs m =
     (* effectful *)
     | Read m -> Read (aux k m)
     | Print m -> Print (aux k m)
-    | Ptr (l, a) -> Ptr (l, aux k a)
-    | Cap (l, m) -> Cap (l, aux k m)
-    | PtrElim (Abs ((x1, y1), a),
-               Abs ((x2, y2), n), c) ->
-      let a = aux (k + 2) a in
-      let n = aux (k + 2) n in
-      let c = aux k c in
-      PtrElim (Abs ((x1, y1), a),
-               Abs ((x2, y2), n), c)
-    | Alloc m -> Alloc (aux k m)
-    | Get (l, c) ->
-      let l = aux k l in
-      let c = aux k c  in
-      Get (l, c)
-    | Set (l, c, m) ->
-      let l = aux k l in
-      let c = aux k c in
-      let m = aux k m in
-      Set (l, c, m)
-    | Free (l, c) ->
-      let l = aux k l in
-      let c = aux k c in
-      Free (l, c)
   and aux_mot k = function
     | Mot0 -> Mot0
     | Mot1 (Abs (x, a)) ->
@@ -423,7 +380,18 @@ let unbindn_tm k xs m =
   in
   aux k m
 
-let rec bindn_tl k xs tl =
+let rec bindn_ptl k xs ptl =
+  let rec aux k ptl =
+    match ptl with
+    | PBase tl -> PBase (bindn_tl k xs tl)
+    | PBind (a, Abs (x, ptl)) ->
+      let a = bindn_tm k xs a in
+      let ptl = aux (k + 1) ptl in
+      PBind (a, Abs (x, ptl))
+  in
+  aux k ptl
+
+and bindn_tl k xs tl =
   let rec aux k tl =
     match tl with
     | TBase b -> TBase (bindn_tm k xs b)
@@ -514,14 +482,14 @@ let match_p p m =
       [m; n]
     else
       failwith "match_p"
-  | PData (d1, xs), Data (d2, ms) ->
+  | PData (d1, xs), Data (d2, _, ms) ->
     let xs_sz = List.length xs in
     let ms_sz = List.length ms in
     if D.equal d1 d2 && xs_sz = ms_sz then
       ms
     else
       failwith "match_p"
-  | PCons (c1, xs), Cons (c2, ms) ->
+  | PCons (c1, xs), Cons (c2, _, ms) ->
     let xs_sz = List.length xs in
     let ms_sz = List.length ms in
     if C.equal c1 c2 && xs_sz = ms_sz then
