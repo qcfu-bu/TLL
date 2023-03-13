@@ -62,7 +62,7 @@ A ⊗ B
 #+end_src
 
 #+begin_src 
-match m as [x0, D x1 x2] A with
+match m as (x0, D x1 x2)%A with
 | C x3 x4 → m
 #+end_src
 
@@ -70,14 +70,14 @@ match m as [x0, D x1 x2] A with
 #+begin_src
 m ≡ n
 refl m
-eq_elim P as [x, p] A in H
+rew (x, p)%A by pf in m
 #+end_src
 
 * Monadic
 #+begin_src 
 IO A
 return m
-let x ⇐ m in n
+do x ← m in n
 #+end_src
 
 * Session
@@ -115,7 +115,7 @@ close c
 #+begin_src 
 l ↦ A
 (l @ m)
-ptr_elim (l1 @ x) = m as [l2, c] A in n
+ptr_elim m as (l2, c)%A in (l1, x)%n
 #+end_src
 
 * Notes
@@ -159,29 +159,12 @@ get : ∀ (l : loc) → (l ↦
 #+end_src
 
 #+begin_src 
-inductive Sigma‹s,r,t› (A : Sort(s)) (B : A → Sort(r)) : Sort(t) :=
-| SigmaIntro : ∀ (x : A) → B x → Sigma‹s,r,t› A B
+inductive Box (A : U) : L :=
+| BoxIntro : A -> Box A
 
-SigmaIntro constraint : s ⊑ t ∧ r ⊑ t
+Tensor (`nat) (λ (bx : `nat) → match bx with | [x] → `(x ≡ 20))
+TensorIntro (`nat) (λ bx → match bx with | [x] → `(x ≡ 20)) [20] [refl 20]
 
-inductive Subset‹s,r,t› (A : Sort(s)) (B : A → Sort(r)) : Sort(t) :=
-| SubsetIntro : ∀ (x : A) → {B x} → Subset‹s,r,t› A B
-
-SubsetIntro constraint : s ⊑ t
-
-inductive Array‹s› (A : Sort(s)) (l : loc) (sz : size) : L :=
-| ArrayNil  : Array‹s› A l 0
-| ArrayCons :
-  ∀ {sz0 : size} → {sz ≡ sz0.+1} -> (l + sz ↦ A) →
-  Array‹s› A l sz0 → Array‹s› A l sz
-
-ArrayNil  constraint : T
-ArrayCons constraint : L ⊑ L ∧ L ⊑ L
-
-inductive List‹s,t› (A : Sort(s)) : Sort(t) :=
-| ListNil  : List‹s,t› A
-| ListCons : A → List‹s,t› A → List‹s,t› A
-
-ListNil  constraint : T
-ListCons constraint : s ⊑ t ∧ t ⊑ t
+inductive Tensor (A : L) (B : A → L) : L :=
+| TensorIntro : ∀ (x : A) → B x → Tensor A B
 #+end_src
