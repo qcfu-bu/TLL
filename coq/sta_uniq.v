@@ -21,12 +21,8 @@ Inductive head_sim : term -> term -> Prop :=
 | head_sim_lam1 A m s : head_sim (Lam1 A m s) (Lam1 A m s)
 | head_sim_app m n : head_sim (App m n) (App m n)
 | head_sim_sig0 A1 A2 B1 B2 s1 s2 :
-  head_sim A1 A2 ->
-  head_sim B1 B2 ->
   head_sim (Sig0 A1 B1 s1) (Sig0 A2 B2 s2)
 | head_sim_sig1 A1 A2 B1 B2 s1 s2 :
-  head_sim A1 A2 ->
-  head_sim B1 B2 ->
   head_sim (Sig1 A1 B1 s1) (Sig1 A2 B2 s2)
 | head_sim_pair0 m n t : head_sim (Pair0 m n t) (Pair0 m n t)
 | head_sim_pair1 m n t : head_sim (Pair1 m n t) (Pair1 m n t)
@@ -412,10 +408,7 @@ Lemma sta_pair0_uniq Γ A B C m n s :
   sim (Sig0 A B s) C.
 Proof with eauto.
   move e:(Pair0 m n s)=>x ty. elim: ty A B m n s e=>//{Γ C x}.
-  { intros.
-    econstructor.
-
-    move=>*.
+  { move=>*.
     econstructor. eauto.
     constructor. eauto. }
   { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 n s0 e h; subst.
