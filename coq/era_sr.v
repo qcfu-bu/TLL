@@ -36,7 +36,7 @@ Proof with eauto using dyn_step, era_type, dyn_val, merge.
     { have[A'[m' e]]:=era_lam0_form erm.
       subst. exists (m'.[n/])...
       apply: era_subst0...
-      apply: era_lam0_inv... }
+      have[//]:=era_lam0_inv erm. }
     { have[A'[m' e]]:=era_lam1_form erm. subst.
       have/dyn_sta_type ty:=era_dyn_type erm.
       exfalso. apply: sta_lam1_pi0_false... } }
@@ -62,7 +62,7 @@ Proof with eauto using dyn_step, era_type, dyn_val, merge.
       subst. exists (m'.[n/])...
       apply: dyn_step_beta1.
       apply: era_dyn_val...
-      have{erm}[t erm]:=era_lam1_inv erm.
+      have{erm}[t[erm _]]:=era_lam1_inv erm.
       have wf:=dyn_type_wf (era_dyn_type erm). inv wf.
       apply: era_subst1...
       apply: dyn_val_key.

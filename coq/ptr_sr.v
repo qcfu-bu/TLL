@@ -86,9 +86,9 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
       have[A0[n0 e]]:=era_lam0_form erm. subst.
       exists H1'. exists H2. exists (n0.[n/]). exists (m'0.[Box/]).
       repeat split...
-      { have ern0:=era_lam0_inv erm.
+      { have[ern0 _]:=era_lam0_inv erm.
         apply: era_esubst0... }
-      { have ern:=era_lam0_inv erm.
+      { have[ern _]:=era_lam0_inv erm.
         have wr':=free_wr H9 wr.
         have[wr1 wr2]:=wr_merge_inv mrg' wr'.
         have[Hx[k mrgx]]:=split_self H1'.
@@ -166,7 +166,7 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
       have[H5[mrg rs]]:=resolve_free H13 H10 (merge_sym mrg4). inv rs.
       have[Hx[mrg5 mrg6]]:=merge_splitL (merge_sym mrg) mrg3.
       have[A0[n0 e]]:=era_lam1_form erm. subst.
-      have[r ern0]:=era_lam1_inv erm.
+      have[r[ern0 _]]:=era_lam1_inv erm.
       have wr':=free_wr H13 wr.
       have[wr1 wr2]:=wr_merge_inv mrg wr'.
       have[wr3 wr4]:=wr_merge_inv mrg3 wr2.

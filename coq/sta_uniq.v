@@ -21,8 +21,12 @@ Inductive head_sim : term -> term -> Prop :=
 | head_sim_lam1 A m s : head_sim (Lam1 A m s) (Lam1 A m s)
 | head_sim_app m n : head_sim (App m n) (App m n)
 | head_sim_sig0 A1 A2 B1 B2 s1 s2 :
+  head_sim A1 A2 ->
+  head_sim B1 B2 ->
   head_sim (Sig0 A1 B1 s1) (Sig0 A2 B2 s2)
 | head_sim_sig1 A1 A2 B1 B2 s1 s2 :
+  head_sim A1 A2 ->
+  head_sim B1 B2 ->
   head_sim (Sig1 A1 B1 s1) (Sig1 A2 B2 s2)
 | head_sim_pair0 m n t : head_sim (Pair0 m n t) (Pair0 m n t)
 | head_sim_pair1 m n t : head_sim (Pair1 m n t) (Pair1 m n t)
@@ -49,6 +53,9 @@ Lemma head_sim_reflexive m : head_sim m m.
 Proof with eauto using head_sim. elim: m... Qed.
 Hint Resolve head_sim_reflexive.
 
+Lemma head_sim_sym m n : head_sim m n -> head_sim n m.
+Proof with eauto using head_sim. elim=>{m n}... Qed.
+
 Lemma head_sim_subst m1 m2 σ : head_sim m1 m2 -> head_sim m1.[σ] m2.[σ].
 Proof with eauto using head_sim.
   move=>hs. elim: hs σ=>{m1 m2}...
@@ -57,6 +64,15 @@ Qed.
 Lemma sim_reflexive m : sim m m.
 Proof with eauto. econstructor... Qed.
 Hint Resolve sim_reflexive.
+
+Lemma sim_sym m n : sim m n -> sim n m.
+Proof with eauto.
+  move=>sm. inv sm.
+  econstructor.
+  apply: conv_sym...
+  apply: head_sim_sym...
+  apply: conv_sym...
+Qed.
 
 Lemma sim_transL x y z : sim x y -> y === z -> sim x z.
 Proof with eauto.
@@ -396,7 +412,10 @@ Lemma sta_pair0_uniq Γ A B C m n s :
   sim (Sig0 A B s) C.
 Proof with eauto.
   move e:(Pair0 m n s)=>x ty. elim: ty A B m n s e=>//{Γ C x}.
-  { move=>*.
+  { intros.
+    econstructor.
+
+    move=>*.
     econstructor. eauto.
     constructor. eauto. }
   { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 n s0 e h; subst.

@@ -212,7 +212,7 @@ Proof with eauto using dyn_pstep, era_pstep_reflexive.
       exists (App nx Box)... }
     { inv H1. inv H3. inv H4.
       have[A1[m1 e]]:=era_lam0_form erm. subst.
-      have erm1:=era_lam0_inv erm.
+      have[erm1 _]:=era_lam0_inv erm.
       have{}erm1:=era_subst0 erm1 tyn.
       exists m0.[Box/]... }
     { exfalso.
@@ -220,12 +220,12 @@ Proof with eauto using dyn_pstep, era_pstep_reflexive.
       apply: sta_lam1_pi0_false... }
     { inv H1. inv H2. inv H4.
       have[A1[m1 e]]:=era_lam0_form erm. subst.
-      have erm1:=era_lam0_inv erm.
+      have[erm1 _]:=era_lam0_inv erm.
       have{}erm1:=era_subst0 erm1 tyn.
       exists m0.[Box/]... }
     { inv H2. inv H5.
       have[A1[m1 e]]:=era_lam0_form erm. subst.
-      have erm1:=era_lam0_inv erm.
+      have[erm1 _]:=era_lam0_inv erm.
       have{}erm1:=era_subst0 erm1 tyn.
       exists m0.[Box/]... }
     { exfalso.
@@ -244,7 +244,7 @@ Proof with eauto using dyn_pstep, era_pstep_reflexive.
       apply: sta_lam0_pi1_false... }
     { inv H1.
       have[A1[m1 e]]:=era_lam1_form erm. subst.
-      have[r erm1]:=era_lam1_inv erm.
+      have[r[erm1 _]]:=era_lam1_inv erm.
       have wf:=dyn_type_wf (era_dyn_type erm1). inv wf.
       have vl:=era_dyn_val ern H4.
       have k:=dyn_val_key (era_dyn_type ern) H6 vl.
@@ -259,7 +259,7 @@ Proof with eauto using dyn_pstep, era_pstep_reflexive.
       apply: sta_lam0_pi1_false... }
     { inv H1.
       have[A1[m1 e]]:=era_lam1_form erm. subst.
-      have[r erm1]:=era_lam1_inv erm.
+      have[r[erm1 _]]:=era_lam1_inv erm.
       have wf:=dyn_type_wf (era_dyn_type erm1). inv wf.
       have[vl' e]:=dyn_val_pstep H2 H4. subst.
       have vl:=era_dyn_val ern vl'.
@@ -267,7 +267,7 @@ Proof with eauto using dyn_pstep, era_pstep_reflexive.
       have erm':=era_subst1 k mrg erm1 ern.
       exists m0.[n'0/]... }
     { have[A1[m1 e]]:=era_lam1_form erm. subst.
-      have[r erm1]:=era_lam1_inv erm.
+      have[r[erm1 _]]:=era_lam1_inv erm.
       have wf:=dyn_type_wf (era_dyn_type erm1). inv wf.
       have vl:=era_dyn_val ern H2.
       have k:=dyn_val_key (era_dyn_type ern) H6 vl.
