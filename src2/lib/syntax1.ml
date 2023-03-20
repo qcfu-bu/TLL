@@ -29,7 +29,7 @@ type tm =
   (* equality *)
   | Eq of tm * tm
   | Refl
-  | Rew of (tm, tm) binder * tm * tm
+  | Rew of (tm, tm) mbinder * tm * tm
   (* monadic *)
   | IO of tm
   | Return of tm
@@ -182,7 +182,7 @@ let rec lift = function
   (* equality *)
   | Eq (m, n) -> _Eq (lift m) (lift n)
   | Refl -> _Refl
-  | Rew (bnd, pf, m) -> _Rew (box_binder lift bnd) (lift pf) (lift m)
+  | Rew (bnd, pf, m) -> _Rew (box_mbinder lift bnd) (lift pf) (lift m)
   (* monadic *)
   | IO a -> _IO (lift a)
   | Return m -> _Return (lift m)
