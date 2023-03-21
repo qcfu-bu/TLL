@@ -45,13 +45,13 @@ type tm =
   | Send of rel * tm
   | Close of tm
 
-and tms = tm array
+and tms = tm list
 
 and cl =
   | PPair of rel * sort * (tm, tm) mbinder
   | PCons of C.t * (tm, tm) mbinder
 
-and cls = cl array
+and cls = cl list
 
 type dcl = DTm of rel * tm var * tm * tm | DData of D.t * tm param * dconss
 and dcls = dcl list
@@ -151,8 +151,8 @@ let rec lift = function
   (* inference *)
   | Ann (m, a) -> _Ann (lift m) (lift a)
   | Meta (x, ms) ->
-      let ms = Array.map lift ms in
-      _Meta x (box_array ms)
+      let ms = List.map lift ms in
+      _Meta x (box_list ms)
   (* core *)
   | Type s -> _Type s
   | Var x -> _Var x
@@ -165,20 +165,20 @@ let rec lift = function
   | Sigma (rel, s, a, bnd) -> _Sigma rel s (lift a) (box_binder lift bnd)
   | Pair (rel, s, m, n) -> _Pair rel s (lift m) (lift n)
   | Data (d, ms) ->
-      let ms = Array.map lift ms in
-      _Data d (box_array ms)
+      let ms = List.map lift ms in
+      _Data d (box_list ms)
   | Cons (c, ms) ->
-      let ms = Array.map lift ms in
-      _Cons c (box_array ms)
+      let ms = List.map lift ms in
+      _Cons c (box_list ms)
   | Match (m, bnd, cls) ->
       let cls =
-        Array.map
+        List.map
           (function
             | PPair (rel, s, bnd) -> _PPair rel s (box_mbinder lift bnd)
             | PCons (c, bnd) -> _PCons c (box_mbinder lift bnd))
           cls
       in
-      _Match (lift m) (box_binder lift bnd) (box_array cls)
+      _Match (lift m) (box_binder lift bnd) (box_list cls)
   (* equality *)
   | Eq (m, n) -> _Eq (lift m) (lift n)
   | Refl -> _Refl

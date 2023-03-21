@@ -57,7 +57,7 @@ let rec whnf mode env = function
   | m -> m
 
 and match_cls cls m =
-  Array.fold_left
+  List.fold_left
     (fun acc cl ->
       Option.fold
         ~some:(fun _ -> acc)
@@ -67,7 +67,7 @@ and match_cls cls m =
             when rel1 = rel2 && s1 = s2 ->
               Some (msubst bnd [| m1; m2 |])
           | PCons (c1, bnd), Cons (c2, ms) when C.equal c1 c2 ->
-              Some (msubst bnd ms)
+              Some (msubst bnd (Array.of_list ms))
           | _ -> acc)
         acc)
     None cls
@@ -95,13 +95,11 @@ let rec aeq m1 m2 =
         rel1 = rel2 && s1 = s2 && aeq a1 a2 && eq_binder aeq bnd1 bnd2
     | Pair (rel1, s1, m1, n1), Pair (rel2, s2, m2, n2) ->
         rel1 = rel2 && s1 = s2 && aeq m1 m2 && aeq n1 n2
-    | Data (d1, ms1), Data (d2, ms2) ->
-        D.equal d1 d2 && Array.for_all2 aeq ms1 ms2
-    | Cons (c1, ms1), Cons (c2, ms2) ->
-        C.equal c1 c2 && Array.for_all2 aeq ms1 ms2
+    | Data (d1, ms1), Data (d2, ms2) -> D.equal d1 d2 && List.equal aeq ms1 ms2
+    | Cons (c1, ms1), Cons (c2, ms2) -> C.equal c1 c2 && List.equal aeq ms1 ms2
     | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
         aeq m1 m2 && eq_binder aeq bnd1 bnd2
-        && Array.for_all2
+        && List.equal
              (fun cl1 cl2 ->
                match (cl1, cl2) with
                | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2) ->
@@ -127,8 +125,8 @@ let rec aeq m1 m2 =
     | Ch (rol1, a1), Ch (rol2, a2) -> rol1 = rol2 && aeq a1 a2
     | Open prim1, Open prim2 -> prim1 = prim2
     | Fork (a1, bnd1), Fork (a2, bnd2) -> aeq a1 a2 && eq_binder aeq bnd1 bnd2
-    | Recv (rol1, m1), Recv (rol2, m2) -> rol1 = rol2 && aeq m1 m2
-    | Send (rol1, m1), Send (rol2, m2) -> rol1 = rol2 && aeq m1 m2
+    | Recv (rel1, m1), Recv (rel2, m2) -> rel1 = rel2 && aeq m1 m2
+    | Send (rel1, m1), Send (rel2, m2) -> rel1 = rel2 && aeq m1 m2
     | Close m1, Close m2 -> aeq m1 m2
     (* other *)
     | _ -> false
@@ -162,13 +160,13 @@ let rec equal mode env m1 m2 =
     | Pair (rel1, s1, m1, n1), Pair (rel2, s2, m2, n2) ->
         rel1 = rel2 && s1 = s2 && equal mode env m1 m2 && equal mode env n1 n2
     | Data (d1, ms1), Data (d2, ms2) ->
-        D.equal d1 d2 && Array.for_all2 (equal mode env) ms1 ms2
+        D.equal d1 d2 && List.equal (equal mode env) ms1 ms2
     | Cons (c1, ms1), Cons (c2, ms2) ->
-        C.equal c1 c2 && Array.for_all2 (equal mode env) ms1 ms2
+        C.equal c1 c2 && List.equal (equal mode env) ms1 ms2
     | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
         equal mode env m1 m2
         && eq_binder (equal mode env) bnd1 bnd2
-        && Array.for_all2
+        && List.equal
              (fun cl1 cl2 ->
                match (cl1, cl2) with
                | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2) ->

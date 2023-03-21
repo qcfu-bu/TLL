@@ -12,7 +12,7 @@ let rec fv ctx = function
   (* inference *)
   | Ann (m, a) -> VSet.union (fv ctx m) (fv ctx a)
   | Meta (_, ms) ->
-      Array.fold_left (fun acc m -> VSet.union acc (fv ctx m)) VSet.empty ms
+      List.fold_left (fun acc m -> VSet.union acc (fv ctx m)) VSet.empty ms
   (* core *)
   | Type _ -> VSet.empty
   | Var x -> (
@@ -44,15 +44,15 @@ let rec fv ctx = function
       VSet.union fv1 fv2
   | Pair (_, _, m, n) -> VSet.union (fv ctx m) (fv ctx n)
   | Data (_, ms) ->
-      Array.fold_left (fun acc m -> VSet.union acc (fv ctx m)) VSet.empty ms
+      List.fold_left (fun acc m -> VSet.union acc (fv ctx m)) VSet.empty ms
   | Cons (_, ms) ->
-      Array.fold_left (fun acc m -> VSet.union acc (fv ctx m)) VSet.empty ms
+      List.fold_left (fun acc m -> VSet.union acc (fv ctx m)) VSet.empty ms
   | Match (m, bnd, cls) ->
       let x, mot = unbind bnd in
       let fv1 = fv ctx m in
       let fv2 = fv (VSet.add x ctx) mot in
       let fv3 =
-        Array.fold_left
+        List.fold_left
           (fun acc cl ->
             match cl with
             | PPair (_, _, bnd) ->
@@ -123,12 +123,12 @@ let rec occurs x = function
       let _, b = unbind bnd in
       occurs x a || occurs x b
   | Pair (_, _, m, n) -> occurs x m || occurs x n
-  | Data (_, ms) -> Array.exists (occurs x) ms
-  | Cons (_, ms) -> Array.exists (occurs x) ms
+  | Data (_, ms) -> List.exists (occurs x) ms
+  | Cons (_, ms) -> List.exists (occurs x) ms
   | Match (m, bnd, cls) ->
       let _, a = unbind bnd in
       occurs x m || occurs x a
-      || Array.exists
+      || List.exists
            (function
              | PPair (_, _, bnd) ->
                  let _, m = unmbind bnd in
@@ -161,3 +161,82 @@ let rec occurs x = function
   | Close m -> occurs x m
   (* other *)
   | _ -> false
+
+let rec asimpl (env, m1, m2) =
+  if equal [| Beta; Zeta; Iota |] env m1 m2 then []
+  else
+    match (m1, m2) with
+    (* inference *)
+    | Meta _, _ -> [ (env, m1, m2) ]
+    | _, Meta _ -> [ (env, m2, m1) ]
+    (* core *)
+    | Type s1, Type s2 when s1 = s2 -> []
+    | Var x1, Var x2 when eq_vars x1 x2 -> []
+    | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2)
+      when rel1 = rel2 && s1 = s2 ->
+        let _, b1, b2 = unbind2 bnd1 bnd2 in
+        let eqns1 = asimpl (env, a1, a2) in
+        let eqns2 = asimpl (env, b1, b2) in
+        eqns1 @ eqns2
+    | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) when rel1 = rel2 && s1 = s2 ->
+        let _, m1, m2 = unbind2 bnd1 bnd2 in
+        asimpl (env, m1, m2)
+    | Let (rel1, m1, bnd1), Let (rel2, m2, bnd2) when rel1 = rel2 ->
+        let _, n1, n2 = unbind2 bnd1 bnd2 in
+        let eqns1 = asimpl (env, m1, m2) in
+        let eqns2 = asimpl (env, n1, n2) in
+        eqns1 @ eqns2
+    | App _, App _ ->
+        let hd1, sp1 = unApps m1 in
+        let hd2, sp2 = unApps m2 in
+        let eqns1 = asimpl (env, hd1, hd2) in
+        let eqns2 =
+          List.fold_right2 (fun m n acc -> asimpl (env, m, n) @ acc) sp1 sp2 []
+        in
+        eqns1 @ eqns2
+    | Fix (_, bnd1), Fix (_, bnd2) ->
+        let _, m1, m2 = unbind2 bnd1 bnd2 in
+        asimpl (env, m1, m2)
+    (* data *)
+    | Sigma (rel1, s1, a1, bnd1), Sigma (rel2, s2, a2, bnd2)
+      when rel1 = rel2 && s1 = s2 ->
+        let _, b1, b2 = unbind2 bnd1 bnd2 in
+        let eqns1 = asimpl (env, a1, a2) in
+        let eqns2 = asimpl (env, b1, b2) in
+        eqns1 @ eqns2
+    | Pair (rel1, s1, m1, n1), Pair (rel2, s2, m2, n2)
+      when rel1 = rel2 && s1 = s2 ->
+        let eqns1 = asimpl (env, m1, m2) in
+        let eqns2 = asimpl (env, n1, n2) in
+        eqns1 @ eqns2
+    | Data (d1, ms1), Data (d2, ms2) when D.equal d1 d2 ->
+        List.fold_right2
+          (fun m1 m2 acc -> asimpl (env, m1, m2) @ acc)
+          ms1 ms2 []
+    | Cons (c1, ms1), Cons (c2, ms2) when C.equal c1 c2 ->
+        List.fold_right2
+          (fun m1 m2 acc -> asimpl (env, m1, m2) @ acc)
+          ms1 ms2 []
+    | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
+        let _, mot1, mot2 = unbind2 bnd1 bnd2 in
+        let eqns1 = asimpl (env, m1, m2) in
+        let eqns2 = asimpl (env, mot1, mot2) in
+        let eqns3 =
+          List.fold_left2
+            (fun acc cl1 cl2 ->
+              match (cl1, cl2) with
+              | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2)
+                when rel1 = rel2 && s1 = s2 ->
+                  let _, m1, m2 = unmbind2 bnd1 bnd2 in
+                  asimpl (env, m1, m2)
+              | PCons (c1, bnd1), PCons (c2, bnd2) when C.equal c1 c2 ->
+                  let _, m1, m2 = unmbind2 bnd1 bnd2 in
+                  asimpl (env, m1, m2)
+              | _ -> failwith "asimpl")
+            [] cls1 cls2
+        in
+        eqns1 @ eqns2 @ eqns3
+    (* equality *)
+    (* monadic *)
+    (* session *)
+    | _ -> failwith "asimpl"
