@@ -60,17 +60,14 @@ and 'a param = PBase of 'a | PBind of tm * (tm, 'a param) binder
 and tele = TBase of tm | TBind of rel * tm * (tm, tele) binder
 
 (* variable set/map *)
-module VSet = Set.Make (struct
+module V = struct
   type t = tm var
 
   let compare = compare_vars
-end)
+end
 
-module VMap = Map.Make (struct
-  type t = tm var
-
-  let compare = compare_vars
-end)
+module VSet = Set.Make (V)
+module VMap = Map.Make (V)
 
 (* smart constructors *)
 let mk = new_var (fun x -> Var x)
@@ -136,6 +133,13 @@ let _Close = box_apply (fun m -> Close m)
 (* cl *)
 let _PPair rel s = box_apply (fun bnd -> PPair (rel, s, bnd))
 let _PCons c = box_apply (fun bnd -> PCons (c, bnd))
+
+(* dcl *)
+let _DTm rel x = box_apply2 (fun a m -> DTm (rel, x, a, m))
+let _DData d = box_apply2 (fun ptm dconss -> DData (d, ptm, dconss))
+
+(* dcons *)
+let _DCons c = box_apply (fun ptl -> DCons (c, ptl))
 
 (* param *)
 let _PBase a = box_apply (fun a -> PBase a) a
@@ -209,6 +213,7 @@ let rec lift_tele = function
 let _mLam rel s xs m =
   List.fold_right (fun x m -> _Lam rel s (bind_var x m)) xs m
 
+let _mkApps hd ms = List.fold_left _App hd ms
 let mkApps hd ms = List.fold_left (fun hd m -> App (hd, m)) hd ms
 
 let unApps m =
