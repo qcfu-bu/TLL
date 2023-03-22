@@ -1,4 +1,3 @@
-open Fmt
 open Bindlib
 open Names
 
@@ -147,56 +146,64 @@ let _TBase = box_apply (fun a -> TBase a)
 let _TBind rel = box_apply2 (fun a bnd -> TBind (rel, a, bnd))
 
 (* lifting *)
-let rec lift = function
+let rec lift_tm = function
   (* inference *)
-  | Ann (m, a) -> _Ann (lift m) (lift a)
+  | Ann (m, a) -> _Ann (lift_tm m) (lift_tm a)
   | Meta (x, ms) ->
-      let ms = List.map lift ms in
+      let ms = List.map lift_tm ms in
       _Meta x (box_list ms)
   (* core *)
   | Type s -> _Type s
   | Var x -> _Var x
-  | Pi (rel, s, a, bnd) -> _Pi rel s (lift a) (box_binder lift bnd)
-  | Lam (rel, s, bnd) -> _Lam rel s (box_binder lift bnd)
-  | App (m, n) -> _App (lift m) (lift n)
-  | Let (rel, m, bnd) -> _Let rel (lift m) (box_binder lift bnd)
-  | Fix (x, bnd) -> _Fix x (box_binder lift bnd)
+  | Pi (rel, s, a, bnd) -> _Pi rel s (lift_tm a) (box_binder lift_tm bnd)
+  | Lam (rel, s, bnd) -> _Lam rel s (box_binder lift_tm bnd)
+  | App (m, n) -> _App (lift_tm m) (lift_tm n)
+  | Let (rel, m, bnd) -> _Let rel (lift_tm m) (box_binder lift_tm bnd)
+  | Fix (x, bnd) -> _Fix x (box_binder lift_tm bnd)
   (* data *)
-  | Sigma (rel, s, a, bnd) -> _Sigma rel s (lift a) (box_binder lift bnd)
-  | Pair (rel, s, m, n) -> _Pair rel s (lift m) (lift n)
+  | Sigma (rel, s, a, bnd) -> _Sigma rel s (lift_tm a) (box_binder lift_tm bnd)
+  | Pair (rel, s, m, n) -> _Pair rel s (lift_tm m) (lift_tm n)
   | Data (d, ms) ->
-      let ms = List.map lift ms in
+      let ms = List.map lift_tm ms in
       _Data d (box_list ms)
   | Cons (c, ms) ->
-      let ms = List.map lift ms in
+      let ms = List.map lift_tm ms in
       _Cons c (box_list ms)
   | Match (m, bnd, cls) ->
       let cls =
         List.map
           (function
-            | PPair (rel, s, bnd) -> _PPair rel s (box_mbinder lift bnd)
-            | PCons (c, bnd) -> _PCons c (box_mbinder lift bnd))
+            | PPair (rel, s, bnd) -> _PPair rel s (box_mbinder lift_tm bnd)
+            | PCons (c, bnd) -> _PCons c (box_mbinder lift_tm bnd))
           cls
       in
-      _Match (lift m) (box_binder lift bnd) (box_list cls)
+      _Match (lift_tm m) (box_binder lift_tm bnd) (box_list cls)
   (* equality *)
-  | Eq (m, n) -> _Eq (lift m) (lift n)
+  | Eq (m, n) -> _Eq (lift_tm m) (lift_tm n)
   | Refl -> _Refl
-  | Rew (bnd, pf, m) -> _Rew (box_mbinder lift bnd) (lift pf) (lift m)
+  | Rew (bnd, pf, m) -> _Rew (box_mbinder lift_tm bnd) (lift_tm pf) (lift_tm m)
   (* monadic *)
-  | IO a -> _IO (lift a)
-  | Return m -> _Return (lift m)
-  | MLet (m, bnd) -> _MLet (lift m) (box_binder lift bnd)
+  | IO a -> _IO (lift_tm a)
+  | Return m -> _Return (lift_tm m)
+  | MLet (m, bnd) -> _MLet (lift_tm m) (box_binder lift_tm bnd)
   (* session *)
   | Proto -> _Proto
   | End rol -> _End rol
-  | Act (rel, rol, a, bnd) -> _Act rel rol (lift a) (box_binder lift bnd)
-  | Ch (rol, m) -> _Ch rol (lift m)
+  | Act (rel, rol, a, bnd) -> _Act rel rol (lift_tm a) (box_binder lift_tm bnd)
+  | Ch (rol, m) -> _Ch rol (lift_tm m)
   | Open prim -> _Open prim
-  | Fork (a, bnd) -> _Fork (lift a) (box_binder lift bnd)
-  | Recv (rel, m) -> _Recv rel (lift m)
-  | Send (rel, m) -> _Send rel (lift m)
-  | Close m -> _Close (lift m)
+  | Fork (a, bnd) -> _Fork (lift_tm a) (box_binder lift_tm bnd)
+  | Recv (rel, m) -> _Recv rel (lift_tm m)
+  | Send (rel, m) -> _Send rel (lift_tm m)
+  | Close m -> _Close (lift_tm m)
+
+let rec lift_param lift = function
+  | PBase a -> _PBase (lift a)
+  | PBind (a, bnd) -> _PBind (lift_tm a) (box_binder (lift_param lift) bnd)
+
+let rec lift_tele = function
+  | TBase a -> _TBase (lift_tm a)
+  | TBind (rel, a, bnd) -> _TBind rel (lift_tm a) (box_binder lift_tele bnd)
 
 (* utility *)
 let _mLam rel s xs m =

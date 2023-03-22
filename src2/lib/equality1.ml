@@ -22,7 +22,8 @@ let rec whnf mode env = function
       if enabled mode Beta then
         match (m, n) with
         | Lam (_, _, bnd), _ -> whnf mode env (subst bnd n)
-        | Fix (r, bnd), Cons _ -> whnf mode env (App (subst bnd (Var r), n))
+        | Fix (r, bnd), Cons _ ->
+            whnf mode (VMap.add r m env) (App (subst bnd (Var r), n))
         | _ -> App (m, n)
       else App (m, n)
   | Let (r, m, bnd) ->

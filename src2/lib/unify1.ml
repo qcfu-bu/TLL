@@ -6,7 +6,7 @@ open Equality1
 
 type eqn = tm VMap.t * tm * tm
 type eqns = eqn list
-type map = (tm option * tm option) MMap.t
+type map = ((tm, tm) mbinder option * tm option) MMap.t
 
 let rec fv ctx = function
   (* inference *)
@@ -222,21 +222,334 @@ let rec asimpl (env, m1, m2) =
         let eqns1 = asimpl (env, m1, m2) in
         let eqns2 = asimpl (env, mot1, mot2) in
         let eqns3 =
-          List.fold_left2
-            (fun acc cl1 cl2 ->
+          List.fold_right2
+            (fun cl1 cl2 acc ->
               match (cl1, cl2) with
               | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2)
                 when rel1 = rel2 && s1 = s2 ->
                   let _, m1, m2 = unmbind2 bnd1 bnd2 in
-                  asimpl (env, m1, m2)
+                  asimpl (env, m1, m2) @ acc
               | PCons (c1, bnd1), PCons (c2, bnd2) when C.equal c1 c2 ->
                   let _, m1, m2 = unmbind2 bnd1 bnd2 in
-                  asimpl (env, m1, m2)
+                  asimpl (env, m1, m2) @ acc
               | _ -> failwith "asimpl")
-            [] cls1 cls2
+            cls1 cls2 []
         in
         eqns1 @ eqns2 @ eqns3
     (* equality *)
+    | Eq (m1, n1), Eq (m2, n2) ->
+        let eqns1 = asimpl (env, m1, m2) in
+        let eqns2 = asimpl (env, n1, n2) in
+        eqns1 @ eqns2
+    | Refl, Refl -> []
+    | Rew (bnd1, pf1, m1), Rew (bnd2, pf2, m2) ->
+        let _, a1, a2 = unmbind2 bnd1 bnd2 in
+        let eqns1 = asimpl (env, a1, a2) in
+        let eqns2 = asimpl (env, pf1, pf2) in
+        let eqns3 = asimpl (env, m1, m2) in
+        eqns1 @ eqns2 @ eqns3
     (* monadic *)
+    | IO a1, IO a2 -> asimpl (env, a1, a2)
+    | Return m1, Return m2 -> asimpl (env, m1, m2)
+    | MLet (m1, bnd1), MLet (m2, bnd2) ->
+        let _, n1, n2 = unbind2 bnd1 bnd2 in
+        let eqns1 = asimpl (env, m1, m2) in
+        let eqns2 = asimpl (env, n1, n2) in
+        eqns1 @ eqns2
     (* session *)
+    | Proto, Proto -> []
+    | End rol1, End rol2 when rol1 = rol2 -> []
+    | Act (rel1, rol1, a1, bnd1), Act (rel2, rol2, a2, bnd2)
+      when rel1 = rel2 && rol1 = rol2 ->
+        let _, b1, b2 = unbind2 bnd1 bnd2 in
+        let eqns1 = asimpl (env, a1, a2) in
+        let eqns2 = asimpl (env, b1, b2) in
+        eqns1 @ eqns2
+    | Ch (rol1, a1), Ch (rol2, a2) when rol1 = rol2 -> asimpl (env, a1, a2)
+    | Open prim1, Open prim2 when prim1 = prim2 -> []
+    | Fork (a1, bnd1), Fork (a2, bnd2) ->
+        let _, m1, m2 = unbind2 bnd1 bnd2 in
+        let eqns1 = asimpl (env, a1, a2) in
+        let eqns2 = asimpl (env, m1, m2) in
+        eqns1 @ eqns2
+    | Recv (rel1, m1), Recv (rel2, m2) when rel1 = rel2 -> asimpl (env, m1, m2)
+    | Send (rel1, m1), Send (rel2, m2) when rel1 = rel2 -> asimpl (env, m1, m2)
+    | Close m1, Close m2 -> asimpl (env, m1, m2)
+    (* other *)
     | _ -> failwith "asimpl"
+
+let rec simpl (env, m1, m2) =
+  try asimpl (env, m1, m2)
+  with _ -> (
+    let m1 = whnf [| Beta; Iota; Zeta |] env m1 in
+    let m2 = whnf [| Beta; Iota; Zeta |] env m2 in
+    match (m1, m2) with
+    (* inference *)
+    | Meta _, _ -> [ (env, m1, m2) ]
+    | _, Meta _ -> [ (env, m2, m1) ]
+    (* core *)
+    | Type s1, Type s2 when s1 = s2 -> []
+    | Var x1, Var x2 when eq_vars x1 x2 -> []
+    | Var x, _ -> (
+        match VMap.find_opt x env with
+        | Some m1 -> simpl (env, m1, m2)
+        | None -> [])
+    | _, Var y -> (
+        match VMap.find_opt y env with
+        | Some m2 -> simpl (env, m1, m2)
+        | None -> [])
+    | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2)
+      when rel1 = rel2 && s1 = s2 ->
+        let _, b1, b2 = unbind2 bnd1 bnd2 in
+        let eqns1 = simpl (env, a1, a2) in
+        let eqns2 = simpl (env, b1, b2) in
+        eqns1 @ eqns2
+    | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) when rel1 = rel2 && s1 = s2 ->
+        let _, m1, m2 = unbind2 bnd1 bnd2 in
+        simpl (env, m1, m2)
+    | App _, App _ ->
+        let hd1, sp1 = unApps m1 in
+        let hd2, sp2 = unApps m2 in
+        let eqns1 = simpl (env, hd1, hd2) in
+        let eqns2 =
+          List.fold_right2 (fun m n acc -> simpl (env, m, n) @ acc) sp1 sp2 []
+        in
+        eqns1 @ eqns2
+    | Let (rel1, m1, bnd1), Let (rel2, m2, bnd2) when rel1 = rel2 ->
+        let _, n1, n2 = unbind2 bnd1 bnd2 in
+        let eqns1 = simpl (env, m1, m2) in
+        let eqns2 = simpl (env, n1, n2) in
+        eqns1 @ eqns2
+    | Fix (_, bnd1), Fix (_, bnd2) ->
+        let _, m1, m2 = unbind2 bnd1 bnd2 in
+        simpl (env, m1, m2)
+    (* data *)
+    | Sigma (rel1, s1, a1, bnd1), Sigma (rel2, s2, a2, bnd2)
+      when rel1 = rel2 && s1 = s2 ->
+        let _, b1, b2 = unbind2 bnd1 bnd2 in
+        let eqns1 = simpl (env, a1, a2) in
+        let eqns2 = simpl (env, b1, b2) in
+        eqns1 @ eqns2
+    | Pair (rel1, s1, m1, n1), Pair (rel2, s2, m2, n2)
+      when rel1 = rel2 && s1 = s2 ->
+        let eqns1 = simpl (env, m1, m2) in
+        let eqns2 = simpl (env, n1, n2) in
+        eqns1 @ eqns2
+    | Data (d1, ms1), Data (d2, ms2) when D.equal d1 d2 ->
+        List.fold_right2 (fun m1 m2 acc -> simpl (env, m1, m2) @ acc) ms1 ms2 []
+    | Cons (c1, ms1), Cons (c2, ms2) when C.equal c1 c2 ->
+        List.fold_right2 (fun m1 m2 acc -> simpl (env, m1, m2) @ acc) ms1 ms2 []
+    | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
+        let _, mot1, mot2 = unbind2 bnd1 bnd2 in
+        let eqns1 = simpl (env, m1, m2) in
+        let eqns2 = simpl (env, mot1, mot2) in
+        let eqns3 =
+          List.fold_right2
+            (fun cl1 cl2 acc ->
+              match (cl1, cl2) with
+              | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2)
+                when rel1 = rel2 && s1 = s2 ->
+                  let _, m1, m2 = unmbind2 bnd1 bnd2 in
+                  simpl (env, m1, m2) @ acc
+              | PCons (c1, bnd1), PCons (c2, bnd2) when C.equal c1 c2 ->
+                  let _, m1, m2 = unmbind2 bnd1 bnd2 in
+                  simpl (env, m1, m2) @ acc
+              | _ -> acc)
+            cls1 cls2 []
+        in
+        eqns1 @ eqns2 @ eqns3
+    (* equality *)
+    | Eq (m1, n1), Eq (m2, n2) ->
+        let eqns1 = simpl (env, m1, m2) in
+        let eqns2 = simpl (env, n1, n2) in
+        eqns1 @ eqns2
+    | Refl, Refl -> []
+    | Rew (bnd1, pf1, m1), Rew (bnd2, pf2, m2) ->
+        let _, a1, a2 = unmbind2 bnd1 bnd2 in
+        let eqns1 = simpl (env, a1, a2) in
+        let eqns2 = simpl (env, pf1, pf2) in
+        let eqns3 = simpl (env, m1, m2) in
+        eqns1 @ eqns2 @ eqns3
+    (* monadic *)
+    | IO a1, IO a2 -> simpl (env, a1, a2)
+    | Return m1, Return m2 -> simpl (env, m1, m2)
+    | MLet (m1, bnd1), MLet (m2, bnd2) ->
+        let _, n1, n2 = unbind2 bnd1 bnd2 in
+        let eqns1 = simpl (env, m1, m2) in
+        let eqns2 = simpl (env, n1, n2) in
+        eqns1 @ eqns2
+    (* session *)
+    | Proto, Proto -> []
+    | End rol1, End rol2 when rol1 = rol2 -> []
+    | Act (rel1, rol1, a1, bnd1), Act (rel2, rol2, a2, bnd2)
+      when rel1 = rel2 && rol2 = rol2 ->
+        let _, b1, b2 = unbind2 bnd1 bnd2 in
+        let eqns1 = simpl (env, a1, a2) in
+        let eqns2 = simpl (env, b1, b2) in
+        eqns1 @ eqns2
+    | Ch (rol1, a1), Ch (rol2, a2) when rol1 = rol2 -> simpl (env, a1, a2)
+    | Open prim1, Open prim2 when prim1 = prim2 -> []
+    | Fork (a1, bnd1), Fork (a2, bnd2) ->
+        let _, m1, m2 = unbind2 bnd1 bnd2 in
+        let eqns1 = simpl (env, a1, a2) in
+        let eqns2 = simpl (env, m1, m2) in
+        eqns1 @ eqns2
+    | Recv (rel1, m1), Recv (rel2, m2) when rel1 = rel2 -> simpl (env, m1, m2)
+    | Send (rel1, m1), Send (rel2, m2) when rel1 = rel2 -> simpl (env, m1, m2)
+    | Close m1, Close m2 -> simpl (env, m1, m2)
+    | _ -> [])
+
+let solve (map : map) (env, m1, m2) =
+  let meta_spine sp = List.map (function Var x -> x | _ -> mk "_") sp in
+  let m1 = whnf [| Beta; Iota; Zeta |] env m1 in
+  let m2 = whnf [| Beta; Iota; Zeta |] env m2 in
+  match (m1, m2) with
+  | Meta _, Meta _ -> map
+  | Meta (x, xs), _ ->
+      if occurs x m2 then map
+      else
+        let xs = meta_spine xs in
+        if VSet.subset (fv VSet.empty m2) (VSet.of_list xs) then
+          let m = bind_mvar (Array.of_list xs) (lift_tm m2) in
+          MMap.add x (Some (unbox m), None) map
+        else map
+  | _ -> map
+
+let rec resolve_tm (map : map) m =
+  match m with
+  (* inference *)
+  | Meta (x, ms) -> (
+      match MMap.find_opt x map with
+      | Some (Some bnd, _) ->
+          let m = msubst bnd (Array.of_list ms) in
+          resolve_tm map m
+      | _ -> m)
+  | Ann (m, a) -> Ann (resolve_tm map m, resolve_tm map a)
+  (* core *)
+  | Pi (rel, s, a, bnd) ->
+      let x, b = unbind bnd in
+      let a = resolve_tm map a in
+      let b = lift_tm (resolve_tm map b) in
+      Pi (rel, s, a, unbox (bind_var x b))
+  | Lam (rel, s, bnd) ->
+      let x, m = unbind bnd in
+      let m = lift_tm (resolve_tm map m) in
+      Lam (rel, s, unbox (bind_var x m))
+  | App (m, n) -> Ann (resolve_tm map m, resolve_tm map n)
+  | Let (rel, m, bnd) ->
+      let x, n = unbind bnd in
+      let m = resolve_tm map m in
+      let n = lift_tm (resolve_tm map n) in
+      Let (rel, m, unbox (bind_var x n))
+  | Fix (r, bnd) ->
+      let x, m = unbind bnd in
+      let m = lift_tm (resolve_tm map m) in
+      Fix (r, unbox (bind_var x m))
+  (* data *)
+  | Sigma (rel, s, a, bnd) ->
+      let x, b = unbind bnd in
+      let a = resolve_tm map a in
+      let b = lift_tm (resolve_tm map b) in
+      Sigma (rel, s, a, unbox (bind_var x b))
+  | Pair (rel, s, m, n) -> Pair (rel, s, resolve_tm map m, resolve_tm map n)
+  | Data (d, ms) ->
+      let ms = List.map (resolve_tm map) ms in
+      Data (d, ms)
+  | Cons (c, ms) ->
+      let ms = List.map (resolve_tm map) ms in
+      Cons (c, ms)
+  | Match (m, bnd, cls) ->
+      let x, a = unbind bnd in
+      let m = resolve_tm map m in
+      let a = lift_tm (resolve_tm map a) in
+      let cls =
+        List.map
+          (function
+            | PPair (rel, s, bnd) ->
+                let xs, n = unmbind bnd in
+                let n = lift_tm (resolve_tm map n) in
+                PPair (rel, s, unbox (bind_mvar xs n))
+            | PCons (c, bnd) ->
+                let xs, n = unmbind bnd in
+                let n = lift_tm (resolve_tm map n) in
+                PCons (c, unbox (bind_mvar xs n)))
+          cls
+      in
+      Match (m, unbox (bind_var x a), cls)
+  (* equality *)
+  | Eq (m, n) -> Eq (resolve_tm map m, resolve_tm map n)
+  | Rew (bnd, pf, m) ->
+      let xs, a = unmbind bnd in
+      let a = lift_tm (resolve_tm map a) in
+      let pf = resolve_tm map pf in
+      let m = resolve_tm map m in
+      Rew (unbox (bind_mvar xs a), pf, m)
+  (* monadic *)
+  | IO a -> IO (resolve_tm map a)
+  | Return m -> Return (resolve_tm map m)
+  | MLet (m, bnd) ->
+      let x, n = unbind bnd in
+      let m = resolve_tm map m in
+      let n = lift_tm (resolve_tm map n) in
+      MLet (m, unbox (bind_var x n))
+  (* session *)
+  | Act (rel, rol, a, bnd) ->
+      let x, b = unbind bnd in
+      let a = resolve_tm map a in
+      let b = lift_tm (resolve_tm map b) in
+      Act (rel, rol, a, unbox (bind_var x b))
+  | Ch (rol, a) -> Ch (rol, resolve_tm map a)
+  | Fork (a, bnd) ->
+      let x, m = unbind bnd in
+      let a = resolve_tm map a in
+      let m = lift_tm (resolve_tm map m) in
+      Fork (a, unbox (bind_var x m))
+  | Recv (rel, m) -> Recv (rel, resolve_tm map m)
+  | Send (rel, m) -> Send (rel, resolve_tm map m)
+  | Close m -> Close (resolve_tm map m)
+  (* other *)
+  | _ -> m
+
+let rec resolve_param lift resolve map = function
+  | PBase a -> PBase (resolve map a)
+  | PBind (a, bnd) ->
+      let x, b = unbind bnd in
+      let a = resolve_tm map a in
+      let b = lift_param lift (resolve_param lift resolve map b) in
+      PBind (a, unbox (bind_var x b))
+
+let rec resolve_tele map = function
+  | TBase a -> TBase (resolve_tm map a)
+  | TBind (rel, a, bnd) ->
+      let x, b = unbind bnd in
+      let a = resolve_tm map a in
+      let b = lift_tele (resolve_tele map b) in
+      TBind (rel, a, unbox (bind_var x b))
+
+let resolve_dcons map (DCons (c, ptl)) =
+  DCons (c, resolve_param lift_tele resolve_tele map ptl)
+
+let resolve_dcl map dcl =
+  match dcl with
+  | DTm (rel, x, a, m) ->
+      let a = resolve_tm map a in
+      let m = resolve_tm map m in
+      DTm (rel, x, a, m)
+  | DData (d, ptm, dconss) ->
+      let ptm = resolve_param lift_tm resolve_tm map ptm in
+      let dconss = List.map (resolve_dcons map) dconss in
+      DData (d, ptm, dconss)
+
+let resolve_dcls map dcls = List.map (resolve_dcl map) dcls
+
+let rec unify map eqns =
+  let eqns =
+    List.map
+      (fun (env, m1, m2) -> (env, resolve_tm map m1, resolve_tm map m2))
+      eqns
+  in
+  match List.concat_map simpl eqns with
+  | [] -> map
+  | eqn :: eqns ->
+      let map = solve map eqn in
+      unify map eqns
