@@ -120,14 +120,14 @@ let rec aeq m1 m2 =
     | MLet (m1, bnd1), MLet (m2, bnd2) -> aeq m1 m2 && eq_binder aeq bnd1 bnd2
     (* session *)
     | Proto, Proto -> true
-    | End rol1, End rol2 -> rol1 = rol2
+    | End, End -> true
     | Act (rel1, rol1, a1, bnd1), Act (rel2, rol2, a2, bnd2) ->
         rel1 = rel2 && rol1 = rol2 && aeq a1 a2 && eq_binder aeq bnd1 bnd2
     | Ch (rol1, a1), Ch (rol2, a2) -> rol1 = rol2 && aeq a1 a2
     | Open prim1, Open prim2 -> prim1 = prim2
     | Fork (a1, bnd1), Fork (a2, bnd2) -> aeq a1 a2 && eq_binder aeq bnd1 bnd2
-    | Recv (rel1, m1), Recv (rel2, m2) -> rel1 = rel2 && aeq m1 m2
-    | Send (rel1, m1), Send (rel2, m2) -> rel1 = rel2 && aeq m1 m2
+    | Recv m1, Recv m2 -> aeq m1 m2
+    | Send m1, Send m2 -> aeq m1 m2
     | Close m1, Close m2 -> aeq m1 m2
     (* other *)
     | _ -> false
@@ -190,7 +190,7 @@ let rec equal mode env m1 m2 =
         equal mode env m1 m2 && eq_binder (equal mode env) bnd1 bnd2
     (* session *)
     | Proto, Proto -> true
-    | End rol1, End rol2 -> rol1 = rol2
+    | End, End -> true
     | Act (rel1, rol1, a1, bnd1), Act (rel2, rol2, a2, bnd2) ->
         rel1 = rel2 && rol1 = rol2 && equal mode env a1 a2
         && eq_binder (equal mode env) bnd1 bnd2
@@ -198,8 +198,8 @@ let rec equal mode env m1 m2 =
     | Open prim1, Open prim2 -> prim1 = prim2
     | Fork (a1, bnd1), Fork (a2, bnd2) ->
         equal mode env a1 a2 && eq_binder (equal mode env) bnd1 bnd2
-    | Recv (rel1, m1), Recv (rel2, m2) -> rel1 = rel2 && equal mode env m1 m2
-    | Send (rel1, m1), Send (rel2, m2) -> rel1 = rel2 && equal mode env m1 m2
+    | Recv m1, Recv m2 -> equal mode env m1 m2
+    | Send m1, Send m2 -> equal mode env m1 m2
     | Close m1, Close m2 -> equal mode env m1 m2
     (* other *)
     | _ -> false

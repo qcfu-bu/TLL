@@ -160,7 +160,7 @@ let rec trans_tm (nspc : nspc) = function
       Syntax1.(_MLet m (bind_var x n))
   (* session *)
   | Proto -> Syntax1._Proto
-  | End rol -> Syntax1.(_End (trans_role rol))
+  | End -> Syntax1.(_End)
   | Act (rel, rol, a, Binder (id, b)) ->
       let a = trans_tm nspc a in
       let x = Syntax1.mk id in
@@ -173,8 +173,8 @@ let rec trans_tm (nspc : nspc) = function
       let x = Syntax1.mk id in
       let m = trans_tm ((id, V x) :: nspc) m in
       Syntax1.(_Fork a (bind_var x m))
-  | Recv (rel, m) -> Syntax1.(_Recv (trans_rel rel) (trans_tm nspc m))
-  | Send (rel, m) -> Syntax1.(_Send (trans_rel rel) (trans_tm nspc m))
+  | Recv m -> Syntax1.(_Recv (trans_tm nspc m))
+  | Send m -> Syntax1.(_Send (trans_tm nspc m))
   | Close m -> Syntax1.(_Close (trans_tm nspc m))
 
 let rec trans_param trans nspc = function

@@ -35,13 +35,13 @@ type tm =
   | MLet of tm * (tm, tm) binder
   (* session *)
   | Proto
-  | End of role
+  | End
   | Act of rel * role * tm * (tm, tm) binder
   | Ch of role * tm
   | Open of prim
   | Fork of tm * (tm, tm) binder
-  | Recv of rel * tm
-  | Send of rel * tm
+  | Recv of tm
+  | Send of tm
   | Close of tm
 
 and tms = tm list
@@ -121,13 +121,13 @@ let _MLet = box_apply2 (fun m bnd -> MLet (m, bnd))
 
 (* session *)
 let _Proto = box Proto
-let _End rol = box (End rol)
+let _End = box End
 let _Act rel rol = box_apply2 (fun a bnd -> Act (rel, rol, a, bnd))
 let _Ch rol = box_apply (fun a -> Ch (rol, a))
 let _Open prim = box (Open prim)
 let _Fork = box_apply2 (fun a bnd -> Fork (a, bnd))
-let _Recv rel = box_apply (fun m -> Recv (rel, m))
-let _Send rel = box_apply (fun m -> Send (rel, m))
+let _Recv = box_apply (fun m -> Recv m)
+let _Send = box_apply (fun m -> Send m)
 let _Close = box_apply (fun m -> Close m)
 
 (* cl *)
@@ -192,13 +192,13 @@ let rec lift_tm = function
   | MLet (m, bnd) -> _MLet (lift_tm m) (box_binder lift_tm bnd)
   (* session *)
   | Proto -> _Proto
-  | End rol -> _End rol
+  | End -> _End
   | Act (rel, rol, a, bnd) -> _Act rel rol (lift_tm a) (box_binder lift_tm bnd)
   | Ch (rol, m) -> _Ch rol (lift_tm m)
   | Open prim -> _Open prim
   | Fork (a, bnd) -> _Fork (lift_tm a) (box_binder lift_tm bnd)
-  | Recv (rel, m) -> _Recv rel (lift_tm m)
-  | Send (rel, m) -> _Send rel (lift_tm m)
+  | Recv m -> _Recv (lift_tm m)
+  | Send m -> _Send (lift_tm m)
   | Close m -> _Close (lift_tm m)
 
 let rec lift_param lift = function

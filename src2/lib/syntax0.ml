@@ -34,13 +34,13 @@ type tm =
   | MLet of tm * (id, tm) binder
   (* session *)
   | Proto
-  | End of role
+  | End
   | Act of rel * role * tm * (id, tm) binder
   | Ch of role * tm
   | Open of prim
   | Fork of tm * (id, tm) binder
-  | Recv of rel * tm
-  | Send of rel * tm
+  | Recv of tm
+  | Send of tm
   | Close of tm
 
 and tms = tm list

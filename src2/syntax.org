@@ -23,21 +23,21 @@ A ⊸ B
 #+end_src
 
 #+begin_src 
-λ (x : A) → m
-λ (x : A) ⊸ m
-λ x → m
-λ x ⊸ m
+fn (x : A) ⇒ m
+ln (x : A) ⇒ m
+fn x ⇒ m
+ln x ⇒ m
 
-λ {x : A} → m
-λ {x : A} ⊸ m
-λ {x} → m
-λ {x} ⊸ m
+fn {x : A} ⇒ m
+ln {x : A} ⇒ m
+fn {x} ⇒ m
+ln {x} ⇒ m
 #+end_src
 
 #+begin_src 
-fix f x → m
-let x = m in n
-let fix f x = m in n
+fix f x ⇒ m
+let x := m in n
+let fix f x := m in n
 #+end_src
 
 * Data
@@ -62,22 +62,22 @@ A ⊗ B
 #+end_src
 
 #+begin_src 
-match m as (x0, D x1 x2)%A with
-| C x3 x4 → m
+match m as x in A with
+| C x3 x4 ⇒ m
 #+end_src
 
 * Equality
 #+begin_src
 m ≡ n
 refl m
-rew (x, p)%A by pf in m
+rew [ x, p ⇒ A ] pf in m
 #+end_src
 
 * Monadic
 #+begin_src 
 IO A
 return m
-do x ← m in n
+let x ⇐ m in n
 #+end_src
 
 * Session

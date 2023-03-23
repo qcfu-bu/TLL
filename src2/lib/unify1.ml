@@ -83,7 +83,7 @@ let rec fv ctx = function
       VSet.union fv1 fv2
   (* session *)
   | Proto -> VSet.empty
-  | End _ -> VSet.empty
+  | End -> VSet.empty
   | Act (_, _, a, bnd) ->
       let x, b = unbind bnd in
       let fv1 = fv ctx a in
@@ -96,8 +96,8 @@ let rec fv ctx = function
       let fv1 = fv ctx a in
       let fv2 = fv (VSet.add x ctx) m in
       VSet.union fv1 fv2
-  | Recv (_, m) -> fv ctx m
-  | Send (_, m) -> fv ctx m
+  | Recv m -> fv ctx m
+  | Send m -> fv ctx m
   | Close m -> fv ctx m
 
 let rec occurs x = function
@@ -156,8 +156,8 @@ let rec occurs x = function
   | Fork (a, bnd) ->
       let _, m = unbind bnd in
       occurs x a || occurs x m
-  | Recv (_, m) -> occurs x m
-  | Send (_, m) -> occurs x m
+  | Recv m -> occurs x m
+  | Send m -> occurs x m
   | Close m -> occurs x m
   (* other *)
   | _ -> false
@@ -258,7 +258,7 @@ let rec asimpl (env, m1, m2) =
         eqns1 @ eqns2
     (* session *)
     | Proto, Proto -> []
-    | End rol1, End rol2 when rol1 = rol2 -> []
+    | End, End -> []
     | Act (rel1, rol1, a1, bnd1), Act (rel2, rol2, a2, bnd2)
       when rel1 = rel2 && rol1 = rol2 ->
         let _, b1, b2 = unbind2 bnd1 bnd2 in
@@ -272,8 +272,8 @@ let rec asimpl (env, m1, m2) =
         let eqns1 = asimpl (env, a1, a2) in
         let eqns2 = asimpl (env, m1, m2) in
         eqns1 @ eqns2
-    | Recv (rel1, m1), Recv (rel2, m2) when rel1 = rel2 -> asimpl (env, m1, m2)
-    | Send (rel1, m1), Send (rel2, m2) when rel1 = rel2 -> asimpl (env, m1, m2)
+    | Recv m1, Recv m2 -> asimpl (env, m1, m2)
+    | Send m1, Send m2 -> asimpl (env, m1, m2)
     | Close m1, Close m2 -> asimpl (env, m1, m2)
     (* other *)
     | _ -> failwith "asimpl"
@@ -380,7 +380,7 @@ let rec simpl (env, m1, m2) =
         eqns1 @ eqns2
     (* session *)
     | Proto, Proto -> []
-    | End rol1, End rol2 when rol1 = rol2 -> []
+    | End, End -> []
     | Act (rel1, rol1, a1, bnd1), Act (rel2, rol2, a2, bnd2)
       when rel1 = rel2 && rol2 = rol2 ->
         let _, b1, b2 = unbind2 bnd1 bnd2 in
@@ -394,8 +394,8 @@ let rec simpl (env, m1, m2) =
         let eqns1 = simpl (env, a1, a2) in
         let eqns2 = simpl (env, m1, m2) in
         eqns1 @ eqns2
-    | Recv (rel1, m1), Recv (rel2, m2) when rel1 = rel2 -> simpl (env, m1, m2)
-    | Send (rel1, m1), Send (rel2, m2) when rel1 = rel2 -> simpl (env, m1, m2)
+    | Recv m1, Recv m2 -> simpl (env, m1, m2)
+    | Send m1, Send m2 -> simpl (env, m1, m2)
     | Close m1, Close m2 -> simpl (env, m1, m2)
     | _ -> [])
 
@@ -504,8 +504,8 @@ let rec resolve_tm (map : map) m =
       let a = resolve_tm map a in
       let m = lift_tm (resolve_tm map m) in
       Fork (a, unbox (bind_var x m))
-  | Recv (rel, m) -> Recv (rel, resolve_tm map m)
-  | Send (rel, m) -> Send (rel, resolve_tm map m)
+  | Recv m -> Recv (resolve_tm map m)
+  | Send m -> Send (resolve_tm map m)
   | Close m -> Close (resolve_tm map m)
   (* other *)
   | _ -> m
