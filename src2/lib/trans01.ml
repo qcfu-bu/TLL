@@ -47,12 +47,12 @@ let spine_of_nspc nspc =
       match entry with V x -> Syntax1._Var x :: acc | D _ -> acc | C _ -> acc)
     nspc []
 
-let trans_xs nspc ids =
-  List.fold_right
-    (fun id (nspc, xs) ->
+let rec trans_xs nspc = function
+  | [] -> (nspc, [])
+  | id :: ids ->
       let x = Syntax1.mk id in
-      ((id, V x) :: nspc, x :: xs))
-    ids (nspc, [])
+      let nspc, xs = trans_xs ((id, V x) :: nspc) ids in
+      (nspc, x :: xs)
 
 let rec trans_tm (nspc : nspc) = function
   (* inference *)
@@ -99,10 +99,10 @@ let rec trans_tm (nspc : nspc) = function
       Syntax1.(_Let (trans_rel rel) m (bind_var x n))
   | Fix (id1, Binder (id2, m)) -> (
       match List.assoc_opt id1 nspc with
-      | Some (V r) ->
-          let x = Syntax1.mk id2 in
-          let m = trans_tm ((id2, V x) :: nspc) m in
-          Syntax1.(_Fix r (bind_var x m))
+      | Some (V x) ->
+          let r = Syntax1.mk id2 in
+          let m = trans_tm ((id2, V r) :: nspc) m in
+          Syntax1.(_Fix x (bind_var r m))
       | _ -> failwith "trans_tm")
   (* data *)
   | Sigma (rel, s, a, Binder (id, b)) ->
@@ -198,16 +198,12 @@ let trans_dcons nspc (DCons (id, ptl)) =
   let ptl = trans_param trans_tele nspc ptl in
   ((id, C c) :: nspc, Syntax1.(_DCons c ptl))
 
-let trans_dconss nspc dconss =
-  let rec aux nspc = function
-    | [] -> (nspc, [])
-    | dcons :: dconss ->
-        let nspc, dcons = trans_dcons nspc dcons in
-        let nspc, dconss = aux nspc dconss in
-        (nspc, dcons :: dconss)
-  in
-  let nspc, dconss = aux nspc dconss in
-  (nspc, box_list dconss)
+let rec trans_dconss nspc = function
+  | [] -> (nspc, [])
+  | dcons :: dconss ->
+      let nspc, dcons = trans_dcons nspc dcons in
+      let nspc, dconss = trans_dconss nspc dconss in
+      (nspc, dcons :: dconss)
 
 let rec trans_dcl nspc = function
   | DTm (rel, id, b, MBinder (args, m)) ->
@@ -239,7 +235,7 @@ let rec trans_dcl nspc = function
       let ptm = trans_param trans_tm nspc ptm in
       let nspc = (id, D d) :: nspc in
       let nspc, dconss = trans_dconss nspc dconss in
-      (nspc, Syntax1._DData d ptm dconss)
+      (nspc, Syntax1._DData d ptm (box_list dconss))
 
 let rec trans_dcls nspc dcls =
   match dcls with
