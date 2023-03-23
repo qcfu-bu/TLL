@@ -3,10 +3,22 @@ open Bindlib
 open Names
 
 (* syntax definitions *)
-type sort = U | L
-type rel = N | R
-type role = Pos | Neg
-type prim = Stdin | Stdout | Stderr
+type sort =
+  | U
+  | L
+
+type rel =
+  | N
+  | R
+
+type role =
+  | Pos
+  | Neg
+
+type prim =
+  | Stdin
+  | Stdout
+  | Stderr
 
 type tm =
   (* inference *)
@@ -53,12 +65,21 @@ and cl =
 
 and cls = cl list
 
-type dcl = DTm of rel * tm var * tm * tm | DData of D.t * tm param * dconss
+type dcl =
+  | DTm of rel * tm var * tm * tm
+  | DData of D.t * tm param * dconss
+
 and dcls = dcl list
 and dcons = DCons of C.t * tele param
 and dconss = dcons list
-and 'a param = PBase of 'a | PBind of tm * (tm, 'a param) binder
-and tele = TBase of tm | TBind of rel * tm * (tm, tele) binder
+
+and 'a param =
+  | PBase of 'a
+  | PBind of tm * (tm, 'a param) binder
+
+and tele =
+  | TBase of tm
+  | TBind of rel * tm * (tm, tele) binder
 
 (* variable set/map *)
 module V = struct
@@ -156,8 +177,8 @@ let rec lift_tm = function
   (* inference *)
   | Ann (m, a) -> _Ann (lift_tm m) (lift_tm a)
   | Meta (x, ms) ->
-      let ms = List.map lift_tm ms in
-      _Meta x (box_list ms)
+    let ms = List.map lift_tm ms in
+    _Meta x (box_list ms)
   (* core *)
   | Type s -> _Type s
   | Var x -> _Var x
@@ -170,20 +191,20 @@ let rec lift_tm = function
   | Sigma (rel, s, a, bnd) -> _Sigma rel s (lift_tm a) (box_binder lift_tm bnd)
   | Pair (rel, s, m, n) -> _Pair rel s (lift_tm m) (lift_tm n)
   | Data (d, ms) ->
-      let ms = List.map lift_tm ms in
-      _Data d (box_list ms)
+    let ms = List.map lift_tm ms in
+    _Data d (box_list ms)
   | Cons (c, ms) ->
-      let ms = List.map lift_tm ms in
-      _Cons c (box_list ms)
+    let ms = List.map lift_tm ms in
+    _Cons c (box_list ms)
   | Match (m, bnd, cls) ->
-      let cls =
-        List.map
-          (function
-            | PPair (rel, s, bnd) -> _PPair rel s (box_mbinder lift_tm bnd)
-            | PCons (c, bnd) -> _PCons c (box_mbinder lift_tm bnd))
-          cls
-      in
-      _Match (lift_tm m) (box_binder lift_tm bnd) (box_list cls)
+    let cls =
+      List.map
+        (function
+          | PPair (rel, s, bnd) -> _PPair rel s (box_mbinder lift_tm bnd)
+          | PCons (c, bnd) -> _PCons c (box_mbinder lift_tm bnd))
+        cls
+    in
+    _Match (lift_tm m) (box_binder lift_tm bnd) (box_list cls)
   (* equality *)
   | Eq (m, n) -> _Eq (lift_tm m) (lift_tm n)
   | Refl -> _Refl
@@ -217,7 +238,7 @@ let lift_dconss dconss = box_list (List.map lift_dcons dconss)
 let lift_dcl = function
   | DTm (rel, x, a, m) -> _DTm rel x (lift_tm a) (lift_tm m)
   | DData (d, ptm, dconss) ->
-      _DData d (lift_param lift_tm ptm) (lift_dconss dconss)
+    _DData d (lift_param lift_tm ptm) (lift_dconss dconss)
 
 let lift_dcls dcls = box_list (List.map lift_dcl dcls)
 
@@ -230,6 +251,8 @@ let mkApps hd ms = List.fold_left (fun hd m -> App (hd, m)) hd ms
 
 let unApps m =
   let rec aux m ns =
-    match m with App (m, n) -> aux m (n :: ns) | _ -> (m, ns)
+    match m with
+    | App (m, n) -> aux m (n :: ns)
+    | _ -> (m, ns)
   in
   aux m []

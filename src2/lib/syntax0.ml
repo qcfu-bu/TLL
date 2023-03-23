@@ -2,10 +2,24 @@ open Names
 
 (* syntax definitions *)
 type id = string
-type sort = U | L
-type rel = N | R
-type role = Pos | Neg
-type prim = Stdin | Stdout | Stderr
+
+type sort =
+  | U
+  | L
+
+type rel =
+  | N
+  | R
+
+type role =
+  | Pos
+  | Neg
+
+type prim =
+  | Stdin
+  | Stdout
+  | Stderr
+
 type ('a, 'b) binder = Binder of 'a * 'b
 type ('a, 'b) mbinder = MBinder of 'a list * 'b
 
@@ -51,10 +65,22 @@ and cl =
 
 and cls = cl list
 
-type dcl = DTm of rel * id * args | DData of id * tm param * dconss
+type dcl =
+  | DTm of rel * id * args
+  | DData of id * tm param * dconss
+
 and dcls = dcl list
 and dcons = DCons of id * tele param
 and dconss = dcons list
-and 'a param = PBase of 'a | PBind of tm * (id, 'a param) binder
-and tele = TBase of tm | TBind of rel * tm * (id, tele) binder
-and args = ABase of tm * tm | ABind of rel * tm * (id, args) binder
+
+and 'a param =
+  | PBase of 'a
+  | PBind of tm * (id, 'a param) binder
+
+and tele =
+  | TBase of tm
+  | TBind of rel * tm * (id, tele) binder
+
+and args =
+  | ABase of tm * tm
+  | ABind of rel * tm * (id, args) binder
