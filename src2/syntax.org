@@ -36,8 +36,8 @@ ln {x} ⇒ m
 
 #+begin_src 
 fix f x ⇒ m
-let x := m in n
-let fix f x := m in n
+let x = m in n
+let fix f x = m in n
 #+end_src
 
 * Data
@@ -116,6 +116,23 @@ close c
 l ↦ A
 (l @ m)
 ptr_elim m as (l2, c)%A in (l1, x)%n
+#+end_src
+
+* Top Level
+#+begin_src 
+inductive nat : U = O | S of nat
+
+inductive vec (A : U) (n : nat) : U =
+| vec_nil
+| vec_cons of {n0 : nat} {pf : n ≡ S n0} (hd : A) (tl : vec A n0)
+
+definition pred (x : nat) : nat =
+  match x with
+  | O   ⇒ O
+  | S n ⇒ n
+
+theorem eq_sym (pf : a ≡ b) : b ≡ a =
+  rew [x, _ ⇒ x ≡ a] pf in refl
 #+end_src
 
 * Notes

@@ -54,7 +54,7 @@ let rec trans_xs nspc = function
       let nspc, xs = trans_xs ((id, V x) :: nspc) ids in
       (nspc, x :: xs)
 
-let rec trans_tm (nspc : nspc) = function
+let rec trans_tm nspc = function
   (* inference *)
   | Ann (m, a) ->
       let m = trans_tm nspc m in
@@ -68,7 +68,7 @@ let rec trans_tm (nspc : nspc) = function
       | Some (V x) -> Syntax1._Var x
       | Some (D d) -> Syntax1._Data d (box [])
       | Some (C c) -> Syntax1._Cons c (box [])
-      | _ -> failwith "trans_tm")
+      | _ -> failwith "trans_tm Id")
   | Pi (rel, s, a, Binder (id, b)) ->
       let a = trans_tm nspc a in
       let x = Syntax1.mk id in
@@ -82,16 +82,16 @@ let rec trans_tm (nspc : nspc) = function
       match ms with
       | Id id :: ms -> (
           let ms = List.map (trans_tm nspc) ms in
-          match List.assq_opt id nspc with
+          match List.assoc_opt id nspc with
           | Some (V x) -> Syntax1.(_mkApps (_Var x) ms)
           | Some (D d) -> Syntax1.(_Data d (box_list ms))
           | Some (C c) -> Syntax1.(_Cons c (box_list ms))
-          | None -> failwith "trans_tm")
+          | None -> failwith "trans_tm App")
       | m :: ms ->
           let m = trans_tm nspc m in
           let ms = List.map (trans_tm nspc) ms in
           Syntax1._mkApps m ms
-      | _ -> failwith "trans_tm")
+      | _ -> failwith "trans_tm App")
   | Let (rel, m, Binder (id, n)) ->
       let m = trans_tm nspc m in
       let x = Syntax1.mk id in
@@ -103,7 +103,7 @@ let rec trans_tm (nspc : nspc) = function
           let r = Syntax1.mk id2 in
           let m = trans_tm ((id2, V r) :: nspc) m in
           Syntax1.(_Fix x (bind_var r m))
-      | _ -> failwith "trans_tm")
+      | _ -> failwith "trans_tm Fix")
   (* data *)
   | Sigma (rel, s, a, Binder (id, b)) ->
       let a = trans_tm nspc a in
@@ -133,7 +133,7 @@ let rec trans_tm (nspc : nspc) = function
                     let m = trans_tm nspc m in
                     let bnd = bind_mvar (Array.of_list xs) m in
                     Syntax1.(_PCons c bnd)
-                | _ -> failwith "trans_tm"))
+                | _ -> failwith "trans_tm Match"))
           cls
       in
       Syntax1.(_Match m (bind_var x a) (box_list cls))
@@ -193,6 +193,19 @@ let rec trans_tele nspc = function
       let b = trans_tele ((id, V x) :: nspc) b in
       Syntax1.(_TBind (trans_rel rel) a (bind_var x b))
 
+let rec trans_args entry nspc = function
+  | ABase (m, b) ->
+      let b = trans_tm nspc b in
+      let m = trans_tm (entry :: nspc) m in
+      (m, b)
+  | ABind (rel, a, Binder (id, args)) ->
+      let x = Syntax1.mk id in
+      let a = trans_tm nspc a in
+      let m, b = trans_args entry ((id, V x) :: nspc) args in
+      Syntax1.
+        ( _Lam (trans_rel rel) U (bind_var x m),
+          _Pi (trans_rel rel) U a (bind_var x b) )
+
 let trans_dcons nspc (DCons (id, ptl)) =
   let c = C.mk id in
   let ptl = trans_param trans_tele nspc ptl in
@@ -206,28 +219,13 @@ let rec trans_dconss nspc = function
       (nspc, dcons :: dconss)
 
 let rec trans_dcl nspc = function
-  | DTm (rel, id, b, MBinder (args, m)) ->
+  | DTm (rel, id, args) ->
       let x = Syntax1.mk id in
       let r = Syntax1.mk id in
-      let args, nspc =
-        List.fold_left
-          (fun (args, nspc) (r, id, a) ->
-            let x = Syntax1.mk id in
-            let a = trans_tm nspc a in
-            ((trans_rel r, x, a) :: args, (id, V x) :: nspc))
-          ([], nspc) args
-      in
-      let b = trans_tm nspc b in
-      let m = trans_tm ((id, V r) :: nspc) m in
-      let a, m =
-        List.fold_left
-          (fun (b, m) (r, x, a) ->
-            Syntax1.(_Pi r U a (bind_var x b), _Lam r U (bind_var x m)))
-          (b, m) args
-      in
+      let m, a = trans_args (id, V r) nspc args in
       let nspc = (id, V x) :: nspc in
       if Bindlib.occur r m then
-        let m = Syntax1.(_Fix x (bind_var x m)) in
+        let m = Syntax1.(_Fix x (bind_var r m)) in
         (nspc, Syntax1.(_DTm (trans_rel rel) x a m))
       else (nspc, Syntax1.(_DTm (trans_rel rel) x a m))
   | DData (id, ptm, dconss) ->
@@ -237,10 +235,14 @@ let rec trans_dcl nspc = function
       let nspc, dconss = trans_dconss nspc dconss in
       (nspc, Syntax1._DData d ptm (box_list dconss))
 
-let rec trans_dcls nspc dcls =
-  match dcls with
-  | [] -> (nspc, [])
-  | dcl :: dcls ->
-      let nspc, dcl = trans_dcl nspc dcl in
-      let nspc, dcls = trans_dcls nspc dcls in
-      (nspc, dcl :: dcls)
+let trans_dcls nspc dcls =
+  let rec aux nspc dcls =
+    match dcls with
+    | [] -> (nspc, [])
+    | dcl :: dcls ->
+        let nspc, dcl = trans_dcl nspc dcl in
+        let nspc, dcls = aux nspc dcls in
+        (nspc, dcl :: dcls)
+  in
+  let nspc, dcls = aux nspc dcls in
+  (nspc, box_list dcls)

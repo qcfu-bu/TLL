@@ -1,3 +1,4 @@
+open Fmt
 open Bindlib
 open Names
 
@@ -64,6 +65,7 @@ module V = struct
   type t = tm var
 
   let compare = compare_vars
+  let pp fmt x = pf fmt "%s#%d" (name_of x) (uid_of x)
 end
 
 module VSet = Set.Make (V)
@@ -208,6 +210,16 @@ let rec lift_param lift = function
 let rec lift_tele = function
   | TBase a -> _TBase (lift_tm a)
   | TBind (rel, a, bnd) -> _TBind rel (lift_tm a) (box_binder lift_tele bnd)
+
+let lift_dcons (DCons (c, ptl)) = _DCons c (lift_param lift_tele ptl)
+let lift_dconss dconss = box_list (List.map lift_dcons dconss)
+
+let lift_dcl = function
+  | DTm (rel, x, a, m) -> _DTm rel x (lift_tm a) (lift_tm m)
+  | DData (d, ptm, dconss) ->
+      _DData d (lift_param lift_tm ptm) (lift_dconss dconss)
+
+let lift_dcls dcls = box_list (List.map lift_dcl dcls)
 
 (* utility *)
 let _mLam rel s xs m =

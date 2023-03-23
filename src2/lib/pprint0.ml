@@ -1,7 +1,8 @@
 open Fmt
-open Names
 open Syntax0
 
+let pipe fmt _ = pf fmt "|"
+let break fmt _ = pf fmt "@.@."
 let pp_sort fmt = function U -> pf fmt "U" | L -> pf fmt "L"
 let pp_role fmt = function Pos -> pf fmt "!" | Neg -> pf fmt "?"
 
@@ -14,7 +15,7 @@ let rec pp_tm fmt = function
   (* inference *)
   | Ann (m, a) -> pf fmt "(%a : %a)" pp_tm m pp_tm a
   (* core *)
-  | Type s -> pf fmt "%a" pp_sort s
+  | Type s -> pp_sort fmt s
   | Id id -> pf fmt "%s" id
   | Pi (R, U, a, Binder (id, b)) ->
       pf fmt "(∀ (%s : %a) → %a)" id pp_tm a pp_tm b
@@ -86,9 +87,35 @@ and pp_cl fmt = function
       pf fmt "%s %a ⇒ %a" id (list ~sep:sp string) ids pp_tm m
   | _ -> failwith "pp_cl"
 
-and pp_cls fmt cls = list ~sep:(fun fmt _ -> pf fmt " | ") pp_cl fmt cls
+and pp_cls fmt cls = list ~sep:pipe pp_cl fmt cls
 
-(* TODO *)
+let rec pp_ptm fmt = function
+  | PBase b -> pf fmt ": %a" pp_tm b
+  | PBind (a, Binder (id, ptm)) -> pf fmt "(%s : %a) %a" id pp_tm a pp_ptm ptm
+
+let rec pp_tele fmt = function
+  | TBase b -> pf fmt "→ %a" pp_tm b
+  | TBind (R, a, Binder (id, tl)) -> pf fmt "(%s : %a) %a" id pp_tm a pp_tele tl
+  | TBind (N, a, Binder (id, tl)) -> pf fmt "{%s : %a} %a" id pp_tm a pp_tele tl
+
+let rec pp_ptl fmt = function
+  | PBase b -> pp_tele fmt b
+  | PBind (a, Binder (id, ptl)) -> pf fmt "{%s : %a} %a" id pp_tm a pp_ptl ptl
+
+let rec pp_args fmt = function
+  | ABase (m, a) -> pf fmt ": %a = %a" pp_tm a pp_tm m
+  | ABind (R, a, Binder (id, args)) ->
+      pf fmt "(%s : %a) %a" id pp_tm a pp_args args
+  | ABind (N, a, Binder (id, args)) ->
+      pf fmt "{%s : %a} %a" id pp_tm a pp_args args
+
+let pp_dcons fmt (DCons (id, ptl)) = pf fmt "%s of %a" id pp_ptl ptl
+
 let pp_dcl fmt = function
-  | DTm (R, id, a, MBinder (args, m)) -> __
-  | DData (id, ptm, dconss) -> __
+  | DTm (R, id, args) -> pf fmt "definition %s %a" id pp_args args
+  | DTm (N, id, args) -> pf fmt "theorem %s %a" id pp_args args
+  | DData (id, ptm, dconss) ->
+      pf fmt "inductive %s %a = %a" id pp_ptm ptm (list ~sep:pipe pp_dcons)
+        dconss
+
+let pp_dcls fmt dcls = pf fmt "%a" (list ~sep:break pp_dcl) dcls
