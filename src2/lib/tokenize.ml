@@ -40,6 +40,21 @@ let rightarrow1 = [%sedlex.regexp? 8658] (* ⇒ *)
 let times = [%sedlex.regexp? 215] (* × *)
 let otimes = [%sedlex.regexp? 8855] (* ⊗ *)
 
+(* arithemtic *)
+let arith_add = [%sedlex.regexp? '+']
+let arith_sub = [%sedlex.regexp? '-']
+let arith_mul = [%sedlex.regexp? '*']
+let arith_div = [%sedlex.regexp? '/']
+let arith_mod = [%sedlex.regexp? '%']
+let arith_lte = [%sedlex.regexp? "<="]
+let arith_gte = [%sedlex.regexp? ">="]
+let arith_lt = [%sedlex.regexp? "<"]
+let arith_gt = [%sedlex.regexp? ">"]
+
+(* boolean *)
+let bool_and = [%sedlex.regexp? "&&"]
+let bool_or = [%sedlex.regexp? "||"]
+
 (* equality *)
 let equal = [%sedlex.regexp? '=']
 let equiv = [%sedlex.regexp? 8801] (* ≡ *)
