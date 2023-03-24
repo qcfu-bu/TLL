@@ -11,12 +11,12 @@ let test1 =
 
 let test2 =
   DTm
-    ( R,
-      "identity",
-      ABind
-        ( N,
-          Type U,
-          Binder
+    ( R
+    , "identity"
+    , ABind
+        ( N
+        , Type U
+        , Binder
             ("A", ABind (R, Id "A", Binder ("x", ABase (Id "identity", Id "A"))))
         ) )
 

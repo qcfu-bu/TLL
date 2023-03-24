@@ -7,10 +7,17 @@ open Parser0
 exception LexError of Lexing.position * string
 
 (* general *)
+let empty = [%sedlex.regexp? ""]
 let blank = [%sedlex.regexp? ' ' | '\t']
 let newline = [%sedlex.regexp? '\r' | '\n' | "\r\n"]
 let letter = [%sedlex.regexp? 'a' .. 'z' | 'A' .. 'Z']
 let digit = [%sedlex.regexp? '0' .. '9']
+
+(* comments *)
+let comment0_begin = [%sedlex.regexp? "--"]
+let comment0_end = [%sedlex.regexp? newline]
+let comment1_begin = [%sedlex.regexp? "\\-"]
+let comment1_end = [%sedlex.regexp? "-\\"]
 
 (* delimiters *)
 let lparen = [%sedlex.regexp? '(']
@@ -50,6 +57,8 @@ let arith_lte = [%sedlex.regexp? "<="]
 let arith_gte = [%sedlex.regexp? ">="]
 let arith_lt = [%sedlex.regexp? "<"]
 let arith_gt = [%sedlex.regexp? ">"]
+let arith_eq = [%sedlex.regexp? "=="]
+let arith_neq = [%sedlex.regexp? "!="]
 
 (* boolean *)
 let bool_and = [%sedlex.regexp? "&&"]
@@ -58,6 +67,7 @@ let bool_or = [%sedlex.regexp? "||"]
 (* equality *)
 let equal = [%sedlex.regexp? '=']
 let equiv = [%sedlex.regexp? 8801] (* ≡ *)
+let negate = [%sedlex.regexp? 172] (* ¬ *)
 
 (* separators *)
 let pipe = [%sedlex.regexp? '|']
@@ -65,12 +75,6 @@ let dot = [%sedlex.regexp? '.']
 let colon = [%sedlex.regexp? ':']
 let comma = [%sedlex.regexp? ',']
 let semi = [%sedlex.regexp? ';']
-
-(* comments *)
-let comment0_begin = [%sedlex.regexp? "--"]
-let comment0_end = [%sedlex.regexp? newline]
-let comment1_begin = [%sedlex.regexp? "\\-"]
-let comment1_end = [%sedlex.regexp? "-\\"]
 
 (* sort *)
 let sort_u = [%sedlex.regexp? 'U']
@@ -135,3 +139,100 @@ and filter1 buf =
   match%sedlex buf with
   | Plus comment1_end -> ()
   | _ -> filter1 buf
+
+let tokenize buf =
+  filter buf;
+  match%sedlex buf with
+  (* general *)
+  | eof -> EOF
+  | empty -> EOF
+  (* delimiters *)
+  | lparen -> LPAREN
+  | rparen -> RPAREN
+  | lbrack -> LBRACK
+  | rbrack -> RBRACK
+  | lbrace -> LBRACE
+  | rbrace -> RBRACE
+  | langle -> LANGLE
+  | rangle -> RANGLE
+  | flq -> FLQ
+  | frq -> FRQ
+  (* quantifiers *)
+  | forall -> FORALL
+  | exists -> EXISTS
+  | pos -> POS
+  | neg -> NEG
+  (* arrows *)
+  | leftarrow0 -> LEFTARROW0
+  | leftarrow1 -> LEFTARROW1
+  | rightarrow0 -> RIGHTARROW0
+  | rightarrow1 -> RIGHTARROW1
+  (* products *)
+  | times -> TIMES
+  | otimes -> OTIMES
+  (* arithmetic *)
+  | arith_add -> ARITH_ADD
+  | arith_sub -> ARITH_SUB
+  | arith_mul -> ARITH_MUL
+  | arith_div -> ARITH_DIV
+  | arith_mod -> ARITH_MOD
+  | arith_lte -> ARITH_LTE
+  | arith_gte -> ARITH_GTE
+  | arith_lt -> ARITH_LT
+  | arith_gt -> ARITH_GT
+  | arith_eq -> ARITH_EQ
+  | arith_neq -> ARITH_NEQ
+  (* boolean *)
+  | bool_and -> BOOL_AND
+  | bool_or -> BOOL_OR
+  (* equality *)
+  | equal -> EQUAL
+  | equiv -> EQUIV
+  | negate -> NEGATE
+  (* separator *)
+  | pipe -> PIPE
+  | dot -> DOT
+  | colon -> COLON
+  | comma -> COMMA
+  | semi -> SEMI
+  (* sort *)
+  | sort_u -> SORT_U
+  | sort_l -> SORT_L
+  (* prim *)
+  | prim_stdin -> PRIM_STDIN
+  | prim_stdout -> PRIM_STDOUT
+  | prim_stderr -> PRIM_STDERR
+  (* tm *)
+  | tm_fn -> TM_FN
+  | tm_ln -> TM_LN
+  | tm_let -> TM_LET
+  | tm_in -> TM_IN
+  | tm_fix -> TM_FIX
+  | tm_match -> TM_MATCH
+  | tm_with -> TM_WITH
+  | tm_refl -> TM_REFL
+  | tm_rew -> TM_REW
+  | tm_io -> TM_IO
+  | tm_return -> TM_RETURN
+  | tm_proto -> TM_PROTO
+  | tm_end -> TM_END
+  | tm_ch -> TM_CH
+  | tm_hc -> TM_HC
+  | tm_open -> TM_OPEN
+  | tm_fork -> TM_FORK
+  | tm_recv -> TM_RECV
+  | tm_send -> TM_SEND
+  | tm_close -> TM_CLOSE
+  (* dcl *)
+  | dcl_definition -> DCL_DEFINITION
+  | dcl_theorem -> DCL_THEOREM
+  | dcl_inductive -> DCL_INDUCTIVE
+  (* dcons *)
+  | dcons_of -> DCONS_OF
+  | identifier ->
+    let s = Utf8.lexeme buf in
+    IDENTIFIER s
+  | _ ->
+    let pos = fst (lexing_positions buf) in
+    let tok = Utf8.lexeme buf in
+    raise (LexError (pos, Fmt.str "unexpected character %s" tok))
