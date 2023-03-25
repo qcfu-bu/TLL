@@ -140,19 +140,19 @@ let tm_type :=
 let tm_arg0 :=
   | id = identifier;
     { [(R, id, None)] }
-  | LPAREN; ids = nonempty_list(identifier); RPAREN;
+  | LPAREN; ids = identifier+; RPAREN;
     { List.map (fun id -> (R, id, None)) ids }
-  | LBRACE; ids = nonempty_list(identifier); RBRACE;
+  | LBRACE; ids = identifier+; RBRACE;
     { List.map (fun id -> (N, id, None)) ids }
-  | LPAREN; ids = nonempty_list(identifier); COLON; a = tm; RPAREN;
+  | LPAREN; ids = identifier+; COLON; a = tm; RPAREN;
     { List.map (fun id -> (R, id, Some a)) ids } 
-  | LBRACE; ids = nonempty_list(identifier); COLON; a = tm; RBRACE;
+  | LBRACE; ids = identifier+; COLON; a = tm; RBRACE;
     { List.map (fun id -> (N, id, Some a)) ids } 
 
 let tm_arg1 :=
-  | LPAREN; ids = nonempty_list(identifier); COLON; a = tm; RPAREN;
+  | LPAREN; ids = identifier+; COLON; a = tm; RPAREN;
     { List.map (fun id -> (R, id, a)) ids } 
-  | LBRACE; ids = nonempty_list(identifier); COLON; a = tm; RBRACE;
+  | LBRACE; ids = identifier+; COLON; a = tm; RBRACE;
     { List.map (fun id -> (N, id, a)) ids } 
 
 let tm_arg2 :=
@@ -162,10 +162,10 @@ let tm_arg2 :=
   | LBRACE; a = tm; RBRACE; { (N, "_", a) } 
 
 let tm_args0 :=
-  | args = nonempty_list(tm_arg0); { List.concat args }
+  | args = tm_arg0+; { List.concat args }
 
 let tm_args1 :=
-  | args = nonempty_list(tm_arg1); { List.concat args }
+  | args = tm_arg1+; { List.concat args }
 
 let tm_pi :=
   | FORALL; args = tm_args1; RIGHTARROW0; b = tm;
@@ -256,8 +256,8 @@ let tm_cl1 :=
   | PIPE; ~ = tm_cl0; <>
 
 let tm_cls :=
-  | cl0 = tm_cl0; cls = list(tm_cl1); { cl0 :: cls }
-  | ~ = list(tm_cl1); <>
+  | cl0 = tm_cl0; cls = tm_cl1*; { cl0 :: cls }
+  | ~ = tm_cl1*; <>
 
 let tm_refl :=
   | TM_REFL; { Refl }
@@ -337,7 +337,7 @@ let tm1 :=
   | ~ = tm_recv; <>
   | ~ = tm_send; <>
   | ~ = tm_close; <>
-  | m = tm0; ms = list(tm0);
+  | m = tm0; ms = tm0*;
     { match ms with [] -> m | _ -> App (m :: ms) }
 
 let tm2 :=
@@ -383,21 +383,21 @@ let tm4 :=
   | ~ = tm3; <>
 
 let tm5 :=
-  | ms = list(tm0); a = tm_pi;
+  | ms = tm0*; a = tm_pi;
     { match ms with [] -> a | _ -> App (ms @ [a]) }
-  | ms = list(tm0); m = tm_lam;
+  | ms = tm0*; m = tm_lam;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = list(tm0); m = tm_let;
+  | ms = tm0*; m = tm_let;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = list(tm0); m = tm_sigma;
+  | ms = tm0*; m = tm_sigma;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = list(tm0); m = tm_rew;
+  | ms = tm0*; m = tm_rew;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = list(tm0); m = tm_mlet;
+  | ms = tm0*; m = tm_mlet;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = list(tm0); m = tm_act;
+  | ms = tm0*; m = tm_act;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = list(tm0); m = tm_fork;
+  | ms = tm0*; m = tm_fork;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ~ = tm4; <>
 
