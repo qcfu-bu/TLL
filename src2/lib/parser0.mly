@@ -187,9 +187,9 @@ let tm_let :=
   | TM_LET; id = identifier; COLON; a = tm; EQUAL; m = tm; TM_IN; n = tm;
     { Let (R, Ann (m, a), Binder (id, n)) }
   | TM_LET; LBRACE; id = identifier; RBRACE; EQUAL; m = tm; TM_IN; n = tm;
-    { Let (R, m, Binder (id, n)) }
+    { Let (N, m, Binder (id, n)) }
   | TM_LET; LBRACE; id = identifier; COLON; a = tm; RBRACE; EQUAL; m = tm; TM_IN; n = tm;
-    { Let (R, Ann (m, a), Binder (id, n)) }
+    { Let (N, Ann (m, a), Binder (id, n)) }
 
 let tm_sigma :=
   | EXISTS; args = tm_args1; TIMES; b = tm;
@@ -248,6 +248,18 @@ let tm_rew :=
     RBRACK; p = tm; TM_IN; m = tm;
     { Rew (MBinder ([id1; id2], a), p, m) }
 
+let tm_io :=
+  | TM_IO; a = tm0; { IO a }
+
+let tm_return :=
+  | TM_RETURN; m = tm0; { Return m }
+
+let tm_mlet :=
+  | TM_LET; id = identifier; LEFTARROW1 ; m = tm; TM_IN; n = tm;
+    { Let (R, m, Binder (id, n)) }
+  | TM_LET; id = identifier; COLON; a = tm; LEFTARROW1; m = tm; TM_IN; n = tm;
+    { Let (R, Ann (m, IO a), Binder (id, n)) }
+
 let tm_end :=
   | BULLET; { End }
 
@@ -261,28 +273,33 @@ let tm0 :=
   | LPAREN; ~ = tm; RPAREN; <>
 
 let tm1 :=
-  | m = tm1; EQUIV; n = tm1;
-    { Eq (m, n) }
-  | a = tm1; TIMES; b = tm1;
-    { Sigma (R, U, a, Binder ("_", b)) }
-  | a = tm1; OTIMES; b = tm1;
-    { Sigma (R, L, a, Binder ("_", b)) }
-  | LBRACE; a = tm; RBRACE; TIMES; b = tm1;
-    { Sigma (N, U, a, Binder ("_", b)) }
-  | LBRACE; a = tm; RBRACE; OTIMES; b = tm1;
-    { Sigma (N, L, a, Binder ("_", b)) }
-  | a = tm1; RIGHTARROW0; b = tm1;
-    { Pi (R, U, a, Binder ("_", b))}
-  | a = tm1; MULTIMAP; b = tm1;
-    { Pi (R, L, a, Binder ("_", b))}
-  | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm1;
-    { Pi (N, U, a, Binder ("_", b))}
-  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm1;
-    { Pi (N, L, a, Binder ("_", b))}
+  | ~ = tm_io; <>
+  | ~ = tm_return; <>
   | m = tm0; ms = list(tm0);
     { match ms with [] -> m | _ -> App (m :: ms) }
 
 let tm2 :=
+  | m = tm2; EQUIV; n = tm2;
+    { Eq (m, n) }
+  | a = tm2; TIMES; b = tm2;
+    { Sigma (R, U, a, Binder ("_", b)) }
+  | a = tm2; OTIMES; b = tm2;
+    { Sigma (R, L, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; TIMES; b = tm2;
+    { Sigma (N, U, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; OTIMES; b = tm2;
+    { Sigma (N, L, a, Binder ("_", b)) }
+  | a = tm2; RIGHTARROW0; b = tm2;
+    { Pi (R, U, a, Binder ("_", b))}
+  | a = tm2; MULTIMAP; b = tm2;
+    { Pi (R, L, a, Binder ("_", b))}
+  | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm2;
+    { Pi (N, U, a, Binder ("_", b))}
+  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm2;
+    { Pi (N, L, a, Binder ("_", b))}
+  | ~ = tm1; <>
+
+let tm3 :=
   | ms = list(tm0); a = tm_pi;
     { match ms with [] -> a | _ -> App (ms @ [a]) }
   | ms = list(tm0); m = tm_lam;
@@ -293,10 +310,12 @@ let tm2 :=
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = list(tm0); m = tm_rew;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ~ = tm1; <>
+  | ms = list(tm0); m = tm_mlet;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ~ = tm2; <>
 
 let tm :=
-  | ~ = tm2; <>
+  | ~ = tm3; <>
 
 let main :=
   | ~ = tm; EOF; <>

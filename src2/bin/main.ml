@@ -42,3 +42,5 @@ let test6 = parse (Utf8.from_string "∀ (f a b : U) → f a ≡ b → f b")
 let _ = pr "%a@." Pprint0.pp_tm test6
 let test6 = unbox (Trans01.trans_tm [] test6)
 let test7 = parse (Utf8.from_string "fn x ⇒ rew [ x, _ ⇒ x ≡ a ] pf in H")
+let test8 = parse (Utf8.from_string "f (IO A) → IO B → IO C")
+let test9 = parse (Utf8.from_string "∀ (x : a) → a")
