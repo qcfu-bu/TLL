@@ -21,12 +21,17 @@
 // arrows
 %token LEFTARROW0  // ←
 %token LEFTARROW1  // ⇐
-%token RIGHTARROW0 // ←
-%token RIGHTARROW1 // ⇐
+%token RIGHTARROW0 // →
+%token RIGHTARROW1 // ⇒
+%token MULTIMAP    // ⊸
+%right RIGHTARROW0
+%right MULTIMAP
 
 // products
 %token TIMES  // ×
 %token OTIMES // ⊗
+%right TIMES
+%right OTIMES
 
 // arithmetic
 %token ARITH_ADD  // +
@@ -49,13 +54,15 @@
 %token EQUAL  // =
 %token EQUIV  // ≡
 %token NEGATE // ¬
+%left EQUIV
 
 // separators
-%token PIPE  // |
-%token DOT   // .
-%token COLON // :
-%token COMMA // ,
-%token SEMI  // ;
+%token PIPE   // |
+%token DOT    // .
+%token COLON  // :
+%token COMMA  // ,
+%token SEMI   // ;
+%token BULLET // •
 
 // sort
 %token SORT_U // U
@@ -107,10 +114,189 @@
 %%
 
 let identifier :=
-  | s = IDENTIFIER; <>
+  | ~ = IDENTIFIER; <>
 
 let id :=
-  | s = identifier; { Id s }
+  | id = identifier; { Id id }
+
+let tm_type :=
+  | SORT_U; { Type U }
+  | SORT_L; { Type L }
+
+let tm_arg0 :=
+  | id = identifier;
+    { [(R, id, None)] }
+  | LPAREN; ids = nonempty_list(identifier); RPAREN;
+    { List.map (fun id -> (R, id, None)) ids }
+  | LBRACE; ids = nonempty_list(identifier); RBRACE;
+    { List.map (fun id -> (N, id, None)) ids }
+  | LPAREN; ids = nonempty_list(identifier); COLON; a = tm; RPAREN;
+    { List.map (fun id -> (R, id, Some a)) ids } 
+  | LBRACE; ids = nonempty_list(identifier); COLON; a = tm; RBRACE;
+    { List.map (fun id -> (N, id, Some a)) ids } 
+
+let tm_args0 :=
+  | args = nonempty_list(tm_arg0); { List.concat args }
+
+let tm_arg1 :=
+  | LPAREN; ids = nonempty_list(identifier); COLON; a = tm; RPAREN;
+    { List.map (fun id -> (R, id, a)) ids } 
+  | LBRACE; ids = nonempty_list(identifier); COLON; a = tm; RBRACE;
+    { List.map (fun id -> (N, id, a)) ids } 
+
+let tm_args1 :=
+  | args = nonempty_list(tm_arg1); { List.concat args }
+
+let tm_pi :=
+  | FORALL; args = tm_args1; RIGHTARROW0; b = tm;
+    { List.fold_right (fun (rel, id, a) b ->
+        Pi (rel, U, a, Binder (id, b))) args b }
+  | FORALL; args = tm_args1; MULTIMAP; b = tm;
+    { List.fold_right (fun (rel, id, a) b ->
+        Pi (rel, L, a, Binder (id, b))) args b }
+
+let tm_lam :=
+  | TM_FN; args = tm_args0; RIGHTARROW1; m = tm;
+    { let m, a =
+        List.fold_right (fun (rel, id, opt) (m, b) ->
+            match opt with
+            | Some a ->
+              (Lam (rel, U, Binder (id, m)),
+               Pi  (rel, U, a, Binder (id, b)))
+            | None ->
+              (Lam (rel, U, Binder (id, m)),
+               Pi  (rel, U, Id "_", Binder (id, b))))
+        args (m, Id "_")
+      in Ann (m, a) }
+  | TM_LN; args = tm_args0; RIGHTARROW1; m = tm;
+    { let m, a =
+        List.fold_right (fun (rel, id, opt) (m, b) ->
+            match opt with
+            | Some a ->
+              (Lam (rel, L, Binder (id, m)),
+               Pi  (rel, L, a, Binder (id, b)))
+            | None ->
+              (Lam (rel, L, Binder (id, m)),
+               Pi  (rel, L, Id "_", Binder (id, b))))
+        args (m, Id "_")
+      in Ann (m, a) }
+
+let tm_let :=
+  | TM_LET; id = identifier; EQUAL; m = tm; TM_IN; n = tm;
+    { Let (R, m, Binder (id, n)) }
+  | TM_LET; id = identifier; COLON; a = tm; EQUAL; m = tm; TM_IN; n = tm;
+    { Let (R, Ann (m, a), Binder (id, n)) }
+  | TM_LET; LBRACE; id = identifier; RBRACE; EQUAL; m = tm; TM_IN; n = tm;
+    { Let (R, m, Binder (id, n)) }
+  | TM_LET; LBRACE; id = identifier; COLON; a = tm; RBRACE; EQUAL; m = tm; TM_IN; n = tm;
+    { Let (R, Ann (m, a), Binder (id, n)) }
+
+let tm_sigma :=
+  | EXISTS; args = tm_args1; TIMES; b = tm;
+    { List.fold_right (fun (rel, id, a) b ->
+        Sigma (rel, U, a, Binder (id, b))) args b }
+  | EXISTS; args = tm_args1; OTIMES; b = tm;
+    { List.fold_right (fun (rel, id, a) b ->
+        Sigma (rel, L, a, Binder (id, b))) args b }
+
+let tm_pair :=
+  | LPAREN; m = tm; COMMA; n = tm; RPAREN;
+    { Pair (R, U, m, n) }
+  | LANGLE; m = tm; COMMA; n = tm; RANGLE;
+    { Pair (R, L, m, n) }
+  | LPAREN; LBRACE; m = tm; RBRACE; COMMA; n = tm; RPAREN;
+    { Pair (N, U, m, n) }
+  | LANGLE; LBRACE; m = tm; RBRACE; COMMA; n = tm; RANGLE;
+    { Pair (N, L, m, n) }
+
+let tm_match :=
+  | TM_MATCH; m = tm;
+    TM_WITH; cls = tm_cls; TM_END;
+    { Match (m, Binder ("_", Id "_"), cls) }
+  | TM_MATCH; m = tm;
+    LBRACK; id = identifier; RIGHTARROW1; a = tm; RBRACK;
+    TM_WITH; cls = tm_cls; TM_END;
+    { Match (m, Binder (id, a), cls) }
+
+let tm_cl0 :=
+  | LPAREN; LBRACE; id1 = identifier; RBRACE; id2 = identifier; RPAREN;
+    RIGHTARROW1; m = tm;
+    { PPair (N, U, MBinder ([id1; id2], m)) }
+  | LANGLE; LBRACE; id1 = identifier; RBRACE; id2 = identifier; RANGLE;
+    RIGHTARROW1; m = tm;
+    { PPair (N, L, MBinder ([id1; id2], m)) }
+  | LPAREN; id1 = identifier; id2 = identifier; RPAREN;
+    RIGHTARROW1; m = tm;
+    { PPair (R, U, MBinder ([id1; id2], m)) }
+  | LANGLE; id1 = identifier; id2 = identifier; RANGLE;
+    RIGHTARROW1; m = tm;
+    { PPair (R, L, MBinder ([id1; id2], m)) }
+
+let tm_cl1 :=
+  | PIPE; ~ = tm_cl0; <>
+
+let tm_cls :=
+  | cl0 = tm_cl0; cls = list(tm_cl1); { cl0 :: cls }
+  | ~ = list(tm_cl1); <>
+
+let tm_refl :=
+  | TM_REFL; { Refl }
+
+let tm_rew :=
+  | TM_REW; LBRACK;
+      id1 = identifier; COMMA; id2 = identifier; RIGHTARROW1; a = tm;
+    RBRACK; p = tm; TM_IN; m = tm;
+    { Rew (MBinder ([id1; id2], a), p, m) }
+
+let tm_end :=
+  | BULLET; { End }
+
+let tm0 :=
+  | ~ = id; <>
+  | ~ = tm_type; <>
+  | ~ = tm_pair; <>
+  | ~ = tm_match; <>
+  | ~ = tm_refl; <>
+  | ~ = tm_end; <>
+  | LPAREN; ~ = tm; RPAREN; <>
+
+let tm1 :=
+  | m = tm1; EQUIV; n = tm1;
+    { Eq (m, n) }
+  | a = tm1; TIMES; b = tm1;
+    { Sigma (R, U, a, Binder ("_", b)) }
+  | a = tm1; OTIMES; b = tm1;
+    { Sigma (R, L, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; TIMES; b = tm1;
+    { Sigma (N, U, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; OTIMES; b = tm1;
+    { Sigma (N, L, a, Binder ("_", b)) }
+  | a = tm1; RIGHTARROW0; b = tm1;
+    { Pi (R, U, a, Binder ("_", b))}
+  | a = tm1; MULTIMAP; b = tm1;
+    { Pi (R, L, a, Binder ("_", b))}
+  | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm1;
+    { Pi (N, U, a, Binder ("_", b))}
+  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm1;
+    { Pi (N, L, a, Binder ("_", b))}
+  | m = tm0; ms = list(tm0);
+    { match ms with [] -> m | _ -> App (m :: ms) }
+
+let tm2 :=
+  | ms = list(tm0); a = tm_pi;
+    { match ms with [] -> a | _ -> App (ms @ [a]) }
+  | ms = list(tm0); m = tm_lam;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = list(tm0); m = tm_let;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = list(tm0); m = tm_sigma;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = list(tm0); m = tm_rew;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ~ = tm1; <>
+
+let tm :=
+  | ~ = tm2; <>
 
 let main :=
-  | ~ = id; EOF; <>
+  | ~ = tm; EOF; <>

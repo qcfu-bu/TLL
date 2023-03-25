@@ -42,6 +42,7 @@ let leftarrow0 = [%sedlex.regexp? 8592] (* ← *)
 let leftarrow1 = [%sedlex.regexp? 8656] (* ⇐ *)
 let rightarrow0 = [%sedlex.regexp? 8594] (* → *)
 let rightarrow1 = [%sedlex.regexp? 8658] (* ⇒ *)
+let multimap = [%sedlex.regexp? 8888] (* ⊸ *)
 
 (* products *)
 let times = [%sedlex.regexp? 215] (* × *)
@@ -75,6 +76,7 @@ let dot = [%sedlex.regexp? '.']
 let colon = [%sedlex.regexp? ':']
 let comma = [%sedlex.regexp? ',']
 let semi = [%sedlex.regexp? ';']
+let bullet = [%sedlex.regexp? 8226] (* • *)
 
 (* sort *)
 let sort_u = [%sedlex.regexp? 'U']
@@ -133,12 +135,14 @@ let rec filter buf =
 and filter0 buf =
   match%sedlex buf with
   | Plus comment0_end -> ()
-  | _ -> filter0 buf
+  | any -> filter0 buf
+  | _ -> ()
 
 and filter1 buf =
   match%sedlex buf with
   | Plus comment1_end -> ()
-  | _ -> filter1 buf
+  | any -> filter1 buf
+  | _ -> ()
 
 let tokenize buf =
   filter buf;
@@ -167,6 +171,7 @@ let tokenize buf =
   | leftarrow1 -> LEFTARROW1
   | rightarrow0 -> RIGHTARROW0
   | rightarrow1 -> RIGHTARROW1
+  | multimap -> MULTIMAP
   (* products *)
   | times -> TIMES
   | otimes -> OTIMES
@@ -195,6 +200,7 @@ let tokenize buf =
   | colon -> COLON
   | comma -> COMMA
   | semi -> SEMI
+  | bullet -> BULLET
   (* sort *)
   | sort_u -> SORT_U
   | sort_l -> SORT_L
@@ -236,3 +242,8 @@ let tokenize buf =
     let pos = fst (lexing_positions buf) in
     let tok = Utf8.lexeme buf in
     raise (LexError (pos, Fmt.str "unexpected character %s" tok))
+
+let parse buf =
+  let lexer = Sedlexing.with_tokenizer tokenize buf in
+  let parser = MenhirLib.Convert.Simplified.traditional2revised main in
+  parser lexer
