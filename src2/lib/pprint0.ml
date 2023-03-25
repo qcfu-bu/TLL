@@ -1,7 +1,7 @@
 open Fmt
 open Syntax0
 
-let pipe fmt _ = pf fmt "|"
+let pipe fmt _ = pf fmt " | "
 let break fmt _ = pf fmt "@.@."
 
 let pp_sort fmt = function

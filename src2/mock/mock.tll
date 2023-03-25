@@ -1,0 +1,132 @@
+/- unit -/
+inductive unit : U = tt
+
+
+/- boolean -/
+inductive bool : U = true | false
+
+definition andb (b1 : bool) (b2 : bool) : bool =
+  match b1 with
+  | true  ⇒ b2
+  | false ⇒ false
+  end
+
+definition orb (b1 : bool) (b2 : bool) : bool =
+  match b1 with
+  | true  ⇒ true
+  | false ⇒ b2
+  end
+
+definition notb (b : bool) : bool =
+  match b with
+  | true ⇒ false
+  | false ⇒ true
+  end
+
+
+/- natural numbers -/
+inductive nat : U = O | S of (n : nat)
+
+definition addn (x : nat) (y : nat) : nat =
+  match x with
+  | O ⇒ y
+  | S x ⇒ S (x + y)
+  end
+
+definition muln (x : nat) (y : nat) : nat =
+  match x with
+  | O ⇒ y
+  | S x ⇒ y + x * y
+  end
+
+/- comparison -/
+definition eqn (x : nat) (y : nat) : bool =
+  match x with
+  | O ⇒
+    match y with
+    | O ⇒ true
+    | S _ ⇒ false
+    end
+  | S x ⇒
+    match y with
+    | O ⇒ false
+    | S y ⇒ x == y
+    end
+  end
+
+definition lten (x : nat) (y : nat) : bool =
+  match x with
+  | O ⇒ true
+  | S x ⇒
+    match y with
+    | O ⇒ false
+    | S y ⇒ x <= y
+    end
+  end
+
+definition gten (x : nat) (y : nat) : bool =
+  match x with
+  | O ⇒
+    match y with
+    | O ⇒ true
+    | S _ ⇒ false
+    end
+  | S x ⇒
+    match y with
+    | O ⇒ true
+    | S y ⇒ x >= y
+    end
+  end
+
+definition ltn (x : nat) (y : nat) : bool =
+  match x with
+  | O ⇒
+    match y with
+    | O ⇒ false
+    | S y ⇒ true
+    end
+  | S x ⇒
+    match y with
+    | O ⇒ false
+    | S y ⇒ x < y
+    end
+  end
+
+definition gtn (x : nat) (y : nat) : bool =
+  match x with
+  | O ⇒ false
+  | S x ⇒
+    match y with
+    | O ⇒ true
+    | S y ⇒ x > y
+    end
+  end
+
+
+/- ascii strings -/
+inductive ascii : U =
+| Ascii of (b0 b1 b2 b3 b4 b5 b6 b7 : bool) 
+
+inductive string : U =
+| EmptyString
+| String of (c : ascii) (s : string)
+
+definition cats (s1 : string) (s2 : string) : string =
+  match s1 with
+  | EmptyString ⇒ s2
+  | String c s1 ⇒ String c (cats s1 s2)
+  end
+
+
+/- lists -/
+inductive list (A : U) : U =
+| nil
+| cons of (hd : A) (tl : list A)
+
+inductive llist (A : L) : L =
+| lnil
+| lcons of (hd : A) (tl : llist A)
+
+/- box -/
+inductive box (A : U) : L =
+| Box of (a : A)

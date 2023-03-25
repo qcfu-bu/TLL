@@ -4,6 +4,7 @@ open Syntax0
 
 type entry =
   | V of Syntax1.V.t
+  | F of Syntax1.V.t
   | D of D.t
   | C of C.t
 
@@ -79,6 +80,7 @@ let spine_of_nspc nspc =
     (fun (_, entry) acc ->
       match entry with
       | V x -> Syntax1._Var x :: acc
+      | F x -> acc
       | D _ -> acc
       | C _ -> acc)
     nspc []
@@ -102,9 +104,10 @@ let rec trans_tm nspc = function
   | Id id -> (
     match List.assoc_opt id nspc with
     | Some (V x) -> Syntax1._Var x
+    | Some (F x) -> Syntax1._Var x
     | Some (D d) -> Syntax1._Data d (box [])
     | Some (C c) -> Syntax1._Cons c (box [])
-    | _ -> failwith "trans_tm Id")
+    | None -> failwith "trans_tm Id")
   | Pi (rel, s, a, Binder (id, b)) ->
     let a = trans_tm nspc a in
     let x = Syntax1.mk id in
@@ -120,6 +123,7 @@ let rec trans_tm nspc = function
       let ms = List.map (trans_tm nspc) ms in
       match List.assoc_opt id nspc with
       | Some (V x) -> Syntax1.(_mkApps (_Var x) ms)
+      | Some (F x) -> Syntax1.(_mkApps (_Var x) ms)
       | Some (D d) -> Syntax1.(_Data d (box_list ms))
       | Some (C c) -> Syntax1.(_Cons c (box_list ms))
       | None -> failwith "trans_tm App")
@@ -258,7 +262,7 @@ let rec trans_dcl nspc = function
   | DTm (rel, id, args) ->
     let x = Syntax1.mk id in
     let r = Syntax1.mk id in
-    let m, a = trans_args (id, V r) nspc args in
+    let m, a = trans_args (id, F r) nspc args in
     let nspc = (id, V x) :: nspc in
     if Bindlib.occur r m then
       let m = Syntax1.(_Fix x (bind_var r m)) in

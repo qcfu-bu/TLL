@@ -86,7 +86,7 @@ module V = struct
   type t = tm var
 
   let compare = compare_vars
-  let pp fmt x = pf fmt "%s" (name_of x)
+  let pp fmt x = pf fmt "%s_v%d" (name_of x) (uid_of x)
 end
 
 module VSet = Set.Make (V)

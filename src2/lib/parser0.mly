@@ -61,6 +61,16 @@
 %left BOOL_AND
 %left BOOL_OR
 
+// string
+%token STR_CAT // ^
+%left STR_CAT
+
+// list
+%token ULIST_CONS // ::
+%token LLIST_CONS // ;;
+%right ULIST_CONS
+%right LLIST_CONS
+
 // equality
 %token EQUAL  // =
 %token EQUIV  // ≡
@@ -86,6 +96,7 @@
 %token PRIM_STDERR // stderr
 
 // identifier
+%token<int> INTEGER
 %token<string> IDENTIFIER
 
 // tm
@@ -123,15 +134,25 @@
 
 %{ open Syntax0 %}
 
-%start <tm> main
+%start <dcls> main
 
 %%
 
-let identifier :=
+let identifier ==
   | ~ = IDENTIFIER; <>
 
-let id :=
+let tm_id :=
   | id = identifier; { Id id }
+
+let tm_unit :=
+  | LPAREN; RPAREN; { Id "tt" }
+
+let tm_nat :=
+  | n = INTEGER;
+    { let rec loop acc = function
+        | n when n <= 0 -> acc
+        | n -> loop (App [Id "S"; acc]) (n - 1) 
+      in loop (Id "O") n }
 
 let tm_ann :=
   | LPAREN; m = tm; COLON; a = tm; RPAREN; { Ann (m, a) }
@@ -248,18 +269,24 @@ let tm_ifte :=
          PCons ("false", MBinder ([], n2))]) }
 
 let tm_cl0 :=
-  | LPAREN; LBRACE; id1 = identifier; RBRACE; id2 = identifier; RPAREN;
-    RIGHTARROW1; m = tm;
+  | LPAREN; LBRACE;
+      id1 = identifier; RBRACE; COMMA; id2 = identifier;
+    RPAREN; RIGHTARROW1; m = tm;
     { PPair (N, U, MBinder ([id1; id2], m)) }
-  | LANGLE; LBRACE; id1 = identifier; RBRACE; id2 = identifier; RANGLE;
-    RIGHTARROW1; m = tm;
+  | LANGLE; LBRACE;
+      id1 = identifier; RBRACE; COMMA; id2 = identifier;
+    RANGLE; RIGHTARROW1; m = tm;
     { PPair (N, L, MBinder ([id1; id2], m)) }
-  | LPAREN; id1 = identifier; id2 = identifier; RPAREN;
-    RIGHTARROW1; m = tm;
+  | LPAREN;
+      id1 = identifier; COMMA; id2 = identifier;
+    RPAREN; RIGHTARROW1; m = tm;
     { PPair (R, U, MBinder ([id1; id2], m)) }
-  | LANGLE; id1 = identifier; id2 = identifier; RANGLE;
-    RIGHTARROW1; m = tm;
+  | LANGLE;
+     id1 = identifier; COMMA; id2 = identifier;
+    RANGLE; RIGHTARROW1; m = tm;
     { PPair (R, L, MBinder ([id1; id2], m)) }
+  | id = identifier; ids = identifier*; RIGHTARROW1; m = tm;
+    { PCons (id, MBinder (ids, m)) }
 
 let tm_cl1 :=
   | PIPE; ~ = tm_cl0; <>
@@ -328,7 +355,9 @@ let tm_close :=
   | TM_CLOSE; m = tm0; { Close m }
 
 let tm0 :=
-  | ~ = id; <>
+  | ~ = tm_id; <>
+  | ~ = tm_unit; <>
+  | ~ = tm_nat; <>
   | ~ = tm_ann; <>
   | ~ = tm_type; <>
   | ~ = tm_pair; <>
@@ -350,20 +379,23 @@ let tm1 :=
     { match ms with [] -> m | _ -> App (m :: ms) }
 
 let tm2 :=
-  | m = tm2; ARITH_MUL; n = tm2; { App [Id "muln"; m; n] }
-  | m = tm2; ARITH_DIV; n = tm2; { App [Id "divn"; m; n] }
-  | m = tm2; ARITH_MOD; n = tm2; { App [Id "modn"; m; n] }
-  | m = tm2; ARITH_ADD; n = tm2; { App [Id "addn"; m; n] }
-  | m = tm2; ARITH_SUB; n = tm2; { App [Id "subn"; m; n] }
-  | m = tm2; ARITH_LTE; n = tm2; { App [Id "lten"; m; n]}
-  | m = tm2; ARITH_GTE; n = tm2; { App [Id "gten"; m; n]}
-  | m = tm2; ARITH_LT; n = tm2; { App [Id "ltn"; m; n]}
-  | m = tm2; ARITH_GT; n = tm2; { App [Id "gtn"; m; n]}
-  | m = tm2; ARITH_EQ; n = tm2; { App [Id "eqn"; m; n]}
-  | m = tm2; ARITH_NEQ; n = tm2; { App [Id "neqn"; m; n]}
-  | m = tm2; BOOL_AND; n = tm2; { App [Id "andb"; m; n] }
-  | m = tm2; BOOL_OR; n = tm2; { App [Id "orb"; m; n] }
-  | m = tm2; SEMI; n = tm2; { MLet (m, Binder ("_", n)) }
+  | m = tm2; ARITH_MUL;  n = tm2; { App [Id "muln"; m; n] }
+  | m = tm2; ARITH_DIV;  n = tm2; { App [Id "divn"; m; n] }
+  | m = tm2; ARITH_MOD;  n = tm2; { App [Id "modn"; m; n] }
+  | m = tm2; ARITH_ADD;  n = tm2; { App [Id "addn"; m; n] }
+  | m = tm2; ARITH_SUB;  n = tm2; { App [Id "subn"; m; n] }
+  | m = tm2; ARITH_LTE;  n = tm2; { App [Id "lten"; m; n] }
+  | m = tm2; ARITH_GTE;  n = tm2; { App [Id "gten"; m; n] }
+  | m = tm2; ARITH_LT;   n = tm2; { App [Id "ltn"; m; n] }
+  | m = tm2; ARITH_GT;   n = tm2; { App [Id "gtn"; m; n] }
+  | m = tm2; ARITH_EQ;   n = tm2; { App [Id "eqn"; m; n] }
+  | m = tm2; ARITH_NEQ;  n = tm2; { App [Id "neqn"; m; n] }
+  | m = tm2; BOOL_AND;   n = tm2; { App [Id "andb"; m; n] }
+  | m = tm2; BOOL_OR;    n = tm2; { App [Id "orb"; m; n] }
+  | m = tm2; STR_CAT;    n = tm2; { App [Id "cats"; m; n] }
+  | m = tm2; ULIST_CONS; n = tm2; { App [Id "cons"; m; n] }
+  | m = tm2; LLIST_CONS; n = tm2; { App [Id "lcons"; m; n] }
+  | m = tm2; SEMI;       n = tm2; { MLet (m, Binder ("_", n)) }
   | ~ = tm1; <>
 
 let tm3 :=
@@ -419,5 +451,89 @@ let tm6 :=
 let tm := 
   | ~ = tm6; <>
 
+let dcl_arg0 :=
+  | id = identifier;
+    { [(R, id, None)] }
+  | LPAREN; ids = identifier+; RPAREN;
+    { List.map (fun id -> (R, id, None)) ids }
+  | LBRACE; ids = identifier+; RBRACE;
+    { List.map (fun id -> (N, id, None)) ids }
+  | LPAREN; ids = identifier+; COLON; a = tm; RPAREN;
+    { List.map (fun id -> (R, id, Some a)) ids } 
+  | LBRACE; ids = identifier+; COLON; a = tm; RBRACE;
+    { List.map (fun id -> (N, id, Some a)) ids } 
+
+let dcl_arg1 :=
+  | LPAREN; ids = identifier+; COLON; a = tm; RPAREN;
+    { List.map (fun id -> (id, a)) ids } 
+
+let dcl_arg2 :=
+  | LPAREN; ids = identifier+; COLON; a = tm; RPAREN;
+    { List.map (fun id -> (R, id, a)) ids } 
+  | LBRACE; ids = identifier+; COLON; a = tm; RBRACE;
+    { List.map (fun id -> (N, id, a)) ids } 
+
+let dcl_args0 :=
+  | args = dcl_arg0*; { List.concat args }
+
+let dcl_args1 :=
+  | args = dcl_arg1*; { List.concat args }
+
+let dcl_args2 :=
+  | args = dcl_arg2*; { List.concat args }
+
+let dcl_args :=
+  | args = dcl_args0; COLON; a = tm; EQUAL; m = tm;
+    { List.fold_right (fun (rel, id, opt) acc ->
+        match opt with
+        | Some a -> ABind (rel, a, Binder (id, acc))
+        | None -> ABind (rel, Id "_", Binder (id, acc)))
+      args (ABase (m, a)) }
+
+let dcl_dtm :=
+  | DCL_DEFINITION; id = identifier; args = dcl_args; { DTm (R, id, args) }
+  | DCL_THEOREM; id = identifier; args = dcl_args; { DTm (N, id, args) }
+
+let dcl_ptm :=
+  | args = dcl_args1; COLON; b = tm; { (args, b) }
+
+let dcl_dcons0 :=
+  | id = identifier; { (id, []) }
+  | id = identifier; DCONS_OF; args = dcl_args2; { (id, args) }
+
+let dcl_dcons1 :=
+  | PIPE; ~ = dcl_dcons0; <>
+
+let dcl_dconss :=
+  | dcons0 = dcl_dcons0; dconss = dcl_dcons1*; { dcons0 :: dconss }
+  | ~ = dcl_dcons1*; <>
+
+let dcl_ddata :=
+  | DCL_INDUCTIVE; id = identifier; ptm = dcl_ptm; EQUAL;
+      dconss = dcl_dconss;
+    { let pargs, b = ptm in
+      let ptm = 
+        List.fold_right (fun (id, a) acc ->
+          PBind (a, Binder (id, acc))) pargs (PBase b)
+      in
+      let d = App (Id id :: List.map (fun (id, _) -> Id id) pargs) in
+      let dconss =
+        List.map (fun (id, targs) ->
+          let tl = 
+            List.fold_right (fun (rel, id, a) acc ->
+              TBind (rel, a, Binder (id, acc))) targs (TBase d)
+          in
+          let ptl =
+            List.fold_right (fun (id, a) acc ->
+              PBind (a, Binder (id, acc))) pargs (PBase tl)
+          in
+          DCons (id, ptl)) dconss
+      in
+      DData (id, ptm, dconss) }
+
+let dcl :=
+  | ~ = dcl_dtm; <>
+  | ~ = dcl_ddata; <>
+
 let main :=
-  | ~ = tm; EOF; <>
+  | ~ = dcl*; EOF; <>

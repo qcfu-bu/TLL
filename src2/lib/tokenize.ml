@@ -13,8 +13,8 @@ let digit = [%sedlex.regexp? '0' .. '9']
 (* comments *)
 let comment0_begin = [%sedlex.regexp? "--"]
 let comment0_end = [%sedlex.regexp? newline]
-let comment1_begin = [%sedlex.regexp? "\\-"]
-let comment1_end = [%sedlex.regexp? "-\\"]
+let comment1_begin = [%sedlex.regexp? "/-"]
+let comment1_end = [%sedlex.regexp? "-/"]
 
 (* delimiters *)
 let lparen = [%sedlex.regexp? '(']
@@ -25,6 +25,8 @@ let lbrace = [%sedlex.regexp? '{']
 let rbrace = [%sedlex.regexp? '}']
 let langle = [%sedlex.regexp? 10216] (* ⟨ *)
 let rangle = [%sedlex.regexp? 10217] (* ⟩ *)
+let quote0 = [%sedlex.regexp? "\'"]
+let quote2 = [%sedlex.regexp? "\""]
 
 (* quantifiers *)
 let forall = [%sedlex.regexp? 8704] (* ∀ *)
@@ -60,6 +62,13 @@ let arith_neq = [%sedlex.regexp? "!="]
 let bool_and = [%sedlex.regexp? "&&"]
 let bool_or = [%sedlex.regexp? "||"]
 
+(* string *)
+let str_cat = [%sedlex.regexp? '^']
+
+(* list *)
+let ulist_cons = [%sedlex.regexp? "::"]
+let llist_cons = [%sedlex.regexp? ";;"]
+
 (* equality *)
 let equal = [%sedlex.regexp? '=']
 let equiv = [%sedlex.regexp? 8801] (* ≡ *)
@@ -86,6 +95,7 @@ let prim_stderr = [%sedlex.regexp? "stderr"]
 let identifier =
   [%sedlex.regexp? (letter | '_'), Star (letter | digit | '_' | '\'')]
 
+let integer = [%sedlex.regexp? Plus digit]
 let tm_fn = [%sedlex.regexp? "fn"]
 let tm_ln = [%sedlex.regexp? "ln"]
 let tm_let = [%sedlex.regexp? "let"]
@@ -132,13 +142,17 @@ let rec filter buf =
 and filter0 buf =
   match%sedlex buf with
   | Plus comment0_end -> ()
-  | any -> filter0 buf
+  | any ->
+    filter buf;
+    filter0 buf
   | _ -> ()
 
 and filter1 buf =
   match%sedlex buf with
   | Plus comment1_end -> ()
-  | any -> filter1 buf
+  | any ->
+    filter buf;
+    filter1 buf
   | _ -> ()
 
 let tokenize buf =
@@ -184,6 +198,11 @@ let tokenize buf =
   (* boolean *)
   | bool_and -> BOOL_AND
   | bool_or -> BOOL_OR
+  (* string *)
+  | str_cat -> STR_CAT
+  (* list *)
+  | ulist_cons -> ULIST_CONS
+  | llist_cons -> LLIST_CONS
   (* equality *)
   | equal -> EQUAL
   | equiv -> EQUIV
@@ -231,6 +250,10 @@ let tokenize buf =
   | dcl_inductive -> DCL_INDUCTIVE
   (* dcons *)
   | dcons_of -> DCONS_OF
+  (* other *)
+  | integer ->
+    let i = int_of_string (Utf8.lexeme buf) in
+    INTEGER i
   | identifier ->
     let s = Utf8.lexeme buf in
     IDENTIFIER s
