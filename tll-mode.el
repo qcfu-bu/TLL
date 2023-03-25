@@ -21,15 +21,23 @@
         (,tll-quantifier-regexp . font-lock-constant-face)
         (,tll-lambda-regexp . font-lock-keyword-face)))
 
+(defvar tll-mode-syntax-table nil "syntax table for tll-mode")
+(setq tll-mode-syntax-table
+      (let ((st (make-syntax-table)))
+        (modify-syntax-entry ?/ ". 14nb" st)
+        (modify-syntax-entry ?- ". 123" st)
+        (modify-syntax-entry ?\n ">" st)
+        st))
+
 ;;;###autoload
 (define-derived-mode tll-mode prog-mode
   "tll mode"
   "Major mode for editing TLL"
   (setq font-lock-defaults '((tll-font-lock-keywords)))
+  (set-syntax-table tll-mode-syntax-table)
   (setq-local comment-start "--")
   (setq-local comment-start-skip "--+[\t ]*")
   (setq-local comment-end "")
-  (font-lock-add-keywords nil '(("--.+" . font-lock-comment-face)))
   (company-mode 1)
   (add-to-list 'company-backends 'company-math-symbols-unicode))
 

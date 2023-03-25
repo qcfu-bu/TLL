@@ -7,16 +7,21 @@ module S = MenhirLib.General
 
 exception
   ParseError of
-    { state : int
-    ; pos_start : Lexing.position
-    ; pos_end : Lexing.position
+    { start_lnum : int
+    ; start_cnum : int
+    ; end_lnum : int
+    ; end_cnum : int
     }
 
 let handle_error checkpoint =
   match Lazy.force (I.stack checkpoint) with
   | S.Nil -> assert false
   | S.Cons (Element (s, _, pos_start, pos_end), _) ->
-    raise (ParseError { state = I.number s; pos_start; pos_end })
+    let start_lnum = pos_start.pos_lnum in
+    let start_cnum = pos_start.pos_cnum in
+    let end_lnum = pos_end.pos_lnum in
+    let end_cnum = pos_end.pos_cnum in
+    raise (ParseError { start_lnum; start_cnum; end_lnum; end_cnum })
 
 let rec loop next_token checkpoint =
   match checkpoint with
