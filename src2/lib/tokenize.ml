@@ -95,6 +95,9 @@ let tm_let = [%sedlex.regexp? "let"]
 let tm_in = [%sedlex.regexp? "in"]
 let tm_match = [%sedlex.regexp? "match"]
 let tm_with = [%sedlex.regexp? "with"]
+let tm_if = [%sedlex.regexp? "if"]
+let tm_then = [%sedlex.regexp? "then"]
+let tm_else = [%sedlex.regexp? "else"]
 let tm_refl = [%sedlex.regexp? "refl"]
 let tm_rew = [%sedlex.regexp? "rew"]
 let tm_io = [%sedlex.regexp? "IO"]
@@ -210,6 +213,9 @@ let tokenize buf =
   | tm_in -> TM_IN
   | tm_match -> TM_MATCH
   | tm_with -> TM_WITH
+  | tm_if -> TM_IF
+  | tm_then -> TM_THEN
+  | tm_else -> TM_ELSE
   | tm_refl -> TM_REFL
   | tm_rew -> TM_REW
   | tm_io -> TM_IO

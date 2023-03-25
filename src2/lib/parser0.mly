@@ -74,7 +74,7 @@
 %token COMMA  // ,
 %token SEMI   // ;
 %token BULLET // •
-%left SEMI
+%right SEMI
 
 // sort
 %token SORT_U // U
@@ -95,6 +95,9 @@
 %token TM_IN     // in
 %token TM_MATCH  // match
 %token TM_WITH   // with
+%token TM_IF     // if
+%token TM_THEN   // then
+%token TM_ELSE   // else
 %token TM_REFL   // refl
 %token TM_REW    // rew
 %token TM_IO     // IO
@@ -237,6 +240,12 @@ let tm_match :=
     LBRACK; id = identifier; RIGHTARROW1; a = tm; RBRACK;
     TM_WITH; cls = tm_cls; TM_END;
     { Match (m, Binder (id, a), cls) }
+
+let tm_ifte :=
+  | TM_IF; m = tm; TM_THEN; n1 = tm; TM_ELSE; n2 = tm;
+    { Match (m, Binder ("_", Id "_"),
+        [PCons ("true",  MBinder ([], n1));
+         PCons ("false", MBinder ([], n2))]) }
 
 let tm_cl0 :=
   | LPAREN; LBRACE; id1 = identifier; RBRACE; id2 = identifier; RPAREN;
@@ -390,6 +399,8 @@ let tm5 :=
   | ms = tm0*; m = tm_let;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_sigma;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0*; m = tm_ifte;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_rew;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
