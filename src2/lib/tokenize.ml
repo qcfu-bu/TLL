@@ -1,13 +1,10 @@
+open Fmt
 open Sedlexing
-
-type token0 = Parser0.token
-
 open Parser0
 
 exception LexError of Lexing.position * string
 
 (* general *)
-let empty = [%sedlex.regexp? ""]
 let blank = [%sedlex.regexp? ' ' | '\t']
 let newline = [%sedlex.regexp? '\r' | '\n' | "\r\n"]
 let letter = [%sedlex.regexp? 'a' .. 'z' | 'A' .. 'Z']
@@ -145,11 +142,10 @@ and filter1 buf =
   | _ -> ()
 
 let tokenize buf =
-  filter buf;
+  let _ = filter buf in
   match%sedlex buf with
   (* general *)
   | eof -> EOF
-  | empty -> EOF
   (* delimiters *)
   | lparen -> LPAREN
   | rparen -> RPAREN
@@ -238,12 +234,8 @@ let tokenize buf =
   | identifier ->
     let s = Utf8.lexeme buf in
     IDENTIFIER s
-  | _ ->
+  | any ->
     let pos = fst (lexing_positions buf) in
     let tok = Utf8.lexeme buf in
-    raise (LexError (pos, Fmt.str "unexpected character %s" tok))
-
-let parse buf =
-  let lexer = Sedlexing.with_tokenizer tokenize buf in
-  let parser = MenhirLib.Convert.Simplified.traditional2revised main in
-  parser lexer
+    raise (LexError (pos, str "unexpected character %S" tok))
+  | _ -> assert false

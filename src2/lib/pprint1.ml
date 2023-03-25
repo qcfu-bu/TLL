@@ -22,7 +22,7 @@ let pp_prim fmt = function
 let rec pp0_tm ctx0 fmt = function
   (* inference *)
   | Ann (m, a) -> pf fmt "(%a : %a)" (pp0_tm ctx0) m (pp0_tm ctx0) a
-  | Meta (x, _) -> M.pp fmt x
+  | Meta (x, ms) -> pf fmt "%a[%a]" M.pp x (list ~sep:semi (pp0_tm ctx0)) ms
   (* core *)
   | Type s -> pp_sort fmt s
   | Var x -> V.pp fmt x
