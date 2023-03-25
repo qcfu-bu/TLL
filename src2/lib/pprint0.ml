@@ -118,8 +118,8 @@ let rec pp_args fmt = function
 let pp_dcons fmt (DCons (id, ptl)) = pf fmt "%s of %a" id pp_ptl ptl
 
 let pp_dcl fmt = function
-  | DTm (R, id, args) -> pf fmt "definition %s %a" id pp_args args
-  | DTm (N, id, args) -> pf fmt "theorem %s %a" id pp_args args
+  | DTm (R, id, args) -> pf fmt "program %s %a" id pp_args args
+  | DTm (N, id, args) -> pf fmt "logical %s %a" id pp_args args
   | DData (id, ptm, dconss) ->
     pf fmt "inductive %s %a = %a" id pp_ptm ptm (list ~sep:pipe pp_dcons) dconss
 

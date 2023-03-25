@@ -124,9 +124,9 @@
 %token TM_CLOSE  // close
 
 // dcl
-%token DCL_DEFINITION // definition
-%token DCL_THEOREM    // theorem
-%token DCL_INDUCTIVE  // inductive
+%token DCL_PROGRAM   // program
+%token DCL_LOGICAL   // logical
+%token DCL_INDUCTIVE // inductive
 
 // dcons
 %token DCONS_OF // of
@@ -285,6 +285,10 @@ let tm_cl0 :=
      id1 = identifier; COMMA; id2 = identifier;
     RANGLE; RIGHTARROW1; m = tm;
     { PPair (R, L, MBinder ([id1; id2], m)) }
+  | id1 = identifier; ULIST_CONS; id2 = identifier; RIGHTARROW1; m = tm;
+    { PCons ("cons", MBinder([id1; id2], m)) }
+  | id1 = identifier; LLIST_CONS; id2 = identifier; RIGHTARROW1; m = tm;
+    { PCons ("lcons", MBinder([id1; id2], m)) }
   | id = identifier; ids = identifier*; RIGHTARROW1; m = tm;
     { PCons (id, MBinder (ids, m)) }
 
@@ -363,18 +367,18 @@ let tm0 :=
   | ~ = tm_pair; <>
   | ~ = tm_match; <>
   | ~ = tm_refl; <>
+  | ~ = tm_io; <>
+  | ~ = tm_return; <>
   | ~ = tm_proto; <>
   | ~ = tm_end; <>
   | ~ = tm_ch; <>
   | ~ = tm_open; <>
+  | ~ = tm_send; <>
+  | ~ = tm_recv; <>
+  | ~ = tm_close; <>
   | LPAREN; ~ = tm; RPAREN; <>
 
 let tm1 :=
-  | ~ = tm_io; <>
-  | ~ = tm_return; <>
-  | ~ = tm_recv; <>
-  | ~ = tm_send; <>
-  | ~ = tm_close; <>
   | m = tm0; ms = tm0*;
     { match ms with [] -> m | _ -> App (m :: ms) }
 
@@ -491,8 +495,8 @@ let dcl_args :=
       args (ABase (m, a)) }
 
 let dcl_dtm :=
-  | DCL_DEFINITION; id = identifier; args = dcl_args; { DTm (R, id, args) }
-  | DCL_THEOREM; id = identifier; args = dcl_args; { DTm (N, id, args) }
+  | DCL_PROGRAM; id = identifier; args = dcl_args; { DTm (R, id, args) }
+  | DCL_LOGICAL; id = identifier; args = dcl_args; { DTm (N, id, args) }
 
 let dcl_ptm :=
   | args = dcl_args1; COLON; b = tm; { (args, b) }

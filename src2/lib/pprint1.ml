@@ -161,8 +161,8 @@ let rec pp_ptl fmt = function
 let rec pp_dcons fmt (DCons (c, ptl)) = pf fmt "%a of %a" C.pp c pp_ptl ptl
 
 let rec pp_dcl fmt = function
-  | DTm (R, x, a, m) -> pf fmt "definition %a : %a = %a" V.pp x pp_tm a pp_tm m
-  | DTm (N, x, a, m) -> pf fmt "theorem %a : %a = %a" V.pp x pp_tm a pp_tm m
+  | DTm (R, x, a, m) -> pf fmt "program %a : %a = %a" V.pp x pp_tm a pp_tm m
+  | DTm (N, x, a, m) -> pf fmt "logical %a : %a = %a" V.pp x pp_tm a pp_tm m
   | DData (d, ptm, dconss) ->
     pf fmt "inductive %a %a = %a" D.pp d pp_ptm ptm (list ~sep:pipe pp_dcons)
       dconss

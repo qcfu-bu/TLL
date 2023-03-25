@@ -120,8 +120,8 @@ let tm_send = [%sedlex.regexp? "send"]
 let tm_close = [%sedlex.regexp? "close"]
 
 (* dcl *)
-let dcl_definition = [%sedlex.regexp? "definition"]
-let dcl_theorem = [%sedlex.regexp? "theorem"]
+let dcl_program = [%sedlex.regexp? "program"]
+let dcl_logical = [%sedlex.regexp? "logical"]
 let dcl_inductive = [%sedlex.regexp? "inductive"]
 
 (* dcons *)
@@ -142,9 +142,7 @@ let rec filter buf =
 and filter0 buf =
   match%sedlex buf with
   | Plus comment0_end -> ()
-  | any ->
-    filter buf;
-    filter0 buf
+  | any -> filter0 buf
   | _ -> ()
 
 and filter1 buf =
@@ -245,8 +243,8 @@ let tokenize buf =
   | tm_send -> TM_SEND
   | tm_close -> TM_CLOSE
   (* dcl *)
-  | dcl_definition -> DCL_DEFINITION
-  | dcl_theorem -> DCL_THEOREM
+  | dcl_program -> DCL_PROGRAM
+  | dcl_logical -> DCL_LOGICAL
   | dcl_inductive -> DCL_INDUCTIVE
   (* dcons *)
   | dcons_of -> DCONS_OF

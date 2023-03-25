@@ -1,46 +1,51 @@
-/- unit -/
+-- ———————————————————————————————————————————————
+--  unit
+-- ———————————————————————————————————————————————
 inductive unit : U = tt
 
 
-/- boolean -/
+-- ———————————————————————————————————————————————
+-- boolean
+-- ———————————————————————————————————————————————
 inductive bool : U = true | false
 
-definition andb (b1 : bool) (b2 : bool) : bool =
+program andb (b1 : bool) (b2 : bool) : bool =
   match b1 with
   | true  ⇒ b2
   | false ⇒ false
   end
 
-definition orb (b1 : bool) (b2 : bool) : bool =
+program orb (b1 : bool) (b2 : bool) : bool =
   match b1 with
   | true  ⇒ true
   | false ⇒ b2
   end
 
-definition notb (b : bool) : bool =
+program notb (b : bool) : bool =
   match b with
   | true ⇒ false
   | false ⇒ true
   end
 
 
-/- natural numbers -/
+-- ———————————————————————————————————————————————
+-- natural numbers
+-- ———————————————————————————————————————————————
 inductive nat : U = O | S of (n : nat)
 
-definition addn (x : nat) (y : nat) : nat =
+program addn (x : nat) (y : nat) : nat =
   match x with
   | O ⇒ y
   | S x ⇒ S (x + y)
   end
 
-definition muln (x : nat) (y : nat) : nat =
+program muln (x : nat) (y : nat) : nat =
   match x with
   | O ⇒ y
   | S x ⇒ y + x * y
   end
 
-/- comparison -/
-definition eqn (x : nat) (y : nat) : bool =
+program eqn (x : nat) (y : nat) : bool =
   match x with
   | O ⇒
     match y with
@@ -54,7 +59,7 @@ definition eqn (x : nat) (y : nat) : bool =
     end
   end
 
-definition lten (x : nat) (y : nat) : bool =
+program lten (x : nat) (y : nat) : bool =
   match x with
   | O ⇒ true
   | S x ⇒
@@ -64,7 +69,7 @@ definition lten (x : nat) (y : nat) : bool =
     end
   end
 
-definition gten (x : nat) (y : nat) : bool =
+program gten (x : nat) (y : nat) : bool =
   match x with
   | O ⇒
     match y with
@@ -78,7 +83,7 @@ definition gten (x : nat) (y : nat) : bool =
     end
   end
 
-definition ltn (x : nat) (y : nat) : bool =
+logical ltn (x : nat) (y : nat) : bool =
   match x with
   | O ⇒
     match y with
@@ -92,7 +97,7 @@ definition ltn (x : nat) (y : nat) : bool =
     end
   end
 
-definition gtn (x : nat) (y : nat) : bool =
+logical gtn (x : nat) (y : nat) : bool =
   match x with
   | O ⇒ false
   | S x ⇒
@@ -103,7 +108,9 @@ definition gtn (x : nat) (y : nat) : bool =
   end
 
 
-/- ascii strings -/
+-- ———————————————————————————————————————————————
+-- ascii strings
+-- ———————————————————————————————————————————————
 inductive ascii : U =
 | Ascii of (b0 b1 b2 b3 b4 b5 b6 b7 : bool) 
 
@@ -111,14 +118,16 @@ inductive string : U =
 | EmptyString
 | String of (c : ascii) (s : string)
 
-definition cats (s1 : string) (s2 : string) : string =
+program cats (s1 : string) (s2 : string) : string =
   match s1 with
   | EmptyString ⇒ s2
   | String c s1 ⇒ String c (cats s1 s2)
   end
 
 
-/- lists -/
+-- ———————————————————————————————————————————————
+-- lists (linear + none-linear)
+-- ———————————————————————————————————————————————
 inductive list (A : U) : U =
 | nil
 | cons of (hd : A) (tl : list A)
@@ -127,6 +136,74 @@ inductive llist (A : L) : L =
 | lnil
 | lcons of (hd : A) (tl : llist A)
 
-/- box -/
+program append {A : U} (xs ys : list A) : list A =
+  match xs with
+  | nil ⇒ ys
+  | x :: xs ⇒ x :: append A xs ys
+  end
+
+program lappend {A : L} (xs ys : llist A) : llist A =
+  match xs with
+  | lnil ⇒ ys
+  | x ;; xs ⇒ x ;; lappend A xs ys
+  end
+
+
+-- ———————————————————————————————————————————————
+-- linear box
+-- ———————————————————————————————————————————————
 inductive box (A : U) : L =
 | Box of (a : A)
+
+
+-- ———————————————————————————————————————————————
+-- standard IO channels
+-- ———————————————————————————————————————————————
+logical stdin_rec (_ : unit) : proto =
+  ⇑(b : bool) →
+   match b with
+   | true ⇒ ⇓(string) → stdin_rec ()
+   | false ⇒ •
+   end
+
+logical stdout_rec (_ : unit) : proto =
+  ⇑(b : bool) →
+   match b with
+   | true ⇒ ⇑(string) → stdout_rec ()
+   | false ⇒ •
+   end
+
+logical stderr_rec (_ : unit) : proto =
+  ⇑(b : bool) →
+   match b with
+   | true ⇒ ⇑(string) → stderr_rec ()
+   | false ⇒ •
+   end
+
+logical stdin_t  : proto = stdin_rec ()
+logical stdout_t : proto = stdout_rec ()
+logical stderr_t : proto = stderr_rec ()
+
+program readline (_ : unit) : IO string =
+  let ch ⇐ open stdin in
+  let ch ⇐ send ch true in
+  match recv ch with
+  | ⟨s, ch⟩ ⇒
+    let ch ⇐ send ch false in
+    let _ ⇐ close ch in
+    return s
+  end
+
+program print (s : string) : IO unit =
+  let ch ⇐ open stdout in
+  let ch ⇐ send ch true in
+  let ch ⇐ send ch s in
+  let ch ⇐ send ch false in
+  close ch
+
+program prerr (s : string) : IO unit =
+  let ch ⇐ open stderr in
+  let ch ⇐ send ch true in
+  let ch ⇐ send ch s in
+  let ch ⇐ send ch false in
+  close ch
