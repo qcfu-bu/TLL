@@ -28,14 +28,10 @@ let lbrace = [%sedlex.regexp? '{']
 let rbrace = [%sedlex.regexp? '}']
 let langle = [%sedlex.regexp? 10216] (* ⟨ *)
 let rangle = [%sedlex.regexp? 10217] (* ⟩ *)
-let flq = [%sedlex.regexp? 8249] (* ‹ *)
-let frq = [%sedlex.regexp? 8250] (* › *)
 
 (* quantifiers *)
 let forall = [%sedlex.regexp? 8704] (* ∀ *)
 let exists = [%sedlex.regexp? 8707] (* ∃ *)
-let pos = [%sedlex.regexp? '!']
-let neg = [%sedlex.regexp? '?']
 
 (* arrows *)
 let leftarrow0 = [%sedlex.regexp? 8592] (* ← *)
@@ -43,6 +39,8 @@ let leftarrow1 = [%sedlex.regexp? 8656] (* ⇐ *)
 let rightarrow0 = [%sedlex.regexp? 8594] (* → *)
 let rightarrow1 = [%sedlex.regexp? 8658] (* ⇒ *)
 let multimap = [%sedlex.regexp? 8888] (* ⊸ *)
+let uparrow1 = [%sedlex.regexp? 8657] (* ⇑ *)
+let downarrow1 = [%sedlex.regexp? 8659] (* ⇓ *)
 
 (* products *)
 let times = [%sedlex.regexp? 215] (* × *)
@@ -95,7 +93,6 @@ let tm_fn = [%sedlex.regexp? "fn"]
 let tm_ln = [%sedlex.regexp? "ln"]
 let tm_let = [%sedlex.regexp? "let"]
 let tm_in = [%sedlex.regexp? "in"]
-let tm_fix = [%sedlex.regexp? "fix"]
 let tm_match = [%sedlex.regexp? "match"]
 let tm_with = [%sedlex.regexp? "with"]
 let tm_refl = [%sedlex.regexp? "refl"]
@@ -104,8 +101,8 @@ let tm_io = [%sedlex.regexp? "IO"]
 let tm_return = [%sedlex.regexp? "return"]
 let tm_proto = [%sedlex.regexp? "proto"]
 let tm_end = [%sedlex.regexp? "end"]
-let tm_ch = [%sedlex.regexp? "ch", flq]
-let tm_hc = [%sedlex.regexp? "hc", flq]
+let tm_ch = [%sedlex.regexp? "ch", langle]
+let tm_hc = [%sedlex.regexp? "hc", langle]
 let tm_open = [%sedlex.regexp? "open"]
 let tm_fork = [%sedlex.regexp? "fork"]
 let tm_recv = [%sedlex.regexp? "recv"]
@@ -159,19 +156,17 @@ let tokenize buf =
   | rbrace -> RBRACE
   | langle -> LANGLE
   | rangle -> RANGLE
-  | flq -> FLQ
-  | frq -> FRQ
   (* quantifiers *)
   | forall -> FORALL
   | exists -> EXISTS
-  | pos -> POS
-  | neg -> NEG
   (* arrows *)
   | leftarrow0 -> LEFTARROW0
   | leftarrow1 -> LEFTARROW1
   | rightarrow0 -> RIGHTARROW0
   | rightarrow1 -> RIGHTARROW1
   | multimap -> MULTIMAP
+  | uparrow1 -> UPARROW1
+  | downarrow1 -> DOWNARROW1
   (* products *)
   | times -> TIMES
   | otimes -> OTIMES
@@ -213,7 +208,6 @@ let tokenize buf =
   | tm_ln -> TM_LN
   | tm_let -> TM_LET
   | tm_in -> TM_IN
-  | tm_fix -> TM_FIX
   | tm_match -> TM_MATCH
   | tm_with -> TM_WITH
   | tm_refl -> TM_REFL

@@ -26,10 +26,10 @@ let _ = pr "%a@." Pprint1.pp_dcls test3
 open Sedlexing
 open Tokenize
 
-let test4 = parse (Utf8.from_string "\\- ok -\\ fn x {y} ⇒ x")
+let test4 = parse (Utf8.from_string "-- ok \n fn x {y} ⇒ x")
 
 let test4 =
-  parse (Utf8.from_string "let {f : ∀ (x : nat) ⊸ nat} = ln x y ⇒ x in f")
+  parse (Utf8.from_string "let f : ∀ (x : nat) ⊸ nat ⇐ ln x y ⇒ x in f")
 
 let test4 = parse (Utf8.from_string "bind (f x) fn (x y : nat) ⇒ x")
 let test4 = parse (Utf8.from_string "ln (x : nat) ⇒ x")
@@ -44,3 +44,6 @@ let test6 = unbox (Trans01.trans_tm [] test6)
 let test7 = parse (Utf8.from_string "fn x ⇒ rew [ x, _ ⇒ x ≡ a ] pf in H")
 let test8 = parse (Utf8.from_string "f (IO A) → IO B → IO C")
 let test9 = parse (Utf8.from_string "∀ (x : a) → a")
+let test9 = parse (Utf8.from_string "⇓(A) → a")
+let test10 = parse (Utf8.from_string "ch⟨⇓{vec n a} → a⟩ × A")
+let test11 = parse (Utf8.from_string "print a; print b; return m")
