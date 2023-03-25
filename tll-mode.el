@@ -1,20 +1,25 @@
 ;;; tll-mode.el --- major mode for tll -*- lexical-binding: t; -*-
+(setq tll-types '("let" "in" "rew" "match" "with" "end" "fork" "return"))
+(setq tll-keywords '("of"))
+(setq tll-session '("open" "send" "recv" "close"))
 
-(setq tll-keywords '("def" "theorem" "axiom" "param" "inductive" "where"))
-(setq tll-types '("U" "L" "let" "in" "match" "as" "return" "with"))
-
+(setq tll-sorts-regexp "\\(?:\\_<U\\_>\\|\\_<L\\_>\\)")
+(setq tll-types-regexp (regexp-opt tll-types 'words))
 (setq tll-keywords-regexp (regexp-opt tll-keywords 'words))
-(setq tll-forall-regexp "\\(?:\\_<forall\\_>\\|∀\\)")
-(setq tll-lambda-regexp "\\(?:\\_<fun\\_>\\|λ\\)")
-(setq tll-fixpoint-regexp "\\(?:\\_<fix\\_>\\|μ\\)")
-(setq tll-type-regexp (regexp-opt tll-types 'words))
+(setq tll-session-regexp (regexp-opt tll-session 'words))
+(setq tll-quantifier-regexp "\\(?:∀\\|∃\\|⇑\\|⇓\\|•\\)")
+(setq tll-lambda-regexp "\\(?:\\_<fn\\_>\\|\\_<ln\\_>\\)")
 
 (setq tll-font-lock-keywords
-      `((,tll-type-regexp . font-lock-type-face)
+      `(("\\(\\<inductive\\>\\|\\<program\\>\\|\\<logical\\>\\)\s*\\([[:graph:]]*\\)"
+         (1 font-lock-keyword-face)
+         (2 font-lock-variable-name-face))
+        (,tll-sorts-regexp . font-lock-constant-face)
+        (,tll-types-regexp . font-lock-type-face)
         (,tll-keywords-regexp . font-lock-keyword-face)
-        (,tll-forall-regexp . font-lock-type-face)
-        (,tll-lambda-regexp . font-lock-type-face)
-        (,tll-fixpoint-regexp . font-lock-type-face)))
+        (,tll-session-regexp . font-lock-builtin-face)
+        (,tll-quantifier-regexp . font-lock-constant-face)
+        (,tll-lambda-regexp . font-lock-keyword-face)))
 
 ;;;###autoload
 (define-derived-mode tll-mode prog-mode
