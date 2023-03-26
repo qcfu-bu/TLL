@@ -8,7 +8,7 @@
 (setq tll-keywords-regexp (regexp-opt tll-keywords 'words))
 (setq tll-session-regexp (regexp-opt tll-session 'words))
 (setq tll-quantifier-regexp "\\(?:∀\\|∃\\|⇑\\|⇓\\|•\\)")
-(setq tll-lambda-regexp "\\(?:\\_<fn\\_>\\|\\_<ln\\_>\\)")
+(setq tll-lambda-regexp "\\(?:\\_<fn\\_>\\|\\_<ln\\_>\\|\\_<fix\\_>\\)")
 
 (setq tll-font-lock-keywords
       `(("\\(\\<inductive\\>\\|\\<program\\>\\|\\<logical\\>\\)\s*\\([[:graph:]]*\\)"

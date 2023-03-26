@@ -1,0 +1,220 @@
+inductive unit_d1 : U =
+| tt_c1 of : unit_d1
+
+inductive bool_d2 : U =
+| true_c2 of : bool_d2 | false_c3 of : bool_d2
+
+program andb_v0 : bool_d2 → bool_d2 → bool_d2 =
+  fn b1_v169 b2_v170 ⇒
+    match b1_v169 [ __v171 ⇒ ??1 ] with
+    | true_c2  ⇒ b2_v170 | false_c3  ⇒ false_c3
+    end
+
+program orb_v5 : bool_d2 → bool_d2 → bool_d2 =
+  fn b1_v174 b2_v175 ⇒
+    match b1_v174 [ __v176 ⇒ ??2 ] with
+    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v175
+    end
+
+program notb_v10 : bool_d2 → bool_d2 =
+  fn b_v178 ⇒
+    match b_v178 [ __v179 ⇒ ??3 ] with
+    | true_c2  ⇒ false_c3 | false_c3  ⇒ true_c2
+    end
+
+inductive nat_d3 : U =
+| O_c4 of : nat_d3 | S_c5 of (n_v180 : nat_d3) : nat_d3
+
+program addn_v15 : nat_d3 → nat_d3 → nat_d3 =
+  fix (addn_v15 := addn_v183) ⇒
+    fn x_v184 y_v185 ⇒
+      match x_v184 [ __v186 ⇒ ??4 ] with
+      | O_c4  ⇒ y_v185 | S_c5 x_v187 ⇒ (S_c5 (addn_v183 x_v187 y_v185))
+      end
+
+program muln_v21 : nat_d3 → nat_d3 → nat_d3 =
+  fix (muln_v21 := muln_v190) ⇒
+    fn x_v191 y_v192 ⇒
+      match x_v191 [ __v193 ⇒ ??5 ] with
+      | O_c4  ⇒ y_v192
+      | S_c5 x_v194 ⇒ (addn_v15 y_v192 (muln_v190 x_v194 y_v192))
+      end
+
+program eqn_v27 : nat_d3 → nat_d3 → bool_d2 =
+  fix (eqn_v27 := eqn_v197) ⇒
+    fn x_v198 y_v199 ⇒
+      match x_v198 [ __v200 ⇒ ??6 ] with
+      | O_c4  ⇒
+        match y_v199 [ __v201 ⇒ ??7 ] with
+        | O_c4  ⇒ true_c2 | S_c5 __v202 ⇒ false_c3
+        end
+      | S_c5 x_v203 ⇒
+        match y_v199 [ __v204 ⇒ ??8 ] with
+        | O_c4  ⇒ false_c3 | S_c5 y_v205 ⇒ (eqn_v197 x_v203 y_v205)
+        end
+      end
+
+program lten_v37 : nat_d3 → nat_d3 → bool_d2 =
+  fix (lten_v37 := lten_v208) ⇒
+    fn x_v209 y_v210 ⇒
+      match x_v209 [ __v211 ⇒ ??9 ] with
+      | O_c4  ⇒ true_c2
+      | S_c5 x_v212 ⇒
+        match y_v210 [ __v213 ⇒ ??10 ] with
+        | O_c4  ⇒ false_c3 | S_c5 y_v214 ⇒ (lten_v208 x_v212 y_v214)
+        end
+      end
+
+program gten_v45 : nat_d3 → nat_d3 → bool_d2 =
+  fix (gten_v45 := gten_v217) ⇒
+    fn x_v218 y_v219 ⇒
+      match x_v218 [ __v220 ⇒ ??11 ] with
+      | O_c4  ⇒
+        match y_v219 [ __v221 ⇒ ??12 ] with
+        | O_c4  ⇒ true_c2 | S_c5 __v222 ⇒ false_c3
+        end
+      | S_c5 x_v223 ⇒
+        match y_v219 [ __v224 ⇒ ??13 ] with
+        | O_c4  ⇒ true_c2 | S_c5 y_v225 ⇒ (gten_v217 x_v223 y_v225)
+        end
+      end
+
+logical ltn_v55 : nat_d3 → nat_d3 → bool_d2 =
+  fix (ltn_v55 := ltn_v228) ⇒
+    fn x_v229 y_v230 ⇒
+      match x_v229 [ __v231 ⇒ ??14 ] with
+      | O_c4  ⇒
+        match y_v230 [ __v232 ⇒ ??15 ] with
+        | O_c4  ⇒ false_c3 | S_c5 y_v233 ⇒ true_c2
+        end
+      | S_c5 x_v234 ⇒
+        match y_v230 [ __v235 ⇒ ??16 ] with
+        | O_c4  ⇒ false_c3 | S_c5 y_v236 ⇒ (ltn_v228 x_v234 y_v236)
+        end
+      end
+
+logical gtn_v65 : nat_d3 → nat_d3 → bool_d2 =
+  fix (gtn_v65 := gtn_v239) ⇒
+    fn x_v240 y_v241 ⇒
+      match x_v240 [ __v242 ⇒ ??17 ] with
+      | O_c4  ⇒ false_c3
+      | S_c5 x_v243 ⇒
+        match y_v241 [ __v244 ⇒ ??18 ] with
+        | O_c4  ⇒ true_c2 | S_c5 y_v245 ⇒ (gtn_v239 x_v243 y_v245)
+        end
+      end
+
+inductive ascii_d4 : U =
+| Ascii_c6 of
+    (b0_v246 : bool_d2) (b1_v247 : bool_d2) (b2_v248 : bool_d2)
+    (b3_v249 : bool_d2) (b4_v250 : bool_d2) (b5_v251 : bool_d2)
+    (b6_v252 : bool_d2) (b7_v253 : bool_d2) : ascii_d4
+
+inductive string_d5 : U =
+| EmptyString_c7 of : string_d5
+| String_c8 of (c_v254 : ascii_d4) (s_v255 : string_d5) : string_d5
+
+program cats_v83 : string_d5 → string_d5 → string_d5 =
+  fix (cats_v83 := cats_v258) ⇒
+    fn s1_v259 s2_v260 ⇒
+      match s1_v259 [ __v261 ⇒ ??19 ] with
+      | EmptyString_c7  ⇒ s2_v260
+      | String_c8 c_v262 s1_v263 ⇒
+        (String_c8 c_v262 (cats_v258 s1_v263 s2_v260))
+      end
+
+inductive list_d6 (A_v264 : U) : U =
+| nil_c9 of (A_v265 : U) : (list_d6 A_v265)
+| cons_c10 of
+    (A_v266 : U) (hd_v267 : A_v266) (tl_v268 : (list_d6 A_v266))
+    : (list_d6 A_v266)
+
+inductive llist_d7 (A_v269 : L) : L =
+| lnil_c11 of (A_v270 : L) : (llist_d7 A_v270)
+| lcons_c12 of
+    (A_v271 : L) (hd_v272 : A_v271) (tl_v273 : (llist_d7 A_v271))
+    : (llist_d7 A_v271)
+
+program append_v100 :
+  ∀ {A_v274 : U} →
+    (list_d6 A_v274) → (list_d6 A_v274) → (list_d6 A_v274)
+=
+  fix (append_v100 := append_v277) ⇒
+    fn {A_v278} xs_v279 ys_v280 ⇒
+      match xs_v279 [ __v281 ⇒ ??20 ] with
+      | nil_c9  ⇒ ys_v280
+      | cons_c10 x_v282 xs_v283 ⇒
+        (cons_c10 x_v282 (append_v277 A_v278 xs_v283 ys_v280))
+      end
+
+program lappend_v108 :
+  ∀ {A_v284 : L} →
+    (llist_d7 A_v284) → (llist_d7 A_v284) → (llist_d7 A_v284)
+=
+  fix (lappend_v108 := lappend_v287) ⇒
+    fn {A_v288} xs_v289 ys_v290 ⇒
+      match xs_v289 [ __v291 ⇒ ??21 ] with
+      | lnil_c11  ⇒ ys_v290
+      | lcons_c12 x_v292 xs_v293 ⇒
+        (lcons_c12 x_v292 (lappend_v287 A_v288 xs_v293 ys_v290))
+      end
+
+inductive box_d8 (A_v294 : U) : L =
+| Box_c13 of (A_v295 : U) (a_v296 : A_v295) : (box_d8 A_v295)
+
+logical stdin_rec_v119 : unit_d1 → proto =
+  fix (stdin_rec_v119 := stdin_rec_v298) ⇒
+    fn __v299 ⇒
+      !(b_v300 : bool_d2) ⇒
+        match b_v300 [ __v301 ⇒ ??22 ] with
+        | true_c2  ⇒ ?(__v302 : string_d5) ⇒ (stdin_rec_v298 tt_c1)
+        | false_c3  ⇒ end
+        end
+
+logical stdout_rec_v125 : unit_d1 → proto =
+  fix (stdout_rec_v125 := stdout_rec_v304) ⇒
+    fn __v305 ⇒
+      !(b_v306 : bool_d2) ⇒
+        match b_v306 [ __v307 ⇒ ??23 ] with
+        | true_c2  ⇒ !(__v308 : string_d5) ⇒ (stdout_rec_v304 tt_c1)
+        | false_c3  ⇒ end
+        end
+
+logical stderr_rec_v131 : unit_d1 → proto =
+  fix (stderr_rec_v131 := stderr_rec_v310) ⇒
+    fn __v311 ⇒
+      !(b_v312 : bool_d2) ⇒
+        match b_v312 [ __v313 ⇒ ??24 ] with
+        | true_c2  ⇒ !(__v314 : string_d5) ⇒ (stderr_rec_v310 tt_c1)
+        | false_c3  ⇒ end
+        end
+
+logical stdin_t_v137 : proto = (stdin_rec_v119 tt_c1)
+
+logical stdout_t_v139 : proto = (stdout_rec_v125 tt_c1)
+
+logical stderr_t_v141 : proto = (stderr_rec_v131 tt_c1)
+
+program readline_v143 : unit_d1 → IO string_d5 =
+  fn __v316 ⇒
+    let ch_v317 ⇐ open stdin in
+    let ch_v318 ⇐ (send ch_v317 true_c2) in
+    match recv ch_v318 [ __v319 ⇒ ??25 ] with
+    | ⟨s_v320, ch_v321⟩ ⇒
+      let ch_v322 ⇐ (send ch_v321 false_c3) in
+      let __v323 ⇐ close ch_v322 in return s_v320
+    end
+
+program print_v153 : string_d5 → IO unit_d1 =
+  fn s_v325 ⇒
+    let ch_v326 ⇐ open stdout in
+    let ch_v327 ⇐ (send ch_v326 true_c2) in
+    let ch_v328 ⇐ (send ch_v327 s_v325) in
+    let ch_v329 ⇐ (send ch_v328 false_c3) in close ch_v329
+
+program prerr_v160 : string_d5 → IO unit_d1 =
+  fn s_v331 ⇒
+    let ch_v332 ⇐ open stderr in
+    let ch_v333 ⇐ (send ch_v332 true_c2) in
+    let ch_v334 ⇐ (send ch_v333 s_v331) in
+    let ch_v335 ⇐ (send ch_v334 false_c3) in close ch_v335

@@ -72,8 +72,8 @@ let rec pp_tm fmt = function
     pf fmt "%a(%s : %a) → %a" pp_role rol id pp_tm a pp_tm b
   | Act (N, rol, a, Binder (id, b)) ->
     pf fmt "%a{%s : %a} → %a" pp_role rol id pp_tm a pp_tm b
-  | Ch (Pos, a) -> pf fmt "ch‹%a›" pp_tm a
-  | Ch (Neg, a) -> pf fmt "hc‹%a›" pp_tm a
+  | Ch (Pos, a) -> pf fmt "ch⟨%a⟩" pp_tm a
+  | Ch (Neg, a) -> pf fmt "hc⟨%a⟩" pp_tm a
   | Open prim -> pf fmt "open %a" pp_prim prim
   | Fork (a, Binder (id, m)) -> pf fmt "fork (%s : %a) in %a" id pp_tm a pp_tm m
   | Recv m -> pf fmt "recv %a" pp_tm m
