@@ -62,6 +62,8 @@
 %left BOOL_OR
 
 // string
+%token<bool list> ASCII
+%token<bool list list> STRING
 %token STR_CAT // ^
 %left STR_CAT
 
@@ -153,6 +155,25 @@ let tm_nat :=
         | n when n <= 0 -> acc
         | n -> loop (App [Id "S"; acc]) (n - 1) 
       in loop (Id "O") n }
+
+let tm_ascii :=
+  | ls = ASCII;
+    { let ms = List.map (function
+        | true -> Id "true"
+        | false -> Id "false") ls
+      in App (Id "Ascii" :: ms) }
+
+let tm_string :=
+  | lss = STRING;
+    { let ms = List.map (fun ls ->
+        let ms = List.map (function
+          | true -> Id "true"
+          | false -> Id "false") ls
+        in App (Id "Ascii" :: ms)) lss
+      in
+      List.fold_right (fun m acc ->
+        App [Id "String"; m; acc])
+      ms (Id "EmptyString") }
 
 let tm_ann :=
   | LPAREN; m = tm; COLON; a = tm; RPAREN; { Ann (m, a) }
@@ -282,7 +303,7 @@ let tm_cl0 :=
     RPAREN; RIGHTARROW1; m = tm;
     { PPair (R, U, MBinder ([id1; id2], m)) }
   | LANGLE;
-     id1 = identifier; COMMA; id2 = identifier;
+      id1 = identifier; COMMA; id2 = identifier;
     RANGLE; RIGHTARROW1; m = tm;
     { PPair (R, L, MBinder ([id1; id2], m)) }
   | id1 = identifier; ULIST_CONS; id2 = identifier; RIGHTARROW1; m = tm;
@@ -362,6 +383,8 @@ let tm0 :=
   | ~ = tm_id; <>
   | ~ = tm_unit; <>
   | ~ = tm_nat; <>
+  | ~ = tm_ascii; <>
+  | ~ = tm_string; <>
   | ~ = tm_ann; <>
   | ~ = tm_type; <>
   | ~ = tm_pair; <>

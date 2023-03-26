@@ -144,9 +144,11 @@ let rec pp_tm fmt = function
   | Pair (R, L, m, n) -> pf fmt "⟨%a, %a⟩" pp_tm m pp_tm n
   | Pair (N, L, m, n) -> pf fmt "⟨{%a}, %a⟩" pp_tm m pp_tm n
   | Data (d, []) -> D.pp fmt d
-  | Data (d, ms) -> pf fmt "@[(%a@;<1 2>%a)@]" D.pp d (list ~sep:sp pp_tm) ms
+  | Data (d, ms) ->
+    pf fmt "@[(%a@;<1 2>@[%a@])@]" D.pp d (list ~sep:sp pp_tm) ms
   | Cons (c, []) -> C.pp fmt c
-  | Cons (c, ms) -> pf fmt "@[(%a@;<1 2>%a)@]" C.pp c (list ~sep:sp pp_tm) ms
+  | Cons (c, ms) ->
+    pf fmt "@[(%a@;<1 2>@[%a@])@]" C.pp c (list ~sep:sp pp_tm) ms
   | Match (m, bnd, cls) ->
     let x, a = unbind bnd in
     pf fmt "@[<v 0>@[match %a [ %a ⇒@;<1 2>%a ] with@]@;<1 0>@[%a@]@;<1 0>end@]"

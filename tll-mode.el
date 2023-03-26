@@ -24,9 +24,14 @@
 (defvar tll-mode-syntax-table nil "syntax table for tll-mode")
 (setq tll-mode-syntax-table
       (let ((st (make-syntax-table)))
+        ;; comments
         (modify-syntax-entry ?/ ". 14nb" st)
         (modify-syntax-entry ?- ". 123" st)
         (modify-syntax-entry ?\n ">" st)
+
+        ;; strings
+        (modify-syntax-entry ?\" "\"" st)
+        (modify-syntax-entry ?\' "\"" st)
         st))
 
 ;;;###autoload

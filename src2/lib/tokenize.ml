@@ -1,8 +1,13 @@
 open Fmt
+open Util
 open Sedlexing
 open Parser0
 
-exception LexError of Lexing.position * string
+exception
+  LexError of
+    { pos_lnum : int
+    ; pos_cnum : int
+    }
 
 (* general *)
 let blank = [%sedlex.regexp? ' ' | '\t']
@@ -25,8 +30,6 @@ let lbrace = [%sedlex.regexp? '{']
 let rbrace = [%sedlex.regexp? '}']
 let langle = [%sedlex.regexp? 10216] (* ⟨ *)
 let rangle = [%sedlex.regexp? 10217] (* ⟩ *)
-let quote0 = [%sedlex.regexp? "\'"]
-let quote2 = [%sedlex.regexp? "\""]
 
 (* quantifiers *)
 let forall = [%sedlex.regexp? 8704] (* ∀ *)
@@ -63,6 +66,8 @@ let bool_and = [%sedlex.regexp? "&&"]
 let bool_or = [%sedlex.regexp? "||"]
 
 (* string *)
+let quote0 = [%sedlex.regexp? "\'"]
+let quote1 = [%sedlex.regexp? "\""]
 let str_cat = [%sedlex.regexp? '^']
 
 (* list *)
@@ -153,7 +158,7 @@ and filter1 buf =
     filter1 buf
   | _ -> ()
 
-let tokenize buf =
+let rec tokenize buf =
   let _ = filter buf in
   match%sedlex buf with
   (* general *)
@@ -197,6 +202,8 @@ let tokenize buf =
   | bool_and -> BOOL_AND
   | bool_or -> BOOL_OR
   (* string *)
+  | quote0 -> ASCII (tokenize_ascii buf)
+  | quote1 -> STRING (tokenize_string buf)
   | str_cat -> STR_CAT
   (* list *)
   | ulist_cons -> ULIST_CONS
@@ -255,8 +262,39 @@ let tokenize buf =
   | identifier ->
     let s = Utf8.lexeme buf in
     IDENTIFIER s
-  | any ->
+  | _ ->
     let pos = fst (lexing_positions buf) in
+    raise (LexError { pos_lnum = pos.pos_lnum; pos_cnum = pos.pos_cnum })
+
+and tokenize_ascii0 buf =
+  match%sedlex buf with
+  | "\\", "\\" -> bits_of_char '\\'
+  | "\\", "\'" -> bits_of_char '\''
+  | "\\", "\"" -> bits_of_char '\"'
+  | "\\", "n" -> bits_of_char '\n'
+  | "\\", "t" -> bits_of_char '\t'
+  | "\\", "b" -> bits_of_char '\b'
+  | "\\", "r" -> bits_of_char '\r'
+  | "\\", " " -> bits_of_char '\ '
+  | any ->
     let tok = Utf8.lexeme buf in
-    raise (LexError (pos, str "unexpected character %S" tok))
-  | _ -> assert false
+    bits_of_char (String.get tok 0)
+  | _ ->
+    let pos = fst (lexing_positions buf) in
+    raise (LexError { pos_lnum = pos.pos_lnum; pos_cnum = pos.pos_cnum })
+
+and tokenize_ascii buf =
+  let ls = tokenize_ascii0 buf in
+  match%sedlex buf with
+  | quote0 -> ls
+  | _ ->
+    let pos = fst (lexing_positions buf) in
+    raise (LexError { pos_lnum = pos.pos_lnum; pos_cnum = pos.pos_cnum })
+
+and tokenize_string buf =
+  match%sedlex buf with
+  | quote1 -> []
+  | _ ->
+    let ls = tokenize_ascii0 buf in
+    let lss = tokenize_string buf in
+    ls :: lss
