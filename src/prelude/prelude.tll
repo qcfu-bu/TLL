@@ -124,9 +124,11 @@ program cats (s1 : string) (s2 : string) : string =
   | String c s1 ⇒ String c (s1 ^ s2)
   end
 
-
-program test1 : ascii = 'A'
-program test2 : string = "Hello world!\n"
+program strlen (s : string) : nat =
+  match s with
+  | EmptyString ⇒ 0
+  | String _ s ⇒ S (strlen s)
+  end
 
 -- ———————————————————————————————————————————————
 -- lists (linear + none-linear)
@@ -138,6 +140,21 @@ inductive list (A : U) : U =
 inductive llist (A : L) : L =
 | lnil
 | lcons of (hd : A) (tl : llist A)
+
+program len {A : U} (xs : list A) : list A =
+  match xs with
+  | nil ⇒ 0
+  | _ :: xs ⇒ S (len A xs)
+  end
+
+-- program llen {A : L} (xs : llist A) : nat ⊗ llist A =
+--   match xs with
+--   | lnil ⇒ ⟨0, lnil⟩
+--   | x ;; xs ⇒
+--     match llen A xs with
+--     | ⟨n, xs⟩ ⇒ ⟨S n, x ;; xs⟩
+--     end
+--   end
 
 program append {A : U} (xs ys : list A) : list A =
   match xs with
@@ -156,6 +173,16 @@ program lappend {A : L} (xs ys : llist A) : llist A =
 -- ———————————————————————————————————————————————
 inductive box (A : U) : L =
 | Box of (a : A)
+
+program map_box {A B : U} (m : box A) (f : A → B) : box B =
+  match m with
+  | Box a ⇒ Box (f a)
+  end
+
+program unbox {A : U} (m : box A) : A =
+  match m with
+  | Box a ⇒ a
+  end
 
 
 -- ———————————————————————————————————————————————

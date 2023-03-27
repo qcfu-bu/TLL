@@ -286,4 +286,4 @@ let trans_dcls nspc dcls =
       (nspc, dcl :: dcls)
   in
   let nspc, dcls = aux nspc dcls in
-  (nspc, box_list dcls)
+  (nspc, unbox (box_list dcls))

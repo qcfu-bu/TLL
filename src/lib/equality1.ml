@@ -8,6 +8,7 @@ type rd =
   | Zeta
   | Iota
 
+let rd_all = [| Beta; Delta; Zeta; Iota |]
 let enabled mode rd = Array.exists (( = ) rd) mode
 
 let rec whnf mode env = function

@@ -35,7 +35,9 @@ ln {x} ⇒ m
 #+end_src
 
 #+begin_src 
+fix f x ⇒ m
 let x = m in n
+let fix f x = m in n
 #+end_src
 
 * Data
@@ -60,15 +62,16 @@ A ⊗ B
 #+end_src
 
 #+begin_src 
-match m as [x0 ⇒ A] with
-| C x3 x4 → m
+match m {x ⇒ A} with
+| C x3 x4 ⇒ m
+end
 #+end_src
 
 * Equality
 #+begin_src
 m ≡ n
 refl m
-rew [x p ⇒ A] pf in m
+rew {x, p ⇒ A} pf in m
 #+end_src
 
 * Monadic
@@ -81,9 +84,9 @@ let x ⇐ m in n
 * Session
 #+begin_src 
 proto 
-end
 
-!(x : A) → B
+
+!(x : A) → •
 ?(x : A) → B
 !A → B
 ?A → B
@@ -114,6 +117,23 @@ close c
 l ↦ A
 (l @ m)
 ptr_elim m as (l2, c)%A in (l1, x)%n
+#+end_src
+
+* Top Level
+#+begin_src 
+inductive nat : U = O | S of nat
+
+inductive vec (A : U) (n : nat) : U =
+| vec_nil
+| vec_cons of {n0 : nat} {pf : n ≡ S n0} (hd : A) (tl : vec A n0)
+
+definition pred (x : nat) : nat =
+  match x with
+  | O   ⇒ O
+  | S n ⇒ n
+
+theorem eq_sym (pf : a ≡ b) : b ≡ a =
+  rew [x, _ ⇒ x ≡ a] pf in refl
 #+end_src
 
 * Notes

@@ -276,6 +276,10 @@ and tokenize_ascii0 buf =
   | "\\", "b" -> bits_of_char '\b'
   | "\\", "r" -> bits_of_char '\r'
   | "\\", " " -> bits_of_char '\ '
+  | "\\", digit, digit, digit ->
+    let tok = Utf8.lexeme buf in
+    let tok = Scanf.unescaped tok in
+    bits_of_char (String.get tok 0)
   | any ->
     let tok = Utf8.lexeme buf in
     bits_of_char (String.get tok 0)

@@ -275,11 +275,10 @@ let tm_pair :=
     { Pair (N, L, m, n) }
 
 let tm_match :=
-  | TM_MATCH; m = tm;
-    TM_WITH; cls = tm_cls; TM_END;
+  | TM_MATCH; m = tm; TM_WITH; cls = tm_cls; TM_END;
     { Match (m, Binder ("_", Id "_"), cls) }
   | TM_MATCH; m = tm;
-    LBRACK; id = identifier; RIGHTARROW1; a = tm; RBRACK;
+      LBRACE; id = identifier; RIGHTARROW1; a = tm; RBRACE;
     TM_WITH; cls = tm_cls; TM_END;
     { Match (m, Binder (id, a), cls) }
 
@@ -324,9 +323,9 @@ let tm_refl :=
   | TM_REFL; { Refl }
 
 let tm_rew :=
-  | TM_REW; LBRACK;
+  | TM_REW; LBRACE;
       id1 = identifier; COMMA; id2 = identifier; RIGHTARROW1; a = tm;
-    RBRACK; p = tm; TM_IN; m = tm;
+    RBRACE; p = tm; TM_IN; m = tm;
     { Rew (MBinder ([id1; id2], a), p, m) }
 
 let tm_io :=

@@ -1,7 +1,38 @@
+open Util
 open Fmt
 open Bindlib
 open Names
 open Syntax1
+open Prelude1
+
+let rec nat_of m =
+  match m with
+  | Cons (c, []) when C.equal c o_c -> Some 0
+  | Cons (c, [ m ]) when C.equal c s_c -> Option.map succ (nat_of m)
+  | _ -> None
+
+let bin_of ms =
+  List.fold_right
+    (fun m opt ->
+      Option.bind opt (fun acc ->
+          match m with
+          | Cons (c, []) when C.equal c true_c -> Some (true :: acc)
+          | Cons (c, []) when C.equal c false_c -> Some (false :: acc)
+          | _ -> None))
+    ms (Some [])
+
+let char_of m =
+  match m with
+  | Cons (c, ms) when C.equal c ascii_c -> Option.map char_of_bits (bin_of ms)
+  | _ -> None
+
+let rec string_of = function
+  | Cons (c, []) when C.equal c emptyString_c -> Some ""
+  | Cons (c, [ m; n ]) when C.equal c string_c -> (
+    match (char_of m, string_of n) with
+    | Some c, Some s -> Some (str "%c%s" c s)
+    | _ -> None)
+  | _ -> None
 
 let pipe fmt _ = pf fmt " | "
 let break fmt _ = pf fmt "@.@."
@@ -147,19 +178,32 @@ let rec pp_tm fmt = function
   | Data (d, ms) ->
     pf fmt "@[(%a@;<1 2>@[%a@])@]" D.pp d (list ~sep:sp pp_tm) ms
   | Cons (c, []) -> C.pp fmt c
-  | Cons (c, ms) ->
-    pf fmt "@[(%a@;<1 2>@[%a@])@]" C.pp c (list ~sep:sp pp_tm) ms
+  | Cons (c, ms) as m ->
+    if C.equal c o_c || C.equal c s_c then
+      match nat_of m with
+      | Some n -> pf fmt "%d" n
+      | None -> pf fmt "@[(%a@;<1 2>@[%a@])@]" C.pp c (list ~sep:sp pp_tm) ms
+    else if C.equal c ascii_c then
+      match char_of m with
+      | Some c -> pf fmt "%C" c
+      | None -> pf fmt "@[(%a@;<1 2>@[%a@])@]" C.pp c (list ~sep:sp pp_tm) ms
+    else if C.equal c string_c then
+      match string_of m with
+      | Some s -> pf fmt "%S" s
+      | None -> pf fmt "@[(%a@;<1 2>@[%a@])@]" C.pp c (list ~sep:sp pp_tm) ms
+    else
+      pf fmt "@[(%a@;<1 2>@[%a@])@]" C.pp c (list ~sep:sp pp_tm) ms
   | Match (m, bnd, cls) ->
     let x, a = unbind bnd in
-    pf fmt "@[<v 0>@[match %a [ %a ⇒@;<1 2>%a ] with@]@;<1 0>@[%a@]@;<1 0>end@]"
+    pf fmt "@[<v 0>@[match %a {%a ⇒@;<1 2>%a} with@]@;<1 0>@[%a@]@;<1 0>end@]"
       pp_tm m V.pp x pp_tm a pp_cls cls
   (* equality *)
   | Eq (m, n) -> pf fmt "%a ≡ %a" pp_tm m pp_tm n
   | Refl -> pf fmt "refl"
   | Rew (bnd, p, m) ->
     let xs, a = unmbind bnd in
-    pf fmt "rew [ %a, %a ⇒ %a ] %a in %a" V.pp xs.(0) V.pp xs.(1) pp_tm a pp_tm
-      p pp_tm m
+    pf fmt "rew {%a, %a ⇒ %a} %a in %a" V.pp xs.(0) V.pp xs.(1) pp_tm a pp_tm p
+      pp_tm m
   (* monadic *)
   | IO a -> pf fmt "IO %a" pp_tm a
   | Return m -> pf fmt "return %a" pp_tm m
