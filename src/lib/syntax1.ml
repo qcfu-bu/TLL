@@ -36,11 +36,11 @@ type tm =
   | Sigma of rel * sort * tm * (tm, tm) binder
   | Pair of rel * sort * tm * tm
   | Data of D.t * tms
-  | Cons of C.t * tms
+  | Cons of C.t * tms * tms
   | Match of tm * (tm, tm) binder * cls
   (* equality *)
-  | Eq of tm * tm
-  | Refl
+  | Eq of tm * tm * tm
+  | Refl of tm
   | Rew of (tm, tm) mbinder * tm * tm
   (* monadic *)
   | IO of tm
@@ -129,12 +129,12 @@ let _Fix x = box_apply (fun bnd -> Fix (x, bnd))
 let _Sigma rel s = box_apply2 (fun a bnd -> Sigma (rel, s, a, bnd))
 let _Pair rel s = box_apply2 (fun m n -> Pair (rel, s, m, n))
 let _Data d = box_apply (fun ms -> Data (d, ms))
-let _Cons c = box_apply (fun ms -> Cons (c, ms))
+let _Cons c = box_apply2 (fun ms ns -> Cons (c, ms, ns))
 let _Match = box_apply3 (fun m bnd cls -> Match (m, bnd, cls))
 
 (* equality *)
-let _Eq = box_apply2 (fun m n -> Eq (m, n))
-let _Refl = box Refl
+let _Eq = box_apply3 (fun a m n -> Eq (a, m, n))
+let _Refl = box_apply (fun m -> Refl m)
 let _Rew = box_apply3 (fun bnd pf m -> Rew (bnd, pf, m))
 
 (* monadic *)
@@ -193,9 +193,10 @@ let rec lift_tm = function
   | Data (d, ms) ->
     let ms = List.map lift_tm ms in
     _Data d (box_list ms)
-  | Cons (c, ms) ->
+  | Cons (c, ms, ns) ->
     let ms = List.map lift_tm ms in
-    _Cons c (box_list ms)
+    let ns = List.map lift_tm ns in
+    _Cons c (box_list ms) (box_list ns)
   | Match (m, bnd, cls) ->
     let cls =
       List.map
@@ -206,8 +207,8 @@ let rec lift_tm = function
     in
     _Match (lift_tm m) (box_binder lift_tm bnd) (box_list cls)
   (* equality *)
-  | Eq (m, n) -> _Eq (lift_tm m) (lift_tm n)
-  | Refl -> _Refl
+  | Eq (a, m, n) -> _Eq (lift_tm a) (lift_tm m) (lift_tm n)
+  | Refl m -> _Refl (lift_tm m)
   | Rew (bnd, pf, m) -> _Rew (box_mbinder lift_tm bnd) (lift_tm pf) (lift_tm m)
   (* monadic *)
   | IO a -> _IO (lift_tm a)

@@ -6,7 +6,7 @@ type entry =
   | V of Syntax1.V.t
   | F of Syntax1.V.t
   | D of D.t
-  | C of C.t
+  | C of C.t * int
 
 type nspc = (string * entry) list
 
@@ -39,7 +39,7 @@ let find_c s nspc =
       nspc
   in
   match opt with
-  | Some (_, C c) -> Some c
+  | Some (_, C (c, i)) -> Some (c, i)
   | _ -> None
 
 let find_d s nspc =
@@ -85,6 +85,17 @@ let spine_of_nspc nspc =
       | C _ -> acc)
     nspc []
 
+let mk_meta nspc = Syntax1.(_Meta (M.mk ()) (box_list (spine_of_nspc nspc)))
+
+let mk_param nspc i =
+  let rec loop i =
+    if i <= 0 then
+      []
+    else
+      mk_meta nspc :: loop (i - 1)
+  in
+  box_list (loop i)
+
 let rec trans_xs nspc = function
   | [] -> (nspc, [])
   | id :: ids ->
@@ -100,13 +111,13 @@ let rec trans_tm nspc = function
     Syntax1._Ann m a
   (* core *)
   | Type s -> Syntax1.(_Type (trans_sort s))
-  | Id "_" -> Syntax1.(_Meta (M.mk ()) (box_list (spine_of_nspc nspc)))
+  | Id "_" -> mk_meta nspc
   | Id id -> (
     match List.assoc_opt id nspc with
     | Some (V x) -> Syntax1._Var x
     | Some (F x) -> Syntax1._Var x
     | Some (D d) -> Syntax1._Data d (box [])
-    | Some (C c) -> Syntax1._Cons c (box [])
+    | Some (C (c, i)) -> Syntax1._Cons c (mk_param nspc i) (box [])
     | None -> failwith "trans_tm Id")
   | Pi (rel, s, a, Binder (id, b)) ->
     let a = trans_tm nspc a in
@@ -125,7 +136,7 @@ let rec trans_tm nspc = function
       | Some (V x) -> Syntax1.(_mkApps (_Var x) ms)
       | Some (F x) -> Syntax1.(_mkApps (_Var x) ms)
       | Some (D d) -> Syntax1.(_Data d (box_list ms))
-      | Some (C c) -> Syntax1.(_Cons c (box_list ms))
+      | Some (C (c, i)) -> Syntax1.(_Cons c (mk_param nspc i) (box_list ms))
       | None -> failwith "trans_tm App")
     | m :: ms ->
       let m = trans_tm nspc m in
@@ -168,7 +179,7 @@ let rec trans_tm nspc = function
             Syntax1.(_PPair (trans_rel rel) (trans_sort s) bnd)
           | PCons (id, MBinder (ids, m)) -> (
             match find_c id nspc with
-            | Some c ->
+            | Some (c, _) ->
               let nspc, xs = trans_xs nspc ids in
               let m = trans_tm nspc m in
               let bnd = bind_mvar (Array.of_list xs) m in
@@ -181,8 +192,8 @@ let rec trans_tm nspc = function
   | Eq (m, n) ->
     let m = trans_tm nspc m in
     let n = trans_tm nspc n in
-    Syntax1.(_Eq m n)
-  | Refl -> Syntax1._Refl
+    Syntax1.(_Eq (mk_meta nspc) m n)
+  | Refl -> Syntax1.(_Refl (mk_meta nspc))
   | Rew (MBinder (ids, a), pf, m) ->
     let pf = trans_tm nspc pf in
     let m = trans_tm nspc m in
@@ -218,12 +229,12 @@ let rec trans_tm nspc = function
   | Close m -> Syntax1.(_Close (trans_tm nspc m))
 
 let rec trans_param trans nspc = function
-  | PBase a -> Syntax1.(_PBase (trans nspc a))
+  | PBase a -> Syntax1.(_PBase (trans nspc a), 0)
   | PBind (a, Binder (id, b)) ->
     let a = trans_tm nspc a in
     let x = Syntax1.mk id in
-    let b = trans_param trans ((id, V x) :: nspc) b in
-    Syntax1.(_PBind a (bind_var x b))
+    let b, i = trans_param trans ((id, V x) :: nspc) b in
+    Syntax1.(_PBind a (bind_var x b), i + 1)
 
 let rec trans_tele nspc = function
   | TBase a -> Syntax1.(_TBase (trans_tm nspc a))
@@ -248,8 +259,8 @@ let rec trans_args entry nspc = function
 
 let trans_dcons nspc (DCons (id, ptl)) =
   let c = C.mk id in
-  let ptl = trans_param trans_tele nspc ptl in
-  ((id, C c) :: nspc, Syntax1.(_DCons c ptl))
+  let ptl, i = trans_param trans_tele nspc ptl in
+  ((id, C (c, i)) :: nspc, Syntax1.(_DCons c ptl))
 
 let rec trans_dconss nspc = function
   | [] -> (nspc, [])
@@ -271,7 +282,7 @@ let rec trans_dcl nspc = function
       (nspc, Syntax1.(_DTm (trans_rel rel) x a m))
   | DData (id, ptm, dconss) ->
     let d = D.mk id in
-    let ptm = trans_param trans_tm nspc ptm in
+    let ptm, _ = trans_param trans_tm nspc ptm in
     let nspc = (id, D d) :: nspc in
     let nspc, dconss = trans_dconss nspc dconss in
     (nspc, Syntax1._DData d ptm (box_list dconss))

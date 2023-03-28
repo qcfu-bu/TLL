@@ -45,8 +45,8 @@ let rec fv ctx = function
   | Pair (_, _, m, n) -> VSet.union (fv ctx m) (fv ctx n)
   | Data (_, ms) ->
     List.fold_left (fun acc m -> VSet.union acc (fv ctx m)) VSet.empty ms
-  | Cons (_, ms) ->
-    List.fold_left (fun acc m -> VSet.union acc (fv ctx m)) VSet.empty ms
+  | Cons (_, ms, ns) ->
+    List.fold_left (fun acc m -> VSet.union acc (fv ctx m)) VSet.empty (ms @ ns)
   | Match (m, bnd, cls) ->
     let x, mot = unbind bnd in
     let fv1 = fv ctx m in
@@ -65,8 +65,8 @@ let rec fv ctx = function
     in
     VSet.union (VSet.union fv1 fv2) fv3
   (* equality *)
-  | Eq (m, n) -> VSet.union (fv ctx m) (fv ctx n)
-  | Refl -> VSet.empty
+  | Eq (a, m, n) -> VSet.union (VSet.union (fv ctx a) (fv ctx m)) (fv ctx n)
+  | Refl m -> fv ctx m
   | Rew (bnd, pf, m) ->
     let xs, a = unmbind bnd in
     let fv1 = fv (Array.fold_right VSet.add xs ctx) a in
@@ -124,7 +124,7 @@ let rec occurs x = function
     occurs x a || occurs x b
   | Pair (_, _, m, n) -> occurs x m || occurs x n
   | Data (_, ms) -> List.exists (occurs x) ms
-  | Cons (_, ms) -> List.exists (occurs x) ms
+  | Cons (_, ms, ns) -> List.exists (occurs x) (ms @ ns)
   | Match (m, bnd, cls) ->
     let _, a = unbind bnd in
     occurs x m || occurs x a
@@ -138,7 +138,8 @@ let rec occurs x = function
              occurs x m)
          cls
   (* equality *)
-  | Eq (m, n) -> occurs x m || occurs x n
+  | Eq (a, m, n) -> occurs x a || occurs x m || occurs x n
+  | Refl m -> occurs x m
   | Rew (bnd, pf, m) ->
     let _, a = unmbind bnd in
     occurs x a || occurs x pf || occurs x m
@@ -212,8 +213,10 @@ let rec asimpl (env, m1, m2) =
       eqns1 @ eqns2
     | Data (d1, ms1), Data (d2, ms2) when D.equal d1 d2 ->
       List.fold_right2 (fun m1 m2 acc -> asimpl (env, m1, m2) @ acc) ms1 ms2 []
-    | Cons (c1, ms1), Cons (c2, ms2) when C.equal c1 c2 ->
-      List.fold_right2 (fun m1 m2 acc -> asimpl (env, m1, m2) @ acc) ms1 ms2 []
+    | Cons (c1, ms1, ns1), Cons (c2, ms2, ns2) when C.equal c1 c2 ->
+      List.fold_right2
+        (fun m1 m2 acc -> asimpl (env, m1, m2) @ acc)
+        (ms1 @ ns1) (ms2 @ ns2) []
     | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
       let _, mot1, mot2 = unbind2 bnd1 bnd2 in
       let eqns1 = asimpl (env, m1, m2) in
@@ -234,11 +237,12 @@ let rec asimpl (env, m1, m2) =
       in
       eqns1 @ eqns2 @ eqns3
     (* equality *)
-    | Eq (m1, n1), Eq (m2, n2) ->
-      let eqns1 = asimpl (env, m1, m2) in
-      let eqns2 = asimpl (env, n1, n2) in
-      eqns1 @ eqns2
-    | Refl, Refl -> []
+    | Eq (a1, m1, n1), Eq (a2, m2, n2) ->
+      let eqns1 = asimpl (env, a1, a2) in
+      let eqns2 = asimpl (env, m1, m2) in
+      let eqns3 = asimpl (env, n1, n2) in
+      eqns1 @ eqns2 @ eqns3
+    | Refl m1, Refl m2 -> asimpl (env, m1, m2)
     | Rew (bnd1, pf1, m1), Rew (bnd2, pf2, m2) ->
       let _, a1, a2 = unmbind2 bnd1 bnd2 in
       let eqns1 = asimpl (env, a1, a2) in
@@ -334,8 +338,10 @@ let rec simpl (env, m1, m2) =
       eqns1 @ eqns2
     | Data (d1, ms1), Data (d2, ms2) when D.equal d1 d2 ->
       List.fold_right2 (fun m1 m2 acc -> simpl (env, m1, m2) @ acc) ms1 ms2 []
-    | Cons (c1, ms1), Cons (c2, ms2) when C.equal c1 c2 ->
-      List.fold_right2 (fun m1 m2 acc -> simpl (env, m1, m2) @ acc) ms1 ms2 []
+    | Cons (c1, ms1, ns1), Cons (c2, ms2, ns2) when C.equal c1 c2 ->
+      List.fold_right2
+        (fun m1 m2 acc -> simpl (env, m1, m2) @ acc)
+        (ms1 @ ns1) (ms2 @ ns2) []
     | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
       let _, mot1, mot2 = unbind2 bnd1 bnd2 in
       let eqns1 = simpl (env, m1, m2) in
@@ -356,11 +362,12 @@ let rec simpl (env, m1, m2) =
       in
       eqns1 @ eqns2 @ eqns3
     (* equality *)
-    | Eq (m1, n1), Eq (m2, n2) ->
-      let eqns1 = simpl (env, m1, m2) in
-      let eqns2 = simpl (env, n1, n2) in
-      eqns1 @ eqns2
-    | Refl, Refl -> []
+    | Eq (a1, m1, n1), Eq (a2, m2, n2) ->
+      let eqns1 = simpl (env, a1, a2) in
+      let eqns2 = simpl (env, m1, m2) in
+      let eqns3 = simpl (env, n1, n2) in
+      eqns1 @ eqns2 @ eqns3
+    | Refl m1, Refl m2 -> simpl (env, m1, m2)
     | Rew (bnd1, pf1, m1), Rew (bnd2, pf2, m2) ->
       let _, a1, a2 = unmbind2 bnd1 bnd2 in
       let eqns1 = simpl (env, a1, a2) in
@@ -460,9 +467,10 @@ let rec resolve_tm (map : map) m =
   | Data (d, ms) ->
     let ms = List.map (resolve_tm map) ms in
     Data (d, ms)
-  | Cons (c, ms) ->
+  | Cons (c, ns, ms) ->
+    let ns = List.map (resolve_tm map) ns in
     let ms = List.map (resolve_tm map) ms in
-    Cons (c, ms)
+    Cons (c, ns, ms)
   | Match (m, bnd, cls) ->
     let x, a = unbind bnd in
     let m = resolve_tm map m in
@@ -482,7 +490,8 @@ let rec resolve_tm (map : map) m =
     in
     Match (m, unbox (bind_var x a), cls)
   (* equality *)
-  | Eq (m, n) -> Eq (resolve_tm map m, resolve_tm map n)
+  | Eq (a, m, n) -> Eq (resolve_tm map a, resolve_tm map m, resolve_tm map n)
+  | Refl m -> Refl (resolve_tm map m)
   | Rew (bnd, pf, m) ->
     let xs, a = unmbind bnd in
     let a = lift_tm (resolve_tm map a) in

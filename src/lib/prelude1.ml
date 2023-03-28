@@ -16,7 +16,7 @@ let prelude_d id =
   | _ -> failwith id
 
 let prelude_c id =
-  try Option.get (find_c id prelude_nspc) with
+  try fst (Option.get (find_c id prelude_nspc)) with
   | _ -> failwith id
 
 let prelude_v id =

@@ -53,7 +53,7 @@ let rec whnf mode env = function
   | Rew (bnd, pf, m) -> (
     let pf = whnf mode env pf in
     match pf with
-    | Refl -> whnf mode env m
+    | Refl _ -> whnf mode env m
     | _ -> Rew (bnd, pf, m))
   (* monadic *)
   | MLet (m, bnd) ->
@@ -79,7 +79,7 @@ and match_cls cls m =
           | PPair (rel1, s1, bnd), Pair (rel2, s2, m1, m2)
             when rel1 = rel2 && s1 = s2 ->
             Some (msubst bnd [| m1; m2 |])
-          | PCons (c1, bnd), Cons (c2, ms) when C.equal c1 c2 ->
+          | PCons (c1, bnd), Cons (c2, _, ms) when C.equal c1 c2 ->
             Some (msubst bnd (Array.of_list ms))
           | _ -> acc)
         acc)
@@ -110,7 +110,8 @@ let rec aeq m1 m2 =
     | Pair (rel1, s1, m1, n1), Pair (rel2, s2, m2, n2) ->
       rel1 = rel2 && s1 = s2 && aeq m1 m2 && aeq n1 n2
     | Data (d1, ms1), Data (d2, ms2) -> D.equal d1 d2 && List.equal aeq ms1 ms2
-    | Cons (c1, ms1), Cons (c2, ms2) -> C.equal c1 c2 && List.equal aeq ms1 ms2
+    | Cons (c1, ms1, ns1), Cons (c2, ms2, ns2) ->
+      C.equal c1 c2 && List.equal aeq (ns1 @ ms1) (ns2 @ ms2)
     | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
       aeq m1 m2 && eq_binder aeq bnd1 bnd2
       && List.equal
@@ -123,8 +124,8 @@ let rec aeq m1 m2 =
              | _ -> false)
            cls1 cls2
     (* equality *)
-    | Eq (m1, n1), Eq (m2, n2) -> aeq m1 m2 && aeq n1 n2
-    | Refl, Refl -> true
+    | Eq (a1, m1, n1), Eq (a2, m2, n2) -> aeq a1 a2 && aeq m1 m2 && aeq n1 n2
+    | Refl m1, Refl m2 -> aeq m1 m2
     | Rew (bnd1, pf1, m1), Rew (bnd2, pf2, m2) ->
       eq_mbinder aeq bnd1 bnd2 && aeq pf1 pf2
     (* monadic *)
@@ -176,8 +177,8 @@ let rec equal mode env m1 m2 =
       rel1 = rel2 && s1 = s2 && equal mode env m1 m2 && equal mode env n1 n2
     | Data (d1, ms1), Data (d2, ms2) ->
       D.equal d1 d2 && List.equal (equal mode env) ms1 ms2
-    | Cons (c1, ms1), Cons (c2, ms2) ->
-      C.equal c1 c2 && List.equal (equal mode env) ms1 ms2
+    | Cons (c1, ms1, ns1), Cons (c2, ms2, ns2) ->
+      C.equal c1 c2 && List.equal (equal mode env) (ns1 @ ms1) (ns2 @ ms2)
     | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
       equal mode env m1 m2
       && eq_binder (equal mode env) bnd1 bnd2
@@ -191,8 +192,9 @@ let rec equal mode env m1 m2 =
              | _ -> false)
            cls1 cls2
     (* equality *)
-    | Eq (m1, n1), Eq (m2, n2) -> equal mode env m1 m2 && equal mode env n1 n2
-    | Refl, Refl -> true
+    | Eq (a1, m1, n1), Eq (a2, m2, n2) ->
+      equal mode env a1 a2 && equal mode env m1 m2 && equal mode env n1 n2
+    | Refl m1, Refl m2 -> equal mode env m1 m2
     | Rew (bnd1, pf1, m1), Rew (bnd2, pf2, m2) ->
       eq_mbinder (equal mode env) bnd1 bnd2
       && equal mode env pf1 pf2 && equal mode env m1 m2
