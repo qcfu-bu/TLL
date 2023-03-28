@@ -94,6 +94,7 @@ module VMap = Map.Make (V)
 
 (* smart constructors *)
 let mk = new_var (fun x -> Var x)
+let var x = Var x
 
 (* sort *)
 let _U = box U
