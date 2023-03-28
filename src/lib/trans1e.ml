@@ -91,14 +91,12 @@ let resolve_tm m : tm trans1e =
 
 (* infer the type + sort of a term *)
 let rec infer_sort ctx env a : unit trans1e =
-  match a with
+  let* srt = infer_tm ctx env a in
+  let* srt = resolve_tm srt in
+  match whnf rd_all env srt with
   | Meta _ -> return ()
-  | _ -> (
-    let* srt = infer_tm ctx env a in
-    let* srt = resolve_tm srt in
-    match whnf rd_all env srt with
-    | Type s -> return ()
-    | _ -> failwith "infert_sort(%a)" pp_tm a)
+  | Type s -> return ()
+  | _ -> failwith "infert_sort(%a)" pp_tm a
 
 and infer_tm ctx env m0 : tm trans1e =
   match m0 with
@@ -119,7 +117,7 @@ and infer_tm ctx env m0 : tm trans1e =
   | Lam (rel, srt, bnd) -> failwith "infer_Lam"
   | App (m, n) -> (
     let* ty = infer_tm ctx env m in
-    let* ty = resolve_tm ty in
+    let* ty = unify >> resolve_tm ty in
     match whnf rd_all env ty with
     | Pi (_, _, a, bnd) ->
       let* _ = check_tm ctx env n a in
@@ -127,8 +125,6 @@ and infer_tm ctx env m0 : tm trans1e =
     | _ -> failwith "infer_App")
   | Let (rel, m, bnd) ->
     let* a = infer_tm ctx env m in
-    let* m = unify >> resolve_tm m in
-    let* a = resolve_tm a in
     let x, n = unbind bnd in
     infer_tm (add_v x a ctx) (VMap.add x m env) n
   | Fix _ -> failwith "infer_Fix"
@@ -197,8 +193,7 @@ and infer_tm ctx env m0 : tm trans1e =
     return (IO a)
   | MLet (m, bnd) -> (
     let* ty_m = infer_tm ctx env m in
-    let* m = unify >> resolve_tm m in
-    let* ty_m = resolve_tm ty_m in
+    let* ty_m = unify >> resolve_tm ty_m in
     let x, n = unbind bnd in
     match whnf rd_all env ty_m with
     | IO a -> (
@@ -354,7 +349,7 @@ and check_tm ctx env m ty : unit trans1e =
   | Let (rel, m, bnd) ->
     let* a = infer_tm ctx env m in
     let* m = unify >> resolve_tm m in
-    let* a = resolve_tm a in
+    let* a = unify >> resolve_tm a in
     let x, n = unbind bnd in
     check_tm (add_v x a ctx) (VMap.add x m env) n ty
   | Fix (_, bnd) ->
@@ -391,9 +386,8 @@ let rec check_dcls ctx env dcls =
   | DTm (_, x, a, m) :: dcls ->
     let* _ = infer_sort ctx env a in
     let* _ = check_tm ctx env m a in
-    let* _ = unify in
-    let* _ = resolve_tm m in
-    let* _ = resolve_tm a in
+    let* m = unify >> resolve_tm m in
+    let* a = unify >> resolve_tm a in
     check_dcls (add_v x a ctx) (VMap.add x m env) dcls
   | DData (d, ptm, dconss) :: dcls ->
     let* _ = check_ptm ctx env ptm in
