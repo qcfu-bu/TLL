@@ -216,7 +216,8 @@ logical stderr_t : proto = stderr_rec ()
 program readline (_ : unit) : IO string =
   let ch ⇐ open stdin in
   let ch ⇐ send ch true in
-  match recv ch with
+  let msg ⇐ recv ch in
+  match msg with
   | ⟨s, ch⟩ ⇒
     let ch ⇐ send ch false in
     let _ ⇐ close ch in

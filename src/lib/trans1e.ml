@@ -51,6 +51,11 @@ let ( >>= ) (m : 'a trans1e) (f : 'a -> 'b trans1e) : 'b trans1e =
   let a, eqns', map' = m (eqns, map) in
   (f a) (eqns', map')
 
+let ( >> ) (m : 'a trans1e) (n : 'b trans1e) : 'b trans1e =
+ fun (eqns, map) ->
+  let _, eqns', map' = m (eqns, map) in
+  n (eqns', map')
+
 let ( let* ) = ( >>= )
 
 let assert_equal env m n : unit trans1e =
@@ -105,24 +110,35 @@ and infer_tm ctx env m0 : tm trans1e =
     | _ -> failwith "infer_tm(%a)" pp_tm m0)
   | Let (rel, m, bnd) ->
     let* a = infer_tm ctx env m in
-    let* _ = unify in
-    let* m = resolve_tm m in
+    let* m = unify >> resolve_tm m in
     let* a = resolve_tm a in
     let x, n = unbind bnd in
     infer_tm (add_v x a ctx) (VMap.add x m env) n
   | Fix _ -> failwith "infer_tm(%a)" pp_tm m0
   (* data *)
-  | Sigma (rel, srt, a, bnd) ->
+  | Sigma (R, srt, a, bnd) ->
+    let x, b = unbind bnd in
+    let* s = infer_sort ctx env a in
+    let* r = infer_sort (add_v x a ctx) env b in
+    if s <= srt && r <= srt then
+      return (Type srt)
+    else
+      failwith "infer_Sigma"
+  | Sigma (N, srt, a, bnd) ->
     let x, b = unbind bnd in
     let* _ = infer_sort ctx env a in
-    let* _ = infer_sort (add_v x a ctx) env b in
-    return (Type srt)
+    let* r = infer_sort (add_v x a ctx) env b in
+    if r <= srt then
+      return (Type srt)
+    else
+      failwith "infer_Sigma"
   | Pair (rel, srt, m, n) ->
     let* a = infer_tm ctx env m in
     let* b = infer_tm ctx env n in
     let x = mk "_" in
     let bnd = unbox (bind_var x (lift_tm b)) in
-    return (Sigma (rel, srt, a, bnd))
+    let ty = Sigma (rel, srt, a, bnd) in
+    infer_sort ctx env ty >> return ty
   | Data (d, ms) ->
     let ptm, _ = find_d d ctx in
     infer_ptm ctx env ms ptm
@@ -131,8 +147,7 @@ and infer_tm ctx env m0 : tm trans1e =
     infer_ptl ctx env ms ns ptl
   | Match (m, mot, cls) -> (
     let* ty = infer_tm ctx env m in
-    let* _ = unify in
-    let* ty = resolve_tm ty in
+    let* ty = unify >> resolve_tm ty in
     match whnf rd_all env ty with
     | Sigma (rel, srt, a, bnd) ->
       let* _ = infer_pair ctx env rel srt a bnd mot cls in
@@ -153,8 +168,7 @@ and infer_tm ctx env m0 : tm trans1e =
   | Rew (bnd, p, m) -> (
     let xs, mot = unmbind bnd in
     let* ty = infer_tm ctx env p in
-    let* _ = unify in
-    let* ty = resolve_tm ty in
+    let* ty = unify >> resolve_tm ty in
     match (ty, xs) with
     | Eq (a, m, n), [| x; y |] ->
       let ctx' = add_v x a ctx in
@@ -163,7 +177,74 @@ and infer_tm ctx env m0 : tm trans1e =
       let* _ = check_tm ctx env m (msubst bnd [| m; Refl m |]) in
       return (msubst bnd [| n; p |])
     | _ -> failwith "infer_rew")
-  | _ -> _
+  (* monadic *)
+  | IO a ->
+    let* _ = infer_sort ctx env a in
+    return (Type L)
+  | Return m ->
+    let* a = infer_tm ctx env m in
+    return (IO a)
+  | MLet (m, bnd) -> (
+    let* ty_m = infer_tm ctx env m in
+    let* m = unify >> resolve_tm m in
+    let* ty_m = resolve_tm ty_m in
+    let x, n = unbind bnd in
+    match whnf rd_all env ty_m with
+    | IO a -> (
+      let* ty_n = infer_tm (add_v x a ctx) env n in
+      let* ty_n = unify >> resolve_tm ty_n in
+      match whnf rd_all env ty_n with
+      | IO b -> return (IO b)
+      | _ -> failwith "infer_MLet")
+    | _ -> failwith "infer_MLet")
+  (* session *)
+  | Proto -> return (Type U)
+  | End -> return Proto
+  | Act (_, _, a, bnd) ->
+    let x, b = unbind bnd in
+    let* _ = infer_sort ctx env a in
+    let* _ = check_tm (add_v x a ctx) env b Proto in
+    return Proto
+  | Ch (_, a) ->
+    let* _ = check_tm ctx env a Proto in
+    return (Type L)
+  | Open Stdin -> return (IO (Ch (Pos, Var Prelude1.stdin_t_v)))
+  | Open Stdout -> return (IO (Ch (Pos, Var Prelude1.stdout_t_v)))
+  | Open Stderr -> return (IO (Ch (Pos, Var Prelude1.stderr_t_v)))
+  | Fork (a0, bnd) -> (
+    let x, m = unbind bnd in
+    let* _ = infer_sort ctx env a0 in
+    let* a0 = unify >> resolve_tm a0 in
+    match whnf rd_all env a0 with
+    | Ch (Pos, a) ->
+      let ty = IO (Data (Prelude1.unit_d, [])) in
+      let* _ = check_tm (add_v x a0 ctx) env m ty in
+      return (IO (Ch (Neg, a)))
+    | _ -> failwith "infer_Fork")
+  | Recv m -> (
+    let* ty = infer_tm ctx env m in
+    let* ty = unify >> resolve_tm ty in
+    match whnf rd_all env ty with
+    | Ch (rol1, Act (rel, rol2, a, bnd)) when rol1 <> rol2 = true ->
+      let x, b = unbind bnd in
+      let bnd = unbox (bind_var x (lift_tm (Ch (rol1, b)))) in
+      return (IO (Sigma (rel, L, a, bnd)))
+    | _ -> failwith "infer_Recv")
+  | Send m -> (
+    let* ty = infer_tm ctx env m in
+    let* ty = unify >> resolve_tm ty in
+    match whnf rd_all env ty with
+    | Ch (rol1, Act (rel, rol2, a, bnd)) when rol1 <> rol2 = false ->
+      let x, b = unbind bnd in
+      let bnd = unbox (bind_var x (lift_tm (IO (Ch (rol1, b))))) in
+      return (Pi (rel, L, a, bnd))
+    | _ -> failwith "infer_Send")
+  | Close m -> (
+    let* ty = infer_tm ctx env m in
+    let* ty = unify >> resolve_tm ty in
+    match whnf rd_all env ty with
+    | Ch (_, End) -> return (IO (Data (Prelude1.unit_d, [])))
+    | _ -> failwith "infer_Close")
 
 and infer_pair ctx env rel srt a b mot cls =
   match cls with
