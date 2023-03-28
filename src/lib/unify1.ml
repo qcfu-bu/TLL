@@ -447,7 +447,7 @@ let rec resolve_tm (map : map) m =
     let x, m = unbind bnd in
     let m = lift_tm (resolve_tm map m) in
     Lam (rel, s, unbox (bind_var x m))
-  | App (m, n) -> Ann (resolve_tm map m, resolve_tm map n)
+  | App (m, n) -> App (resolve_tm map m, resolve_tm map n)
   | Let (rel, m, bnd) ->
     let x, n = unbind bnd in
     let m = resolve_tm map m in

@@ -66,6 +66,10 @@ let rec whnf mode env = function
       | _ -> MLet (m, bnd)
     else
       MLet (m, bnd)
+  (* session *)
+  | Ch (rol, a) ->
+    let _ = Fmt.pr "%a@." Pprint1.pp_tm a in
+    Ch (rol, whnf mode env a)
   (* other *)
   | m -> m
 

@@ -40,12 +40,6 @@ type 'a trans1e = eqns * map -> 'a * eqns * map
 
 let return (a : 'a) : 'a trans1e = fun (eqns, map) -> (a, eqns, map)
 
-let find_m x ctx : tm trans1e =
- fun (eqns, map) ->
-  match MMap.find_opt x map with
-  | Some (_, Some a) -> (a, eqns, map)
-  | _ -> (fst (meta_mk ctx), eqns, map)
-
 let ( >>= ) (m : 'a trans1e) (f : 'a -> 'b trans1e) : 'b trans1e =
  fun (eqns, map) ->
   let a, eqns', map' = m (eqns, map) in
@@ -57,6 +51,16 @@ let ( >> ) (m : 'a trans1e) (n : 'b trans1e) : 'b trans1e =
   n (eqns', map')
 
 let ( let* ) = ( >>= )
+let run_trans1e (m : 'a trans1e) : 'a * eqns * map = m ([], MMap.empty)
+
+let find_m x ctx : tm trans1e =
+ fun (eqns, map) ->
+  match MMap.find_opt x map with
+  | Some (_, Some a) -> (a, eqns, map)
+  | _ -> (fst (meta_mk ctx), eqns, map)
+
+let add_m x a : unit trans1e =
+ fun (eqns, map) -> ((), eqns, MMap.add x (None, Some a) map)
 
 let assert_equal env m n : unit trans1e =
  fun (eqns, map) ->
@@ -65,23 +69,36 @@ let assert_equal env m n : unit trans1e =
   else
     ((), (env, m, n) :: eqns, map)
 
-let resolve_tm m : tm trans1e =
- fun (eqns, map) ->
-  let m = resolve_tm map m in
-  (m, eqns, map)
-
 let unify : unit trans1e =
  fun (eqns, map) ->
   let map = unify map eqns in
   ((), eqns, map)
 
+let resolve_ptm ptm : tm param trans1e =
+ fun (eqns, map) ->
+  let ptm = resolve_param lift_tm resolve_tm map ptm in
+  (ptm, eqns, map)
+
+let resolve_ptl ptl : tele param trans1e =
+ fun (eqns, map) ->
+  let ptl = resolve_param lift_tele resolve_tele map ptl in
+  (ptl, eqns, map)
+
+let resolve_tm m : tm trans1e =
+ fun (eqns, map) ->
+  let m = resolve_tm map m in
+  (m, eqns, map)
+
 (* infer the type + sort of a term *)
-let rec infer_sort ctx env a : sort trans1e =
-  let* srt = infer_tm ctx env a in
-  let* srt = resolve_tm srt in
-  match whnf rd_all env srt with
-  | Type s -> return s
-  | _ -> failwith "infert_sort(%a)" pp_tm a
+let rec infer_sort ctx env a : unit trans1e =
+  match a with
+  | Meta _ -> return ()
+  | _ -> (
+    let* srt = infer_tm ctx env a in
+    let* srt = resolve_tm srt in
+    match whnf rd_all env srt with
+    | Type s -> return ()
+    | _ -> failwith "infert_sort(%a)" pp_tm a)
 
 and infer_tm ctx env m0 : tm trans1e =
   match m0 with
@@ -99,7 +116,7 @@ and infer_tm ctx env m0 : tm trans1e =
     let* _ = infer_sort ctx env a in
     let* _ = infer_sort (add_v x a ctx) env b in
     return (Type srt)
-  | Lam (rel, srt, bnd) -> failwith "infer_tm(%a)" pp_tm m0
+  | Lam (rel, srt, bnd) -> failwith "infer_Lam"
   | App (m, n) -> (
     let* ty = infer_tm ctx env m in
     let* ty = resolve_tm ty in
@@ -107,31 +124,25 @@ and infer_tm ctx env m0 : tm trans1e =
     | Pi (_, _, a, bnd) ->
       let* _ = check_tm ctx env n a in
       return (subst bnd n)
-    | _ -> failwith "infer_tm(%a)" pp_tm m0)
+    | _ -> failwith "infer_App")
   | Let (rel, m, bnd) ->
     let* a = infer_tm ctx env m in
     let* m = unify >> resolve_tm m in
     let* a = resolve_tm a in
     let x, n = unbind bnd in
     infer_tm (add_v x a ctx) (VMap.add x m env) n
-  | Fix _ -> failwith "infer_tm(%a)" pp_tm m0
+  | Fix _ -> failwith "infer_Fix"
   (* data *)
   | Sigma (R, srt, a, bnd) ->
     let x, b = unbind bnd in
     let* s = infer_sort ctx env a in
     let* r = infer_sort (add_v x a ctx) env b in
-    if s <= srt && r <= srt then
-      return (Type srt)
-    else
-      failwith "infer_Sigma"
+    return (Type srt)
   | Sigma (N, srt, a, bnd) ->
     let x, b = unbind bnd in
     let* _ = infer_sort ctx env a in
     let* r = infer_sort (add_v x a ctx) env b in
-    if r <= srt then
-      return (Type srt)
-    else
-      failwith "infer_Sigma"
+    return (Type srt)
   | Pair (rel, srt, m, n) ->
     let* a = infer_tm ctx env m in
     let* b = infer_tm ctx env n in
@@ -238,7 +249,7 @@ and infer_tm ctx env m0 : tm trans1e =
       let x, b = unbind bnd in
       let bnd = unbox (bind_var x (lift_tm (IO (Ch (rol1, b))))) in
       return (Pi (rel, L, a, bnd))
-    | _ -> failwith "infer_Send")
+    | ty -> failwith "infer_Send(%a)" pp_tm ty)
   | Close m -> (
     let* ty = infer_tm ctx env m in
     let* ty = unify >> resolve_tm ty in
@@ -266,13 +277,12 @@ and infer_cls ctx env cs ms mot cls =
   match cls with
   | [] ->
     if CSet.is_empty cs then
-      return []
+      return ()
     else
       failwith "infer_cls(unmatched case)"
   | PCons (c, bnd) :: cls ->
-    let* cl' = infer_cl ctx env ms mot c bnd in
-    let* cls' = infer_cls ctx env (CSet.remove c cs) ms mot cls in
-    return (cl' :: cls')
+    let* _ = infer_cl ctx env ms mot c bnd in
+    infer_cls ctx env (CSet.remove c cs) ms mot cls
   | PPair _ :: _ -> failwith "infer_cls"
 
 and infer_cl ctx env ms mot c bnd =
@@ -329,6 +339,107 @@ and infer_tele ctx env ns tl =
     infer_tele ctx env ns (subst bnd n)
   | _ -> failwith "infer_tele(%a)" pp_tele tl
 
-and check_tm ctx env m a : unit trans1e =
+and check_tm ctx env m ty : unit trans1e =
   match m with
-  | _ -> _
+  (* inference *)
+  | Meta (x, _) -> add_m x ty
+  (* core *)
+  | Lam (rel0, srt0, bnd0) -> (
+    let* ty = unify >> resolve_tm ty in
+    match whnf rd_all env ty with
+    | Pi (rel, srt, a, bnd) when rel = rel0 && srt = srt0 ->
+      let x, b, m = unbind2 bnd bnd0 in
+      check_tm (add_v x a ctx) env m b
+    | _ -> failwith "check_Lam")
+  | Let (rel, m, bnd) ->
+    let* a = infer_tm ctx env m in
+    let* m = unify >> resolve_tm m in
+    let* a = resolve_tm a in
+    let x, n = unbind bnd in
+    check_tm (add_v x a ctx) (VMap.add x m env) n ty
+  | Fix (_, bnd) ->
+    let x, m = unbind bnd in
+    check_tm (add_v x ty ctx) env m ty
+  (* data *)
+  | Pair (rel0, srt0, m, n) -> (
+    let* ty = unify >> resolve_tm ty in
+    match whnf rd_all env ty with
+    | Sigma (rel, srt, a, bnd) when rel = rel0 && srt = srt0 ->
+      let* _ = check_tm ctx env m a in
+      check_tm ctx env n (subst bnd m)
+    | ty -> failwith "check_Pair(%a)" pp_tm ty)
+  | Match (m, mot, cls) -> (
+    let* ty_m = infer_tm ctx env m in
+    let ty' = subst mot m in
+    let* _ = infer_sort ctx env ty' in
+    let* _ = assert_equal env ty ty' in
+    let* ty_m = unify >> resolve_tm ty_m in
+    match whnf rd_all env ty_m with
+    | Sigma (rel, srt, a, bnd) -> infer_pair ctx env rel srt a bnd mot cls
+    | Data (d, ms) ->
+      let _, cs = find_d d ctx in
+      infer_cls ctx env cs ms mot cls
+    | _ -> failwith "check_Match")
+  (* other *)
+  | _ ->
+    let* ty' = infer_tm ctx env m in
+    assert_equal env ty ty'
+
+let rec check_dcls ctx env dcls =
+  match dcls with
+  | [] -> return ()
+  | DTm (_, x, a, m) :: dcls ->
+    let* _ = infer_sort ctx env a in
+    let* _ = check_tm ctx env m a in
+    let* _ = unify in
+    let* _ = resolve_tm m in
+    let* _ = resolve_tm a in
+    check_dcls (add_v x a ctx) (VMap.add x m env) dcls
+  | DData (d, ptm, dconss) :: dcls ->
+    let* _ = check_ptm ctx env ptm in
+    let* _ = unify >> resolve_ptm ptm in
+    let ctx = add_d d ptm CSet.empty ctx in
+    let* ctx, cs = check_dconss ctx env d dconss in
+    let* _ = unify in
+    check_dcls (add_d d ptm cs ctx) env dcls
+
+and check_dconss ctx env d dconss =
+  match dconss with
+  | [] -> return (ctx, CSet.empty)
+  | DCons (c, ptl) :: dconss ->
+    let* _ = check_ptl ctx env d ptl in
+    let* ptl = resolve_ptl ptl in
+    let* ctx, cs = check_dconss ctx env d dconss in
+    return (add_c c ptl ctx, CSet.add c cs)
+
+and check_ptl ctx env d ptl =
+  match ptl with
+  | PBase tl -> check_tl ctx env d tl
+  | PBind (a, bnd) ->
+    let x, ptl = unbind bnd in
+    let* _ = infer_sort ctx env a in
+    check_ptl (add_v x a ctx) env d ptl
+
+and check_tl ctx env d0 tl =
+  match tl with
+  | TBase (Data (d, _) as a) when D.equal d d0 -> infer_sort ctx env a
+  | TBind (_, a, bnd) ->
+    let x, tl = unbind bnd in
+    let* _ = infer_sort ctx env a in
+    check_tl (add_v x a ctx) env d0 tl
+  | _ -> failwith "check_tl"
+
+and check_ptm ctx env ptm =
+  match ptm with
+  | PBase (Type s) -> return s
+  | PBind (a, bnd) ->
+    let x, ptm = unbind bnd in
+    let* _ = infer_sort ctx env a in
+    check_ptm (add_v x a ctx) env ptm
+  | _ -> failwith "check_ptm"
+
+let trans_dcls dcls =
+  let ctx = { vs = VMap.empty; ds = DMap.empty; cs = CMap.empty } in
+  let _, eqns, map = run_trans1e (check_dcls ctx VMap.empty dcls) in
+  let map = Unify1.unify map eqns in
+  resolve_dcls map dcls

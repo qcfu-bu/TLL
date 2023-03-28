@@ -144,28 +144,28 @@ inductive llist (A : L) : L =
 program len {A : U} (xs : list A) : list A =
   match xs with
   | nil ⇒ 0
-  | _ :: xs ⇒ S (len A xs)
+  | _ :: xs ⇒ S (len _ xs)
   end
 
--- program llen {A : L} (xs : llist A) : nat ⊗ llist A =
---   match xs with
---   | lnil ⇒ ⟨0, lnil⟩
---   | x ;; xs ⇒
---     match llen A xs with
---     | ⟨n, xs⟩ ⇒ ⟨S n, x ;; xs⟩
---     end
---   end
+program llen {A : L} (xs : llist A) : nat ⊗ llist A =
+  match xs with
+  | lnil ⇒ ⟨0, lnil⟩
+  | x ;; xs ⇒
+    match llen A xs with
+    | ⟨n, xs⟩ ⇒ ⟨S n, x ;; xs⟩
+    end
+  end
 
 program append {A : U} (xs ys : list A) : list A =
   match xs with
   | nil ⇒ ys
-  | x :: xs ⇒ x :: append A xs ys
+  | x :: xs ⇒ x :: append _ xs ys
   end
 
 program lappend {A : L} (xs ys : llist A) : llist A =
   match xs with
   | lnil ⇒ ys
-  | x ;; xs ⇒ x ;; lappend A xs ys
+  | x ;; xs ⇒ x ;; lappend _ xs ys
   end
 
 -- ———————————————————————————————————————————————
