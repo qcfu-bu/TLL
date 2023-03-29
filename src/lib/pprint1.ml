@@ -196,15 +196,15 @@ let rec pp_tm fmt = function
       pf fmt "@[(%a@;<1 2>@[%a@])@]" C.pp c (list ~sep:sp pp_tm) ms
   | Match (m, bnd, cls) ->
     let x, a = unbind bnd in
-    pf fmt "@[<v 0>@[match %a {%a ⇒@;<1 2>%a} with@]@;<1 0>@[%a@]@;<1 0>end@]"
+    pf fmt "@[<v 0>@[match %a as %a in@;<1 2>%a with@]@;<1 0>@[%a@]@;<1 0>end@]"
       pp_tm m V.pp x pp_tm a pp_cls cls
   (* equality *)
-  | Eq (_, m, n) -> pf fmt "%a ≡ %a" pp_tm m pp_tm n
-  | Refl _ -> pf fmt "refl"
+  | Eq (_, m, n) -> pf fmt "@[%a ≡@;<1 2>%a@]" pp_tm m pp_tm n
+  | Refl m -> pf fmt "refl %a" pp_tm m
   | Rew (bnd, p, m) ->
     let xs, a = unmbind bnd in
-    pf fmt "rew {%a, %a ⇒ %a} %a in %a" V.pp xs.(0) V.pp xs.(1) pp_tm a pp_tm p
-      pp_tm m
+    pf fmt "@[@[rew [%a, %a ⇒@;<1 2>%a]@;<1 2>%a in@]@;<1 0>%a@]" V.pp xs.(0)
+      V.pp xs.(1) pp_tm a pp_tm p pp_tm m
   (* monadic *)
   | IO a -> pf fmt "IO %a" pp_tm a
   | Return m -> pf fmt "return %a" pp_tm m

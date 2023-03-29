@@ -3,10 +3,31 @@ open Bindlib
 open Names
 open Syntax1
 open Equality1
+open Pprint1
 
 type eqn = tm VMap.t * tm * tm
 type eqns = eqn list
 type map = ((tm, tm) mbinder option * tm option) MMap.t
+
+let pp_map fmt map =
+  let aux fmt map =
+    MMap.iter
+      (fun x (opt1, opt2) ->
+        match (opt1, opt2) with
+        | Some bnd, Some a ->
+          let _, m = unmbind bnd in
+          pf fmt "%a := @[%a : %a@]@;<1 0>" M.pp x pp_tm m pp_tm a
+        | None, Some a -> pf fmt "%a := ?? : @[%a@]@;<1 0>" M.pp x pp_tm a
+        | Some bnd, None ->
+          let _, m = unmbind bnd in
+          pf fmt "%a := @[%a@] : ??@;<1 0>" M.pp x pp_tm m
+        | None, None -> pf fmt "%a := ?? : ??@;<1 0>" M.pp x)
+      map
+  in
+  pf fmt "@[<v 0>{@;<1 2>@[<v 0>%a@]@;<1 0>}@]" aux map
+
+let bad_magic env m1 m2 =
+  pr "@[bad_magic(@;<1 2>%a@;<1 0>::::::@;<1 2>%a)@]@.@." pp_tm m1 pp_tm m2
 
 let rec fv ctx = function
   (* inference *)
@@ -308,14 +329,20 @@ let rec simpl (env, m1, m2) =
     | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) when rel1 = rel2 && s1 = s2 ->
       let _, m1, m2 = unbind2 bnd1 bnd2 in
       simpl (env, m1, m2)
-    | App _, App _ ->
-      let hd1, sp1 = unApps m1 in
-      let hd2, sp2 = unApps m2 in
-      let eqns1 = simpl (env, hd1, hd2) in
-      let eqns2 =
-        List.fold_right2 (fun m n acc -> simpl (env, m, n) @ acc) sp1 sp2 []
-      in
-      eqns1 @ eqns2
+    | App _, App _ -> (
+      try
+        let hd1, sp1 = unApps m1 in
+        let hd2, sp2 = unApps m2 in
+        let eqns1 = simpl (env, hd1, hd2) in
+        let eqns2 =
+          List.fold_right2 (fun m n acc -> simpl (env, m, n) @ acc) sp1 sp2 []
+        in
+        eqns1 @ eqns2
+      with
+      | _ ->
+        let m1 = whnf rd_all env m1 in
+        let m2 = whnf rd_all env m2 in
+        simpl (env, m1, m2))
     | Let (rel1, m1, bnd1), Let (rel2, m2, bnd2) when rel1 = rel2 ->
       let _, n1, n2 = unbind2 bnd1 bnd2 in
       let eqns1 = simpl (env, m1, m2) in

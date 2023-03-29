@@ -54,12 +54,12 @@ let rec pp_tm fmt = function
   | Pair (R, L, m, n) -> pf fmt "⟨%a, %a⟩" pp_tm m pp_tm n
   | Pair (N, L, m, n) -> pf fmt "⟨{%a}, %a⟩" pp_tm m pp_tm n
   | Match (m, Binder (id, a), cls) ->
-    pf fmt "match %a {%s ⇒ %a} with %a" pp_tm m id pp_tm a pp_cls cls
+    pf fmt "match %a as %s in %a with %a" pp_tm m id pp_tm a pp_cls cls
   (* equality *)
   | Eq (m, n) -> pf fmt "%a ≡ %a" pp_tm m pp_tm n
   | Refl -> pf fmt "refl"
   | Rew (MBinder (ids, a), p, m) ->
-    pf fmt "rew {%a ⇒ %a} %a in %a" (list ~sep:comma string) ids pp_tm a pp_tm p
+    pf fmt "rew [%a ⇒ %a] %a in %a" (list ~sep:comma string) ids pp_tm a pp_tm p
       pp_tm m
   (* monadic *)
   | IO a -> pf fmt "IO %a" pp_tm a

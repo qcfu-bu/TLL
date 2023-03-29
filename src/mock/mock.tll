@@ -3,3 +3,14 @@ program test1 : nat = 123
 program test2 : ascii = 'A'
 program test3 : ascii = '\123'
 program test4 : list _ = 1 :: 2 :: 3 :: nil
+
+logical append_len {A : U} (xs ys : list A) :
+  len _ (append _ xs ys) ≡ (len _ xs) + (len _ ys) =
+  match xs as xs0 in
+    (len _ (append _ xs0 ys)) ≡ (len _ xs0) + (len _ ys)
+  with
+  | nil ⇒ refl
+  | x :: xs0 ⇒
+    rew [ n, _ ⇒ (S (len _ (append _ xs0 ys))) ≡ (S n) ]
+      (append_len _ xs0 ys) in refl
+  end

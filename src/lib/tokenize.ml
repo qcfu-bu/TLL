@@ -106,6 +106,7 @@ let tm_ln = [%sedlex.regexp? "ln"]
 let tm_let = [%sedlex.regexp? "let"]
 let tm_in = [%sedlex.regexp? "in"]
 let tm_match = [%sedlex.regexp? "match"]
+let tm_as = [%sedlex.regexp? "as"]
 let tm_with = [%sedlex.regexp? "with"]
 let tm_if = [%sedlex.regexp? "if"]
 let tm_then = [%sedlex.regexp? "then"]
@@ -232,6 +233,7 @@ let rec tokenize buf =
   | tm_let -> TM_LET
   | tm_in -> TM_IN
   | tm_match -> TM_MATCH
+  | tm_as -> TM_AS
   | tm_with -> TM_WITH
   | tm_if -> TM_IF
   | tm_then -> TM_THEN

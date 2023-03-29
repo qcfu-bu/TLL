@@ -11,6 +11,10 @@ type rd =
 let rd_all = [| Beta; Delta; Zeta; Iota |]
 let enabled mode rd = Array.exists (( = ) rd) mode
 
+let is_cons = function
+  | Cons _ -> true
+  | _ -> false
+
 let rec whnf mode env = function
   (* inference *)
   | Ann (m, a) -> whnf mode env m
@@ -22,17 +26,21 @@ let rec whnf mode env = function
       | None -> Var x
     else
       Var x
-  | App (m, n) ->
-    let m = whnf mode env m in
-    let n = whnf mode env n in
+  | App _ as m ->
+    let hd, sp = unApps m in
+    let hd = whnf mode env hd in
+    let sp = List.map (whnf mode env) sp in
     if enabled mode Beta then
-      match (m, n) with
-      | Lam (_, _, bnd), _ -> whnf mode env (subst bnd n)
-      | Fix (r, bnd), Cons _ ->
-        whnf mode (VMap.add r m env) (App (subst bnd (Var r), n))
-      | _ -> App (m, n)
+      match (hd, sp) with
+      | Lam (_, _, bnd), n :: sp -> whnf mode env (mkApps (subst bnd n) sp)
+      | Fix (r, bnd), _ ->
+        if List.exists is_cons sp then
+          whnf mode env (mkApps (subst bnd (Var r)) sp)
+        else
+          mkApps hd sp
+      | _ -> mkApps hd sp
     else
-      App (m, n)
+      mkApps hd sp
   | Let (r, m, bnd) ->
     if enabled mode Zeta then
       let m = whnf mode env m in

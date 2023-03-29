@@ -1,5 +1,5 @@
 ;;; tll-mode.el --- major mode for tll -*- lexical-binding: t; -*-
-(setq tll-types '("let" "in" "rew" "match" "with" "end" "fork" "return"))
+(setq tll-types '("let" "in" "rew" "match" "as" "with" "end" "fork" "return"))
 (setq tll-keywords '("of"))
 (setq tll-session '("open" "send" "recv" "close"))
 
@@ -9,6 +9,10 @@
 (setq tll-session-regexp (regexp-opt tll-session 'words))
 (setq tll-quantifier-regexp "\\(?:∀\\|∃\\|⇑\\|⇓\\|•\\)")
 (setq tll-lambda-regexp "\\(?:\\_<fn\\_>\\|\\_<ln\\_>\\|\\_<fix\\_>\\)")
+(setq tll-magic-regexp "\\(?:bad_magic\\)")
+(setq tll-infer-regexp "\\(?:infer_tm\\)")
+(setq tll-check-regexp "\\(?:check_tm\\)")
+(setq tll-assert-regexp "\\(?:assert_equal\\)")
 
 (setq tll-font-lock-keywords
       `(("\\(\\<inductive\\>\\|\\<program\\>\\|\\<logical\\>\\)\s*\\([[:graph:]]*\\)"
@@ -19,7 +23,12 @@
         (,tll-keywords-regexp . font-lock-keyword-face)
         (,tll-session-regexp . font-lock-builtin-face)
         (,tll-quantifier-regexp . font-lock-constant-face)
-        (,tll-lambda-regexp . font-lock-keyword-face)))
+        (,tll-lambda-regexp . font-lock-keyword-face)
+        (,tll-magic-regexp . tuareg-font-lock-error-face)
+        (,tll-infer-regexp . font-lock-string-face)
+        (,tll-check-regexp . font-lock-warning-face)
+        (,tll-assert-regexp . font-lock-doc-face)
+        ))
 
 (defvar tll-mode-syntax-table nil "syntax table for tll-mode")
 (setq tll-mode-syntax-table

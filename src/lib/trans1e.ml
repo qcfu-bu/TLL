@@ -63,11 +63,14 @@ let add_m x a : unit trans1e =
  fun (eqns, map) -> ((), eqns, MMap.add x (None, Some a) map)
 
 let assert_equal env m n : unit trans1e =
- fun (eqns, map) ->
-  if equal [| Beta; Delta; Zeta; Iota |] env m n then
-    ((), eqns, map)
-  else
-    ((), (env, m, n) :: eqns, map)
+  let _ =
+    pr "@[assert_equal(@;<1 2>%a@;<1 0>::::::@;<1 2>%a)@]@.@." pp_tm m pp_tm n
+  in
+  fun (eqns, map) ->
+    if equal [| Beta; Delta; Zeta; Iota |] env m n then
+      ((), eqns, map)
+    else
+      ((), (env, m, n) :: eqns, map)
 
 let unify : unit trans1e =
  fun (eqns, map) ->
@@ -99,6 +102,7 @@ let rec infer_sort ctx env a : unit trans1e =
   | _ -> failwith "infert_sort(%a)" pp_tm a
 
 and infer_tm ctx env m0 : tm trans1e =
+  let _ = pr "@[infer_tm(@;<1 2>%a)@]@.@." pp_tm m0 in
   match m0 with
   (* inference *)
   | Ann (m, a) ->
@@ -172,7 +176,7 @@ and infer_tm ctx env m0 : tm trans1e =
   | Refl m ->
     let* a = infer_tm ctx env m in
     return (Eq (a, m, m))
-  | Rew (bnd, p, m) -> (
+  | Rew (bnd, p, h) -> (
     let xs, mot = unmbind bnd in
     let* ty = infer_tm ctx env p in
     let* ty = unify >> resolve_tm ty in
@@ -181,7 +185,7 @@ and infer_tm ctx env m0 : tm trans1e =
       let ctx' = add_v x a ctx in
       let ctx' = add_v y (Eq (a, m, Var x)) ctx' in
       let* _ = infer_sort ctx' env mot in
-      let* _ = check_tm ctx env m (msubst bnd [| m; Refl m |]) in
+      let* _ = check_tm ctx env h (msubst bnd [| m; Refl m |]) in
       return (msubst bnd [| n; p |])
     | _ -> failwith "infer_rew")
   (* monadic *)
@@ -335,6 +339,9 @@ and infer_tele ctx env ns tl =
   | _ -> failwith "infer_tele(%a)" pp_tele tl
 
 and check_tm ctx env m ty : unit trans1e =
+  let _ =
+    pr "@[check_tm(@;<1 2>%a@;<1 0>::::::@;<1 2>%a)@]@.@." pp_tm m pp_tm ty
+  in
   match m with
   (* inference *)
   | Meta (x, _) -> add_m x ty
@@ -436,4 +443,5 @@ let trans_dcls dcls =
   let ctx = { vs = VMap.empty; ds = DMap.empty; cs = CMap.empty } in
   let _, eqns, map = run_trans1e (check_dcls ctx VMap.empty dcls) in
   let map = Unify1.unify map eqns in
+  let _ = pr "%a@.@." pp_map map in
   resolve_dcls map dcls
