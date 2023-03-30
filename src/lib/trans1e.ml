@@ -187,7 +187,7 @@ and infer_tm ctx env m0 : tm trans1e =
       let* _ = infer_sort ctx' env mot in
       let* _ = check_tm ctx env h (msubst bnd [| m; Refl m |]) in
       return (msubst bnd [| n; p |])
-    | _ -> failwith "infer_rew")
+    | _ -> failwith "infer_rew(%a, %a)" pp_tm ty pp_tm p)
   (* monadic *)
   | IO a ->
     let* _ = infer_sort ctx env a in
@@ -345,6 +345,11 @@ and check_tm ctx env m ty : unit trans1e =
   match m with
   (* inference *)
   | Meta (x, _) -> add_m x ty
+  | Ann (m, a) ->
+    let* _ = infer_sort ctx env a in
+    let* _ = assert_equal env a ty in
+    let* a = unify >> resolve_tm a in
+    check_tm ctx env m a
   (* core *)
   | Lam (rel0, srt0, bnd0) -> (
     let* ty = unify >> resolve_tm ty in

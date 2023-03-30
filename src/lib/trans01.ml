@@ -1,3 +1,4 @@
+open Fmt
 open Util
 open Bindlib
 open Names
@@ -138,7 +139,7 @@ let rec trans_tm nspc = function
       | Some (F x) -> Syntax1.(_mkApps (_Var x) ms)
       | Some (D d) -> Syntax1.(_Data d (box_list ms))
       | Some (C (c, i)) -> Syntax1.(_Cons c (mk_param nspc i) (box_list ms))
-      | None -> failwith "trans_tm App")
+      | None -> failwith "trans_tm App(%s)" id)
     | m :: ms ->
       let m = trans_tm nspc m in
       let ms = List.map (trans_tm nspc) ms in
