@@ -1,3 +1,4 @@
+open Util
 open Bindlib
 open Names
 open Syntax0
@@ -143,11 +144,20 @@ let rec trans_tm nspc = function
       let ms = List.map (trans_tm nspc) ms in
       Syntax1._mkApps m ms
     | _ -> failwith "trans_tm App")
-  | Let (rel, m, Binder (id, n)) ->
-    let m = trans_tm nspc m in
-    let x = Syntax1.mk id in
-    let n = trans_tm ((id, V x) :: nspc) n in
-    Syntax1.(_Let (trans_rel rel) m (bind_var x n))
+  | Let (rel, m, Binder (opt, n)) -> (
+    match opt with
+    | Left id ->
+      let m = trans_tm nspc m in
+      let x = Syntax1.mk id in
+      let n = trans_tm ((id, V x) :: nspc) n in
+      Syntax1.(_Let (trans_rel rel) m (bind_var x n))
+    | Right p ->
+      let m = trans_tm nspc m in
+      let x = Syntax1.mk "_" in
+      let cls = box_list [ trans_cl nspc (Binder (p, n)) ] in
+      let mot = bind_var x (mk_meta nspc) in
+      let n = Syntax1.(_Match (_Var x) mot cls) in
+      Syntax1.(_Let (trans_rel rel) m (bind_var x n)))
   | Fix (id1, Binder (id2, m)) -> (
     match List.assoc_opt id1 nspc with
     | Some (V x) ->
@@ -169,24 +179,7 @@ let rec trans_tm nspc = function
     let m = trans_tm nspc m in
     let x = Syntax1.mk id in
     let a = trans_tm ((id, V x) :: nspc) a in
-    let cls =
-      List.map
-        (function
-          | PPair (rel, s, MBinder (ids, m)) ->
-            let nspc, xs = trans_xs nspc ids in
-            let m = trans_tm nspc m in
-            let bnd = bind_mvar (Array.of_list xs) m in
-            Syntax1.(_PPair (trans_rel rel) (trans_sort s) bnd)
-          | PCons (id, MBinder (ids, m)) -> (
-            match find_c id nspc with
-            | Some (c, _) ->
-              let nspc, xs = trans_xs nspc ids in
-              let m = trans_tm nspc m in
-              let bnd = bind_mvar (Array.of_list xs) m in
-              Syntax1.(_PCons c bnd)
-            | _ -> failwith "trans_tm Match"))
-        cls
-    in
+    let cls = List.map (trans_cl nspc) cls in
     Syntax1.(_Match m (bind_var x a) (box_list cls))
   (* equality *)
   | Eq (m, n) ->
@@ -194,21 +187,30 @@ let rec trans_tm nspc = function
     let n = trans_tm nspc n in
     Syntax1.(_Eq (mk_meta nspc) m n)
   | Refl -> Syntax1.(_Refl (mk_meta nspc))
-  | Rew (MBinder (ids, a), pf, m) ->
+  | Rew (Binder ((id1, id2), a), pf, m) ->
     let pf = trans_tm nspc pf in
     let m = trans_tm nspc m in
-    let nspc, xs = trans_xs nspc ids in
+    let nspc, xs = trans_xs nspc [ id1; id2 ] in
     let a = trans_tm nspc a in
     let bnd = bind_mvar (Array.of_list xs) a in
     Syntax1.(_Rew bnd pf m)
   (* monadic *)
   | IO a -> Syntax1.(_IO (trans_tm nspc a))
   | Return m -> Syntax1.(_Return (trans_tm nspc m))
-  | MLet (m, Binder (id, n)) ->
-    let m = trans_tm nspc m in
-    let x = Syntax1.mk id in
-    let n = trans_tm ((id, V x) :: nspc) n in
-    Syntax1.(_MLet m (bind_var x n))
+  | MLet (m, Binder (opt, n)) -> (
+    match opt with
+    | Left id ->
+      let m = trans_tm nspc m in
+      let x = Syntax1.mk id in
+      let n = trans_tm ((id, V x) :: nspc) n in
+      Syntax1.(_MLet m (bind_var x n))
+    | Right p ->
+      let m = trans_tm nspc m in
+      let x = Syntax1.mk "_" in
+      let cls = box_list [ trans_cl nspc (Binder (p, n)) ] in
+      let mot = bind_var x (mk_meta nspc) in
+      let n = Syntax1.(_Match (_Var x) mot cls) in
+      Syntax1.(_MLet m (bind_var x n)))
   (* session *)
   | Proto -> Syntax1._Proto
   | End -> Syntax1.(_End)
@@ -227,6 +229,21 @@ let rec trans_tm nspc = function
   | Recv m -> Syntax1.(_Recv (trans_tm nspc m))
   | Send m -> Syntax1.(_Send (trans_tm nspc m))
   | Close m -> Syntax1.(_Close (trans_tm nspc m))
+
+and trans_cl nspc = function
+  | Binder (PPair (rel, s, id1, id2), m) ->
+    let nspc, xs = trans_xs nspc [ id1; id2 ] in
+    let m = trans_tm nspc m in
+    let bnd = bind_mvar (Array.of_list xs) m in
+    Syntax1.(_PPair (trans_rel rel) (trans_sort s) bnd)
+  | Binder (PCons (id, ids), m) -> (
+    match find_c id nspc with
+    | Some (c, _) ->
+      let nspc, xs = trans_xs nspc ids in
+      let m = trans_tm nspc m in
+      let bnd = bind_mvar (Array.of_list xs) m in
+      Syntax1.(_PCons c bnd)
+    | _ -> failwith "trans_tm Match")
 
 let rec trans_param trans nspc = function
   | PBase a -> Syntax1.(_PBase (trans nspc a), 0)

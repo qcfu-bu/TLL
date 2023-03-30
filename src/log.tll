@@ -5,234 +5,234 @@ inductive bool_d2 : U =
 | true_c2 of : bool_d2 | false_c3 of : bool_d2
 
 program andb_v0 : bool_d2 → bool_d2 → bool_d2 =
-  fn b1_v229 b2_v230 ⇒
-    match b1_v229 as __v231 in ??1 with
-    | true_c2  ⇒ b2_v230 | false_c3  ⇒ false_c3
+  fn b1_v228 b2_v229 ⇒
+    match b1_v228 as __v230 in ??1 with
+    | true_c2  ⇒ b2_v229 | false_c3  ⇒ false_c3
     end
 
 program orb_v5 : bool_d2 → bool_d2 → bool_d2 =
-  fn b1_v234 b2_v235 ⇒
-    match b1_v234 as __v236 in ??2 with
-    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v235
+  fn b1_v233 b2_v234 ⇒
+    match b1_v233 as __v235 in ??2 with
+    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v234
     end
 
 program notb_v10 : bool_d2 → bool_d2 =
-  fn b_v238 ⇒
-    match b_v238 as __v239 in ??3 with
+  fn b_v237 ⇒
+    match b_v237 as __v238 in ??3 with
     | true_c2  ⇒ false_c3 | false_c3  ⇒ true_c2
     end
 
 inductive nat_d3 : U =
-| O_c4 of : nat_d3 | S_c5 of (n_v240 : nat_d3) : nat_d3
+| O_c4 of : nat_d3 | S_c5 of (n_v239 : nat_d3) : nat_d3
 
 program addn_v15 : nat_d3 → nat_d3 → nat_d3 =
-  fix (addn_v15 := addn_v243) ⇒
-    fn x_v244 y_v245 ⇒
-      match x_v244 as __v246 in ??4 with
-      | O_c4  ⇒ y_v245 | S_c5 x_v247 ⇒ (S_c5 (addn_v243 x_v247 y_v245))
+  fix (addn_v15 := addn_v242) ⇒
+    fn x_v243 y_v244 ⇒
+      match x_v243 as __v245 in ??4 with
+      | O_c4  ⇒ y_v244 | S_c5 x_v246 ⇒ (S_c5 (addn_v242 x_v246 y_v244))
       end
 
 program muln_v21 : nat_d3 → nat_d3 → nat_d3 =
-  fix (muln_v21 := muln_v250) ⇒
-    fn x_v251 y_v252 ⇒
-      match x_v251 as __v253 in ??5 with
-      | O_c4  ⇒ y_v252
-      | S_c5 x_v254 ⇒ (addn_v15 y_v252 (muln_v250 x_v254 y_v252))
+  fix (muln_v21 := muln_v249) ⇒
+    fn x_v250 y_v251 ⇒
+      match x_v250 as __v252 in ??5 with
+      | O_c4  ⇒ y_v251
+      | S_c5 x_v253 ⇒ (addn_v15 y_v251 (muln_v249 x_v253 y_v251))
       end
 
 program eqn_v27 : nat_d3 → nat_d3 → bool_d2 =
-  fix (eqn_v27 := eqn_v257) ⇒
-    fn x_v258 y_v259 ⇒
-      match x_v258 as __v260 in ??6 with
+  fix (eqn_v27 := eqn_v256) ⇒
+    fn x_v257 y_v258 ⇒
+      match x_v257 as __v259 in ??6 with
       | O_c4  ⇒
-        match y_v259 as __v261 in ??7 with
-        | O_c4  ⇒ true_c2 | S_c5 __v262 ⇒ false_c3
+        match y_v258 as __v260 in ??7 with
+        | O_c4  ⇒ true_c2 | S_c5 __v261 ⇒ false_c3
         end
-      | S_c5 x_v263 ⇒
-        match y_v259 as __v264 in ??8 with
-        | O_c4  ⇒ false_c3 | S_c5 y_v265 ⇒ (eqn_v257 x_v263 y_v265)
+      | S_c5 x_v262 ⇒
+        match y_v258 as __v263 in ??8 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v264 ⇒ (eqn_v256 x_v262 y_v264)
         end
       end
 
 program lten_v37 : nat_d3 → nat_d3 → bool_d2 =
-  fix (lten_v37 := lten_v268) ⇒
-    fn x_v269 y_v270 ⇒
-      match x_v269 as __v271 in ??9 with
+  fix (lten_v37 := lten_v267) ⇒
+    fn x_v268 y_v269 ⇒
+      match x_v268 as __v270 in ??9 with
       | O_c4  ⇒ true_c2
-      | S_c5 x_v272 ⇒
-        match y_v270 as __v273 in ??10 with
-        | O_c4  ⇒ false_c3 | S_c5 y_v274 ⇒ (lten_v268 x_v272 y_v274)
+      | S_c5 x_v271 ⇒
+        match y_v269 as __v272 in ??10 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v273 ⇒ (lten_v267 x_v271 y_v273)
         end
       end
 
 program gten_v45 : nat_d3 → nat_d3 → bool_d2 =
-  fix (gten_v45 := gten_v277) ⇒
-    fn x_v278 y_v279 ⇒
-      match x_v278 as __v280 in ??11 with
+  fix (gten_v45 := gten_v276) ⇒
+    fn x_v277 y_v278 ⇒
+      match x_v277 as __v279 in ??11 with
       | O_c4  ⇒
-        match y_v279 as __v281 in ??12 with
-        | O_c4  ⇒ true_c2 | S_c5 __v282 ⇒ false_c3
+        match y_v278 as __v280 in ??12 with
+        | O_c4  ⇒ true_c2 | S_c5 __v281 ⇒ false_c3
         end
-      | S_c5 x_v283 ⇒
-        match y_v279 as __v284 in ??13 with
-        | O_c4  ⇒ true_c2 | S_c5 y_v285 ⇒ (gten_v277 x_v283 y_v285)
+      | S_c5 x_v282 ⇒
+        match y_v278 as __v283 in ??13 with
+        | O_c4  ⇒ true_c2 | S_c5 y_v284 ⇒ (gten_v276 x_v282 y_v284)
         end
       end
 
 logical ltn_v55 : nat_d3 → nat_d3 → bool_d2 =
-  fix (ltn_v55 := ltn_v288) ⇒
-    fn x_v289 y_v290 ⇒
-      match x_v289 as __v291 in ??14 with
+  fix (ltn_v55 := ltn_v287) ⇒
+    fn x_v288 y_v289 ⇒
+      match x_v288 as __v290 in ??14 with
       | O_c4  ⇒
-        match y_v290 as __v292 in ??15 with
-        | O_c4  ⇒ false_c3 | S_c5 y_v293 ⇒ true_c2
+        match y_v289 as __v291 in ??15 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v292 ⇒ true_c2
         end
-      | S_c5 x_v294 ⇒
-        match y_v290 as __v295 in ??16 with
-        | O_c4  ⇒ false_c3 | S_c5 y_v296 ⇒ (ltn_v288 x_v294 y_v296)
+      | S_c5 x_v293 ⇒
+        match y_v289 as __v294 in ??16 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v295 ⇒ (ltn_v287 x_v293 y_v295)
         end
       end
 
 logical gtn_v65 : nat_d3 → nat_d3 → bool_d2 =
-  fix (gtn_v65 := gtn_v299) ⇒
-    fn x_v300 y_v301 ⇒
-      match x_v300 as __v302 in ??17 with
+  fix (gtn_v65 := gtn_v298) ⇒
+    fn x_v299 y_v300 ⇒
+      match x_v299 as __v301 in ??17 with
       | O_c4  ⇒ false_c3
-      | S_c5 x_v303 ⇒
-        match y_v301 as __v304 in ??18 with
-        | O_c4  ⇒ true_c2 | S_c5 y_v305 ⇒ (gtn_v299 x_v303 y_v305)
+      | S_c5 x_v302 ⇒
+        match y_v300 as __v303 in ??18 with
+        | O_c4  ⇒ true_c2 | S_c5 y_v304 ⇒ (gtn_v298 x_v302 y_v304)
         end
       end
 
 inductive ascii_d4 : U =
 | Ascii_c6 of
-    (b0_v306 : bool_d2) (b1_v307 : bool_d2) (b2_v308 : bool_d2)
-    (b3_v309 : bool_d2) (b4_v310 : bool_d2) (b5_v311 : bool_d2)
-    (b6_v312 : bool_d2) (b7_v313 : bool_d2) : ascii_d4
+    (b0_v305 : bool_d2) (b1_v306 : bool_d2) (b2_v307 : bool_d2)
+    (b3_v308 : bool_d2) (b4_v309 : bool_d2) (b5_v310 : bool_d2)
+    (b6_v311 : bool_d2) (b7_v312 : bool_d2) : ascii_d4
 
 inductive string_d5 : U =
 | EmptyString_c7 of : string_d5
-| String_c8 of (c_v314 : ascii_d4) (s_v315 : string_d5) : string_d5
+| String_c8 of (c_v313 : ascii_d4) (s_v314 : string_d5) : string_d5
 
 program cats_v83 : string_d5 → string_d5 → string_d5 =
-  fix (cats_v83 := cats_v318) ⇒
-    fn s1_v319 s2_v320 ⇒
-      match s1_v319 as __v321 in ??19 with
-      | EmptyString_c7  ⇒ s2_v320
-      | String_c8 c_v322 s1_v323 ⇒
-        (String_c8 c_v322 (cats_v318 s1_v323 s2_v320))
+  fix (cats_v83 := cats_v317) ⇒
+    fn s1_v318 s2_v319 ⇒
+      match s1_v318 as __v320 in ??19 with
+      | EmptyString_c7  ⇒ s2_v319
+      | String_c8 c_v321 s1_v322 ⇒
+        (String_c8 c_v321 (cats_v317 s1_v322 s2_v319))
       end
 
 program strlen_v90 : string_d5 → nat_d3 =
-  fix (strlen_v90 := strlen_v325) ⇒
-    fn s_v326 ⇒
-      match s_v326 as __v327 in ??20 with
+  fix (strlen_v90 := strlen_v324) ⇒
+    fn s_v325 ⇒
+      match s_v325 as __v326 in ??20 with
       | EmptyString_c7  ⇒ O_c4
-      | String_c8 __v328 s_v329 ⇒ (S_c5 (strlen_v325 s_v329))
+      | String_c8 __v327 s_v328 ⇒ (S_c5 (strlen_v324 s_v328))
       end
 
-inductive list_d6 (A_v330 : U) : U =
-| nil_c9 of (A_v331 : U) : (list_d6 A_v331)
+inductive list_d6 (A_v329 : U) : U =
+| nil_c9 of (A_v330 : U) : (list_d6 A_v330)
 | cons_c10 of
-    (A_v332 : U) (hd_v333 : A_v332) (tl_v334 : (list_d6 A_v332))
-    : (list_d6 A_v332)
+    (A_v331 : U) (hd_v332 : A_v331) (tl_v333 : (list_d6 A_v331))
+    : (list_d6 A_v331)
 
-inductive llist_d7 (A_v335 : L) : L =
-| lnil_c11 of (A_v336 : L) : (llist_d7 A_v336)
+inductive llist_d7 (A_v334 : L) : L =
+| lnil_c11 of (A_v335 : L) : (llist_d7 A_v335)
 | lcons_c12 of
-    (A_v337 : L) (hd_v338 : A_v337) (tl_v339 : (llist_d7 A_v337))
-    : (llist_d7 A_v337)
+    (A_v336 : L) (hd_v337 : A_v336) (tl_v338 : (llist_d7 A_v336))
+    : (llist_d7 A_v336)
 
-program len_v106 : ∀ {A_v340 : U} → (list_d6 A_v340) → (list_d6 A_v340)
+program len_v106 : ∀ {A_v339 : U} → (list_d6 A_v339) → (list_d6 A_v339)
 =
-  fix (len_v106 := len_v342) ⇒
-    fn {A_v343} xs_v344 ⇒
-      match xs_v344 as __v345 in ??21 with
+  fix (len_v106 := len_v341) ⇒
+    fn {A_v342} xs_v343 ⇒
+      match xs_v343 as __v344 in ??21 with
       | nil_c9  ⇒ O_c4
-      | cons_c10 __v346 xs_v347 ⇒ (S_c5 (len_v342 ??22 xs_v347))
+      | cons_c10 __v345 xs_v346 ⇒ (S_c5 (len_v341 ??22 xs_v346))
       end
 
 program llen_v113 :
-  ∀ {A_v348 : L} → (llist_d7 A_v348) → nat_d3 ⊗ (llist_d7 A_v348)
+  ∀ {A_v347 : L} → (llist_d7 A_v347) → nat_d3 ⊗ (llist_d7 A_v347)
 =
-  fix (llen_v113 := llen_v351) ⇒
-    fn {A_v352} xs_v353 ⇒
-      match xs_v353 as __v354 in ??23 with
+  fix (llen_v113 := llen_v350) ⇒
+    fn {A_v351} xs_v352 ⇒
+      match xs_v352 as __v353 in ??23 with
       | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
-      | lcons_c12 x_v355 xs_v356 ⇒
-        match (llen_v351 A_v352 xs_v356) as __v357 in ??25 with
-        | ⟨n_v358, xs_v359⟩ ⇒
-          ⟨(S_c5 n_v358), (lcons_c12 x_v355 xs_v359)⟩
+      | lcons_c12 x_v354 xs_v355 ⇒
+        match (llen_v350 A_v351 xs_v355) as __v356 in ??25 with
+        | ⟨n_v357, xs_v358⟩ ⇒
+          ⟨(S_c5 n_v357), (lcons_c12 x_v354 xs_v358)⟩
         end
       end
 
 program append_v124 :
-  ∀ {A_v360 : U} →
-    (list_d6 A_v360) → (list_d6 A_v360) → (list_d6 A_v360)
+  ∀ {A_v359 : U} →
+    (list_d6 A_v359) → (list_d6 A_v359) → (list_d6 A_v359)
 =
-  fix (append_v124 := append_v363) ⇒
-    fn {A_v364} xs_v365 ys_v366 ⇒
-      match xs_v365 as __v367 in ??27 with
-      | nil_c9  ⇒ ys_v366
-      | cons_c10 x_v368 xs_v369 ⇒
-        (cons_c10 x_v368 (append_v363 ??28 xs_v369 ys_v366))
+  fix (append_v124 := append_v362) ⇒
+    fn {A_v363} xs_v364 ys_v365 ⇒
+      match xs_v364 as __v366 in ??27 with
+      | nil_c9  ⇒ ys_v365
+      | cons_c10 x_v367 xs_v368 ⇒
+        (cons_c10 x_v367 (append_v362 ??28 xs_v368 ys_v365))
       end
 
 program lappend_v132 :
-  ∀ {A_v370 : L} →
-    (llist_d7 A_v370) → (llist_d7 A_v370) → (llist_d7 A_v370)
+  ∀ {A_v369 : L} →
+    (llist_d7 A_v369) → (llist_d7 A_v369) → (llist_d7 A_v369)
 =
-  fix (lappend_v132 := lappend_v373) ⇒
-    fn {A_v374} xs_v375 ys_v376 ⇒
-      match xs_v375 as __v377 in ??30 with
-      | lnil_c11  ⇒ ys_v376
-      | lcons_c12 x_v378 xs_v379 ⇒
-        (lcons_c12 x_v378 (lappend_v373 ??31 xs_v379 ys_v376))
+  fix (lappend_v132 := lappend_v372) ⇒
+    fn {A_v373} xs_v374 ys_v375 ⇒
+      match xs_v374 as __v376 in ??30 with
+      | lnil_c11  ⇒ ys_v375
+      | lcons_c12 x_v377 xs_v378 ⇒
+        (lcons_c12 x_v377 (lappend_v372 ??31 xs_v378 ys_v375))
       end
 
-inductive box_d8 (A_v380 : U) : L =
-| Box_c13 of (A_v381 : U) (a_v382 : A_v381) : (box_d8 A_v381)
+inductive box_d8 (A_v379 : U) : L =
+| Box_c13 of (A_v380 : U) (a_v381 : A_v380) : (box_d8 A_v380)
 
 program map_box_v143 :
-  ∀ {A_v383 : U} →
-    ∀ {B_v384 : U} →
-      (box_d8 A_v383) → A_v383 → B_v384 → (box_d8 B_v384)
+  ∀ {A_v382 : U} →
+    ∀ {B_v383 : U} →
+      (box_d8 A_v382) → A_v382 → B_v383 → (box_d8 B_v383)
 =
-  fn {A_v388 B_v389} m_v390 f_v391 ⇒
-    match m_v390 as __v392 in ??33 with
-    | Box_c13 a_v393 ⇒ (Box_c13 (f_v391 a_v393))
+  fn {A_v387 B_v388} m_v389 f_v390 ⇒
+    match m_v389 as __v391 in ??33 with
+    | Box_c13 a_v392 ⇒ (Box_c13 (f_v390 a_v392))
     end
 
-program unbox_v152 : ∀ {A_v394 : U} → (box_d8 A_v394) → A_v394 =
-  fn {A_v396} m_v397 ⇒
-    match m_v397 as __v398 in ??35 with
-    | Box_c13 a_v399 ⇒ a_v399
+program unbox_v152 : ∀ {A_v393 : U} → (box_d8 A_v393) → A_v393 =
+  fn {A_v395} m_v396 ⇒
+    match m_v396 as __v397 in ??35 with
+    | Box_c13 a_v398 ⇒ a_v398
     end
 
 logical stdin_rec_v158 : unit_d1 → proto =
-  fix (stdin_rec_v158 := stdin_rec_v401) ⇒
-    fn __v402 ⇒
-      !(b_v403 : bool_d2) ⇒
-        match b_v403 as __v404 in ??36 with
-        | true_c2  ⇒ ?(__v405 : string_d5) ⇒ (stdin_rec_v401 tt_c1)
+  fix (stdin_rec_v158 := stdin_rec_v400) ⇒
+    fn __v401 ⇒
+      !(b_v402 : bool_d2) ⇒
+        match b_v402 as __v403 in ??36 with
+        | true_c2  ⇒ ?(__v404 : string_d5) ⇒ (stdin_rec_v400 tt_c1)
         | false_c3  ⇒ end
         end
 
 logical stdout_rec_v164 : unit_d1 → proto =
-  fix (stdout_rec_v164 := stdout_rec_v407) ⇒
-    fn __v408 ⇒
-      !(b_v409 : bool_d2) ⇒
-        match b_v409 as __v410 in ??37 with
-        | true_c2  ⇒ !(__v411 : string_d5) ⇒ (stdout_rec_v407 tt_c1)
+  fix (stdout_rec_v164 := stdout_rec_v406) ⇒
+    fn __v407 ⇒
+      !(b_v408 : bool_d2) ⇒
+        match b_v408 as __v409 in ??37 with
+        | true_c2  ⇒ !(__v410 : string_d5) ⇒ (stdout_rec_v406 tt_c1)
         | false_c3  ⇒ end
         end
 
 logical stderr_rec_v170 : unit_d1 → proto =
-  fix (stderr_rec_v170 := stderr_rec_v413) ⇒
-    fn __v414 ⇒
-      !(b_v415 : bool_d2) ⇒
-        match b_v415 as __v416 in ??38 with
-        | true_c2  ⇒ !(__v417 : string_d5) ⇒ (stderr_rec_v413 tt_c1)
+  fix (stderr_rec_v170 := stderr_rec_v412) ⇒
+    fn __v413 ⇒
+      !(b_v414 : bool_d2) ⇒
+        match b_v414 as __v415 in ??38 with
+        | true_c2  ⇒ !(__v416 : string_d5) ⇒ (stderr_rec_v412 tt_c1)
         | false_c3  ⇒ end
         end
 
@@ -243,59 +243,59 @@ logical stdout_t_v178 : proto = (stdout_rec_v164 tt_c1)
 logical stderr_t_v180 : proto = (stderr_rec_v170 tt_c1)
 
 program readline_v182 : unit_d1 → IO string_d5 =
-  fn __v419 ⇒
-    let ch_v420 ⇐ open stdin in
-    let ch_v421 ⇐ (send ch_v420 true_c2) in
-    let msg_v422 ⇐ recv ch_v421 in
-    match msg_v422 as __v423 in ??39 with
-    | ⟨s_v424, ch_v425⟩ ⇒
-      let ch_v426 ⇐ (send ch_v425 false_c3) in
-      let __v427 ⇐ close ch_v426 in return s_v424
+  fn __v418 ⇒
+    let ch_v419 ⇐ open stdin in
+    let ch_v420 ⇐ (send ch_v419 true_c2) in
+    let __v421 ⇐ recv ch_v420 in
+    match __v421 as __v422 in ??39 with
+    | ⟨s_v423, ch_v424⟩ ⇒
+      let ch_v425 ⇐ (send ch_v424 false_c3) in
+      let __v426 ⇐ close ch_v425 in return s_v423
     end
 
-program print_v193 : string_d5 → IO unit_d1 =
-  fn s_v429 ⇒
-    let ch_v430 ⇐ open stdout in
-    let ch_v431 ⇐ (send ch_v430 true_c2) in
-    let ch_v432 ⇐ (send ch_v431 s_v429) in
-    let ch_v433 ⇐ (send ch_v432 false_c3) in close ch_v433
+program print_v192 : string_d5 → IO unit_d1 =
+  fn s_v428 ⇒
+    let ch_v429 ⇐ open stdout in
+    let ch_v430 ⇐ (send ch_v429 true_c2) in
+    let ch_v431 ⇐ (send ch_v430 s_v428) in
+    let ch_v432 ⇐ (send ch_v431 false_c3) in close ch_v432
 
-program prerr_v200 : string_d5 → IO unit_d1 =
-  fn s_v435 ⇒
-    let ch_v436 ⇐ open stderr in
-    let ch_v437 ⇐ (send ch_v436 true_c2) in
-    let ch_v438 ⇐ (send ch_v437 s_v435) in
-    let ch_v439 ⇐ (send ch_v438 false_c3) in close ch_v439
+program prerr_v199 : string_d5 → IO unit_d1 =
+  fn s_v434 ⇒
+    let ch_v435 ⇐ open stderr in
+    let ch_v436 ⇐ (send ch_v435 true_c2) in
+    let ch_v437 ⇐ (send ch_v436 s_v434) in
+    let ch_v438 ⇐ (send ch_v437 false_c3) in close ch_v438
 
-program test0_v207 : string_d5 = "hello\n"
+program test0_v206 : string_d5 = "hello\n"
 
-program test1_v209 : nat_d3 = 123
+program test1_v208 : nat_d3 = 123
 
-program test2_v211 : ascii_d4 = 'A'
+program test2_v210 : ascii_d4 = 'A'
 
-program test3_v213 : ascii_d4 = '{'
+program test3_v212 : ascii_d4 = '{'
 
-program test4_v215 : (list_d6 ??40) =
+program test4_v214 : (list_d6 ??40) =
   (cons_c10 1 (cons_c10 2 (cons_c10 3 nil_c9)))
 
-logical append_len_v217 :
-  ∀ {A_v440 : U} →
-    ∀ (xs_v441 : (list_d6 A_v440)) →
-      ∀ (ys_v442 : (list_d6 A_v440)) →
-        (len_v106 ??45 (append_v124 ??46 xs_v441 ys_v442)) ≡
-          (addn_v15 (len_v106 ??47 xs_v441) (len_v106 ??48 ys_v442))
+logical append_len_v216 :
+  ∀ {A_v439 : U} →
+    ∀ (xs_v440 : (list_d6 A_v439)) →
+      ∀ (ys_v441 : (list_d6 A_v439)) →
+        (len_v106 ??45 (append_v124 ??46 xs_v440 ys_v441)) ≡
+          (addn_v15 (len_v106 ??47 xs_v440) (len_v106 ??48 ys_v441))
 =
-  fix (append_len_v217 := append_len_v443) ⇒
-    fn {A_v444} xs_v445 ys_v446 ⇒
-      match xs_v445 as xs0_v447 in
-        (len_v106 ??50 (append_v124 ??51 xs0_v447 ys_v446)) ≡
-          (addn_v15 (len_v106 ??52 xs0_v447) (len_v106 ??53 ys_v446)) with
+  fix (append_len_v216 := append_len_v442) ⇒
+    fn {A_v443} xs_v444 ys_v445 ⇒
+      match xs_v444 as xs0_v446 in
+        (len_v106 ??50 (append_v124 ??51 xs0_v446 ys_v445)) ≡
+          (addn_v15 (len_v106 ??52 xs0_v446) (len_v106 ??53 ys_v445)) with
       | nil_c9  ⇒ refl ??55
-      | cons_c10 x_v448 xs0_v449 ⇒
-        rew [n_v450, __v451 ⇒
-          (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v449 ys_v446))) ≡
-            (S_c5 n_v450)]
-          (append_len_v443 ??56 xs0_v449 ys_v446) in
+      | cons_c10 x_v447 xs0_v448 ⇒
+        rew [n_v449, __v450 ⇒
+          (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v448 ys_v445))) ≡
+            (S_c5 n_v449)]
+          (append_len_v442 ??56 xs0_v448 ys_v445) in
         refl ??57
       end
 
@@ -330,26 +330,26 @@ infer_tm( bool_d2)
 infer_tm( U)
 
 check_tm(
-  fn b1_v457 b2_v458 ⇒
-    match b1_v457 as __v459 in ??1 with
-    | true_c2  ⇒ b2_v458 | false_c3  ⇒ false_c3
+  fn b1_v456 b2_v457 ⇒
+    match b1_v456 as __v458 in ??1 with
+    | true_c2  ⇒ b2_v457 | false_c3  ⇒ false_c3
     end
 :::::: bool_d2 → bool_d2 → bool_d2)
 
 check_tm(
-  fn b2_v465 ⇒
-    match b1_v464 as __v466 in ??1 with
-    | true_c2  ⇒ b2_v465 | false_c3  ⇒ false_c3
+  fn b2_v464 ⇒
+    match b1_v463 as __v465 in ??1 with
+    | true_c2  ⇒ b2_v464 | false_c3  ⇒ false_c3
     end
 :::::: bool_d2 → bool_d2)
 
 check_tm(
-  match b1_v464 as __v470 in ??1 with
-  | true_c2  ⇒ b2_v469 | false_c3  ⇒ false_c3
+  match b1_v463 as __v469 in ??1 with
+  | true_c2  ⇒ b2_v468 | false_c3  ⇒ false_c3
   end
 :::::: bool_d2)
 
-infer_tm( b1_v464)
+infer_tm( b1_v463)
 
 infer_tm( ??1)
 
@@ -357,9 +357,9 @@ assert_equal( bool_d2 :::::: ??1)
 
 infer_tm( ??1)
 
-check_tm( b2_v469 :::::: ??1)
+check_tm( b2_v468 :::::: ??1)
 
-infer_tm( b2_v469)
+infer_tm( b2_v468)
 
 assert_equal( ??1 :::::: bool_d2)
 
@@ -392,26 +392,26 @@ infer_tm( bool_d2)
 infer_tm( U)
 
 check_tm(
-  fn b1_v482 b2_v483 ⇒
-    match b1_v482 as __v484 in ??2 with
-    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v483
+  fn b1_v481 b2_v482 ⇒
+    match b1_v481 as __v483 in ??2 with
+    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v482
     end
 :::::: bool_d2 → bool_d2 → bool_d2)
 
 check_tm(
-  fn b2_v490 ⇒
-    match b1_v489 as __v491 in ??2 with
-    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v490
+  fn b2_v489 ⇒
+    match b1_v488 as __v490 in ??2 with
+    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v489
     end
 :::::: bool_d2 → bool_d2)
 
 check_tm(
-  match b1_v489 as __v495 in ??2 with
-  | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v494
+  match b1_v488 as __v494 in ??2 with
+  | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v493
   end
 :::::: bool_d2)
 
-infer_tm( b1_v489)
+infer_tm( b1_v488)
 
 infer_tm( ??2)
 
@@ -431,9 +431,9 @@ assert_equal( ??2 :::::: bool_d2)
 
 infer_tm( ??2)
 
-check_tm( b2_v494 :::::: ??2)
+check_tm( b2_v493 :::::: ??2)
 
-infer_tm( b2_v494)
+infer_tm( b2_v493)
 
 assert_equal( ??2 :::::: bool_d2)
 
@@ -448,19 +448,19 @@ infer_tm( bool_d2)
 infer_tm( U)
 
 check_tm(
-  fn b_v504 ⇒
-    match b_v504 as __v505 in ??3 with
+  fn b_v503 ⇒
+    match b_v503 as __v504 in ??3 with
     | true_c2  ⇒ false_c3 | false_c3  ⇒ true_c2
     end
 :::::: bool_d2 → bool_d2)
 
 check_tm(
-  match b_v508 as __v509 in ??3 with
+  match b_v507 as __v508 in ??3 with
   | true_c2  ⇒ false_c3 | false_c3  ⇒ true_c2
   end
 :::::: bool_d2)
 
-infer_tm( b_v508)
+infer_tm( b_v507)
 
 infer_tm( ??3)
 
@@ -519,34 +519,34 @@ infer_tm( nat_d3)
 infer_tm( U)
 
 check_tm(
-  fix (addn_v15 := addn_v520) ⇒
-    fn x_v521 y_v522 ⇒
-      match x_v521 as __v523 in ??4 with
-      | O_c4  ⇒ y_v522 | S_c5 x_v524 ⇒ (S_c5 (addn_v520 x_v524 y_v522))
+  fix (addn_v15 := addn_v519) ⇒
+    fn x_v520 y_v521 ⇒
+      match x_v520 as __v522 in ??4 with
+      | O_c4  ⇒ y_v521 | S_c5 x_v523 ⇒ (S_c5 (addn_v519 x_v523 y_v521))
       end
 :::::: nat_d3 → nat_d3 → nat_d3)
 
 check_tm(
-  fn x_v528 y_v529 ⇒
-    match x_v528 as __v530 in ??4 with
-    | O_c4  ⇒ y_v529 | S_c5 x_v531 ⇒ (S_c5 (addn_v527 x_v531 y_v529))
+  fn x_v527 y_v528 ⇒
+    match x_v527 as __v529 in ??4 with
+    | O_c4  ⇒ y_v528 | S_c5 x_v530 ⇒ (S_c5 (addn_v526 x_v530 y_v528))
     end
 :::::: nat_d3 → nat_d3 → nat_d3)
 
 check_tm(
-  fn y_v537 ⇒
-    match x_v536 as __v538 in ??4 with
-    | O_c4  ⇒ y_v537 | S_c5 x_v539 ⇒ (S_c5 (addn_v527 x_v539 y_v537))
+  fn y_v536 ⇒
+    match x_v535 as __v537 in ??4 with
+    | O_c4  ⇒ y_v536 | S_c5 x_v538 ⇒ (S_c5 (addn_v526 x_v538 y_v536))
     end
 :::::: nat_d3 → nat_d3)
 
 check_tm(
-  match x_v536 as __v543 in ??4 with
-  | O_c4  ⇒ y_v542 | S_c5 x_v544 ⇒ (S_c5 (addn_v527 x_v544 y_v542))
+  match x_v535 as __v542 in ??4 with
+  | O_c4  ⇒ y_v541 | S_c5 x_v543 ⇒ (S_c5 (addn_v526 x_v543 y_v541))
   end
 :::::: nat_d3)
 
-infer_tm( x_v536)
+infer_tm( x_v535)
 
 infer_tm( ??4)
 
@@ -554,35 +554,35 @@ assert_equal( nat_d3 :::::: ??4)
 
 infer_tm( ??4)
 
-check_tm( y_v542 :::::: ??4)
+check_tm( y_v541 :::::: ??4)
 
-infer_tm( y_v542)
+infer_tm( y_v541)
 
 assert_equal( ??4 :::::: nat_d3)
 
 infer_tm( ??4)
 
-check_tm( (S_c5 (addn_v527 x_v545 y_v542)) :::::: ??4)
+check_tm( (S_c5 (addn_v526 x_v544 y_v541)) :::::: ??4)
 
-infer_tm( (S_c5 (addn_v527 x_v545 y_v542)))
+infer_tm( (S_c5 (addn_v526 x_v544 y_v541)))
 
-check_tm( (addn_v527 x_v545 y_v542) :::::: nat_d3)
+check_tm( (addn_v526 x_v544 y_v541) :::::: nat_d3)
 
-infer_tm( (addn_v527 x_v545 y_v542))
+infer_tm( (addn_v526 x_v544 y_v541))
 
-infer_tm( (addn_v527 x_v545))
+infer_tm( (addn_v526 x_v544))
 
-infer_tm( addn_v527)
+infer_tm( addn_v526)
 
-check_tm( x_v545 :::::: nat_d3)
+check_tm( x_v544 :::::: nat_d3)
 
-infer_tm( x_v545)
+infer_tm( x_v544)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
-check_tm( y_v542 :::::: nat_d3)
+check_tm( y_v541 :::::: nat_d3)
 
-infer_tm( y_v542)
+infer_tm( y_v541)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
@@ -611,38 +611,38 @@ infer_tm( nat_d3)
 infer_tm( U)
 
 check_tm(
-  fix (muln_v21 := muln_v567) ⇒
-    fn x_v568 y_v569 ⇒
-      match x_v568 as __v570 in ??5 with
-      | O_c4  ⇒ y_v569
-      | S_c5 x_v571 ⇒ (addn_v15 y_v569 (muln_v567 x_v571 y_v569))
+  fix (muln_v21 := muln_v566) ⇒
+    fn x_v567 y_v568 ⇒
+      match x_v567 as __v569 in ??5 with
+      | O_c4  ⇒ y_v568
+      | S_c5 x_v570 ⇒ (addn_v15 y_v568 (muln_v566 x_v570 y_v568))
       end
 :::::: nat_d3 → nat_d3 → nat_d3)
 
 check_tm(
-  fn x_v575 y_v576 ⇒
-    match x_v575 as __v577 in ??5 with
-    | O_c4  ⇒ y_v576
-    | S_c5 x_v578 ⇒ (addn_v15 y_v576 (muln_v574 x_v578 y_v576))
+  fn x_v574 y_v575 ⇒
+    match x_v574 as __v576 in ??5 with
+    | O_c4  ⇒ y_v575
+    | S_c5 x_v577 ⇒ (addn_v15 y_v575 (muln_v573 x_v577 y_v575))
     end
 :::::: nat_d3 → nat_d3 → nat_d3)
 
 check_tm(
-  fn y_v584 ⇒
-    match x_v583 as __v585 in ??5 with
-    | O_c4  ⇒ y_v584
-    | S_c5 x_v586 ⇒ (addn_v15 y_v584 (muln_v574 x_v586 y_v584))
+  fn y_v583 ⇒
+    match x_v582 as __v584 in ??5 with
+    | O_c4  ⇒ y_v583
+    | S_c5 x_v585 ⇒ (addn_v15 y_v583 (muln_v573 x_v585 y_v583))
     end
 :::::: nat_d3 → nat_d3)
 
 check_tm(
-  match x_v583 as __v590 in ??5 with
-  | O_c4  ⇒ y_v589
-  | S_c5 x_v591 ⇒ (addn_v15 y_v589 (muln_v574 x_v591 y_v589))
+  match x_v582 as __v589 in ??5 with
+  | O_c4  ⇒ y_v588
+  | S_c5 x_v590 ⇒ (addn_v15 y_v588 (muln_v573 x_v590 y_v588))
   end
 :::::: nat_d3)
 
-infer_tm( x_v583)
+infer_tm( x_v582)
 
 infer_tm( ??5)
 
@@ -650,45 +650,45 @@ assert_equal( nat_d3 :::::: ??5)
 
 infer_tm( ??5)
 
-check_tm( y_v589 :::::: ??5)
+check_tm( y_v588 :::::: ??5)
 
-infer_tm( y_v589)
+infer_tm( y_v588)
 
 assert_equal( ??5 :::::: nat_d3)
 
 infer_tm( ??5)
 
-check_tm( (addn_v15 y_v589 (muln_v574 x_v592 y_v589)) :::::: ??5)
+check_tm( (addn_v15 y_v588 (muln_v573 x_v591 y_v588)) :::::: ??5)
 
-infer_tm( (addn_v15 y_v589 (muln_v574 x_v592 y_v589)))
+infer_tm( (addn_v15 y_v588 (muln_v573 x_v591 y_v588)))
 
-infer_tm( (addn_v15 y_v589))
+infer_tm( (addn_v15 y_v588))
 
 infer_tm( addn_v15)
 
-check_tm( y_v589 :::::: nat_d3)
+check_tm( y_v588 :::::: nat_d3)
 
-infer_tm( y_v589)
-
-assert_equal( nat_d3 :::::: nat_d3)
-
-check_tm( (muln_v574 x_v592 y_v589) :::::: nat_d3)
-
-infer_tm( (muln_v574 x_v592 y_v589))
-
-infer_tm( (muln_v574 x_v592))
-
-infer_tm( muln_v574)
-
-check_tm( x_v592 :::::: nat_d3)
-
-infer_tm( x_v592)
+infer_tm( y_v588)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
-check_tm( y_v589 :::::: nat_d3)
+check_tm( (muln_v573 x_v591 y_v588) :::::: nat_d3)
 
-infer_tm( y_v589)
+infer_tm( (muln_v573 x_v591 y_v588))
+
+infer_tm( (muln_v573 x_v591))
+
+infer_tm( muln_v573)
+
+check_tm( x_v591 :::::: nat_d3)
+
+infer_tm( x_v591)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( y_v588 :::::: nat_d3)
+
+infer_tm( y_v588)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
@@ -713,62 +713,62 @@ infer_tm( bool_d2)
 infer_tm( U)
 
 check_tm(
-  fix (eqn_v27 := eqn_v617) ⇒
-    fn x_v618 y_v619 ⇒
-      match x_v618 as __v620 in ??6 with
+  fix (eqn_v27 := eqn_v616) ⇒
+    fn x_v617 y_v618 ⇒
+      match x_v617 as __v619 in ??6 with
       | O_c4  ⇒
-        match y_v619 as __v621 in ??7 with
-        | O_c4  ⇒ true_c2 | S_c5 __v622 ⇒ false_c3
+        match y_v618 as __v620 in ??7 with
+        | O_c4  ⇒ true_c2 | S_c5 __v621 ⇒ false_c3
         end
-      | S_c5 x_v623 ⇒
-        match y_v619 as __v624 in ??8 with
-        | O_c4  ⇒ false_c3 | S_c5 y_v625 ⇒ (eqn_v617 x_v623 y_v625)
+      | S_c5 x_v622 ⇒
+        match y_v618 as __v623 in ??8 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v624 ⇒ (eqn_v616 x_v622 y_v624)
         end
       end
 :::::: nat_d3 → nat_d3 → bool_d2)
 
 check_tm(
-  fn x_v629 y_v630 ⇒
-    match x_v629 as __v631 in ??6 with
+  fn x_v628 y_v629 ⇒
+    match x_v628 as __v630 in ??6 with
     | O_c4  ⇒
-      match y_v630 as __v632 in ??7 with
-      | O_c4  ⇒ true_c2 | S_c5 __v633 ⇒ false_c3
+      match y_v629 as __v631 in ??7 with
+      | O_c4  ⇒ true_c2 | S_c5 __v632 ⇒ false_c3
       end
-    | S_c5 x_v634 ⇒
-      match y_v630 as __v635 in ??8 with
-      | O_c4  ⇒ false_c3 | S_c5 y_v636 ⇒ (eqn_v628 x_v634 y_v636)
+    | S_c5 x_v633 ⇒
+      match y_v629 as __v634 in ??8 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v635 ⇒ (eqn_v627 x_v633 y_v635)
       end
     end
 :::::: nat_d3 → nat_d3 → bool_d2)
 
 check_tm(
-  fn y_v642 ⇒
-    match x_v641 as __v643 in ??6 with
+  fn y_v641 ⇒
+    match x_v640 as __v642 in ??6 with
     | O_c4  ⇒
-      match y_v642 as __v644 in ??7 with
-      | O_c4  ⇒ true_c2 | S_c5 __v645 ⇒ false_c3
+      match y_v641 as __v643 in ??7 with
+      | O_c4  ⇒ true_c2 | S_c5 __v644 ⇒ false_c3
       end
-    | S_c5 x_v646 ⇒
-      match y_v642 as __v647 in ??8 with
-      | O_c4  ⇒ false_c3 | S_c5 y_v648 ⇒ (eqn_v628 x_v646 y_v648)
+    | S_c5 x_v645 ⇒
+      match y_v641 as __v646 in ??8 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v647 ⇒ (eqn_v627 x_v645 y_v647)
       end
     end
 :::::: nat_d3 → bool_d2)
 
 check_tm(
-  match x_v641 as __v652 in ??6 with
+  match x_v640 as __v651 in ??6 with
   | O_c4  ⇒
-    match y_v651 as __v653 in ??7 with
-    | O_c4  ⇒ true_c2 | S_c5 __v654 ⇒ false_c3
+    match y_v650 as __v652 in ??7 with
+    | O_c4  ⇒ true_c2 | S_c5 __v653 ⇒ false_c3
     end
-  | S_c5 x_v655 ⇒
-    match y_v651 as __v656 in ??8 with
-    | O_c4  ⇒ false_c3 | S_c5 y_v657 ⇒ (eqn_v628 x_v655 y_v657)
+  | S_c5 x_v654 ⇒
+    match y_v650 as __v655 in ??8 with
+    | O_c4  ⇒ false_c3 | S_c5 y_v656 ⇒ (eqn_v627 x_v654 y_v656)
     end
   end
 :::::: bool_d2)
 
-infer_tm( x_v641)
+infer_tm( x_v640)
 
 infer_tm( ??6)
 
@@ -777,12 +777,12 @@ assert_equal( bool_d2 :::::: ??6)
 infer_tm( ??6)
 
 check_tm(
-  match y_v651 as __v658 in ??7 with
-  | O_c4  ⇒ true_c2 | S_c5 __v659 ⇒ false_c3
+  match y_v650 as __v657 in ??7 with
+  | O_c4  ⇒ true_c2 | S_c5 __v658 ⇒ false_c3
   end
 :::::: ??6)
 
-infer_tm( y_v651)
+infer_tm( y_v650)
 
 infer_tm( ??7)
 
@@ -815,12 +815,12 @@ assert_equal( ??7 :::::: bool_d2)
 infer_tm( ??6)
 
 check_tm(
-  match y_v651 as __v662 in ??8 with
-  | O_c4  ⇒ false_c3 | S_c5 y_v663 ⇒ (eqn_v628 x_v661 y_v663)
+  match y_v650 as __v661 in ??8 with
+  | O_c4  ⇒ false_c3 | S_c5 y_v662 ⇒ (eqn_v627 x_v660 y_v662)
   end
 :::::: ??6)
 
-infer_tm( y_v651)
+infer_tm( y_v650)
 
 infer_tm( ??8)
 
@@ -840,23 +840,23 @@ assert_equal( ??8 :::::: bool_d2)
 
 infer_tm( ??8)
 
-check_tm( (eqn_v628 x_v661 y_v664) :::::: ??8)
+check_tm( (eqn_v627 x_v660 y_v663) :::::: ??8)
 
-infer_tm( (eqn_v628 x_v661 y_v664))
+infer_tm( (eqn_v627 x_v660 y_v663))
 
-infer_tm( (eqn_v628 x_v661))
+infer_tm( (eqn_v627 x_v660))
 
-infer_tm( eqn_v628)
+infer_tm( eqn_v627)
 
-check_tm( x_v661 :::::: nat_d3)
+check_tm( x_v660 :::::: nat_d3)
 
-infer_tm( x_v661)
+infer_tm( x_v660)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
-check_tm( y_v664 :::::: nat_d3)
+check_tm( y_v663 :::::: nat_d3)
 
-infer_tm( y_v664)
+infer_tm( y_v663)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
@@ -879,50 +879,50 @@ infer_tm( bool_d2)
 infer_tm( U)
 
 check_tm(
-  fix (lten_v37 := lten_v694) ⇒
-    fn x_v695 y_v696 ⇒
-      match x_v695 as __v697 in ??9 with
+  fix (lten_v37 := lten_v693) ⇒
+    fn x_v694 y_v695 ⇒
+      match x_v694 as __v696 in ??9 with
       | O_c4  ⇒ true_c2
-      | S_c5 x_v698 ⇒
-        match y_v696 as __v699 in ??10 with
-        | O_c4  ⇒ false_c3 | S_c5 y_v700 ⇒ (lten_v694 x_v698 y_v700)
+      | S_c5 x_v697 ⇒
+        match y_v695 as __v698 in ??10 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v699 ⇒ (lten_v693 x_v697 y_v699)
         end
       end
 :::::: nat_d3 → nat_d3 → bool_d2)
 
 check_tm(
-  fn x_v704 y_v705 ⇒
-    match x_v704 as __v706 in ??9 with
+  fn x_v703 y_v704 ⇒
+    match x_v703 as __v705 in ??9 with
     | O_c4  ⇒ true_c2
-    | S_c5 x_v707 ⇒
-      match y_v705 as __v708 in ??10 with
-      | O_c4  ⇒ false_c3 | S_c5 y_v709 ⇒ (lten_v703 x_v707 y_v709)
+    | S_c5 x_v706 ⇒
+      match y_v704 as __v707 in ??10 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v708 ⇒ (lten_v702 x_v706 y_v708)
       end
     end
 :::::: nat_d3 → nat_d3 → bool_d2)
 
 check_tm(
-  fn y_v715 ⇒
-    match x_v714 as __v716 in ??9 with
+  fn y_v714 ⇒
+    match x_v713 as __v715 in ??9 with
     | O_c4  ⇒ true_c2
-    | S_c5 x_v717 ⇒
-      match y_v715 as __v718 in ??10 with
-      | O_c4  ⇒ false_c3 | S_c5 y_v719 ⇒ (lten_v703 x_v717 y_v719)
+    | S_c5 x_v716 ⇒
+      match y_v714 as __v717 in ??10 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v718 ⇒ (lten_v702 x_v716 y_v718)
       end
     end
 :::::: nat_d3 → bool_d2)
 
 check_tm(
-  match x_v714 as __v723 in ??9 with
+  match x_v713 as __v722 in ??9 with
   | O_c4  ⇒ true_c2
-  | S_c5 x_v724 ⇒
-    match y_v722 as __v725 in ??10 with
-    | O_c4  ⇒ false_c3 | S_c5 y_v726 ⇒ (lten_v703 x_v724 y_v726)
+  | S_c5 x_v723 ⇒
+    match y_v721 as __v724 in ??10 with
+    | O_c4  ⇒ false_c3 | S_c5 y_v725 ⇒ (lten_v702 x_v723 y_v725)
     end
   end
 :::::: bool_d2)
 
-infer_tm( x_v714)
+infer_tm( x_v713)
 
 infer_tm( ??9)
 
@@ -943,12 +943,12 @@ assert_equal( ??9 :::::: bool_d2)
 infer_tm( ??9)
 
 check_tm(
-  match y_v722 as __v728 in ??10 with
-  | O_c4  ⇒ false_c3 | S_c5 y_v729 ⇒ (lten_v703 x_v727 y_v729)
+  match y_v721 as __v727 in ??10 with
+  | O_c4  ⇒ false_c3 | S_c5 y_v728 ⇒ (lten_v702 x_v726 y_v728)
   end
 :::::: ??9)
 
-infer_tm( y_v722)
+infer_tm( y_v721)
 
 infer_tm( ??10)
 
@@ -968,23 +968,23 @@ assert_equal( ??10 :::::: bool_d2)
 
 infer_tm( ??10)
 
-check_tm( (lten_v703 x_v727 y_v730) :::::: ??10)
+check_tm( (lten_v702 x_v726 y_v729) :::::: ??10)
 
-infer_tm( (lten_v703 x_v727 y_v730))
+infer_tm( (lten_v702 x_v726 y_v729))
 
-infer_tm( (lten_v703 x_v727))
+infer_tm( (lten_v702 x_v726))
 
-infer_tm( lten_v703)
+infer_tm( lten_v702)
 
-check_tm( x_v727 :::::: nat_d3)
+check_tm( x_v726 :::::: nat_d3)
 
-infer_tm( x_v727)
+infer_tm( x_v726)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
-check_tm( y_v730 :::::: nat_d3)
+check_tm( y_v729 :::::: nat_d3)
 
-infer_tm( y_v730)
+infer_tm( y_v729)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
@@ -1007,62 +1007,62 @@ infer_tm( bool_d2)
 infer_tm( U)
 
 check_tm(
-  fix (gten_v45 := gten_v758) ⇒
-    fn x_v759 y_v760 ⇒
-      match x_v759 as __v761 in ??11 with
+  fix (gten_v45 := gten_v757) ⇒
+    fn x_v758 y_v759 ⇒
+      match x_v758 as __v760 in ??11 with
       | O_c4  ⇒
-        match y_v760 as __v762 in ??12 with
-        | O_c4  ⇒ true_c2 | S_c5 __v763 ⇒ false_c3
+        match y_v759 as __v761 in ??12 with
+        | O_c4  ⇒ true_c2 | S_c5 __v762 ⇒ false_c3
         end
-      | S_c5 x_v764 ⇒
-        match y_v760 as __v765 in ??13 with
-        | O_c4  ⇒ true_c2 | S_c5 y_v766 ⇒ (gten_v758 x_v764 y_v766)
+      | S_c5 x_v763 ⇒
+        match y_v759 as __v764 in ??13 with
+        | O_c4  ⇒ true_c2 | S_c5 y_v765 ⇒ (gten_v757 x_v763 y_v765)
         end
       end
 :::::: nat_d3 → nat_d3 → bool_d2)
 
 check_tm(
-  fn x_v770 y_v771 ⇒
-    match x_v770 as __v772 in ??11 with
+  fn x_v769 y_v770 ⇒
+    match x_v769 as __v771 in ??11 with
     | O_c4  ⇒
-      match y_v771 as __v773 in ??12 with
-      | O_c4  ⇒ true_c2 | S_c5 __v774 ⇒ false_c3
+      match y_v770 as __v772 in ??12 with
+      | O_c4  ⇒ true_c2 | S_c5 __v773 ⇒ false_c3
       end
-    | S_c5 x_v775 ⇒
-      match y_v771 as __v776 in ??13 with
-      | O_c4  ⇒ true_c2 | S_c5 y_v777 ⇒ (gten_v769 x_v775 y_v777)
+    | S_c5 x_v774 ⇒
+      match y_v770 as __v775 in ??13 with
+      | O_c4  ⇒ true_c2 | S_c5 y_v776 ⇒ (gten_v768 x_v774 y_v776)
       end
     end
 :::::: nat_d3 → nat_d3 → bool_d2)
 
 check_tm(
-  fn y_v783 ⇒
-    match x_v782 as __v784 in ??11 with
+  fn y_v782 ⇒
+    match x_v781 as __v783 in ??11 with
     | O_c4  ⇒
-      match y_v783 as __v785 in ??12 with
-      | O_c4  ⇒ true_c2 | S_c5 __v786 ⇒ false_c3
+      match y_v782 as __v784 in ??12 with
+      | O_c4  ⇒ true_c2 | S_c5 __v785 ⇒ false_c3
       end
-    | S_c5 x_v787 ⇒
-      match y_v783 as __v788 in ??13 with
-      | O_c4  ⇒ true_c2 | S_c5 y_v789 ⇒ (gten_v769 x_v787 y_v789)
+    | S_c5 x_v786 ⇒
+      match y_v782 as __v787 in ??13 with
+      | O_c4  ⇒ true_c2 | S_c5 y_v788 ⇒ (gten_v768 x_v786 y_v788)
       end
     end
 :::::: nat_d3 → bool_d2)
 
 check_tm(
-  match x_v782 as __v793 in ??11 with
+  match x_v781 as __v792 in ??11 with
   | O_c4  ⇒
-    match y_v792 as __v794 in ??12 with
-    | O_c4  ⇒ true_c2 | S_c5 __v795 ⇒ false_c3
+    match y_v791 as __v793 in ??12 with
+    | O_c4  ⇒ true_c2 | S_c5 __v794 ⇒ false_c3
     end
-  | S_c5 x_v796 ⇒
-    match y_v792 as __v797 in ??13 with
-    | O_c4  ⇒ true_c2 | S_c5 y_v798 ⇒ (gten_v769 x_v796 y_v798)
+  | S_c5 x_v795 ⇒
+    match y_v791 as __v796 in ??13 with
+    | O_c4  ⇒ true_c2 | S_c5 y_v797 ⇒ (gten_v768 x_v795 y_v797)
     end
   end
 :::::: bool_d2)
 
-infer_tm( x_v782)
+infer_tm( x_v781)
 
 infer_tm( ??11)
 
@@ -1071,12 +1071,12 @@ assert_equal( bool_d2 :::::: ??11)
 infer_tm( ??11)
 
 check_tm(
-  match y_v792 as __v799 in ??12 with
-  | O_c4  ⇒ true_c2 | S_c5 __v800 ⇒ false_c3
+  match y_v791 as __v798 in ??12 with
+  | O_c4  ⇒ true_c2 | S_c5 __v799 ⇒ false_c3
   end
 :::::: ??11)
 
-infer_tm( y_v792)
+infer_tm( y_v791)
 
 infer_tm( ??12)
 
@@ -1109,12 +1109,12 @@ assert_equal( ??12 :::::: bool_d2)
 infer_tm( ??11)
 
 check_tm(
-  match y_v792 as __v803 in ??13 with
-  | O_c4  ⇒ true_c2 | S_c5 y_v804 ⇒ (gten_v769 x_v802 y_v804)
+  match y_v791 as __v802 in ??13 with
+  | O_c4  ⇒ true_c2 | S_c5 y_v803 ⇒ (gten_v768 x_v801 y_v803)
   end
 :::::: ??11)
 
-infer_tm( y_v792)
+infer_tm( y_v791)
 
 infer_tm( ??13)
 
@@ -1134,23 +1134,23 @@ assert_equal( ??13 :::::: bool_d2)
 
 infer_tm( ??13)
 
-check_tm( (gten_v769 x_v802 y_v805) :::::: ??13)
+check_tm( (gten_v768 x_v801 y_v804) :::::: ??13)
 
-infer_tm( (gten_v769 x_v802 y_v805))
+infer_tm( (gten_v768 x_v801 y_v804))
 
-infer_tm( (gten_v769 x_v802))
+infer_tm( (gten_v768 x_v801))
 
-infer_tm( gten_v769)
+infer_tm( gten_v768)
 
-check_tm( x_v802 :::::: nat_d3)
+check_tm( x_v801 :::::: nat_d3)
 
-infer_tm( x_v802)
+infer_tm( x_v801)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
-check_tm( y_v805 :::::: nat_d3)
+check_tm( y_v804 :::::: nat_d3)
 
-infer_tm( y_v805)
+infer_tm( y_v804)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
@@ -1173,62 +1173,62 @@ infer_tm( bool_d2)
 infer_tm( U)
 
 check_tm(
-  fix (ltn_v55 := ltn_v835) ⇒
-    fn x_v836 y_v837 ⇒
-      match x_v836 as __v838 in ??14 with
+  fix (ltn_v55 := ltn_v834) ⇒
+    fn x_v835 y_v836 ⇒
+      match x_v835 as __v837 in ??14 with
       | O_c4  ⇒
-        match y_v837 as __v839 in ??15 with
-        | O_c4  ⇒ false_c3 | S_c5 y_v840 ⇒ true_c2
+        match y_v836 as __v838 in ??15 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v839 ⇒ true_c2
         end
-      | S_c5 x_v841 ⇒
-        match y_v837 as __v842 in ??16 with
-        | O_c4  ⇒ false_c3 | S_c5 y_v843 ⇒ (ltn_v835 x_v841 y_v843)
+      | S_c5 x_v840 ⇒
+        match y_v836 as __v841 in ??16 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v842 ⇒ (ltn_v834 x_v840 y_v842)
         end
       end
 :::::: nat_d3 → nat_d3 → bool_d2)
 
 check_tm(
-  fn x_v847 y_v848 ⇒
-    match x_v847 as __v849 in ??14 with
+  fn x_v846 y_v847 ⇒
+    match x_v846 as __v848 in ??14 with
     | O_c4  ⇒
-      match y_v848 as __v850 in ??15 with
-      | O_c4  ⇒ false_c3 | S_c5 y_v851 ⇒ true_c2
+      match y_v847 as __v849 in ??15 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v850 ⇒ true_c2
       end
-    | S_c5 x_v852 ⇒
-      match y_v848 as __v853 in ??16 with
-      | O_c4  ⇒ false_c3 | S_c5 y_v854 ⇒ (ltn_v846 x_v852 y_v854)
+    | S_c5 x_v851 ⇒
+      match y_v847 as __v852 in ??16 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v853 ⇒ (ltn_v845 x_v851 y_v853)
       end
     end
 :::::: nat_d3 → nat_d3 → bool_d2)
 
 check_tm(
-  fn y_v860 ⇒
-    match x_v859 as __v861 in ??14 with
+  fn y_v859 ⇒
+    match x_v858 as __v860 in ??14 with
     | O_c4  ⇒
-      match y_v860 as __v862 in ??15 with
-      | O_c4  ⇒ false_c3 | S_c5 y_v863 ⇒ true_c2
+      match y_v859 as __v861 in ??15 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v862 ⇒ true_c2
       end
-    | S_c5 x_v864 ⇒
-      match y_v860 as __v865 in ??16 with
-      | O_c4  ⇒ false_c3 | S_c5 y_v866 ⇒ (ltn_v846 x_v864 y_v866)
+    | S_c5 x_v863 ⇒
+      match y_v859 as __v864 in ??16 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v865 ⇒ (ltn_v845 x_v863 y_v865)
       end
     end
 :::::: nat_d3 → bool_d2)
 
 check_tm(
-  match x_v859 as __v870 in ??14 with
+  match x_v858 as __v869 in ??14 with
   | O_c4  ⇒
-    match y_v869 as __v871 in ??15 with
-    | O_c4  ⇒ false_c3 | S_c5 y_v872 ⇒ true_c2
+    match y_v868 as __v870 in ??15 with
+    | O_c4  ⇒ false_c3 | S_c5 y_v871 ⇒ true_c2
     end
-  | S_c5 x_v873 ⇒
-    match y_v869 as __v874 in ??16 with
-    | O_c4  ⇒ false_c3 | S_c5 y_v875 ⇒ (ltn_v846 x_v873 y_v875)
+  | S_c5 x_v872 ⇒
+    match y_v868 as __v873 in ??16 with
+    | O_c4  ⇒ false_c3 | S_c5 y_v874 ⇒ (ltn_v845 x_v872 y_v874)
     end
   end
 :::::: bool_d2)
 
-infer_tm( x_v859)
+infer_tm( x_v858)
 
 infer_tm( ??14)
 
@@ -1237,12 +1237,12 @@ assert_equal( bool_d2 :::::: ??14)
 infer_tm( ??14)
 
 check_tm(
-  match y_v869 as __v876 in ??15 with
-  | O_c4  ⇒ false_c3 | S_c5 y_v877 ⇒ true_c2
+  match y_v868 as __v875 in ??15 with
+  | O_c4  ⇒ false_c3 | S_c5 y_v876 ⇒ true_c2
   end
 :::::: ??14)
 
-infer_tm( y_v869)
+infer_tm( y_v868)
 
 infer_tm( ??15)
 
@@ -1275,12 +1275,12 @@ assert_equal( ??15 :::::: bool_d2)
 infer_tm( ??14)
 
 check_tm(
-  match y_v869 as __v880 in ??16 with
-  | O_c4  ⇒ false_c3 | S_c5 y_v881 ⇒ (ltn_v846 x_v879 y_v881)
+  match y_v868 as __v879 in ??16 with
+  | O_c4  ⇒ false_c3 | S_c5 y_v880 ⇒ (ltn_v845 x_v878 y_v880)
   end
 :::::: ??14)
 
-infer_tm( y_v869)
+infer_tm( y_v868)
 
 infer_tm( ??16)
 
@@ -1300,23 +1300,23 @@ assert_equal( ??16 :::::: bool_d2)
 
 infer_tm( ??16)
 
-check_tm( (ltn_v846 x_v879 y_v882) :::::: ??16)
+check_tm( (ltn_v845 x_v878 y_v881) :::::: ??16)
 
-infer_tm( (ltn_v846 x_v879 y_v882))
+infer_tm( (ltn_v845 x_v878 y_v881))
 
-infer_tm( (ltn_v846 x_v879))
+infer_tm( (ltn_v845 x_v878))
 
-infer_tm( ltn_v846)
+infer_tm( ltn_v845)
 
-check_tm( x_v879 :::::: nat_d3)
+check_tm( x_v878 :::::: nat_d3)
 
-infer_tm( x_v879)
+infer_tm( x_v878)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
-check_tm( y_v882 :::::: nat_d3)
+check_tm( y_v881 :::::: nat_d3)
 
-infer_tm( y_v882)
+infer_tm( y_v881)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
@@ -1339,50 +1339,50 @@ infer_tm( bool_d2)
 infer_tm( U)
 
 check_tm(
-  fix (gtn_v65 := gtn_v912) ⇒
-    fn x_v913 y_v914 ⇒
-      match x_v913 as __v915 in ??17 with
+  fix (gtn_v65 := gtn_v911) ⇒
+    fn x_v912 y_v913 ⇒
+      match x_v912 as __v914 in ??17 with
       | O_c4  ⇒ false_c3
-      | S_c5 x_v916 ⇒
-        match y_v914 as __v917 in ??18 with
-        | O_c4  ⇒ true_c2 | S_c5 y_v918 ⇒ (gtn_v912 x_v916 y_v918)
+      | S_c5 x_v915 ⇒
+        match y_v913 as __v916 in ??18 with
+        | O_c4  ⇒ true_c2 | S_c5 y_v917 ⇒ (gtn_v911 x_v915 y_v917)
         end
       end
 :::::: nat_d3 → nat_d3 → bool_d2)
 
 check_tm(
-  fn x_v922 y_v923 ⇒
-    match x_v922 as __v924 in ??17 with
+  fn x_v921 y_v922 ⇒
+    match x_v921 as __v923 in ??17 with
     | O_c4  ⇒ false_c3
-    | S_c5 x_v925 ⇒
-      match y_v923 as __v926 in ??18 with
-      | O_c4  ⇒ true_c2 | S_c5 y_v927 ⇒ (gtn_v921 x_v925 y_v927)
+    | S_c5 x_v924 ⇒
+      match y_v922 as __v925 in ??18 with
+      | O_c4  ⇒ true_c2 | S_c5 y_v926 ⇒ (gtn_v920 x_v924 y_v926)
       end
     end
 :::::: nat_d3 → nat_d3 → bool_d2)
 
 check_tm(
-  fn y_v933 ⇒
-    match x_v932 as __v934 in ??17 with
+  fn y_v932 ⇒
+    match x_v931 as __v933 in ??17 with
     | O_c4  ⇒ false_c3
-    | S_c5 x_v935 ⇒
-      match y_v933 as __v936 in ??18 with
-      | O_c4  ⇒ true_c2 | S_c5 y_v937 ⇒ (gtn_v921 x_v935 y_v937)
+    | S_c5 x_v934 ⇒
+      match y_v932 as __v935 in ??18 with
+      | O_c4  ⇒ true_c2 | S_c5 y_v936 ⇒ (gtn_v920 x_v934 y_v936)
       end
     end
 :::::: nat_d3 → bool_d2)
 
 check_tm(
-  match x_v932 as __v941 in ??17 with
+  match x_v931 as __v940 in ??17 with
   | O_c4  ⇒ false_c3
-  | S_c5 x_v942 ⇒
-    match y_v940 as __v943 in ??18 with
-    | O_c4  ⇒ true_c2 | S_c5 y_v944 ⇒ (gtn_v921 x_v942 y_v944)
+  | S_c5 x_v941 ⇒
+    match y_v939 as __v942 in ??18 with
+    | O_c4  ⇒ true_c2 | S_c5 y_v943 ⇒ (gtn_v920 x_v941 y_v943)
     end
   end
 :::::: bool_d2)
 
-infer_tm( x_v932)
+infer_tm( x_v931)
 
 infer_tm( ??17)
 
@@ -1403,12 +1403,12 @@ assert_equal( ??17 :::::: bool_d2)
 infer_tm( ??17)
 
 check_tm(
-  match y_v940 as __v946 in ??18 with
-  | O_c4  ⇒ true_c2 | S_c5 y_v947 ⇒ (gtn_v921 x_v945 y_v947)
+  match y_v939 as __v945 in ??18 with
+  | O_c4  ⇒ true_c2 | S_c5 y_v946 ⇒ (gtn_v920 x_v944 y_v946)
   end
 :::::: ??17)
 
-infer_tm( y_v940)
+infer_tm( y_v939)
 
 infer_tm( ??18)
 
@@ -1428,23 +1428,23 @@ assert_equal( ??18 :::::: bool_d2)
 
 infer_tm( ??18)
 
-check_tm( (gtn_v921 x_v945 y_v948) :::::: ??18)
+check_tm( (gtn_v920 x_v944 y_v947) :::::: ??18)
 
-infer_tm( (gtn_v921 x_v945 y_v948))
+infer_tm( (gtn_v920 x_v944 y_v947))
 
-infer_tm( (gtn_v921 x_v945))
+infer_tm( (gtn_v920 x_v944))
 
-infer_tm( gtn_v921)
+infer_tm( gtn_v920)
 
-check_tm( x_v945 :::::: nat_d3)
+check_tm( x_v944 :::::: nat_d3)
 
-infer_tm( x_v945)
+infer_tm( x_v944)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
-check_tm( y_v948 :::::: nat_d3)
+check_tm( y_v947 :::::: nat_d3)
 
-infer_tm( y_v948)
+infer_tm( y_v947)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
@@ -1519,42 +1519,42 @@ infer_tm( string_d5)
 infer_tm( U)
 
 check_tm(
-  fix (cats_v83 := cats_v996) ⇒
-    fn s1_v997 s2_v998 ⇒
-      match s1_v997 as __v999 in ??19 with
-      | EmptyString_c7  ⇒ s2_v998
-      | String_c8 c_v1000 s1_v1001 ⇒
-        (String_c8 c_v1000 (cats_v996 s1_v1001 s2_v998))
+  fix (cats_v83 := cats_v995) ⇒
+    fn s1_v996 s2_v997 ⇒
+      match s1_v996 as __v998 in ??19 with
+      | EmptyString_c7  ⇒ s2_v997
+      | String_c8 c_v999 s1_v1000 ⇒
+        (String_c8 c_v999 (cats_v995 s1_v1000 s2_v997))
       end
 :::::: string_d5 → string_d5 → string_d5)
 
 check_tm(
-  fn s1_v1005 s2_v1006 ⇒
-    match s1_v1005 as __v1007 in ??19 with
-    | EmptyString_c7  ⇒ s2_v1006
-    | String_c8 c_v1008 s1_v1009 ⇒
-      (String_c8 c_v1008 (cats_v1004 s1_v1009 s2_v1006))
+  fn s1_v1004 s2_v1005 ⇒
+    match s1_v1004 as __v1006 in ??19 with
+    | EmptyString_c7  ⇒ s2_v1005
+    | String_c8 c_v1007 s1_v1008 ⇒
+      (String_c8 c_v1007 (cats_v1003 s1_v1008 s2_v1005))
     end
 :::::: string_d5 → string_d5 → string_d5)
 
 check_tm(
-  fn s2_v1015 ⇒
-    match s1_v1014 as __v1016 in ??19 with
-    | EmptyString_c7  ⇒ s2_v1015
-    | String_c8 c_v1017 s1_v1018 ⇒
-      (String_c8 c_v1017 (cats_v1004 s1_v1018 s2_v1015))
+  fn s2_v1014 ⇒
+    match s1_v1013 as __v1015 in ??19 with
+    | EmptyString_c7  ⇒ s2_v1014
+    | String_c8 c_v1016 s1_v1017 ⇒
+      (String_c8 c_v1016 (cats_v1003 s1_v1017 s2_v1014))
     end
 :::::: string_d5 → string_d5)
 
 check_tm(
-  match s1_v1014 as __v1022 in ??19 with
-  | EmptyString_c7  ⇒ s2_v1021
-  | String_c8 c_v1023 s1_v1024 ⇒
-    (String_c8 c_v1023 (cats_v1004 s1_v1024 s2_v1021))
+  match s1_v1013 as __v1021 in ??19 with
+  | EmptyString_c7  ⇒ s2_v1020
+  | String_c8 c_v1022 s1_v1023 ⇒
+    (String_c8 c_v1022 (cats_v1003 s1_v1023 s2_v1020))
   end
 :::::: string_d5)
 
-infer_tm( s1_v1014)
+infer_tm( s1_v1013)
 
 infer_tm( ??19)
 
@@ -1562,41 +1562,41 @@ assert_equal( string_d5 :::::: ??19)
 
 infer_tm( ??19)
 
-check_tm( s2_v1021 :::::: ??19)
+check_tm( s2_v1020 :::::: ??19)
 
-infer_tm( s2_v1021)
+infer_tm( s2_v1020)
 
 assert_equal( ??19 :::::: string_d5)
 
 infer_tm( ??19)
 
-check_tm( (String_c8 c_v1025 (cats_v1004 s1_v1026 s2_v1021)) :::::: ??19)
+check_tm( (String_c8 c_v1024 (cats_v1003 s1_v1025 s2_v1020)) :::::: ??19)
 
-infer_tm( (String_c8 c_v1025 (cats_v1004 s1_v1026 s2_v1021)))
+infer_tm( (String_c8 c_v1024 (cats_v1003 s1_v1025 s2_v1020)))
 
-check_tm( c_v1025 :::::: ascii_d4)
+check_tm( c_v1024 :::::: ascii_d4)
 
-infer_tm( c_v1025)
+infer_tm( c_v1024)
 
 assert_equal( ascii_d4 :::::: ascii_d4)
 
-check_tm( (cats_v1004 s1_v1026 s2_v1021) :::::: string_d5)
+check_tm( (cats_v1003 s1_v1025 s2_v1020) :::::: string_d5)
 
-infer_tm( (cats_v1004 s1_v1026 s2_v1021))
+infer_tm( (cats_v1003 s1_v1025 s2_v1020))
 
-infer_tm( (cats_v1004 s1_v1026))
+infer_tm( (cats_v1003 s1_v1025))
 
-infer_tm( cats_v1004)
+infer_tm( cats_v1003)
 
-check_tm( s1_v1026 :::::: string_d5)
+check_tm( s1_v1025 :::::: string_d5)
 
-infer_tm( s1_v1026)
+infer_tm( s1_v1025)
 
 assert_equal( string_d5 :::::: string_d5)
 
-check_tm( s2_v1021 :::::: string_d5)
+check_tm( s2_v1020 :::::: string_d5)
 
-infer_tm( s2_v1021)
+infer_tm( s2_v1020)
 
 assert_equal( string_d5 :::::: string_d5)
 
@@ -1619,30 +1619,30 @@ infer_tm( nat_d3)
 infer_tm( U)
 
 check_tm(
-  fix (strlen_v90 := strlen_v1049) ⇒
-    fn s_v1050 ⇒
-      match s_v1050 as __v1051 in ??20 with
+  fix (strlen_v90 := strlen_v1048) ⇒
+    fn s_v1049 ⇒
+      match s_v1049 as __v1050 in ??20 with
       | EmptyString_c7  ⇒ O_c4
-      | String_c8 __v1052 s_v1053 ⇒ (S_c5 (strlen_v1049 s_v1053))
+      | String_c8 __v1051 s_v1052 ⇒ (S_c5 (strlen_v1048 s_v1052))
       end
 :::::: string_d5 → nat_d3)
 
 check_tm(
-  fn s_v1056 ⇒
-    match s_v1056 as __v1057 in ??20 with
+  fn s_v1055 ⇒
+    match s_v1055 as __v1056 in ??20 with
     | EmptyString_c7  ⇒ O_c4
-    | String_c8 __v1058 s_v1059 ⇒ (S_c5 (strlen_v1055 s_v1059))
+    | String_c8 __v1057 s_v1058 ⇒ (S_c5 (strlen_v1054 s_v1058))
     end
 :::::: string_d5 → nat_d3)
 
 check_tm(
-  match s_v1062 as __v1063 in ??20 with
+  match s_v1061 as __v1062 in ??20 with
   | EmptyString_c7  ⇒ O_c4
-  | String_c8 __v1064 s_v1065 ⇒ (S_c5 (strlen_v1055 s_v1065))
+  | String_c8 __v1063 s_v1064 ⇒ (S_c5 (strlen_v1054 s_v1064))
   end
 :::::: nat_d3)
 
-infer_tm( s_v1062)
+infer_tm( s_v1061)
 
 infer_tm( ??20)
 
@@ -1662,19 +1662,19 @@ assert_equal( ??20 :::::: nat_d3)
 
 infer_tm( ??20)
 
-check_tm( (S_c5 (strlen_v1055 s_v1067)) :::::: ??20)
+check_tm( (S_c5 (strlen_v1054 s_v1066)) :::::: ??20)
 
-infer_tm( (S_c5 (strlen_v1055 s_v1067)))
+infer_tm( (S_c5 (strlen_v1054 s_v1066)))
 
-check_tm( (strlen_v1055 s_v1067) :::::: nat_d3)
+check_tm( (strlen_v1054 s_v1066) :::::: nat_d3)
 
-infer_tm( (strlen_v1055 s_v1067))
+infer_tm( (strlen_v1054 s_v1066))
 
-infer_tm( strlen_v1055)
+infer_tm( strlen_v1054)
 
-check_tm( s_v1067 :::::: string_d5)
+check_tm( s_v1066 :::::: string_d5)
 
-infer_tm( s_v1067)
+infer_tm( s_v1066)
 
 assert_equal( string_d5 :::::: string_d5)
 
@@ -1690,35 +1690,35 @@ infer_tm( U)
 
 infer_tm( U)
 
-infer_tm( (list_d6 A_v1082))
+infer_tm( (list_d6 A_v1081))
 
-check_tm( A_v1082 :::::: U)
+check_tm( A_v1081 :::::: U)
 
-infer_tm( A_v1082)
-
-assert_equal( U :::::: U)
-
-infer_tm( U)
-
-infer_tm( U)
-
-infer_tm( A_v1084)
-
-infer_tm( (list_d6 A_v1084))
-
-check_tm( A_v1084 :::::: U)
-
-infer_tm( A_v1084)
+infer_tm( A_v1081)
 
 assert_equal( U :::::: U)
 
 infer_tm( U)
 
-infer_tm( (list_d6 A_v1084))
+infer_tm( U)
 
-check_tm( A_v1084 :::::: U)
+infer_tm( A_v1083)
 
-infer_tm( A_v1084)
+infer_tm( (list_d6 A_v1083))
+
+check_tm( A_v1083 :::::: U)
+
+infer_tm( A_v1083)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+infer_tm( (list_d6 A_v1083))
+
+check_tm( A_v1083 :::::: U)
+
+infer_tm( A_v1083)
 
 assert_equal( U :::::: U)
 
@@ -1728,11 +1728,11 @@ infer_tm( L)
 
 infer_tm( L)
 
-infer_tm( (llist_d7 A_v1095))
+infer_tm( (llist_d7 A_v1094))
 
-check_tm( A_v1095 :::::: L)
+check_tm( A_v1094 :::::: L)
 
-infer_tm( A_v1095)
+infer_tm( A_v1094)
 
 assert_equal( L :::::: L)
 
@@ -1740,91 +1740,91 @@ infer_tm( L)
 
 infer_tm( L)
 
-infer_tm( A_v1097)
+infer_tm( A_v1096)
 
-infer_tm( (llist_d7 A_v1097))
+infer_tm( (llist_d7 A_v1096))
 
-check_tm( A_v1097 :::::: L)
+check_tm( A_v1096 :::::: L)
 
-infer_tm( A_v1097)
-
-assert_equal( L :::::: L)
-
-infer_tm( L)
-
-infer_tm( (llist_d7 A_v1097))
-
-check_tm( A_v1097 :::::: L)
-
-infer_tm( A_v1097)
+infer_tm( A_v1096)
 
 assert_equal( L :::::: L)
 
 infer_tm( L)
 
-infer_tm( ∀ {A_v1106 : U} → (list_d6 A_v1106) → (list_d6 A_v1106))
+infer_tm( (llist_d7 A_v1096))
+
+check_tm( A_v1096 :::::: L)
+
+infer_tm( A_v1096)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+infer_tm( ∀ {A_v1105 : U} → (list_d6 A_v1105) → (list_d6 A_v1105))
 
 infer_tm( U)
 
-infer_tm( (list_d6 A_v1108) → (list_d6 A_v1108))
+infer_tm( (list_d6 A_v1107) → (list_d6 A_v1107))
 
-infer_tm( (list_d6 A_v1108))
+infer_tm( (list_d6 A_v1107))
 
-check_tm( A_v1108 :::::: U)
+check_tm( A_v1107 :::::: U)
 
-infer_tm( A_v1108)
+infer_tm( A_v1107)
 
 assert_equal( U :::::: U)
 
 infer_tm( U)
 
-infer_tm( (list_d6 A_v1108))
+infer_tm( (list_d6 A_v1107))
 
-check_tm( A_v1108 :::::: U)
+check_tm( A_v1107 :::::: U)
 
-infer_tm( A_v1108)
+infer_tm( A_v1107)
 
 assert_equal( U :::::: U)
 
 infer_tm( U)
 
 check_tm(
-  fix (len_v106 := len_v1111) ⇒
-    fn {A_v1112} xs_v1113 ⇒
-      match xs_v1113 as __v1114 in ??21 with
+  fix (len_v106 := len_v1110) ⇒
+    fn {A_v1111} xs_v1112 ⇒
+      match xs_v1112 as __v1113 in ??21 with
       | nil_c9  ⇒ O_c4
-      | cons_c10 __v1115 xs_v1116 ⇒ (S_c5 (len_v1111 ??22 xs_v1116))
+      | cons_c10 __v1114 xs_v1115 ⇒ (S_c5 (len_v1110 ??22 xs_v1115))
       end
-:::::: ∀ {A_v1117 : U} → (list_d6 A_v1117) → (list_d6 A_v1117))
+:::::: ∀ {A_v1116 : U} → (list_d6 A_v1116) → (list_d6 A_v1116))
 
 check_tm(
-  fn {A_v1120} xs_v1121 ⇒
-    match xs_v1121 as __v1122 in ??21 with
+  fn {A_v1119} xs_v1120 ⇒
+    match xs_v1120 as __v1121 in ??21 with
     | nil_c9  ⇒ O_c4
-    | cons_c10 __v1123 xs_v1124 ⇒ (S_c5 (len_v1119 ??22 xs_v1124))
+    | cons_c10 __v1122 xs_v1123 ⇒ (S_c5 (len_v1118 ??22 xs_v1123))
     end
-:::::: ∀ {A_v1125 : U} → (list_d6 A_v1125) → (list_d6 A_v1125))
+:::::: ∀ {A_v1124 : U} → (list_d6 A_v1124) → (list_d6 A_v1124))
 
 check_tm(
-  fn xs_v1131 ⇒
-    match xs_v1131 as __v1132 in ??21 with
+  fn xs_v1130 ⇒
+    match xs_v1130 as __v1131 in ??21 with
     | nil_c9  ⇒ O_c4
-    | cons_c10 __v1133 xs_v1134 ⇒ (S_c5 (len_v1119 ??22 xs_v1134))
+    | cons_c10 __v1132 xs_v1133 ⇒ (S_c5 (len_v1118 ??22 xs_v1133))
     end
-:::::: (list_d6 A_v1130) → (list_d6 A_v1130))
+:::::: (list_d6 A_v1129) → (list_d6 A_v1129))
 
 check_tm(
-  match xs_v1137 as __v1138 in ??21 with
+  match xs_v1136 as __v1137 in ??21 with
   | nil_c9  ⇒ O_c4
-  | cons_c10 __v1139 xs_v1140 ⇒ (S_c5 (len_v1119 ??22 xs_v1140))
+  | cons_c10 __v1138 xs_v1139 ⇒ (S_c5 (len_v1118 ??22 xs_v1139))
   end
-:::::: (list_d6 A_v1130))
+:::::: (list_d6 A_v1129))
 
-infer_tm( xs_v1137)
+infer_tm( xs_v1136)
 
 infer_tm( ??21)
 
-assert_equal( (list_d6 A_v1130) :::::: ??21)
+assert_equal( (list_d6 A_v1129) :::::: ??21)
 
 infer_tm( ??21)
 
@@ -1840,25 +1840,25 @@ assert_equal( ??21 :::::: nat_d3)
 
 infer_tm( ??21)
 
-check_tm( (S_c5 (len_v1119 ??22 xs_v1142)) :::::: ??21)
+check_tm( (S_c5 (len_v1118 ??22 xs_v1141)) :::::: ??21)
 
-infer_tm( (S_c5 (len_v1119 ??22 xs_v1142)))
+infer_tm( (S_c5 (len_v1118 ??22 xs_v1141)))
 
-check_tm( (len_v1119 ??22 xs_v1142) :::::: nat_d3)
+check_tm( (len_v1118 ??22 xs_v1141) :::::: nat_d3)
 
-infer_tm( (len_v1119 ??22 xs_v1142))
+infer_tm( (len_v1118 ??22 xs_v1141))
 
-infer_tm( (len_v1119 ??22))
+infer_tm( (len_v1118 ??22))
 
-infer_tm( len_v1119)
+infer_tm( len_v1118)
 
 check_tm( ??22 :::::: U)
 
-check_tm( xs_v1142 :::::: (list_d6 ??22))
+check_tm( xs_v1141 :::::: (list_d6 ??22))
 
-infer_tm( xs_v1142)
+infer_tm( xs_v1141)
 
-assert_equal( (list_d6 ??22) :::::: (list_d6 (A_v1130 : U)))
+assert_equal( (list_d6 ??22) :::::: (list_d6 (A_v1129 : U)))
 
 assert_equal( nat_d3 :::::: (list_d6 ??22))
 
@@ -1869,93 +1869,93 @@ infer_tm( U)
 assert_equal( ??21 :::::: nat_d3)
 
 infer_tm(
-  ∀ {A_v1168 : L} → (llist_d7 A_v1168) → nat_d3 ⊗ (llist_d7 A_v1168))
+  ∀ {A_v1167 : L} → (llist_d7 A_v1167) → nat_d3 ⊗ (llist_d7 A_v1167))
 
 infer_tm( L)
 
-infer_tm( (llist_d7 A_v1171) → nat_d3 ⊗ (llist_d7 A_v1171))
+infer_tm( (llist_d7 A_v1170) → nat_d3 ⊗ (llist_d7 A_v1170))
 
-infer_tm( (llist_d7 A_v1171))
+infer_tm( (llist_d7 A_v1170))
 
-check_tm( A_v1171 :::::: L)
+check_tm( A_v1170 :::::: L)
 
-infer_tm( A_v1171)
+infer_tm( A_v1170)
 
 assert_equal( L :::::: L)
 
 infer_tm( L)
 
-infer_tm( nat_d3 ⊗ (llist_d7 A_v1171))
+infer_tm( nat_d3 ⊗ (llist_d7 A_v1170))
 
 infer_tm( nat_d3)
 
 infer_tm( U)
 
-infer_tm( (llist_d7 A_v1171))
+infer_tm( (llist_d7 A_v1170))
 
-check_tm( A_v1171 :::::: L)
+check_tm( A_v1170 :::::: L)
 
-infer_tm( A_v1171)
+infer_tm( A_v1170)
 
 assert_equal( L :::::: L)
 
 infer_tm( L)
 
 check_tm(
-  fix (llen_v113 := llen_v1177) ⇒
-    fn {A_v1178} xs_v1179 ⇒
-      match xs_v1179 as __v1180 in ??23 with
+  fix (llen_v113 := llen_v1176) ⇒
+    fn {A_v1177} xs_v1178 ⇒
+      match xs_v1178 as __v1179 in ??23 with
       | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
-      | lcons_c12 x_v1181 xs_v1182 ⇒
-        match (llen_v1177 A_v1178 xs_v1182) as __v1183 in ??25 with
-        | ⟨n_v1184, xs_v1185⟩ ⇒
-          ⟨(S_c5 n_v1184), (lcons_c12 x_v1181 xs_v1185)⟩
+      | lcons_c12 x_v1180 xs_v1181 ⇒
+        match (llen_v1176 A_v1177 xs_v1181) as __v1182 in ??25 with
+        | ⟨n_v1183, xs_v1184⟩ ⇒
+          ⟨(S_c5 n_v1183), (lcons_c12 x_v1180 xs_v1184)⟩
         end
       end
 ::::::
-  ∀ {A_v1186 : L} → (llist_d7 A_v1186) → nat_d3 ⊗ (llist_d7 A_v1186))
+  ∀ {A_v1185 : L} → (llist_d7 A_v1185) → nat_d3 ⊗ (llist_d7 A_v1185))
 
 check_tm(
-  fn {A_v1190} xs_v1191 ⇒
-    match xs_v1191 as __v1192 in ??23 with
+  fn {A_v1189} xs_v1190 ⇒
+    match xs_v1190 as __v1191 in ??23 with
     | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
-    | lcons_c12 x_v1193 xs_v1194 ⇒
-      match (llen_v1189 A_v1190 xs_v1194) as __v1195 in ??25 with
-      | ⟨n_v1196, xs_v1197⟩ ⇒
-        ⟨(S_c5 n_v1196), (lcons_c12 x_v1193 xs_v1197)⟩
+    | lcons_c12 x_v1192 xs_v1193 ⇒
+      match (llen_v1188 A_v1189 xs_v1193) as __v1194 in ??25 with
+      | ⟨n_v1195, xs_v1196⟩ ⇒
+        ⟨(S_c5 n_v1195), (lcons_c12 x_v1192 xs_v1196)⟩
       end
     end
 ::::::
-  ∀ {A_v1198 : L} → (llist_d7 A_v1198) → nat_d3 ⊗ (llist_d7 A_v1198))
+  ∀ {A_v1197 : L} → (llist_d7 A_v1197) → nat_d3 ⊗ (llist_d7 A_v1197))
 
 check_tm(
-  fn xs_v1208 ⇒
-    match xs_v1208 as __v1209 in ??23 with
+  fn xs_v1207 ⇒
+    match xs_v1207 as __v1208 in ??23 with
     | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
-    | lcons_c12 x_v1210 xs_v1211 ⇒
-      match (llen_v1189 A_v1207 xs_v1211) as __v1212 in ??25 with
-      | ⟨n_v1213, xs_v1214⟩ ⇒
-        ⟨(S_c5 n_v1213), (lcons_c12 x_v1210 xs_v1214)⟩
+    | lcons_c12 x_v1209 xs_v1210 ⇒
+      match (llen_v1188 A_v1206 xs_v1210) as __v1211 in ??25 with
+      | ⟨n_v1212, xs_v1213⟩ ⇒
+        ⟨(S_c5 n_v1212), (lcons_c12 x_v1209 xs_v1213)⟩
       end
     end
-:::::: (llist_d7 A_v1207) → nat_d3 ⊗ (llist_d7 A_v1207))
+:::::: (llist_d7 A_v1206) → nat_d3 ⊗ (llist_d7 A_v1206))
 
 check_tm(
-  match xs_v1220 as __v1221 in ??23 with
+  match xs_v1219 as __v1220 in ??23 with
   | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
-  | lcons_c12 x_v1222 xs_v1223 ⇒
-    match (llen_v1189 A_v1207 xs_v1223) as __v1224 in ??25 with
-    | ⟨n_v1225, xs_v1226⟩ ⇒
-      ⟨(S_c5 n_v1225), (lcons_c12 x_v1222 xs_v1226)⟩
+  | lcons_c12 x_v1221 xs_v1222 ⇒
+    match (llen_v1188 A_v1206 xs_v1222) as __v1223 in ??25 with
+    | ⟨n_v1224, xs_v1225⟩ ⇒
+      ⟨(S_c5 n_v1224), (lcons_c12 x_v1221 xs_v1225)⟩
     end
   end
-:::::: nat_d3 ⊗ (llist_d7 A_v1207))
+:::::: nat_d3 ⊗ (llist_d7 A_v1206))
 
-infer_tm( xs_v1220)
+infer_tm( xs_v1219)
 
 infer_tm( ??23)
 
-assert_equal( nat_d3 ⊗ (llist_d7 A_v1207) :::::: ??23)
+assert_equal( nat_d3 ⊗ (llist_d7 A_v1206) :::::: ??23)
 
 infer_tm( ??23)
 
@@ -1971,7 +1971,7 @@ infer_tm( U)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
-check_tm( lnil_c11 :::::: (llist_d7 A_v1207))
+check_tm( lnil_c11 :::::: (llist_d7 A_v1206))
 
 infer_tm( lnil_c11)
 
@@ -1983,34 +1983,34 @@ check_tm( ??24 :::::: L)
 
 infer_tm( L)
 
-assert_equal( (llist_d7 A_v1207) :::::: (llist_d7 ??24))
+assert_equal( (llist_d7 A_v1206) :::::: (llist_d7 ??24))
 
 infer_tm( ??23)
 
 check_tm(
-  match (llen_v1189 A_v1207 xs_v1238) as __v1239 in ??25 with
-  | ⟨n_v1240, xs_v1241⟩ ⇒
-    ⟨(S_c5 n_v1240), (lcons_c12 x_v1237 xs_v1241)⟩
+  match (llen_v1188 A_v1206 xs_v1237) as __v1238 in ??25 with
+  | ⟨n_v1239, xs_v1240⟩ ⇒
+    ⟨(S_c5 n_v1239), (lcons_c12 x_v1236 xs_v1240)⟩
   end
 :::::: ??23)
 
-infer_tm( (llen_v1189 A_v1207 xs_v1238))
+infer_tm( (llen_v1188 A_v1206 xs_v1237))
 
-infer_tm( (llen_v1189 A_v1207))
+infer_tm( (llen_v1188 A_v1206))
 
-infer_tm( llen_v1189)
+infer_tm( llen_v1188)
 
-check_tm( A_v1207 :::::: L)
+check_tm( A_v1206 :::::: L)
 
-infer_tm( A_v1207)
+infer_tm( A_v1206)
 
 assert_equal( L :::::: L)
 
-check_tm( xs_v1238 :::::: (llist_d7 A_v1207))
+check_tm( xs_v1237 :::::: (llist_d7 A_v1206))
 
-infer_tm( xs_v1238)
+infer_tm( xs_v1237)
 
-assert_equal( (llist_d7 A_v1207) :::::: (llist_d7 (A_v1207 : L)))
+assert_equal( (llist_d7 A_v1206) :::::: (llist_d7 (A_v1206 : L)))
 
 infer_tm( ??25)
 
@@ -2018,15 +2018,15 @@ assert_equal( ??23 :::::: ??25)
 
 infer_tm( ??25)
 
-check_tm( ⟨(S_c5 n_v1266), (lcons_c12 x_v1237 xs_v1267)⟩ :::::: ??25)
+check_tm( ⟨(S_c5 n_v1265), (lcons_c12 x_v1236 xs_v1266)⟩ :::::: ??25)
 
-check_tm( (S_c5 n_v1266) :::::: nat_d3)
+check_tm( (S_c5 n_v1265) :::::: nat_d3)
 
-infer_tm( (S_c5 n_v1266))
+infer_tm( (S_c5 n_v1265))
 
-check_tm( n_v1266 :::::: nat_d3)
+check_tm( n_v1265 :::::: nat_d3)
 
-infer_tm( n_v1266)
+infer_tm( n_v1265)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
@@ -2036,23 +2036,23 @@ infer_tm( U)
 
 assert_equal( nat_d3 :::::: nat_d3)
 
-check_tm( (lcons_c12 x_v1237 xs_v1267) :::::: (llist_d7 A_v1207))
+check_tm( (lcons_c12 x_v1236 xs_v1266) :::::: (llist_d7 A_v1206))
 
-infer_tm( (lcons_c12 x_v1237 xs_v1267))
+infer_tm( (lcons_c12 x_v1236 xs_v1266))
 
 check_tm( ??26 :::::: L)
 
-check_tm( x_v1237 :::::: ??26)
+check_tm( x_v1236 :::::: ??26)
 
-infer_tm( x_v1237)
+infer_tm( x_v1236)
 
-assert_equal( ??26 :::::: (A_v1207 : L))
+assert_equal( ??26 :::::: (A_v1206 : L))
 
-check_tm( xs_v1267 :::::: (llist_d7 ??26))
+check_tm( xs_v1266 :::::: (llist_d7 ??26))
 
-infer_tm( xs_v1267)
+infer_tm( xs_v1266)
 
-assert_equal( (llist_d7 ??26) :::::: (llist_d7 A_v1207))
+assert_equal( (llist_d7 ??26) :::::: (llist_d7 A_v1206))
 
 infer_tm( (llist_d7 ??26))
 
@@ -2060,151 +2060,151 @@ check_tm( ??26 :::::: L)
 
 infer_tm( L)
 
-assert_equal( (llist_d7 A_v1207) :::::: (llist_d7 ??26))
+assert_equal( (llist_d7 A_v1206) :::::: (llist_d7 ??26))
 
 infer_tm(
-  ∀ {A_v1337 : U} →
-    (list_d6 A_v1337) → (list_d6 A_v1337) → (list_d6 A_v1337))
+  ∀ {A_v1336 : U} →
+    (list_d6 A_v1336) → (list_d6 A_v1336) → (list_d6 A_v1336))
 
 infer_tm( U)
 
-infer_tm( (list_d6 A_v1340) → (list_d6 A_v1340) → (list_d6 A_v1340))
+infer_tm( (list_d6 A_v1339) → (list_d6 A_v1339) → (list_d6 A_v1339))
 
-infer_tm( (list_d6 A_v1340))
+infer_tm( (list_d6 A_v1339))
 
-check_tm( A_v1340 :::::: U)
+check_tm( A_v1339 :::::: U)
 
-infer_tm( A_v1340)
+infer_tm( A_v1339)
 
 assert_equal( U :::::: U)
 
 infer_tm( U)
 
-infer_tm( (list_d6 A_v1340) → (list_d6 A_v1340))
+infer_tm( (list_d6 A_v1339) → (list_d6 A_v1339))
 
-infer_tm( (list_d6 A_v1340))
+infer_tm( (list_d6 A_v1339))
 
-check_tm( A_v1340 :::::: U)
+check_tm( A_v1339 :::::: U)
 
-infer_tm( A_v1340)
+infer_tm( A_v1339)
 
 assert_equal( U :::::: U)
 
 infer_tm( U)
 
-infer_tm( (list_d6 A_v1340))
+infer_tm( (list_d6 A_v1339))
 
-check_tm( A_v1340 :::::: U)
+check_tm( A_v1339 :::::: U)
 
-infer_tm( A_v1340)
+infer_tm( A_v1339)
 
 assert_equal( U :::::: U)
 
 infer_tm( U)
 
 check_tm(
-  fix (append_v124 := append_v1346) ⇒
-    fn {A_v1347} xs_v1348 ys_v1349 ⇒
-      match xs_v1348 as __v1350 in ??27 with
-      | nil_c9  ⇒ ys_v1349
-      | cons_c10 x_v1351 xs_v1352 ⇒
-        (cons_c10 x_v1351 (append_v1346 ??28 xs_v1352 ys_v1349))
+  fix (append_v124 := append_v1345) ⇒
+    fn {A_v1346} xs_v1347 ys_v1348 ⇒
+      match xs_v1347 as __v1349 in ??27 with
+      | nil_c9  ⇒ ys_v1348
+      | cons_c10 x_v1350 xs_v1351 ⇒
+        (cons_c10 x_v1350 (append_v1345 ??28 xs_v1351 ys_v1348))
       end
 ::::::
-  ∀ {A_v1353 : U} →
-    (list_d6 A_v1353) → (list_d6 A_v1353) → (list_d6 A_v1353))
+  ∀ {A_v1352 : U} →
+    (list_d6 A_v1352) → (list_d6 A_v1352) → (list_d6 A_v1352))
 
 check_tm(
-  fn {A_v1357} xs_v1358 ys_v1359 ⇒
-    match xs_v1358 as __v1360 in ??27 with
-    | nil_c9  ⇒ ys_v1359
-    | cons_c10 x_v1361 xs_v1362 ⇒
-      (cons_c10 x_v1361 (append_v1356 ??28 xs_v1362 ys_v1359))
+  fn {A_v1356} xs_v1357 ys_v1358 ⇒
+    match xs_v1357 as __v1359 in ??27 with
+    | nil_c9  ⇒ ys_v1358
+    | cons_c10 x_v1360 xs_v1361 ⇒
+      (cons_c10 x_v1360 (append_v1355 ??28 xs_v1361 ys_v1358))
     end
 ::::::
-  ∀ {A_v1363 : U} →
-    (list_d6 A_v1363) → (list_d6 A_v1363) → (list_d6 A_v1363))
+  ∀ {A_v1362 : U} →
+    (list_d6 A_v1362) → (list_d6 A_v1362) → (list_d6 A_v1362))
 
 check_tm(
-  fn xs_v1379 ys_v1380 ⇒
-    match xs_v1379 as __v1381 in ??27 with
-    | nil_c9  ⇒ ys_v1380
-    | cons_c10 x_v1382 xs_v1383 ⇒
-      (cons_c10 x_v1382 (append_v1356 ??28 xs_v1383 ys_v1380))
+  fn xs_v1378 ys_v1379 ⇒
+    match xs_v1378 as __v1380 in ??27 with
+    | nil_c9  ⇒ ys_v1379
+    | cons_c10 x_v1381 xs_v1382 ⇒
+      (cons_c10 x_v1381 (append_v1355 ??28 xs_v1382 ys_v1379))
     end
-:::::: (list_d6 A_v1378) → (list_d6 A_v1378) → (list_d6 A_v1378))
+:::::: (list_d6 A_v1377) → (list_d6 A_v1377) → (list_d6 A_v1377))
 
 check_tm(
-  fn ys_v1396 ⇒
-    match xs_v1395 as __v1397 in ??27 with
-    | nil_c9  ⇒ ys_v1396
-    | cons_c10 x_v1398 xs_v1399 ⇒
-      (cons_c10 x_v1398 (append_v1356 ??28 xs_v1399 ys_v1396))
+  fn ys_v1395 ⇒
+    match xs_v1394 as __v1396 in ??27 with
+    | nil_c9  ⇒ ys_v1395
+    | cons_c10 x_v1397 xs_v1398 ⇒
+      (cons_c10 x_v1397 (append_v1355 ??28 xs_v1398 ys_v1395))
     end
-:::::: (list_d6 A_v1378) → (list_d6 A_v1378))
+:::::: (list_d6 A_v1377) → (list_d6 A_v1377))
 
 check_tm(
-  match xs_v1395 as __v1409 in ??27 with
-  | nil_c9  ⇒ ys_v1408
-  | cons_c10 x_v1410 xs_v1411 ⇒
-    (cons_c10 x_v1410 (append_v1356 ??28 xs_v1411 ys_v1408))
+  match xs_v1394 as __v1408 in ??27 with
+  | nil_c9  ⇒ ys_v1407
+  | cons_c10 x_v1409 xs_v1410 ⇒
+    (cons_c10 x_v1409 (append_v1355 ??28 xs_v1410 ys_v1407))
   end
-:::::: (list_d6 A_v1378))
+:::::: (list_d6 A_v1377))
 
-infer_tm( xs_v1395)
-
-infer_tm( ??27)
-
-assert_equal( (list_d6 A_v1378) :::::: ??27)
+infer_tm( xs_v1394)
 
 infer_tm( ??27)
 
-check_tm( ys_v1408 :::::: ??27)
-
-infer_tm( ys_v1408)
-
-assert_equal( ??27 :::::: (list_d6 A_v1378))
+assert_equal( (list_d6 A_v1377) :::::: ??27)
 
 infer_tm( ??27)
 
-check_tm( (cons_c10 x_v1418 (append_v1356 ??28 xs_v1419 ys_v1408)) ::::::
+check_tm( ys_v1407 :::::: ??27)
+
+infer_tm( ys_v1407)
+
+assert_equal( ??27 :::::: (list_d6 A_v1377))
+
+infer_tm( ??27)
+
+check_tm( (cons_c10 x_v1417 (append_v1355 ??28 xs_v1418 ys_v1407)) ::::::
   ??27)
 
-infer_tm( (cons_c10 x_v1418 (append_v1356 ??28 xs_v1419 ys_v1408)))
+infer_tm( (cons_c10 x_v1417 (append_v1355 ??28 xs_v1418 ys_v1407)))
 
 check_tm( ??29 :::::: U)
 
-check_tm( x_v1418 :::::: ??29)
+check_tm( x_v1417 :::::: ??29)
 
-infer_tm( x_v1418)
+infer_tm( x_v1417)
 
-assert_equal( ??29 :::::: (A_v1378 : U))
+assert_equal( ??29 :::::: (A_v1377 : U))
 
-check_tm( (append_v1356 ??28 xs_v1419 ys_v1408) :::::: (list_d6 ??29))
+check_tm( (append_v1355 ??28 xs_v1418 ys_v1407) :::::: (list_d6 ??29))
 
-infer_tm( (append_v1356 ??28 xs_v1419 ys_v1408))
+infer_tm( (append_v1355 ??28 xs_v1418 ys_v1407))
 
-infer_tm( (append_v1356 ??28 xs_v1419))
+infer_tm( (append_v1355 ??28 xs_v1418))
 
-infer_tm( (append_v1356 ??28))
+infer_tm( (append_v1355 ??28))
 
-infer_tm( append_v1356)
+infer_tm( append_v1355)
 
 check_tm( ??28 :::::: U)
 
-check_tm( xs_v1419 :::::: (list_d6 ??28))
+check_tm( xs_v1418 :::::: (list_d6 ??28))
 
-infer_tm( xs_v1419)
+infer_tm( xs_v1418)
 
-assert_equal( (list_d6 ??28) :::::: (list_d6 (A_v1378 : U)))
+assert_equal( (list_d6 ??28) :::::: (list_d6 (A_v1377 : U)))
 
-check_tm( ys_v1408 :::::: (list_d6 A_v1378))
+check_tm( ys_v1407 :::::: (list_d6 A_v1377))
 
-infer_tm( ys_v1408)
+infer_tm( ys_v1407)
 
-assert_equal( (list_d6 A_v1378) :::::: (list_d6 A_v1378))
+assert_equal( (list_d6 A_v1377) :::::: (list_d6 A_v1377))
 
-assert_equal( (list_d6 ??29) :::::: (list_d6 A_v1378))
+assert_equal( (list_d6 ??29) :::::: (list_d6 A_v1377))
 
 infer_tm( (list_d6 ??29))
 
@@ -2215,148 +2215,148 @@ infer_tm( U)
 assert_equal( ??27 :::::: (list_d6 ??29))
 
 infer_tm(
-  ∀ {A_v1491 : L} →
-    (llist_d7 A_v1491) → (llist_d7 A_v1491) → (llist_d7 A_v1491))
+  ∀ {A_v1490 : L} →
+    (llist_d7 A_v1490) → (llist_d7 A_v1490) → (llist_d7 A_v1490))
 
 infer_tm( L)
 
-infer_tm( (llist_d7 A_v1494) → (llist_d7 A_v1494) → (llist_d7 A_v1494))
+infer_tm( (llist_d7 A_v1493) → (llist_d7 A_v1493) → (llist_d7 A_v1493))
 
-infer_tm( (llist_d7 A_v1494))
+infer_tm( (llist_d7 A_v1493))
 
-check_tm( A_v1494 :::::: L)
+check_tm( A_v1493 :::::: L)
 
-infer_tm( A_v1494)
+infer_tm( A_v1493)
 
 assert_equal( L :::::: L)
 
 infer_tm( L)
 
-infer_tm( (llist_d7 A_v1494) → (llist_d7 A_v1494))
+infer_tm( (llist_d7 A_v1493) → (llist_d7 A_v1493))
 
-infer_tm( (llist_d7 A_v1494))
+infer_tm( (llist_d7 A_v1493))
 
-check_tm( A_v1494 :::::: L)
+check_tm( A_v1493 :::::: L)
 
-infer_tm( A_v1494)
+infer_tm( A_v1493)
 
 assert_equal( L :::::: L)
 
 infer_tm( L)
 
-infer_tm( (llist_d7 A_v1494))
+infer_tm( (llist_d7 A_v1493))
 
-check_tm( A_v1494 :::::: L)
+check_tm( A_v1493 :::::: L)
 
-infer_tm( A_v1494)
+infer_tm( A_v1493)
 
 assert_equal( L :::::: L)
 
 infer_tm( L)
 
 check_tm(
-  fix (lappend_v132 := lappend_v1500) ⇒
-    fn {A_v1501} xs_v1502 ys_v1503 ⇒
-      match xs_v1502 as __v1504 in ??30 with
-      | lnil_c11  ⇒ ys_v1503
-      | lcons_c12 x_v1505 xs_v1506 ⇒
-        (lcons_c12 x_v1505 (lappend_v1500 ??31 xs_v1506 ys_v1503))
+  fix (lappend_v132 := lappend_v1499) ⇒
+    fn {A_v1500} xs_v1501 ys_v1502 ⇒
+      match xs_v1501 as __v1503 in ??30 with
+      | lnil_c11  ⇒ ys_v1502
+      | lcons_c12 x_v1504 xs_v1505 ⇒
+        (lcons_c12 x_v1504 (lappend_v1499 ??31 xs_v1505 ys_v1502))
       end
 ::::::
-  ∀ {A_v1507 : L} →
-    (llist_d7 A_v1507) → (llist_d7 A_v1507) → (llist_d7 A_v1507))
+  ∀ {A_v1506 : L} →
+    (llist_d7 A_v1506) → (llist_d7 A_v1506) → (llist_d7 A_v1506))
 
 check_tm(
-  fn {A_v1511} xs_v1512 ys_v1513 ⇒
-    match xs_v1512 as __v1514 in ??30 with
-    | lnil_c11  ⇒ ys_v1513
-    | lcons_c12 x_v1515 xs_v1516 ⇒
-      (lcons_c12 x_v1515 (lappend_v1510 ??31 xs_v1516 ys_v1513))
+  fn {A_v1510} xs_v1511 ys_v1512 ⇒
+    match xs_v1511 as __v1513 in ??30 with
+    | lnil_c11  ⇒ ys_v1512
+    | lcons_c12 x_v1514 xs_v1515 ⇒
+      (lcons_c12 x_v1514 (lappend_v1509 ??31 xs_v1515 ys_v1512))
     end
 ::::::
-  ∀ {A_v1517 : L} →
-    (llist_d7 A_v1517) → (llist_d7 A_v1517) → (llist_d7 A_v1517))
+  ∀ {A_v1516 : L} →
+    (llist_d7 A_v1516) → (llist_d7 A_v1516) → (llist_d7 A_v1516))
 
 check_tm(
-  fn xs_v1533 ys_v1534 ⇒
-    match xs_v1533 as __v1535 in ??30 with
-    | lnil_c11  ⇒ ys_v1534
-    | lcons_c12 x_v1536 xs_v1537 ⇒
-      (lcons_c12 x_v1536 (lappend_v1510 ??31 xs_v1537 ys_v1534))
+  fn xs_v1532 ys_v1533 ⇒
+    match xs_v1532 as __v1534 in ??30 with
+    | lnil_c11  ⇒ ys_v1533
+    | lcons_c12 x_v1535 xs_v1536 ⇒
+      (lcons_c12 x_v1535 (lappend_v1509 ??31 xs_v1536 ys_v1533))
     end
-:::::: (llist_d7 A_v1532) → (llist_d7 A_v1532) → (llist_d7 A_v1532))
+:::::: (llist_d7 A_v1531) → (llist_d7 A_v1531) → (llist_d7 A_v1531))
 
 check_tm(
-  fn ys_v1550 ⇒
-    match xs_v1549 as __v1551 in ??30 with
-    | lnil_c11  ⇒ ys_v1550
-    | lcons_c12 x_v1552 xs_v1553 ⇒
-      (lcons_c12 x_v1552 (lappend_v1510 ??31 xs_v1553 ys_v1550))
+  fn ys_v1549 ⇒
+    match xs_v1548 as __v1550 in ??30 with
+    | lnil_c11  ⇒ ys_v1549
+    | lcons_c12 x_v1551 xs_v1552 ⇒
+      (lcons_c12 x_v1551 (lappend_v1509 ??31 xs_v1552 ys_v1549))
     end
-:::::: (llist_d7 A_v1532) → (llist_d7 A_v1532))
+:::::: (llist_d7 A_v1531) → (llist_d7 A_v1531))
 
 check_tm(
-  match xs_v1549 as __v1563 in ??30 with
-  | lnil_c11  ⇒ ys_v1562
-  | lcons_c12 x_v1564 xs_v1565 ⇒
-    (lcons_c12 x_v1564 (lappend_v1510 ??31 xs_v1565 ys_v1562))
+  match xs_v1548 as __v1562 in ??30 with
+  | lnil_c11  ⇒ ys_v1561
+  | lcons_c12 x_v1563 xs_v1564 ⇒
+    (lcons_c12 x_v1563 (lappend_v1509 ??31 xs_v1564 ys_v1561))
   end
-:::::: (llist_d7 A_v1532))
+:::::: (llist_d7 A_v1531))
 
-infer_tm( xs_v1549)
-
-infer_tm( ??30)
-
-assert_equal( (llist_d7 A_v1532) :::::: ??30)
+infer_tm( xs_v1548)
 
 infer_tm( ??30)
 
-check_tm( ys_v1562 :::::: ??30)
-
-infer_tm( ys_v1562)
-
-assert_equal( ??30 :::::: (llist_d7 A_v1532))
+assert_equal( (llist_d7 A_v1531) :::::: ??30)
 
 infer_tm( ??30)
 
-check_tm( (lcons_c12 x_v1572 (lappend_v1510 ??31 xs_v1573 ys_v1562)) ::::::
+check_tm( ys_v1561 :::::: ??30)
+
+infer_tm( ys_v1561)
+
+assert_equal( ??30 :::::: (llist_d7 A_v1531))
+
+infer_tm( ??30)
+
+check_tm( (lcons_c12 x_v1571 (lappend_v1509 ??31 xs_v1572 ys_v1561)) ::::::
   ??30)
 
-infer_tm( (lcons_c12 x_v1572 (lappend_v1510 ??31 xs_v1573 ys_v1562)))
+infer_tm( (lcons_c12 x_v1571 (lappend_v1509 ??31 xs_v1572 ys_v1561)))
 
 check_tm( ??32 :::::: L)
 
-check_tm( x_v1572 :::::: ??32)
+check_tm( x_v1571 :::::: ??32)
 
-infer_tm( x_v1572)
+infer_tm( x_v1571)
 
-assert_equal( ??32 :::::: (A_v1532 : L))
+assert_equal( ??32 :::::: (A_v1531 : L))
 
-check_tm( (lappend_v1510 ??31 xs_v1573 ys_v1562) :::::: (llist_d7 ??32))
+check_tm( (lappend_v1509 ??31 xs_v1572 ys_v1561) :::::: (llist_d7 ??32))
 
-infer_tm( (lappend_v1510 ??31 xs_v1573 ys_v1562))
+infer_tm( (lappend_v1509 ??31 xs_v1572 ys_v1561))
 
-infer_tm( (lappend_v1510 ??31 xs_v1573))
+infer_tm( (lappend_v1509 ??31 xs_v1572))
 
-infer_tm( (lappend_v1510 ??31))
+infer_tm( (lappend_v1509 ??31))
 
-infer_tm( lappend_v1510)
+infer_tm( lappend_v1509)
 
 check_tm( ??31 :::::: L)
 
-check_tm( xs_v1573 :::::: (llist_d7 ??31))
+check_tm( xs_v1572 :::::: (llist_d7 ??31))
 
-infer_tm( xs_v1573)
+infer_tm( xs_v1572)
 
-assert_equal( (llist_d7 ??31) :::::: (llist_d7 (A_v1532 : L)))
+assert_equal( (llist_d7 ??31) :::::: (llist_d7 (A_v1531 : L)))
 
-check_tm( ys_v1562 :::::: (llist_d7 A_v1532))
+check_tm( ys_v1561 :::::: (llist_d7 A_v1531))
 
-infer_tm( ys_v1562)
+infer_tm( ys_v1561)
 
-assert_equal( (llist_d7 A_v1532) :::::: (llist_d7 A_v1532))
+assert_equal( (llist_d7 A_v1531) :::::: (llist_d7 A_v1531))
 
-assert_equal( (llist_d7 ??32) :::::: (llist_d7 A_v1532))
+assert_equal( (llist_d7 ??32) :::::: (llist_d7 A_v1531))
 
 infer_tm( (llist_d7 ??32))
 
@@ -2370,127 +2370,127 @@ infer_tm( U)
 
 infer_tm( U)
 
-infer_tm( A_v1653)
+infer_tm( A_v1652)
 
-infer_tm( (box_d8 A_v1653))
+infer_tm( (box_d8 A_v1652))
 
-check_tm( A_v1653 :::::: U)
+check_tm( A_v1652 :::::: U)
 
-infer_tm( A_v1653)
+infer_tm( A_v1652)
 
 assert_equal( U :::::: U)
 
 infer_tm( L)
 
 infer_tm(
-  ∀ {A_v1664 : U} →
-    ∀ {B_v1665 : U} →
-      (box_d8 A_v1664) → A_v1664 → B_v1665 → (box_d8 B_v1665))
+  ∀ {A_v1663 : U} →
+    ∀ {B_v1664 : U} →
+      (box_d8 A_v1663) → A_v1663 → B_v1664 → (box_d8 B_v1664))
 
 infer_tm( U)
 
 infer_tm(
-  ∀ {B_v1670 : U} →
-    (box_d8 A_v1669) → A_v1669 → B_v1670 → (box_d8 B_v1670))
+  ∀ {B_v1669 : U} →
+    (box_d8 A_v1668) → A_v1668 → B_v1669 → (box_d8 B_v1669))
 
 infer_tm( U)
 
-infer_tm( (box_d8 A_v1669) → A_v1669 → B_v1674 → (box_d8 B_v1674))
+infer_tm( (box_d8 A_v1668) → A_v1668 → B_v1673 → (box_d8 B_v1673))
 
-infer_tm( (box_d8 A_v1669))
+infer_tm( (box_d8 A_v1668))
 
-check_tm( A_v1669 :::::: U)
+check_tm( A_v1668 :::::: U)
 
-infer_tm( A_v1669)
-
-assert_equal( U :::::: U)
-
-infer_tm( L)
-
-infer_tm( A_v1669 → B_v1674 → (box_d8 B_v1674))
-
-infer_tm( A_v1669 → B_v1674)
-
-infer_tm( A_v1669)
-
-infer_tm( B_v1674)
-
-infer_tm( (box_d8 B_v1674))
-
-check_tm( B_v1674 :::::: U)
-
-infer_tm( B_v1674)
+infer_tm( A_v1668)
 
 assert_equal( U :::::: U)
 
 infer_tm( L)
 
+infer_tm( A_v1668 → B_v1673 → (box_d8 B_v1673))
+
+infer_tm( A_v1668 → B_v1673)
+
+infer_tm( A_v1668)
+
+infer_tm( B_v1673)
+
+infer_tm( (box_d8 B_v1673))
+
+check_tm( B_v1673 :::::: U)
+
+infer_tm( B_v1673)
+
+assert_equal( U :::::: U)
+
+infer_tm( L)
+
 check_tm(
-  fn {A_v1684 B_v1685} m_v1686 f_v1687 ⇒
-    match m_v1686 as __v1688 in ??33 with
-    | Box_c13 a_v1689 ⇒ (Box_c13 (f_v1687 a_v1689))
+  fn {A_v1683 B_v1684} m_v1685 f_v1686 ⇒
+    match m_v1685 as __v1687 in ??33 with
+    | Box_c13 a_v1688 ⇒ (Box_c13 (f_v1686 a_v1688))
     end
 ::::::
-  ∀ {A_v1690 : U} →
-    ∀ {B_v1691 : U} →
-      (box_d8 A_v1690) → A_v1690 → B_v1691 → (box_d8 B_v1691))
+  ∀ {A_v1689 : U} →
+    ∀ {B_v1690 : U} →
+      (box_d8 A_v1689) → A_v1689 → B_v1690 → (box_d8 B_v1690))
 
 check_tm(
-  fn {B_v1716} m_v1717 f_v1718 ⇒
-    match m_v1717 as __v1719 in ??33 with
-    | Box_c13 a_v1720 ⇒ (Box_c13 (f_v1718 a_v1720))
+  fn {B_v1715} m_v1716 f_v1717 ⇒
+    match m_v1716 as __v1718 in ??33 with
+    | Box_c13 a_v1719 ⇒ (Box_c13 (f_v1717 a_v1719))
     end
 ::::::
-  ∀ {B_v1721 : U} →
-    (box_d8 A_v1715) → A_v1715 → B_v1721 → (box_d8 B_v1721))
+  ∀ {B_v1720 : U} →
+    (box_d8 A_v1714) → A_v1714 → B_v1720 → (box_d8 B_v1720))
 
 check_tm(
-  fn m_v1741 f_v1742 ⇒
-    match m_v1741 as __v1743 in ??33 with
-    | Box_c13 a_v1744 ⇒ (Box_c13 (f_v1742 a_v1744))
+  fn m_v1740 f_v1741 ⇒
+    match m_v1740 as __v1742 in ??33 with
+    | Box_c13 a_v1743 ⇒ (Box_c13 (f_v1741 a_v1743))
     end
-:::::: (box_d8 A_v1715) → A_v1715 → B_v1740 → (box_d8 B_v1740))
+:::::: (box_d8 A_v1714) → A_v1714 → B_v1739 → (box_d8 B_v1739))
 
 check_tm(
-  fn f_v1760 ⇒
-    match m_v1759 as __v1761 in ??33 with
-    | Box_c13 a_v1762 ⇒ (Box_c13 (f_v1760 a_v1762))
+  fn f_v1759 ⇒
+    match m_v1758 as __v1760 in ??33 with
+    | Box_c13 a_v1761 ⇒ (Box_c13 (f_v1759 a_v1761))
     end
-:::::: A_v1715 → B_v1740 → (box_d8 B_v1740))
+:::::: A_v1714 → B_v1739 → (box_d8 B_v1739))
 
 check_tm(
-  match m_v1759 as __v1774 in ??33 with
-  | Box_c13 a_v1775 ⇒ (Box_c13 (f_v1773 a_v1775))
+  match m_v1758 as __v1773 in ??33 with
+  | Box_c13 a_v1774 ⇒ (Box_c13 (f_v1772 a_v1774))
   end
-:::::: (box_d8 B_v1740))
+:::::: (box_d8 B_v1739))
 
-infer_tm( m_v1759)
-
-infer_tm( ??33)
-
-assert_equal( (box_d8 B_v1740) :::::: ??33)
+infer_tm( m_v1758)
 
 infer_tm( ??33)
 
-check_tm( (Box_c13 (f_v1773 a_v1782)) :::::: ??33)
+assert_equal( (box_d8 B_v1739) :::::: ??33)
 
-infer_tm( (Box_c13 (f_v1773 a_v1782)))
+infer_tm( ??33)
+
+check_tm( (Box_c13 (f_v1772 a_v1781)) :::::: ??33)
+
+infer_tm( (Box_c13 (f_v1772 a_v1781)))
 
 check_tm( ??34 :::::: U)
 
-check_tm( (f_v1773 a_v1782) :::::: ??34)
+check_tm( (f_v1772 a_v1781) :::::: ??34)
 
-infer_tm( (f_v1773 a_v1782))
+infer_tm( (f_v1772 a_v1781))
 
-infer_tm( f_v1773)
+infer_tm( f_v1772)
 
-check_tm( a_v1782 :::::: A_v1715)
+check_tm( a_v1781 :::::: A_v1714)
 
-infer_tm( a_v1782)
+infer_tm( a_v1781)
 
-assert_equal( A_v1715 :::::: (A_v1715 : U))
+assert_equal( A_v1714 :::::: (A_v1714 : U))
 
-assert_equal( ??34 :::::: B_v1740)
+assert_equal( ??34 :::::: B_v1739)
 
 infer_tm( (box_d8 ??34))
 
@@ -2500,57 +2500,57 @@ infer_tm( L)
 
 assert_equal( ??33 :::::: (box_d8 ??34))
 
-infer_tm( ∀ {A_v1831 : U} → (box_d8 A_v1831) → A_v1831)
+infer_tm( ∀ {A_v1830 : U} → (box_d8 A_v1830) → A_v1830)
 
 infer_tm( U)
 
-infer_tm( (box_d8 A_v1833) → A_v1833)
+infer_tm( (box_d8 A_v1832) → A_v1832)
 
-infer_tm( (box_d8 A_v1833))
+infer_tm( (box_d8 A_v1832))
 
-check_tm( A_v1833 :::::: U)
+check_tm( A_v1832 :::::: U)
 
-infer_tm( A_v1833)
+infer_tm( A_v1832)
 
 assert_equal( U :::::: U)
 
 infer_tm( L)
 
-infer_tm( A_v1833)
+infer_tm( A_v1832)
 
 check_tm(
-  fn {A_v1836} m_v1837 ⇒
-    match m_v1837 as __v1838 in ??35 with
-    | Box_c13 a_v1839 ⇒ a_v1839
+  fn {A_v1835} m_v1836 ⇒
+    match m_v1836 as __v1837 in ??35 with
+    | Box_c13 a_v1838 ⇒ a_v1838
     end
-:::::: ∀ {A_v1840 : U} → (box_d8 A_v1840) → A_v1840)
+:::::: ∀ {A_v1839 : U} → (box_d8 A_v1839) → A_v1839)
 
 check_tm(
-  fn m_v1852 ⇒
-    match m_v1852 as __v1853 in ??35 with
-    | Box_c13 a_v1854 ⇒ a_v1854
+  fn m_v1851 ⇒
+    match m_v1851 as __v1852 in ??35 with
+    | Box_c13 a_v1853 ⇒ a_v1853
     end
-:::::: (box_d8 A_v1851) → A_v1851)
+:::::: (box_d8 A_v1850) → A_v1850)
 
 check_tm(
-  match m_v1863 as __v1864 in ??35 with
-  | Box_c13 a_v1865 ⇒ a_v1865
+  match m_v1862 as __v1863 in ??35 with
+  | Box_c13 a_v1864 ⇒ a_v1864
   end
-:::::: A_v1851)
+:::::: A_v1850)
 
-infer_tm( m_v1863)
-
-infer_tm( ??35)
-
-assert_equal( A_v1851 :::::: ??35)
+infer_tm( m_v1862)
 
 infer_tm( ??35)
 
-check_tm( a_v1872 :::::: ??35)
+assert_equal( A_v1850 :::::: ??35)
 
-infer_tm( a_v1872)
+infer_tm( ??35)
 
-assert_equal( ??35 :::::: (A_v1851 : U))
+check_tm( a_v1871 :::::: ??35)
+
+infer_tm( a_v1871)
+
+assert_equal( ??35 :::::: (A_v1850 : U))
 
 infer_tm( unit_d1 → proto)
 
@@ -2561,36 +2561,36 @@ infer_tm( U)
 infer_tm( proto)
 
 check_tm(
-  fix (stdin_rec_v158 := stdin_rec_v1897) ⇒
-    fn __v1898 ⇒
-      !(b_v1899 : bool_d2) ⇒
-        match b_v1899 as __v1900 in ??36 with
-        | true_c2  ⇒ ?(__v1901 : string_d5) ⇒ (stdin_rec_v1897 tt_c1)
+  fix (stdin_rec_v158 := stdin_rec_v1896) ⇒
+    fn __v1897 ⇒
+      !(b_v1898 : bool_d2) ⇒
+        match b_v1898 as __v1899 in ??36 with
+        | true_c2  ⇒ ?(__v1900 : string_d5) ⇒ (stdin_rec_v1896 tt_c1)
         | false_c3  ⇒ end
         end
 :::::: unit_d1 → proto)
 
 check_tm(
-  fn __v1904 ⇒
-    !(b_v1905 : bool_d2) ⇒
-      match b_v1905 as __v1906 in ??36 with
-      | true_c2  ⇒ ?(__v1907 : string_d5) ⇒ (stdin_rec_v1903 tt_c1)
+  fn __v1903 ⇒
+    !(b_v1904 : bool_d2) ⇒
+      match b_v1904 as __v1905 in ??36 with
+      | true_c2  ⇒ ?(__v1906 : string_d5) ⇒ (stdin_rec_v1902 tt_c1)
       | false_c3  ⇒ end
       end
 :::::: unit_d1 → proto)
 
 check_tm(
-  !(b_v1917 : bool_d2) ⇒
-    match b_v1917 as __v1918 in ??36 with
-    | true_c2  ⇒ ?(__v1919 : string_d5) ⇒ (stdin_rec_v1903 tt_c1)
+  !(b_v1916 : bool_d2) ⇒
+    match b_v1916 as __v1917 in ??36 with
+    | true_c2  ⇒ ?(__v1918 : string_d5) ⇒ (stdin_rec_v1902 tt_c1)
     | false_c3  ⇒ end
     end
 :::::: proto)
 
 infer_tm(
-  !(b_v1920 : bool_d2) ⇒
-    match b_v1920 as __v1921 in ??36 with
-    | true_c2  ⇒ ?(__v1922 : string_d5) ⇒ (stdin_rec_v1903 tt_c1)
+  !(b_v1919 : bool_d2) ⇒
+    match b_v1919 as __v1920 in ??36 with
+    | true_c2  ⇒ ?(__v1921 : string_d5) ⇒ (stdin_rec_v1902 tt_c1)
     | false_c3  ⇒ end
     end)
 
@@ -2599,13 +2599,13 @@ infer_tm( bool_d2)
 infer_tm( U)
 
 check_tm(
-  match b_v1923 as __v1924 in ??36 with
-  | true_c2  ⇒ ?(__v1925 : string_d5) ⇒ (stdin_rec_v1903 tt_c1)
+  match b_v1922 as __v1923 in ??36 with
+  | true_c2  ⇒ ?(__v1924 : string_d5) ⇒ (stdin_rec_v1902 tt_c1)
   | false_c3  ⇒ end
   end
 :::::: proto)
 
-infer_tm( b_v1923)
+infer_tm( b_v1922)
 
 infer_tm( ??36)
 
@@ -2613,19 +2613,19 @@ assert_equal( proto :::::: ??36)
 
 infer_tm( ??36)
 
-check_tm( ?(__v1932 : string_d5) ⇒ (stdin_rec_v1903 tt_c1) :::::: ??36)
+check_tm( ?(__v1931 : string_d5) ⇒ (stdin_rec_v1902 tt_c1) :::::: ??36)
 
-infer_tm( ?(__v1933 : string_d5) ⇒ (stdin_rec_v1903 tt_c1))
+infer_tm( ?(__v1932 : string_d5) ⇒ (stdin_rec_v1902 tt_c1))
 
 infer_tm( string_d5)
 
 infer_tm( U)
 
-check_tm( (stdin_rec_v1903 tt_c1) :::::: proto)
+check_tm( (stdin_rec_v1902 tt_c1) :::::: proto)
 
-infer_tm( (stdin_rec_v1903 tt_c1))
+infer_tm( (stdin_rec_v1902 tt_c1))
 
-infer_tm( stdin_rec_v1903)
+infer_tm( stdin_rec_v1902)
 
 check_tm( tt_c1 :::::: unit_d1)
 
@@ -2660,36 +2660,36 @@ infer_tm( U)
 infer_tm( proto)
 
 check_tm(
-  fix (stdout_rec_v164 := stdout_rec_v1969) ⇒
-    fn __v1970 ⇒
-      !(b_v1971 : bool_d2) ⇒
-        match b_v1971 as __v1972 in ??37 with
-        | true_c2  ⇒ !(__v1973 : string_d5) ⇒ (stdout_rec_v1969 tt_c1)
+  fix (stdout_rec_v164 := stdout_rec_v1968) ⇒
+    fn __v1969 ⇒
+      !(b_v1970 : bool_d2) ⇒
+        match b_v1970 as __v1971 in ??37 with
+        | true_c2  ⇒ !(__v1972 : string_d5) ⇒ (stdout_rec_v1968 tt_c1)
         | false_c3  ⇒ end
         end
 :::::: unit_d1 → proto)
 
 check_tm(
-  fn __v1976 ⇒
-    !(b_v1977 : bool_d2) ⇒
-      match b_v1977 as __v1978 in ??37 with
-      | true_c2  ⇒ !(__v1979 : string_d5) ⇒ (stdout_rec_v1975 tt_c1)
+  fn __v1975 ⇒
+    !(b_v1976 : bool_d2) ⇒
+      match b_v1976 as __v1977 in ??37 with
+      | true_c2  ⇒ !(__v1978 : string_d5) ⇒ (stdout_rec_v1974 tt_c1)
       | false_c3  ⇒ end
       end
 :::::: unit_d1 → proto)
 
 check_tm(
-  !(b_v1989 : bool_d2) ⇒
-    match b_v1989 as __v1990 in ??37 with
-    | true_c2  ⇒ !(__v1991 : string_d5) ⇒ (stdout_rec_v1975 tt_c1)
+  !(b_v1988 : bool_d2) ⇒
+    match b_v1988 as __v1989 in ??37 with
+    | true_c2  ⇒ !(__v1990 : string_d5) ⇒ (stdout_rec_v1974 tt_c1)
     | false_c3  ⇒ end
     end
 :::::: proto)
 
 infer_tm(
-  !(b_v1992 : bool_d2) ⇒
-    match b_v1992 as __v1993 in ??37 with
-    | true_c2  ⇒ !(__v1994 : string_d5) ⇒ (stdout_rec_v1975 tt_c1)
+  !(b_v1991 : bool_d2) ⇒
+    match b_v1991 as __v1992 in ??37 with
+    | true_c2  ⇒ !(__v1993 : string_d5) ⇒ (stdout_rec_v1974 tt_c1)
     | false_c3  ⇒ end
     end)
 
@@ -2698,13 +2698,13 @@ infer_tm( bool_d2)
 infer_tm( U)
 
 check_tm(
-  match b_v1995 as __v1996 in ??37 with
-  | true_c2  ⇒ !(__v1997 : string_d5) ⇒ (stdout_rec_v1975 tt_c1)
+  match b_v1994 as __v1995 in ??37 with
+  | true_c2  ⇒ !(__v1996 : string_d5) ⇒ (stdout_rec_v1974 tt_c1)
   | false_c3  ⇒ end
   end
 :::::: proto)
 
-infer_tm( b_v1995)
+infer_tm( b_v1994)
 
 infer_tm( ??37)
 
@@ -2712,19 +2712,19 @@ assert_equal( proto :::::: ??37)
 
 infer_tm( ??37)
 
-check_tm( !(__v2004 : string_d5) ⇒ (stdout_rec_v1975 tt_c1) :::::: ??37)
+check_tm( !(__v2003 : string_d5) ⇒ (stdout_rec_v1974 tt_c1) :::::: ??37)
 
-infer_tm( !(__v2005 : string_d5) ⇒ (stdout_rec_v1975 tt_c1))
+infer_tm( !(__v2004 : string_d5) ⇒ (stdout_rec_v1974 tt_c1))
 
 infer_tm( string_d5)
 
 infer_tm( U)
 
-check_tm( (stdout_rec_v1975 tt_c1) :::::: proto)
+check_tm( (stdout_rec_v1974 tt_c1) :::::: proto)
 
-infer_tm( (stdout_rec_v1975 tt_c1))
+infer_tm( (stdout_rec_v1974 tt_c1))
 
-infer_tm( stdout_rec_v1975)
+infer_tm( stdout_rec_v1974)
 
 check_tm( tt_c1 :::::: unit_d1)
 
@@ -2759,36 +2759,36 @@ infer_tm( U)
 infer_tm( proto)
 
 check_tm(
-  fix (stderr_rec_v170 := stderr_rec_v2041) ⇒
-    fn __v2042 ⇒
-      !(b_v2043 : bool_d2) ⇒
-        match b_v2043 as __v2044 in ??38 with
-        | true_c2  ⇒ !(__v2045 : string_d5) ⇒ (stderr_rec_v2041 tt_c1)
+  fix (stderr_rec_v170 := stderr_rec_v2040) ⇒
+    fn __v2041 ⇒
+      !(b_v2042 : bool_d2) ⇒
+        match b_v2042 as __v2043 in ??38 with
+        | true_c2  ⇒ !(__v2044 : string_d5) ⇒ (stderr_rec_v2040 tt_c1)
         | false_c3  ⇒ end
         end
 :::::: unit_d1 → proto)
 
 check_tm(
-  fn __v2048 ⇒
-    !(b_v2049 : bool_d2) ⇒
-      match b_v2049 as __v2050 in ??38 with
-      | true_c2  ⇒ !(__v2051 : string_d5) ⇒ (stderr_rec_v2047 tt_c1)
+  fn __v2047 ⇒
+    !(b_v2048 : bool_d2) ⇒
+      match b_v2048 as __v2049 in ??38 with
+      | true_c2  ⇒ !(__v2050 : string_d5) ⇒ (stderr_rec_v2046 tt_c1)
       | false_c3  ⇒ end
       end
 :::::: unit_d1 → proto)
 
 check_tm(
-  !(b_v2061 : bool_d2) ⇒
-    match b_v2061 as __v2062 in ??38 with
-    | true_c2  ⇒ !(__v2063 : string_d5) ⇒ (stderr_rec_v2047 tt_c1)
+  !(b_v2060 : bool_d2) ⇒
+    match b_v2060 as __v2061 in ??38 with
+    | true_c2  ⇒ !(__v2062 : string_d5) ⇒ (stderr_rec_v2046 tt_c1)
     | false_c3  ⇒ end
     end
 :::::: proto)
 
 infer_tm(
-  !(b_v2064 : bool_d2) ⇒
-    match b_v2064 as __v2065 in ??38 with
-    | true_c2  ⇒ !(__v2066 : string_d5) ⇒ (stderr_rec_v2047 tt_c1)
+  !(b_v2063 : bool_d2) ⇒
+    match b_v2063 as __v2064 in ??38 with
+    | true_c2  ⇒ !(__v2065 : string_d5) ⇒ (stderr_rec_v2046 tt_c1)
     | false_c3  ⇒ end
     end)
 
@@ -2797,13 +2797,13 @@ infer_tm( bool_d2)
 infer_tm( U)
 
 check_tm(
-  match b_v2067 as __v2068 in ??38 with
-  | true_c2  ⇒ !(__v2069 : string_d5) ⇒ (stderr_rec_v2047 tt_c1)
+  match b_v2066 as __v2067 in ??38 with
+  | true_c2  ⇒ !(__v2068 : string_d5) ⇒ (stderr_rec_v2046 tt_c1)
   | false_c3  ⇒ end
   end
 :::::: proto)
 
-infer_tm( b_v2067)
+infer_tm( b_v2066)
 
 infer_tm( ??38)
 
@@ -2811,19 +2811,19 @@ assert_equal( proto :::::: ??38)
 
 infer_tm( ??38)
 
-check_tm( !(__v2076 : string_d5) ⇒ (stderr_rec_v2047 tt_c1) :::::: ??38)
+check_tm( !(__v2075 : string_d5) ⇒ (stderr_rec_v2046 tt_c1) :::::: ??38)
 
-infer_tm( !(__v2077 : string_d5) ⇒ (stderr_rec_v2047 tt_c1))
+infer_tm( !(__v2076 : string_d5) ⇒ (stderr_rec_v2046 tt_c1))
 
 infer_tm( string_d5)
 
 infer_tm( U)
 
-check_tm( (stderr_rec_v2047 tt_c1) :::::: proto)
+check_tm( (stderr_rec_v2046 tt_c1) :::::: proto)
 
-infer_tm( (stderr_rec_v2047 tt_c1))
+infer_tm( (stderr_rec_v2046 tt_c1))
 
-infer_tm( stderr_rec_v2047)
+infer_tm( stderr_rec_v2046)
 
 check_tm( tt_c1 :::::: unit_d1)
 
@@ -2922,54 +2922,54 @@ infer_tm( string_d5)
 infer_tm( U)
 
 check_tm(
-  fn __v2170 ⇒
-    let ch_v2171 ⇐ open stdin in
-    let ch_v2172 ⇐ (send ch_v2171 true_c2) in
-    let msg_v2173 ⇐ recv ch_v2172 in
-    match msg_v2173 as __v2174 in ??39 with
-    | ⟨s_v2175, ch_v2176⟩ ⇒
-      let ch_v2177 ⇐ (send ch_v2176 false_c3) in
-      let __v2178 ⇐ close ch_v2177 in return s_v2175
+  fn __v2169 ⇒
+    let ch_v2170 ⇐ open stdin in
+    let ch_v2171 ⇐ (send ch_v2170 true_c2) in
+    let __v2172 ⇐ recv ch_v2171 in
+    match __v2172 as __v2173 in ??39 with
+    | ⟨s_v2174, ch_v2175⟩ ⇒
+      let ch_v2176 ⇐ (send ch_v2175 false_c3) in
+      let __v2177 ⇐ close ch_v2176 in return s_v2174
     end
 :::::: unit_d1 → IO string_d5)
 
 check_tm(
-  let ch_v2188 ⇐ open stdin in
-  let ch_v2189 ⇐ (send ch_v2188 true_c2) in
-  let msg_v2190 ⇐ recv ch_v2189 in
-  match msg_v2190 as __v2191 in ??39 with
-  | ⟨s_v2192, ch_v2193⟩ ⇒
-    let ch_v2194 ⇐ (send ch_v2193 false_c3) in
-    let __v2195 ⇐ close ch_v2194 in return s_v2192
+  let ch_v2187 ⇐ open stdin in
+  let ch_v2188 ⇐ (send ch_v2187 true_c2) in
+  let __v2189 ⇐ recv ch_v2188 in
+  match __v2189 as __v2190 in ??39 with
+  | ⟨s_v2191, ch_v2192⟩ ⇒
+    let ch_v2193 ⇐ (send ch_v2192 false_c3) in
+    let __v2194 ⇐ close ch_v2193 in return s_v2191
   end
 :::::: IO string_d5)
 
 infer_tm(
-  let ch_v2196 ⇐ open stdin in
-  let ch_v2197 ⇐ (send ch_v2196 true_c2) in
-  let msg_v2198 ⇐ recv ch_v2197 in
-  match msg_v2198 as __v2199 in ??39 with
-  | ⟨s_v2200, ch_v2201⟩ ⇒
-    let ch_v2202 ⇐ (send ch_v2201 false_c3) in
-    let __v2203 ⇐ close ch_v2202 in return s_v2200
+  let ch_v2195 ⇐ open stdin in
+  let ch_v2196 ⇐ (send ch_v2195 true_c2) in
+  let __v2197 ⇐ recv ch_v2196 in
+  match __v2197 as __v2198 in ??39 with
+  | ⟨s_v2199, ch_v2200⟩ ⇒
+    let ch_v2201 ⇐ (send ch_v2200 false_c3) in
+    let __v2202 ⇐ close ch_v2201 in return s_v2199
   end)
 
 infer_tm( open stdin)
 
 infer_tm(
-  let ch_v2211 ⇐ (send ch_v2210 true_c2) in
-  let msg_v2212 ⇐ recv ch_v2211 in
-  match msg_v2212 as __v2213 in ??39 with
-  | ⟨s_v2214, ch_v2215⟩ ⇒
-    let ch_v2216 ⇐ (send ch_v2215 false_c3) in
-    let __v2217 ⇐ close ch_v2216 in return s_v2214
+  let ch_v2210 ⇐ (send ch_v2209 true_c2) in
+  let __v2211 ⇐ recv ch_v2210 in
+  match __v2211 as __v2212 in ??39 with
+  | ⟨s_v2213, ch_v2214⟩ ⇒
+    let ch_v2215 ⇐ (send ch_v2214 false_c3) in
+    let __v2216 ⇐ close ch_v2215 in return s_v2213
   end)
 
-infer_tm( (send ch_v2210 true_c2))
+infer_tm( (send ch_v2209 true_c2))
 
-infer_tm( send ch_v2210)
+infer_tm( send ch_v2209)
 
-infer_tm( ch_v2210)
+infer_tm( ch_v2209)
 
 check_tm( true_c2 :::::: bool_d2)
 
@@ -2982,42 +2982,42 @@ infer_tm( U)
 assert_equal( bool_d2 :::::: bool_d2)
 
 infer_tm(
-  let msg_v2247 ⇐ recv ch_v2246 in
-  match msg_v2247 as __v2248 in ??39 with
-  | ⟨s_v2249, ch_v2250⟩ ⇒
-    let ch_v2251 ⇐ (send ch_v2250 false_c3) in
-    let __v2252 ⇐ close ch_v2251 in return s_v2249
+  let __v2246 ⇐ recv ch_v2245 in
+  match __v2246 as __v2247 in ??39 with
+  | ⟨s_v2248, ch_v2249⟩ ⇒
+    let ch_v2250 ⇐ (send ch_v2249 false_c3) in
+    let __v2251 ⇐ close ch_v2250 in return s_v2248
   end)
 
-infer_tm( recv ch_v2246)
+infer_tm( recv ch_v2245)
 
-infer_tm( ch_v2246)
+infer_tm( ch_v2245)
 
 infer_tm(
-  match msg_v2270 as __v2271 in ??39 with
-  | ⟨s_v2272, ch_v2273⟩ ⇒
-    let ch_v2274 ⇐ (send ch_v2273 false_c3) in
-    let __v2275 ⇐ close ch_v2274 in return s_v2272
+  match __v2269 as __v2270 in ??39 with
+  | ⟨s_v2271, ch_v2272⟩ ⇒
+    let ch_v2273 ⇐ (send ch_v2272 false_c3) in
+    let __v2274 ⇐ close ch_v2273 in return s_v2271
   end)
 
-infer_tm( msg_v2270)
+infer_tm( __v2269)
 
 infer_tm( ??39)
 
 check_tm(
-  let ch_v2285 ⇐ (send ch_v2284 false_c3) in
-  let __v2286 ⇐ close ch_v2285 in return s_v2283
+  let ch_v2284 ⇐ (send ch_v2283 false_c3) in
+  let __v2285 ⇐ close ch_v2284 in return s_v2282
 :::::: ??39)
 
 infer_tm(
-  let ch_v2287 ⇐ (send ch_v2284 false_c3) in
-  let __v2288 ⇐ close ch_v2287 in return s_v2283)
+  let ch_v2286 ⇐ (send ch_v2283 false_c3) in
+  let __v2287 ⇐ close ch_v2286 in return s_v2282)
 
-infer_tm( (send ch_v2284 false_c3))
+infer_tm( (send ch_v2283 false_c3))
 
-infer_tm( send ch_v2284)
+infer_tm( send ch_v2283)
 
-infer_tm( ch_v2284)
+infer_tm( ch_v2283)
 
 check_tm( false_c3 :::::: bool_d2)
 
@@ -3029,15 +3029,15 @@ infer_tm( U)
 
 assert_equal( bool_d2 :::::: bool_d2)
 
-infer_tm( let __v2318 ⇐ close ch_v2317 in return s_v2283)
+infer_tm( let __v2317 ⇐ close ch_v2316 in return s_v2282)
 
-infer_tm( close ch_v2317)
+infer_tm( close ch_v2316)
 
-infer_tm( ch_v2317)
+infer_tm( ch_v2316)
 
-infer_tm( return s_v2283)
+infer_tm( return s_v2282)
 
-infer_tm( s_v2283)
+infer_tm( s_v2282)
 
 assert_equal( ??39 :::::: IO string_d5)
 
@@ -3056,38 +3056,38 @@ infer_tm( unit_d1)
 infer_tm( U)
 
 check_tm(
-  fn s_v2393 ⇒
-    let ch_v2394 ⇐ open stdout in
-    let ch_v2395 ⇐ (send ch_v2394 true_c2) in
-    let ch_v2396 ⇐ (send ch_v2395 s_v2393) in
-    let ch_v2397 ⇐ (send ch_v2396 false_c3) in close ch_v2397
+  fn s_v2391 ⇒
+    let ch_v2392 ⇐ open stdout in
+    let ch_v2393 ⇐ (send ch_v2392 true_c2) in
+    let ch_v2394 ⇐ (send ch_v2393 s_v2391) in
+    let ch_v2395 ⇐ (send ch_v2394 false_c3) in close ch_v2395
 :::::: string_d5 → IO unit_d1)
 
 check_tm(
-  let ch_v2407 ⇐ open stdout in
-  let ch_v2408 ⇐ (send ch_v2407 true_c2) in
-  let ch_v2409 ⇐ (send ch_v2408 s_v2406) in
-  let ch_v2410 ⇐ (send ch_v2409 false_c3) in close ch_v2410
+  let ch_v2405 ⇐ open stdout in
+  let ch_v2406 ⇐ (send ch_v2405 true_c2) in
+  let ch_v2407 ⇐ (send ch_v2406 s_v2404) in
+  let ch_v2408 ⇐ (send ch_v2407 false_c3) in close ch_v2408
 :::::: IO unit_d1)
 
 infer_tm(
-  let ch_v2411 ⇐ open stdout in
-  let ch_v2412 ⇐ (send ch_v2411 true_c2) in
-  let ch_v2413 ⇐ (send ch_v2412 s_v2406) in
-  let ch_v2414 ⇐ (send ch_v2413 false_c3) in close ch_v2414)
+  let ch_v2409 ⇐ open stdout in
+  let ch_v2410 ⇐ (send ch_v2409 true_c2) in
+  let ch_v2411 ⇐ (send ch_v2410 s_v2404) in
+  let ch_v2412 ⇐ (send ch_v2411 false_c3) in close ch_v2412)
 
 infer_tm( open stdout)
 
 infer_tm(
-  let ch_v2422 ⇐ (send ch_v2421 true_c2) in
-  let ch_v2423 ⇐ (send ch_v2422 s_v2406) in
-  let ch_v2424 ⇐ (send ch_v2423 false_c3) in close ch_v2424)
+  let ch_v2420 ⇐ (send ch_v2419 true_c2) in
+  let ch_v2421 ⇐ (send ch_v2420 s_v2404) in
+  let ch_v2422 ⇐ (send ch_v2421 false_c3) in close ch_v2422)
 
-infer_tm( (send ch_v2421 true_c2))
+infer_tm( (send ch_v2419 true_c2))
 
-infer_tm( send ch_v2421)
+infer_tm( send ch_v2419)
 
-infer_tm( ch_v2421)
+infer_tm( ch_v2419)
 
 check_tm( true_c2 :::::: bool_d2)
 
@@ -3100,28 +3100,28 @@ infer_tm( U)
 assert_equal( bool_d2 :::::: bool_d2)
 
 infer_tm(
-  let ch_v2454 ⇐ (send ch_v2453 s_v2406) in
-  let ch_v2455 ⇐ (send ch_v2454 false_c3) in close ch_v2455)
+  let ch_v2452 ⇐ (send ch_v2451 s_v2404) in
+  let ch_v2453 ⇐ (send ch_v2452 false_c3) in close ch_v2453)
 
-infer_tm( (send ch_v2453 s_v2406))
+infer_tm( (send ch_v2451 s_v2404))
 
-infer_tm( send ch_v2453)
+infer_tm( send ch_v2451)
 
-infer_tm( ch_v2453)
+infer_tm( ch_v2451)
 
-check_tm( s_v2406 :::::: string_d5)
+check_tm( s_v2404 :::::: string_d5)
 
-infer_tm( s_v2406)
+infer_tm( s_v2404)
 
 assert_equal( string_d5 :::::: string_d5)
 
-infer_tm( let ch_v2480 ⇐ (send ch_v2479 false_c3) in close ch_v2480)
+infer_tm( let ch_v2478 ⇐ (send ch_v2477 false_c3) in close ch_v2478)
 
-infer_tm( (send ch_v2479 false_c3))
+infer_tm( (send ch_v2477 false_c3))
 
-infer_tm( send ch_v2479)
+infer_tm( send ch_v2477)
 
-infer_tm( ch_v2479)
+infer_tm( ch_v2477)
 
 check_tm( false_c3 :::::: bool_d2)
 
@@ -3133,9 +3133,9 @@ infer_tm( U)
 
 assert_equal( bool_d2 :::::: bool_d2)
 
-infer_tm( close ch_v2509)
+infer_tm( close ch_v2507)
 
-infer_tm( ch_v2509)
+infer_tm( ch_v2507)
 
 assert_equal( IO unit_d1 :::::: IO unit_d1)
 
@@ -3152,38 +3152,38 @@ infer_tm( unit_d1)
 infer_tm( U)
 
 check_tm(
-  fn s_v2566 ⇒
-    let ch_v2567 ⇐ open stderr in
-    let ch_v2568 ⇐ (send ch_v2567 true_c2) in
-    let ch_v2569 ⇐ (send ch_v2568 s_v2566) in
-    let ch_v2570 ⇐ (send ch_v2569 false_c3) in close ch_v2570
+  fn s_v2564 ⇒
+    let ch_v2565 ⇐ open stderr in
+    let ch_v2566 ⇐ (send ch_v2565 true_c2) in
+    let ch_v2567 ⇐ (send ch_v2566 s_v2564) in
+    let ch_v2568 ⇐ (send ch_v2567 false_c3) in close ch_v2568
 :::::: string_d5 → IO unit_d1)
 
 check_tm(
-  let ch_v2580 ⇐ open stderr in
-  let ch_v2581 ⇐ (send ch_v2580 true_c2) in
-  let ch_v2582 ⇐ (send ch_v2581 s_v2579) in
-  let ch_v2583 ⇐ (send ch_v2582 false_c3) in close ch_v2583
+  let ch_v2578 ⇐ open stderr in
+  let ch_v2579 ⇐ (send ch_v2578 true_c2) in
+  let ch_v2580 ⇐ (send ch_v2579 s_v2577) in
+  let ch_v2581 ⇐ (send ch_v2580 false_c3) in close ch_v2581
 :::::: IO unit_d1)
 
 infer_tm(
-  let ch_v2584 ⇐ open stderr in
-  let ch_v2585 ⇐ (send ch_v2584 true_c2) in
-  let ch_v2586 ⇐ (send ch_v2585 s_v2579) in
-  let ch_v2587 ⇐ (send ch_v2586 false_c3) in close ch_v2587)
+  let ch_v2582 ⇐ open stderr in
+  let ch_v2583 ⇐ (send ch_v2582 true_c2) in
+  let ch_v2584 ⇐ (send ch_v2583 s_v2577) in
+  let ch_v2585 ⇐ (send ch_v2584 false_c3) in close ch_v2585)
 
 infer_tm( open stderr)
 
 infer_tm(
-  let ch_v2595 ⇐ (send ch_v2594 true_c2) in
-  let ch_v2596 ⇐ (send ch_v2595 s_v2579) in
-  let ch_v2597 ⇐ (send ch_v2596 false_c3) in close ch_v2597)
+  let ch_v2593 ⇐ (send ch_v2592 true_c2) in
+  let ch_v2594 ⇐ (send ch_v2593 s_v2577) in
+  let ch_v2595 ⇐ (send ch_v2594 false_c3) in close ch_v2595)
 
-infer_tm( (send ch_v2594 true_c2))
+infer_tm( (send ch_v2592 true_c2))
 
-infer_tm( send ch_v2594)
+infer_tm( send ch_v2592)
 
-infer_tm( ch_v2594)
+infer_tm( ch_v2592)
 
 check_tm( true_c2 :::::: bool_d2)
 
@@ -3196,28 +3196,28 @@ infer_tm( U)
 assert_equal( bool_d2 :::::: bool_d2)
 
 infer_tm(
-  let ch_v2627 ⇐ (send ch_v2626 s_v2579) in
-  let ch_v2628 ⇐ (send ch_v2627 false_c3) in close ch_v2628)
+  let ch_v2625 ⇐ (send ch_v2624 s_v2577) in
+  let ch_v2626 ⇐ (send ch_v2625 false_c3) in close ch_v2626)
 
-infer_tm( (send ch_v2626 s_v2579))
+infer_tm( (send ch_v2624 s_v2577))
 
-infer_tm( send ch_v2626)
+infer_tm( send ch_v2624)
 
-infer_tm( ch_v2626)
+infer_tm( ch_v2624)
 
-check_tm( s_v2579 :::::: string_d5)
+check_tm( s_v2577 :::::: string_d5)
 
-infer_tm( s_v2579)
+infer_tm( s_v2577)
 
 assert_equal( string_d5 :::::: string_d5)
 
-infer_tm( let ch_v2653 ⇐ (send ch_v2652 false_c3) in close ch_v2653)
+infer_tm( let ch_v2651 ⇐ (send ch_v2650 false_c3) in close ch_v2651)
 
-infer_tm( (send ch_v2652 false_c3))
+infer_tm( (send ch_v2650 false_c3))
 
-infer_tm( send ch_v2652)
+infer_tm( send ch_v2650)
 
-infer_tm( ch_v2652)
+infer_tm( ch_v2650)
 
 check_tm( false_c3 :::::: bool_d2)
 
@@ -3229,9 +3229,9 @@ infer_tm( U)
 
 assert_equal( bool_d2 :::::: bool_d2)
 
-infer_tm( close ch_v2682)
+infer_tm( close ch_v2680)
 
-infer_tm( ch_v2682)
+infer_tm( ch_v2680)
 
 assert_equal( IO unit_d1 :::::: IO unit_d1)
 
@@ -5435,52 +5435,52 @@ infer_tm( U)
 assert_equal( (list_d6 ??40) :::::: (list_d6 ??44))
 
 infer_tm(
-  ∀ {A_v2797 : U} →
-    ∀ (xs_v2798 : (list_d6 A_v2797)) →
-      ∀ (ys_v2799 : (list_d6 A_v2797)) →
-        (len_v106 ??45 (append_v124 ??46 xs_v2798 ys_v2799)) ≡
-          (addn_v15 (len_v106 ??47 xs_v2798) (len_v106 ??48 ys_v2799)))
+  ∀ {A_v2795 : U} →
+    ∀ (xs_v2796 : (list_d6 A_v2795)) →
+      ∀ (ys_v2797 : (list_d6 A_v2795)) →
+        (len_v106 ??45 (append_v124 ??46 xs_v2796 ys_v2797)) ≡
+          (addn_v15 (len_v106 ??47 xs_v2796) (len_v106 ??48 ys_v2797)))
 
 infer_tm( U)
 
 infer_tm(
-  ∀ (xs_v2801 : (list_d6 A_v2800)) →
-    ∀ (ys_v2802 : (list_d6 A_v2800)) →
-      (len_v106 ??45 (append_v124 ??46 xs_v2801 ys_v2802)) ≡
-        (addn_v15 (len_v106 ??47 xs_v2801) (len_v106 ??48 ys_v2802)))
+  ∀ (xs_v2799 : (list_d6 A_v2798)) →
+    ∀ (ys_v2800 : (list_d6 A_v2798)) →
+      (len_v106 ??45 (append_v124 ??46 xs_v2799 ys_v2800)) ≡
+        (addn_v15 (len_v106 ??47 xs_v2799) (len_v106 ??48 ys_v2800)))
 
-infer_tm( (list_d6 A_v2800))
+infer_tm( (list_d6 A_v2798))
 
-check_tm( A_v2800 :::::: U)
+check_tm( A_v2798 :::::: U)
 
-infer_tm( A_v2800)
+infer_tm( A_v2798)
 
 assert_equal( U :::::: U)
 
 infer_tm( U)
 
 infer_tm(
-  ∀ (ys_v2804 : (list_d6 A_v2800)) →
-    (len_v106 ??45 (append_v124 ??46 xs_v2803 ys_v2804)) ≡
-      (addn_v15 (len_v106 ??47 xs_v2803) (len_v106 ??48 ys_v2804)))
+  ∀ (ys_v2802 : (list_d6 A_v2798)) →
+    (len_v106 ??45 (append_v124 ??46 xs_v2801 ys_v2802)) ≡
+      (addn_v15 (len_v106 ??47 xs_v2801) (len_v106 ??48 ys_v2802)))
 
-infer_tm( (list_d6 A_v2800))
+infer_tm( (list_d6 A_v2798))
 
-check_tm( A_v2800 :::::: U)
+check_tm( A_v2798 :::::: U)
 
-infer_tm( A_v2800)
+infer_tm( A_v2798)
 
 assert_equal( U :::::: U)
 
 infer_tm( U)
 
 infer_tm(
-  (len_v106 ??45 (append_v124 ??46 xs_v2803 ys_v2805)) ≡
-    (addn_v15 (len_v106 ??47 xs_v2803) (len_v106 ??48 ys_v2805)))
+  (len_v106 ??45 (append_v124 ??46 xs_v2801 ys_v2803)) ≡
+    (addn_v15 (len_v106 ??47 xs_v2801) (len_v106 ??48 ys_v2803)))
 
-check_tm( (len_v106 ??45 (append_v124 ??46 xs_v2803 ys_v2805)) :::::: ??49)
+check_tm( (len_v106 ??45 (append_v124 ??46 xs_v2801 ys_v2803)) :::::: ??49)
 
-infer_tm( (len_v106 ??45 (append_v124 ??46 xs_v2803 ys_v2805)))
+infer_tm( (len_v106 ??45 (append_v124 ??46 xs_v2801 ys_v2803)))
 
 infer_tm( (len_v106 ??45))
 
@@ -5488,11 +5488,11 @@ infer_tm( len_v106)
 
 check_tm( ??45 :::::: U)
 
-check_tm( (append_v124 ??46 xs_v2803 ys_v2805) :::::: (list_d6 ??45))
+check_tm( (append_v124 ??46 xs_v2801 ys_v2803) :::::: (list_d6 ??45))
 
-infer_tm( (append_v124 ??46 xs_v2803 ys_v2805))
+infer_tm( (append_v124 ??46 xs_v2801 ys_v2803))
 
-infer_tm( (append_v124 ??46 xs_v2803))
+infer_tm( (append_v124 ??46 xs_v2801))
 
 infer_tm( (append_v124 ??46))
 
@@ -5500,34 +5500,34 @@ infer_tm( append_v124)
 
 check_tm( ??46 :::::: U)
 
-check_tm( xs_v2803 :::::: (list_d6 ??46))
+check_tm( xs_v2801 :::::: (list_d6 ??46))
 
-infer_tm( xs_v2803)
+infer_tm( xs_v2801)
 
-assert_equal( (list_d6 ??46) :::::: (list_d6 A_v2800))
+assert_equal( (list_d6 ??46) :::::: (list_d6 A_v2798))
 
-check_tm( ys_v2805 :::::: (list_d6 A_v2800))
+check_tm( ys_v2803 :::::: (list_d6 A_v2798))
 
-infer_tm( ys_v2805)
+infer_tm( ys_v2803)
 
-assert_equal( (list_d6 A_v2800) :::::: (list_d6 A_v2800))
+assert_equal( (list_d6 A_v2798) :::::: (list_d6 A_v2798))
 
-assert_equal( (list_d6 ??45) :::::: (list_d6 A_v2800))
+assert_equal( (list_d6 ??45) :::::: (list_d6 A_v2798))
 
 assert_equal( ??49 :::::: (list_d6 ??45))
 
-check_tm( (addn_v15 (len_v106 ??47 xs_v2803) (len_v106 ??48 ys_v2805)) ::::::
+check_tm( (addn_v15 (len_v106 ??47 xs_v2801) (len_v106 ??48 ys_v2803)) ::::::
   ??49)
 
-infer_tm( (addn_v15 (len_v106 ??47 xs_v2803) (len_v106 ??48 ys_v2805)))
+infer_tm( (addn_v15 (len_v106 ??47 xs_v2801) (len_v106 ??48 ys_v2803)))
 
-infer_tm( (addn_v15 (len_v106 ??47 xs_v2803)))
+infer_tm( (addn_v15 (len_v106 ??47 xs_v2801)))
 
 infer_tm( addn_v15)
 
-check_tm( (len_v106 ??47 xs_v2803) :::::: nat_d3)
+check_tm( (len_v106 ??47 xs_v2801) :::::: nat_d3)
 
-infer_tm( (len_v106 ??47 xs_v2803))
+infer_tm( (len_v106 ??47 xs_v2801))
 
 infer_tm( (len_v106 ??47))
 
@@ -5535,17 +5535,17 @@ infer_tm( len_v106)
 
 check_tm( ??47 :::::: U)
 
-check_tm( xs_v2803 :::::: (list_d6 ??47))
+check_tm( xs_v2801 :::::: (list_d6 ??47))
 
-infer_tm( xs_v2803)
+infer_tm( xs_v2801)
 
-assert_equal( (list_d6 ??47) :::::: (list_d6 A_v2800))
+assert_equal( (list_d6 ??47) :::::: (list_d6 A_v2798))
 
 assert_equal( nat_d3 :::::: (list_d6 ??47))
 
-check_tm( (len_v106 ??48 ys_v2805) :::::: nat_d3)
+check_tm( (len_v106 ??48 ys_v2803) :::::: nat_d3)
 
-infer_tm( (len_v106 ??48 ys_v2805))
+infer_tm( (len_v106 ??48 ys_v2803))
 
 infer_tm( (len_v106 ??48))
 
@@ -5553,119 +5553,119 @@ infer_tm( len_v106)
 
 check_tm( ??48 :::::: U)
 
-check_tm( ys_v2805 :::::: (list_d6 ??48))
+check_tm( ys_v2803 :::::: (list_d6 ??48))
 
-infer_tm( ys_v2805)
+infer_tm( ys_v2803)
 
-assert_equal( (list_d6 ??48) :::::: (list_d6 A_v2800))
+assert_equal( (list_d6 ??48) :::::: (list_d6 A_v2798))
 
 assert_equal( nat_d3 :::::: (list_d6 ??48))
 
 assert_equal( ??49 :::::: nat_d3)
 
 check_tm(
-  fix (append_len_v217 := append_len_v2897) ⇒
-    fn {A_v2898} xs_v2899 ys_v2900 ⇒
-      match xs_v2899 as xs0_v2901 in
-        (len_v106 ??50 (append_v124 ??51 xs0_v2901 ys_v2900)) ≡
-          (addn_v15 (len_v106 ??52 xs0_v2901) (len_v106 ??53 ys_v2900)) with
+  fix (append_len_v216 := append_len_v2895) ⇒
+    fn {A_v2896} xs_v2897 ys_v2898 ⇒
+      match xs_v2897 as xs0_v2899 in
+        (len_v106 ??50 (append_v124 ??51 xs0_v2899 ys_v2898)) ≡
+          (addn_v15 (len_v106 ??52 xs0_v2899) (len_v106 ??53 ys_v2898)) with
       | nil_c9  ⇒ refl ??55
-      | cons_c10 x_v2902 xs0_v2903 ⇒
-        rew [n_v2904, __v2905 ⇒
-          (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v2903 ys_v2900))) ≡
-            (S_c5 n_v2904)]
-          (append_len_v2897 ??56 xs0_v2903 ys_v2900) in
+      | cons_c10 x_v2900 xs0_v2901 ⇒
+        rew [n_v2902, __v2903 ⇒
+          (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v2901 ys_v2898))) ≡
+            (S_c5 n_v2902)]
+          (append_len_v2895 ??56 xs0_v2901 ys_v2898) in
         refl ??57
       end
 ::::::
-  ∀ {A_v2906 : U} →
-    ∀ (xs_v2907 : (list_d6 A_v2906)) →
-      ∀ (ys_v2908 : (list_d6 A_v2906)) →
-        (len_v106 ??45 (append_v124 ??46 xs_v2907 ys_v2908)) ≡
-          (addn_v15 (len_v106 ??47 xs_v2907) (len_v106 ??48 ys_v2908)))
+  ∀ {A_v2904 : U} →
+    ∀ (xs_v2905 : (list_d6 A_v2904)) →
+      ∀ (ys_v2906 : (list_d6 A_v2904)) →
+        (len_v106 ??45 (append_v124 ??46 xs_v2905 ys_v2906)) ≡
+          (addn_v15 (len_v106 ??47 xs_v2905) (len_v106 ??48 ys_v2906)))
 
 check_tm(
-  fn {A_v2910} xs_v2911 ys_v2912 ⇒
-    match xs_v2911 as xs0_v2913 in
-      (len_v106 ??50 (append_v124 ??51 xs0_v2913 ys_v2912)) ≡
-        (addn_v15 (len_v106 ??52 xs0_v2913) (len_v106 ??53 ys_v2912)) with
+  fn {A_v2908} xs_v2909 ys_v2910 ⇒
+    match xs_v2909 as xs0_v2911 in
+      (len_v106 ??50 (append_v124 ??51 xs0_v2911 ys_v2910)) ≡
+        (addn_v15 (len_v106 ??52 xs0_v2911) (len_v106 ??53 ys_v2910)) with
     | nil_c9  ⇒ refl ??55
-    | cons_c10 x_v2914 xs0_v2915 ⇒
-      rew [n_v2916, __v2917 ⇒
-        (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v2915 ys_v2912))) ≡
-          (S_c5 n_v2916)]
-        (append_len_v2909 ??56 xs0_v2915 ys_v2912) in
+    | cons_c10 x_v2912 xs0_v2913 ⇒
+      rew [n_v2914, __v2915 ⇒
+        (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v2913 ys_v2910))) ≡
+          (S_c5 n_v2914)]
+        (append_len_v2907 ??56 xs0_v2913 ys_v2910) in
       refl ??57
     end
 ::::::
-  ∀ {A_v2918 : U} →
-    ∀ (xs_v2919 : (list_d6 A_v2918)) →
-      ∀ (ys_v2920 : (list_d6 A_v2918)) →
-        (len_v106 ??45 (append_v124 ??46 xs_v2919 ys_v2920)) ≡
-          (addn_v15 (len_v106 ??47 xs_v2919) (len_v106 ??48 ys_v2920)))
+  ∀ {A_v2916 : U} →
+    ∀ (xs_v2917 : (list_d6 A_v2916)) →
+      ∀ (ys_v2918 : (list_d6 A_v2916)) →
+        (len_v106 ??45 (append_v124 ??46 xs_v2917 ys_v2918)) ≡
+          (addn_v15 (len_v106 ??47 xs_v2917) (len_v106 ??48 ys_v2918)))
 
 check_tm(
-  fn xs_v2934 ys_v2935 ⇒
-    match xs_v2934 as xs0_v2936 in
-      (len_v106 ??50 (append_v124 ??51 xs0_v2936 ys_v2935)) ≡
-        (addn_v15 (len_v106 ??52 xs0_v2936) (len_v106 ??53 ys_v2935)) with
+  fn xs_v2932 ys_v2933 ⇒
+    match xs_v2932 as xs0_v2934 in
+      (len_v106 ??50 (append_v124 ??51 xs0_v2934 ys_v2933)) ≡
+        (addn_v15 (len_v106 ??52 xs0_v2934) (len_v106 ??53 ys_v2933)) with
     | nil_c9  ⇒ refl ??55
-    | cons_c10 x_v2937 xs0_v2938 ⇒
-      rew [n_v2939, __v2940 ⇒
-        (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v2938 ys_v2935))) ≡
-          (S_c5 n_v2939)]
-        (append_len_v2909 ??56 xs0_v2938 ys_v2935) in
+    | cons_c10 x_v2935 xs0_v2936 ⇒
+      rew [n_v2937, __v2938 ⇒
+        (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v2936 ys_v2933))) ≡
+          (S_c5 n_v2937)]
+        (append_len_v2907 ??56 xs0_v2936 ys_v2933) in
       refl ??57
     end
 ::::::
-  ∀ (xs_v2941 : (list_d6 A_v2933)) →
-    ∀ (ys_v2942 : (list_d6 A_v2933)) →
-      (len_v106 A_v2933 (append_v124 A_v2933 xs_v2941 ys_v2942)) ≡
-        (addn_v15 (len_v106 A_v2933 xs_v2941) (len_v106 A_v2933 ys_v2942)))
+  ∀ (xs_v2939 : (list_d6 A_v2931)) →
+    ∀ (ys_v2940 : (list_d6 A_v2931)) →
+      (len_v106 A_v2931 (append_v124 A_v2931 xs_v2939 ys_v2940)) ≡
+        (addn_v15 (len_v106 A_v2931 xs_v2939) (len_v106 A_v2931 ys_v2940)))
 
 check_tm(
-  fn ys_v2953 ⇒
-    match xs_v2952 as xs0_v2954 in
-      (len_v106 ??50 (append_v124 ??51 xs0_v2954 ys_v2953)) ≡
-        (addn_v15 (len_v106 ??52 xs0_v2954) (len_v106 ??53 ys_v2953)) with
+  fn ys_v2951 ⇒
+    match xs_v2950 as xs0_v2952 in
+      (len_v106 ??50 (append_v124 ??51 xs0_v2952 ys_v2951)) ≡
+        (addn_v15 (len_v106 ??52 xs0_v2952) (len_v106 ??53 ys_v2951)) with
     | nil_c9  ⇒ refl ??55
-    | cons_c10 x_v2955 xs0_v2956 ⇒
-      rew [n_v2957, __v2958 ⇒
-        (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v2956 ys_v2953))) ≡
-          (S_c5 n_v2957)]
-        (append_len_v2909 ??56 xs0_v2956 ys_v2953) in
+    | cons_c10 x_v2953 xs0_v2954 ⇒
+      rew [n_v2955, __v2956 ⇒
+        (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v2954 ys_v2951))) ≡
+          (S_c5 n_v2955)]
+        (append_len_v2907 ??56 xs0_v2954 ys_v2951) in
       refl ??57
     end
 ::::::
-  ∀ (ys_v2959 : (list_d6 A_v2933)) →
-    (len_v106 A_v2933 (append_v124 A_v2933 xs_v2952 ys_v2959)) ≡
-      (addn_v15 (len_v106 A_v2933 xs_v2952) (len_v106 A_v2933 ys_v2959)))
+  ∀ (ys_v2957 : (list_d6 A_v2931)) →
+    (len_v106 A_v2931 (append_v124 A_v2931 xs_v2950 ys_v2957)) ≡
+      (addn_v15 (len_v106 A_v2931 xs_v2950) (len_v106 A_v2931 ys_v2957)))
 
 check_tm(
-  match xs_v2952 as xs0_v2968 in
-    (len_v106 ??50 (append_v124 ??51 xs0_v2968 ys_v2967)) ≡
-      (addn_v15 (len_v106 ??52 xs0_v2968) (len_v106 ??53 ys_v2967)) with
+  match xs_v2950 as xs0_v2966 in
+    (len_v106 ??50 (append_v124 ??51 xs0_v2966 ys_v2965)) ≡
+      (addn_v15 (len_v106 ??52 xs0_v2966) (len_v106 ??53 ys_v2965)) with
   | nil_c9  ⇒ refl ??55
-  | cons_c10 x_v2969 xs0_v2970 ⇒
-    rew [n_v2971, __v2972 ⇒
-      (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v2970 ys_v2967))) ≡
-        (S_c5 n_v2971)]
-      (append_len_v2909 ??56 xs0_v2970 ys_v2967) in
+  | cons_c10 x_v2967 xs0_v2968 ⇒
+    rew [n_v2969, __v2970 ⇒
+      (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v2968 ys_v2965))) ≡
+        (S_c5 n_v2969)]
+      (append_len_v2907 ??56 xs0_v2968 ys_v2965) in
     refl ??57
   end
 ::::::
-  (len_v106 A_v2933 (append_v124 A_v2933 xs_v2952 ys_v2967)) ≡
-    (addn_v15 (len_v106 A_v2933 xs_v2952) (len_v106 A_v2933 ys_v2967)))
+  (len_v106 A_v2931 (append_v124 A_v2931 xs_v2950 ys_v2965)) ≡
+    (addn_v15 (len_v106 A_v2931 xs_v2950) (len_v106 A_v2931 ys_v2965)))
 
-infer_tm( xs_v2952)
+infer_tm( xs_v2950)
 
 infer_tm(
-  (len_v106 ??50 (append_v124 ??51 xs_v2952 ys_v2967)) ≡
-    (addn_v15 (len_v106 ??52 xs_v2952) (len_v106 ??53 ys_v2967)))
+  (len_v106 ??50 (append_v124 ??51 xs_v2950 ys_v2965)) ≡
+    (addn_v15 (len_v106 ??52 xs_v2950) (len_v106 ??53 ys_v2965)))
 
-check_tm( (len_v106 ??50 (append_v124 ??51 xs_v2952 ys_v2967)) :::::: ??54)
+check_tm( (len_v106 ??50 (append_v124 ??51 xs_v2950 ys_v2965)) :::::: ??54)
 
-infer_tm( (len_v106 ??50 (append_v124 ??51 xs_v2952 ys_v2967)))
+infer_tm( (len_v106 ??50 (append_v124 ??51 xs_v2950 ys_v2965)))
 
 infer_tm( (len_v106 ??50))
 
@@ -5673,11 +5673,11 @@ infer_tm( len_v106)
 
 check_tm( ??50 :::::: U)
 
-check_tm( (append_v124 ??51 xs_v2952 ys_v2967) :::::: (list_d6 ??50))
+check_tm( (append_v124 ??51 xs_v2950 ys_v2965) :::::: (list_d6 ??50))
 
-infer_tm( (append_v124 ??51 xs_v2952 ys_v2967))
+infer_tm( (append_v124 ??51 xs_v2950 ys_v2965))
 
-infer_tm( (append_v124 ??51 xs_v2952))
+infer_tm( (append_v124 ??51 xs_v2950))
 
 infer_tm( (append_v124 ??51))
 
@@ -5685,34 +5685,34 @@ infer_tm( append_v124)
 
 check_tm( ??51 :::::: U)
 
-check_tm( xs_v2952 :::::: (list_d6 ??51))
+check_tm( xs_v2950 :::::: (list_d6 ??51))
 
-infer_tm( xs_v2952)
+infer_tm( xs_v2950)
 
-assert_equal( (list_d6 ??51) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 ??51) :::::: (list_d6 A_v2931))
 
-check_tm( ys_v2967 :::::: (list_d6 A_v2933))
+check_tm( ys_v2965 :::::: (list_d6 A_v2931))
 
-infer_tm( ys_v2967)
+infer_tm( ys_v2965)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
-assert_equal( (list_d6 ??50) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 ??50) :::::: (list_d6 A_v2931))
 
 assert_equal( ??54 :::::: (list_d6 ??50))
 
-check_tm( (addn_v15 (len_v106 ??52 xs_v2952) (len_v106 ??53 ys_v2967)) ::::::
+check_tm( (addn_v15 (len_v106 ??52 xs_v2950) (len_v106 ??53 ys_v2965)) ::::::
   ??54)
 
-infer_tm( (addn_v15 (len_v106 ??52 xs_v2952) (len_v106 ??53 ys_v2967)))
+infer_tm( (addn_v15 (len_v106 ??52 xs_v2950) (len_v106 ??53 ys_v2965)))
 
-infer_tm( (addn_v15 (len_v106 ??52 xs_v2952)))
+infer_tm( (addn_v15 (len_v106 ??52 xs_v2950)))
 
 infer_tm( addn_v15)
 
-check_tm( (len_v106 ??52 xs_v2952) :::::: nat_d3)
+check_tm( (len_v106 ??52 xs_v2950) :::::: nat_d3)
 
-infer_tm( (len_v106 ??52 xs_v2952))
+infer_tm( (len_v106 ??52 xs_v2950))
 
 infer_tm( (len_v106 ??52))
 
@@ -5720,17 +5720,17 @@ infer_tm( len_v106)
 
 check_tm( ??52 :::::: U)
 
-check_tm( xs_v2952 :::::: (list_d6 ??52))
+check_tm( xs_v2950 :::::: (list_d6 ??52))
 
-infer_tm( xs_v2952)
+infer_tm( xs_v2950)
 
-assert_equal( (list_d6 ??52) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 ??52) :::::: (list_d6 A_v2931))
 
 assert_equal( nat_d3 :::::: (list_d6 ??52))
 
-check_tm( (len_v106 ??53 ys_v2967) :::::: nat_d3)
+check_tm( (len_v106 ??53 ys_v2965) :::::: nat_d3)
 
-infer_tm( (len_v106 ??53 ys_v2967))
+infer_tm( (len_v106 ??53 ys_v2965))
 
 infer_tm( (len_v106 ??53))
 
@@ -5738,30 +5738,30 @@ infer_tm( len_v106)
 
 check_tm( ??53 :::::: U)
 
-check_tm( ys_v2967 :::::: (list_d6 ??53))
+check_tm( ys_v2965 :::::: (list_d6 ??53))
 
-infer_tm( ys_v2967)
+infer_tm( ys_v2965)
 
-assert_equal( (list_d6 ??53) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 ??53) :::::: (list_d6 A_v2931))
 
 assert_equal( nat_d3 :::::: (list_d6 ??53))
 
 assert_equal( ??54 :::::: nat_d3)
 
 assert_equal(
-  (len_v106 A_v2933 (append_v124 A_v2933 xs_v2952 ys_v2967)) ≡
-    (addn_v15 (len_v106 A_v2933 xs_v2952) (len_v106 A_v2933 ys_v2967))
+  (len_v106 A_v2931 (append_v124 A_v2931 xs_v2950 ys_v2965)) ≡
+    (addn_v15 (len_v106 A_v2931 xs_v2950) (len_v106 A_v2931 ys_v2965))
 ::::::
-  (len_v106 ??50 (append_v124 ??51 xs_v2952 ys_v2967)) ≡
-    (addn_v15 (len_v106 ??52 xs_v2952) (len_v106 ??53 ys_v2967)))
+  (len_v106 ??50 (append_v124 ??51 xs_v2950 ys_v2965)) ≡
+    (addn_v15 (len_v106 ??52 xs_v2950) (len_v106 ??53 ys_v2965)))
 
 infer_tm(
-  (len_v106 ??50 (append_v124 ??51 nil_c9 ys_v2967)) ≡
-    (addn_v15 (len_v106 ??52 nil_c9) (len_v106 ??53 ys_v2967)))
+  (len_v106 ??50 (append_v124 ??51 nil_c9 ys_v2965)) ≡
+    (addn_v15 (len_v106 ??52 nil_c9) (len_v106 ??53 ys_v2965)))
 
-check_tm( (len_v106 ??50 (append_v124 ??51 nil_c9 ys_v2967)) :::::: ??54)
+check_tm( (len_v106 ??50 (append_v124 ??51 nil_c9 ys_v2965)) :::::: ??54)
 
-infer_tm( (len_v106 ??50 (append_v124 ??51 nil_c9 ys_v2967)))
+infer_tm( (len_v106 ??50 (append_v124 ??51 nil_c9 ys_v2965)))
 
 infer_tm( (len_v106 ??50))
 
@@ -5769,9 +5769,9 @@ infer_tm( len_v106)
 
 check_tm( ??50 :::::: U)
 
-check_tm( (append_v124 ??51 nil_c9 ys_v2967) :::::: (list_d6 A_v2933))
+check_tm( (append_v124 ??51 nil_c9 ys_v2965) :::::: (list_d6 A_v2931))
 
-infer_tm( (append_v124 ??51 nil_c9 ys_v2967))
+infer_tm( (append_v124 ??51 nil_c9 ys_v2965))
 
 infer_tm( (append_v124 ??51 nil_c9))
 
@@ -5781,42 +5781,42 @@ infer_tm( append_v124)
 
 check_tm( ??51 :::::: U)
 
-check_tm( nil_c9 :::::: (list_d6 A_v2933))
+check_tm( nil_c9 :::::: (list_d6 A_v2931))
 
 infer_tm( nil_c9)
 
-check_tm( A_v2933 :::::: U)
+check_tm( A_v2931 :::::: U)
 
-infer_tm( A_v2933)
+infer_tm( A_v2931)
 
 assert_equal( U :::::: U)
 
-infer_tm( (list_d6 A_v2933))
+infer_tm( (list_d6 A_v2931))
 
-check_tm( A_v2933 :::::: U)
+check_tm( A_v2931 :::::: U)
 
-infer_tm( A_v2933)
+infer_tm( A_v2931)
 
 assert_equal( U :::::: U)
 
 infer_tm( U)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
-check_tm( ys_v2967 :::::: (list_d6 A_v2933))
+check_tm( ys_v2965 :::::: (list_d6 A_v2931))
 
-infer_tm( ys_v2967)
+infer_tm( ys_v2965)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
-assert_equal( ??54 :::::: (list_d6 A_v2933))
+assert_equal( ??54 :::::: (list_d6 A_v2931))
 
-check_tm( (addn_v15 (len_v106 ??52 nil_c9) (len_v106 ??53 ys_v2967)) ::::::
+check_tm( (addn_v15 (len_v106 ??52 nil_c9) (len_v106 ??53 ys_v2965)) ::::::
   ??54)
 
-infer_tm( (addn_v15 (len_v106 ??52 nil_c9) (len_v106 ??53 ys_v2967)))
+infer_tm( (addn_v15 (len_v106 ??52 nil_c9) (len_v106 ??53 ys_v2965)))
 
 infer_tm( (addn_v15 (len_v106 ??52 nil_c9)))
 
@@ -5832,33 +5832,33 @@ infer_tm( len_v106)
 
 check_tm( ??52 :::::: U)
 
-check_tm( nil_c9 :::::: (list_d6 A_v2933))
+check_tm( nil_c9 :::::: (list_d6 A_v2931))
 
 infer_tm( nil_c9)
 
-check_tm( A_v2933 :::::: U)
+check_tm( A_v2931 :::::: U)
 
-infer_tm( A_v2933)
+infer_tm( A_v2931)
 
 assert_equal( U :::::: U)
 
-infer_tm( (list_d6 A_v2933))
+infer_tm( (list_d6 A_v2931))
 
-check_tm( A_v2933 :::::: U)
+check_tm( A_v2931 :::::: U)
 
-infer_tm( A_v2933)
+infer_tm( A_v2931)
 
 assert_equal( U :::::: U)
 
 infer_tm( U)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
-assert_equal( nat_d3 :::::: (list_d6 A_v2933))
+assert_equal( nat_d3 :::::: (list_d6 A_v2931))
 
-check_tm( (len_v106 ??53 ys_v2967) :::::: nat_d3)
+check_tm( (len_v106 ??53 ys_v2965) :::::: nat_d3)
 
-infer_tm( (len_v106 ??53 ys_v2967))
+infer_tm( (len_v106 ??53 ys_v2965))
 
 infer_tm( (len_v106 ??53))
 
@@ -5866,40 +5866,40 @@ infer_tm( len_v106)
 
 check_tm( ??53 :::::: U)
 
-check_tm( ys_v2967 :::::: (list_d6 A_v2933))
+check_tm( ys_v2965 :::::: (list_d6 A_v2931))
 
-infer_tm( ys_v2967)
+infer_tm( ys_v2965)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
-assert_equal( nat_d3 :::::: (list_d6 A_v2933))
+assert_equal( nat_d3 :::::: (list_d6 A_v2931))
 
 assert_equal( ??54 :::::: nat_d3)
 
 check_tm( refl ??55 ::::::
-  (len_v106 ??50 (append_v124 ??51 nil_c9 ys_v2967)) ≡
-    (addn_v15 (len_v106 ??52 nil_c9) (len_v106 ??53 ys_v2967)))
+  (len_v106 ??50 (append_v124 ??51 nil_c9 ys_v2965)) ≡
+    (addn_v15 (len_v106 ??52 nil_c9) (len_v106 ??53 ys_v2965)))
 
 infer_tm( refl ??55)
 
 infer_tm( ??55)
 
 assert_equal(
-  (len_v106 ??50 (append_v124 ??51 nil_c9 ys_v2967)) ≡
-    (addn_v15 (len_v106 ??52 nil_c9) (len_v106 ??53 ys_v2967))
+  (len_v106 ??50 (append_v124 ??51 nil_c9 ys_v2965)) ≡
+    (addn_v15 (len_v106 ??52 nil_c9) (len_v106 ??53 ys_v2965))
 :::::: ??55 ≡ ??55)
 
 infer_tm(
-  (len_v106 ??50 (append_v124 ??51 (cons_c10 x_v3161 xs0_v3162) ys_v2967)) ≡
+  (len_v106 ??50 (append_v124 ??51 (cons_c10 x_v3159 xs0_v3160) ys_v2965)) ≡
     (addn_v15
-      (len_v106 ??52 (cons_c10 x_v3161 xs0_v3162)) (len_v106 ??53 ys_v2967)))
+      (len_v106 ??52 (cons_c10 x_v3159 xs0_v3160)) (len_v106 ??53 ys_v2965)))
 
 check_tm(
-  (len_v106 ??50 (append_v124 ??51 (cons_c10 x_v3161 xs0_v3162) ys_v2967))
+  (len_v106 ??50 (append_v124 ??51 (cons_c10 x_v3159 xs0_v3160) ys_v2965))
 :::::: ??54)
 
 infer_tm(
-  (len_v106 ??50 (append_v124 ??51 (cons_c10 x_v3161 xs0_v3162) ys_v2967)))
+  (len_v106 ??50 (append_v124 ??51 (cons_c10 x_v3159 xs0_v3160) ys_v2965)))
 
 infer_tm( (len_v106 ??50))
 
@@ -5907,12 +5907,12 @@ infer_tm( len_v106)
 
 check_tm( ??50 :::::: U)
 
-check_tm( (append_v124 ??51 (cons_c10 x_v3161 xs0_v3162) ys_v2967) ::::::
-  (list_d6 A_v2933))
+check_tm( (append_v124 ??51 (cons_c10 x_v3159 xs0_v3160) ys_v2965) ::::::
+  (list_d6 A_v2931))
 
-infer_tm( (append_v124 ??51 (cons_c10 x_v3161 xs0_v3162) ys_v2967))
+infer_tm( (append_v124 ??51 (cons_c10 x_v3159 xs0_v3160) ys_v2965))
 
-infer_tm( (append_v124 ??51 (cons_c10 x_v3161 xs0_v3162)))
+infer_tm( (append_v124 ??51 (cons_c10 x_v3159 xs0_v3160)))
 
 infer_tm( (append_v124 ??51))
 
@@ -5920,66 +5920,66 @@ infer_tm( append_v124)
 
 check_tm( ??51 :::::: U)
 
-check_tm( (cons_c10 x_v3161 xs0_v3162) :::::: (list_d6 A_v2933))
+check_tm( (cons_c10 x_v3159 xs0_v3160) :::::: (list_d6 A_v2931))
 
-infer_tm( (cons_c10 x_v3161 xs0_v3162))
+infer_tm( (cons_c10 x_v3159 xs0_v3160))
 
-check_tm( A_v2933 :::::: U)
+check_tm( A_v2931 :::::: U)
 
-infer_tm( A_v2933)
+infer_tm( A_v2931)
 
 assert_equal( U :::::: U)
 
-check_tm( x_v3161 :::::: A_v2933)
+check_tm( x_v3159 :::::: A_v2931)
 
-infer_tm( x_v3161)
+infer_tm( x_v3159)
 
-assert_equal( A_v2933 :::::: (A_v2933 : U))
+assert_equal( A_v2931 :::::: (A_v2931 : U))
 
-check_tm( xs0_v3162 :::::: (list_d6 A_v2933))
+check_tm( xs0_v3160 :::::: (list_d6 A_v2931))
 
-infer_tm( xs0_v3162)
+infer_tm( xs0_v3160)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 (A_v2933 : U)))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 (A_v2931 : U)))
 
-infer_tm( (list_d6 A_v2933))
+infer_tm( (list_d6 A_v2931))
 
-check_tm( A_v2933 :::::: U)
+check_tm( A_v2931 :::::: U)
 
-infer_tm( A_v2933)
+infer_tm( A_v2931)
 
 assert_equal( U :::::: U)
 
 infer_tm( U)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
-check_tm( ys_v2967 :::::: (list_d6 A_v2933))
+check_tm( ys_v2965 :::::: (list_d6 A_v2931))
 
-infer_tm( ys_v2967)
+infer_tm( ys_v2965)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
-assert_equal( ??54 :::::: (list_d6 A_v2933))
+assert_equal( ??54 :::::: (list_d6 A_v2931))
 
 check_tm(
   (addn_v15
-    (len_v106 ??52 (cons_c10 x_v3161 xs0_v3162)) (len_v106 ??53 ys_v2967))
+    (len_v106 ??52 (cons_c10 x_v3159 xs0_v3160)) (len_v106 ??53 ys_v2965))
 :::::: ??54)
 
 infer_tm(
   (addn_v15
-    (len_v106 ??52 (cons_c10 x_v3161 xs0_v3162)) (len_v106 ??53 ys_v2967)))
+    (len_v106 ??52 (cons_c10 x_v3159 xs0_v3160)) (len_v106 ??53 ys_v2965)))
 
-infer_tm( (addn_v15 (len_v106 ??52 (cons_c10 x_v3161 xs0_v3162))))
+infer_tm( (addn_v15 (len_v106 ??52 (cons_c10 x_v3159 xs0_v3160))))
 
 infer_tm( addn_v15)
 
-check_tm( (len_v106 ??52 (cons_c10 x_v3161 xs0_v3162)) :::::: nat_d3)
+check_tm( (len_v106 ??52 (cons_c10 x_v3159 xs0_v3160)) :::::: nat_d3)
 
-infer_tm( (len_v106 ??52 (cons_c10 x_v3161 xs0_v3162)))
+infer_tm( (len_v106 ??52 (cons_c10 x_v3159 xs0_v3160)))
 
 infer_tm( (len_v106 ??52))
 
@@ -5987,45 +5987,45 @@ infer_tm( len_v106)
 
 check_tm( ??52 :::::: U)
 
-check_tm( (cons_c10 x_v3161 xs0_v3162) :::::: (list_d6 A_v2933))
+check_tm( (cons_c10 x_v3159 xs0_v3160) :::::: (list_d6 A_v2931))
 
-infer_tm( (cons_c10 x_v3161 xs0_v3162))
+infer_tm( (cons_c10 x_v3159 xs0_v3160))
 
-check_tm( A_v2933 :::::: U)
+check_tm( A_v2931 :::::: U)
 
-infer_tm( A_v2933)
+infer_tm( A_v2931)
 
 assert_equal( U :::::: U)
 
-check_tm( x_v3161 :::::: A_v2933)
+check_tm( x_v3159 :::::: A_v2931)
 
-infer_tm( x_v3161)
+infer_tm( x_v3159)
 
-assert_equal( A_v2933 :::::: (A_v2933 : U))
+assert_equal( A_v2931 :::::: (A_v2931 : U))
 
-check_tm( xs0_v3162 :::::: (list_d6 A_v2933))
+check_tm( xs0_v3160 :::::: (list_d6 A_v2931))
 
-infer_tm( xs0_v3162)
+infer_tm( xs0_v3160)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 (A_v2933 : U)))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 (A_v2931 : U)))
 
-infer_tm( (list_d6 A_v2933))
+infer_tm( (list_d6 A_v2931))
 
-check_tm( A_v2933 :::::: U)
+check_tm( A_v2931 :::::: U)
 
-infer_tm( A_v2933)
+infer_tm( A_v2931)
 
 assert_equal( U :::::: U)
 
 infer_tm( U)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
-assert_equal( nat_d3 :::::: (list_d6 A_v2933))
+assert_equal( nat_d3 :::::: (list_d6 A_v2931))
 
-check_tm( (len_v106 ??53 ys_v2967) :::::: nat_d3)
+check_tm( (len_v106 ??53 ys_v2965) :::::: nat_d3)
 
-infer_tm( (len_v106 ??53 ys_v2967))
+infer_tm( (len_v106 ??53 ys_v2965))
 
 infer_tm( (len_v106 ??53))
 
@@ -6033,69 +6033,69 @@ infer_tm( len_v106)
 
 check_tm( ??53 :::::: U)
 
-check_tm( ys_v2967 :::::: (list_d6 A_v2933))
+check_tm( ys_v2965 :::::: (list_d6 A_v2931))
 
-infer_tm( ys_v2967)
+infer_tm( ys_v2965)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
-assert_equal( nat_d3 :::::: (list_d6 A_v2933))
+assert_equal( nat_d3 :::::: (list_d6 A_v2931))
 
 assert_equal( ??54 :::::: nat_d3)
 
 check_tm(
-  rew [n_v3673, __v3674 ⇒
-    (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3162 ys_v2967))) ≡
-      (S_c5 n_v3673)]
-    (append_len_v2909 ??56 xs0_v3162 ys_v2967) in
+  rew [n_v3671, __v3672 ⇒
+    (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3160 ys_v2965))) ≡
+      (S_c5 n_v3671)]
+    (append_len_v2907 ??56 xs0_v3160 ys_v2965) in
   refl ??57
 ::::::
-  (len_v106 ??50 (append_v124 ??51 (cons_c10 x_v3161 xs0_v3162) ys_v2967)) ≡
+  (len_v106 ??50 (append_v124 ??51 (cons_c10 x_v3159 xs0_v3160) ys_v2965)) ≡
     (addn_v15
-      (len_v106 ??52 (cons_c10 x_v3161 xs0_v3162)) (len_v106 ??53 ys_v2967)))
+      (len_v106 ??52 (cons_c10 x_v3159 xs0_v3160)) (len_v106 ??53 ys_v2965)))
 
 infer_tm(
-  rew [n_v3675, __v3676 ⇒
-    (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3162 ys_v2967))) ≡
-      (S_c5 n_v3675)]
-    (append_len_v2909 ??56 xs0_v3162 ys_v2967) in
+  rew [n_v3673, __v3674 ⇒
+    (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3160 ys_v2965))) ≡
+      (S_c5 n_v3673)]
+    (append_len_v2907 ??56 xs0_v3160 ys_v2965) in
   refl ??57)
 
-infer_tm( (append_len_v2909 ??56 xs0_v3162 ys_v2967))
+infer_tm( (append_len_v2907 ??56 xs0_v3160 ys_v2965))
 
-infer_tm( (append_len_v2909 ??56 xs0_v3162))
+infer_tm( (append_len_v2907 ??56 xs0_v3160))
 
-infer_tm( (append_len_v2909 ??56))
+infer_tm( (append_len_v2907 ??56))
 
-infer_tm( append_len_v2909)
+infer_tm( append_len_v2907)
 
 check_tm( ??56 :::::: U)
 
-check_tm( xs0_v3162 :::::: (list_d6 ??56))
+check_tm( xs0_v3160 :::::: (list_d6 ??56))
 
-infer_tm( xs0_v3162)
+infer_tm( xs0_v3160)
 
-assert_equal( (list_d6 ??56) :::::: (list_d6 (A_v2933 : U)))
+assert_equal( (list_d6 ??56) :::::: (list_d6 (A_v2931 : U)))
 
-check_tm( ys_v2967 :::::: (list_d6 A_v2933))
+check_tm( ys_v2965 :::::: (list_d6 A_v2931))
 
-infer_tm( ys_v2967)
+infer_tm( ys_v2965)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
 infer_tm(
-  (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3162 ys_v2967))) ≡
-    (S_c5 n_v3677))
+  (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3160 ys_v2965))) ≡
+    (S_c5 n_v3675))
 
-check_tm( (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3162 ys_v2967))) ::::::
+check_tm( (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3160 ys_v2965))) ::::::
   ??60)
 
-infer_tm( (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3162 ys_v2967))))
+infer_tm( (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3160 ys_v2965))))
 
-check_tm( (len_v106 ??58 (append_v124 ??59 xs0_v3162 ys_v2967)) ::::::
+check_tm( (len_v106 ??58 (append_v124 ??59 xs0_v3160 ys_v2965)) ::::::
   nat_d3)
 
-infer_tm( (len_v106 ??58 (append_v124 ??59 xs0_v3162 ys_v2967)))
+infer_tm( (len_v106 ??58 (append_v124 ??59 xs0_v3160 ys_v2965)))
 
 infer_tm( (len_v106 ??58))
 
@@ -6103,11 +6103,11 @@ infer_tm( len_v106)
 
 check_tm( ??58 :::::: U)
 
-check_tm( (append_v124 ??59 xs0_v3162 ys_v2967) :::::: (list_d6 ??58))
+check_tm( (append_v124 ??59 xs0_v3160 ys_v2965) :::::: (list_d6 ??58))
 
-infer_tm( (append_v124 ??59 xs0_v3162 ys_v2967))
+infer_tm( (append_v124 ??59 xs0_v3160 ys_v2965))
 
-infer_tm( (append_v124 ??59 xs0_v3162))
+infer_tm( (append_v124 ??59 xs0_v3160))
 
 infer_tm( (append_v124 ??59))
 
@@ -6115,19 +6115,19 @@ infer_tm( append_v124)
 
 check_tm( ??59 :::::: U)
 
-check_tm( xs0_v3162 :::::: (list_d6 ??59))
+check_tm( xs0_v3160 :::::: (list_d6 ??59))
 
-infer_tm( xs0_v3162)
+infer_tm( xs0_v3160)
 
-assert_equal( (list_d6 ??59) :::::: (list_d6 (A_v2933 : U)))
+assert_equal( (list_d6 ??59) :::::: (list_d6 (A_v2931 : U)))
 
-check_tm( ys_v2967 :::::: (list_d6 A_v2933))
+check_tm( ys_v2965 :::::: (list_d6 A_v2931))
 
-infer_tm( ys_v2967)
+infer_tm( ys_v2965)
 
-assert_equal( (list_d6 A_v2933) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 A_v2931) :::::: (list_d6 A_v2931))
 
-assert_equal( (list_d6 ??58) :::::: (list_d6 A_v2933))
+assert_equal( (list_d6 ??58) :::::: (list_d6 A_v2931))
 
 assert_equal( nat_d3 :::::: (list_d6 ??58))
 
@@ -6137,15 +6137,15 @@ infer_tm( U)
 
 assert_equal( ??60 :::::: nat_d3)
 
-check_tm( (S_c5 n_v3677) :::::: ??60)
+check_tm( (S_c5 n_v3675) :::::: ??60)
 
-infer_tm( (S_c5 n_v3677))
+infer_tm( (S_c5 n_v3675))
 
-check_tm( n_v3677 :::::: nat_d3)
+check_tm( n_v3675 :::::: nat_d3)
 
-infer_tm( n_v3677)
+infer_tm( n_v3675)
 
-assert_equal( nat_d3 :::::: (list_d6 A_v2933))
+assert_equal( nat_d3 :::::: (list_d6 A_v2931))
 
 infer_tm( nat_d3)
 
@@ -6154,26 +6154,26 @@ infer_tm( U)
 assert_equal( ??60 :::::: nat_d3)
 
 check_tm( refl ??57 ::::::
-  (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3162 ys_v2967))) ≡
-    (S_c5 (len_v106 A_v2933 (append_v124 A_v2933 xs0_v3162 ys_v2967))))
+  (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3160 ys_v2965))) ≡
+    (S_c5 (len_v106 A_v2931 (append_v124 A_v2931 xs0_v3160 ys_v2965))))
 
 infer_tm( refl ??57)
 
 infer_tm( ??57)
 
 assert_equal(
-  (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3162 ys_v2967))) ≡
-    (S_c5 (len_v106 A_v2933 (append_v124 A_v2933 xs0_v3162 ys_v2967)))
+  (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3160 ys_v2965))) ≡
+    (S_c5 (len_v106 A_v2931 (append_v124 A_v2931 xs0_v3160 ys_v2965)))
 :::::: ??57 ≡ ??57)
 
 assert_equal(
-  (len_v106 ??50 (append_v124 ??51 (cons_c10 x_v3161 xs0_v3162) ys_v2967)) ≡
+  (len_v106 ??50 (append_v124 ??51 (cons_c10 x_v3159 xs0_v3160) ys_v2965)) ≡
     (addn_v15
-      (len_v106 ??52 (cons_c10 x_v3161 xs0_v3162)) (len_v106 ??53 ys_v2967))
+      (len_v106 ??52 (cons_c10 x_v3159 xs0_v3160)) (len_v106 ??53 ys_v2965))
 ::::::
-  (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3162 ys_v2967))) ≡
+  (S_c5 (len_v106 ??58 (append_v124 ??59 xs0_v3160 ys_v2965))) ≡
     (S_c5
-      (addn_v15 (len_v106 A_v2933 xs0_v3162) (len_v106 A_v2933 ys_v2967))))
+      (addn_v15 (len_v106 A_v2931 xs0_v3160) (len_v106 A_v2931 ys_v2965))))
 
 {
   ??1 := bool_d2 : ??
@@ -6196,21 +6196,21 @@ assert_equal(
   ??18 := bool_d2 : ??
   ??19 := string_d5 : ??
   ??20 := nat_d3 : ??
-  ??21 := (list_d6 A_v4464) : ??
-  ??22 := A_v4480 : ??
-  ??23 := nat_d3 ⊗ (llist_d7 A_v4495) : ??
-  ??24 := A_v4511 : ??
-  ??25 := nat_d3 ⊗ (llist_d7 A_v4529) : ??
-  ??26 := A_v4549 : ??
-  ??27 := (list_d6 A_v4566) : ??
-  ??28 := A_v4585 : ??
-  ??29 := A_v4604 : ??
-  ??30 := (llist_d7 A_v4622) : ??
-  ??31 := A_v4642 : ??
-  ??32 := A_v4662 : ??
-  ??33 := (box_d8 B_v4681) : ??
-  ??34 := B_v4702 : ??
-  ??35 := A_v4722 : ??
+  ??21 := (list_d6 A_v4462) : ??
+  ??22 := A_v4478 : ??
+  ??23 := nat_d3 ⊗ (llist_d7 A_v4493) : ??
+  ??24 := A_v4509 : ??
+  ??25 := nat_d3 ⊗ (llist_d7 A_v4527) : ??
+  ??26 := A_v4547 : ??
+  ??27 := (list_d6 A_v4564) : ??
+  ??28 := A_v4583 : ??
+  ??29 := A_v4602 : ??
+  ??30 := (llist_d7 A_v4620) : ??
+  ??31 := A_v4640 : ??
+  ??32 := A_v4660 : ??
+  ??33 := (box_d8 B_v4679) : ??
+  ??34 := B_v4700 : ??
+  ??35 := A_v4720 : ??
   ??36 := proto : ??
   ??37 := proto : ??
   ??38 := proto : ??
@@ -6220,24 +6220,24 @@ assert_equal(
   ??42 := nat_d3 : ??
   ??43 := nat_d3 : ??
   ??44 := nat_d3 : ??
-  ??45 := A_v4992 : ??
-  ??46 := A_v5027 : ??
-  ??47 := A_v5062 : ??
-  ??48 := A_v5097 : ??
+  ??45 := A_v4988 : ??
+  ??46 := A_v5023 : ??
+  ??47 := A_v5058 : ??
+  ??48 := A_v5093 : ??
   ??49 := (list_d6 ??45) : ??
-  ??50 := A_v5168 : ??
-  ??51 := A_v5204 : ??
-  ??52 := A_v5240 : ??
-  ??53 := A_v5276 : ??
+  ??50 := A_v5164 : ??
+  ??51 := A_v5200 : ??
+  ??52 := A_v5236 : ??
+  ??53 := A_v5272 : ??
   ??54 := (list_d6 ??50) : ??
-  ??55 := (len_v5367 A_v5347 (append_v5365 A_v5347 nil_c9 ys_v5345)) : ??
-  ??56 := A_v5384 : ??
-  ??57 := (S_c5 (len_v5441 ??58 (append_v5439 A_v5421 xs0_v5417 ys_v5419))) : ??
-  ??58 := A_v5460 : ??
-  ??59 := A_v5499 : ??
-  ??60 := (list_d6 A_v5538) : ??
-  ??149 := (list_d6 A_v5573) : ??
-  ??150 := (list_d6 A_v5611) : ??
+  ??55 := (len_v5363 A_v5343 (append_v5361 A_v5343 nil_c9 ys_v5341)) : ??
+  ??56 := A_v5380 : ??
+  ??57 := (S_c5 (len_v5437 ??58 (append_v5435 A_v5417 xs0_v5413 ys_v5415))) : ??
+  ??58 := A_v5456 : ??
+  ??59 := A_v5495 : ??
+  ??60 := (list_d6 A_v5534) : ??
+  ??149 := (list_d6 A_v5569) : ??
+  ??150 := (list_d6 A_v5607) : ??
   
 }
 
@@ -6248,237 +6248,237 @@ inductive bool_d2 : U =
 | true_c2 of : bool_d2 | false_c3 of : bool_d2
 
 program andb_v0 : bool_d2 → bool_d2 → bool_d2 =
-  fn b1_v6133 b2_v6134 ⇒
-    match b1_v6133 as __v6135 in bool_d2 with
-    | true_c2  ⇒ b2_v6134 | false_c3  ⇒ false_c3
+  fn b1_v6129 b2_v6130 ⇒
+    match b1_v6129 as __v6131 in bool_d2 with
+    | true_c2  ⇒ b2_v6130 | false_c3  ⇒ false_c3
     end
 
 program orb_v5 : bool_d2 → bool_d2 → bool_d2 =
-  fn b1_v6138 b2_v6139 ⇒
-    match b1_v6138 as __v6140 in bool_d2 with
-    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v6139
+  fn b1_v6134 b2_v6135 ⇒
+    match b1_v6134 as __v6136 in bool_d2 with
+    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v6135
     end
 
 program notb_v10 : bool_d2 → bool_d2 =
-  fn b_v6142 ⇒
-    match b_v6142 as __v6143 in bool_d2 with
+  fn b_v6138 ⇒
+    match b_v6138 as __v6139 in bool_d2 with
     | true_c2  ⇒ false_c3 | false_c3  ⇒ true_c2
     end
 
 inductive nat_d3 : U =
-| O_c4 of : nat_d3 | S_c5 of (n_v6144 : nat_d3) : nat_d3
+| O_c4 of : nat_d3 | S_c5 of (n_v6140 : nat_d3) : nat_d3
 
 program addn_v15 : nat_d3 → nat_d3 → nat_d3 =
-  fix (addn_v15 := addn_v6147) ⇒
-    fn x_v6148 y_v6149 ⇒
-      match x_v6148 as __v6150 in nat_d3 with
-      | O_c4  ⇒ y_v6149
-      | S_c5 x_v6151 ⇒ (S_c5 (addn_v6147 x_v6151 y_v6149))
+  fix (addn_v15 := addn_v6143) ⇒
+    fn x_v6144 y_v6145 ⇒
+      match x_v6144 as __v6146 in nat_d3 with
+      | O_c4  ⇒ y_v6145
+      | S_c5 x_v6147 ⇒ (S_c5 (addn_v6143 x_v6147 y_v6145))
       end
 
 program muln_v21 : nat_d3 → nat_d3 → nat_d3 =
-  fix (muln_v21 := muln_v6154) ⇒
-    fn x_v6155 y_v6156 ⇒
-      match x_v6155 as __v6157 in nat_d3 with
-      | O_c4  ⇒ y_v6156
-      | S_c5 x_v6158 ⇒ (addn_v15 y_v6156 (muln_v6154 x_v6158 y_v6156))
+  fix (muln_v21 := muln_v6150) ⇒
+    fn x_v6151 y_v6152 ⇒
+      match x_v6151 as __v6153 in nat_d3 with
+      | O_c4  ⇒ y_v6152
+      | S_c5 x_v6154 ⇒ (addn_v15 y_v6152 (muln_v6150 x_v6154 y_v6152))
       end
 
 program eqn_v27 : nat_d3 → nat_d3 → bool_d2 =
-  fix (eqn_v27 := eqn_v6161) ⇒
-    fn x_v6162 y_v6163 ⇒
-      match x_v6162 as __v6164 in bool_d2 with
+  fix (eqn_v27 := eqn_v6157) ⇒
+    fn x_v6158 y_v6159 ⇒
+      match x_v6158 as __v6160 in bool_d2 with
       | O_c4  ⇒
-        match y_v6163 as __v6165 in bool_d2 with
-        | O_c4  ⇒ true_c2 | S_c5 __v6166 ⇒ false_c3
+        match y_v6159 as __v6161 in bool_d2 with
+        | O_c4  ⇒ true_c2 | S_c5 __v6162 ⇒ false_c3
         end
-      | S_c5 x_v6167 ⇒
-        match y_v6163 as __v6168 in bool_d2 with
-        | O_c4  ⇒ false_c3 | S_c5 y_v6169 ⇒ (eqn_v6161 x_v6167 y_v6169)
+      | S_c5 x_v6163 ⇒
+        match y_v6159 as __v6164 in bool_d2 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v6165 ⇒ (eqn_v6157 x_v6163 y_v6165)
         end
       end
 
 program lten_v37 : nat_d3 → nat_d3 → bool_d2 =
-  fix (lten_v37 := lten_v6172) ⇒
-    fn x_v6173 y_v6174 ⇒
-      match x_v6173 as __v6175 in bool_d2 with
+  fix (lten_v37 := lten_v6168) ⇒
+    fn x_v6169 y_v6170 ⇒
+      match x_v6169 as __v6171 in bool_d2 with
       | O_c4  ⇒ true_c2
-      | S_c5 x_v6176 ⇒
-        match y_v6174 as __v6177 in bool_d2 with
-        | O_c4  ⇒ false_c3 | S_c5 y_v6178 ⇒ (lten_v6172 x_v6176 y_v6178)
+      | S_c5 x_v6172 ⇒
+        match y_v6170 as __v6173 in bool_d2 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v6174 ⇒ (lten_v6168 x_v6172 y_v6174)
         end
       end
 
 program gten_v45 : nat_d3 → nat_d3 → bool_d2 =
-  fix (gten_v45 := gten_v6181) ⇒
-    fn x_v6182 y_v6183 ⇒
-      match x_v6182 as __v6184 in bool_d2 with
+  fix (gten_v45 := gten_v6177) ⇒
+    fn x_v6178 y_v6179 ⇒
+      match x_v6178 as __v6180 in bool_d2 with
       | O_c4  ⇒
-        match y_v6183 as __v6185 in bool_d2 with
-        | O_c4  ⇒ true_c2 | S_c5 __v6186 ⇒ false_c3
+        match y_v6179 as __v6181 in bool_d2 with
+        | O_c4  ⇒ true_c2 | S_c5 __v6182 ⇒ false_c3
         end
-      | S_c5 x_v6187 ⇒
-        match y_v6183 as __v6188 in bool_d2 with
-        | O_c4  ⇒ true_c2 | S_c5 y_v6189 ⇒ (gten_v6181 x_v6187 y_v6189)
+      | S_c5 x_v6183 ⇒
+        match y_v6179 as __v6184 in bool_d2 with
+        | O_c4  ⇒ true_c2 | S_c5 y_v6185 ⇒ (gten_v6177 x_v6183 y_v6185)
         end
       end
 
 logical ltn_v55 : nat_d3 → nat_d3 → bool_d2 =
-  fix (ltn_v55 := ltn_v6192) ⇒
-    fn x_v6193 y_v6194 ⇒
-      match x_v6193 as __v6195 in bool_d2 with
+  fix (ltn_v55 := ltn_v6188) ⇒
+    fn x_v6189 y_v6190 ⇒
+      match x_v6189 as __v6191 in bool_d2 with
       | O_c4  ⇒
-        match y_v6194 as __v6196 in bool_d2 with
-        | O_c4  ⇒ false_c3 | S_c5 y_v6197 ⇒ true_c2
+        match y_v6190 as __v6192 in bool_d2 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v6193 ⇒ true_c2
         end
-      | S_c5 x_v6198 ⇒
-        match y_v6194 as __v6199 in bool_d2 with
-        | O_c4  ⇒ false_c3 | S_c5 y_v6200 ⇒ (ltn_v6192 x_v6198 y_v6200)
+      | S_c5 x_v6194 ⇒
+        match y_v6190 as __v6195 in bool_d2 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v6196 ⇒ (ltn_v6188 x_v6194 y_v6196)
         end
       end
 
 logical gtn_v65 : nat_d3 → nat_d3 → bool_d2 =
-  fix (gtn_v65 := gtn_v6203) ⇒
-    fn x_v6204 y_v6205 ⇒
-      match x_v6204 as __v6206 in bool_d2 with
+  fix (gtn_v65 := gtn_v6199) ⇒
+    fn x_v6200 y_v6201 ⇒
+      match x_v6200 as __v6202 in bool_d2 with
       | O_c4  ⇒ false_c3
-      | S_c5 x_v6207 ⇒
-        match y_v6205 as __v6208 in bool_d2 with
-        | O_c4  ⇒ true_c2 | S_c5 y_v6209 ⇒ (gtn_v6203 x_v6207 y_v6209)
+      | S_c5 x_v6203 ⇒
+        match y_v6201 as __v6204 in bool_d2 with
+        | O_c4  ⇒ true_c2 | S_c5 y_v6205 ⇒ (gtn_v6199 x_v6203 y_v6205)
         end
       end
 
 inductive ascii_d4 : U =
 | Ascii_c6 of
-    (b0_v6210 : bool_d2) (b1_v6211 : bool_d2) (b2_v6212 : bool_d2)
-    (b3_v6213 : bool_d2) (b4_v6214 : bool_d2) (b5_v6215 : bool_d2)
-    (b6_v6216 : bool_d2) (b7_v6217 : bool_d2) : ascii_d4
+    (b0_v6206 : bool_d2) (b1_v6207 : bool_d2) (b2_v6208 : bool_d2)
+    (b3_v6209 : bool_d2) (b4_v6210 : bool_d2) (b5_v6211 : bool_d2)
+    (b6_v6212 : bool_d2) (b7_v6213 : bool_d2) : ascii_d4
 
 inductive string_d5 : U =
 | EmptyString_c7 of : string_d5
-| String_c8 of (c_v6218 : ascii_d4) (s_v6219 : string_d5) : string_d5
+| String_c8 of (c_v6214 : ascii_d4) (s_v6215 : string_d5) : string_d5
 
 program cats_v83 : string_d5 → string_d5 → string_d5 =
-  fix (cats_v83 := cats_v6222) ⇒
-    fn s1_v6223 s2_v6224 ⇒
-      match s1_v6223 as __v6225 in string_d5 with
-      | EmptyString_c7  ⇒ s2_v6224
-      | String_c8 c_v6226 s1_v6227 ⇒
-        (String_c8 c_v6226 (cats_v6222 s1_v6227 s2_v6224))
+  fix (cats_v83 := cats_v6218) ⇒
+    fn s1_v6219 s2_v6220 ⇒
+      match s1_v6219 as __v6221 in string_d5 with
+      | EmptyString_c7  ⇒ s2_v6220
+      | String_c8 c_v6222 s1_v6223 ⇒
+        (String_c8 c_v6222 (cats_v6218 s1_v6223 s2_v6220))
       end
 
 program strlen_v90 : string_d5 → nat_d3 =
-  fix (strlen_v90 := strlen_v6229) ⇒
-    fn s_v6230 ⇒
-      match s_v6230 as __v6231 in nat_d3 with
+  fix (strlen_v90 := strlen_v6225) ⇒
+    fn s_v6226 ⇒
+      match s_v6226 as __v6227 in nat_d3 with
       | EmptyString_c7  ⇒ O_c4
-      | String_c8 __v6232 s_v6233 ⇒ (S_c5 (strlen_v6229 s_v6233))
+      | String_c8 __v6228 s_v6229 ⇒ (S_c5 (strlen_v6225 s_v6229))
       end
 
-inductive list_d6 (A_v6234 : U) : U =
-| nil_c9 of (A_v6235 : U) : (list_d6 A_v6235)
+inductive list_d6 (A_v6230 : U) : U =
+| nil_c9 of (A_v6231 : U) : (list_d6 A_v6231)
 | cons_c10 of
-    (A_v6236 : U) (hd_v6237 : A_v6236) (tl_v6238 : (list_d6 A_v6236))
-    : (list_d6 A_v6236)
+    (A_v6232 : U) (hd_v6233 : A_v6232) (tl_v6234 : (list_d6 A_v6232))
+    : (list_d6 A_v6232)
 
-inductive llist_d7 (A_v6239 : L) : L =
-| lnil_c11 of (A_v6240 : L) : (llist_d7 A_v6240)
+inductive llist_d7 (A_v6235 : L) : L =
+| lnil_c11 of (A_v6236 : L) : (llist_d7 A_v6236)
 | lcons_c12 of
-    (A_v6241 : L) (hd_v6242 : A_v6241) (tl_v6243 : (llist_d7 A_v6241))
-    : (llist_d7 A_v6241)
+    (A_v6237 : L) (hd_v6238 : A_v6237) (tl_v6239 : (llist_d7 A_v6237))
+    : (llist_d7 A_v6237)
 
 program len_v106 :
-  ∀ {A_v6244 : U} → (list_d6 A_v6244) → (list_d6 A_v6244)
+  ∀ {A_v6240 : U} → (list_d6 A_v6240) → (list_d6 A_v6240)
 =
-  fix (len_v106 := len_v6246) ⇒
-    fn {A_v6247} xs_v6248 ⇒
-      match xs_v6248 as __v6249 in (list_d6 A_v6247) with
+  fix (len_v106 := len_v6242) ⇒
+    fn {A_v6243} xs_v6244 ⇒
+      match xs_v6244 as __v6245 in (list_d6 A_v6243) with
       | nil_c9  ⇒ O_c4
-      | cons_c10 __v6250 xs_v6251 ⇒ (S_c5 (len_v6246 A_v6247 xs_v6251))
+      | cons_c10 __v6246 xs_v6247 ⇒ (S_c5 (len_v6242 A_v6243 xs_v6247))
       end
 
 program llen_v113 :
-  ∀ {A_v6252 : L} → (llist_d7 A_v6252) → nat_d3 ⊗ (llist_d7 A_v6252)
+  ∀ {A_v6248 : L} → (llist_d7 A_v6248) → nat_d3 ⊗ (llist_d7 A_v6248)
 =
-  fix (llen_v113 := llen_v6255) ⇒
-    fn {A_v6256} xs_v6257 ⇒
-      match xs_v6257 as __v6258 in nat_d3 ⊗ (llist_d7 A_v6256) with
+  fix (llen_v113 := llen_v6251) ⇒
+    fn {A_v6252} xs_v6253 ⇒
+      match xs_v6253 as __v6254 in nat_d3 ⊗ (llist_d7 A_v6252) with
       | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
-      | lcons_c12 x_v6260 xs_v6261 ⇒
-        match (llen_v6255 A_v6256 xs_v6261) as __v6262 in
-          nat_d3 ⊗ (llist_d7 A_v6256) with
-        | ⟨n_v6264, xs_v6265⟩ ⇒
-          ⟨(S_c5 n_v6264), (lcons_c12 x_v6260 xs_v6265)⟩
+      | lcons_c12 x_v6256 xs_v6257 ⇒
+        match (llen_v6251 A_v6252 xs_v6257) as __v6258 in
+          nat_d3 ⊗ (llist_d7 A_v6252) with
+        | ⟨n_v6260, xs_v6261⟩ ⇒
+          ⟨(S_c5 n_v6260), (lcons_c12 x_v6256 xs_v6261)⟩
         end
       end
 
 program append_v124 :
-  ∀ {A_v6266 : U} →
-    (list_d6 A_v6266) → (list_d6 A_v6266) → (list_d6 A_v6266)
+  ∀ {A_v6262 : U} →
+    (list_d6 A_v6262) → (list_d6 A_v6262) → (list_d6 A_v6262)
 =
-  fix (append_v124 := append_v6269) ⇒
-    fn {A_v6270} xs_v6271 ys_v6272 ⇒
-      match xs_v6271 as __v6273 in (list_d6 A_v6270) with
-      | nil_c9  ⇒ ys_v6272
-      | cons_c10 x_v6274 xs_v6275 ⇒
-        (cons_c10 x_v6274 (append_v6269 A_v6270 xs_v6275 ys_v6272))
+  fix (append_v124 := append_v6265) ⇒
+    fn {A_v6266} xs_v6267 ys_v6268 ⇒
+      match xs_v6267 as __v6269 in (list_d6 A_v6266) with
+      | nil_c9  ⇒ ys_v6268
+      | cons_c10 x_v6270 xs_v6271 ⇒
+        (cons_c10 x_v6270 (append_v6265 A_v6266 xs_v6271 ys_v6268))
       end
 
 program lappend_v132 :
-  ∀ {A_v6276 : L} →
-    (llist_d7 A_v6276) → (llist_d7 A_v6276) → (llist_d7 A_v6276)
+  ∀ {A_v6272 : L} →
+    (llist_d7 A_v6272) → (llist_d7 A_v6272) → (llist_d7 A_v6272)
 =
-  fix (lappend_v132 := lappend_v6279) ⇒
-    fn {A_v6280} xs_v6281 ys_v6282 ⇒
-      match xs_v6281 as __v6283 in (llist_d7 A_v6280) with
-      | lnil_c11  ⇒ ys_v6282
-      | lcons_c12 x_v6284 xs_v6285 ⇒
-        (lcons_c12 x_v6284 (lappend_v6279 A_v6280 xs_v6285 ys_v6282))
+  fix (lappend_v132 := lappend_v6275) ⇒
+    fn {A_v6276} xs_v6277 ys_v6278 ⇒
+      match xs_v6277 as __v6279 in (llist_d7 A_v6276) with
+      | lnil_c11  ⇒ ys_v6278
+      | lcons_c12 x_v6280 xs_v6281 ⇒
+        (lcons_c12 x_v6280 (lappend_v6275 A_v6276 xs_v6281 ys_v6278))
       end
 
-inductive box_d8 (A_v6286 : U) : L =
-| Box_c13 of (A_v6287 : U) (a_v6288 : A_v6287) : (box_d8 A_v6287)
+inductive box_d8 (A_v6282 : U) : L =
+| Box_c13 of (A_v6283 : U) (a_v6284 : A_v6283) : (box_d8 A_v6283)
 
 program map_box_v143 :
-  ∀ {A_v6289 : U} →
-    ∀ {B_v6290 : U} →
-      (box_d8 A_v6289) → A_v6289 → B_v6290 → (box_d8 B_v6290)
+  ∀ {A_v6285 : U} →
+    ∀ {B_v6286 : U} →
+      (box_d8 A_v6285) → A_v6285 → B_v6286 → (box_d8 B_v6286)
 =
-  fn {A_v6294 B_v6295} m_v6296 f_v6297 ⇒
-    match m_v6296 as __v6298 in (box_d8 B_v6295) with
-    | Box_c13 a_v6299 ⇒ (Box_c13 (f_v6297 a_v6299))
+  fn {A_v6290 B_v6291} m_v6292 f_v6293 ⇒
+    match m_v6292 as __v6294 in (box_d8 B_v6291) with
+    | Box_c13 a_v6295 ⇒ (Box_c13 (f_v6293 a_v6295))
     end
 
-program unbox_v152 : ∀ {A_v6300 : U} → (box_d8 A_v6300) → A_v6300 =
-  fn {A_v6302} m_v6303 ⇒
-    match m_v6303 as __v6304 in A_v6302 with
-    | Box_c13 a_v6305 ⇒ a_v6305
+program unbox_v152 : ∀ {A_v6296 : U} → (box_d8 A_v6296) → A_v6296 =
+  fn {A_v6298} m_v6299 ⇒
+    match m_v6299 as __v6300 in A_v6298 with
+    | Box_c13 a_v6301 ⇒ a_v6301
     end
 
 logical stdin_rec_v158 : unit_d1 → proto =
-  fix (stdin_rec_v158 := stdin_rec_v6307) ⇒
-    fn __v6308 ⇒
-      !(b_v6309 : bool_d2) ⇒
-        match b_v6309 as __v6310 in proto with
-        | true_c2  ⇒ ?(__v6311 : string_d5) ⇒ (stdin_rec_v6307 tt_c1)
+  fix (stdin_rec_v158 := stdin_rec_v6303) ⇒
+    fn __v6304 ⇒
+      !(b_v6305 : bool_d2) ⇒
+        match b_v6305 as __v6306 in proto with
+        | true_c2  ⇒ ?(__v6307 : string_d5) ⇒ (stdin_rec_v6303 tt_c1)
         | false_c3  ⇒ end
         end
 
 logical stdout_rec_v164 : unit_d1 → proto =
-  fix (stdout_rec_v164 := stdout_rec_v6313) ⇒
-    fn __v6314 ⇒
-      !(b_v6315 : bool_d2) ⇒
-        match b_v6315 as __v6316 in proto with
-        | true_c2  ⇒ !(__v6317 : string_d5) ⇒ (stdout_rec_v6313 tt_c1)
+  fix (stdout_rec_v164 := stdout_rec_v6309) ⇒
+    fn __v6310 ⇒
+      !(b_v6311 : bool_d2) ⇒
+        match b_v6311 as __v6312 in proto with
+        | true_c2  ⇒ !(__v6313 : string_d5) ⇒ (stdout_rec_v6309 tt_c1)
         | false_c3  ⇒ end
         end
 
 logical stderr_rec_v170 : unit_d1 → proto =
-  fix (stderr_rec_v170 := stderr_rec_v6319) ⇒
-    fn __v6320 ⇒
-      !(b_v6321 : bool_d2) ⇒
-        match b_v6321 as __v6322 in proto with
-        | true_c2  ⇒ !(__v6323 : string_d5) ⇒ (stderr_rec_v6319 tt_c1)
+  fix (stderr_rec_v170 := stderr_rec_v6315) ⇒
+    fn __v6316 ⇒
+      !(b_v6317 : bool_d2) ⇒
+        match b_v6317 as __v6318 in proto with
+        | true_c2  ⇒ !(__v6319 : string_d5) ⇒ (stderr_rec_v6315 tt_c1)
         | false_c3  ⇒ end
         end
 
@@ -6489,62 +6489,62 @@ logical stdout_t_v178 : proto = (stdout_rec_v164 tt_c1)
 logical stderr_t_v180 : proto = (stderr_rec_v170 tt_c1)
 
 program readline_v182 : unit_d1 → IO string_d5 =
-  fn __v6325 ⇒
-    let ch_v6326 ⇐ open stdin in
-    let ch_v6327 ⇐ (send ch_v6326 true_c2) in
-    let msg_v6328 ⇐ recv ch_v6327 in
-    match msg_v6328 as __v6329 in IO string_d5 with
-    | ⟨s_v6330, ch_v6331⟩ ⇒
-      let ch_v6332 ⇐ (send ch_v6331 false_c3) in
-      let __v6333 ⇐ close ch_v6332 in return s_v6330
+  fn __v6321 ⇒
+    let ch_v6322 ⇐ open stdin in
+    let ch_v6323 ⇐ (send ch_v6322 true_c2) in
+    let __v6324 ⇐ recv ch_v6323 in
+    match __v6324 as __v6325 in IO string_d5 with
+    | ⟨s_v6326, ch_v6327⟩ ⇒
+      let ch_v6328 ⇐ (send ch_v6327 false_c3) in
+      let __v6329 ⇐ close ch_v6328 in return s_v6326
     end
 
-program print_v193 : string_d5 → IO unit_d1 =
-  fn s_v6335 ⇒
-    let ch_v6336 ⇐ open stdout in
-    let ch_v6337 ⇐ (send ch_v6336 true_c2) in
-    let ch_v6338 ⇐ (send ch_v6337 s_v6335) in
-    let ch_v6339 ⇐ (send ch_v6338 false_c3) in close ch_v6339
+program print_v192 : string_d5 → IO unit_d1 =
+  fn s_v6331 ⇒
+    let ch_v6332 ⇐ open stdout in
+    let ch_v6333 ⇐ (send ch_v6332 true_c2) in
+    let ch_v6334 ⇐ (send ch_v6333 s_v6331) in
+    let ch_v6335 ⇐ (send ch_v6334 false_c3) in close ch_v6335
 
-program prerr_v200 : string_d5 → IO unit_d1 =
-  fn s_v6341 ⇒
-    let ch_v6342 ⇐ open stderr in
-    let ch_v6343 ⇐ (send ch_v6342 true_c2) in
-    let ch_v6344 ⇐ (send ch_v6343 s_v6341) in
-    let ch_v6345 ⇐ (send ch_v6344 false_c3) in close ch_v6345
+program prerr_v199 : string_d5 → IO unit_d1 =
+  fn s_v6337 ⇒
+    let ch_v6338 ⇐ open stderr in
+    let ch_v6339 ⇐ (send ch_v6338 true_c2) in
+    let ch_v6340 ⇐ (send ch_v6339 s_v6337) in
+    let ch_v6341 ⇐ (send ch_v6340 false_c3) in close ch_v6341
 
-program test0_v207 : string_d5 = "hello\n"
+program test0_v206 : string_d5 = "hello\n"
 
-program test1_v209 : nat_d3 = 123
+program test1_v208 : nat_d3 = 123
 
-program test2_v211 : ascii_d4 = 'A'
+program test2_v210 : ascii_d4 = 'A'
 
-program test3_v213 : ascii_d4 = '{'
+program test3_v212 : ascii_d4 = '{'
 
-program test4_v215 : (list_d6 nat_d3) =
+program test4_v214 : (list_d6 nat_d3) =
   (cons_c10 1 (cons_c10 2 (cons_c10 3 nil_c9)))
 
-logical append_len_v217 :
-  ∀ {A_v6346 : U} →
-    ∀ (xs_v6347 : (list_d6 A_v6346)) →
-      ∀ (ys_v6348 : (list_d6 A_v6346)) →
-        (len_v106 A_v6346 (append_v124 A_v6346 xs_v6347 ys_v6348)) ≡
-          (addn_v15 (len_v106 A_v6346 xs_v6347) (len_v106 A_v6346 ys_v6348))
+logical append_len_v216 :
+  ∀ {A_v6342 : U} →
+    ∀ (xs_v6343 : (list_d6 A_v6342)) →
+      ∀ (ys_v6344 : (list_d6 A_v6342)) →
+        (len_v106 A_v6342 (append_v124 A_v6342 xs_v6343 ys_v6344)) ≡
+          (addn_v15 (len_v106 A_v6342 xs_v6343) (len_v106 A_v6342 ys_v6344))
 =
-  fix (append_len_v217 := append_len_v6349) ⇒
-    fn {A_v6350} xs_v6351 ys_v6352 ⇒
-      match xs_v6351 as xs0_v6353 in
-        (len_v106 A_v6350 (append_v124 A_v6350 xs0_v6353 ys_v6352)) ≡
-          (addn_v15 (len_v106 A_v6350 xs0_v6353) (len_v106 A_v6350 ys_v6352)) with
+  fix (append_len_v216 := append_len_v6345) ⇒
+    fn {A_v6346} xs_v6347 ys_v6348 ⇒
+      match xs_v6347 as xs0_v6349 in
+        (len_v106 A_v6346 (append_v124 A_v6346 xs0_v6349 ys_v6348)) ≡
+          (addn_v15 (len_v106 A_v6346 xs0_v6349) (len_v106 A_v6346 ys_v6348)) with
       | nil_c9  ⇒
-        refl (len_v106 A_v6350 (append_v124 A_v6350 nil_c9 ys_v6352))
-      | cons_c10 x_v6354 xs0_v6355 ⇒
-        rew [n_v6356, __v6357 ⇒
-          (S_c5 (len_v106 A_v6350 (append_v124 A_v6350 xs0_v6355 ys_v6352))) ≡
-            (S_c5 n_v6356)]
-          (append_len_v6349 A_v6350 xs0_v6355 ys_v6352) in
+        refl (len_v106 A_v6346 (append_v124 A_v6346 nil_c9 ys_v6348))
+      | cons_c10 x_v6350 xs0_v6351 ⇒
+        rew [n_v6352, __v6353 ⇒
+          (S_c5 (len_v106 A_v6346 (append_v124 A_v6346 xs0_v6351 ys_v6348))) ≡
+            (S_c5 n_v6352)]
+          (append_len_v6345 A_v6346 xs0_v6351 ys_v6348) in
         refl (S_c5
-               (len_v106 A_v6350 (append_v124 A_v6350 xs0_v6355 ys_v6352)))
+               (len_v106 A_v6346 (append_v124 A_v6346 xs0_v6351 ys_v6348)))
       end
 
 trans1e success--------------------------

@@ -36,9 +36,12 @@ let rec pp_tm fmt = function
   | Lam (R, L, Binder (id, m)) -> pf fmt "(ln %s ⇒ %a)" id pp_tm m
   | Lam (N, L, Binder (id, m)) -> pf fmt "(ln {%s} ⇒ %a)" id pp_tm m
   | App ms -> pf fmt "(%a)" (list ~sep:sp (parens pp_tm)) ms
-  | Let (R, m, Binder (id, n)) -> pf fmt "let %s = %a in %a" id pp_tm m pp_tm n
-  | Let (N, m, Binder (id, n)) ->
+  | Let (R, m, Binder (Left id, n)) ->
+    pf fmt "let %s = %a in %a" id pp_tm m pp_tm n
+  | Let (N, m, Binder (Left id, n)) ->
     pf fmt "let {%s} = %a in %a" id pp_tm m pp_tm n
+  | Let (_, m, Binder (Right p, n)) ->
+    pf fmt "let %a = %a in %a" pp_p p pp_tm m pp_tm n
   | Fix (x, Binder (r, m)) -> pf fmt "fix (%s := %s) ⇒ %a" x r pp_tm m
   (* data *)
   | Sigma (R, U, a, Binder (id, b)) ->
@@ -58,13 +61,15 @@ let rec pp_tm fmt = function
   (* equality *)
   | Eq (m, n) -> pf fmt "%a ≡ %a" pp_tm m pp_tm n
   | Refl -> pf fmt "refl"
-  | Rew (MBinder (ids, a), p, m) ->
-    pf fmt "rew [%a ⇒ %a] %a in %a" (list ~sep:comma string) ids pp_tm a pp_tm p
-      pp_tm m
+  | Rew (Binder ((id1, id2), a), p, m) ->
+    pf fmt "rew [%s, %s ⇒ %a] %a in %a" id1 id2 pp_tm a pp_tm p pp_tm m
   (* monadic *)
   | IO a -> pf fmt "IO %a" pp_tm a
   | Return m -> pf fmt "return %a" pp_tm m
-  | MLet (m, Binder (id, n)) -> pf fmt "let %s ⇐ %a in %a" id pp_tm m pp_tm n
+  | MLet (m, Binder (Left id, n)) ->
+    pf fmt "let %s ⇐ %a in %a" id pp_tm m pp_tm n
+  | MLet (m, Binder (Right p, n)) ->
+    pf fmt "let %a ⇐ %a in %a" pp_p p pp_tm m pp_tm n
   (* session *)
   | Proto -> pf fmt "proto"
   | End -> pf fmt "end"
@@ -80,19 +85,14 @@ let rec pp_tm fmt = function
   | Send m -> pf fmt "send %a" pp_tm m
   | Close m -> pf fmt "close %a" pp_tm m
 
-and pp_cl fmt = function
-  | PPair (R, U, MBinder ([ id1; id2 ], m)) ->
-    pf fmt "(%s, %s) ⇒ %a" id1 id2 pp_tm m
-  | PPair (N, U, MBinder ([ id1; id2 ], m)) ->
-    pf fmt "({%s}, %s) ⇒ %a" id1 id2 pp_tm m
-  | PPair (R, L, MBinder ([ id1; id2 ], m)) ->
-    pf fmt "⟨%s, %s⟩ ⇒ %a" id1 id2 pp_tm m
-  | PPair (N, L, MBinder ([ id1; id2 ], m)) ->
-    pf fmt "⟨{%s}, %s⟩ ⇒ %a" id1 id2 pp_tm m
-  | PCons (id, MBinder (ids, m)) ->
-    pf fmt "%s %a ⇒ %a" id (list ~sep:sp string) ids pp_tm m
-  | _ -> failwith "pp_cl"
+and pp_p fmt = function
+  | PPair (R, U, id1, id2) -> pf fmt "(%s, %s)" id1 id2
+  | PPair (N, U, id1, id2) -> pf fmt "({%s}, %s)" id1 id2
+  | PPair (R, L, id1, id2) -> pf fmt "⟨%s, %s⟩" id1 id2
+  | PPair (N, L, id1, id2) -> pf fmt "⟨{%s}, %s⟩" id1 id2
+  | PCons (id, ids) -> pf fmt "%s %a" id (list ~sep:sp string) ids
 
+and pp_cl fmt (Binder (p, m)) = pf fmt "%a ⇒ %a" pp_p p pp_tm m
 and pp_cls fmt cls = list ~sep:pipe pp_cl fmt cls
 
 let rec pp_ptm fmt = function

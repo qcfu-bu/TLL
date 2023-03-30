@@ -1,7 +1,9 @@
+open Util
 open Names
 
 (* syntax definitions *)
 type id = string
+type ids = id list
 
 type sort =
   | U
@@ -20,8 +22,11 @@ type prim =
   | Stdout
   | Stderr
 
+type p =
+  | PPair of rel * sort * id * id
+  | PCons of id * ids
+
 type ('a, 'b) binder = Binder of 'a * 'b
-type ('a, 'b) mbinder = MBinder of 'a list * 'b
 
 type tm =
   (* inference *)
@@ -32,7 +37,7 @@ type tm =
   | Pi of rel * sort * tm * (id, tm) binder
   | Lam of rel * sort * (id, tm) binder
   | App of tms
-  | Let of rel * tm * (id, tm) binder
+  | Let of rel * tm * ((id, p) either, tm) binder
   | Fix of id * (id, tm) binder
   (* data *)
   | Sigma of rel * sort * tm * (id, tm) binder
@@ -41,11 +46,11 @@ type tm =
   (* equality *)
   | Eq of tm * tm
   | Refl
-  | Rew of (id, tm) mbinder * tm * tm
+  | Rew of (id * id, tm) binder * tm * tm
   (* monadic *)
   | IO of tm
   | Return of tm
-  | MLet of tm * (id, tm) binder
+  | MLet of tm * ((id, p) either, tm) binder
   (* session *)
   | Proto
   | End
@@ -58,11 +63,7 @@ type tm =
   | Close of tm
 
 and tms = tm list
-
-and cl =
-  | PPair of rel * sort * (id, tm) mbinder
-  | PCons of id * (id, tm) mbinder
-
+and cl = (p, tm) binder
 and cls = cl list
 
 type dcl =

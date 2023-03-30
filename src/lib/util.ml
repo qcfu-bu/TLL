@@ -1,3 +1,7 @@
+type ('a, 'b) either =
+  | Left of 'a
+  | Right of 'b
+
 let bits_of_char c =
   let rec loop n sz acc =
     if sz <= 0 then

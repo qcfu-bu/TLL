@@ -135,7 +135,8 @@
 %token DCONS_OF // of
 
 
-%{ open Syntax0 %}
+%{ open Util
+   open Syntax0 %}
 
 %start <dcls> main
 
@@ -247,15 +248,33 @@ let tm_lam :=
         args (m, Id "_")
       in Ann (m, a) }
 
+let tm_p0 :=
+  | LPAREN; LBRACE;
+      id1 = identifier; RBRACE; COMMA; id2 = identifier;
+    RPAREN;
+    { PPair (N, U, id1, id2) }
+  | LANGLE; RBRACE;
+      id1 = identifier; RBRACE; COMMA; id2 = identifier;
+    RANGLE;
+    { PPair (N, L, id1, id2) }
+  | LPAREN; id1 = identifier; COMMA; id2 = identifier; RPAREN;
+    { PPair (R, U, id1, id2) }
+  | LANGLE; id1 = identifier; COMMA; id2 = identifier; RANGLE;
+    { PPair (R, L, id1, id2) }
+
+let tm_opt ==
+  | id = identifier; { Left id }
+  | p = tm_p0; { Right p }
+
 let tm_let :=
-  | TM_LET; id = identifier; EQUAL; m = tm; TM_IN; n = tm;
-    { Let (R, m, Binder (id, n)) }
-  | TM_LET; id = identifier; COLON; a = tm; EQUAL; m = tm; TM_IN; n = tm;
-    { Let (R, Ann (m, a), Binder (id, n)) }
+  | TM_LET; opt = tm_opt; EQUAL; m = tm; TM_IN; n = tm;
+    { Let (R, m, Binder (opt, n)) }
+  | TM_LET; opt = tm_opt; COLON; a = tm; EQUAL; m = tm; TM_IN; n = tm;
+    { Let (R, Ann (m, a), Binder (opt, n)) }
   | TM_LET; LBRACE; id = identifier; RBRACE; EQUAL; m = tm; TM_IN; n = tm;
-    { Let (N, m, Binder (id, n)) }
+    { Let (N, m, Binder (Left id, n)) }
   | TM_LET; LBRACE; id = identifier; COLON; a = tm; RBRACE; EQUAL; m = tm; TM_IN; n = tm;
-    { Let (N, Ann (m, a), Binder (id, n)) }
+    { Let (N, Ann (m, a), Binder (Left id, n)) }
 
 let tm_sigma :=
   | EXISTS; args = tm_args1; TIMES; b = tm;
@@ -286,32 +305,20 @@ let tm_match :=
 let tm_ifte :=
   | TM_IF; m = tm; TM_THEN; n1 = tm; TM_ELSE; n2 = tm;
     { Match (m, Binder ("_", Id "_"),
-        [PCons ("true",  MBinder ([], n1));
-         PCons ("false", MBinder ([], n2))]) }
+        [Binder (PCons ("true",  []), n1);
+         Binder (PCons ("false", []), n2)]) }
+
+let tm_p :=
+  | ~ = tm_p0; <>
+  | id1 = identifier; ULIST_CONS; id2 = identifier;
+    { PCons ("cons", [id1; id2]) }
+  | id1 = identifier; LLIST_CONS; id2 = identifier;
+    { PCons ("lcons", [id1; id2]) }
+  | id = identifier; ids = identifier*;
+    { PCons (id, ids) }
 
 let tm_cl0 :=
-  | LPAREN; LBRACE;
-      id1 = identifier; RBRACE; COMMA; id2 = identifier;
-    RPAREN; RIGHTARROW1; m = tm;
-    { PPair (N, U, MBinder ([id1; id2], m)) }
-  | LANGLE; LBRACE;
-      id1 = identifier; RBRACE; COMMA; id2 = identifier;
-    RANGLE; RIGHTARROW1; m = tm;
-    { PPair (N, L, MBinder ([id1; id2], m)) }
-  | LPAREN;
-      id1 = identifier; COMMA; id2 = identifier;
-    RPAREN; RIGHTARROW1; m = tm;
-    { PPair (R, U, MBinder ([id1; id2], m)) }
-  | LANGLE;
-      id1 = identifier; COMMA; id2 = identifier;
-    RANGLE; RIGHTARROW1; m = tm;
-    { PPair (R, L, MBinder ([id1; id2], m)) }
-  | id1 = identifier; ULIST_CONS; id2 = identifier; RIGHTARROW1; m = tm;
-    { PCons ("cons", MBinder([id1; id2], m)) }
-  | id1 = identifier; LLIST_CONS; id2 = identifier; RIGHTARROW1; m = tm;
-    { PCons ("lcons", MBinder([id1; id2], m)) }
-  | id = identifier; ids = identifier*; RIGHTARROW1; m = tm;
-    { PCons (id, MBinder (ids, m)) }
+  | p = tm_p; RIGHTARROW1; m = tm; { Binder (p, m) }
 
 let tm_cl1 :=
   | PIPE; ~ = tm_cl0; <>
@@ -327,7 +334,7 @@ let tm_rew :=
   | TM_REW; LBRACK;
       id1 = identifier; COMMA; id2 = identifier; RIGHTARROW1; a = tm;
     RBRACK; p = tm; TM_IN; m = tm;
-    { Rew (MBinder ([id1; id2], a), p, m) }
+    { Rew (Binder ((id1, id2), a), p, m) }
 
 let tm_io :=
   | TM_IO; a = tm0; { IO a }
@@ -336,10 +343,10 @@ let tm_return :=
   | TM_RETURN; m = tm0; { Return m }
 
 let tm_mlet :=
-  | TM_LET; id = identifier; LEFTARROW1 ; m = tm; TM_IN; n = tm;
-    { MLet (m, Binder (id, n)) }
-  | TM_LET; id = identifier; COLON; a = tm; LEFTARROW1; m = tm; TM_IN; n = tm;
-    { MLet (Ann (m, IO a), Binder (id, n)) }
+  | TM_LET; opt = tm_opt; LEFTARROW1 ; m = tm; TM_IN; n = tm;
+    { MLet (m, Binder (opt, n)) }
+  | TM_LET; opt = tm_opt; COLON; a = tm; LEFTARROW1; m = tm; TM_IN; n = tm;
+    { MLet (Ann (m, IO a), Binder (opt, n)) }
 
 let tm_proto :=
   | TM_PROTO; { Proto }
@@ -422,7 +429,7 @@ let tm2 :=
   | m = tm2; STR_CAT;    n = tm2; { App [Id "cats"; m; n] }
   | m = tm2; ULIST_CONS; n = tm2; { App [Id "cons"; m; n] }
   | m = tm2; LLIST_CONS; n = tm2; { App [Id "lcons"; m; n] }
-  | m = tm2; SEMI;       n = tm2; { MLet (m, Binder ("_", n)) }
+  | m = tm2; SEMI;       n = tm2; { MLet (m, Binder (Left "_", n)) }
   | ~ = tm1; <>
 
 let tm3 :=
