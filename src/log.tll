@@ -279,14 +279,14 @@ program test4_v214 : (list_d6 ??40) =
   (cons_c10 1 (cons_c10 2 (cons_c10 3 nil_c9)))
 
 logical append_len_v216 :
-  ∀ {A_v467 : U} →
+  ∀ (A_v467 : U) →
     ∀ (xs_v468 : (list_d6 A_v467)) →
       ∀ (ys_v469 : (list_d6 A_v467)) →
         (len_v106 ??45 (append_v124 ??46 xs_v468 ys_v469)) ≡
           (addn_v15 (len_v106 ??47 xs_v468) (len_v106 ??48 ys_v469))
 =
   fix (append_len_v216 := append_len_v470) ⇒
-    fn {A_v471} xs_v472 ys_v473 ⇒
+    fn A_v471 xs_v472 ys_v473 ⇒
       match xs_v472 as xs0_v474 in
         (len_v106 ??50 (append_v124 ??51 xs0_v474 ys_v473)) ≡
           (addn_v15 (len_v106 ??52 xs0_v474) (len_v106 ??53 ys_v473)) with
@@ -309,12 +309,12 @@ program snd_v226 :
     end
 
 logical llen_id_v235 :
-  ∀ {A_v490 : L} →
+  ∀ (A_v490 : L) →
     ∀ (ls_v491 : (llist_d7 A_v490)) →
       ls_v491 ≡ (snd_v226 ??62 ??63 (llen_v113 ??64 ls_v491))
 =
   fix (llen_id_v235 := llen_id_v492) ⇒
-    fn {A_v493} ls_v494 ⇒
+    fn A_v493 ls_v494 ⇒
       match ls_v494 as ls0_v495 in
         ls0_v495 ≡ (snd_v226 ??66 ??67 (llen_v113 ??68 ls0_v495)) with
       | lnil_c11  ⇒ refl ??70
@@ -5475,7 +5475,7 @@ infer_tm( U)
 assert_equal( (list_d6 ??40) :::::: (list_d6 ??44))
 
 infer_tm(
-  ∀ {A_v2854 : U} →
+  ∀ (A_v2854 : U) →
     ∀ (xs_v2855 : (list_d6 A_v2854)) →
       ∀ (ys_v2856 : (list_d6 A_v2854)) →
         (len_v106 ??45 (append_v124 ??46 xs_v2855 ys_v2856)) ≡
@@ -5605,7 +5605,7 @@ assert_equal( ??49 :::::: nat_d3)
 
 check_tm(
   fix (append_len_v216 := append_len_v2954) ⇒
-    fn {A_v2955} xs_v2956 ys_v2957 ⇒
+    fn A_v2955 xs_v2956 ys_v2957 ⇒
       match xs_v2956 as xs0_v2958 in
         (len_v106 ??50 (append_v124 ??51 xs0_v2958 ys_v2957)) ≡
           (addn_v15 (len_v106 ??52 xs0_v2958) (len_v106 ??53 ys_v2957)) with
@@ -5618,14 +5618,14 @@ check_tm(
         refl ??57
       end
 ::::::
-  ∀ {A_v2963 : U} →
+  ∀ (A_v2963 : U) →
     ∀ (xs_v2964 : (list_d6 A_v2963)) →
       ∀ (ys_v2965 : (list_d6 A_v2963)) →
         (len_v106 ??45 (append_v124 ??46 xs_v2964 ys_v2965)) ≡
           (addn_v15 (len_v106 ??47 xs_v2964) (len_v106 ??48 ys_v2965)))
 
 check_tm(
-  fn {A_v2967} xs_v2968 ys_v2969 ⇒
+  fn A_v2967 xs_v2968 ys_v2969 ⇒
     match xs_v2968 as xs0_v2970 in
       (len_v106 ??50 (append_v124 ??51 xs0_v2970 ys_v2969)) ≡
         (addn_v15 (len_v106 ??52 xs0_v2970) (len_v106 ??53 ys_v2969)) with
@@ -5638,7 +5638,7 @@ check_tm(
       refl ??57
     end
 ::::::
-  ∀ {A_v2975 : U} →
+  ∀ (A_v2975 : U) →
     ∀ (xs_v2976 : (list_d6 A_v2975)) →
       ∀ (ys_v2977 : (list_d6 A_v2975)) →
         (len_v106 ??45 (append_v124 ??46 xs_v2976 ys_v2977)) ≡
@@ -6289,7 +6289,7 @@ infer_tm( b_v4626)
 assert_equal( ??61 :::::: B_v4428)
 
 infer_tm(
-  ∀ {A_v4737 : L} →
+  ∀ (A_v4737 : L) →
     ∀ (ls_v4738 : (llist_d7 A_v4737)) →
       ls_v4738 ≡ (snd_v226 ??62 ??63 (llen_v113 ??64 ls_v4738)))
 
@@ -6353,7 +6353,7 @@ assert_equal( ??65 :::::: ??63)
 
 check_tm(
   fix (llen_id_v235 := llen_id_v4990) ⇒
-    fn {A_v4991} ls_v4992 ⇒
+    fn A_v4991 ls_v4992 ⇒
       match ls_v4992 as ls0_v4993 in
         ls0_v4993 ≡ (snd_v226 ??66 ??67 (llen_v113 ??68 ls0_v4993)) with
       | lnil_c11  ⇒ refl ??70
@@ -6378,12 +6378,12 @@ check_tm(
          end refl ??88)
       end
 ::::::
-  ∀ {A_v5008 : L} →
+  ∀ (A_v5008 : L) →
     ∀ (ls_v5009 : (llist_d7 A_v5008)) →
       ls_v5009 ≡ (snd_v226 ??62 ??63 (llen_v113 ??64 ls_v5009)))
 
 check_tm(
-  fn {A_v5011} ls_v5012 ⇒
+  fn A_v5011 ls_v5012 ⇒
     match ls_v5012 as ls0_v5013 in
       ls0_v5013 ≡ (snd_v226 ??66 ??67 (llen_v113 ??68 ls0_v5013)) with
     | lnil_c11  ⇒ refl ??70
@@ -6408,7 +6408,7 @@ check_tm(
        end refl ??88)
     end
 ::::::
-  ∀ {A_v5028 : L} →
+  ∀ (A_v5028 : L) →
     ∀ (ls_v5029 : (llist_d7 A_v5028)) →
       ls_v5029 ≡ (snd_v226 ??62 ??63 (llen_v113 ??64 ls_v5029)))
 
@@ -7642,7 +7642,7 @@ program test4_v214 : (list_d6 nat_d3) =
   (cons_c10 1 (cons_c10 2 (cons_c10 3 nil_c9)))
 
 logical append_len_v216 :
-  ∀ {A_v11781 : U} →
+  ∀ (A_v11781 : U) →
     ∀ (xs_v11782 : (list_d6 A_v11781)) →
       ∀ (ys_v11783 : (list_d6 A_v11781)) →
         (len_v106 A_v11781 (append_v124 A_v11781 xs_v11782 ys_v11783)) ≡
@@ -7650,7 +7650,7 @@ logical append_len_v216 :
             (len_v106 A_v11781 xs_v11782) (len_v106 A_v11781 ys_v11783))
 =
   fix (append_len_v216 := append_len_v11784) ⇒
-    fn {A_v11785} xs_v11786 ys_v11787 ⇒
+    fn A_v11785 xs_v11786 ys_v11787 ⇒
       match xs_v11786 as xs0_v11788 in
         (len_v106 A_v11785 (append_v124 A_v11785 xs0_v11788 ys_v11787)) ≡
           (addn_v15
@@ -7679,13 +7679,13 @@ program snd_v226 :
     end
 
 logical llen_id_v235 :
-  ∀ {A_v11804 : L} →
+  ∀ (A_v11804 : L) →
     ∀ (ls_v11805 : (llist_d7 A_v11804)) →
       ls_v11805 ≡
         (snd_v226 nat_d3 (llist_d7 A_v11804) (llen_v113 A_v11804 ls_v11805))
 =
   fix (llen_id_v235 := llen_id_v11806) ⇒
-    fn {A_v11807} ls_v11808 ⇒
+    fn A_v11807 ls_v11808 ⇒
       match ls_v11808 as ls0_v11809 in
         ls0_v11809 ≡
           (snd_v226
