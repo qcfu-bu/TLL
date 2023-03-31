@@ -3,6 +3,7 @@
 (setq tll-keywords '("of"))
 (setq tll-session '("open" "send" "recv" "close"))
 
+(setq tll-pragma-start-regexp "\\(?:#\\)")
 (setq tll-sorts-regexp "\\(?:\\_<U\\_>\\|\\_<L\\_>\\)")
 (setq tll-types-regexp (regexp-opt tll-types 'words))
 (setq tll-keywords-regexp (regexp-opt tll-keywords 'words))
@@ -18,6 +19,7 @@
       `(("\\(\\<inductive\\>\\|\\<program\\>\\|\\<logical\\>\\)\s*\\([[:graph:]]*\\)"
          (1 font-lock-keyword-face)
          (2 font-lock-variable-name-face))
+        (,tll-pragma-start-regexp . font-lock-keyword-face)
         (,tll-sorts-regexp . font-lock-constant-face)
         (,tll-types-regexp . font-lock-type-face)
         (,tll-keywords-regexp . font-lock-keyword-face)

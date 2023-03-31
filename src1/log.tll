@@ -1,0 +1,7862 @@
+inductive unit_d1 : U =
+| tt_c1 of : unit_d1
+
+inductive bool_d2 : U =
+| true_c2 of : bool_d2 | false_c3 of : bool_d2
+
+program andb_v0 : bool_d2 → bool_d2 → bool_d2 =
+  fn b1_v264 b2_v265 ⇒
+    match b1_v264 as __v266 in ??1 with
+    | true_c2  ⇒ b2_v265 | false_c3  ⇒ false_c3
+    end
+
+program orb_v5 : bool_d2 → bool_d2 → bool_d2 =
+  fn b1_v269 b2_v270 ⇒
+    match b1_v269 as __v271 in ??2 with
+    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v270
+    end
+
+program notb_v10 : bool_d2 → bool_d2 =
+  fn b_v273 ⇒
+    match b_v273 as __v274 in ??3 with
+    | true_c2  ⇒ false_c3 | false_c3  ⇒ true_c2
+    end
+
+inductive nat_d3 : U =
+| O_c4 of : nat_d3 | S_c5 of (n_v275 : nat_d3) : nat_d3
+
+program addn_v15 : nat_d3 → nat_d3 → nat_d3 =
+  fix (addn_v15 := addn_v278) ⇒
+    fn x_v279 y_v280 ⇒
+      match x_v279 as __v281 in ??4 with
+      | O_c4  ⇒ y_v280 | S_c5 x_v282 ⇒ (S_c5 (addn_v278 x_v282 y_v280))
+      end
+
+program muln_v21 : nat_d3 → nat_d3 → nat_d3 =
+  fix (muln_v21 := muln_v285) ⇒
+    fn x_v286 y_v287 ⇒
+      match x_v286 as __v288 in ??5 with
+      | O_c4  ⇒ y_v287
+      | S_c5 x_v289 ⇒ (addn_v15 y_v287 (muln_v285 x_v289 y_v287))
+      end
+
+program eqn_v27 : nat_d3 → nat_d3 → bool_d2 =
+  fix (eqn_v27 := eqn_v292) ⇒
+    fn x_v293 y_v294 ⇒
+      match x_v293 as __v295 in ??6 with
+      | O_c4  ⇒
+        match y_v294 as __v296 in ??7 with
+        | O_c4  ⇒ true_c2 | S_c5 __v297 ⇒ false_c3
+        end
+      | S_c5 x_v298 ⇒
+        match y_v294 as __v299 in ??8 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v300 ⇒ (eqn_v292 x_v298 y_v300)
+        end
+      end
+
+program lten_v37 : nat_d3 → nat_d3 → bool_d2 =
+  fix (lten_v37 := lten_v303) ⇒
+    fn x_v304 y_v305 ⇒
+      match x_v304 as __v306 in ??9 with
+      | O_c4  ⇒ true_c2
+      | S_c5 x_v307 ⇒
+        match y_v305 as __v308 in ??10 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v309 ⇒ (lten_v303 x_v307 y_v309)
+        end
+      end
+
+program gten_v45 : nat_d3 → nat_d3 → bool_d2 =
+  fix (gten_v45 := gten_v312) ⇒
+    fn x_v313 y_v314 ⇒
+      match x_v313 as __v315 in ??11 with
+      | O_c4  ⇒
+        match y_v314 as __v316 in ??12 with
+        | O_c4  ⇒ true_c2 | S_c5 __v317 ⇒ false_c3
+        end
+      | S_c5 x_v318 ⇒
+        match y_v314 as __v319 in ??13 with
+        | O_c4  ⇒ true_c2 | S_c5 y_v320 ⇒ (gten_v312 x_v318 y_v320)
+        end
+      end
+
+logical ltn_v55 : nat_d3 → nat_d3 → bool_d2 =
+  fix (ltn_v55 := ltn_v323) ⇒
+    fn x_v324 y_v325 ⇒
+      match x_v324 as __v326 in ??14 with
+      | O_c4  ⇒
+        match y_v325 as __v327 in ??15 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v328 ⇒ true_c2
+        end
+      | S_c5 x_v329 ⇒
+        match y_v325 as __v330 in ??16 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v331 ⇒ (ltn_v323 x_v329 y_v331)
+        end
+      end
+
+logical gtn_v65 : nat_d3 → nat_d3 → bool_d2 =
+  fix (gtn_v65 := gtn_v334) ⇒
+    fn x_v335 y_v336 ⇒
+      match x_v335 as __v337 in ??17 with
+      | O_c4  ⇒ false_c3
+      | S_c5 x_v338 ⇒
+        match y_v336 as __v339 in ??18 with
+        | O_c4  ⇒ true_c2 | S_c5 y_v340 ⇒ (gtn_v334 x_v338 y_v340)
+        end
+      end
+
+inductive ascii_d4 : U =
+| Ascii_c6 of
+    (b0_v341 : bool_d2) (b1_v342 : bool_d2) (b2_v343 : bool_d2)
+    (b3_v344 : bool_d2) (b4_v345 : bool_d2) (b5_v346 : bool_d2)
+    (b6_v347 : bool_d2) (b7_v348 : bool_d2) : ascii_d4
+
+inductive string_d5 : U =
+| EmptyString_c7 of : string_d5
+| String_c8 of (c_v349 : ascii_d4) (s_v350 : string_d5) : string_d5
+
+program cats_v83 : string_d5 → string_d5 → string_d5 =
+  fix (cats_v83 := cats_v353) ⇒
+    fn s1_v354 s2_v355 ⇒
+      match s1_v354 as __v356 in ??19 with
+      | EmptyString_c7  ⇒ s2_v355
+      | String_c8 c_v357 s1_v358 ⇒
+        (String_c8 c_v357 (cats_v353 s1_v358 s2_v355))
+      end
+
+program strlen_v90 : string_d5 → nat_d3 =
+  fix (strlen_v90 := strlen_v360) ⇒
+    fn s_v361 ⇒
+      match s_v361 as __v362 in ??20 with
+      | EmptyString_c7  ⇒ O_c4
+      | String_c8 __v363 s_v364 ⇒ (S_c5 (strlen_v360 s_v364))
+      end
+
+inductive list_d6 (A_v365 : U) : U =
+| nil_c9 of (A_v366 : U) : (list_d6 A_v366)
+| cons_c10 of
+    (A_v367 : U) (hd_v368 : A_v367) (tl_v369 : (list_d6 A_v367))
+    : (list_d6 A_v367)
+
+inductive llist_d7 (A_v370 : L) : L =
+| lnil_c11 of (A_v371 : L) : (llist_d7 A_v371)
+| lcons_c12 of
+    (A_v372 : L) (hd_v373 : A_v372) (tl_v374 : (llist_d7 A_v372))
+    : (llist_d7 A_v372)
+
+program len_v106 : ∀ {A_v375 : U} → (list_d6 A_v375) → (list_d6 A_v375)
+=
+  fix (len_v106 := len_v377) ⇒
+    fn {A_v378} xs_v379 ⇒
+      match xs_v379 as __v380 in ??21 with
+      | nil_c9  ⇒ O_c4
+      | cons_c10 __v381 xs_v382 ⇒ (S_c5 (len_v377 ??22 xs_v382))
+      end
+
+program llen_v113 :
+  ∀ {A_v383 : L} → (llist_d7 A_v383) → nat_d3 ⊗ (llist_d7 A_v383)
+=
+  fix (llen_v113 := llen_v386) ⇒
+    fn {A_v387} xs_v388 ⇒
+      match xs_v388 as __v389 in ??23 with
+      | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
+      | lcons_c12 x_v390 xs_v391 ⇒
+        match (llen_v386 A_v387 xs_v391) as __v392 in ??25 with
+        | ⟨n_v393, xs_v394⟩ ⇒
+          ⟨(S_c5 n_v393), (lcons_c12 x_v390 xs_v394)⟩
+        end
+      end
+
+program append_v124 :
+  ∀ {A_v395 : U} →
+    (list_d6 A_v395) → (list_d6 A_v395) → (list_d6 A_v395)
+=
+  fix (append_v124 := append_v398) ⇒
+    fn {A_v399} xs_v400 ys_v401 ⇒
+      match xs_v400 as __v402 in ??27 with
+      | nil_c9  ⇒ ys_v401
+      | cons_c10 x_v403 xs_v404 ⇒
+        (cons_c10 x_v403 (append_v398 ??28 xs_v404 ys_v401))
+      end
+
+program lappend_v132 :
+  ∀ {A_v405 : L} →
+    (llist_d7 A_v405) → (llist_d7 A_v405) → (llist_d7 A_v405)
+=
+  fix (lappend_v132 := lappend_v408) ⇒
+    fn {A_v409} xs_v410 ys_v411 ⇒
+      match xs_v410 as __v412 in ??30 with
+      | lnil_c11  ⇒ ys_v411
+      | lcons_c12 x_v413 xs_v414 ⇒
+        (lcons_c12 x_v413 (lappend_v408 ??31 xs_v414 ys_v411))
+      end
+
+inductive box_d8 (A_v415 : U) : L =
+| Box_c13 of (A_v416 : U) (a_v417 : A_v416) : (box_d8 A_v416)
+
+program map_box_v143 :
+  ∀ {A_v418 : U} →
+    ∀ {B_v419 : U} →
+      (box_d8 A_v418) → A_v418 → B_v419 → (box_d8 B_v419)
+=
+  fn {A_v423 B_v424} m_v425 f_v426 ⇒
+    match m_v425 as __v427 in ??33 with
+    | Box_c13 a_v428 ⇒ (Box_c13 (f_v426 a_v428))
+    end
+
+program unbox_v152 : ∀ {A_v429 : U} → (box_d8 A_v429) → A_v429 =
+  fn {A_v431} m_v432 ⇒
+    match m_v432 as __v433 in ??35 with
+    | Box_c13 a_v434 ⇒ a_v434
+    end
+
+logical stdin_rec_v158 : unit_d1 → proto =
+  fix (stdin_rec_v158 := stdin_rec_v436) ⇒
+    fn __v437 ⇒
+      !(b_v438 : bool_d2) ⇒
+        match b_v438 as __v439 in ??36 with
+        | true_c2  ⇒ ?(__v440 : string_d5) ⇒ (stdin_rec_v436 tt_c1)
+        | false_c3  ⇒ end
+        end
+
+logical stdout_rec_v164 : unit_d1 → proto =
+  fix (stdout_rec_v164 := stdout_rec_v442) ⇒
+    fn __v443 ⇒
+      !(b_v444 : bool_d2) ⇒
+        match b_v444 as __v445 in ??37 with
+        | true_c2  ⇒ !(__v446 : string_d5) ⇒ (stdout_rec_v442 tt_c1)
+        | false_c3  ⇒ end
+        end
+
+logical stderr_rec_v170 : unit_d1 → proto =
+  fix (stderr_rec_v170 := stderr_rec_v448) ⇒
+    fn __v449 ⇒
+      !(b_v450 : bool_d2) ⇒
+        match b_v450 as __v451 in ??38 with
+        | true_c2  ⇒ !(__v452 : string_d5) ⇒ (stderr_rec_v448 tt_c1)
+        | false_c3  ⇒ end
+        end
+
+logical stdin_t_v176 : proto = (stdin_rec_v158 tt_c1)
+
+logical stdout_t_v178 : proto = (stdout_rec_v164 tt_c1)
+
+logical stderr_t_v180 : proto = (stderr_rec_v170 tt_c1)
+
+program readline_v182 : unit_d1 → IO string_d5 =
+  fn __v454 ⇒
+    let ch_v455 ⇐ open stdin in
+    let ch_v456 ⇐ (send ch_v455 true_c2) in
+    let __v457 ⇐ recv ch_v456 in
+    match __v457 as __v458 in ??39 with
+    | ⟨s_v459, ch_v460⟩ ⇒
+      let ch_v461 ⇐ (send ch_v460 false_c3) in
+      let __v462 ⇐ close ch_v461 in return s_v459
+    end
+
+program print_v192 : string_d5 → IO unit_d1 =
+  fn s_v464 ⇒
+    let ch_v465 ⇐ open stdout in
+    let ch_v466 ⇐ (send ch_v465 true_c2) in
+    let ch_v467 ⇐ (send ch_v466 s_v464) in
+    let ch_v468 ⇐ (send ch_v467 false_c3) in close ch_v468
+
+program prerr_v199 : string_d5 → IO unit_d1 =
+  fn s_v470 ⇒
+    let ch_v471 ⇐ open stderr in
+    let ch_v472 ⇐ (send ch_v471 true_c2) in
+    let ch_v473 ⇐ (send ch_v472 s_v470) in
+    let ch_v474 ⇐ (send ch_v473 false_c3) in close ch_v474
+
+program test0_v206 : string_d5 = "hello\n"
+
+program test1_v208 : nat_d3 = 123
+
+program test2_v210 : ascii_d4 = 'A'
+
+program test3_v212 : ascii_d4 = '{'
+
+program test4_v214 : (list_d6 ??40) =
+  (cons_c10 1 (cons_c10 2 (cons_c10 3 nil_c9)))
+
+logical eq_symU_v216 :
+  ∀ (A_v475 : U) →
+    ∀ (m_v476 : A_v475) →
+      ∀ (n_v477 : A_v475) →
+        ∀ (e_v478 : m_v476 ≡ n_v477) → n_v477 ≡ m_v476
+=
+  fn A_v479 m_v480 n_v481 e_v482 ⇒
+    rew [x_v483, __v484 ⇒ x_v483 ≡ m_v480] e_v482 in refl ??47
+
+logical append_len_v224 :
+  ∀ (A_v485 : U) →
+    ∀ (xs_v486 : (list_d6 A_v485)) →
+      ∀ (ys_v487 : (list_d6 A_v485)) →
+        (len_v106 ??49 (append_v124 ??50 xs_v486 ys_v487)) ≡
+          (addn_v15 (len_v106 ??51 xs_v486) (len_v106 ??52 ys_v487))
+=
+  fix (append_len_v224 := append_len_v488) ⇒
+    fn A_v489 xs_v490 ys_v491 ⇒
+      match xs_v490 as xs0_v492 in
+        (len_v106 ??54 (append_v124 ??55 xs0_v492 ys_v491)) ≡
+          (addn_v15 (len_v106 ??56 xs0_v492) (len_v106 ??57 ys_v491)) with
+      | nil_c9  ⇒ refl ??59
+      | cons_c10 x_v493 xs0_v494 ⇒
+        rew [n_v495, __v496 ⇒
+          (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v494 ys_v491))) ≡
+            (S_c5 n_v495)]
+          (append_len_v488 ??60 xs0_v494 ys_v491) in
+        refl ??61
+      end
+
+program snd_v234 :
+  ∀ {A_v497 : U} → ∀ {B_v498 : L} → A_v497 ⊗ B_v498 → B_v498
+=
+  fn {A_v501 B_v502} m_v503 ⇒
+    let __v504 = m_v503 in
+    match __v504 as __v505 in ??65 with
+    | ⟨__v506, b_v507⟩ ⇒ b_v507
+    end
+
+logical llen_id_v243 :
+  ∀ (A_v508 : L) →
+    ∀ (ls_v509 : (llist_d7 A_v508)) →
+      ls_v509 ≡ (snd_v234 ??66 ??67 (llen_v113 ??68 ls_v509))
+=
+  fix (llen_id_v243 := llen_id_v510) ⇒
+    fn A_v511 ls_v512 ⇒
+      match ls_v512 as ls0_v513 in
+        ls0_v513 ≡ (snd_v234 ??70 ??71 (llen_v113 ??72 ls0_v513)) with
+      | lnil_c11  ⇒ refl ??74
+      | lcons_c12 x_v514 xs_v515 ⇒
+        let p_v516 = (llen_v113 ??75 xs_v515) in
+        (match p_v516 as p0_v517 in
+           ∀ (__v518 : (llen_v113 ??76 xs_v515) ≡ p0_v517) →
+             (lcons_c12 x_v514 xs_v515) ≡
+               (lcons_c12 x_v514 (snd_v234 ??79 ??80 p0_v517)) with
+         | ⟨a_v519, b_v520⟩ ⇒
+           (fn e0_v521 ⇒
+              let H_v522 =
+                rew [p0_v523, __v524 ⇒
+                  (snd_v234 ??83 ??84 p0_v523) ≡ xs_v515] e0_v521 in
+                (llen_id_v510 A_v511 xs_v515)
+              in
+              rew [l_v525, __v526 ⇒
+                (lcons_c12 x_v514 xs_v515) ≡ (lcons_c12 x_v514 l_v525)]
+                H_v522 in
+              refl ??86
+             : ∀ (e0_v527 : ??90) → ??91)
+         end refl ??92)
+      end
+
+trans01 success--------------------------
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2 → bool_d2 → bool_d2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2 → bool_d2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+check_tm(
+  fn b1_v533 b2_v534 ⇒
+    match b1_v533 as __v535 in ??1 with
+    | true_c2  ⇒ b2_v534 | false_c3  ⇒ false_c3
+    end
+:::::: bool_d2 → bool_d2 → bool_d2)
+
+check_tm(
+  fn b2_v541 ⇒
+    match b1_v540 as __v542 in ??1 with
+    | true_c2  ⇒ b2_v541 | false_c3  ⇒ false_c3
+    end
+:::::: bool_d2 → bool_d2)
+
+check_tm(
+  match b1_v540 as __v546 in ??1 with
+  | true_c2  ⇒ b2_v545 | false_c3  ⇒ false_c3
+  end
+:::::: bool_d2)
+
+infer_tm( b1_v540)
+
+infer_tm( ??1)
+
+assert_equal( bool_d2 :::::: ??1)
+
+infer_tm( ??1)
+
+check_tm( b2_v545 :::::: ??1)
+
+infer_tm( b2_v545)
+
+assert_equal( ??1 :::::: bool_d2)
+
+infer_tm( ??1)
+
+check_tm( false_c3 :::::: ??1)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??1 :::::: bool_d2)
+
+infer_tm( bool_d2 → bool_d2 → bool_d2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2 → bool_d2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+check_tm(
+  fn b1_v558 b2_v559 ⇒
+    match b1_v558 as __v560 in ??2 with
+    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v559
+    end
+:::::: bool_d2 → bool_d2 → bool_d2)
+
+check_tm(
+  fn b2_v566 ⇒
+    match b1_v565 as __v567 in ??2 with
+    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v566
+    end
+:::::: bool_d2 → bool_d2)
+
+check_tm(
+  match b1_v565 as __v571 in ??2 with
+  | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v570
+  end
+:::::: bool_d2)
+
+infer_tm( b1_v565)
+
+infer_tm( ??2)
+
+assert_equal( bool_d2 :::::: ??2)
+
+infer_tm( ??2)
+
+check_tm( true_c2 :::::: ??2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??2 :::::: bool_d2)
+
+infer_tm( ??2)
+
+check_tm( b2_v570 :::::: ??2)
+
+infer_tm( b2_v570)
+
+assert_equal( ??2 :::::: bool_d2)
+
+infer_tm( bool_d2 → bool_d2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+check_tm(
+  fn b_v580 ⇒
+    match b_v580 as __v581 in ??3 with
+    | true_c2  ⇒ false_c3 | false_c3  ⇒ true_c2
+    end
+:::::: bool_d2 → bool_d2)
+
+check_tm(
+  match b_v584 as __v585 in ??3 with
+  | true_c2  ⇒ false_c3 | false_c3  ⇒ true_c2
+  end
+:::::: bool_d2)
+
+infer_tm( b_v584)
+
+infer_tm( ??3)
+
+assert_equal( bool_d2 :::::: ??3)
+
+infer_tm( ??3)
+
+check_tm( false_c3 :::::: ??3)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??3 :::::: bool_d2)
+
+infer_tm( ??3)
+
+check_tm( true_c2 :::::: ??3)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??3 :::::: bool_d2)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( nat_d3 → nat_d3 → nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( nat_d3 → nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+check_tm(
+  fix (addn_v15 := addn_v596) ⇒
+    fn x_v597 y_v598 ⇒
+      match x_v597 as __v599 in ??4 with
+      | O_c4  ⇒ y_v598 | S_c5 x_v600 ⇒ (S_c5 (addn_v596 x_v600 y_v598))
+      end
+:::::: nat_d3 → nat_d3 → nat_d3)
+
+check_tm(
+  fn x_v604 y_v605 ⇒
+    match x_v604 as __v606 in ??4 with
+    | O_c4  ⇒ y_v605 | S_c5 x_v607 ⇒ (S_c5 (addn_v603 x_v607 y_v605))
+    end
+:::::: nat_d3 → nat_d3 → nat_d3)
+
+check_tm(
+  fn y_v613 ⇒
+    match x_v612 as __v614 in ??4 with
+    | O_c4  ⇒ y_v613 | S_c5 x_v615 ⇒ (S_c5 (addn_v603 x_v615 y_v613))
+    end
+:::::: nat_d3 → nat_d3)
+
+check_tm(
+  match x_v612 as __v619 in ??4 with
+  | O_c4  ⇒ y_v618 | S_c5 x_v620 ⇒ (S_c5 (addn_v603 x_v620 y_v618))
+  end
+:::::: nat_d3)
+
+infer_tm( x_v612)
+
+infer_tm( ??4)
+
+assert_equal( nat_d3 :::::: ??4)
+
+infer_tm( ??4)
+
+check_tm( y_v618 :::::: ??4)
+
+infer_tm( y_v618)
+
+assert_equal( ??4 :::::: nat_d3)
+
+infer_tm( ??4)
+
+check_tm( (S_c5 (addn_v603 x_v621 y_v618)) :::::: ??4)
+
+infer_tm( (S_c5 (addn_v603 x_v621 y_v618)))
+
+check_tm( (addn_v603 x_v621 y_v618) :::::: nat_d3)
+
+infer_tm( (addn_v603 x_v621 y_v618))
+
+infer_tm( (addn_v603 x_v621))
+
+infer_tm( addn_v603)
+
+check_tm( x_v621 :::::: nat_d3)
+
+infer_tm( x_v621)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( y_v618 :::::: nat_d3)
+
+infer_tm( y_v618)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( ??4 :::::: nat_d3)
+
+infer_tm( nat_d3 → nat_d3 → nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( nat_d3 → nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+check_tm(
+  fix (muln_v21 := muln_v643) ⇒
+    fn x_v644 y_v645 ⇒
+      match x_v644 as __v646 in ??5 with
+      | O_c4  ⇒ y_v645
+      | S_c5 x_v647 ⇒ (addn_v15 y_v645 (muln_v643 x_v647 y_v645))
+      end
+:::::: nat_d3 → nat_d3 → nat_d3)
+
+check_tm(
+  fn x_v651 y_v652 ⇒
+    match x_v651 as __v653 in ??5 with
+    | O_c4  ⇒ y_v652
+    | S_c5 x_v654 ⇒ (addn_v15 y_v652 (muln_v650 x_v654 y_v652))
+    end
+:::::: nat_d3 → nat_d3 → nat_d3)
+
+check_tm(
+  fn y_v660 ⇒
+    match x_v659 as __v661 in ??5 with
+    | O_c4  ⇒ y_v660
+    | S_c5 x_v662 ⇒ (addn_v15 y_v660 (muln_v650 x_v662 y_v660))
+    end
+:::::: nat_d3 → nat_d3)
+
+check_tm(
+  match x_v659 as __v666 in ??5 with
+  | O_c4  ⇒ y_v665
+  | S_c5 x_v667 ⇒ (addn_v15 y_v665 (muln_v650 x_v667 y_v665))
+  end
+:::::: nat_d3)
+
+infer_tm( x_v659)
+
+infer_tm( ??5)
+
+assert_equal( nat_d3 :::::: ??5)
+
+infer_tm( ??5)
+
+check_tm( y_v665 :::::: ??5)
+
+infer_tm( y_v665)
+
+assert_equal( ??5 :::::: nat_d3)
+
+infer_tm( ??5)
+
+check_tm( (addn_v15 y_v665 (muln_v650 x_v668 y_v665)) :::::: ??5)
+
+infer_tm( (addn_v15 y_v665 (muln_v650 x_v668 y_v665)))
+
+infer_tm( (addn_v15 y_v665))
+
+infer_tm( addn_v15)
+
+check_tm( y_v665 :::::: nat_d3)
+
+infer_tm( y_v665)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( (muln_v650 x_v668 y_v665) :::::: nat_d3)
+
+infer_tm( (muln_v650 x_v668 y_v665))
+
+infer_tm( (muln_v650 x_v668))
+
+infer_tm( muln_v650)
+
+check_tm( x_v668 :::::: nat_d3)
+
+infer_tm( x_v668)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( y_v665 :::::: nat_d3)
+
+infer_tm( y_v665)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+assert_equal( ??5 :::::: nat_d3)
+
+infer_tm( nat_d3 → nat_d3 → bool_d2)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( nat_d3 → bool_d2)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+check_tm(
+  fix (eqn_v27 := eqn_v693) ⇒
+    fn x_v694 y_v695 ⇒
+      match x_v694 as __v696 in ??6 with
+      | O_c4  ⇒
+        match y_v695 as __v697 in ??7 with
+        | O_c4  ⇒ true_c2 | S_c5 __v698 ⇒ false_c3
+        end
+      | S_c5 x_v699 ⇒
+        match y_v695 as __v700 in ??8 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v701 ⇒ (eqn_v693 x_v699 y_v701)
+        end
+      end
+:::::: nat_d3 → nat_d3 → bool_d2)
+
+check_tm(
+  fn x_v705 y_v706 ⇒
+    match x_v705 as __v707 in ??6 with
+    | O_c4  ⇒
+      match y_v706 as __v708 in ??7 with
+      | O_c4  ⇒ true_c2 | S_c5 __v709 ⇒ false_c3
+      end
+    | S_c5 x_v710 ⇒
+      match y_v706 as __v711 in ??8 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v712 ⇒ (eqn_v704 x_v710 y_v712)
+      end
+    end
+:::::: nat_d3 → nat_d3 → bool_d2)
+
+check_tm(
+  fn y_v718 ⇒
+    match x_v717 as __v719 in ??6 with
+    | O_c4  ⇒
+      match y_v718 as __v720 in ??7 with
+      | O_c4  ⇒ true_c2 | S_c5 __v721 ⇒ false_c3
+      end
+    | S_c5 x_v722 ⇒
+      match y_v718 as __v723 in ??8 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v724 ⇒ (eqn_v704 x_v722 y_v724)
+      end
+    end
+:::::: nat_d3 → bool_d2)
+
+check_tm(
+  match x_v717 as __v728 in ??6 with
+  | O_c4  ⇒
+    match y_v727 as __v729 in ??7 with
+    | O_c4  ⇒ true_c2 | S_c5 __v730 ⇒ false_c3
+    end
+  | S_c5 x_v731 ⇒
+    match y_v727 as __v732 in ??8 with
+    | O_c4  ⇒ false_c3 | S_c5 y_v733 ⇒ (eqn_v704 x_v731 y_v733)
+    end
+  end
+:::::: bool_d2)
+
+infer_tm( x_v717)
+
+infer_tm( ??6)
+
+assert_equal( bool_d2 :::::: ??6)
+
+infer_tm( ??6)
+
+check_tm(
+  match y_v727 as __v734 in ??7 with
+  | O_c4  ⇒ true_c2 | S_c5 __v735 ⇒ false_c3
+  end
+:::::: ??6)
+
+infer_tm( y_v727)
+
+infer_tm( ??7)
+
+assert_equal( ??6 :::::: ??7)
+
+infer_tm( ??7)
+
+check_tm( true_c2 :::::: ??7)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??7 :::::: bool_d2)
+
+infer_tm( ??7)
+
+check_tm( false_c3 :::::: ??7)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??7 :::::: bool_d2)
+
+infer_tm( ??6)
+
+check_tm(
+  match y_v727 as __v738 in ??8 with
+  | O_c4  ⇒ false_c3 | S_c5 y_v739 ⇒ (eqn_v704 x_v737 y_v739)
+  end
+:::::: ??6)
+
+infer_tm( y_v727)
+
+infer_tm( ??8)
+
+assert_equal( ??6 :::::: ??8)
+
+infer_tm( ??8)
+
+check_tm( false_c3 :::::: ??8)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??8 :::::: bool_d2)
+
+infer_tm( ??8)
+
+check_tm( (eqn_v704 x_v737 y_v740) :::::: ??8)
+
+infer_tm( (eqn_v704 x_v737 y_v740))
+
+infer_tm( (eqn_v704 x_v737))
+
+infer_tm( eqn_v704)
+
+check_tm( x_v737 :::::: nat_d3)
+
+infer_tm( x_v737)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( y_v740 :::::: nat_d3)
+
+infer_tm( y_v740)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+assert_equal( ??8 :::::: bool_d2)
+
+infer_tm( nat_d3 → nat_d3 → bool_d2)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( nat_d3 → bool_d2)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+check_tm(
+  fix (lten_v37 := lten_v770) ⇒
+    fn x_v771 y_v772 ⇒
+      match x_v771 as __v773 in ??9 with
+      | O_c4  ⇒ true_c2
+      | S_c5 x_v774 ⇒
+        match y_v772 as __v775 in ??10 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v776 ⇒ (lten_v770 x_v774 y_v776)
+        end
+      end
+:::::: nat_d3 → nat_d3 → bool_d2)
+
+check_tm(
+  fn x_v780 y_v781 ⇒
+    match x_v780 as __v782 in ??9 with
+    | O_c4  ⇒ true_c2
+    | S_c5 x_v783 ⇒
+      match y_v781 as __v784 in ??10 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v785 ⇒ (lten_v779 x_v783 y_v785)
+      end
+    end
+:::::: nat_d3 → nat_d3 → bool_d2)
+
+check_tm(
+  fn y_v791 ⇒
+    match x_v790 as __v792 in ??9 with
+    | O_c4  ⇒ true_c2
+    | S_c5 x_v793 ⇒
+      match y_v791 as __v794 in ??10 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v795 ⇒ (lten_v779 x_v793 y_v795)
+      end
+    end
+:::::: nat_d3 → bool_d2)
+
+check_tm(
+  match x_v790 as __v799 in ??9 with
+  | O_c4  ⇒ true_c2
+  | S_c5 x_v800 ⇒
+    match y_v798 as __v801 in ??10 with
+    | O_c4  ⇒ false_c3 | S_c5 y_v802 ⇒ (lten_v779 x_v800 y_v802)
+    end
+  end
+:::::: bool_d2)
+
+infer_tm( x_v790)
+
+infer_tm( ??9)
+
+assert_equal( bool_d2 :::::: ??9)
+
+infer_tm( ??9)
+
+check_tm( true_c2 :::::: ??9)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??9 :::::: bool_d2)
+
+infer_tm( ??9)
+
+check_tm(
+  match y_v798 as __v804 in ??10 with
+  | O_c4  ⇒ false_c3 | S_c5 y_v805 ⇒ (lten_v779 x_v803 y_v805)
+  end
+:::::: ??9)
+
+infer_tm( y_v798)
+
+infer_tm( ??10)
+
+assert_equal( ??9 :::::: ??10)
+
+infer_tm( ??10)
+
+check_tm( false_c3 :::::: ??10)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??10 :::::: bool_d2)
+
+infer_tm( ??10)
+
+check_tm( (lten_v779 x_v803 y_v806) :::::: ??10)
+
+infer_tm( (lten_v779 x_v803 y_v806))
+
+infer_tm( (lten_v779 x_v803))
+
+infer_tm( lten_v779)
+
+check_tm( x_v803 :::::: nat_d3)
+
+infer_tm( x_v803)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( y_v806 :::::: nat_d3)
+
+infer_tm( y_v806)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+assert_equal( ??10 :::::: bool_d2)
+
+infer_tm( nat_d3 → nat_d3 → bool_d2)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( nat_d3 → bool_d2)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+check_tm(
+  fix (gten_v45 := gten_v834) ⇒
+    fn x_v835 y_v836 ⇒
+      match x_v835 as __v837 in ??11 with
+      | O_c4  ⇒
+        match y_v836 as __v838 in ??12 with
+        | O_c4  ⇒ true_c2 | S_c5 __v839 ⇒ false_c3
+        end
+      | S_c5 x_v840 ⇒
+        match y_v836 as __v841 in ??13 with
+        | O_c4  ⇒ true_c2 | S_c5 y_v842 ⇒ (gten_v834 x_v840 y_v842)
+        end
+      end
+:::::: nat_d3 → nat_d3 → bool_d2)
+
+check_tm(
+  fn x_v846 y_v847 ⇒
+    match x_v846 as __v848 in ??11 with
+    | O_c4  ⇒
+      match y_v847 as __v849 in ??12 with
+      | O_c4  ⇒ true_c2 | S_c5 __v850 ⇒ false_c3
+      end
+    | S_c5 x_v851 ⇒
+      match y_v847 as __v852 in ??13 with
+      | O_c4  ⇒ true_c2 | S_c5 y_v853 ⇒ (gten_v845 x_v851 y_v853)
+      end
+    end
+:::::: nat_d3 → nat_d3 → bool_d2)
+
+check_tm(
+  fn y_v859 ⇒
+    match x_v858 as __v860 in ??11 with
+    | O_c4  ⇒
+      match y_v859 as __v861 in ??12 with
+      | O_c4  ⇒ true_c2 | S_c5 __v862 ⇒ false_c3
+      end
+    | S_c5 x_v863 ⇒
+      match y_v859 as __v864 in ??13 with
+      | O_c4  ⇒ true_c2 | S_c5 y_v865 ⇒ (gten_v845 x_v863 y_v865)
+      end
+    end
+:::::: nat_d3 → bool_d2)
+
+check_tm(
+  match x_v858 as __v869 in ??11 with
+  | O_c4  ⇒
+    match y_v868 as __v870 in ??12 with
+    | O_c4  ⇒ true_c2 | S_c5 __v871 ⇒ false_c3
+    end
+  | S_c5 x_v872 ⇒
+    match y_v868 as __v873 in ??13 with
+    | O_c4  ⇒ true_c2 | S_c5 y_v874 ⇒ (gten_v845 x_v872 y_v874)
+    end
+  end
+:::::: bool_d2)
+
+infer_tm( x_v858)
+
+infer_tm( ??11)
+
+assert_equal( bool_d2 :::::: ??11)
+
+infer_tm( ??11)
+
+check_tm(
+  match y_v868 as __v875 in ??12 with
+  | O_c4  ⇒ true_c2 | S_c5 __v876 ⇒ false_c3
+  end
+:::::: ??11)
+
+infer_tm( y_v868)
+
+infer_tm( ??12)
+
+assert_equal( ??11 :::::: ??12)
+
+infer_tm( ??12)
+
+check_tm( true_c2 :::::: ??12)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??12 :::::: bool_d2)
+
+infer_tm( ??12)
+
+check_tm( false_c3 :::::: ??12)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??12 :::::: bool_d2)
+
+infer_tm( ??11)
+
+check_tm(
+  match y_v868 as __v879 in ??13 with
+  | O_c4  ⇒ true_c2 | S_c5 y_v880 ⇒ (gten_v845 x_v878 y_v880)
+  end
+:::::: ??11)
+
+infer_tm( y_v868)
+
+infer_tm( ??13)
+
+assert_equal( ??11 :::::: ??13)
+
+infer_tm( ??13)
+
+check_tm( true_c2 :::::: ??13)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??13 :::::: bool_d2)
+
+infer_tm( ??13)
+
+check_tm( (gten_v845 x_v878 y_v881) :::::: ??13)
+
+infer_tm( (gten_v845 x_v878 y_v881))
+
+infer_tm( (gten_v845 x_v878))
+
+infer_tm( gten_v845)
+
+check_tm( x_v878 :::::: nat_d3)
+
+infer_tm( x_v878)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( y_v881 :::::: nat_d3)
+
+infer_tm( y_v881)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+assert_equal( ??13 :::::: bool_d2)
+
+infer_tm( nat_d3 → nat_d3 → bool_d2)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( nat_d3 → bool_d2)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+check_tm(
+  fix (ltn_v55 := ltn_v911) ⇒
+    fn x_v912 y_v913 ⇒
+      match x_v912 as __v914 in ??14 with
+      | O_c4  ⇒
+        match y_v913 as __v915 in ??15 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v916 ⇒ true_c2
+        end
+      | S_c5 x_v917 ⇒
+        match y_v913 as __v918 in ??16 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v919 ⇒ (ltn_v911 x_v917 y_v919)
+        end
+      end
+:::::: nat_d3 → nat_d3 → bool_d2)
+
+check_tm(
+  fn x_v923 y_v924 ⇒
+    match x_v923 as __v925 in ??14 with
+    | O_c4  ⇒
+      match y_v924 as __v926 in ??15 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v927 ⇒ true_c2
+      end
+    | S_c5 x_v928 ⇒
+      match y_v924 as __v929 in ??16 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v930 ⇒ (ltn_v922 x_v928 y_v930)
+      end
+    end
+:::::: nat_d3 → nat_d3 → bool_d2)
+
+check_tm(
+  fn y_v936 ⇒
+    match x_v935 as __v937 in ??14 with
+    | O_c4  ⇒
+      match y_v936 as __v938 in ??15 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v939 ⇒ true_c2
+      end
+    | S_c5 x_v940 ⇒
+      match y_v936 as __v941 in ??16 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v942 ⇒ (ltn_v922 x_v940 y_v942)
+      end
+    end
+:::::: nat_d3 → bool_d2)
+
+check_tm(
+  match x_v935 as __v946 in ??14 with
+  | O_c4  ⇒
+    match y_v945 as __v947 in ??15 with
+    | O_c4  ⇒ false_c3 | S_c5 y_v948 ⇒ true_c2
+    end
+  | S_c5 x_v949 ⇒
+    match y_v945 as __v950 in ??16 with
+    | O_c4  ⇒ false_c3 | S_c5 y_v951 ⇒ (ltn_v922 x_v949 y_v951)
+    end
+  end
+:::::: bool_d2)
+
+infer_tm( x_v935)
+
+infer_tm( ??14)
+
+assert_equal( bool_d2 :::::: ??14)
+
+infer_tm( ??14)
+
+check_tm(
+  match y_v945 as __v952 in ??15 with
+  | O_c4  ⇒ false_c3 | S_c5 y_v953 ⇒ true_c2
+  end
+:::::: ??14)
+
+infer_tm( y_v945)
+
+infer_tm( ??15)
+
+assert_equal( ??14 :::::: ??15)
+
+infer_tm( ??15)
+
+check_tm( false_c3 :::::: ??15)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??15 :::::: bool_d2)
+
+infer_tm( ??15)
+
+check_tm( true_c2 :::::: ??15)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??15 :::::: bool_d2)
+
+infer_tm( ??14)
+
+check_tm(
+  match y_v945 as __v956 in ??16 with
+  | O_c4  ⇒ false_c3 | S_c5 y_v957 ⇒ (ltn_v922 x_v955 y_v957)
+  end
+:::::: ??14)
+
+infer_tm( y_v945)
+
+infer_tm( ??16)
+
+assert_equal( ??14 :::::: ??16)
+
+infer_tm( ??16)
+
+check_tm( false_c3 :::::: ??16)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??16 :::::: bool_d2)
+
+infer_tm( ??16)
+
+check_tm( (ltn_v922 x_v955 y_v958) :::::: ??16)
+
+infer_tm( (ltn_v922 x_v955 y_v958))
+
+infer_tm( (ltn_v922 x_v955))
+
+infer_tm( ltn_v922)
+
+check_tm( x_v955 :::::: nat_d3)
+
+infer_tm( x_v955)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( y_v958 :::::: nat_d3)
+
+infer_tm( y_v958)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+assert_equal( ??16 :::::: bool_d2)
+
+infer_tm( nat_d3 → nat_d3 → bool_d2)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( nat_d3 → bool_d2)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+check_tm(
+  fix (gtn_v65 := gtn_v988) ⇒
+    fn x_v989 y_v990 ⇒
+      match x_v989 as __v991 in ??17 with
+      | O_c4  ⇒ false_c3
+      | S_c5 x_v992 ⇒
+        match y_v990 as __v993 in ??18 with
+        | O_c4  ⇒ true_c2 | S_c5 y_v994 ⇒ (gtn_v988 x_v992 y_v994)
+        end
+      end
+:::::: nat_d3 → nat_d3 → bool_d2)
+
+check_tm(
+  fn x_v998 y_v999 ⇒
+    match x_v998 as __v1000 in ??17 with
+    | O_c4  ⇒ false_c3
+    | S_c5 x_v1001 ⇒
+      match y_v999 as __v1002 in ??18 with
+      | O_c4  ⇒ true_c2 | S_c5 y_v1003 ⇒ (gtn_v997 x_v1001 y_v1003)
+      end
+    end
+:::::: nat_d3 → nat_d3 → bool_d2)
+
+check_tm(
+  fn y_v1009 ⇒
+    match x_v1008 as __v1010 in ??17 with
+    | O_c4  ⇒ false_c3
+    | S_c5 x_v1011 ⇒
+      match y_v1009 as __v1012 in ??18 with
+      | O_c4  ⇒ true_c2 | S_c5 y_v1013 ⇒ (gtn_v997 x_v1011 y_v1013)
+      end
+    end
+:::::: nat_d3 → bool_d2)
+
+check_tm(
+  match x_v1008 as __v1017 in ??17 with
+  | O_c4  ⇒ false_c3
+  | S_c5 x_v1018 ⇒
+    match y_v1016 as __v1019 in ??18 with
+    | O_c4  ⇒ true_c2 | S_c5 y_v1020 ⇒ (gtn_v997 x_v1018 y_v1020)
+    end
+  end
+:::::: bool_d2)
+
+infer_tm( x_v1008)
+
+infer_tm( ??17)
+
+assert_equal( bool_d2 :::::: ??17)
+
+infer_tm( ??17)
+
+check_tm( false_c3 :::::: ??17)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??17 :::::: bool_d2)
+
+infer_tm( ??17)
+
+check_tm(
+  match y_v1016 as __v1022 in ??18 with
+  | O_c4  ⇒ true_c2 | S_c5 y_v1023 ⇒ (gtn_v997 x_v1021 y_v1023)
+  end
+:::::: ??17)
+
+infer_tm( y_v1016)
+
+infer_tm( ??18)
+
+assert_equal( ??17 :::::: ??18)
+
+infer_tm( ??18)
+
+check_tm( true_c2 :::::: ??18)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( ??18 :::::: bool_d2)
+
+infer_tm( ??18)
+
+check_tm( (gtn_v997 x_v1021 y_v1024) :::::: ??18)
+
+infer_tm( (gtn_v997 x_v1021 y_v1024))
+
+infer_tm( (gtn_v997 x_v1021))
+
+infer_tm( gtn_v997)
+
+check_tm( x_v1021 :::::: nat_d3)
+
+infer_tm( x_v1021)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( y_v1024 :::::: nat_d3)
+
+infer_tm( y_v1024)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+assert_equal( ??18 :::::: bool_d2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+infer_tm( ascii_d4)
+
+infer_tm( U)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+infer_tm( ascii_d4)
+
+infer_tm( U)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+infer_tm( string_d5 → string_d5 → string_d5)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+infer_tm( string_d5 → string_d5)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+check_tm(
+  fix (cats_v83 := cats_v1072) ⇒
+    fn s1_v1073 s2_v1074 ⇒
+      match s1_v1073 as __v1075 in ??19 with
+      | EmptyString_c7  ⇒ s2_v1074
+      | String_c8 c_v1076 s1_v1077 ⇒
+        (String_c8 c_v1076 (cats_v1072 s1_v1077 s2_v1074))
+      end
+:::::: string_d5 → string_d5 → string_d5)
+
+check_tm(
+  fn s1_v1081 s2_v1082 ⇒
+    match s1_v1081 as __v1083 in ??19 with
+    | EmptyString_c7  ⇒ s2_v1082
+    | String_c8 c_v1084 s1_v1085 ⇒
+      (String_c8 c_v1084 (cats_v1080 s1_v1085 s2_v1082))
+    end
+:::::: string_d5 → string_d5 → string_d5)
+
+check_tm(
+  fn s2_v1091 ⇒
+    match s1_v1090 as __v1092 in ??19 with
+    | EmptyString_c7  ⇒ s2_v1091
+    | String_c8 c_v1093 s1_v1094 ⇒
+      (String_c8 c_v1093 (cats_v1080 s1_v1094 s2_v1091))
+    end
+:::::: string_d5 → string_d5)
+
+check_tm(
+  match s1_v1090 as __v1098 in ??19 with
+  | EmptyString_c7  ⇒ s2_v1097
+  | String_c8 c_v1099 s1_v1100 ⇒
+    (String_c8 c_v1099 (cats_v1080 s1_v1100 s2_v1097))
+  end
+:::::: string_d5)
+
+infer_tm( s1_v1090)
+
+infer_tm( ??19)
+
+assert_equal( string_d5 :::::: ??19)
+
+infer_tm( ??19)
+
+check_tm( s2_v1097 :::::: ??19)
+
+infer_tm( s2_v1097)
+
+assert_equal( ??19 :::::: string_d5)
+
+infer_tm( ??19)
+
+check_tm( (String_c8 c_v1101 (cats_v1080 s1_v1102 s2_v1097)) :::::: ??19)
+
+infer_tm( (String_c8 c_v1101 (cats_v1080 s1_v1102 s2_v1097)))
+
+check_tm( c_v1101 :::::: ascii_d4)
+
+infer_tm( c_v1101)
+
+assert_equal( ascii_d4 :::::: ascii_d4)
+
+check_tm( (cats_v1080 s1_v1102 s2_v1097) :::::: string_d5)
+
+infer_tm( (cats_v1080 s1_v1102 s2_v1097))
+
+infer_tm( (cats_v1080 s1_v1102))
+
+infer_tm( cats_v1080)
+
+check_tm( s1_v1102 :::::: string_d5)
+
+infer_tm( s1_v1102)
+
+assert_equal( string_d5 :::::: string_d5)
+
+check_tm( s2_v1097 :::::: string_d5)
+
+infer_tm( s2_v1097)
+
+assert_equal( string_d5 :::::: string_d5)
+
+assert_equal( string_d5 :::::: string_d5)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+assert_equal( ??19 :::::: string_d5)
+
+infer_tm( string_d5 → nat_d3)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+check_tm(
+  fix (strlen_v90 := strlen_v1125) ⇒
+    fn s_v1126 ⇒
+      match s_v1126 as __v1127 in ??20 with
+      | EmptyString_c7  ⇒ O_c4
+      | String_c8 __v1128 s_v1129 ⇒ (S_c5 (strlen_v1125 s_v1129))
+      end
+:::::: string_d5 → nat_d3)
+
+check_tm(
+  fn s_v1132 ⇒
+    match s_v1132 as __v1133 in ??20 with
+    | EmptyString_c7  ⇒ O_c4
+    | String_c8 __v1134 s_v1135 ⇒ (S_c5 (strlen_v1131 s_v1135))
+    end
+:::::: string_d5 → nat_d3)
+
+check_tm(
+  match s_v1138 as __v1139 in ??20 with
+  | EmptyString_c7  ⇒ O_c4
+  | String_c8 __v1140 s_v1141 ⇒ (S_c5 (strlen_v1131 s_v1141))
+  end
+:::::: nat_d3)
+
+infer_tm( s_v1138)
+
+infer_tm( ??20)
+
+assert_equal( nat_d3 :::::: ??20)
+
+infer_tm( ??20)
+
+check_tm( O_c4 :::::: ??20)
+
+infer_tm( O_c4)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( ??20 :::::: nat_d3)
+
+infer_tm( ??20)
+
+check_tm( (S_c5 (strlen_v1131 s_v1143)) :::::: ??20)
+
+infer_tm( (S_c5 (strlen_v1131 s_v1143)))
+
+check_tm( (strlen_v1131 s_v1143) :::::: nat_d3)
+
+infer_tm( (strlen_v1131 s_v1143))
+
+infer_tm( strlen_v1131)
+
+check_tm( s_v1143 :::::: string_d5)
+
+infer_tm( s_v1143)
+
+assert_equal( string_d5 :::::: string_d5)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( ??20 :::::: nat_d3)
+
+infer_tm( U)
+
+infer_tm( U)
+
+infer_tm( (list_d6 A_v1158))
+
+check_tm( A_v1158 :::::: U)
+
+infer_tm( A_v1158)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+infer_tm( U)
+
+infer_tm( A_v1160)
+
+infer_tm( (list_d6 A_v1160))
+
+check_tm( A_v1160 :::::: U)
+
+infer_tm( A_v1160)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+infer_tm( (list_d6 A_v1160))
+
+check_tm( A_v1160 :::::: U)
+
+infer_tm( A_v1160)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+infer_tm( L)
+
+infer_tm( L)
+
+infer_tm( (llist_d7 A_v1171))
+
+check_tm( A_v1171 :::::: L)
+
+infer_tm( A_v1171)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+infer_tm( L)
+
+infer_tm( A_v1173)
+
+infer_tm( (llist_d7 A_v1173))
+
+check_tm( A_v1173 :::::: L)
+
+infer_tm( A_v1173)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+infer_tm( (llist_d7 A_v1173))
+
+check_tm( A_v1173 :::::: L)
+
+infer_tm( A_v1173)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+infer_tm( ∀ {A_v1182 : U} → (list_d6 A_v1182) → (list_d6 A_v1182))
+
+infer_tm( U)
+
+infer_tm( (list_d6 A_v1184) → (list_d6 A_v1184))
+
+infer_tm( (list_d6 A_v1184))
+
+check_tm( A_v1184 :::::: U)
+
+infer_tm( A_v1184)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+infer_tm( (list_d6 A_v1184))
+
+check_tm( A_v1184 :::::: U)
+
+infer_tm( A_v1184)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+check_tm(
+  fix (len_v106 := len_v1187) ⇒
+    fn {A_v1188} xs_v1189 ⇒
+      match xs_v1189 as __v1190 in ??21 with
+      | nil_c9  ⇒ O_c4
+      | cons_c10 __v1191 xs_v1192 ⇒ (S_c5 (len_v1187 ??22 xs_v1192))
+      end
+:::::: ∀ {A_v1193 : U} → (list_d6 A_v1193) → (list_d6 A_v1193))
+
+check_tm(
+  fn {A_v1196} xs_v1197 ⇒
+    match xs_v1197 as __v1198 in ??21 with
+    | nil_c9  ⇒ O_c4
+    | cons_c10 __v1199 xs_v1200 ⇒ (S_c5 (len_v1195 ??22 xs_v1200))
+    end
+:::::: ∀ {A_v1201 : U} → (list_d6 A_v1201) → (list_d6 A_v1201))
+
+check_tm(
+  fn xs_v1207 ⇒
+    match xs_v1207 as __v1208 in ??21 with
+    | nil_c9  ⇒ O_c4
+    | cons_c10 __v1209 xs_v1210 ⇒ (S_c5 (len_v1195 ??22 xs_v1210))
+    end
+:::::: (list_d6 A_v1206) → (list_d6 A_v1206))
+
+check_tm(
+  match xs_v1213 as __v1214 in ??21 with
+  | nil_c9  ⇒ O_c4
+  | cons_c10 __v1215 xs_v1216 ⇒ (S_c5 (len_v1195 ??22 xs_v1216))
+  end
+:::::: (list_d6 A_v1206))
+
+infer_tm( xs_v1213)
+
+infer_tm( ??21)
+
+assert_equal( (list_d6 A_v1206) :::::: ??21)
+
+infer_tm( ??21)
+
+check_tm( O_c4 :::::: ??21)
+
+infer_tm( O_c4)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( ??21 :::::: nat_d3)
+
+infer_tm( ??21)
+
+check_tm( (S_c5 (len_v1195 ??22 xs_v1218)) :::::: ??21)
+
+infer_tm( (S_c5 (len_v1195 ??22 xs_v1218)))
+
+check_tm( (len_v1195 ??22 xs_v1218) :::::: nat_d3)
+
+infer_tm( (len_v1195 ??22 xs_v1218))
+
+infer_tm( (len_v1195 ??22))
+
+infer_tm( len_v1195)
+
+check_tm( ??22 :::::: U)
+
+check_tm( xs_v1218 :::::: (list_d6 ??22))
+
+infer_tm( xs_v1218)
+
+assert_equal( (list_d6 ??22) :::::: (list_d6 (A_v1206 : U)))
+
+assert_equal( nat_d3 :::::: (list_d6 ??22))
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( ??21 :::::: nat_d3)
+
+infer_tm(
+  ∀ {A_v1244 : L} → (llist_d7 A_v1244) → nat_d3 ⊗ (llist_d7 A_v1244))
+
+infer_tm( L)
+
+infer_tm( (llist_d7 A_v1247) → nat_d3 ⊗ (llist_d7 A_v1247))
+
+infer_tm( (llist_d7 A_v1247))
+
+check_tm( A_v1247 :::::: L)
+
+infer_tm( A_v1247)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+infer_tm( nat_d3 ⊗ (llist_d7 A_v1247))
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( (llist_d7 A_v1247))
+
+check_tm( A_v1247 :::::: L)
+
+infer_tm( A_v1247)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+check_tm(
+  fix (llen_v113 := llen_v1253) ⇒
+    fn {A_v1254} xs_v1255 ⇒
+      match xs_v1255 as __v1256 in ??23 with
+      | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
+      | lcons_c12 x_v1257 xs_v1258 ⇒
+        match (llen_v1253 A_v1254 xs_v1258) as __v1259 in ??25 with
+        | ⟨n_v1260, xs_v1261⟩ ⇒
+          ⟨(S_c5 n_v1260), (lcons_c12 x_v1257 xs_v1261)⟩
+        end
+      end
+::::::
+  ∀ {A_v1262 : L} → (llist_d7 A_v1262) → nat_d3 ⊗ (llist_d7 A_v1262))
+
+check_tm(
+  fn {A_v1266} xs_v1267 ⇒
+    match xs_v1267 as __v1268 in ??23 with
+    | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
+    | lcons_c12 x_v1269 xs_v1270 ⇒
+      match (llen_v1265 A_v1266 xs_v1270) as __v1271 in ??25 with
+      | ⟨n_v1272, xs_v1273⟩ ⇒
+        ⟨(S_c5 n_v1272), (lcons_c12 x_v1269 xs_v1273)⟩
+      end
+    end
+::::::
+  ∀ {A_v1274 : L} → (llist_d7 A_v1274) → nat_d3 ⊗ (llist_d7 A_v1274))
+
+check_tm(
+  fn xs_v1284 ⇒
+    match xs_v1284 as __v1285 in ??23 with
+    | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
+    | lcons_c12 x_v1286 xs_v1287 ⇒
+      match (llen_v1265 A_v1283 xs_v1287) as __v1288 in ??25 with
+      | ⟨n_v1289, xs_v1290⟩ ⇒
+        ⟨(S_c5 n_v1289), (lcons_c12 x_v1286 xs_v1290)⟩
+      end
+    end
+:::::: (llist_d7 A_v1283) → nat_d3 ⊗ (llist_d7 A_v1283))
+
+check_tm(
+  match xs_v1296 as __v1297 in ??23 with
+  | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
+  | lcons_c12 x_v1298 xs_v1299 ⇒
+    match (llen_v1265 A_v1283 xs_v1299) as __v1300 in ??25 with
+    | ⟨n_v1301, xs_v1302⟩ ⇒
+      ⟨(S_c5 n_v1301), (lcons_c12 x_v1298 xs_v1302)⟩
+    end
+  end
+:::::: nat_d3 ⊗ (llist_d7 A_v1283))
+
+infer_tm( xs_v1296)
+
+infer_tm( ??23)
+
+assert_equal( nat_d3 ⊗ (llist_d7 A_v1283) :::::: ??23)
+
+infer_tm( ??23)
+
+check_tm( ⟨O_c4, lnil_c11⟩ :::::: ??23)
+
+check_tm( O_c4 :::::: nat_d3)
+
+infer_tm( O_c4)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( lnil_c11 :::::: (llist_d7 A_v1283))
+
+infer_tm( lnil_c11)
+
+check_tm( ??24 :::::: L)
+
+infer_tm( (llist_d7 ??24))
+
+check_tm( ??24 :::::: L)
+
+infer_tm( L)
+
+assert_equal( (llist_d7 A_v1283) :::::: (llist_d7 ??24))
+
+infer_tm( ??23)
+
+check_tm(
+  match (llen_v1265 A_v1283 xs_v1314) as __v1315 in ??25 with
+  | ⟨n_v1316, xs_v1317⟩ ⇒
+    ⟨(S_c5 n_v1316), (lcons_c12 x_v1313 xs_v1317)⟩
+  end
+:::::: ??23)
+
+infer_tm( (llen_v1265 A_v1283 xs_v1314))
+
+infer_tm( (llen_v1265 A_v1283))
+
+infer_tm( llen_v1265)
+
+check_tm( A_v1283 :::::: L)
+
+infer_tm( A_v1283)
+
+assert_equal( L :::::: L)
+
+check_tm( xs_v1314 :::::: (llist_d7 A_v1283))
+
+infer_tm( xs_v1314)
+
+assert_equal( (llist_d7 A_v1283) :::::: (llist_d7 (A_v1283 : L)))
+
+infer_tm( ??25)
+
+assert_equal( ??23 :::::: ??25)
+
+infer_tm( ??25)
+
+check_tm( ⟨(S_c5 n_v1342), (lcons_c12 x_v1313 xs_v1343)⟩ :::::: ??25)
+
+check_tm( (S_c5 n_v1342) :::::: nat_d3)
+
+infer_tm( (S_c5 n_v1342))
+
+check_tm( n_v1342 :::::: nat_d3)
+
+infer_tm( n_v1342)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( (lcons_c12 x_v1313 xs_v1343) :::::: (llist_d7 A_v1283))
+
+infer_tm( (lcons_c12 x_v1313 xs_v1343))
+
+check_tm( ??26 :::::: L)
+
+check_tm( x_v1313 :::::: ??26)
+
+infer_tm( x_v1313)
+
+assert_equal( ??26 :::::: (A_v1283 : L))
+
+check_tm( xs_v1343 :::::: (llist_d7 ??26))
+
+infer_tm( xs_v1343)
+
+assert_equal( (llist_d7 ??26) :::::: (llist_d7 A_v1283))
+
+infer_tm( (llist_d7 ??26))
+
+check_tm( ??26 :::::: L)
+
+infer_tm( L)
+
+assert_equal( (llist_d7 A_v1283) :::::: (llist_d7 ??26))
+
+infer_tm(
+  ∀ {A_v1413 : U} →
+    (list_d6 A_v1413) → (list_d6 A_v1413) → (list_d6 A_v1413))
+
+infer_tm( U)
+
+infer_tm( (list_d6 A_v1416) → (list_d6 A_v1416) → (list_d6 A_v1416))
+
+infer_tm( (list_d6 A_v1416))
+
+check_tm( A_v1416 :::::: U)
+
+infer_tm( A_v1416)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+infer_tm( (list_d6 A_v1416) → (list_d6 A_v1416))
+
+infer_tm( (list_d6 A_v1416))
+
+check_tm( A_v1416 :::::: U)
+
+infer_tm( A_v1416)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+infer_tm( (list_d6 A_v1416))
+
+check_tm( A_v1416 :::::: U)
+
+infer_tm( A_v1416)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+check_tm(
+  fix (append_v124 := append_v1422) ⇒
+    fn {A_v1423} xs_v1424 ys_v1425 ⇒
+      match xs_v1424 as __v1426 in ??27 with
+      | nil_c9  ⇒ ys_v1425
+      | cons_c10 x_v1427 xs_v1428 ⇒
+        (cons_c10 x_v1427 (append_v1422 ??28 xs_v1428 ys_v1425))
+      end
+::::::
+  ∀ {A_v1429 : U} →
+    (list_d6 A_v1429) → (list_d6 A_v1429) → (list_d6 A_v1429))
+
+check_tm(
+  fn {A_v1433} xs_v1434 ys_v1435 ⇒
+    match xs_v1434 as __v1436 in ??27 with
+    | nil_c9  ⇒ ys_v1435
+    | cons_c10 x_v1437 xs_v1438 ⇒
+      (cons_c10 x_v1437 (append_v1432 ??28 xs_v1438 ys_v1435))
+    end
+::::::
+  ∀ {A_v1439 : U} →
+    (list_d6 A_v1439) → (list_d6 A_v1439) → (list_d6 A_v1439))
+
+check_tm(
+  fn xs_v1455 ys_v1456 ⇒
+    match xs_v1455 as __v1457 in ??27 with
+    | nil_c9  ⇒ ys_v1456
+    | cons_c10 x_v1458 xs_v1459 ⇒
+      (cons_c10 x_v1458 (append_v1432 ??28 xs_v1459 ys_v1456))
+    end
+:::::: (list_d6 A_v1454) → (list_d6 A_v1454) → (list_d6 A_v1454))
+
+check_tm(
+  fn ys_v1472 ⇒
+    match xs_v1471 as __v1473 in ??27 with
+    | nil_c9  ⇒ ys_v1472
+    | cons_c10 x_v1474 xs_v1475 ⇒
+      (cons_c10 x_v1474 (append_v1432 ??28 xs_v1475 ys_v1472))
+    end
+:::::: (list_d6 A_v1454) → (list_d6 A_v1454))
+
+check_tm(
+  match xs_v1471 as __v1485 in ??27 with
+  | nil_c9  ⇒ ys_v1484
+  | cons_c10 x_v1486 xs_v1487 ⇒
+    (cons_c10 x_v1486 (append_v1432 ??28 xs_v1487 ys_v1484))
+  end
+:::::: (list_d6 A_v1454))
+
+infer_tm( xs_v1471)
+
+infer_tm( ??27)
+
+assert_equal( (list_d6 A_v1454) :::::: ??27)
+
+infer_tm( ??27)
+
+check_tm( ys_v1484 :::::: ??27)
+
+infer_tm( ys_v1484)
+
+assert_equal( ??27 :::::: (list_d6 A_v1454))
+
+infer_tm( ??27)
+
+check_tm( (cons_c10 x_v1494 (append_v1432 ??28 xs_v1495 ys_v1484)) ::::::
+  ??27)
+
+infer_tm( (cons_c10 x_v1494 (append_v1432 ??28 xs_v1495 ys_v1484)))
+
+check_tm( ??29 :::::: U)
+
+check_tm( x_v1494 :::::: ??29)
+
+infer_tm( x_v1494)
+
+assert_equal( ??29 :::::: (A_v1454 : U))
+
+check_tm( (append_v1432 ??28 xs_v1495 ys_v1484) :::::: (list_d6 ??29))
+
+infer_tm( (append_v1432 ??28 xs_v1495 ys_v1484))
+
+infer_tm( (append_v1432 ??28 xs_v1495))
+
+infer_tm( (append_v1432 ??28))
+
+infer_tm( append_v1432)
+
+check_tm( ??28 :::::: U)
+
+check_tm( xs_v1495 :::::: (list_d6 ??28))
+
+infer_tm( xs_v1495)
+
+assert_equal( (list_d6 ??28) :::::: (list_d6 (A_v1454 : U)))
+
+check_tm( ys_v1484 :::::: (list_d6 A_v1454))
+
+infer_tm( ys_v1484)
+
+assert_equal( (list_d6 A_v1454) :::::: (list_d6 A_v1454))
+
+assert_equal( (list_d6 ??29) :::::: (list_d6 A_v1454))
+
+infer_tm( (list_d6 ??29))
+
+check_tm( ??29 :::::: U)
+
+infer_tm( U)
+
+assert_equal( ??27 :::::: (list_d6 ??29))
+
+infer_tm(
+  ∀ {A_v1567 : L} →
+    (llist_d7 A_v1567) → (llist_d7 A_v1567) → (llist_d7 A_v1567))
+
+infer_tm( L)
+
+infer_tm( (llist_d7 A_v1570) → (llist_d7 A_v1570) → (llist_d7 A_v1570))
+
+infer_tm( (llist_d7 A_v1570))
+
+check_tm( A_v1570 :::::: L)
+
+infer_tm( A_v1570)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+infer_tm( (llist_d7 A_v1570) → (llist_d7 A_v1570))
+
+infer_tm( (llist_d7 A_v1570))
+
+check_tm( A_v1570 :::::: L)
+
+infer_tm( A_v1570)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+infer_tm( (llist_d7 A_v1570))
+
+check_tm( A_v1570 :::::: L)
+
+infer_tm( A_v1570)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+check_tm(
+  fix (lappend_v132 := lappend_v1576) ⇒
+    fn {A_v1577} xs_v1578 ys_v1579 ⇒
+      match xs_v1578 as __v1580 in ??30 with
+      | lnil_c11  ⇒ ys_v1579
+      | lcons_c12 x_v1581 xs_v1582 ⇒
+        (lcons_c12 x_v1581 (lappend_v1576 ??31 xs_v1582 ys_v1579))
+      end
+::::::
+  ∀ {A_v1583 : L} →
+    (llist_d7 A_v1583) → (llist_d7 A_v1583) → (llist_d7 A_v1583))
+
+check_tm(
+  fn {A_v1587} xs_v1588 ys_v1589 ⇒
+    match xs_v1588 as __v1590 in ??30 with
+    | lnil_c11  ⇒ ys_v1589
+    | lcons_c12 x_v1591 xs_v1592 ⇒
+      (lcons_c12 x_v1591 (lappend_v1586 ??31 xs_v1592 ys_v1589))
+    end
+::::::
+  ∀ {A_v1593 : L} →
+    (llist_d7 A_v1593) → (llist_d7 A_v1593) → (llist_d7 A_v1593))
+
+check_tm(
+  fn xs_v1609 ys_v1610 ⇒
+    match xs_v1609 as __v1611 in ??30 with
+    | lnil_c11  ⇒ ys_v1610
+    | lcons_c12 x_v1612 xs_v1613 ⇒
+      (lcons_c12 x_v1612 (lappend_v1586 ??31 xs_v1613 ys_v1610))
+    end
+:::::: (llist_d7 A_v1608) → (llist_d7 A_v1608) → (llist_d7 A_v1608))
+
+check_tm(
+  fn ys_v1626 ⇒
+    match xs_v1625 as __v1627 in ??30 with
+    | lnil_c11  ⇒ ys_v1626
+    | lcons_c12 x_v1628 xs_v1629 ⇒
+      (lcons_c12 x_v1628 (lappend_v1586 ??31 xs_v1629 ys_v1626))
+    end
+:::::: (llist_d7 A_v1608) → (llist_d7 A_v1608))
+
+check_tm(
+  match xs_v1625 as __v1639 in ??30 with
+  | lnil_c11  ⇒ ys_v1638
+  | lcons_c12 x_v1640 xs_v1641 ⇒
+    (lcons_c12 x_v1640 (lappend_v1586 ??31 xs_v1641 ys_v1638))
+  end
+:::::: (llist_d7 A_v1608))
+
+infer_tm( xs_v1625)
+
+infer_tm( ??30)
+
+assert_equal( (llist_d7 A_v1608) :::::: ??30)
+
+infer_tm( ??30)
+
+check_tm( ys_v1638 :::::: ??30)
+
+infer_tm( ys_v1638)
+
+assert_equal( ??30 :::::: (llist_d7 A_v1608))
+
+infer_tm( ??30)
+
+check_tm( (lcons_c12 x_v1648 (lappend_v1586 ??31 xs_v1649 ys_v1638)) ::::::
+  ??30)
+
+infer_tm( (lcons_c12 x_v1648 (lappend_v1586 ??31 xs_v1649 ys_v1638)))
+
+check_tm( ??32 :::::: L)
+
+check_tm( x_v1648 :::::: ??32)
+
+infer_tm( x_v1648)
+
+assert_equal( ??32 :::::: (A_v1608 : L))
+
+check_tm( (lappend_v1586 ??31 xs_v1649 ys_v1638) :::::: (llist_d7 ??32))
+
+infer_tm( (lappend_v1586 ??31 xs_v1649 ys_v1638))
+
+infer_tm( (lappend_v1586 ??31 xs_v1649))
+
+infer_tm( (lappend_v1586 ??31))
+
+infer_tm( lappend_v1586)
+
+check_tm( ??31 :::::: L)
+
+check_tm( xs_v1649 :::::: (llist_d7 ??31))
+
+infer_tm( xs_v1649)
+
+assert_equal( (llist_d7 ??31) :::::: (llist_d7 (A_v1608 : L)))
+
+check_tm( ys_v1638 :::::: (llist_d7 A_v1608))
+
+infer_tm( ys_v1638)
+
+assert_equal( (llist_d7 A_v1608) :::::: (llist_d7 A_v1608))
+
+assert_equal( (llist_d7 ??32) :::::: (llist_d7 A_v1608))
+
+infer_tm( (llist_d7 ??32))
+
+check_tm( ??32 :::::: L)
+
+infer_tm( L)
+
+assert_equal( ??30 :::::: (llist_d7 ??32))
+
+infer_tm( U)
+
+infer_tm( U)
+
+infer_tm( A_v1729)
+
+infer_tm( (box_d8 A_v1729))
+
+check_tm( A_v1729 :::::: U)
+
+infer_tm( A_v1729)
+
+assert_equal( U :::::: U)
+
+infer_tm( L)
+
+infer_tm(
+  ∀ {A_v1740 : U} →
+    ∀ {B_v1741 : U} →
+      (box_d8 A_v1740) → A_v1740 → B_v1741 → (box_d8 B_v1741))
+
+infer_tm( U)
+
+infer_tm(
+  ∀ {B_v1746 : U} →
+    (box_d8 A_v1745) → A_v1745 → B_v1746 → (box_d8 B_v1746))
+
+infer_tm( U)
+
+infer_tm( (box_d8 A_v1745) → A_v1745 → B_v1750 → (box_d8 B_v1750))
+
+infer_tm( (box_d8 A_v1745))
+
+check_tm( A_v1745 :::::: U)
+
+infer_tm( A_v1745)
+
+assert_equal( U :::::: U)
+
+infer_tm( L)
+
+infer_tm( A_v1745 → B_v1750 → (box_d8 B_v1750))
+
+infer_tm( A_v1745 → B_v1750)
+
+infer_tm( A_v1745)
+
+infer_tm( B_v1750)
+
+infer_tm( (box_d8 B_v1750))
+
+check_tm( B_v1750 :::::: U)
+
+infer_tm( B_v1750)
+
+assert_equal( U :::::: U)
+
+infer_tm( L)
+
+check_tm(
+  fn {A_v1760 B_v1761} m_v1762 f_v1763 ⇒
+    match m_v1762 as __v1764 in ??33 with
+    | Box_c13 a_v1765 ⇒ (Box_c13 (f_v1763 a_v1765))
+    end
+::::::
+  ∀ {A_v1766 : U} →
+    ∀ {B_v1767 : U} →
+      (box_d8 A_v1766) → A_v1766 → B_v1767 → (box_d8 B_v1767))
+
+check_tm(
+  fn {B_v1792} m_v1793 f_v1794 ⇒
+    match m_v1793 as __v1795 in ??33 with
+    | Box_c13 a_v1796 ⇒ (Box_c13 (f_v1794 a_v1796))
+    end
+::::::
+  ∀ {B_v1797 : U} →
+    (box_d8 A_v1791) → A_v1791 → B_v1797 → (box_d8 B_v1797))
+
+check_tm(
+  fn m_v1817 f_v1818 ⇒
+    match m_v1817 as __v1819 in ??33 with
+    | Box_c13 a_v1820 ⇒ (Box_c13 (f_v1818 a_v1820))
+    end
+:::::: (box_d8 A_v1791) → A_v1791 → B_v1816 → (box_d8 B_v1816))
+
+check_tm(
+  fn f_v1836 ⇒
+    match m_v1835 as __v1837 in ??33 with
+    | Box_c13 a_v1838 ⇒ (Box_c13 (f_v1836 a_v1838))
+    end
+:::::: A_v1791 → B_v1816 → (box_d8 B_v1816))
+
+check_tm(
+  match m_v1835 as __v1850 in ??33 with
+  | Box_c13 a_v1851 ⇒ (Box_c13 (f_v1849 a_v1851))
+  end
+:::::: (box_d8 B_v1816))
+
+infer_tm( m_v1835)
+
+infer_tm( ??33)
+
+assert_equal( (box_d8 B_v1816) :::::: ??33)
+
+infer_tm( ??33)
+
+check_tm( (Box_c13 (f_v1849 a_v1858)) :::::: ??33)
+
+infer_tm( (Box_c13 (f_v1849 a_v1858)))
+
+check_tm( ??34 :::::: U)
+
+check_tm( (f_v1849 a_v1858) :::::: ??34)
+
+infer_tm( (f_v1849 a_v1858))
+
+infer_tm( f_v1849)
+
+check_tm( a_v1858 :::::: A_v1791)
+
+infer_tm( a_v1858)
+
+assert_equal( A_v1791 :::::: (A_v1791 : U))
+
+assert_equal( ??34 :::::: B_v1816)
+
+infer_tm( (box_d8 ??34))
+
+check_tm( ??34 :::::: U)
+
+infer_tm( L)
+
+assert_equal( ??33 :::::: (box_d8 ??34))
+
+infer_tm( ∀ {A_v1907 : U} → (box_d8 A_v1907) → A_v1907)
+
+infer_tm( U)
+
+infer_tm( (box_d8 A_v1909) → A_v1909)
+
+infer_tm( (box_d8 A_v1909))
+
+check_tm( A_v1909 :::::: U)
+
+infer_tm( A_v1909)
+
+assert_equal( U :::::: U)
+
+infer_tm( L)
+
+infer_tm( A_v1909)
+
+check_tm(
+  fn {A_v1912} m_v1913 ⇒
+    match m_v1913 as __v1914 in ??35 with
+    | Box_c13 a_v1915 ⇒ a_v1915
+    end
+:::::: ∀ {A_v1916 : U} → (box_d8 A_v1916) → A_v1916)
+
+check_tm(
+  fn m_v1928 ⇒
+    match m_v1928 as __v1929 in ??35 with
+    | Box_c13 a_v1930 ⇒ a_v1930
+    end
+:::::: (box_d8 A_v1927) → A_v1927)
+
+check_tm(
+  match m_v1939 as __v1940 in ??35 with
+  | Box_c13 a_v1941 ⇒ a_v1941
+  end
+:::::: A_v1927)
+
+infer_tm( m_v1939)
+
+infer_tm( ??35)
+
+assert_equal( A_v1927 :::::: ??35)
+
+infer_tm( ??35)
+
+check_tm( a_v1948 :::::: ??35)
+
+infer_tm( a_v1948)
+
+assert_equal( ??35 :::::: (A_v1927 : U))
+
+infer_tm( unit_d1 → proto)
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+infer_tm( proto)
+
+check_tm(
+  fix (stdin_rec_v158 := stdin_rec_v1973) ⇒
+    fn __v1974 ⇒
+      !(b_v1975 : bool_d2) ⇒
+        match b_v1975 as __v1976 in ??36 with
+        | true_c2  ⇒ ?(__v1977 : string_d5) ⇒ (stdin_rec_v1973 tt_c1)
+        | false_c3  ⇒ end
+        end
+:::::: unit_d1 → proto)
+
+check_tm(
+  fn __v1980 ⇒
+    !(b_v1981 : bool_d2) ⇒
+      match b_v1981 as __v1982 in ??36 with
+      | true_c2  ⇒ ?(__v1983 : string_d5) ⇒ (stdin_rec_v1979 tt_c1)
+      | false_c3  ⇒ end
+      end
+:::::: unit_d1 → proto)
+
+check_tm(
+  !(b_v1993 : bool_d2) ⇒
+    match b_v1993 as __v1994 in ??36 with
+    | true_c2  ⇒ ?(__v1995 : string_d5) ⇒ (stdin_rec_v1979 tt_c1)
+    | false_c3  ⇒ end
+    end
+:::::: proto)
+
+infer_tm(
+  !(b_v1996 : bool_d2) ⇒
+    match b_v1996 as __v1997 in ??36 with
+    | true_c2  ⇒ ?(__v1998 : string_d5) ⇒ (stdin_rec_v1979 tt_c1)
+    | false_c3  ⇒ end
+    end)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+check_tm(
+  match b_v1999 as __v2000 in ??36 with
+  | true_c2  ⇒ ?(__v2001 : string_d5) ⇒ (stdin_rec_v1979 tt_c1)
+  | false_c3  ⇒ end
+  end
+:::::: proto)
+
+infer_tm( b_v1999)
+
+infer_tm( ??36)
+
+assert_equal( proto :::::: ??36)
+
+infer_tm( ??36)
+
+check_tm( ?(__v2008 : string_d5) ⇒ (stdin_rec_v1979 tt_c1) :::::: ??36)
+
+infer_tm( ?(__v2009 : string_d5) ⇒ (stdin_rec_v1979 tt_c1))
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+check_tm( (stdin_rec_v1979 tt_c1) :::::: proto)
+
+infer_tm( (stdin_rec_v1979 tt_c1))
+
+infer_tm( stdin_rec_v1979)
+
+check_tm( tt_c1 :::::: unit_d1)
+
+infer_tm( tt_c1)
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+assert_equal( unit_d1 :::::: unit_d1)
+
+assert_equal( proto :::::: proto)
+
+assert_equal( ??36 :::::: proto)
+
+infer_tm( ??36)
+
+check_tm( end :::::: ??36)
+
+infer_tm( end)
+
+assert_equal( ??36 :::::: proto)
+
+assert_equal( proto :::::: proto)
+
+infer_tm( unit_d1 → proto)
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+infer_tm( proto)
+
+check_tm(
+  fix (stdout_rec_v164 := stdout_rec_v2045) ⇒
+    fn __v2046 ⇒
+      !(b_v2047 : bool_d2) ⇒
+        match b_v2047 as __v2048 in ??37 with
+        | true_c2  ⇒ !(__v2049 : string_d5) ⇒ (stdout_rec_v2045 tt_c1)
+        | false_c3  ⇒ end
+        end
+:::::: unit_d1 → proto)
+
+check_tm(
+  fn __v2052 ⇒
+    !(b_v2053 : bool_d2) ⇒
+      match b_v2053 as __v2054 in ??37 with
+      | true_c2  ⇒ !(__v2055 : string_d5) ⇒ (stdout_rec_v2051 tt_c1)
+      | false_c3  ⇒ end
+      end
+:::::: unit_d1 → proto)
+
+check_tm(
+  !(b_v2065 : bool_d2) ⇒
+    match b_v2065 as __v2066 in ??37 with
+    | true_c2  ⇒ !(__v2067 : string_d5) ⇒ (stdout_rec_v2051 tt_c1)
+    | false_c3  ⇒ end
+    end
+:::::: proto)
+
+infer_tm(
+  !(b_v2068 : bool_d2) ⇒
+    match b_v2068 as __v2069 in ??37 with
+    | true_c2  ⇒ !(__v2070 : string_d5) ⇒ (stdout_rec_v2051 tt_c1)
+    | false_c3  ⇒ end
+    end)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+check_tm(
+  match b_v2071 as __v2072 in ??37 with
+  | true_c2  ⇒ !(__v2073 : string_d5) ⇒ (stdout_rec_v2051 tt_c1)
+  | false_c3  ⇒ end
+  end
+:::::: proto)
+
+infer_tm( b_v2071)
+
+infer_tm( ??37)
+
+assert_equal( proto :::::: ??37)
+
+infer_tm( ??37)
+
+check_tm( !(__v2080 : string_d5) ⇒ (stdout_rec_v2051 tt_c1) :::::: ??37)
+
+infer_tm( !(__v2081 : string_d5) ⇒ (stdout_rec_v2051 tt_c1))
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+check_tm( (stdout_rec_v2051 tt_c1) :::::: proto)
+
+infer_tm( (stdout_rec_v2051 tt_c1))
+
+infer_tm( stdout_rec_v2051)
+
+check_tm( tt_c1 :::::: unit_d1)
+
+infer_tm( tt_c1)
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+assert_equal( unit_d1 :::::: unit_d1)
+
+assert_equal( proto :::::: proto)
+
+assert_equal( ??37 :::::: proto)
+
+infer_tm( ??37)
+
+check_tm( end :::::: ??37)
+
+infer_tm( end)
+
+assert_equal( ??37 :::::: proto)
+
+assert_equal( proto :::::: proto)
+
+infer_tm( unit_d1 → proto)
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+infer_tm( proto)
+
+check_tm(
+  fix (stderr_rec_v170 := stderr_rec_v2117) ⇒
+    fn __v2118 ⇒
+      !(b_v2119 : bool_d2) ⇒
+        match b_v2119 as __v2120 in ??38 with
+        | true_c2  ⇒ !(__v2121 : string_d5) ⇒ (stderr_rec_v2117 tt_c1)
+        | false_c3  ⇒ end
+        end
+:::::: unit_d1 → proto)
+
+check_tm(
+  fn __v2124 ⇒
+    !(b_v2125 : bool_d2) ⇒
+      match b_v2125 as __v2126 in ??38 with
+      | true_c2  ⇒ !(__v2127 : string_d5) ⇒ (stderr_rec_v2123 tt_c1)
+      | false_c3  ⇒ end
+      end
+:::::: unit_d1 → proto)
+
+check_tm(
+  !(b_v2137 : bool_d2) ⇒
+    match b_v2137 as __v2138 in ??38 with
+    | true_c2  ⇒ !(__v2139 : string_d5) ⇒ (stderr_rec_v2123 tt_c1)
+    | false_c3  ⇒ end
+    end
+:::::: proto)
+
+infer_tm(
+  !(b_v2140 : bool_d2) ⇒
+    match b_v2140 as __v2141 in ??38 with
+    | true_c2  ⇒ !(__v2142 : string_d5) ⇒ (stderr_rec_v2123 tt_c1)
+    | false_c3  ⇒ end
+    end)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+check_tm(
+  match b_v2143 as __v2144 in ??38 with
+  | true_c2  ⇒ !(__v2145 : string_d5) ⇒ (stderr_rec_v2123 tt_c1)
+  | false_c3  ⇒ end
+  end
+:::::: proto)
+
+infer_tm( b_v2143)
+
+infer_tm( ??38)
+
+assert_equal( proto :::::: ??38)
+
+infer_tm( ??38)
+
+check_tm( !(__v2152 : string_d5) ⇒ (stderr_rec_v2123 tt_c1) :::::: ??38)
+
+infer_tm( !(__v2153 : string_d5) ⇒ (stderr_rec_v2123 tt_c1))
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+check_tm( (stderr_rec_v2123 tt_c1) :::::: proto)
+
+infer_tm( (stderr_rec_v2123 tt_c1))
+
+infer_tm( stderr_rec_v2123)
+
+check_tm( tt_c1 :::::: unit_d1)
+
+infer_tm( tt_c1)
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+assert_equal( unit_d1 :::::: unit_d1)
+
+assert_equal( proto :::::: proto)
+
+assert_equal( ??38 :::::: proto)
+
+infer_tm( ??38)
+
+check_tm( end :::::: ??38)
+
+infer_tm( end)
+
+assert_equal( ??38 :::::: proto)
+
+assert_equal( proto :::::: proto)
+
+infer_tm( proto)
+
+check_tm( (stdin_rec_v158 tt_c1) :::::: proto)
+
+infer_tm( (stdin_rec_v158 tt_c1))
+
+infer_tm( stdin_rec_v158)
+
+check_tm( tt_c1 :::::: unit_d1)
+
+infer_tm( tt_c1)
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+assert_equal( unit_d1 :::::: unit_d1)
+
+assert_equal( proto :::::: proto)
+
+infer_tm( proto)
+
+check_tm( (stdout_rec_v164 tt_c1) :::::: proto)
+
+infer_tm( (stdout_rec_v164 tt_c1))
+
+infer_tm( stdout_rec_v164)
+
+check_tm( tt_c1 :::::: unit_d1)
+
+infer_tm( tt_c1)
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+assert_equal( unit_d1 :::::: unit_d1)
+
+assert_equal( proto :::::: proto)
+
+infer_tm( proto)
+
+check_tm( (stderr_rec_v170 tt_c1) :::::: proto)
+
+infer_tm( (stderr_rec_v170 tt_c1))
+
+infer_tm( stderr_rec_v170)
+
+check_tm( tt_c1 :::::: unit_d1)
+
+infer_tm( tt_c1)
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+assert_equal( unit_d1 :::::: unit_d1)
+
+assert_equal( proto :::::: proto)
+
+infer_tm( unit_d1 → IO string_d5)
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+infer_tm( IO string_d5)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+check_tm(
+  fn __v2246 ⇒
+    let ch_v2247 ⇐ open stdin in
+    let ch_v2248 ⇐ (send ch_v2247 true_c2) in
+    let __v2249 ⇐ recv ch_v2248 in
+    match __v2249 as __v2250 in ??39 with
+    | ⟨s_v2251, ch_v2252⟩ ⇒
+      let ch_v2253 ⇐ (send ch_v2252 false_c3) in
+      let __v2254 ⇐ close ch_v2253 in return s_v2251
+    end
+:::::: unit_d1 → IO string_d5)
+
+check_tm(
+  let ch_v2264 ⇐ open stdin in
+  let ch_v2265 ⇐ (send ch_v2264 true_c2) in
+  let __v2266 ⇐ recv ch_v2265 in
+  match __v2266 as __v2267 in ??39 with
+  | ⟨s_v2268, ch_v2269⟩ ⇒
+    let ch_v2270 ⇐ (send ch_v2269 false_c3) in
+    let __v2271 ⇐ close ch_v2270 in return s_v2268
+  end
+:::::: IO string_d5)
+
+infer_tm(
+  let ch_v2272 ⇐ open stdin in
+  let ch_v2273 ⇐ (send ch_v2272 true_c2) in
+  let __v2274 ⇐ recv ch_v2273 in
+  match __v2274 as __v2275 in ??39 with
+  | ⟨s_v2276, ch_v2277⟩ ⇒
+    let ch_v2278 ⇐ (send ch_v2277 false_c3) in
+    let __v2279 ⇐ close ch_v2278 in return s_v2276
+  end)
+
+infer_tm( open stdin)
+
+infer_tm(
+  let ch_v2287 ⇐ (send ch_v2286 true_c2) in
+  let __v2288 ⇐ recv ch_v2287 in
+  match __v2288 as __v2289 in ??39 with
+  | ⟨s_v2290, ch_v2291⟩ ⇒
+    let ch_v2292 ⇐ (send ch_v2291 false_c3) in
+    let __v2293 ⇐ close ch_v2292 in return s_v2290
+  end)
+
+infer_tm( (send ch_v2286 true_c2))
+
+infer_tm( send ch_v2286)
+
+infer_tm( ch_v2286)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm(
+  let __v2323 ⇐ recv ch_v2322 in
+  match __v2323 as __v2324 in ??39 with
+  | ⟨s_v2325, ch_v2326⟩ ⇒
+    let ch_v2327 ⇐ (send ch_v2326 false_c3) in
+    let __v2328 ⇐ close ch_v2327 in return s_v2325
+  end)
+
+infer_tm( recv ch_v2322)
+
+infer_tm( ch_v2322)
+
+infer_tm(
+  match __v2346 as __v2347 in ??39 with
+  | ⟨s_v2348, ch_v2349⟩ ⇒
+    let ch_v2350 ⇐ (send ch_v2349 false_c3) in
+    let __v2351 ⇐ close ch_v2350 in return s_v2348
+  end)
+
+infer_tm( __v2346)
+
+infer_tm( ??39)
+
+check_tm(
+  let ch_v2361 ⇐ (send ch_v2360 false_c3) in
+  let __v2362 ⇐ close ch_v2361 in return s_v2359
+:::::: ??39)
+
+infer_tm(
+  let ch_v2363 ⇐ (send ch_v2360 false_c3) in
+  let __v2364 ⇐ close ch_v2363 in return s_v2359)
+
+infer_tm( (send ch_v2360 false_c3))
+
+infer_tm( send ch_v2360)
+
+infer_tm( ch_v2360)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm( let __v2394 ⇐ close ch_v2393 in return s_v2359)
+
+infer_tm( close ch_v2393)
+
+infer_tm( ch_v2393)
+
+infer_tm( return s_v2359)
+
+infer_tm( s_v2359)
+
+assert_equal( ??39 :::::: IO string_d5)
+
+assert_equal( IO string_d5 :::::: IO string_d5)
+
+infer_tm( string_d5 → IO unit_d1)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+infer_tm( IO unit_d1)
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+check_tm(
+  fn s_v2468 ⇒
+    let ch_v2469 ⇐ open stdout in
+    let ch_v2470 ⇐ (send ch_v2469 true_c2) in
+    let ch_v2471 ⇐ (send ch_v2470 s_v2468) in
+    let ch_v2472 ⇐ (send ch_v2471 false_c3) in close ch_v2472
+:::::: string_d5 → IO unit_d1)
+
+check_tm(
+  let ch_v2482 ⇐ open stdout in
+  let ch_v2483 ⇐ (send ch_v2482 true_c2) in
+  let ch_v2484 ⇐ (send ch_v2483 s_v2481) in
+  let ch_v2485 ⇐ (send ch_v2484 false_c3) in close ch_v2485
+:::::: IO unit_d1)
+
+infer_tm(
+  let ch_v2486 ⇐ open stdout in
+  let ch_v2487 ⇐ (send ch_v2486 true_c2) in
+  let ch_v2488 ⇐ (send ch_v2487 s_v2481) in
+  let ch_v2489 ⇐ (send ch_v2488 false_c3) in close ch_v2489)
+
+infer_tm( open stdout)
+
+infer_tm(
+  let ch_v2497 ⇐ (send ch_v2496 true_c2) in
+  let ch_v2498 ⇐ (send ch_v2497 s_v2481) in
+  let ch_v2499 ⇐ (send ch_v2498 false_c3) in close ch_v2499)
+
+infer_tm( (send ch_v2496 true_c2))
+
+infer_tm( send ch_v2496)
+
+infer_tm( ch_v2496)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm(
+  let ch_v2529 ⇐ (send ch_v2528 s_v2481) in
+  let ch_v2530 ⇐ (send ch_v2529 false_c3) in close ch_v2530)
+
+infer_tm( (send ch_v2528 s_v2481))
+
+infer_tm( send ch_v2528)
+
+infer_tm( ch_v2528)
+
+check_tm( s_v2481 :::::: string_d5)
+
+infer_tm( s_v2481)
+
+assert_equal( string_d5 :::::: string_d5)
+
+infer_tm( let ch_v2555 ⇐ (send ch_v2554 false_c3) in close ch_v2555)
+
+infer_tm( (send ch_v2554 false_c3))
+
+infer_tm( send ch_v2554)
+
+infer_tm( ch_v2554)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm( close ch_v2584)
+
+infer_tm( ch_v2584)
+
+assert_equal( IO unit_d1 :::::: IO unit_d1)
+
+infer_tm( string_d5 → IO unit_d1)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+infer_tm( IO unit_d1)
+
+infer_tm( unit_d1)
+
+infer_tm( U)
+
+check_tm(
+  fn s_v2641 ⇒
+    let ch_v2642 ⇐ open stderr in
+    let ch_v2643 ⇐ (send ch_v2642 true_c2) in
+    let ch_v2644 ⇐ (send ch_v2643 s_v2641) in
+    let ch_v2645 ⇐ (send ch_v2644 false_c3) in close ch_v2645
+:::::: string_d5 → IO unit_d1)
+
+check_tm(
+  let ch_v2655 ⇐ open stderr in
+  let ch_v2656 ⇐ (send ch_v2655 true_c2) in
+  let ch_v2657 ⇐ (send ch_v2656 s_v2654) in
+  let ch_v2658 ⇐ (send ch_v2657 false_c3) in close ch_v2658
+:::::: IO unit_d1)
+
+infer_tm(
+  let ch_v2659 ⇐ open stderr in
+  let ch_v2660 ⇐ (send ch_v2659 true_c2) in
+  let ch_v2661 ⇐ (send ch_v2660 s_v2654) in
+  let ch_v2662 ⇐ (send ch_v2661 false_c3) in close ch_v2662)
+
+infer_tm( open stderr)
+
+infer_tm(
+  let ch_v2670 ⇐ (send ch_v2669 true_c2) in
+  let ch_v2671 ⇐ (send ch_v2670 s_v2654) in
+  let ch_v2672 ⇐ (send ch_v2671 false_c3) in close ch_v2672)
+
+infer_tm( (send ch_v2669 true_c2))
+
+infer_tm( send ch_v2669)
+
+infer_tm( ch_v2669)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm(
+  let ch_v2702 ⇐ (send ch_v2701 s_v2654) in
+  let ch_v2703 ⇐ (send ch_v2702 false_c3) in close ch_v2703)
+
+infer_tm( (send ch_v2701 s_v2654))
+
+infer_tm( send ch_v2701)
+
+infer_tm( ch_v2701)
+
+check_tm( s_v2654 :::::: string_d5)
+
+infer_tm( s_v2654)
+
+assert_equal( string_d5 :::::: string_d5)
+
+infer_tm( let ch_v2728 ⇐ (send ch_v2727 false_c3) in close ch_v2728)
+
+infer_tm( (send ch_v2727 false_c3))
+
+infer_tm( send ch_v2727)
+
+infer_tm( ch_v2727)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm( close ch_v2757)
+
+infer_tm( ch_v2757)
+
+assert_equal( IO unit_d1 :::::: IO unit_d1)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+check_tm( "hello\n" :::::: string_d5)
+
+infer_tm( "hello\n")
+
+check_tm( 'h' :::::: ascii_d4)
+
+infer_tm( 'h')
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm( ascii_d4)
+
+infer_tm( U)
+
+assert_equal( ascii_d4 :::::: ascii_d4)
+
+check_tm( "ello\n" :::::: string_d5)
+
+infer_tm( "ello\n")
+
+check_tm( 'e' :::::: ascii_d4)
+
+infer_tm( 'e')
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm( ascii_d4)
+
+infer_tm( U)
+
+assert_equal( ascii_d4 :::::: ascii_d4)
+
+check_tm( "llo\n" :::::: string_d5)
+
+infer_tm( "llo\n")
+
+check_tm( 'l' :::::: ascii_d4)
+
+infer_tm( 'l')
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm( ascii_d4)
+
+infer_tm( U)
+
+assert_equal( ascii_d4 :::::: ascii_d4)
+
+check_tm( "lo\n" :::::: string_d5)
+
+infer_tm( "lo\n")
+
+check_tm( 'l' :::::: ascii_d4)
+
+infer_tm( 'l')
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm( ascii_d4)
+
+infer_tm( U)
+
+assert_equal( ascii_d4 :::::: ascii_d4)
+
+check_tm( "o\n" :::::: string_d5)
+
+infer_tm( "o\n")
+
+check_tm( 'o' :::::: ascii_d4)
+
+infer_tm( 'o')
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm( ascii_d4)
+
+infer_tm( U)
+
+assert_equal( ascii_d4 :::::: ascii_d4)
+
+check_tm( "\n" :::::: string_d5)
+
+infer_tm( "\n")
+
+check_tm( '\n' :::::: ascii_d4)
+
+infer_tm( '\n')
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm( ascii_d4)
+
+infer_tm( U)
+
+assert_equal( ascii_d4 :::::: ascii_d4)
+
+check_tm( EmptyString_c7 :::::: string_d5)
+
+infer_tm( EmptyString_c7)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+assert_equal( string_d5 :::::: string_d5)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+assert_equal( string_d5 :::::: string_d5)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+assert_equal( string_d5 :::::: string_d5)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+assert_equal( string_d5 :::::: string_d5)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+assert_equal( string_d5 :::::: string_d5)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+assert_equal( string_d5 :::::: string_d5)
+
+infer_tm( string_d5)
+
+infer_tm( U)
+
+assert_equal( string_d5 :::::: string_d5)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+check_tm( 123 :::::: nat_d3)
+
+infer_tm( 123)
+
+check_tm( 122 :::::: nat_d3)
+
+infer_tm( 122)
+
+check_tm( 121 :::::: nat_d3)
+
+infer_tm( 121)
+
+check_tm( 120 :::::: nat_d3)
+
+infer_tm( 120)
+
+check_tm( 119 :::::: nat_d3)
+
+infer_tm( 119)
+
+check_tm( 118 :::::: nat_d3)
+
+infer_tm( 118)
+
+check_tm( 117 :::::: nat_d3)
+
+infer_tm( 117)
+
+check_tm( 116 :::::: nat_d3)
+
+infer_tm( 116)
+
+check_tm( 115 :::::: nat_d3)
+
+infer_tm( 115)
+
+check_tm( 114 :::::: nat_d3)
+
+infer_tm( 114)
+
+check_tm( 113 :::::: nat_d3)
+
+infer_tm( 113)
+
+check_tm( 112 :::::: nat_d3)
+
+infer_tm( 112)
+
+check_tm( 111 :::::: nat_d3)
+
+infer_tm( 111)
+
+check_tm( 110 :::::: nat_d3)
+
+infer_tm( 110)
+
+check_tm( 109 :::::: nat_d3)
+
+infer_tm( 109)
+
+check_tm( 108 :::::: nat_d3)
+
+infer_tm( 108)
+
+check_tm( 107 :::::: nat_d3)
+
+infer_tm( 107)
+
+check_tm( 106 :::::: nat_d3)
+
+infer_tm( 106)
+
+check_tm( 105 :::::: nat_d3)
+
+infer_tm( 105)
+
+check_tm( 104 :::::: nat_d3)
+
+infer_tm( 104)
+
+check_tm( 103 :::::: nat_d3)
+
+infer_tm( 103)
+
+check_tm( 102 :::::: nat_d3)
+
+infer_tm( 102)
+
+check_tm( 101 :::::: nat_d3)
+
+infer_tm( 101)
+
+check_tm( 100 :::::: nat_d3)
+
+infer_tm( 100)
+
+check_tm( 99 :::::: nat_d3)
+
+infer_tm( 99)
+
+check_tm( 98 :::::: nat_d3)
+
+infer_tm( 98)
+
+check_tm( 97 :::::: nat_d3)
+
+infer_tm( 97)
+
+check_tm( 96 :::::: nat_d3)
+
+infer_tm( 96)
+
+check_tm( 95 :::::: nat_d3)
+
+infer_tm( 95)
+
+check_tm( 94 :::::: nat_d3)
+
+infer_tm( 94)
+
+check_tm( 93 :::::: nat_d3)
+
+infer_tm( 93)
+
+check_tm( 92 :::::: nat_d3)
+
+infer_tm( 92)
+
+check_tm( 91 :::::: nat_d3)
+
+infer_tm( 91)
+
+check_tm( 90 :::::: nat_d3)
+
+infer_tm( 90)
+
+check_tm( 89 :::::: nat_d3)
+
+infer_tm( 89)
+
+check_tm( 88 :::::: nat_d3)
+
+infer_tm( 88)
+
+check_tm( 87 :::::: nat_d3)
+
+infer_tm( 87)
+
+check_tm( 86 :::::: nat_d3)
+
+infer_tm( 86)
+
+check_tm( 85 :::::: nat_d3)
+
+infer_tm( 85)
+
+check_tm( 84 :::::: nat_d3)
+
+infer_tm( 84)
+
+check_tm( 83 :::::: nat_d3)
+
+infer_tm( 83)
+
+check_tm( 82 :::::: nat_d3)
+
+infer_tm( 82)
+
+check_tm( 81 :::::: nat_d3)
+
+infer_tm( 81)
+
+check_tm( 80 :::::: nat_d3)
+
+infer_tm( 80)
+
+check_tm( 79 :::::: nat_d3)
+
+infer_tm( 79)
+
+check_tm( 78 :::::: nat_d3)
+
+infer_tm( 78)
+
+check_tm( 77 :::::: nat_d3)
+
+infer_tm( 77)
+
+check_tm( 76 :::::: nat_d3)
+
+infer_tm( 76)
+
+check_tm( 75 :::::: nat_d3)
+
+infer_tm( 75)
+
+check_tm( 74 :::::: nat_d3)
+
+infer_tm( 74)
+
+check_tm( 73 :::::: nat_d3)
+
+infer_tm( 73)
+
+check_tm( 72 :::::: nat_d3)
+
+infer_tm( 72)
+
+check_tm( 71 :::::: nat_d3)
+
+infer_tm( 71)
+
+check_tm( 70 :::::: nat_d3)
+
+infer_tm( 70)
+
+check_tm( 69 :::::: nat_d3)
+
+infer_tm( 69)
+
+check_tm( 68 :::::: nat_d3)
+
+infer_tm( 68)
+
+check_tm( 67 :::::: nat_d3)
+
+infer_tm( 67)
+
+check_tm( 66 :::::: nat_d3)
+
+infer_tm( 66)
+
+check_tm( 65 :::::: nat_d3)
+
+infer_tm( 65)
+
+check_tm( 64 :::::: nat_d3)
+
+infer_tm( 64)
+
+check_tm( 63 :::::: nat_d3)
+
+infer_tm( 63)
+
+check_tm( 62 :::::: nat_d3)
+
+infer_tm( 62)
+
+check_tm( 61 :::::: nat_d3)
+
+infer_tm( 61)
+
+check_tm( 60 :::::: nat_d3)
+
+infer_tm( 60)
+
+check_tm( 59 :::::: nat_d3)
+
+infer_tm( 59)
+
+check_tm( 58 :::::: nat_d3)
+
+infer_tm( 58)
+
+check_tm( 57 :::::: nat_d3)
+
+infer_tm( 57)
+
+check_tm( 56 :::::: nat_d3)
+
+infer_tm( 56)
+
+check_tm( 55 :::::: nat_d3)
+
+infer_tm( 55)
+
+check_tm( 54 :::::: nat_d3)
+
+infer_tm( 54)
+
+check_tm( 53 :::::: nat_d3)
+
+infer_tm( 53)
+
+check_tm( 52 :::::: nat_d3)
+
+infer_tm( 52)
+
+check_tm( 51 :::::: nat_d3)
+
+infer_tm( 51)
+
+check_tm( 50 :::::: nat_d3)
+
+infer_tm( 50)
+
+check_tm( 49 :::::: nat_d3)
+
+infer_tm( 49)
+
+check_tm( 48 :::::: nat_d3)
+
+infer_tm( 48)
+
+check_tm( 47 :::::: nat_d3)
+
+infer_tm( 47)
+
+check_tm( 46 :::::: nat_d3)
+
+infer_tm( 46)
+
+check_tm( 45 :::::: nat_d3)
+
+infer_tm( 45)
+
+check_tm( 44 :::::: nat_d3)
+
+infer_tm( 44)
+
+check_tm( 43 :::::: nat_d3)
+
+infer_tm( 43)
+
+check_tm( 42 :::::: nat_d3)
+
+infer_tm( 42)
+
+check_tm( 41 :::::: nat_d3)
+
+infer_tm( 41)
+
+check_tm( 40 :::::: nat_d3)
+
+infer_tm( 40)
+
+check_tm( 39 :::::: nat_d3)
+
+infer_tm( 39)
+
+check_tm( 38 :::::: nat_d3)
+
+infer_tm( 38)
+
+check_tm( 37 :::::: nat_d3)
+
+infer_tm( 37)
+
+check_tm( 36 :::::: nat_d3)
+
+infer_tm( 36)
+
+check_tm( 35 :::::: nat_d3)
+
+infer_tm( 35)
+
+check_tm( 34 :::::: nat_d3)
+
+infer_tm( 34)
+
+check_tm( 33 :::::: nat_d3)
+
+infer_tm( 33)
+
+check_tm( 32 :::::: nat_d3)
+
+infer_tm( 32)
+
+check_tm( 31 :::::: nat_d3)
+
+infer_tm( 31)
+
+check_tm( 30 :::::: nat_d3)
+
+infer_tm( 30)
+
+check_tm( 29 :::::: nat_d3)
+
+infer_tm( 29)
+
+check_tm( 28 :::::: nat_d3)
+
+infer_tm( 28)
+
+check_tm( 27 :::::: nat_d3)
+
+infer_tm( 27)
+
+check_tm( 26 :::::: nat_d3)
+
+infer_tm( 26)
+
+check_tm( 25 :::::: nat_d3)
+
+infer_tm( 25)
+
+check_tm( 24 :::::: nat_d3)
+
+infer_tm( 24)
+
+check_tm( 23 :::::: nat_d3)
+
+infer_tm( 23)
+
+check_tm( 22 :::::: nat_d3)
+
+infer_tm( 22)
+
+check_tm( 21 :::::: nat_d3)
+
+infer_tm( 21)
+
+check_tm( 20 :::::: nat_d3)
+
+infer_tm( 20)
+
+check_tm( 19 :::::: nat_d3)
+
+infer_tm( 19)
+
+check_tm( 18 :::::: nat_d3)
+
+infer_tm( 18)
+
+check_tm( 17 :::::: nat_d3)
+
+infer_tm( 17)
+
+check_tm( 16 :::::: nat_d3)
+
+infer_tm( 16)
+
+check_tm( 15 :::::: nat_d3)
+
+infer_tm( 15)
+
+check_tm( 14 :::::: nat_d3)
+
+infer_tm( 14)
+
+check_tm( 13 :::::: nat_d3)
+
+infer_tm( 13)
+
+check_tm( 12 :::::: nat_d3)
+
+infer_tm( 12)
+
+check_tm( 11 :::::: nat_d3)
+
+infer_tm( 11)
+
+check_tm( 10 :::::: nat_d3)
+
+infer_tm( 10)
+
+check_tm( 9 :::::: nat_d3)
+
+infer_tm( 9)
+
+check_tm( 8 :::::: nat_d3)
+
+infer_tm( 8)
+
+check_tm( 7 :::::: nat_d3)
+
+infer_tm( 7)
+
+check_tm( 6 :::::: nat_d3)
+
+infer_tm( 6)
+
+check_tm( 5 :::::: nat_d3)
+
+infer_tm( 5)
+
+check_tm( 4 :::::: nat_d3)
+
+infer_tm( 4)
+
+check_tm( 3 :::::: nat_d3)
+
+infer_tm( 3)
+
+check_tm( 2 :::::: nat_d3)
+
+infer_tm( 2)
+
+check_tm( 1 :::::: nat_d3)
+
+infer_tm( 1)
+
+check_tm( O_c4 :::::: nat_d3)
+
+infer_tm( O_c4)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( ascii_d4)
+
+infer_tm( U)
+
+check_tm( 'A' :::::: ascii_d4)
+
+infer_tm( 'A')
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm( ascii_d4)
+
+infer_tm( U)
+
+assert_equal( ascii_d4 :::::: ascii_d4)
+
+infer_tm( ascii_d4)
+
+infer_tm( U)
+
+check_tm( '{' :::::: ascii_d4)
+
+infer_tm( '{')
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( false_c3 :::::: bool_d2)
+
+infer_tm( false_c3)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+check_tm( true_c2 :::::: bool_d2)
+
+infer_tm( true_c2)
+
+infer_tm( bool_d2)
+
+infer_tm( U)
+
+assert_equal( bool_d2 :::::: bool_d2)
+
+infer_tm( ascii_d4)
+
+infer_tm( U)
+
+assert_equal( ascii_d4 :::::: ascii_d4)
+
+infer_tm( (list_d6 ??40))
+
+check_tm( ??40 :::::: U)
+
+infer_tm( U)
+
+check_tm( (cons_c10 1 (cons_c10 2 (cons_c10 3 nil_c9))) ::::::
+  (list_d6 ??40))
+
+infer_tm( (cons_c10 1 (cons_c10 2 (cons_c10 3 nil_c9))))
+
+check_tm( ??44 :::::: U)
+
+check_tm( 1 :::::: ??44)
+
+infer_tm( 1)
+
+check_tm( O_c4 :::::: nat_d3)
+
+infer_tm( O_c4)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( ??44 :::::: nat_d3)
+
+check_tm( (cons_c10 2 (cons_c10 3 nil_c9)) :::::: (list_d6 ??44))
+
+infer_tm( (cons_c10 2 (cons_c10 3 nil_c9)))
+
+check_tm( ??43 :::::: U)
+
+check_tm( 2 :::::: ??43)
+
+infer_tm( 2)
+
+check_tm( 1 :::::: nat_d3)
+
+infer_tm( 1)
+
+check_tm( O_c4 :::::: nat_d3)
+
+infer_tm( O_c4)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( ??43 :::::: nat_d3)
+
+check_tm( (cons_c10 3 nil_c9) :::::: (list_d6 ??43))
+
+infer_tm( (cons_c10 3 nil_c9))
+
+check_tm( ??42 :::::: U)
+
+check_tm( 3 :::::: ??42)
+
+infer_tm( 3)
+
+check_tm( 2 :::::: nat_d3)
+
+infer_tm( 2)
+
+check_tm( 1 :::::: nat_d3)
+
+infer_tm( 1)
+
+check_tm( O_c4 :::::: nat_d3)
+
+infer_tm( O_c4)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( ??42 :::::: nat_d3)
+
+check_tm( nil_c9 :::::: (list_d6 ??42))
+
+infer_tm( nil_c9)
+
+check_tm( ??41 :::::: U)
+
+infer_tm( (list_d6 ??41))
+
+check_tm( ??41 :::::: U)
+
+infer_tm( U)
+
+assert_equal( (list_d6 ??42) :::::: (list_d6 ??41))
+
+infer_tm( (list_d6 ??42))
+
+check_tm( ??42 :::::: U)
+
+infer_tm( U)
+
+assert_equal( (list_d6 ??43) :::::: (list_d6 ??42))
+
+infer_tm( (list_d6 ??43))
+
+check_tm( ??43 :::::: U)
+
+infer_tm( U)
+
+assert_equal( (list_d6 ??44) :::::: (list_d6 ??43))
+
+infer_tm( (list_d6 ??44))
+
+check_tm( ??44 :::::: U)
+
+infer_tm( U)
+
+assert_equal( (list_d6 ??40) :::::: (list_d6 ??44))
+
+infer_tm(
+  ∀ (A_v2872 : U) →
+    ∀ (m_v2873 : A_v2872) →
+      ∀ (n_v2874 : A_v2872) →
+        ∀ (e_v2875 : m_v2873 ≡ n_v2874) → n_v2874 ≡ m_v2873)
+
+infer_tm( U)
+
+infer_tm(
+  ∀ (m_v2877 : A_v2876) →
+    ∀ (n_v2878 : A_v2876) →
+      ∀ (e_v2879 : m_v2877 ≡ n_v2878) → n_v2878 ≡ m_v2877)
+
+infer_tm( A_v2876)
+
+infer_tm(
+  ∀ (n_v2881 : A_v2876) →
+    ∀ (e_v2882 : m_v2880 ≡ n_v2881) → n_v2881 ≡ m_v2880)
+
+infer_tm( A_v2876)
+
+infer_tm( ∀ (e_v2884 : m_v2880 ≡ n_v2883) → n_v2883 ≡ m_v2880)
+
+infer_tm( m_v2880 ≡ n_v2883)
+
+check_tm( m_v2880 :::::: ??45)
+
+infer_tm( m_v2880)
+
+assert_equal( ??45 :::::: A_v2876)
+
+check_tm( n_v2883 :::::: ??45)
+
+infer_tm( n_v2883)
+
+assert_equal( ??45 :::::: A_v2876)
+
+infer_tm( n_v2883 ≡ m_v2880)
+
+check_tm( n_v2883 :::::: ??46)
+
+infer_tm( n_v2883)
+
+assert_equal( ??46 :::::: A_v2876)
+
+check_tm( m_v2880 :::::: ??46)
+
+infer_tm( m_v2880)
+
+assert_equal( ??46 :::::: A_v2876)
+
+check_tm(
+  fn A_v2886 m_v2887 n_v2888 e_v2889 ⇒
+    rew [x_v2890, __v2891 ⇒ x_v2890 ≡ m_v2887] e_v2889 in refl ??47
+::::::
+  ∀ (A_v2892 : U) →
+    ∀ (m_v2893 : A_v2892) →
+      ∀ (n_v2894 : A_v2892) →
+        ∀ (e_v2895 : m_v2893 ≡ n_v2894) → n_v2894 ≡ m_v2893)
+
+check_tm(
+  fn m_v2913 n_v2914 e_v2915 ⇒
+    rew [x_v2916, __v2917 ⇒ x_v2916 ≡ m_v2913] e_v2915 in refl ??47
+::::::
+  ∀ (m_v2918 : A_v2912) →
+    ∀ (n_v2919 : A_v2912) → m_v2918 ≡ n_v2919 → n_v2919 ≡ m_v2918)
+
+check_tm(
+  fn n_v2934 e_v2935 ⇒
+    rew [x_v2936, __v2937 ⇒ x_v2936 ≡ m_v2933] e_v2935 in refl ??47
+::::::
+  ∀ (n_v2938 : A_v2912) → m_v2933 ≡ n_v2938 → n_v2938 ≡ m_v2933)
+
+check_tm(
+  fn e_v2950 ⇒
+    rew [x_v2951, __v2952 ⇒ x_v2951 ≡ m_v2933] e_v2950 in refl ??47
+:::::: m_v2933 ≡ n_v2949 → n_v2949 ≡ m_v2933)
+
+check_tm( rew [x_v2962, __v2963 ⇒ x_v2962 ≡ m_v2933] e_v2961 in refl ??47
+:::::: n_v2949 ≡ m_v2933)
+
+infer_tm(
+  rew [x_v2964, __v2965 ⇒ x_v2964 ≡ m_v2933] e_v2961 in refl ??47)
+
+infer_tm( e_v2961)
+
+infer_tm( x_v2966 ≡ m_v2933)
+
+check_tm( x_v2966 :::::: ??48)
+
+infer_tm( x_v2966)
+
+assert_equal( ??48 :::::: A_v2912)
+
+check_tm( m_v2933 :::::: ??48)
+
+infer_tm( m_v2933)
+
+assert_equal( ??48 :::::: A_v2912)
+
+check_tm( refl ??47 :::::: m_v2933 ≡ m_v2933)
+
+infer_tm( refl ??47)
+
+infer_tm( ??47)
+
+assert_equal( m_v2933 ≡ m_v2933 :::::: ??47 ≡ ??47)
+
+assert_equal( n_v2949 ≡ m_v2933 :::::: n_v2949 ≡ m_v2933)
+
+infer_tm(
+  ∀ (A_v3016 : U) →
+    ∀ (xs_v3017 : (list_d6 A_v3016)) →
+      ∀ (ys_v3018 : (list_d6 A_v3016)) →
+        (len_v106 ??49 (append_v124 ??50 xs_v3017 ys_v3018)) ≡
+          (addn_v15 (len_v106 ??51 xs_v3017) (len_v106 ??52 ys_v3018)))
+
+infer_tm( U)
+
+infer_tm(
+  ∀ (xs_v3020 : (list_d6 A_v3019)) →
+    ∀ (ys_v3021 : (list_d6 A_v3019)) →
+      (len_v106 ??49 (append_v124 ??50 xs_v3020 ys_v3021)) ≡
+        (addn_v15 (len_v106 ??51 xs_v3020) (len_v106 ??52 ys_v3021)))
+
+infer_tm( (list_d6 A_v3019))
+
+check_tm( A_v3019 :::::: U)
+
+infer_tm( A_v3019)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+infer_tm(
+  ∀ (ys_v3023 : (list_d6 A_v3019)) →
+    (len_v106 ??49 (append_v124 ??50 xs_v3022 ys_v3023)) ≡
+      (addn_v15 (len_v106 ??51 xs_v3022) (len_v106 ??52 ys_v3023)))
+
+infer_tm( (list_d6 A_v3019))
+
+check_tm( A_v3019 :::::: U)
+
+infer_tm( A_v3019)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+infer_tm(
+  (len_v106 ??49 (append_v124 ??50 xs_v3022 ys_v3024)) ≡
+    (addn_v15 (len_v106 ??51 xs_v3022) (len_v106 ??52 ys_v3024)))
+
+check_tm( (len_v106 ??49 (append_v124 ??50 xs_v3022 ys_v3024)) :::::: ??53)
+
+infer_tm( (len_v106 ??49 (append_v124 ??50 xs_v3022 ys_v3024)))
+
+infer_tm( (len_v106 ??49))
+
+infer_tm( len_v106)
+
+check_tm( ??49 :::::: U)
+
+check_tm( (append_v124 ??50 xs_v3022 ys_v3024) :::::: (list_d6 ??49))
+
+infer_tm( (append_v124 ??50 xs_v3022 ys_v3024))
+
+infer_tm( (append_v124 ??50 xs_v3022))
+
+infer_tm( (append_v124 ??50))
+
+infer_tm( append_v124)
+
+check_tm( ??50 :::::: U)
+
+check_tm( xs_v3022 :::::: (list_d6 ??50))
+
+infer_tm( xs_v3022)
+
+assert_equal( (list_d6 ??50) :::::: (list_d6 A_v3019))
+
+check_tm( ys_v3024 :::::: (list_d6 A_v3019))
+
+infer_tm( ys_v3024)
+
+assert_equal( (list_d6 A_v3019) :::::: (list_d6 A_v3019))
+
+assert_equal( (list_d6 ??49) :::::: (list_d6 A_v3019))
+
+assert_equal( ??53 :::::: (list_d6 ??49))
+
+check_tm( (addn_v15 (len_v106 ??51 xs_v3022) (len_v106 ??52 ys_v3024)) ::::::
+  ??53)
+
+infer_tm( (addn_v15 (len_v106 ??51 xs_v3022) (len_v106 ??52 ys_v3024)))
+
+infer_tm( (addn_v15 (len_v106 ??51 xs_v3022)))
+
+infer_tm( addn_v15)
+
+check_tm( (len_v106 ??51 xs_v3022) :::::: nat_d3)
+
+infer_tm( (len_v106 ??51 xs_v3022))
+
+infer_tm( (len_v106 ??51))
+
+infer_tm( len_v106)
+
+check_tm( ??51 :::::: U)
+
+check_tm( xs_v3022 :::::: (list_d6 ??51))
+
+infer_tm( xs_v3022)
+
+assert_equal( (list_d6 ??51) :::::: (list_d6 A_v3019))
+
+assert_equal( nat_d3 :::::: (list_d6 ??51))
+
+check_tm( (len_v106 ??52 ys_v3024) :::::: nat_d3)
+
+infer_tm( (len_v106 ??52 ys_v3024))
+
+infer_tm( (len_v106 ??52))
+
+infer_tm( len_v106)
+
+check_tm( ??52 :::::: U)
+
+check_tm( ys_v3024 :::::: (list_d6 ??52))
+
+infer_tm( ys_v3024)
+
+assert_equal( (list_d6 ??52) :::::: (list_d6 A_v3019))
+
+assert_equal( nat_d3 :::::: (list_d6 ??52))
+
+assert_equal( ??53 :::::: nat_d3)
+
+check_tm(
+  fix (append_len_v224 := append_len_v3116) ⇒
+    fn A_v3117 xs_v3118 ys_v3119 ⇒
+      match xs_v3118 as xs0_v3120 in
+        (len_v106 ??54 (append_v124 ??55 xs0_v3120 ys_v3119)) ≡
+          (addn_v15 (len_v106 ??56 xs0_v3120) (len_v106 ??57 ys_v3119)) with
+      | nil_c9  ⇒ refl ??59
+      | cons_c10 x_v3121 xs0_v3122 ⇒
+        rew [n_v3123, __v3124 ⇒
+          (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3122 ys_v3119))) ≡
+            (S_c5 n_v3123)]
+          (append_len_v3116 ??60 xs0_v3122 ys_v3119) in
+        refl ??61
+      end
+::::::
+  ∀ (A_v3125 : U) →
+    ∀ (xs_v3126 : (list_d6 A_v3125)) →
+      ∀ (ys_v3127 : (list_d6 A_v3125)) →
+        (len_v106 ??49 (append_v124 ??50 xs_v3126 ys_v3127)) ≡
+          (addn_v15 (len_v106 ??51 xs_v3126) (len_v106 ??52 ys_v3127)))
+
+check_tm(
+  fn A_v3129 xs_v3130 ys_v3131 ⇒
+    match xs_v3130 as xs0_v3132 in
+      (len_v106 ??54 (append_v124 ??55 xs0_v3132 ys_v3131)) ≡
+        (addn_v15 (len_v106 ??56 xs0_v3132) (len_v106 ??57 ys_v3131)) with
+    | nil_c9  ⇒ refl ??59
+    | cons_c10 x_v3133 xs0_v3134 ⇒
+      rew [n_v3135, __v3136 ⇒
+        (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3134 ys_v3131))) ≡
+          (S_c5 n_v3135)]
+        (append_len_v3128 ??60 xs0_v3134 ys_v3131) in
+      refl ??61
+    end
+::::::
+  ∀ (A_v3137 : U) →
+    ∀ (xs_v3138 : (list_d6 A_v3137)) →
+      ∀ (ys_v3139 : (list_d6 A_v3137)) →
+        (len_v106 ??49 (append_v124 ??50 xs_v3138 ys_v3139)) ≡
+          (addn_v15 (len_v106 ??51 xs_v3138) (len_v106 ??52 ys_v3139)))
+
+check_tm(
+  fn xs_v3153 ys_v3154 ⇒
+    match xs_v3153 as xs0_v3155 in
+      (len_v106 ??54 (append_v124 ??55 xs0_v3155 ys_v3154)) ≡
+        (addn_v15 (len_v106 ??56 xs0_v3155) (len_v106 ??57 ys_v3154)) with
+    | nil_c9  ⇒ refl ??59
+    | cons_c10 x_v3156 xs0_v3157 ⇒
+      rew [n_v3158, __v3159 ⇒
+        (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3157 ys_v3154))) ≡
+          (S_c5 n_v3158)]
+        (append_len_v3128 ??60 xs0_v3157 ys_v3154) in
+      refl ??61
+    end
+::::::
+  ∀ (xs_v3160 : (list_d6 A_v3152)) →
+    ∀ (ys_v3161 : (list_d6 A_v3152)) →
+      (len_v106 A_v3152 (append_v124 A_v3152 xs_v3160 ys_v3161)) ≡
+        (addn_v15 (len_v106 A_v3152 xs_v3160) (len_v106 A_v3152 ys_v3161)))
+
+check_tm(
+  fn ys_v3172 ⇒
+    match xs_v3171 as xs0_v3173 in
+      (len_v106 ??54 (append_v124 ??55 xs0_v3173 ys_v3172)) ≡
+        (addn_v15 (len_v106 ??56 xs0_v3173) (len_v106 ??57 ys_v3172)) with
+    | nil_c9  ⇒ refl ??59
+    | cons_c10 x_v3174 xs0_v3175 ⇒
+      rew [n_v3176, __v3177 ⇒
+        (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3175 ys_v3172))) ≡
+          (S_c5 n_v3176)]
+        (append_len_v3128 ??60 xs0_v3175 ys_v3172) in
+      refl ??61
+    end
+::::::
+  ∀ (ys_v3178 : (list_d6 A_v3152)) →
+    (len_v106 A_v3152 (append_v124 A_v3152 xs_v3171 ys_v3178)) ≡
+      (addn_v15 (len_v106 A_v3152 xs_v3171) (len_v106 A_v3152 ys_v3178)))
+
+check_tm(
+  match xs_v3171 as xs0_v3187 in
+    (len_v106 ??54 (append_v124 ??55 xs0_v3187 ys_v3186)) ≡
+      (addn_v15 (len_v106 ??56 xs0_v3187) (len_v106 ??57 ys_v3186)) with
+  | nil_c9  ⇒ refl ??59
+  | cons_c10 x_v3188 xs0_v3189 ⇒
+    rew [n_v3190, __v3191 ⇒
+      (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3189 ys_v3186))) ≡
+        (S_c5 n_v3190)]
+      (append_len_v3128 ??60 xs0_v3189 ys_v3186) in
+    refl ??61
+  end
+::::::
+  (len_v106 A_v3152 (append_v124 A_v3152 xs_v3171 ys_v3186)) ≡
+    (addn_v15 (len_v106 A_v3152 xs_v3171) (len_v106 A_v3152 ys_v3186)))
+
+infer_tm( xs_v3171)
+
+infer_tm(
+  (len_v106 ??54 (append_v124 ??55 xs_v3171 ys_v3186)) ≡
+    (addn_v15 (len_v106 ??56 xs_v3171) (len_v106 ??57 ys_v3186)))
+
+check_tm( (len_v106 ??54 (append_v124 ??55 xs_v3171 ys_v3186)) :::::: ??58)
+
+infer_tm( (len_v106 ??54 (append_v124 ??55 xs_v3171 ys_v3186)))
+
+infer_tm( (len_v106 ??54))
+
+infer_tm( len_v106)
+
+check_tm( ??54 :::::: U)
+
+check_tm( (append_v124 ??55 xs_v3171 ys_v3186) :::::: (list_d6 ??54))
+
+infer_tm( (append_v124 ??55 xs_v3171 ys_v3186))
+
+infer_tm( (append_v124 ??55 xs_v3171))
+
+infer_tm( (append_v124 ??55))
+
+infer_tm( append_v124)
+
+check_tm( ??55 :::::: U)
+
+check_tm( xs_v3171 :::::: (list_d6 ??55))
+
+infer_tm( xs_v3171)
+
+assert_equal( (list_d6 ??55) :::::: (list_d6 A_v3152))
+
+check_tm( ys_v3186 :::::: (list_d6 A_v3152))
+
+infer_tm( ys_v3186)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+assert_equal( (list_d6 ??54) :::::: (list_d6 A_v3152))
+
+assert_equal( ??58 :::::: (list_d6 ??54))
+
+check_tm( (addn_v15 (len_v106 ??56 xs_v3171) (len_v106 ??57 ys_v3186)) ::::::
+  ??58)
+
+infer_tm( (addn_v15 (len_v106 ??56 xs_v3171) (len_v106 ??57 ys_v3186)))
+
+infer_tm( (addn_v15 (len_v106 ??56 xs_v3171)))
+
+infer_tm( addn_v15)
+
+check_tm( (len_v106 ??56 xs_v3171) :::::: nat_d3)
+
+infer_tm( (len_v106 ??56 xs_v3171))
+
+infer_tm( (len_v106 ??56))
+
+infer_tm( len_v106)
+
+check_tm( ??56 :::::: U)
+
+check_tm( xs_v3171 :::::: (list_d6 ??56))
+
+infer_tm( xs_v3171)
+
+assert_equal( (list_d6 ??56) :::::: (list_d6 A_v3152))
+
+assert_equal( nat_d3 :::::: (list_d6 ??56))
+
+check_tm( (len_v106 ??57 ys_v3186) :::::: nat_d3)
+
+infer_tm( (len_v106 ??57 ys_v3186))
+
+infer_tm( (len_v106 ??57))
+
+infer_tm( len_v106)
+
+check_tm( ??57 :::::: U)
+
+check_tm( ys_v3186 :::::: (list_d6 ??57))
+
+infer_tm( ys_v3186)
+
+assert_equal( (list_d6 ??57) :::::: (list_d6 A_v3152))
+
+assert_equal( nat_d3 :::::: (list_d6 ??57))
+
+assert_equal( ??58 :::::: nat_d3)
+
+assert_equal(
+  (len_v106 A_v3152 (append_v124 A_v3152 xs_v3171 ys_v3186)) ≡
+    (addn_v15 (len_v106 A_v3152 xs_v3171) (len_v106 A_v3152 ys_v3186))
+::::::
+  (len_v106 ??54 (append_v124 ??55 xs_v3171 ys_v3186)) ≡
+    (addn_v15 (len_v106 ??56 xs_v3171) (len_v106 ??57 ys_v3186)))
+
+infer_tm(
+  (len_v106 ??54 (append_v124 ??55 nil_c9 ys_v3186)) ≡
+    (addn_v15 (len_v106 ??56 nil_c9) (len_v106 ??57 ys_v3186)))
+
+check_tm( (len_v106 ??54 (append_v124 ??55 nil_c9 ys_v3186)) :::::: ??58)
+
+infer_tm( (len_v106 ??54 (append_v124 ??55 nil_c9 ys_v3186)))
+
+infer_tm( (len_v106 ??54))
+
+infer_tm( len_v106)
+
+check_tm( ??54 :::::: U)
+
+check_tm( (append_v124 ??55 nil_c9 ys_v3186) :::::: (list_d6 A_v3152))
+
+infer_tm( (append_v124 ??55 nil_c9 ys_v3186))
+
+infer_tm( (append_v124 ??55 nil_c9))
+
+infer_tm( (append_v124 ??55))
+
+infer_tm( append_v124)
+
+check_tm( ??55 :::::: U)
+
+check_tm( nil_c9 :::::: (list_d6 A_v3152))
+
+infer_tm( nil_c9)
+
+check_tm( A_v3152 :::::: U)
+
+infer_tm( A_v3152)
+
+assert_equal( U :::::: U)
+
+infer_tm( (list_d6 A_v3152))
+
+check_tm( A_v3152 :::::: U)
+
+infer_tm( A_v3152)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+check_tm( ys_v3186 :::::: (list_d6 A_v3152))
+
+infer_tm( ys_v3186)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+assert_equal( ??58 :::::: (list_d6 A_v3152))
+
+check_tm( (addn_v15 (len_v106 ??56 nil_c9) (len_v106 ??57 ys_v3186)) ::::::
+  ??58)
+
+infer_tm( (addn_v15 (len_v106 ??56 nil_c9) (len_v106 ??57 ys_v3186)))
+
+infer_tm( (addn_v15 (len_v106 ??56 nil_c9)))
+
+infer_tm( addn_v15)
+
+check_tm( (len_v106 ??56 nil_c9) :::::: nat_d3)
+
+infer_tm( (len_v106 ??56 nil_c9))
+
+infer_tm( (len_v106 ??56))
+
+infer_tm( len_v106)
+
+check_tm( ??56 :::::: U)
+
+check_tm( nil_c9 :::::: (list_d6 A_v3152))
+
+infer_tm( nil_c9)
+
+check_tm( A_v3152 :::::: U)
+
+infer_tm( A_v3152)
+
+assert_equal( U :::::: U)
+
+infer_tm( (list_d6 A_v3152))
+
+check_tm( A_v3152 :::::: U)
+
+infer_tm( A_v3152)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+assert_equal( nat_d3 :::::: (list_d6 A_v3152))
+
+check_tm( (len_v106 ??57 ys_v3186) :::::: nat_d3)
+
+infer_tm( (len_v106 ??57 ys_v3186))
+
+infer_tm( (len_v106 ??57))
+
+infer_tm( len_v106)
+
+check_tm( ??57 :::::: U)
+
+check_tm( ys_v3186 :::::: (list_d6 A_v3152))
+
+infer_tm( ys_v3186)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+assert_equal( nat_d3 :::::: (list_d6 A_v3152))
+
+assert_equal( ??58 :::::: nat_d3)
+
+check_tm( refl ??59 ::::::
+  (len_v106 ??54 (append_v124 ??55 nil_c9 ys_v3186)) ≡
+    (addn_v15 (len_v106 ??56 nil_c9) (len_v106 ??57 ys_v3186)))
+
+infer_tm( refl ??59)
+
+infer_tm( ??59)
+
+assert_equal(
+  (len_v106 ??54 (append_v124 ??55 nil_c9 ys_v3186)) ≡
+    (addn_v15 (len_v106 ??56 nil_c9) (len_v106 ??57 ys_v3186))
+:::::: ??59 ≡ ??59)
+
+infer_tm(
+  (len_v106 ??54 (append_v124 ??55 (cons_c10 x_v3380 xs0_v3381) ys_v3186)) ≡
+    (addn_v15
+      (len_v106 ??56 (cons_c10 x_v3380 xs0_v3381)) (len_v106 ??57 ys_v3186)))
+
+check_tm(
+  (len_v106 ??54 (append_v124 ??55 (cons_c10 x_v3380 xs0_v3381) ys_v3186))
+:::::: ??58)
+
+infer_tm(
+  (len_v106 ??54 (append_v124 ??55 (cons_c10 x_v3380 xs0_v3381) ys_v3186)))
+
+infer_tm( (len_v106 ??54))
+
+infer_tm( len_v106)
+
+check_tm( ??54 :::::: U)
+
+check_tm( (append_v124 ??55 (cons_c10 x_v3380 xs0_v3381) ys_v3186) ::::::
+  (list_d6 A_v3152))
+
+infer_tm( (append_v124 ??55 (cons_c10 x_v3380 xs0_v3381) ys_v3186))
+
+infer_tm( (append_v124 ??55 (cons_c10 x_v3380 xs0_v3381)))
+
+infer_tm( (append_v124 ??55))
+
+infer_tm( append_v124)
+
+check_tm( ??55 :::::: U)
+
+check_tm( (cons_c10 x_v3380 xs0_v3381) :::::: (list_d6 A_v3152))
+
+infer_tm( (cons_c10 x_v3380 xs0_v3381))
+
+check_tm( A_v3152 :::::: U)
+
+infer_tm( A_v3152)
+
+assert_equal( U :::::: U)
+
+check_tm( x_v3380 :::::: A_v3152)
+
+infer_tm( x_v3380)
+
+assert_equal( A_v3152 :::::: (A_v3152 : U))
+
+check_tm( xs0_v3381 :::::: (list_d6 A_v3152))
+
+infer_tm( xs0_v3381)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 (A_v3152 : U)))
+
+infer_tm( (list_d6 A_v3152))
+
+check_tm( A_v3152 :::::: U)
+
+infer_tm( A_v3152)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+check_tm( ys_v3186 :::::: (list_d6 A_v3152))
+
+infer_tm( ys_v3186)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+assert_equal( ??58 :::::: (list_d6 A_v3152))
+
+check_tm(
+  (addn_v15
+    (len_v106 ??56 (cons_c10 x_v3380 xs0_v3381)) (len_v106 ??57 ys_v3186))
+:::::: ??58)
+
+infer_tm(
+  (addn_v15
+    (len_v106 ??56 (cons_c10 x_v3380 xs0_v3381)) (len_v106 ??57 ys_v3186)))
+
+infer_tm( (addn_v15 (len_v106 ??56 (cons_c10 x_v3380 xs0_v3381))))
+
+infer_tm( addn_v15)
+
+check_tm( (len_v106 ??56 (cons_c10 x_v3380 xs0_v3381)) :::::: nat_d3)
+
+infer_tm( (len_v106 ??56 (cons_c10 x_v3380 xs0_v3381)))
+
+infer_tm( (len_v106 ??56))
+
+infer_tm( len_v106)
+
+check_tm( ??56 :::::: U)
+
+check_tm( (cons_c10 x_v3380 xs0_v3381) :::::: (list_d6 A_v3152))
+
+infer_tm( (cons_c10 x_v3380 xs0_v3381))
+
+check_tm( A_v3152 :::::: U)
+
+infer_tm( A_v3152)
+
+assert_equal( U :::::: U)
+
+check_tm( x_v3380 :::::: A_v3152)
+
+infer_tm( x_v3380)
+
+assert_equal( A_v3152 :::::: (A_v3152 : U))
+
+check_tm( xs0_v3381 :::::: (list_d6 A_v3152))
+
+infer_tm( xs0_v3381)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 (A_v3152 : U)))
+
+infer_tm( (list_d6 A_v3152))
+
+check_tm( A_v3152 :::::: U)
+
+infer_tm( A_v3152)
+
+assert_equal( U :::::: U)
+
+infer_tm( U)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+assert_equal( nat_d3 :::::: (list_d6 A_v3152))
+
+check_tm( (len_v106 ??57 ys_v3186) :::::: nat_d3)
+
+infer_tm( (len_v106 ??57 ys_v3186))
+
+infer_tm( (len_v106 ??57))
+
+infer_tm( len_v106)
+
+check_tm( ??57 :::::: U)
+
+check_tm( ys_v3186 :::::: (list_d6 A_v3152))
+
+infer_tm( ys_v3186)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+assert_equal( nat_d3 :::::: (list_d6 A_v3152))
+
+assert_equal( ??58 :::::: nat_d3)
+
+check_tm(
+  rew [n_v3892, __v3893 ⇒
+    (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3381 ys_v3186))) ≡
+      (S_c5 n_v3892)]
+    (append_len_v3128 ??60 xs0_v3381 ys_v3186) in
+  refl ??61
+::::::
+  (len_v106 ??54 (append_v124 ??55 (cons_c10 x_v3380 xs0_v3381) ys_v3186)) ≡
+    (addn_v15
+      (len_v106 ??56 (cons_c10 x_v3380 xs0_v3381)) (len_v106 ??57 ys_v3186)))
+
+infer_tm(
+  rew [n_v3894, __v3895 ⇒
+    (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3381 ys_v3186))) ≡
+      (S_c5 n_v3894)]
+    (append_len_v3128 ??60 xs0_v3381 ys_v3186) in
+  refl ??61)
+
+infer_tm( (append_len_v3128 ??60 xs0_v3381 ys_v3186))
+
+infer_tm( (append_len_v3128 ??60 xs0_v3381))
+
+infer_tm( (append_len_v3128 ??60))
+
+infer_tm( append_len_v3128)
+
+check_tm( ??60 :::::: U)
+
+check_tm( xs0_v3381 :::::: (list_d6 ??60))
+
+infer_tm( xs0_v3381)
+
+assert_equal( (list_d6 ??60) :::::: (list_d6 (A_v3152 : U)))
+
+check_tm( ys_v3186 :::::: (list_d6 A_v3152))
+
+infer_tm( ys_v3186)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+infer_tm(
+  (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3381 ys_v3186))) ≡
+    (S_c5 n_v3896))
+
+check_tm( (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3381 ys_v3186))) ::::::
+  ??64)
+
+infer_tm( (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3381 ys_v3186))))
+
+check_tm( (len_v106 ??62 (append_v124 ??63 xs0_v3381 ys_v3186)) ::::::
+  nat_d3)
+
+infer_tm( (len_v106 ??62 (append_v124 ??63 xs0_v3381 ys_v3186)))
+
+infer_tm( (len_v106 ??62))
+
+infer_tm( len_v106)
+
+check_tm( ??62 :::::: U)
+
+check_tm( (append_v124 ??63 xs0_v3381 ys_v3186) :::::: (list_d6 ??62))
+
+infer_tm( (append_v124 ??63 xs0_v3381 ys_v3186))
+
+infer_tm( (append_v124 ??63 xs0_v3381))
+
+infer_tm( (append_v124 ??63))
+
+infer_tm( append_v124)
+
+check_tm( ??63 :::::: U)
+
+check_tm( xs0_v3381 :::::: (list_d6 ??63))
+
+infer_tm( xs0_v3381)
+
+assert_equal( (list_d6 ??63) :::::: (list_d6 (A_v3152 : U)))
+
+check_tm( ys_v3186 :::::: (list_d6 A_v3152))
+
+infer_tm( ys_v3186)
+
+assert_equal( (list_d6 A_v3152) :::::: (list_d6 A_v3152))
+
+assert_equal( (list_d6 ??62) :::::: (list_d6 A_v3152))
+
+assert_equal( nat_d3 :::::: (list_d6 ??62))
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( ??64 :::::: nat_d3)
+
+check_tm( (S_c5 n_v3896) :::::: ??64)
+
+infer_tm( (S_c5 n_v3896))
+
+check_tm( n_v3896 :::::: nat_d3)
+
+infer_tm( n_v3896)
+
+assert_equal( nat_d3 :::::: (list_d6 A_v3152))
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+assert_equal( ??64 :::::: nat_d3)
+
+check_tm( refl ??61 ::::::
+  (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3381 ys_v3186))) ≡
+    (S_c5 (len_v106 A_v3152 (append_v124 A_v3152 xs0_v3381 ys_v3186))))
+
+infer_tm( refl ??61)
+
+infer_tm( ??61)
+
+assert_equal(
+  (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3381 ys_v3186))) ≡
+    (S_c5 (len_v106 A_v3152 (append_v124 A_v3152 xs0_v3381 ys_v3186)))
+:::::: ??61 ≡ ??61)
+
+assert_equal(
+  (len_v106 ??54 (append_v124 ??55 (cons_c10 x_v3380 xs0_v3381) ys_v3186)) ≡
+    (addn_v15
+      (len_v106 ??56 (cons_c10 x_v3380 xs0_v3381)) (len_v106 ??57 ys_v3186))
+::::::
+  (S_c5 (len_v106 ??62 (append_v124 ??63 xs0_v3381 ys_v3186))) ≡
+    (S_c5
+      (addn_v15 (len_v106 A_v3152 xs0_v3381) (len_v106 A_v3152 ys_v3186))))
+
+infer_tm(
+  ∀ {A_v4453 : U} → ∀ {B_v4454 : L} → A_v4453 ⊗ B_v4454 → B_v4454)
+
+infer_tm( U)
+
+infer_tm( ∀ {B_v4458 : L} → A_v4457 ⊗ B_v4458 → B_v4458)
+
+infer_tm( L)
+
+infer_tm( A_v4457 ⊗ B_v4461 → B_v4461)
+
+infer_tm( A_v4457 ⊗ B_v4461)
+
+infer_tm( A_v4457)
+
+infer_tm( B_v4461)
+
+infer_tm( B_v4461)
+
+check_tm(
+  fn {A_v4467 B_v4468} m_v4469 ⇒
+    let __v4470 = m_v4469 in
+    match __v4470 as __v4471 in ??65 with
+    | ⟨__v4472, b_v4473⟩ ⇒ b_v4473
+    end
+::::::
+  ∀ {A_v4474 : U} → ∀ {B_v4475 : L} → A_v4474 ⊗ B_v4475 → B_v4475)
+
+check_tm(
+  fn {B_v4532} m_v4533 ⇒
+    let __v4534 = m_v4533 in
+    match __v4534 as __v4535 in ??65 with
+    | ⟨__v4536, b_v4537⟩ ⇒ b_v4537
+    end
+:::::: ∀ {B_v4538 : L} → A_v4531 ⊗ B_v4538 → B_v4538)
+
+check_tm(
+  fn m_v4591 ⇒
+    let __v4592 = m_v4591 in
+    match __v4592 as __v4593 in ??65 with
+    | ⟨__v4594, b_v4595⟩ ⇒ b_v4595
+    end
+:::::: A_v4531 ⊗ B_v4590 → B_v4590)
+
+check_tm(
+  let __v4645 = m_v4644 in
+  match __v4645 as __v4646 in ??65 with
+  | ⟨__v4647, b_v4648⟩ ⇒ b_v4648
+  end
+:::::: B_v4590)
+
+infer_tm( m_v4644)
+
+check_tm(
+  match __v4738 as __v4739 in ??65 with
+  | ⟨__v4740, b_v4741⟩ ⇒ b_v4741
+  end
+:::::: B_v4590)
+
+infer_tm( __v4738)
+
+infer_tm( ??65)
+
+assert_equal( B_v4590 :::::: ??65)
+
+infer_tm( ??65)
+
+check_tm( b_v4788 :::::: ??65)
+
+infer_tm( b_v4788)
+
+assert_equal( ??65 :::::: B_v4590)
+
+infer_tm(
+  ∀ (A_v4899 : L) →
+    ∀ (ls_v4900 : (llist_d7 A_v4899)) →
+      ls_v4900 ≡ (snd_v234 ??66 ??67 (llen_v113 ??68 ls_v4900)))
+
+infer_tm( L)
+
+infer_tm(
+  ∀ (ls_v4902 : (llist_d7 A_v4901)) →
+    ls_v4902 ≡ (snd_v234 ??66 ??67 (llen_v113 ??68 ls_v4902)))
+
+infer_tm( (llist_d7 A_v4901))
+
+check_tm( A_v4901 :::::: L)
+
+infer_tm( A_v4901)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+infer_tm( ls_v4903 ≡ (snd_v234 ??66 ??67 (llen_v113 ??68 ls_v4903)))
+
+check_tm( ls_v4903 :::::: ??69)
+
+infer_tm( ls_v4903)
+
+assert_equal( ??69 :::::: (llist_d7 A_v4901))
+
+check_tm( (snd_v234 ??66 ??67 (llen_v113 ??68 ls_v4903)) :::::: ??69)
+
+infer_tm( (snd_v234 ??66 ??67 (llen_v113 ??68 ls_v4903)))
+
+infer_tm( (snd_v234 ??66 ??67))
+
+infer_tm( (snd_v234 ??66))
+
+infer_tm( snd_v234)
+
+check_tm( ??66 :::::: U)
+
+check_tm( ??67 :::::: L)
+
+check_tm( (llen_v113 ??68 ls_v4903) :::::: ??66 ⊗ ??67)
+
+infer_tm( (llen_v113 ??68 ls_v4903))
+
+infer_tm( (llen_v113 ??68))
+
+infer_tm( llen_v113)
+
+check_tm( ??68 :::::: L)
+
+check_tm( ls_v4903 :::::: (llist_d7 ??68))
+
+infer_tm( ls_v4903)
+
+assert_equal( (llist_d7 ??68) :::::: (llist_d7 A_v4901))
+
+assert_equal( ??66 ⊗ ??67 :::::: nat_d3 ⊗ (llist_d7 ??68))
+
+assert_equal( ??69 :::::: ??67)
+
+check_tm(
+  fix (llen_id_v243 := llen_id_v5152) ⇒
+    fn A_v5153 ls_v5154 ⇒
+      match ls_v5154 as ls0_v5155 in
+        ls0_v5155 ≡ (snd_v234 ??70 ??71 (llen_v113 ??72 ls0_v5155)) with
+      | lnil_c11  ⇒ refl ??74
+      | lcons_c12 x_v5156 xs_v5157 ⇒
+        let p_v5158 = (llen_v113 ??75 xs_v5157) in
+        (match p_v5158 as p0_v5159 in
+           ∀ (__v5160 : (llen_v113 ??76 xs_v5157) ≡ p0_v5159) →
+             (lcons_c12 x_v5156 xs_v5157) ≡
+               (lcons_c12 x_v5156 (snd_v234 ??79 ??80 p0_v5159)) with
+         | ⟨a_v5161, b_v5162⟩ ⇒
+           (fn e0_v5163 ⇒
+              let H_v5164 =
+                rew [p0_v5165, __v5166 ⇒
+                  (snd_v234 ??83 ??84 p0_v5165) ≡ xs_v5157] e0_v5163 in
+                (llen_id_v5152 A_v5153 xs_v5157)
+              in
+              rew [l_v5167, __v5168 ⇒
+                (lcons_c12 x_v5156 xs_v5157) ≡ (lcons_c12 x_v5156 l_v5167)]
+                H_v5164 in
+              refl ??86
+             : ∀ (e0_v5169 : ??90) → ??91)
+         end refl ??92)
+      end
+::::::
+  ∀ (A_v5170 : L) →
+    ∀ (ls_v5171 : (llist_d7 A_v5170)) →
+      ls_v5171 ≡ (snd_v234 ??66 ??67 (llen_v113 ??68 ls_v5171)))
+
+check_tm(
+  fn A_v5173 ls_v5174 ⇒
+    match ls_v5174 as ls0_v5175 in
+      ls0_v5175 ≡ (snd_v234 ??70 ??71 (llen_v113 ??72 ls0_v5175)) with
+    | lnil_c11  ⇒ refl ??74
+    | lcons_c12 x_v5176 xs_v5177 ⇒
+      let p_v5178 = (llen_v113 ??75 xs_v5177) in
+      (match p_v5178 as p0_v5179 in
+         ∀ (__v5180 : (llen_v113 ??76 xs_v5177) ≡ p0_v5179) →
+           (lcons_c12 x_v5176 xs_v5177) ≡
+             (lcons_c12 x_v5176 (snd_v234 ??79 ??80 p0_v5179)) with
+       | ⟨a_v5181, b_v5182⟩ ⇒
+         (fn e0_v5183 ⇒
+            let H_v5184 =
+              rew [p0_v5185, __v5186 ⇒
+                (snd_v234 ??83 ??84 p0_v5185) ≡ xs_v5177] e0_v5183 in
+              (llen_id_v5172 A_v5173 xs_v5177)
+            in
+            rew [l_v5187, __v5188 ⇒
+              (lcons_c12 x_v5176 xs_v5177) ≡ (lcons_c12 x_v5176 l_v5187)]
+              H_v5184 in
+            refl ??86
+           : ∀ (e0_v5189 : ??90) → ??91)
+       end refl ??92)
+    end
+::::::
+  ∀ (A_v5190 : L) →
+    ∀ (ls_v5191 : (llist_d7 A_v5190)) →
+      ls_v5191 ≡ (snd_v234 ??66 ??67 (llen_v113 ??68 ls_v5191)))
+
+check_tm(
+  fn ls_v5243 ⇒
+    match ls_v5243 as ls0_v5244 in
+      ls0_v5244 ≡ (snd_v234 ??70 ??71 (llen_v113 ??72 ls0_v5244)) with
+    | lnil_c11  ⇒ refl ??74
+    | lcons_c12 x_v5245 xs_v5246 ⇒
+      let p_v5247 = (llen_v113 ??75 xs_v5246) in
+      (match p_v5247 as p0_v5248 in
+         ∀ (__v5249 : (llen_v113 ??76 xs_v5246) ≡ p0_v5248) →
+           (lcons_c12 x_v5245 xs_v5246) ≡
+             (lcons_c12 x_v5245 (snd_v234 ??79 ??80 p0_v5248)) with
+       | ⟨a_v5250, b_v5251⟩ ⇒
+         (fn e0_v5252 ⇒
+            let H_v5253 =
+              rew [p0_v5254, __v5255 ⇒
+                (snd_v234 ??83 ??84 p0_v5254) ≡ xs_v5246] e0_v5252 in
+              (llen_id_v5172 A_v5242 xs_v5246)
+            in
+            rew [l_v5256, __v5257 ⇒
+              (lcons_c12 x_v5245 xs_v5246) ≡ (lcons_c12 x_v5245 l_v5256)]
+              H_v5253 in
+            refl ??86
+           : ∀ (e0_v5258 : ??90) → ??91)
+       end refl ??92)
+    end
+::::::
+  ∀ (ls_v5259 : (llist_d7 A_v5242)) →
+    ls_v5259 ≡
+      (snd_v234 nat_d3 (llist_d7 A_v5242) (llen_v113 A_v5242 ls_v5259)))
+
+check_tm(
+  match ls_v5308 as ls0_v5309 in
+    ls0_v5309 ≡ (snd_v234 ??70 ??71 (llen_v113 ??72 ls0_v5309)) with
+  | lnil_c11  ⇒ refl ??74
+  | lcons_c12 x_v5310 xs_v5311 ⇒
+    let p_v5312 = (llen_v113 ??75 xs_v5311) in
+    (match p_v5312 as p0_v5313 in
+       ∀ (__v5314 : (llen_v113 ??76 xs_v5311) ≡ p0_v5313) →
+         (lcons_c12 x_v5310 xs_v5311) ≡
+           (lcons_c12 x_v5310 (snd_v234 ??79 ??80 p0_v5313)) with
+     | ⟨a_v5315, b_v5316⟩ ⇒
+       (fn e0_v5317 ⇒
+          let H_v5318 =
+            rew [p0_v5319, __v5320 ⇒
+              (snd_v234 ??83 ??84 p0_v5319) ≡ xs_v5311] e0_v5317 in
+            (llen_id_v5172 A_v5242 xs_v5311)
+          in
+          rew [l_v5321, __v5322 ⇒
+            (lcons_c12 x_v5310 xs_v5311) ≡ (lcons_c12 x_v5310 l_v5321)]
+            H_v5318 in
+          refl ??86
+         : ∀ (e0_v5323 : ??90) → ??91)
+     end refl ??92)
+  end
+::::::
+  ls_v5308 ≡
+    (snd_v234 nat_d3 (llist_d7 A_v5242) (llen_v113 A_v5242 ls_v5308)))
+
+infer_tm( ls_v5308)
+
+infer_tm( ls_v5308 ≡ (snd_v234 ??70 ??71 (llen_v113 ??72 ls_v5308)))
+
+check_tm( ls_v5308 :::::: ??73)
+
+infer_tm( ls_v5308)
+
+assert_equal( ??73 :::::: (llist_d7 A_v5242))
+
+check_tm( (snd_v234 ??70 ??71 (llen_v113 ??72 ls_v5308)) :::::: ??73)
+
+infer_tm( (snd_v234 ??70 ??71 (llen_v113 ??72 ls_v5308)))
+
+infer_tm( (snd_v234 ??70 ??71))
+
+infer_tm( (snd_v234 ??70))
+
+infer_tm( snd_v234)
+
+check_tm( ??70 :::::: U)
+
+check_tm( ??71 :::::: L)
+
+check_tm( (llen_v113 ??72 ls_v5308) :::::: ??70 ⊗ ??71)
+
+infer_tm( (llen_v113 ??72 ls_v5308))
+
+infer_tm( (llen_v113 ??72))
+
+infer_tm( llen_v113)
+
+check_tm( ??72 :::::: L)
+
+check_tm( ls_v5308 :::::: (llist_d7 ??72))
+
+infer_tm( ls_v5308)
+
+assert_equal( (llist_d7 ??72) :::::: (llist_d7 A_v5242))
+
+assert_equal( ??70 ⊗ ??71 :::::: nat_d3 ⊗ (llist_d7 ??72))
+
+assert_equal( ??73 :::::: ??71)
+
+assert_equal(
+  ls_v5308 ≡
+    (snd_v234 nat_d3 (llist_d7 A_v5242) (llen_v113 A_v5242 ls_v5308))
+:::::: ls_v5308 ≡ (snd_v234 ??70 ??71 (llen_v113 ??72 ls_v5308)))
+
+infer_tm( lnil_c11 ≡ (snd_v234 ??70 ??71 (llen_v113 ??72 lnil_c11)))
+
+check_tm( lnil_c11 :::::: ??73)
+
+infer_tm( lnil_c11)
+
+check_tm( A_v5242 :::::: L)
+
+infer_tm( A_v5242)
+
+assert_equal( L :::::: L)
+
+infer_tm( (llist_d7 A_v5242))
+
+check_tm( A_v5242 :::::: L)
+
+infer_tm( A_v5242)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+assert_equal( ??73 :::::: (llist_d7 A_v5242))
+
+check_tm( (snd_v234 ??70 ??71 (llen_v113 ??72 lnil_c11)) :::::: ??73)
+
+infer_tm( (snd_v234 ??70 ??71 (llen_v113 ??72 lnil_c11)))
+
+infer_tm( (snd_v234 ??70 ??71))
+
+infer_tm( (snd_v234 ??70))
+
+infer_tm( snd_v234)
+
+check_tm( ??70 :::::: U)
+
+check_tm( ??71 :::::: L)
+
+check_tm( (llen_v113 ??72 lnil_c11) :::::: nat_d3 ⊗ (llist_d7 A_v5242))
+
+infer_tm( (llen_v113 ??72 lnil_c11))
+
+infer_tm( (llen_v113 ??72))
+
+infer_tm( llen_v113)
+
+check_tm( ??72 :::::: L)
+
+check_tm( lnil_c11 :::::: (llist_d7 A_v5242))
+
+infer_tm( lnil_c11)
+
+check_tm( A_v5242 :::::: L)
+
+infer_tm( A_v5242)
+
+assert_equal( L :::::: L)
+
+infer_tm( (llist_d7 A_v5242))
+
+check_tm( A_v5242 :::::: L)
+
+infer_tm( A_v5242)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+assert_equal( (llist_d7 A_v5242) :::::: (llist_d7 A_v5242))
+
+assert_equal( nat_d3 ⊗ (llist_d7 A_v5242) ::::::
+  nat_d3 ⊗ (llist_d7 A_v5242))
+
+assert_equal( ??73 :::::: (llist_d7 A_v5242))
+
+check_tm( refl ??74 ::::::
+  lnil_c11 ≡ (snd_v234 ??70 ??71 (llen_v113 ??72 lnil_c11)))
+
+infer_tm( refl ??74)
+
+infer_tm( ??74)
+
+assert_equal( lnil_c11 ≡ (snd_v234 ??70 ??71 (llen_v113 ??72 lnil_c11))
+:::::: ??74 ≡ ??74)
+
+infer_tm(
+  (lcons_c12 x_v5920 xs_v5921) ≡
+    (snd_v234 ??70 ??71 (llen_v113 ??72 (lcons_c12 x_v5920 xs_v5921))))
+
+check_tm( (lcons_c12 x_v5920 xs_v5921) :::::: ??73)
+
+infer_tm( (lcons_c12 x_v5920 xs_v5921))
+
+check_tm( A_v5242 :::::: L)
+
+infer_tm( A_v5242)
+
+assert_equal( L :::::: L)
+
+check_tm( x_v5920 :::::: A_v5242)
+
+infer_tm( x_v5920)
+
+assert_equal( A_v5242 :::::: (A_v5242 : L))
+
+check_tm( xs_v5921 :::::: (llist_d7 A_v5242))
+
+infer_tm( xs_v5921)
+
+assert_equal( (llist_d7 A_v5242) :::::: (llist_d7 (A_v5242 : L)))
+
+infer_tm( (llist_d7 A_v5242))
+
+check_tm( A_v5242 :::::: L)
+
+infer_tm( A_v5242)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+assert_equal( ??73 :::::: (llist_d7 A_v5242))
+
+check_tm( (snd_v234 ??70 ??71 (llen_v113 ??72 (lcons_c12 x_v5920 xs_v5921)))
+:::::: ??73)
+
+infer_tm( (snd_v234 ??70 ??71 (llen_v113 ??72 (lcons_c12 x_v5920 xs_v5921))))
+
+infer_tm( (snd_v234 ??70 ??71))
+
+infer_tm( (snd_v234 ??70))
+
+infer_tm( snd_v234)
+
+check_tm( ??70 :::::: U)
+
+check_tm( ??71 :::::: L)
+
+check_tm( (llen_v113 ??72 (lcons_c12 x_v5920 xs_v5921)) ::::::
+  nat_d3 ⊗ (llist_d7 A_v5242))
+
+infer_tm( (llen_v113 ??72 (lcons_c12 x_v5920 xs_v5921)))
+
+infer_tm( (llen_v113 ??72))
+
+infer_tm( llen_v113)
+
+check_tm( ??72 :::::: L)
+
+check_tm( (lcons_c12 x_v5920 xs_v5921) :::::: (llist_d7 A_v5242))
+
+infer_tm( (lcons_c12 x_v5920 xs_v5921))
+
+check_tm( A_v5242 :::::: L)
+
+infer_tm( A_v5242)
+
+assert_equal( L :::::: L)
+
+check_tm( x_v5920 :::::: A_v5242)
+
+infer_tm( x_v5920)
+
+assert_equal( A_v5242 :::::: (A_v5242 : L))
+
+check_tm( xs_v5921 :::::: (llist_d7 A_v5242))
+
+infer_tm( xs_v5921)
+
+assert_equal( (llist_d7 A_v5242) :::::: (llist_d7 (A_v5242 : L)))
+
+infer_tm( (llist_d7 A_v5242))
+
+check_tm( A_v5242 :::::: L)
+
+infer_tm( A_v5242)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+assert_equal( (llist_d7 A_v5242) :::::: (llist_d7 A_v5242))
+
+assert_equal( nat_d3 ⊗ (llist_d7 A_v5242) ::::::
+  nat_d3 ⊗ (llist_d7 A_v5242))
+
+assert_equal( ??73 :::::: (llist_d7 A_v5242))
+
+check_tm(
+  let p_v6205 = (llen_v113 ??75 xs_v5921) in
+  (match p_v6205 as p0_v6206 in
+     ∀ (__v6207 : (llen_v113 ??76 xs_v5921) ≡ p0_v6206) →
+       (lcons_c12 x_v5920 xs_v5921) ≡
+         (lcons_c12 x_v5920 (snd_v234 ??79 ??80 p0_v6206)) with
+   | ⟨a_v6208, b_v6209⟩ ⇒
+     (fn e0_v6210 ⇒
+        let H_v6211 =
+          rew [p0_v6212, __v6213 ⇒
+            (snd_v234 ??83 ??84 p0_v6212) ≡ xs_v5921] e0_v6210 in
+          (llen_id_v5172 A_v5242 xs_v5921)
+        in
+        rew [l_v6214, __v6215 ⇒
+          (lcons_c12 x_v5920 xs_v5921) ≡ (lcons_c12 x_v5920 l_v6214)]
+          H_v6211 in
+        refl ??86
+       : ∀ (e0_v6216 : ??90) → ??91)
+   end refl ??92)
+::::::
+  (lcons_c12 x_v5920 xs_v5921) ≡
+    (snd_v234 ??70 ??71 (llen_v113 ??72 (lcons_c12 x_v5920 xs_v5921))))
+
+infer_tm( (llen_v113 ??75 xs_v5921))
+
+infer_tm( (llen_v113 ??75))
+
+infer_tm( llen_v113)
+
+check_tm( ??75 :::::: L)
+
+check_tm( xs_v5921 :::::: (llist_d7 ??75))
+
+infer_tm( xs_v5921)
+
+assert_equal( (llist_d7 ??75) :::::: (llist_d7 (A_v5242 : L)))
+
+check_tm(
+  (match p_v6427 as p0_v6428 in
+     ∀ (__v6429 : (llen_v113 ??76 xs_v5921) ≡ p0_v6428) →
+       (lcons_c12 x_v5920 xs_v5921) ≡
+         (lcons_c12 x_v5920 (snd_v234 ??79 ??80 p0_v6428)) with
+   | ⟨a_v6430, b_v6431⟩ ⇒
+     (fn e0_v6432 ⇒
+        let H_v6433 =
+          rew [p0_v6434, __v6435 ⇒
+            (snd_v234 ??83 ??84 p0_v6434) ≡ xs_v5921] e0_v6432 in
+          (llen_id_v5172 A_v5242 xs_v5921)
+        in
+        rew [l_v6436, __v6437 ⇒
+          (lcons_c12 x_v5920 xs_v5921) ≡ (lcons_c12 x_v5920 l_v6436)]
+          H_v6433 in
+        refl ??86
+       : ∀ (e0_v6438 : ??90) → ??91)
+   end refl ??92)
+::::::
+  (lcons_c12 x_v5920 xs_v5921) ≡
+    (snd_v234 ??70 ??71 (llen_v113 ??72 (lcons_c12 x_v5920 xs_v5921))))
+
+infer_tm(
+  (match p_v6427 as p0_v6439 in
+     ∀ (__v6440 : (llen_v113 ??76 xs_v5921) ≡ p0_v6439) →
+       (lcons_c12 x_v5920 xs_v5921) ≡
+         (lcons_c12 x_v5920 (snd_v234 ??79 ??80 p0_v6439)) with
+   | ⟨a_v6441, b_v6442⟩ ⇒
+     (fn e0_v6443 ⇒
+        let H_v6444 =
+          rew [p0_v6445, __v6446 ⇒
+            (snd_v234 ??83 ??84 p0_v6445) ≡ xs_v5921] e0_v6443 in
+          (llen_id_v5172 A_v5242 xs_v5921)
+        in
+        rew [l_v6447, __v6448 ⇒
+          (lcons_c12 x_v5920 xs_v5921) ≡ (lcons_c12 x_v5920 l_v6447)]
+          H_v6444 in
+        refl ??86
+       : ∀ (e0_v6449 : ??90) → ??91)
+   end refl ??92))
+
+infer_tm(
+  match p_v6427 as p0_v6450 in
+    ∀ (__v6451 : (llen_v113 ??76 xs_v5921) ≡ p0_v6450) →
+      (lcons_c12 x_v5920 xs_v5921) ≡
+        (lcons_c12 x_v5920 (snd_v234 ??79 ??80 p0_v6450)) with
+  | ⟨a_v6452, b_v6453⟩ ⇒
+    (fn e0_v6454 ⇒
+       let H_v6455 =
+         rew [p0_v6456, __v6457 ⇒
+           (snd_v234 ??83 ??84 p0_v6456) ≡ xs_v5921] e0_v6454 in
+         (llen_id_v5172 A_v5242 xs_v5921)
+       in
+       rew [l_v6458, __v6459 ⇒
+         (lcons_c12 x_v5920 xs_v5921) ≡ (lcons_c12 x_v5920 l_v6458)]
+         H_v6455 in
+       refl ??86
+      : ∀ (e0_v6460 : ??90) → ??91)
+  end)
+
+infer_tm( p_v6427)
+
+infer_tm(
+  ∀ (__v6514 :
+    (llen_v113 ??76 xs_v5921) ≡
+      (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242))) →
+    (lcons_c12 x_v5920 xs_v5921) ≡
+      (lcons_c12
+        x_v5920
+        (snd_v234
+          ??79 ??80 (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)))))
+
+infer_tm(
+  (llen_v113 ??76 xs_v5921) ≡
+    (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)))
+
+check_tm( (llen_v113 ??76 xs_v5921) :::::: ??77)
+
+infer_tm( (llen_v113 ??76 xs_v5921))
+
+infer_tm( (llen_v113 ??76))
+
+infer_tm( llen_v113)
+
+check_tm( ??76 :::::: L)
+
+check_tm( xs_v5921 :::::: (llist_d7 ??76))
+
+infer_tm( xs_v5921)
+
+assert_equal( (llist_d7 ??76) :::::: (llist_d7 (A_v5242 : L)))
+
+assert_equal( ??77 :::::: nat_d3 ⊗ (llist_d7 ??76))
+
+check_tm( (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)) ::::::
+  ??77)
+
+infer_tm( nat_d3 ⊗ (llist_d7 A_v5242))
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( (llist_d7 A_v5242))
+
+check_tm( A_v5242 :::::: L)
+
+infer_tm( A_v5242)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+assert_equal( nat_d3 ⊗ (llist_d7 A_v5242) :::::: ??77)
+
+check_tm( ⟨a_v6512, b_v6513⟩ :::::: nat_d3 ⊗ (llist_d7 A_v5242))
+
+check_tm( a_v6512 :::::: nat_d3)
+
+infer_tm( a_v6512)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( b_v6513 :::::: (llist_d7 A_v5242))
+
+infer_tm( b_v6513)
+
+assert_equal( (llist_d7 A_v5242) :::::: (llist_d7 A_v5242))
+
+infer_tm(
+  (lcons_c12 x_v5920 xs_v5921) ≡
+    (lcons_c12
+      x_v5920
+      (snd_v234
+        ??79 ??80 (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)))))
+
+check_tm( (lcons_c12 x_v5920 xs_v5921) :::::: ??82)
+
+infer_tm( (lcons_c12 x_v5920 xs_v5921))
+
+check_tm( ??78 :::::: L)
+
+check_tm( x_v5920 :::::: ??78)
+
+infer_tm( x_v5920)
+
+assert_equal( ??78 :::::: (A_v5242 : L))
+
+check_tm( xs_v5921 :::::: (llist_d7 ??78))
+
+infer_tm( xs_v5921)
+
+assert_equal( (llist_d7 ??78) :::::: (llist_d7 (A_v5242 : L)))
+
+infer_tm( (llist_d7 ??78))
+
+check_tm( ??78 :::::: L)
+
+infer_tm( L)
+
+assert_equal( ??82 :::::: (llist_d7 ??78))
+
+check_tm(
+  (lcons_c12
+    x_v5920
+    (snd_v234
+      ??79 ??80 (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242))))
+:::::: ??82)
+
+infer_tm(
+  (lcons_c12
+    x_v5920
+    (snd_v234
+      ??79 ??80 (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)))))
+
+check_tm( ??81 :::::: L)
+
+check_tm( x_v5920 :::::: ??81)
+
+infer_tm( x_v5920)
+
+assert_equal( ??81 :::::: (A_v5242 : L))
+
+check_tm(
+  (snd_v234
+    ??79 ??80 (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)))
+:::::: (llist_d7 ??81))
+
+infer_tm(
+  (snd_v234
+    ??79 ??80 (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242))))
+
+infer_tm( (snd_v234 ??79 ??80))
+
+infer_tm( (snd_v234 ??79))
+
+infer_tm( snd_v234)
+
+check_tm( ??79 :::::: U)
+
+check_tm( ??80 :::::: L)
+
+check_tm( (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)) ::::::
+  ??79 ⊗ ??80)
+
+infer_tm( nat_d3 ⊗ (llist_d7 A_v5242))
+
+infer_tm( nat_d3)
+
+infer_tm( U)
+
+infer_tm( (llist_d7 A_v5242))
+
+check_tm( A_v5242 :::::: L)
+
+infer_tm( A_v5242)
+
+assert_equal( L :::::: L)
+
+infer_tm( L)
+
+assert_equal( nat_d3 ⊗ (llist_d7 A_v5242) :::::: ??79 ⊗ ??80)
+
+check_tm( ⟨a_v6512, b_v6513⟩ :::::: nat_d3 ⊗ (llist_d7 A_v5242))
+
+check_tm( a_v6512 :::::: nat_d3)
+
+infer_tm( a_v6512)
+
+assert_equal( nat_d3 :::::: nat_d3)
+
+check_tm( b_v6513 :::::: (llist_d7 A_v5242))
+
+infer_tm( b_v6513)
+
+assert_equal( (llist_d7 A_v5242) :::::: (llist_d7 A_v5242))
+
+assert_equal( (llist_d7 ??81) :::::: ??80)
+
+infer_tm( (llist_d7 ??81))
+
+check_tm( ??81 :::::: L)
+
+infer_tm( L)
+
+assert_equal( ??82 :::::: (llist_d7 ??81))
+
+check_tm(
+  (fn e0_v7085 ⇒
+     let H_v7086 =
+       rew [p0_v7087, __v7088 ⇒ (snd_v234 ??83 ??84 p0_v7087) ≡ xs_v5921]
+         e0_v7085 in
+       (llen_id_v5172 A_v5242 xs_v5921)
+     in
+     rew [l_v7089, __v7090 ⇒
+       (lcons_c12 x_v5920 xs_v5921) ≡ (lcons_c12 x_v5920 l_v7089)]
+       H_v7086 in
+     refl ??86
+    : ∀ (e0_v7091 : ??90) → ??91)
+::::::
+  ∀ (__v7092 :
+    (llen_v113 ??76 xs_v5921) ≡
+      (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242))) →
+    (lcons_c12 x_v5920 xs_v5921) ≡
+      (lcons_c12
+        x_v5920
+        (snd_v234
+          ??79 ??80 (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)))))
+
+infer_tm( ∀ (e0_v7095 : ??90) → ??91)
+
+infer_tm( ??90)
+
+infer_tm( ??91)
+
+assert_equal( ∀ (e0_v7097 : ??90) → ??91 ::::::
+  ∀ (__v7098 :
+    (llen_v113 ??76 xs_v5921) ≡
+      (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242))) →
+    (lcons_c12 x_v5920 xs_v5921) ≡
+      (lcons_c12
+        x_v5920
+        (snd_v234
+          ??79 ??80 (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)))))
+
+check_tm(
+  fn e0_v7186 ⇒
+    let H_v7187 =
+      rew [p0_v7188, __v7189 ⇒ (snd_v234 ??83 ??84 p0_v7188) ≡ xs_v5921]
+        e0_v7186 in
+      (llen_id_v5172 A_v5242 xs_v5921)
+    in
+    rew [l_v7190, __v7191 ⇒
+      (lcons_c12 x_v5920 xs_v5921) ≡ (lcons_c12 x_v5920 l_v7190)]
+      H_v7187 in
+    refl ??86
+::::::
+  (llen_v113 A_v5242 xs_v5921) ≡
+    (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)) →
+    (lcons_c12 x_v5920 xs_v5921) ≡
+      (lcons_c12
+        x_v5920
+        (snd_v234
+          nat_d3 (llist_d7 A_v5242)
+          (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)))))
+
+check_tm(
+  let H_v7274 =
+    rew [p0_v7275, __v7276 ⇒ (snd_v234 ??83 ??84 p0_v7275) ≡ xs_v5921]
+      e0_v7273 in
+    (llen_id_v5172 A_v5242 xs_v5921)
+  in
+  rew [l_v7277, __v7278 ⇒
+    (lcons_c12 x_v5920 xs_v5921) ≡ (lcons_c12 x_v5920 l_v7277)] H_v7274 in
+  refl ??86
+::::::
+  (lcons_c12 x_v5920 xs_v5921) ≡
+    (lcons_c12
+      x_v5920
+      (snd_v234
+        nat_d3 (llist_d7 A_v5242)
+        (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)))))
+
+infer_tm(
+  rew [p0_v7280, __v7281 ⇒ (snd_v234 ??83 ??84 p0_v7280) ≡ xs_v5921]
+    e0_v7273 in
+  (llen_id_v5172 A_v5242 xs_v5921))
+
+infer_tm( e0_v7273)
+
+infer_tm( (snd_v234 ??83 ??84 p0_v7282) ≡ xs_v5921)
+
+check_tm( (snd_v234 ??83 ??84 p0_v7282) :::::: ??85)
+
+infer_tm( (snd_v234 ??83 ??84 p0_v7282))
+
+infer_tm( (snd_v234 ??83 ??84))
+
+infer_tm( (snd_v234 ??83))
+
+infer_tm( snd_v234)
+
+check_tm( ??83 :::::: U)
+
+check_tm( ??84 :::::: L)
+
+check_tm( p0_v7282 :::::: ??83 ⊗ ??84)
+
+infer_tm( p0_v7282)
+
+assert_equal( ??83 ⊗ ??84 :::::: nat_d3 ⊗ (llist_d7 A_v5242))
+
+assert_equal( ??85 :::::: ??84)
+
+check_tm( xs_v5921 :::::: ??85)
+
+infer_tm( xs_v5921)
+
+assert_equal( ??85 :::::: (llist_d7 (A_v5242 : L)))
+
+check_tm( (llen_id_v5172 A_v5242 xs_v5921) ::::::
+  (snd_v234 ??83 ??84 (llen_v113 A_v5242 xs_v5921)) ≡ xs_v5921)
+
+infer_tm( (llen_id_v5172 A_v5242 xs_v5921))
+
+infer_tm( (llen_id_v5172 A_v5242))
+
+infer_tm( llen_id_v5172)
+
+check_tm( A_v5242 :::::: L)
+
+infer_tm( A_v5242)
+
+assert_equal( L :::::: L)
+
+check_tm( xs_v5921 :::::: (llist_d7 A_v5242))
+
+infer_tm( xs_v5921)
+
+assert_equal( (llist_d7 A_v5242) :::::: (llist_d7 (A_v5242 : L)))
+
+assert_equal( (snd_v234 ??83 ??84 (llen_v113 A_v5242 xs_v5921)) ≡ xs_v5921
+::::::
+  xs_v5921 ≡
+    (snd_v234 nat_d3 (llist_d7 A_v5242) (llen_v113 A_v5242 xs_v5921)))
+
+check_tm(
+  rew [l_v7912, __v7913 ⇒
+    (lcons_c12 x_v5920 xs_v5921) ≡ (lcons_c12 x_v5920 l_v7912)] H_v7911 in
+  refl ??86
+::::::
+  (lcons_c12 x_v5920 xs_v5921) ≡
+    (lcons_c12
+      x_v5920
+      (snd_v234
+        nat_d3 (llist_d7 A_v5242)
+        (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)))))
+
+infer_tm(
+  rew [l_v7915, __v7916 ⇒
+    (lcons_c12 x_v5920 xs_v5921) ≡ (lcons_c12 x_v5920 l_v7915)] H_v7911 in
+  refl ??86)
+
+infer_tm( H_v7911)
+
+infer_tm( (lcons_c12 x_v5920 xs_v5921) ≡ (lcons_c12 x_v5920 l_v7917))
+
+check_tm( (lcons_c12 x_v5920 xs_v5921) :::::: ??89)
+
+infer_tm( (lcons_c12 x_v5920 xs_v5921))
+
+check_tm( ??87 :::::: L)
+
+check_tm( x_v5920 :::::: ??87)
+
+infer_tm( x_v5920)
+
+assert_equal( ??87 :::::: (A_v5242 : L))
+
+check_tm( xs_v5921 :::::: (llist_d7 ??87))
+
+infer_tm( xs_v5921)
+
+assert_equal( (llist_d7 ??87) :::::: (llist_d7 (A_v5242 : L)))
+
+infer_tm( (llist_d7 ??87))
+
+check_tm( ??87 :::::: L)
+
+infer_tm( L)
+
+assert_equal( ??89 :::::: (llist_d7 ??87))
+
+check_tm( (lcons_c12 x_v5920 l_v7917) :::::: ??89)
+
+infer_tm( (lcons_c12 x_v5920 l_v7917))
+
+check_tm( ??88 :::::: L)
+
+check_tm( x_v5920 :::::: ??88)
+
+infer_tm( x_v5920)
+
+assert_equal( ??88 :::::: (A_v5242 : L))
+
+check_tm( l_v7917 :::::: (llist_d7 ??88))
+
+infer_tm( l_v7917)
+
+assert_equal( (llist_d7 ??88) :::::: (llist_d7 (A_v5242 : L)))
+
+infer_tm( (llist_d7 ??88))
+
+check_tm( ??88 :::::: L)
+
+infer_tm( L)
+
+assert_equal( ??89 :::::: (llist_d7 ??88))
+
+check_tm( refl ??86 ::::::
+  (lcons_c12 x_v5920 xs_v5921) ≡
+    (lcons_c12
+      x_v5920
+      (snd_v234
+        nat_d3 (llist_d7 (A_v5242 : L))
+        (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242)))))
+
+infer_tm( refl ??86)
+
+infer_tm( ??86)
+
+assert_equal(
+  (lcons_c12 x_v5920 xs_v5921) ≡
+    (lcons_c12
+      x_v5920
+      (snd_v234
+        nat_d3 (llist_d7 (A_v5242 : L))
+        (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242))))
+:::::: ??86 ≡ ??86)
+
+assert_equal(
+  (lcons_c12 x_v5920 xs_v5921) ≡
+    (lcons_c12
+      x_v5920
+      (snd_v234
+        nat_d3 (llist_d7 A_v5242)
+        (⟨a_v6512, b_v6513⟩ : nat_d3 ⊗ (llist_d7 A_v5242))))
+:::::: (lcons_c12 x_v5920 xs_v5921) ≡ (lcons_c12 x_v5920 xs_v5921))
+
+check_tm( refl ??92 :::::: (llen_v113 A_v5242 xs_v5921) ≡ p_v6427)
+
+infer_tm( refl ??92)
+
+infer_tm( ??92)
+
+assert_equal( (llen_v113 A_v5242 xs_v5921) ≡ p_v6427 :::::: ??92 ≡ ??92)
+
+assert_equal(
+  (lcons_c12 x_v5920 xs_v5921) ≡
+    (snd_v234 ??70 ??71 (llen_v113 ??72 (lcons_c12 x_v5920 xs_v5921)))
+::::::
+  (lcons_c12 x_v5920 xs_v5921) ≡
+    (lcons_c12 x_v5920 (snd_v234 nat_d3 (llist_d7 A_v5242) p_v6427)))
+
+{
+  ??1 := bool_d2 : ??
+  ??2 := bool_d2 : ??
+  ??3 := bool_d2 : ??
+  ??4 := nat_d3 : ??
+  ??5 := nat_d3 : ??
+  ??6 := bool_d2 : ??
+  ??7 := bool_d2 : ??
+  ??8 := bool_d2 : ??
+  ??9 := bool_d2 : ??
+  ??10 := bool_d2 : ??
+  ??11 := bool_d2 : ??
+  ??12 := bool_d2 : ??
+  ??13 := bool_d2 : ??
+  ??14 := bool_d2 : ??
+  ??15 := bool_d2 : ??
+  ??16 := bool_d2 : ??
+  ??17 := bool_d2 : ??
+  ??18 := bool_d2 : ??
+  ??19 := string_d5 : ??
+  ??20 := nat_d3 : ??
+  ??21 := (list_d6 A_v8661) : ??
+  ??22 := A_v8677 : ??
+  ??23 := nat_d3 ⊗ (llist_d7 A_v8692) : ??
+  ??24 := A_v8708 : ??
+  ??25 := nat_d3 ⊗ (llist_d7 A_v8726) : ??
+  ??26 := A_v8746 : ??
+  ??27 := (list_d6 A_v8763) : ??
+  ??28 := A_v8782 : ??
+  ??29 := A_v8801 : ??
+  ??30 := (llist_d7 A_v8819) : ??
+  ??31 := A_v8839 : ??
+  ??32 := A_v8859 : ??
+  ??33 := (box_d8 B_v8878) : ??
+  ??34 := B_v8899 : ??
+  ??35 := A_v8919 : ??
+  ??36 := proto : ??
+  ??37 := proto : ??
+  ??38 := proto : ??
+  ??39 := IO string_d5 : ??
+  ??40 := nat_d3 : ??
+  ??41 := nat_d3 : ??
+  ??42 := nat_d3 : ??
+  ??43 := nat_d3 : ??
+  ??44 := nat_d3 : ??
+  ??45 := A_v9187 : ??
+  ??46 := A_v9223 : ??
+  ??47 := m_v9258 : ??
+  ??48 := A_v9297 : ??
+  ??49 := A_v9332 : ??
+  ??50 := A_v9368 : ??
+  ??51 := A_v9404 : ??
+  ??52 := A_v9440 : ??
+  ??53 := (list_d6 ??49) : ??
+  ??54 := A_v9513 : ??
+  ??55 := A_v9550 : ??
+  ??56 := A_v9587 : ??
+  ??57 := A_v9624 : ??
+  ??58 := (list_d6 ??54) : ??
+  ??59 := (len_v9718 A_v9697 (append_v9716 A_v9697 nil_c9 ys_v9695)) : ??
+  ??60 := A_v9735 : ??
+  ??61 := (S_c5 (len_v9794 ??62 (append_v9792 A_v9773 xs0_v9769 ys_v9771))) : ??
+  ??62 := A_v9813 : ??
+  ??63 := A_v9853 : ??
+  ??64 := (list_d6 A_v9893) : ??
+  ??65 := B_v9928 : ??
+  ??66 := nat_d3 : ??
+  ??67 := (llist_d7 A_v10002) : ??
+  ??68 := A_v10039 : ??
+  ??69 := (llist_d7 A_v10076) : ??
+  ??70 := nat_d3 : ??
+  ??71 := (llist_d7 A_v10152) : ??
+  ??72 := A_v10190 : ??
+  ??73 := (llist_d7 A_v10228) : ??
+  ??74 := lnil_c11 : ??
+  ??75 := A_v10304 : ??
+  ??76 := A_v10345 : ??
+  ??77 := nat_d3 ⊗ (llist_d7 A_v10386) : ??
+  ??78 := A_v10429 : ??
+  ??79 := nat_d3 : ??
+  ??80 := (llist_d7 A_v10513) : ??
+  ??81 := A_v10555 : ??
+  ??82 := (llist_d7 A_v10597) : ??
+  ??83 := nat_d3 : ??
+  ??84 := (llist_d7 (A_v10687 : L)) : ??
+  ??85 := (llist_d7 (A_v10732 : L)) : ??
+  ??86 := (lcons_c12 x_v10774 xs_v10773) : ??
+  ??87 := A_v10822 : ??
+  ??88 := A_v10868 : ??
+  ??89 := (llist_d7 A_v10914) : ??
+  ??90 := (llen_v10978 A_v10956 xs_v10953) ≡
+            (⟨a_v10951, b_v10950⟩ : nat_d3 ⊗ (llist_d7 A_v10956)) : ??
+  ??91 := (lcons_c12 x_v10998 xs_v10997) ≡
+            (lcons_c12
+              x_v10998
+              (snd_v11001
+                nat_d3 (llist_d7 A_v11000)
+                (⟨a_v10995, b_v10994⟩ : nat_d3 ⊗ (llist_d7 A_v11000)))) : ??
+  ??92 := (llen_v11063 A_v11041 xs_v11038) : ??
+  ??181 := A_v11080 : ??
+  ??182 := (list_d6 A_v11115) : ??
+  ??183 := (list_d6 A_v11154) : ??
+  ??186 := (llist_d7 A_v11190) : ??
+  ??189 := (llist_d7 A_v11235) : ??
+  ??190 := nat_d3 ⊗ (llist_d7 A_v11276) : ??
+  
+}
+
+inductive unit_d1 : U =
+| tt_c1 of : unit_d1
+
+inductive bool_d2 : U =
+| true_c2 of : bool_d2 | false_c3 of : bool_d2
+
+program andb_v0 : bool_d2 → bool_d2 → bool_d2 =
+  fn b1_v11990 b2_v11991 ⇒
+    match b1_v11990 as __v11992 in bool_d2 with
+    | true_c2  ⇒ b2_v11991 | false_c3  ⇒ false_c3
+    end
+
+program orb_v5 : bool_d2 → bool_d2 → bool_d2 =
+  fn b1_v11995 b2_v11996 ⇒
+    match b1_v11995 as __v11997 in bool_d2 with
+    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v11996
+    end
+
+program notb_v10 : bool_d2 → bool_d2 =
+  fn b_v11999 ⇒
+    match b_v11999 as __v12000 in bool_d2 with
+    | true_c2  ⇒ false_c3 | false_c3  ⇒ true_c2
+    end
+
+inductive nat_d3 : U =
+| O_c4 of : nat_d3 | S_c5 of (n_v12001 : nat_d3) : nat_d3
+
+program addn_v15 : nat_d3 → nat_d3 → nat_d3 =
+  fix (addn_v15 := addn_v12004) ⇒
+    fn x_v12005 y_v12006 ⇒
+      match x_v12005 as __v12007 in nat_d3 with
+      | O_c4  ⇒ y_v12006
+      | S_c5 x_v12008 ⇒ (S_c5 (addn_v12004 x_v12008 y_v12006))
+      end
+
+program muln_v21 : nat_d3 → nat_d3 → nat_d3 =
+  fix (muln_v21 := muln_v12011) ⇒
+    fn x_v12012 y_v12013 ⇒
+      match x_v12012 as __v12014 in nat_d3 with
+      | O_c4  ⇒ y_v12013
+      | S_c5 x_v12015 ⇒ (addn_v15 y_v12013 (muln_v12011 x_v12015 y_v12013))
+      end
+
+program eqn_v27 : nat_d3 → nat_d3 → bool_d2 =
+  fix (eqn_v27 := eqn_v12018) ⇒
+    fn x_v12019 y_v12020 ⇒
+      match x_v12019 as __v12021 in bool_d2 with
+      | O_c4  ⇒
+        match y_v12020 as __v12022 in bool_d2 with
+        | O_c4  ⇒ true_c2 | S_c5 __v12023 ⇒ false_c3
+        end
+      | S_c5 x_v12024 ⇒
+        match y_v12020 as __v12025 in bool_d2 with
+        | O_c4  ⇒ false_c3
+        | S_c5 y_v12026 ⇒ (eqn_v12018 x_v12024 y_v12026)
+        end
+      end
+
+program lten_v37 : nat_d3 → nat_d3 → bool_d2 =
+  fix (lten_v37 := lten_v12029) ⇒
+    fn x_v12030 y_v12031 ⇒
+      match x_v12030 as __v12032 in bool_d2 with
+      | O_c4  ⇒ true_c2
+      | S_c5 x_v12033 ⇒
+        match y_v12031 as __v12034 in bool_d2 with
+        | O_c4  ⇒ false_c3
+        | S_c5 y_v12035 ⇒ (lten_v12029 x_v12033 y_v12035)
+        end
+      end
+
+program gten_v45 : nat_d3 → nat_d3 → bool_d2 =
+  fix (gten_v45 := gten_v12038) ⇒
+    fn x_v12039 y_v12040 ⇒
+      match x_v12039 as __v12041 in bool_d2 with
+      | O_c4  ⇒
+        match y_v12040 as __v12042 in bool_d2 with
+        | O_c4  ⇒ true_c2 | S_c5 __v12043 ⇒ false_c3
+        end
+      | S_c5 x_v12044 ⇒
+        match y_v12040 as __v12045 in bool_d2 with
+        | O_c4  ⇒ true_c2
+        | S_c5 y_v12046 ⇒ (gten_v12038 x_v12044 y_v12046)
+        end
+      end
+
+logical ltn_v55 : nat_d3 → nat_d3 → bool_d2 =
+  fix (ltn_v55 := ltn_v12049) ⇒
+    fn x_v12050 y_v12051 ⇒
+      match x_v12050 as __v12052 in bool_d2 with
+      | O_c4  ⇒
+        match y_v12051 as __v12053 in bool_d2 with
+        | O_c4  ⇒ false_c3 | S_c5 y_v12054 ⇒ true_c2
+        end
+      | S_c5 x_v12055 ⇒
+        match y_v12051 as __v12056 in bool_d2 with
+        | O_c4  ⇒ false_c3
+        | S_c5 y_v12057 ⇒ (ltn_v12049 x_v12055 y_v12057)
+        end
+      end
+
+logical gtn_v65 : nat_d3 → nat_d3 → bool_d2 =
+  fix (gtn_v65 := gtn_v12060) ⇒
+    fn x_v12061 y_v12062 ⇒
+      match x_v12061 as __v12063 in bool_d2 with
+      | O_c4  ⇒ false_c3
+      | S_c5 x_v12064 ⇒
+        match y_v12062 as __v12065 in bool_d2 with
+        | O_c4  ⇒ true_c2
+        | S_c5 y_v12066 ⇒ (gtn_v12060 x_v12064 y_v12066)
+        end
+      end
+
+inductive ascii_d4 : U =
+| Ascii_c6 of
+    (b0_v12067 : bool_d2) (b1_v12068 : bool_d2) (b2_v12069 : bool_d2)
+    (b3_v12070 : bool_d2) (b4_v12071 : bool_d2) (b5_v12072 : bool_d2)
+    (b6_v12073 : bool_d2) (b7_v12074 : bool_d2) : ascii_d4
+
+inductive string_d5 : U =
+| EmptyString_c7 of : string_d5
+| String_c8 of (c_v12075 : ascii_d4) (s_v12076 : string_d5) : string_d5
+
+program cats_v83 : string_d5 → string_d5 → string_d5 =
+  fix (cats_v83 := cats_v12079) ⇒
+    fn s1_v12080 s2_v12081 ⇒
+      match s1_v12080 as __v12082 in string_d5 with
+      | EmptyString_c7  ⇒ s2_v12081
+      | String_c8 c_v12083 s1_v12084 ⇒
+        (String_c8 c_v12083 (cats_v12079 s1_v12084 s2_v12081))
+      end
+
+program strlen_v90 : string_d5 → nat_d3 =
+  fix (strlen_v90 := strlen_v12086) ⇒
+    fn s_v12087 ⇒
+      match s_v12087 as __v12088 in nat_d3 with
+      | EmptyString_c7  ⇒ O_c4
+      | String_c8 __v12089 s_v12090 ⇒ (S_c5 (strlen_v12086 s_v12090))
+      end
+
+inductive list_d6 (A_v12091 : U) : U =
+| nil_c9 of (A_v12092 : U) : (list_d6 A_v12092)
+| cons_c10 of
+    (A_v12093 : U) (hd_v12094 : A_v12093) (tl_v12095 : (list_d6 A_v12093))
+    : (list_d6 A_v12093)
+
+inductive llist_d7 (A_v12096 : L) : L =
+| lnil_c11 of (A_v12097 : L) : (llist_d7 A_v12097)
+| lcons_c12 of
+    (A_v12098 : L) (hd_v12099 : A_v12098) (tl_v12100 : (llist_d7 A_v12098))
+    : (llist_d7 A_v12098)
+
+program len_v106 :
+  ∀ {A_v12101 : U} → (list_d6 A_v12101) → (list_d6 A_v12101)
+=
+  fix (len_v106 := len_v12103) ⇒
+    fn {A_v12104} xs_v12105 ⇒
+      match xs_v12105 as __v12106 in (list_d6 A_v12104) with
+      | nil_c9  ⇒ O_c4
+      | cons_c10 __v12107 xs_v12108 ⇒
+        (S_c5 (len_v12103 A_v12104 xs_v12108))
+      end
+
+program llen_v113 :
+  ∀ {A_v12109 : L} →
+    (llist_d7 A_v12109) → nat_d3 ⊗ (llist_d7 A_v12109)
+=
+  fix (llen_v113 := llen_v12112) ⇒
+    fn {A_v12113} xs_v12114 ⇒
+      match xs_v12114 as __v12115 in nat_d3 ⊗ (llist_d7 A_v12113) with
+      | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
+      | lcons_c12 x_v12117 xs_v12118 ⇒
+        match (llen_v12112 A_v12113 xs_v12118) as __v12119 in
+          nat_d3 ⊗ (llist_d7 A_v12113) with
+        | ⟨n_v12121, xs_v12122⟩ ⇒
+          ⟨(S_c5 n_v12121), (lcons_c12 x_v12117 xs_v12122)⟩
+        end
+      end
+
+program append_v124 :
+  ∀ {A_v12123 : U} →
+    (list_d6 A_v12123) → (list_d6 A_v12123) → (list_d6 A_v12123)
+=
+  fix (append_v124 := append_v12126) ⇒
+    fn {A_v12127} xs_v12128 ys_v12129 ⇒
+      match xs_v12128 as __v12130 in (list_d6 A_v12127) with
+      | nil_c9  ⇒ ys_v12129
+      | cons_c10 x_v12131 xs_v12132 ⇒
+        (cons_c10 x_v12131 (append_v12126 A_v12127 xs_v12132 ys_v12129))
+      end
+
+program lappend_v132 :
+  ∀ {A_v12133 : L} →
+    (llist_d7 A_v12133) → (llist_d7 A_v12133) → (llist_d7 A_v12133)
+=
+  fix (lappend_v132 := lappend_v12136) ⇒
+    fn {A_v12137} xs_v12138 ys_v12139 ⇒
+      match xs_v12138 as __v12140 in (llist_d7 A_v12137) with
+      | lnil_c11  ⇒ ys_v12139
+      | lcons_c12 x_v12141 xs_v12142 ⇒
+        (lcons_c12 x_v12141 (lappend_v12136 A_v12137 xs_v12142 ys_v12139))
+      end
+
+inductive box_d8 (A_v12143 : U) : L =
+| Box_c13 of (A_v12144 : U) (a_v12145 : A_v12144) : (box_d8 A_v12144)
+
+program map_box_v143 :
+  ∀ {A_v12146 : U} →
+    ∀ {B_v12147 : U} →
+      (box_d8 A_v12146) → A_v12146 → B_v12147 → (box_d8 B_v12147)
+=
+  fn {A_v12151 B_v12152} m_v12153 f_v12154 ⇒
+    match m_v12153 as __v12155 in (box_d8 B_v12152) with
+    | Box_c13 a_v12156 ⇒ (Box_c13 (f_v12154 a_v12156))
+    end
+
+program unbox_v152 : ∀ {A_v12157 : U} → (box_d8 A_v12157) → A_v12157 =
+  fn {A_v12159} m_v12160 ⇒
+    match m_v12160 as __v12161 in A_v12159 with
+    | Box_c13 a_v12162 ⇒ a_v12162
+    end
+
+logical stdin_rec_v158 : unit_d1 → proto =
+  fix (stdin_rec_v158 := stdin_rec_v12164) ⇒
+    fn __v12165 ⇒
+      !(b_v12166 : bool_d2) ⇒
+        match b_v12166 as __v12167 in proto with
+        | true_c2  ⇒ ?(__v12168 : string_d5) ⇒ (stdin_rec_v12164 tt_c1)
+        | false_c3  ⇒ end
+        end
+
+logical stdout_rec_v164 : unit_d1 → proto =
+  fix (stdout_rec_v164 := stdout_rec_v12170) ⇒
+    fn __v12171 ⇒
+      !(b_v12172 : bool_d2) ⇒
+        match b_v12172 as __v12173 in proto with
+        | true_c2  ⇒ !(__v12174 : string_d5) ⇒ (stdout_rec_v12170 tt_c1)
+        | false_c3  ⇒ end
+        end
+
+logical stderr_rec_v170 : unit_d1 → proto =
+  fix (stderr_rec_v170 := stderr_rec_v12176) ⇒
+    fn __v12177 ⇒
+      !(b_v12178 : bool_d2) ⇒
+        match b_v12178 as __v12179 in proto with
+        | true_c2  ⇒ !(__v12180 : string_d5) ⇒ (stderr_rec_v12176 tt_c1)
+        | false_c3  ⇒ end
+        end
+
+logical stdin_t_v176 : proto = (stdin_rec_v158 tt_c1)
+
+logical stdout_t_v178 : proto = (stdout_rec_v164 tt_c1)
+
+logical stderr_t_v180 : proto = (stderr_rec_v170 tt_c1)
+
+program readline_v182 : unit_d1 → IO string_d5 =
+  fn __v12182 ⇒
+    let ch_v12183 ⇐ open stdin in
+    let ch_v12184 ⇐ (send ch_v12183 true_c2) in
+    let __v12185 ⇐ recv ch_v12184 in
+    match __v12185 as __v12186 in IO string_d5 with
+    | ⟨s_v12187, ch_v12188⟩ ⇒
+      let ch_v12189 ⇐ (send ch_v12188 false_c3) in
+      let __v12190 ⇐ close ch_v12189 in return s_v12187
+    end
+
+program print_v192 : string_d5 → IO unit_d1 =
+  fn s_v12192 ⇒
+    let ch_v12193 ⇐ open stdout in
+    let ch_v12194 ⇐ (send ch_v12193 true_c2) in
+    let ch_v12195 ⇐ (send ch_v12194 s_v12192) in
+    let ch_v12196 ⇐ (send ch_v12195 false_c3) in close ch_v12196
+
+program prerr_v199 : string_d5 → IO unit_d1 =
+  fn s_v12198 ⇒
+    let ch_v12199 ⇐ open stderr in
+    let ch_v12200 ⇐ (send ch_v12199 true_c2) in
+    let ch_v12201 ⇐ (send ch_v12200 s_v12198) in
+    let ch_v12202 ⇐ (send ch_v12201 false_c3) in close ch_v12202
+
+program test0_v206 : string_d5 = "hello\n"
+
+program test1_v208 : nat_d3 = 123
+
+program test2_v210 : ascii_d4 = 'A'
+
+program test3_v212 : ascii_d4 = '{'
+
+program test4_v214 : (list_d6 nat_d3) =
+  (cons_c10 1 (cons_c10 2 (cons_c10 3 nil_c9)))
+
+logical eq_symU_v216 :
+  ∀ (A_v12203 : U) →
+    ∀ (m_v12204 : A_v12203) →
+      ∀ (n_v12205 : A_v12203) →
+        m_v12204 ≡ n_v12205 → n_v12205 ≡ m_v12204
+=
+  fn A_v12207 m_v12208 n_v12209 e_v12210 ⇒
+    rew [x_v12211, __v12212 ⇒ x_v12211 ≡ m_v12208] e_v12210 in
+    refl m_v12208
+
+logical append_len_v224 :
+  ∀ (A_v12213 : U) →
+    ∀ (xs_v12214 : (list_d6 A_v12213)) →
+      ∀ (ys_v12215 : (list_d6 A_v12213)) →
+        (len_v106 A_v12213 (append_v124 A_v12213 xs_v12214 ys_v12215)) ≡
+          (addn_v15
+            (len_v106 A_v12213 xs_v12214) (len_v106 A_v12213 ys_v12215))
+=
+  fix (append_len_v224 := append_len_v12216) ⇒
+    fn A_v12217 xs_v12218 ys_v12219 ⇒
+      match xs_v12218 as xs0_v12220 in
+        (len_v106 A_v12217 (append_v124 A_v12217 xs0_v12220 ys_v12219)) ≡
+          (addn_v15
+            (len_v106 A_v12217 xs0_v12220) (len_v106 A_v12217 ys_v12219)) with
+      | nil_c9  ⇒
+        refl (len_v106 A_v12217 (append_v124 A_v12217 nil_c9 ys_v12219))
+      | cons_c10 x_v12221 xs0_v12222 ⇒
+        rew [n_v12223, __v12224 ⇒
+          (S_c5
+            (len_v106 A_v12217 (append_v124 A_v12217 xs0_v12222 ys_v12219))) ≡
+            (S_c5 n_v12223)]
+          (append_len_v12216 A_v12217 xs0_v12222 ys_v12219) in
+        refl (S_c5
+               (len_v106
+                 A_v12217 (append_v124 A_v12217 xs0_v12222 ys_v12219)))
+      end
+
+program snd_v234 :
+  ∀ {A_v12225 : U} →
+    ∀ {B_v12226 : L} → A_v12225 ⊗ B_v12226 → B_v12226
+=
+  fn {A_v12229 B_v12230} m_v12231 ⇒
+    let __v12232 = m_v12231 in
+    match __v12232 as __v12233 in B_v12230 with
+    | ⟨__v12234, b_v12235⟩ ⇒ b_v12235
+    end
+
+logical llen_id_v243 :
+  ∀ (A_v12236 : L) →
+    ∀ (ls_v12237 : (llist_d7 A_v12236)) →
+      ls_v12237 ≡
+        (snd_v234 nat_d3 (llist_d7 A_v12236) (llen_v113 A_v12236 ls_v12237))
+=
+  fix (llen_id_v243 := llen_id_v12238) ⇒
+    fn A_v12239 ls_v12240 ⇒
+      match ls_v12240 as ls0_v12241 in
+        ls0_v12241 ≡
+          (snd_v234
+            nat_d3 (llist_d7 A_v12239) (llen_v113 A_v12239 ls0_v12241)) with
+      | lnil_c11  ⇒ refl lnil_c11
+      | lcons_c12 x_v12242 xs_v12243 ⇒
+        let p_v12244 = (llen_v113 A_v12239 xs_v12243) in
+        (match p_v12244 as p0_v12245 in
+           (llen_v113 A_v12239 xs_v12243) ≡ p0_v12245 →
+             (lcons_c12 x_v12242 xs_v12243) ≡
+               (lcons_c12
+                 x_v12242 (snd_v234 nat_d3 (llist_d7 A_v12239) p0_v12245)) with
+         | ⟨a_v12247, b_v12248⟩ ⇒
+           (fn e0_v12249 ⇒
+              let H_v12250 =
+                rew [p0_v12251, __v12252 ⇒
+                  (snd_v234 nat_d3 (llist_d7 (A_v12239 : L)) p0_v12251) ≡
+                    xs_v12243]
+                  e0_v12249 in
+                (llen_id_v12238 A_v12239 xs_v12243)
+              in
+              rew [l_v12253, __v12254 ⇒
+                (lcons_c12 x_v12242 xs_v12243) ≡
+                  (lcons_c12 x_v12242 l_v12253)]
+                H_v12250 in
+              refl (lcons_c12 x_v12242 xs_v12243)
+             : (llen_v113 A_v12239 xs_v12243) ≡
+                 (⟨a_v12247, b_v12248⟩ : nat_d3 ⊗ (llist_d7 A_v12239)) →
+                 (lcons_c12 x_v12242 xs_v12243) ≡
+                   (lcons_c12
+                     x_v12242
+                     (snd_v234
+                       nat_d3 (llist_d7 A_v12239)
+                       (⟨a_v12247, b_v12248⟩
+                         : nat_d3 ⊗ (llist_d7 A_v12239)))))
+         end refl (llen_v113 A_v12239 xs_v12243))
+      end
+
+trans1e success--------------------------
+
