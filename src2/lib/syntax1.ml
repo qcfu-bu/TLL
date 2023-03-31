@@ -28,20 +28,19 @@ type tm =
   (* inference *)
   | Ann of tm * tm
   | Meta of M.t * tms
-  | Inst of tm var * sorts
   (* core *)
   | Type of sort
   | Var of tm var
+  | Const of tm var * sorts
   | Pi of rel * sort * tm * (tm, tm) binder
   | Lam of rel * sort * (tm, tm) binder
   | App of tm * tm
   | Let of rel * tm * (tm, tm) binder
-  | Fix of tm var * (tm, tm) binder
   (* data *)
   | Sigma of rel * sort * tm * (tm, tm) binder
   | Pair of rel * sort * tm * tm
-  | Data of D.t * tms
-  | Cons of C.t * tms * tms
+  | Data of D.t * sorts * tms
+  | Cons of C.t * sorts * tms * tms
   | Match of tm * (tm, tm) binder * cls
   (* equality *)
   | Eq of tm * tm * tm
@@ -71,15 +70,15 @@ and cl =
 and cls = cl list
 
 type dcl =
-  | DTm of rel * tm var * scheme
-  | DData of D.t * tm param * dconss
+  | DTm of rel * tm var * (tm * tm) scheme
+  | DData of D.t * tm param scheme * dconss
 
-and scheme =
-  | SBase of tm * tm
-  | SBind of (sort, scheme) binder
+and 'a scheme =
+  | SBase of 'a
+  | SBind of (sort, 'a scheme) binder
 
 and dcls = dcl list
-and dcons = DCons of C.t * tele param
+and dcons = DCons of C.t * tele param scheme
 and dconss = dcons list
 
 and 'a param =
@@ -138,22 +137,21 @@ let _Stderr = box Stderr
 (* inference *)
 let _Ann = box_apply2 (fun m a -> Ann (m, a))
 let _Meta x = box_apply (fun ms -> Meta (x, ms))
-let _Inst x = box_apply (fun ss -> Inst (x, ss))
 
 (* core *)
 let _Type = box_apply (fun s -> Type s)
 let _Var = box_var
+let _Const x = box_apply (fun ss -> Const (x, ss))
 let _Pi rel = box_apply3 (fun s a bnd -> Pi (rel, s, a, bnd))
 let _Lam rel = box_apply2 (fun s bnd -> Lam (rel, s, bnd))
 let _App = box_apply2 (fun m n -> App (m, n))
 let _Let rel = box_apply2 (fun m bnd -> Let (rel, m, bnd))
-let _Fix x = box_apply (fun bnd -> Fix (x, bnd))
 
 (* data *)
 let _Sigma rel = box_apply3 (fun s a bnd -> Sigma (rel, s, a, bnd))
 let _Pair rel = box_apply3 (fun s m n -> Pair (rel, s, m, n))
-let _Data d = box_apply (fun ms -> Data (d, ms))
-let _Cons c = box_apply2 (fun ms ns -> Cons (c, ms, ns))
+let _Data d = box_apply2 (fun ss ms -> Data (d, ss, ms))
+let _Cons c = box_apply3 (fun ss ms ns -> Cons (c, ss, ms, ns))
 let _Match = box_apply3 (fun m bnd cls -> Match (m, bnd, cls))
 
 (* equality *)
@@ -183,14 +181,14 @@ let _PCons c = box_apply (fun bnd -> PCons (c, bnd))
 
 (* dcl *)
 let _DTm rel x = box_apply (fun sch -> DTm (rel, x, sch))
-let _DData d = box_apply2 (fun ptm dconss -> DData (d, ptm, dconss))
+let _DData d = box_apply2 (fun sch dconss -> DData (d, sch, dconss))
 
 (* scheme *)
-let _SBase = box_apply2 (fun a m -> SBase (a, m))
-let _SBind = box_apply (fun bnd -> SBind bnd)
+let _SBase m = box_apply (fun m -> SBase m) m
+let _SBind bnd = box_apply (fun bnd -> SBind bnd) bnd
 
 (* dcons *)
-let _DCons c = box_apply (fun ptl -> DCons (c, ptl))
+let _DCons c = box_apply (fun sch -> DCons (c, sch))
 
 (* param *)
 let _PBase a = box_apply (fun a -> PBase a) a
@@ -213,29 +211,30 @@ let rec lift_tm = function
   | Meta (x, ms) ->
     let ms = List.map lift_tm ms in
     _Meta x (box_list ms)
-  | Inst (x, ss) ->
-    let ss = List.map lift_sort ss in
-    _Inst x (box_list ss)
   (* core *)
   | Type s -> _Type (lift_sort s)
   | Var x -> _Var x
+  | Const (x, ss) ->
+    let ss = List.map lift_sort ss in
+    _Const x (box_list ss)
   | Pi (rel, s, a, bnd) ->
     _Pi rel (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
   | Lam (rel, s, bnd) -> _Lam rel (lift_sort s) (box_binder lift_tm bnd)
   | App (m, n) -> _App (lift_tm m) (lift_tm n)
   | Let (rel, m, bnd) -> _Let rel (lift_tm m) (box_binder lift_tm bnd)
-  | Fix (x, bnd) -> _Fix x (box_binder lift_tm bnd)
   (* data *)
   | Sigma (rel, s, a, bnd) ->
     _Sigma rel (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
   | Pair (rel, s, m, n) -> _Pair rel (lift_sort s) (lift_tm m) (lift_tm n)
-  | Data (d, ms) ->
+  | Data (d, ss, ms) ->
+    let ss = List.map lift_sort ss in
     let ms = List.map lift_tm ms in
-    _Data d (box_list ms)
-  | Cons (c, ms, ns) ->
+    _Data d (box_list ss) (box_list ms)
+  | Cons (c, ss, ms, ns) ->
+    let ss = List.map lift_sort ss in
     let ms = List.map lift_tm ms in
     let ns = List.map lift_tm ns in
-    _Cons c (box_list ms) (box_list ns)
+    _Cons c (box_list ss) (box_list ms) (box_list ns)
   | Match (m, bnd, cls) ->
     let cls =
       List.map
@@ -273,17 +272,21 @@ let rec lift_tele = function
   | TBase a -> _TBase (lift_tm a)
   | TBind (rel, a, bnd) -> _TBind rel (lift_tm a) (box_binder lift_tele bnd)
 
-let rec lift_scheme = function
-  | SBase (a, m) -> _SBase (lift_tm a) (lift_tm m)
-  | SBind bnd -> _SBind (box_binder lift_scheme bnd)
+let rec lift_scheme lift = function
+  | SBase m -> _SBase (lift m)
+  | SBind bnd -> _SBind (box_binder (lift_scheme lift) bnd)
 
-let lift_dcons (DCons (c, ptl)) = _DCons c (lift_param lift_tele ptl)
+let lift_dcons (DCons (c, ptl)) =
+  _DCons c (lift_scheme (lift_param lift_tele) ptl)
+
 let lift_dconss dconss = box_list (List.map lift_dcons dconss)
 
 let lift_dcl = function
-  | DTm (rel, x, sch) -> _DTm rel x (lift_scheme sch)
-  | DData (d, ptm, dconss) ->
-    _DData d (lift_param lift_tm ptm) (lift_dconss dconss)
+  | DTm (rel, x, sch) ->
+    _DTm rel x
+      (lift_scheme (fun (a, m) -> box_pair (lift_tm a) (lift_tm m)) sch)
+  | DData (d, sch, dconss) ->
+    _DData d (lift_scheme (lift_param lift_tm) sch) (lift_dconss dconss)
 
 let lift_dcls dcls = box_list (List.map lift_dcl dcls)
 
@@ -301,3 +304,9 @@ let unApps m =
     | _ -> (m, ns)
   in
   aux m []
+
+let eq_sort s1 s2 =
+  match (s1, s2) with
+  | SVar x, SVar y -> eq_vars x y
+  | SMeta x, SMeta y -> M.equal x y
+  | _ -> s1 = s2

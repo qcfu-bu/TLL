@@ -575,17 +575,25 @@ let dcl_args :=
         match opt with
         | Some a -> ABind (rel, a, Binder (id, acc))
         | None -> ABind (rel, Id "_", Binder (id, acc)))
-      args (ABase (m, a)) }
+      args (ABase (a, m)) }
 
 let dcl_sargs :=
-  | FLQ; ids = identifier+; FRQ; { ids }
+  | FLQ; ~ = separated_nonempty_list(COMMA, identifier); FRQ; <>
   | { [] }
 
 let dcl_dtm :=
   | DCL_PROGRAM; id = identifier; sargs = dcl_sargs; args = dcl_args;
-    { DTm (R, id, sargs, args) }
+    { let sch =
+        List.fold_right (fun id acc ->
+          SBind (Binder (id, acc))) sargs (SBase args)
+      in
+      DTm (R, id, sch) }
   | DCL_LOGICAL; id = identifier; sargs = dcl_sargs; args = dcl_args;
-    { DTm (N, id, sargs, args) }
+    { let sch =
+        List.fold_right (fun id acc ->
+          SBind (Binder (id, acc))) sargs (SBase args)
+      in
+      DTm (N, id, sch) }
 
 let dcl_ptm :=
   | args = dcl_args1; COLON; b = tm; { (args, b) }
@@ -602,7 +610,7 @@ let dcl_dconss :=
   | ~ = dcl_dcons1*; <>
 
 let dcl_ddata :=
-  | DCL_INDUCTIVE; id = identifier; ptm = dcl_ptm; EQUAL;
+  | DCL_INDUCTIVE; id = identifier; sargs = dcl_sargs; ptm = dcl_ptm; EQUAL;
       dconss = dcl_dconss;
     { let pargs, b = ptm in
       let ptm = 
@@ -620,9 +628,17 @@ let dcl_ddata :=
             List.fold_right (fun (id, a) acc ->
               PBind (a, Binder (id, acc))) pargs (PBase tl)
           in
-          DCons (id, ptl)) dconss
+          let sch =
+            List.fold_right (fun id acc ->
+              SBind (Binder (id, acc))) sargs (SBase ptl)
+          in
+          DCons (id, sch)) dconss
       in
-      DData (id, ptm, dconss) }
+      let sch =
+        List.fold_right (fun id acc ->
+           SBind (Binder (id, acc))) sargs (SBase ptm)
+      in
+      DData (id, sch, dconss) }
 
 let dcl :=
   | ~ = dcl_dtm; <>

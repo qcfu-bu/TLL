@@ -6,11 +6,10 @@ open Syntax0
 
 type entry =
   | EVar of Syntax1.V.t
-  | EFix of Syntax1.V.t
-  | EInst of Syntax1.V.t * int
+  | EConst of Syntax1.V.t * int
   | ESVar of Syntax1.SV.t
-  | EData of D.t
-  | ECons of C.t * int
+  | EData of D.t * int
+  | ECons of C.t * int * int
 
 type nspc = (string * entry) list
 
@@ -30,20 +29,20 @@ let find_var s nspc =
   | Some (_, EVar x) -> Some x
   | _ -> None
 
-let find_inst s nspc =
+let find_const s nspc =
   let opt =
     List.find_opt
       (fun (k, entry) ->
         if s = k then
           match entry with
-          | EInst _ -> true
+          | EConst _ -> true
           | _ -> false
         else
           false)
       nspc
   in
   match opt with
-  | Some (_, EInst (c, i)) -> Some (c, i)
+  | Some (_, EConst (x, i)) -> Some (x, i)
   | _ -> None
 
 let find_svar s nspc =
@@ -75,7 +74,7 @@ let find_cons s nspc =
       nspc
   in
   match opt with
-  | Some (_, ECons (c, i)) -> Some (c, i)
+  | Some (_, ECons (c, i, j)) -> Some (c, i, j)
   | _ -> None
 
 let find_data s nspc =
@@ -91,7 +90,7 @@ let find_data s nspc =
       nspc
   in
   match opt with
-  | Some (_, EData d) -> Some d
+  | Some (_, EData (d, i)) -> Some (d, i)
   | _ -> None
 
 let trans_sort nspc = function
@@ -157,23 +156,25 @@ let rec trans_tm nspc = function
     let m = trans_tm nspc m in
     let a = trans_tm nspc a in
     Syntax1._Ann m a
-  | Inst (id, ss) -> (
-    match find_inst id nspc with
-    | Some (x, _) ->
-      let ss = List.map (trans_sort nspc) ss in
-      Syntax1.(_Inst x (box_list ss))
-    | _ -> failwith "trans_tm Inst")
   (* core *)
   | Type s -> Syntax1.(_Type (trans_sort nspc s))
   | Id "_" -> mk_meta nspc
   | Id id -> (
     match List.assoc_opt id nspc with
     | Some (EVar x) -> Syntax1._Var x
-    | Some (EFix x) -> Syntax1._Var x
-    | Some (EInst (x, i)) -> Syntax1.(_Inst x (mk_inst i))
-    | Some (EData d) -> Syntax1._Data d (box [])
-    | Some (ECons (c, i)) -> Syntax1._Cons c (mk_param nspc i) (box [])
+    | Some (EConst (x, i)) -> Syntax1.(_Const x (mk_inst i))
+    | Some (EData (d, i)) -> Syntax1._Data d (mk_inst i) (box [])
+    | Some (ECons (c, i, j)) ->
+      Syntax1._Cons c (mk_inst i) (mk_param nspc j) (box [])
     | _ -> failwith "trans_tm Id")
+  | Inst (id, ss) -> (
+    let ss = List.map (trans_sort nspc) ss in
+    let ss = box_list ss in
+    match List.assoc_opt id nspc with
+    | Some (EConst (x, _)) -> Syntax1.(_Const x ss)
+    | Some (EData (d, _)) -> Syntax1.(_Data d ss (box []))
+    | Some (ECons (c, _, j)) -> Syntax1.(_Cons c ss (mk_param nspc j) (box []))
+    | _ -> failwith "trans_tm Inst")
   | Pi (rel, s, a, Binder (id, b)) ->
     let a = trans_tm nspc a in
     let x = Syntax1.(V.mk id) in
@@ -189,11 +190,20 @@ let rec trans_tm nspc = function
       let ms = List.map (trans_tm nspc) ms in
       match List.assoc_opt id nspc with
       | Some (EVar x) -> Syntax1.(_mkApps (_Var x) ms)
-      | Some (EFix x) -> Syntax1.(_mkApps (_Var x) ms)
-      | Some (EInst (x, i)) -> Syntax1.(_mkApps (_Inst x (mk_inst i)) ms)
-      | Some (EData d) -> Syntax1.(_Data d (box_list ms))
-      | Some (ECons (c, i)) -> Syntax1.(_Cons c (mk_param nspc i) (box_list ms))
+      | Some (EConst (x, i)) -> Syntax1.(_mkApps (_Const x (mk_inst i)) ms)
+      | Some (EData (d, i)) -> Syntax1.(_Data d (mk_inst i) (box_list ms))
+      | Some (ECons (c, i, j)) ->
+        Syntax1.(_Cons c (mk_inst i) (mk_param nspc j) (box_list ms))
       | _ -> failwith "trans_tm App(%s)" id)
+    | Inst (id, ss) :: ms -> (
+      let ss = List.map (trans_sort nspc) ss in
+      let ms = List.map (trans_tm nspc) ms in
+      match List.assoc_opt id nspc with
+      | Some (EConst (x, _)) -> Syntax1.(_mkApps (_Const x (box_list ss)) ms)
+      | Some (EData (d, _)) -> Syntax1.(_Data d (box_list ss) (box_list ms))
+      | Some (ECons (c, _, j)) ->
+        Syntax1.(_Cons c (box_list ss) (mk_param nspc j) (box_list ms))
+      | _ -> failwith "trans_tm Inst")
     | m :: ms ->
       let m = trans_tm nspc m in
       let ms = List.map (trans_tm nspc) ms in
@@ -213,13 +223,6 @@ let rec trans_tm nspc = function
       let mot = bind_var x (mk_meta nspc) in
       let n = Syntax1.(_Match (_Var x) mot cls) in
       Syntax1.(_Let (trans_rel rel) m (bind_var x n)))
-  | Fix (id1, Binder (id2, m)) -> (
-    match List.assoc_opt id1 nspc with
-    | Some (EVar x) ->
-      let r = Syntax1.(V.mk id2) in
-      let m = trans_tm ((id2, EVar r) :: nspc) m in
-      Syntax1.(_Fix x (bind_var r m))
-    | _ -> failwith "trans_tm Fix")
   (* data *)
   | Sigma (rel, s, a, Binder (id, b)) ->
     let a = trans_tm nspc a in
@@ -293,7 +296,7 @@ and trans_cl nspc = function
     Syntax1.(_PPair (trans_rel rel) (trans_sort nspc s) bnd)
   | Binder (PCons (id, ids), m) -> (
     match find_cons id nspc with
-    | Some (c, _) ->
+    | Some (c, _, _) ->
       let nspc, xs = trans_xs nspc ids in
       let m = trans_tm nspc m in
       let bnd = bind_mvar (Array.of_list xs) m in
@@ -316,23 +319,41 @@ let rec trans_tele nspc = function
     let b = trans_tele ((id, EVar x) :: nspc) b in
     Syntax1.(_TBind (trans_rel rel) a (bind_var x b))
 
-let rec trans_args entry nspc = function
-  | ABase (m, b) ->
+let rec trans_args nspc = function
+  | ABase (b, m) ->
     let b = trans_tm nspc b in
-    let m = trans_tm (entry :: nspc) m in
-    (m, b)
+    let m = trans_tm nspc m in
+    (b, m)
   | ABind (rel, a, Binder (id, args)) ->
     let x = Syntax1.(V.mk id) in
     let a = trans_tm nspc a in
-    let m, b = trans_args entry ((id, EVar x) :: nspc) args in
+    let b, m = trans_args ((id, EVar x) :: nspc) args in
     Syntax1.
-      ( _Lam (trans_rel rel) _U (bind_var x m)
-      , _Pi (trans_rel rel) _U a (bind_var x b) )
+      ( _Pi (trans_rel rel) _U a (bind_var x b)
+      , _Lam (trans_rel rel) _U (bind_var x m) )
 
-let trans_dcons nspc (DCons (id, ptl)) =
+let trans_scheme nspc trans sch =
+  let rec loop nspc i = function
+    | SBase m ->
+      let m, i = trans nspc i m in
+      Syntax1.(_SBase m, i)
+    | SBind (Binder (id, sch)) ->
+      let x = Syntax1.(SV.mk id) in
+      let sch, i = loop ((id, ESVar x) :: nspc) (i + 1) sch in
+      Syntax1.(_SBind (bind_var x sch), i)
+  in
+  loop nspc 0 sch
+
+let trans_dcons nspc (DCons (id, sch)) =
   let c = C.mk id in
-  let ptl, i = trans_param trans_tele nspc ptl in
-  ((id, ECons (c, i)) :: nspc, Syntax1.(_DCons c ptl))
+  let sch, (i, j) =
+    trans_scheme nspc
+      (fun nspc i ptl ->
+        let ptl, j = trans_param trans_tele nspc ptl in
+        (ptl, (i, j)))
+      sch
+  in
+  ((id, ECons (c, i, j)) :: nspc, Syntax1.(_DCons c sch))
 
 let rec trans_dconss nspc = function
   | [] -> (nspc, [])
@@ -342,22 +363,30 @@ let rec trans_dconss nspc = function
     (nspc, dcons :: dconss)
 
 let rec trans_dcl nspc = function
-  | DTm (rel, id, sids, args) ->
+  | DTm (rel, id, sch) ->
     let x = Syntax1.(V.mk id) in
-    let r = Syntax1.(V.mk id) in
-    let m, a = trans_args (id, EFix r) nspc args in
-    let nspc = (id, EVar x) :: nspc in
-    if Bindlib.occur r m then
-      let m = Syntax1.(_Fix x (bind_var r m)) in
-      (nspc, Syntax1.(_DTm (trans_rel rel) x a m))
-    else
-      (nspc, Syntax1.(_DTm (trans_rel rel) x a m))
-  | DData (id, ptm, dconss) ->
+    let sch, i =
+      trans_scheme nspc
+        (fun nspc i args ->
+          let nspc = (id, EConst (x, i)) :: nspc in
+          let m, a = trans_args nspc args in
+          (box_pair m a, i))
+        sch
+    in
+    let nspc = (id, EConst (x, i)) :: nspc in
+    (nspc, Syntax1.(_DTm (trans_rel rel) x sch))
+  | DData (id, sch, dconss) ->
     let d = D.mk id in
-    let ptm, _ = trans_param trans_tm nspc ptm in
-    let nspc = (id, D d) :: nspc in
+    let sch, i =
+      trans_scheme nspc
+        (fun nspc i ptm ->
+          let ptm, _ = trans_param trans_tm nspc ptm in
+          (ptm, i))
+        sch
+    in
+    let nspc = (id, EData (d, i)) :: nspc in
     let nspc, dconss = trans_dconss nspc dconss in
-    (nspc, Syntax1._DData d ptm (box_list dconss))
+    (nspc, Syntax1._DData d sch (box_list dconss))
 
 let trans_dcls nspc dcls =
   let rec aux nspc dcls =

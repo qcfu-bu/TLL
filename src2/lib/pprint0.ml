@@ -54,7 +54,6 @@ let rec pp_tm fmt = function
     pf fmt "let {%s} = %a in %a" id pp_tm m pp_tm n
   | Let (_, m, Binder (Right p, n)) ->
     pf fmt "let %a = %a in %a" pp_p p pp_tm m pp_tm n
-  | Fix (x, Binder (r, m)) -> pf fmt "fix (%s := %s) ⇒ %a" x r pp_tm m
   (* data *)
   | Sigma (R, U, a, Binder (id, b)) ->
     pf fmt "(∃ (%s : %a) × %a)" id pp_tm a pp_tm b
@@ -115,6 +114,16 @@ and pp_p fmt = function
 and pp_cl fmt (Binder (p, m)) = pf fmt "%a ⇒ %a" pp_p p pp_tm m
 and pp_cls fmt cls = list ~sep:pipe pp_cl fmt cls
 
+let pp_scheme pp fmt sch =
+  let rec loop = function
+    | SBase m -> ([], m)
+    | SBind (Binder (id, sch)) ->
+      let sids, m = loop sch in
+      (id :: sids, m)
+  in
+  let sids, m = loop sch in
+  pf fmt "‹%a› %a" (list ~sep:comma string) sids pp m
+
 let rec pp_ptm fmt = function
   | PBase b -> pf fmt ": %a" pp_tm b
   | PBind (a, Binder (id, ptm)) -> pf fmt "(%s : %a) %a" id pp_tm a pp_ptm ptm
@@ -135,16 +144,13 @@ let rec pp_args fmt = function
   | ABind (N, a, Binder (id, args)) ->
     pf fmt "{%s : %a} %a" id pp_tm a pp_args args
 
-let pp_dcons fmt (DCons (id, ptl)) = pf fmt "%s of %a" id pp_ptl ptl
+let pp_dcons fmt (DCons (id, sch)) = pf fmt "%s of %a" id (pp_scheme pp_ptl) sch
 
 let pp_dcl fmt = function
-  | DTm (R, id, [], args) -> pf fmt "program %s %a" id pp_args args
-  | DTm (N, id, [], args) -> pf fmt "logical %s %a" id pp_args args
-  | DTm (R, id, sids, args) ->
-    pf fmt "program %s‹%a› %a" id (list ~sep:comma string) sids pp_args args
-  | DTm (N, id, sids, args) ->
-    pf fmt "logical %s‹%a› %a" id (list ~sep:comma string) sids pp_args args
-  | DData (id, ptm, dconss) ->
-    pf fmt "inductive %s %a = %a" id pp_ptm ptm (list ~sep:pipe pp_dcons) dconss
+  | DTm (R, id, sch) -> pf fmt "program %s%a" id (pp_scheme pp_args) sch
+  | DTm (N, id, sch) -> pf fmt "logical %s%a" id (pp_scheme pp_args) sch
+  | DData (id, sch, dconss) ->
+    pf fmt "inductive %s%a = %a" id (pp_scheme pp_ptm) sch
+      (list ~sep:pipe pp_dcons) dconss
 
 let pp_dcls fmt dcls = pf fmt "%a" (list ~sep:break pp_dcl) dcls

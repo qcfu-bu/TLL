@@ -1,4 +1,288 @@
-logical eq_sym‹s› (A : Type‹s›) (m : A) (n : A) (e : m ≡ n) : n ≡ m = ((function‹s›(x), (function‹s›(y), (function‹s›(z), x))) : (forall‹s›(x : _), (forall‹s›(y : _), (forall‹s›(z : _), _))))
+inductive Tnsr‹s, r,
+t› (A : Type‹s›) (B : Type‹r›) : Type‹t› = TPair of ‹s, r,
+t› {A : Type‹s›} {B : Type‹r›} (m : A) (n : B) → ((Tnsr) 
+(A)
+(B))
+
+logical eq_sym‹s› (A : Type‹s›) (m : A) (n : A) (e : m ≡ n) : rew [x, _ ⇒ x ≡ m] e in refl = n ≡ m
 
 parsing success--------------------------
+
+inductive unit_d1 : U =
+| tt_c1 of : unit_d1‹›
+
+inductive bool_d2 : U =
+| true_c2 of : bool_d2‹› | false_c3 of : bool_d2‹›
+
+program andb_v0 : bool_d2‹› → bool_d2‹› → bool_d2‹› =
+  fn b1_v201 b2_v202 ⇒
+    match b1_v201 as __v203 in ??1 with
+    | true_c2  ⇒ b2_v202 | false_c3  ⇒ false_c3
+    end
+
+program orb_v4 : bool_d2‹› → bool_d2‹› → bool_d2‹› =
+  fn b1_v206 b2_v207 ⇒
+    match b1_v206 as __v208 in ??2 with
+    | true_c2  ⇒ true_c2 | false_c3  ⇒ b2_v207
+    end
+
+program notb_v8 : bool_d2‹› → bool_d2‹› =
+  fn b_v210 ⇒
+    match b_v210 as __v211 in ??3 with
+    | true_c2  ⇒ false_c3 | false_c3  ⇒ true_c2
+    end
+
+inductive nat_d3 : U =
+| O_c4 of : nat_d3‹› | S_c5 of (n_v212 : nat_d3‹›) : nat_d3‹›
+
+program addn_v12 : nat_d3‹› → nat_d3‹› → nat_d3‹› =
+  fn x_v215 y_v216 ⇒
+    match x_v215 as __v217 in ??4 with
+    | O_c4  ⇒ y_v216 | S_c5 x_v218 ⇒ (S_c5 (addn_v12 x_v218 y_v216))
+    end
+
+program muln_v17 : nat_d3‹› → nat_d3‹› → nat_d3‹› =
+  fn x_v221 y_v222 ⇒
+    match x_v221 as __v223 in ??5 with
+    | O_c4  ⇒ y_v222
+    | S_c5 x_v224 ⇒ (addn_v12 y_v222 (muln_v17 x_v224 y_v222))
+    end
+
+program eqn_v22 : nat_d3‹› → nat_d3‹› → bool_d2‹› =
+  fn x_v227 y_v228 ⇒
+    match x_v227 as __v229 in ??6 with
+    | O_c4  ⇒
+      match y_v228 as __v230 in ??7 with
+      | O_c4  ⇒ true_c2 | S_c5 __v231 ⇒ false_c3
+      end
+    | S_c5 x_v232 ⇒
+      match y_v228 as __v233 in ??8 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v234 ⇒ (eqn_v22 x_v232 y_v234)
+      end
+    end
+
+program lten_v31 : nat_d3‹› → nat_d3‹› → bool_d2‹› =
+  fn x_v237 y_v238 ⇒
+    match x_v237 as __v239 in ??9 with
+    | O_c4  ⇒ true_c2
+    | S_c5 x_v240 ⇒
+      match y_v238 as __v241 in ??10 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v242 ⇒ (lten_v31 x_v240 y_v242)
+      end
+    end
+
+program gten_v38 : nat_d3‹› → nat_d3‹› → bool_d2‹› =
+  fn x_v245 y_v246 ⇒
+    match x_v245 as __v247 in ??11 with
+    | O_c4  ⇒
+      match y_v246 as __v248 in ??12 with
+      | O_c4  ⇒ true_c2 | S_c5 __v249 ⇒ false_c3
+      end
+    | S_c5 x_v250 ⇒
+      match y_v246 as __v251 in ??13 with
+      | O_c4  ⇒ true_c2 | S_c5 y_v252 ⇒ (gten_v38 x_v250 y_v252)
+      end
+    end
+
+logical ltn_v47 : nat_d3‹› → nat_d3‹› → bool_d2‹› =
+  fn x_v255 y_v256 ⇒
+    match x_v255 as __v257 in ??14 with
+    | O_c4  ⇒
+      match y_v256 as __v258 in ??15 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v259 ⇒ true_c2
+      end
+    | S_c5 x_v260 ⇒
+      match y_v256 as __v261 in ??16 with
+      | O_c4  ⇒ false_c3 | S_c5 y_v262 ⇒ (ltn_v47 x_v260 y_v262)
+      end
+    end
+
+logical gtn_v56 : nat_d3‹› → nat_d3‹› → bool_d2‹› =
+  fn x_v265 y_v266 ⇒
+    match x_v265 as __v267 in ??17 with
+    | O_c4  ⇒ false_c3
+    | S_c5 x_v268 ⇒
+      match y_v266 as __v269 in ??18 with
+      | O_c4  ⇒ true_c2 | S_c5 y_v270 ⇒ (gtn_v56 x_v268 y_v270)
+      end
+    end
+
+inductive ascii_d4 : U =
+| Ascii_c6 of
+    (b0_v271 : bool_d2‹›) (b1_v272 : bool_d2‹›)
+    (b2_v273 : bool_d2‹›) (b3_v274 : bool_d2‹›)
+    (b4_v275 : bool_d2‹›) (b5_v276 : bool_d2‹›)
+    (b6_v277 : bool_d2‹›) (b7_v278 : bool_d2‹›) : ascii_d4‹›
+
+inductive string_d5 : U =
+| EmptyString_c7 of : string_d5‹›
+| String_c8 of
+    (c_v279 : ascii_d4‹›) (s_v280 : string_d5‹›) : string_d5‹›
+
+program cats_v73 : string_d5‹› → string_d5‹› → string_d5‹› =
+  fn s1_v283 s2_v284 ⇒
+    match s1_v283 as __v285 in ??19 with
+    | EmptyString_c7  ⇒ s2_v284
+    | String_c8 c_v286 s1_v287 ⇒
+      (String_c8 c_v286 (cats_v73 s1_v287 s2_v284))
+    end
+
+program strlen_v79 : string_d5‹› → nat_d3‹› =
+  fn s_v289 ⇒
+    match s_v289 as __v290 in ??20 with
+    | EmptyString_c7  ⇒ O_c4
+    | String_c8 __v291 s_v292 ⇒ (S_c5 (strlen_v79 s_v292))
+    end
+
+inductive list_d6 (A_v293 : U) : U =
+| nil_c9 of (A_v294 : U) : (list_d6‹› A_v294)
+| cons_c10 of
+    (A_v295 : U) (hd_v296 : A_v295) (tl_v297 : (list_d6‹› A_v295))
+    : (list_d6‹› A_v295)
+
+inductive llist_d7 (A_v298 : L) : L =
+| lnil_c11 of (A_v299 : L) : (llist_d7‹› A_v299)
+| lcons_c12 of
+    (A_v300 : L) (hd_v301 : A_v300) (tl_v302 : (llist_d7‹› A_v300))
+    : (llist_d7‹› A_v300)
+
+program len_v94 :
+  ∀ {A_v303 : U} → (list_d6‹› A_v303) → (list_d6‹› A_v303)
+=
+  fn {A_v305} xs_v306 ⇒
+    match xs_v306 as __v307 in ??21 with
+    | nil_c9  ⇒ O_c4
+    | cons_c10 __v308 xs_v309 ⇒ (S_c5 (len_v94 ??22 xs_v309))
+    end
+
+program llen_v100 :
+  ∀ {A_v310 : L} →
+    (llist_d7‹› A_v310) → nat_d3‹› ⊗ (llist_d7‹› A_v310)
+=
+  fn {A_v313} xs_v314 ⇒
+    match xs_v314 as __v315 in ??23 with
+    | lnil_c11  ⇒ ⟨O_c4, lnil_c11⟩
+    | lcons_c12 x_v316 xs_v317 ⇒
+      match (llen_v100 A_v313 xs_v317) as __v318 in ??25 with
+      | ⟨n_v319, xs_v320⟩ ⇒
+        ⟨(S_c5 n_v319), (lcons_c12 x_v316 xs_v320)⟩
+      end
+    end
+
+program append_v110 :
+  ∀ {A_v321 : U} →
+    (list_d6‹› A_v321) →
+      (list_d6‹› A_v321) → (list_d6‹› A_v321)
+=
+  fn {A_v324} xs_v325 ys_v326 ⇒
+    match xs_v325 as __v327 in ??27 with
+    | nil_c9  ⇒ ys_v326
+    | cons_c10 x_v328 xs_v329 ⇒
+      (cons_c10 x_v328 (append_v110 ??28 xs_v329 ys_v326))
+    end
+
+program lappend_v117 :
+  ∀ {A_v330 : L} →
+    (llist_d7‹› A_v330) →
+      (llist_d7‹› A_v330) → (llist_d7‹› A_v330)
+=
+  fn {A_v333} xs_v334 ys_v335 ⇒
+    match xs_v334 as __v336 in ??30 with
+    | lnil_c11  ⇒ ys_v335
+    | lcons_c12 x_v337 xs_v338 ⇒
+      (lcons_c12 x_v337 (lappend_v117 ??31 xs_v338 ys_v335))
+    end
+
+inductive box_d8 (A_v339 : U) : L =
+| Box_c13 of (A_v340 : U) (a_v341 : A_v340) : (box_d8‹› A_v340)
+
+program map_box_v127 :
+  ∀ {A_v342 : U} →
+    ∀ {B_v343 : U} →
+      (box_d8‹› A_v342) → A_v342 → B_v343 → (box_d8‹› B_v343)
+=
+  fn {A_v347 B_v348} m_v349 f_v350 ⇒
+    match m_v349 as __v351 in ??33 with
+    | Box_c13 a_v352 ⇒ (Box_c13 (f_v350 a_v352))
+    end
+
+program unbox_v135 : ∀ {A_v353 : U} → (box_d8‹› A_v353) → A_v353 =
+  fn {A_v355} m_v356 ⇒
+    match m_v356 as __v357 in ??35 with
+    | Box_c13 a_v358 ⇒ a_v358
+    end
+
+logical stdin_rec_v140 : unit_d1‹› → proto =
+  fn __v360 ⇒
+    !(b_v361 : bool_d2‹›) ⇒
+      match b_v361 as __v362 in ??36 with
+      | true_c2  ⇒ ?(__v363 : string_d5‹›) ⇒ (stdin_rec_v140 tt_c1)
+      | false_c3  ⇒ end
+      end
+
+logical stdout_rec_v145 : unit_d1‹› → proto =
+  fn __v365 ⇒
+    !(b_v366 : bool_d2‹›) ⇒
+      match b_v366 as __v367 in ??37 with
+      | true_c2  ⇒ !(__v368 : string_d5‹›) ⇒ (stdout_rec_v145 tt_c1)
+      | false_c3  ⇒ end
+      end
+
+logical stderr_rec_v150 : unit_d1‹› → proto =
+  fn __v370 ⇒
+    !(b_v371 : bool_d2‹›) ⇒
+      match b_v371 as __v372 in ??38 with
+      | true_c2  ⇒ !(__v373 : string_d5‹›) ⇒ (stderr_rec_v150 tt_c1)
+      | false_c3  ⇒ end
+      end
+
+logical stdin_t_v155 : proto = (stdin_rec_v140 tt_c1)
+
+logical stdout_t_v156 : proto = (stdout_rec_v145 tt_c1)
+
+logical stderr_t_v157 : proto = (stderr_rec_v150 tt_c1)
+
+program readline_v158 : unit_d1‹› → IO string_d5‹› =
+  fn __v375 ⇒
+    let ch_v376 ⇐ open stdin in
+    let ch_v377 ⇐ (send ch_v376 true_c2) in
+    let __v378 ⇐ recv ch_v377 in
+    match __v378 as __v379 in ??39 with
+    | ⟨s_v380, ch_v381⟩ ⇒
+      let ch_v382 ⇐ (send ch_v381 false_c3) in
+      let __v383 ⇐ close ch_v382 in return s_v380
+    end
+
+program print_v167 : string_d5‹› → IO unit_d1‹› =
+  fn s_v385 ⇒
+    let ch_v386 ⇐ open stdout in
+    let ch_v387 ⇐ (send ch_v386 true_c2) in
+    let ch_v388 ⇐ (send ch_v387 s_v385) in
+    let ch_v389 ⇐ (send ch_v388 false_c3) in close ch_v389
+
+program prerr_v173 : string_d5‹› → IO unit_d1‹› =
+  fn s_v391 ⇒
+    let ch_v392 ⇐ open stderr in
+    let ch_v393 ⇐ (send ch_v392 true_c2) in
+    let ch_v394 ⇐ (send ch_v393 s_v391) in
+    let ch_v395 ⇐ (send ch_v394 false_c3) in close ch_v395
+
+inductive Tnsr_d9 ‹s_s396, r_s397, t_s398›
+  (A_v399 : Type‹s_s396›) (B_v400 : Type‹r_s397›) : Type‹t_s398›
+=
+| TPair_c14 of
+    ‹s_s401, r_s402, t_s403› (A_v404 : Type‹s_s401›)
+    (B_v405 : Type‹r_s402›) (m_v406 : A_v404) (n_v407 : B_v405)
+    : (Tnsr_d9‹???42, ???41, ???40› A_v404 B_v405)
+
+logical eq_sym_v191‹s_s408›  :
+  ∀ (A_v409 : Type‹s_s408›) →
+    ∀ (m_v410 : A_v409) →
+      ∀ (n_v411 : A_v409) →
+        ∀ (e_v412 : m_v410 ≡ n_v411) → n_v411 ≡ m_v410
+=
+  fn A_v413 m_v414 n_v415 e_v416 ⇒
+    rew [x_v417, __v418 ⇒ x_v417 ≡ m_v414] e_v416 in refl ??45
+
+trans01 success--------------------------
 

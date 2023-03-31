@@ -42,7 +42,6 @@ type tm =
   | Lam of rel * sort * (id, tm) binder
   | App of tms
   | Let of rel * tm * ((id, p) either, tm) binder
-  | Fix of id * (id, tm) binder
   (* data *)
   | Sigma of rel * sort * tm * (id, tm) binder
   | Pair of rel * sort * tm * tm
@@ -71,12 +70,16 @@ and cl = (p, tm) binder
 and cls = cl list
 
 type dcl =
-  | DTm of rel * id * ids * args
-  | DData of id * tm param * dconss
+  | DTm of rel * id * args scheme
+  | DData of id * tm param scheme * dconss
 
 and dcls = dcl list
-and dcons = DCons of id * tele param
+and dcons = DCons of id * tele param scheme
 and dconss = dcons list
+
+and 'a scheme =
+  | SBase of 'a
+  | SBind of (id, 'a scheme) binder
 
 and 'a param =
   | PBase of 'a

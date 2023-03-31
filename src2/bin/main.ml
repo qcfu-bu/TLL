@@ -3,8 +3,7 @@ open Bindlib
 open TLL
 open Names
 open Syntax0
-
-(* open Prelude1 *)
+open Prelude1
 open Sedlexing
 open Parsing
 
@@ -20,10 +19,10 @@ let _ =
       let _ = pr "%a@.@." Pprint0.pp_dcls dcls0 in
       let _ = pr "parsing success--------------------------@.@." in
       (* trans01 *)
-      (* let _, dcls1 = Trans01.trans_dcls prelude_nspc dcls0 in *)
-      (* let dcls1 = Prelude1.prelude_dcls @ dcls1 in *)
-      (* let _ = pr "%a@.@." Pprint1.pp_dcls dcls1 in *)
-      (* let _ = pr "trans01 success--------------------------@.@." in *)
+      let _, dcls1 = Trans01.trans_dcls prelude_nspc dcls0 in
+      let dcls1 = Prelude1.prelude_dcls @ dcls1 in
+      let _ = pr "%a@.@." Pprint1.pp_dcls dcls1 in
+      let _ = pr "trans01 success--------------------------@.@." in
       (* (\* trans1e *\) *)
       (* let dcls1e = Trans1e.trans_dcls dcls1 in *)
       (* let _ = pr "%a@.@." Pprint1.pp_dcls dcls1e in *)
