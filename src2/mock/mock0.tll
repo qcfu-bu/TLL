@@ -1,5 +1,9 @@
-inductive Tnsr‹s,r,t› (A : Type‹s›) (B : Type‹r›) : Type‹t› =
-| TPair of (m : A) (n : B)
+inductive List‹s,t› (A : Type‹s›) : Type‹t› =
+| Nil
+| Cons of (hd : A) (tl : List‹s,t› A)
 
-logical eq_sym‹s› (A : Type‹s›) (m n : A) (e : m ≡ n) : n ≡ m =
-  rew [ x, _ ⇒ x ≡ m ] e in refl
+logical len‹s,t› {A : Type‹s›} (xs : List‹s,t›) : nat =
+  match xs with
+  | Nil ⇒ 0
+  | Cons hd tl ⇒ 1 + len _ xs
+  end

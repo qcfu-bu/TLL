@@ -114,14 +114,7 @@ and pp_p fmt = function
 and pp_cl fmt (Binder (p, m)) = pf fmt "%a ⇒ %a" pp_p p pp_tm m
 and pp_cls fmt cls = list ~sep:pipe pp_cl fmt cls
 
-let pp_scheme pp fmt sch =
-  let rec loop = function
-    | SBase m -> ([], m)
-    | SBind (Binder (id, sch)) ->
-      let sids, m = loop sch in
-      (id :: sids, m)
-  in
-  let sids, m = loop sch in
+let pp_scheme pp fmt (Binder (sids, m)) =
   pf fmt "‹%a› %a" (list ~sep:comma string) sids pp m
 
 let rec pp_ptm fmt = function

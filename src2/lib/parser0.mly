@@ -161,7 +161,7 @@ let tm_id :=
   | id = identifier; { Id id }
 
 let tm_inst :=
-  | id = identifier; FLQ; ss = separated_nonempty_list(COMMA, sort); FRQ;
+  | id = identifier; FLQ; ss = separated_list(COMMA, sort); FRQ;
     { Inst (id, ss) }
 
 let tm_unit :=
@@ -578,22 +578,14 @@ let dcl_args :=
       args (ABase (a, m)) }
 
 let dcl_sargs :=
-  | FLQ; ~ = separated_nonempty_list(COMMA, identifier); FRQ; <>
+  | FLQ; ~ = separated_list(COMMA, identifier); FRQ; <>
   | { [] }
 
 let dcl_dtm :=
-  | DCL_PROGRAM; id = identifier; sargs = dcl_sargs; args = dcl_args;
-    { let sch =
-        List.fold_right (fun id acc ->
-          SBind (Binder (id, acc))) sargs (SBase args)
-      in
-      DTm (R, id, sch) }
-  | DCL_LOGICAL; id = identifier; sargs = dcl_sargs; args = dcl_args;
-    { let sch =
-        List.fold_right (fun id acc ->
-          SBind (Binder (id, acc))) sargs (SBase args)
-      in
-      DTm (N, id, sch) }
+  | DCL_PROGRAM; id = identifier; sids = dcl_sargs; args = dcl_args;
+    { DTm (R, id, Binder (sids, args)) }
+  | DCL_LOGICAL; id = identifier; sids = dcl_sargs; args = dcl_args;
+    { DTm (N, id, Binder (sids, args)) }
 
 let dcl_ptm :=
   | args = dcl_args1; COLON; b = tm; { (args, b) }
@@ -610,14 +602,18 @@ let dcl_dconss :=
   | ~ = dcl_dcons1*; <>
 
 let dcl_ddata :=
-  | DCL_INDUCTIVE; id = identifier; sargs = dcl_sargs; ptm = dcl_ptm; EQUAL;
+  | DCL_INDUCTIVE; id = identifier; sids = dcl_sargs; ptm = dcl_ptm; EQUAL;
       dconss = dcl_dconss;
     { let pargs, b = ptm in
       let ptm = 
         List.fold_right (fun (id, a) acc ->
           PBind (a, Binder (id, acc))) pargs (PBase b)
       in
-      let d = App (Id id :: List.map (fun (id, _) -> Id id) pargs) in
+      let ss = List.map (fun sid -> SId sid) sids in
+      let d =
+        App (Inst (id, ss) ::
+               List.map (fun (id, _) -> Id id) pargs)
+      in
       let dconss =
         List.map (fun (id, targs) ->
           let tl = 
@@ -628,17 +624,9 @@ let dcl_ddata :=
             List.fold_right (fun (id, a) acc ->
               PBind (a, Binder (id, acc))) pargs (PBase tl)
           in
-          let sch =
-            List.fold_right (fun id acc ->
-              SBind (Binder (id, acc))) sargs (SBase ptl)
-          in
-          DCons (id, sch)) dconss
+          DCons (id, Binder (sids, ptl))) dconss
       in
-      let sch =
-        List.fold_right (fun id acc ->
-           SBind (Binder (id, acc))) sargs (SBase ptm)
-      in
-      DData (id, sch, dconss) }
+      DData (id, Binder (sids, ptm), dconss) }
 
 let dcl :=
   | ~ = dcl_dtm; <>

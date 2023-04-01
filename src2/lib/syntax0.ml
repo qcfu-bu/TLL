@@ -76,10 +76,7 @@ type dcl =
 and dcls = dcl list
 and dcons = DCons of id * tele param scheme
 and dconss = dcons list
-
-and 'a scheme =
-  | SBase of 'a
-  | SBind of (id, 'a scheme) binder
+and 'a scheme = (ids, 'a) binder
 
 and 'a param =
   | PBase of 'a

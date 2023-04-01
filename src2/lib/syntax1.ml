@@ -73,10 +73,7 @@ type dcl =
   | DTm of rel * tm var * (tm * tm) scheme
   | DData of D.t * tm param scheme * dconss
 
-and 'a scheme =
-  | SBase of 'a
-  | SBind of (sort, 'a scheme) binder
-
+and 'a scheme = (sort, 'a) mbinder
 and dcls = dcl list
 and dcons = DCons of C.t * tele param scheme
 and dconss = dcons list
@@ -88,6 +85,13 @@ and 'a param =
 and tele =
   | TBase of tm
   | TBind of rel * tm * (tm, tele) binder
+
+(* sort equality *)
+let eq_sort s1 s2 =
+  match (s1, s2) with
+  | SVar x, SVar y -> eq_vars x y
+  | SMeta x, SMeta y -> M.equal x y
+  | _ -> s1 = s2
 
 (* variable set/map *)
 module SV = struct
@@ -183,10 +187,6 @@ let _PCons c = box_apply (fun bnd -> PCons (c, bnd))
 let _DTm rel x = box_apply (fun sch -> DTm (rel, x, sch))
 let _DData d = box_apply2 (fun sch dconss -> DData (d, sch, dconss))
 
-(* scheme *)
-let _SBase m = box_apply (fun m -> SBase m) m
-let _SBind bnd = box_apply (fun bnd -> SBind bnd) bnd
-
 (* dcons *)
 let _DCons c = box_apply (fun sch -> DCons (c, sch))
 
@@ -272,21 +272,17 @@ let rec lift_tele = function
   | TBase a -> _TBase (lift_tm a)
   | TBind (rel, a, bnd) -> _TBind rel (lift_tm a) (box_binder lift_tele bnd)
 
-let rec lift_scheme lift = function
-  | SBase m -> _SBase (lift m)
-  | SBind bnd -> _SBind (box_binder (lift_scheme lift) bnd)
-
-let lift_dcons (DCons (c, ptl)) =
-  _DCons c (lift_scheme (lift_param lift_tele) ptl)
+let lift_dcons (DCons (c, sch)) =
+  _DCons c (box_mbinder (lift_param lift_tele) sch)
 
 let lift_dconss dconss = box_list (List.map lift_dcons dconss)
 
 let lift_dcl = function
   | DTm (rel, x, sch) ->
     _DTm rel x
-      (lift_scheme (fun (a, m) -> box_pair (lift_tm a) (lift_tm m)) sch)
+      (box_mbinder (fun (a, m) -> box_pair (lift_tm a) (lift_tm m)) sch)
   | DData (d, sch, dconss) ->
-    _DData d (lift_scheme (lift_param lift_tm) sch) (lift_dconss dconss)
+    _DData d (box_mbinder (lift_param lift_tm) sch) (lift_dconss dconss)
 
 let lift_dcls dcls = box_list (List.map lift_dcl dcls)
 
@@ -304,9 +300,3 @@ let unApps m =
     | _ -> (m, ns)
   in
   aux m []
-
-let eq_sort s1 s2 =
-  match (s1, s2) with
-  | SVar x, SVar y -> eq_vars x y
-  | SMeta x, SMeta y -> M.equal x y
-  | _ -> s1 = s2

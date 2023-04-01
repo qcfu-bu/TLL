@@ -4,14 +4,14 @@ open Bindlib
 open Names
 open Syntax0
 
-type entry =
+type nspc_entry =
   | EVar of Syntax1.V.t
   | EConst of Syntax1.V.t * int
   | ESVar of Syntax1.SV.t
   | EData of D.t * int
   | ECons of C.t * int * int
 
-type nspc = (string * entry) list
+type nspc = (string * nspc_entry) list
 
 let find_var s nspc =
   let opt =
@@ -42,7 +42,7 @@ let find_const s nspc =
       nspc
   in
   match opt with
-  | Some (_, EConst (x, i)) -> Some (x, i)
+  | Some (_, EConst (x, _)) -> Some x
   | _ -> None
 
 let find_svar s nspc =
@@ -332,17 +332,17 @@ let rec trans_args nspc = function
       ( _Pi (trans_rel rel) _U a (bind_var x b)
       , _Lam (trans_rel rel) _U (bind_var x m) )
 
-let trans_scheme nspc trans sch =
-  let rec loop nspc i = function
-    | SBase m ->
-      let m, i = trans nspc i m in
-      Syntax1.(_SBase m, i)
-    | SBind (Binder (id, sch)) ->
-      let x = Syntax1.(SV.mk id) in
-      let sch, i = loop ((id, ESVar x) :: nspc) (i + 1) sch in
-      Syntax1.(_SBind (bind_var x sch), i)
+let trans_scheme nspc trans (Binder (ids, m)) =
+  let nspc, xs, i =
+    List.fold_left
+      (fun (nspc, xs, i) id ->
+        let x = Syntax1.(SV.mk id) in
+        let nspc = (id, ESVar x) :: nspc in
+        (nspc, x :: xs, i + 1))
+      (nspc, [], 0) ids
   in
-  loop nspc 0 sch
+  let m, res = trans nspc i m in
+  (bind_mvar (Array.of_list (List.rev xs)) m, res)
 
 let trans_dcons nspc (DCons (id, sch)) =
   let c = C.mk id in

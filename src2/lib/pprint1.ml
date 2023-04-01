@@ -103,7 +103,7 @@ let rec pp_tm fmt = function
   | Type L -> pf fmt "L"
   | Type s -> pf fmt "Type‹%a›" pp_sort s
   | Var x -> V.pp fmt x
-  | Const (x, []) -> V.pp fmt x
+  | Const (x, []) -> pf fmt "%a" V.pp x
   | Const (x, ss) -> pf fmt "%a‹%a›" V.pp x (list ~sep:comma pp_sort) ss
   | Pi (R, U, a, bnd) ->
     let x, b = unbind bnd in
@@ -201,6 +201,9 @@ let rec pp_tm fmt = function
   | Pair (N, L, m, n) -> pf fmt "⟨{%a}, %a⟩" pp_tm m pp_tm n
   | Pair (R, s, m, n) -> pf fmt "tup‹%a›(%a, %a)" pp_sort s pp_tm m pp_tm n
   | Pair (N, s, m, n) -> pf fmt "tup‹%a›({%a}, %a)" pp_sort s pp_tm m pp_tm n
+  | Data (d, [], []) -> pf fmt "%a" D.pp d
+  | Data (d, [], ms) ->
+    pf fmt "@[(%a@;<1 2>@[%a@])@]" D.pp d (list ~sep:sp pp_tm) ms
   | Data (d, ss, []) -> pf fmt "%a‹%a›" D.pp d (list ~sep:comma pp_sort) ss
   | Data (d, ss, ms) ->
     pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" D.pp d (list ~sep:comma pp_sort) ss
@@ -291,17 +294,10 @@ and pp_cls fmt = function
   | cl :: cls -> pf fmt "%a@;<1 0>%a" pp_cl cl pp_cls cls
 
 let pp_scheme pp fmt sch =
-  let rec loop = function
-    | SBase m -> ([], m)
-    | SBind bnd ->
-      let x, sch = unbind bnd in
-      let xs, m = loop sch in
-      (x :: xs, m)
-  in
-  let xs, m = loop sch in
+  let xs, m = unmbind sch in
   match xs with
-  | [] -> pf fmt "%a" pp m
-  | _ -> pf fmt "@[‹%a›@]@;<1 2>%a" (list ~sep:comma SV.pp) xs pp m
+  | [||] -> pf fmt "%a" pp m
+  | _ -> pf fmt "@[‹%a›@]@;<1 2>%a" (array ~sep:comma SV.pp) xs pp m
 
 let rec pp_ptm fmt = function
   | PBase b -> pf fmt ": %a" pp_tm b
@@ -334,14 +330,14 @@ let rec pp_dconss fmt = function
 
 let rec pp_dcl fmt = function
   | DTm (R, x, sch) ->
-    pf fmt "@[program %a%a@]" V.pp x
+    pf fmt "@[program %a@;<1 2>%a@]" V.pp x
       (pp_scheme (fun fmt (a, m) ->
-           pf fmt " :@;<1 2>%a@;<1 0>=@;<1 2>%a" pp_tm a pp_tm m))
+           pf fmt ":@;<1 2>%a@;<1 0>=@;<1 2>%a" pp_tm a pp_tm m))
       sch
   | DTm (N, x, sch) ->
-    pf fmt "@[logical %a%a@]" V.pp x
+    pf fmt "@[logical %a@;<1 2>%a@]" V.pp x
       (pp_scheme (fun fmt (a, m) ->
-           pf fmt " :@;<1 2>%a@;<1 0>=@;<1 2>%a" pp_tm a pp_tm m))
+           pf fmt ":@;<1 2>%a@;<1 0>=@;<1 2>%a" pp_tm a pp_tm m))
       sch
   | DData (d, sch, dconss) ->
     pf fmt "@[<v 0>@[inductive %a@;<1 2>%a@;<1 0>=@]@;<1 0>@[%a@]@]" D.pp d
