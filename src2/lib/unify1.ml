@@ -256,6 +256,9 @@ let rec simpl eqn =
       []
     else
       match (s1, s2) with
+      | SMeta (x, _), SMeta (y, _) when M.compare x y < 0 -> [ Eqn0 (s1, s2) ]
+      | SMeta (x, _), SMeta (y, _) when M.compare x y > 0 -> [ Eqn0 (s2, s1) ]
+      | SMeta (x, _), SMeta (y, _) when M.compare x y = 0 -> []
       | SMeta _, _ -> [ Eqn0 (s1, s2) ]
       | _, SMeta _ -> [ Eqn0 (s2, s1) ]
       | _ -> failwith "simpl_Eqn0")
@@ -264,6 +267,11 @@ let rec simpl eqn =
     let m2 = whnf env m2 in
     match (m1, m2) with
     (* inference *)
+    | Meta (x, _, _), Meta (y, _, _) when M.compare x y < 0 ->
+      [ Eqn1 (env, m1, m2) ]
+    | Meta (x, _, _), Meta (y, _, _) when M.compare x y > 0 ->
+      [ Eqn1 (env, m2, m1) ]
+    | Meta (x, _, _), Meta (y, _, _) when M.compare x y = 0 -> []
     | Meta _, _ -> [ Eqn1 (env, m1, m2) ]
     | _, Meta _ -> [ Eqn1 (env, m2, m1) ]
     (* core *)
@@ -408,7 +416,6 @@ let solve ((map0, map1) : map0 * map1) eqn =
   match eqn with
   | Eqn0 (s1, s2) -> (
     match (s1, s2) with
-    | SMeta _, SMeta _ -> (map0, map1)
     | SMeta (x, xs), _ ->
       if occurs_sort x s2 then
         (map0, map1)
@@ -422,7 +429,6 @@ let solve ((map0, map1) : map0 * map1) eqn =
     | _ -> (map0, map1))
   | Eqn1 (env, m1, m2) -> (
     match (m1, m2) with
-    | Meta _, Meta _ -> (map0, map1)
     | Meta (x, ss, xs), _ ->
       if occurs_tm x m2 then
         (map0, map1)
@@ -436,7 +442,9 @@ let solve ((map0, map1) : map0 * map1) eqn =
         then
           let bnd = bind_mvar (Array.of_list xs) (lift_tm m2) in
           let bnd = bind_mvar (Array.of_list ss) bnd in
-          (map0, MMap.add x (Some (unbox bnd), None) map1)
+          match MMap.find_opt x map1 with
+          | Some (_, opt) -> (map0, MMap.add x (Some (unbox bnd), opt) map1)
+          | None -> (map0, MMap.add x (Some (unbox bnd), None) map1)
         else
           (map0, map1)
     | _ -> (map0, map1))

@@ -208,22 +208,29 @@ let rec pp_tm fmt = function
   | Data (d, ss, ms) ->
     pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" D.pp d (list ~sep:comma pp_sort) ss
       (list ~sep:sp pp_tm) ms
-  | Cons (c, _, _, []) -> C.pp fmt c
-  | Cons (c, _, _, ms) as m ->
+  | Cons (c, ss, _, []) -> pf fmt "%a‹%a›" C.pp c (list ~sep:comma pp_sort) ss
+  | Cons (c, ss, _, ms) as m ->
     if C.equal c o_c || C.equal c s_c then
       match nat_of m with
       | Some n -> pf fmt "%d" n
-      | None -> pf fmt "@[(%a@;<1 2>@[%a@])@]" C.pp c (list ~sep:sp pp_tm) ms
+      | None ->
+        pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" C.pp c (list ~sep:comma pp_sort) ss
+          (list ~sep:sp pp_tm) ms
     else if C.equal c ascii_c then
       match char_of m with
       | Some c -> pf fmt "%C" c
-      | None -> pf fmt "@[(%a@;<1 2>@[%a@])@]" C.pp c (list ~sep:sp pp_tm) ms
+      | None ->
+        pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" C.pp c (list ~sep:comma pp_sort) ss
+          (list ~sep:sp pp_tm) ms
     else if C.equal c string_c then
       match string_of m with
       | Some s -> pf fmt "%S" s
-      | None -> pf fmt "@[(%a@;<1 2>@[%a@])@]" C.pp c (list ~sep:sp pp_tm) ms
+      | None ->
+        pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" C.pp c (list ~sep:comma pp_sort) ss
+          (list ~sep:sp pp_tm) ms
     else
-      pf fmt "@[(%a@;<1 2>@[%a@])@]" C.pp c (list ~sep:sp pp_tm) ms
+      pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" C.pp c (list ~sep:comma pp_sort) ss
+        (list ~sep:sp pp_tm) ms
   | Match (m, bnd, cls) ->
     let x, a = unbind bnd in
     pf fmt "@[<v 0>@[match %a as %a in@;<1 2>%a with@]@;<1 0>@[%a@]@;<1 0>end@]"

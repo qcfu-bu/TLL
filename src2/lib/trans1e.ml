@@ -85,6 +85,9 @@ let find_meta x ctx : tm trans1e =
  fun (eqns, map0, map1) ->
   match MMap.find_opt x map1 with
   | Some (_, Some a) -> (a, eqns, map0, map1)
+  | Some (opt, None) ->
+    let a, _ = meta_mk ctx in
+    (a, eqns, map0, MMap.add x (opt, Some a) map1)
   | _ ->
     let a, _ = meta_mk ctx in
     (a, eqns, map0, MMap.add x (None, Some a) map1)
@@ -169,6 +172,7 @@ and infer_tm ctx env m0 : tm trans1e =
     | _ -> failwith "infer_App")
   | Let (rel, m, bnd) ->
     let* a = infer_tm ctx env m in
+    let* a = unify >> resolve_tm a in
     infer_tm ctx env (subst bnd (Ann (m, a)))
   (* data *)
   | Sigma (rel, s, a, bnd) ->
@@ -347,6 +351,7 @@ and infer_cl ctx env ss ms mot c bnd =
   return ()
 
 and infer_ptm ctx env ms ptm =
+  let _ = pr "infer_ptm@." in
   match (ms, ptm) with
   | [], PBase b ->
     let* _ = assert_sort ctx env b in
@@ -357,6 +362,7 @@ and infer_ptm ctx env ms ptm =
   | _ -> failwith "infer_ptm(%a)" pp_ptm ptm
 
 and infer_ptl ctx env ms ns ptl =
+  let _ = pr "infer_ptl@." in
   match (ms, ptl) with
   | [], PBase tl -> infer_tele ctx env ns tl
   | m :: ms, PBind (a, bnd) ->
@@ -365,6 +371,7 @@ and infer_ptl ctx env ms ns ptl =
   | _ -> failwith "infer_ptl(%a)" pp_ptl ptl
 
 and infer_tele ctx env ns tl =
+  let _ = pr "infer_tele@." in
   match (ns, tl) with
   | [], TBase b ->
     let* _ = assert_sort ctx env b in
@@ -399,6 +406,7 @@ and check_tm ctx env m0 a0 : unit trans1e =
       assert_equal env a0 a1)
   | Let (rel, m, bnd) ->
     let* a = infer_tm ctx env m in
+    let* a = unify >> resolve_tm a in
     check_tm ctx env (subst bnd (Ann (m, a))) a0
   (* data *)
   | Pair (rel0, s0, m, n) -> (
@@ -513,4 +521,6 @@ let trans_dcls dcls =
   in
   let _, eqns, map0, map1 = run_trans1e (check_dcls ctx IMap.empty dcls) in
   let map0, map1 = Unify1.unify (map0, map1) eqns in
+  let _ = pr "%a@." pp_map0 map0 in
+  let _ = pr "%a@." pp_map1 map1 in
   resolve_dcls (map0, map1) dcls

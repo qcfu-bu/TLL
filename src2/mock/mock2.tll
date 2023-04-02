@@ -2,25 +2,27 @@ inductive List‹s,t› (A : Type‹s›) : Type‹t› =
 | Nil
 | Cons of (hd : A) (tl : List‹s,t› A)
 
-logical len‹s,t› {A : Type‹s›} (xs : List‹s,t› A) : nat =
-  match xs with
-  | Nil ⇒ 0
-  | Cons hd tl ⇒ 1 + len _ tl
-  end
+-- logical len‹s,t› {A : Type‹s›} (xs : List‹s,t› A) : nat =
+--   match xs with
+--   | Nil ⇒ 0
+--   | Cons hd tl ⇒ 1 + len _ tl
+--   end
 
-program append‹s,t› {A : Type‹s›} (xs ys : List‹_,t› A) : List A =
-  match xs with
-  | Nil ⇒ ys
-  | Cons x xs ⇒ Cons x (append _ xs ys)
-  end
+-- program append‹s,t› {A : Type‹s›} (xs ys : List‹_,t› A) : List A =
+--   match xs with
+--   | Nil ⇒ ys
+--   | Cons x xs ⇒ Cons x (append _ xs ys)
+--   end
 
-logical append_len‹s,t› (A : Type‹s›) (xs ys : List‹_,t› A) :
-  len _ (append _ xs ys) ≡ (len _ xs) + (len _ ys) =
-  match xs as xs0 in
-    len _ (append _ xs0 ys) ≡ len _ xs0 + len _ ys
-  with
-  | Nil ⇒ refl
-  | Cons x xs0 ⇒
-    rew [ n, _ ⇒ S (len _ (append _ xs0 ys)) ≡ S n ]
-      append_len _ xs0 ys in refl
-  end
+-- logical append_len‹s,t› (A : Type‹s›) (xs ys : List‹_,t› A) :
+--   len _ (append _ xs ys) ≡ (len _ xs) + (len _ ys) =
+--   match xs as xs0 in
+--     len _ (append _ xs0 ys) ≡ len _ xs0 + len _ ys
+--   with
+--   | Nil ⇒ refl
+--   | Cons x xs0 ⇒
+--     rew [ n, _ ⇒ S (len _ (append _ xs0 ys)) ≡ S n ]
+--       append_len _ xs0 ys in refl
+--   end
+-- program ls0 : list _ = 1 :: 2 :: 3 :: nil
+program ls1 : List‹_,L› _ = (Cons 0 Nil)
