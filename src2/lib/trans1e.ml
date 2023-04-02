@@ -394,7 +394,9 @@ and check_tm ctx env m0 a0 : unit trans1e =
       let* _ = assert_equal0 s0 s1 in
       let x, m, b = unbind2 bnd0 bnd1 in
       check_tm (add_var x a1 ctx) env m b
-    | _ -> failwith "check_Lam")
+    | _ ->
+      let* a1 = infer_tm ctx env m0 in
+      assert_equal env a0 a1)
   | Let (rel, m, bnd) ->
     let* a = infer_tm ctx env m in
     check_tm ctx env (subst bnd (Ann (m, a))) a0
@@ -406,7 +408,9 @@ and check_tm ctx env m0 a0 : unit trans1e =
       let* _ = assert_equal0 s0 s1 in
       let* _ = check_tm ctx env m a in
       check_tm ctx env n (subst bnd m)
-    | ty -> failwith "check_Pair(%a)" pp_tm ty)
+    | _ ->
+      let* a1 = infer_tm ctx env m0 in
+      assert_equal env a0 a1)
   | Match (m, mot, cls) -> (
     let* ty_m = infer_tm ctx env m in
     let a1 = subst mot m in
@@ -418,7 +422,9 @@ and check_tm ctx env m0 a0 : unit trans1e =
     | Data (d, ss, ms) ->
       let _, cs = find_data d ctx in
       infer_cls ctx env cs ss ms mot cls
-    | _ -> failwith "check_Match")
+    | _ ->
+      let* a1 = infer_tm ctx env m0 in
+      assert_equal env a0 a1)
   (* other *)
   | _ ->
     let* a1 = infer_tm ctx env m0 in
@@ -507,6 +513,4 @@ let trans_dcls dcls =
   in
   let _, eqns, map0, map1 = run_trans1e (check_dcls ctx IMap.empty dcls) in
   let map0, map1 = Unify1.unify (map0, map1) eqns in
-  let _ = pr "%a@.@." pp_map0 map0 in
-  let _ = pr "%a@.@." pp_map1 map1 in
   resolve_dcls (map0, map1) dcls

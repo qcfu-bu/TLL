@@ -184,63 +184,67 @@ let rec fv ctx = function
   | Close m -> fv ctx m
 
 (* meta variable occurences *)
-let rec occurs x = function
+let rec occurs_sort x = function
+  | SMeta (y, ss) -> M.equal x y || List.exists (occurs_sort x) ss
+  | _ -> false
+
+let rec occurs_tm x = function
   (* inference *)
-  | Ann (m, a) -> occurs x m || occurs x a
-  | Meta (y, _, _) -> M.equal x y
+  | Ann (m, a) -> occurs_tm x m || occurs_tm x a
+  | Meta (y, _, ms) -> M.equal x y || List.exists (occurs_tm x) ms
   (* core *)
   | Pi (_, _, a, bnd) ->
     let _, b = unbind bnd in
-    occurs x a || occurs x b
+    occurs_tm x a || occurs_tm x b
   | Lam (_, _, bnd) ->
     let _, m = unbind bnd in
-    occurs x m
-  | App (m, n) -> occurs x m || occurs x n
+    occurs_tm x m
+  | App (m, n) -> occurs_tm x m || occurs_tm x n
   | Let (_, m, bnd) ->
     let _, n = unbind bnd in
-    occurs x m || occurs x n
+    occurs_tm x m || occurs_tm x n
   (* data *)
   | Sigma (_, _, a, bnd) ->
     let _, b = unbind bnd in
-    occurs x a || occurs x b
-  | Pair (_, _, m, n) -> occurs x m || occurs x n
-  | Data (_, _, ms) -> List.exists (occurs x) ms
-  | Cons (_, _, ms, ns) -> List.exists (occurs x) (ms @ ns)
+    occurs_tm x a || occurs_tm x b
+  | Pair (_, _, m, n) -> occurs_tm x m || occurs_tm x n
+  | Data (_, _, ms) -> List.exists (occurs_tm x) ms
+  | Cons (_, _, ms, ns) -> List.exists (occurs_tm x) (ms @ ns)
   | Match (m, bnd, cls) ->
     let _, a = unbind bnd in
-    occurs x m || occurs x a
+    occurs_tm x m || occurs_tm x a
     || List.exists
          (function
            | PPair (_, _, bnd) ->
              let _, m = unmbind bnd in
-             occurs x m
+             occurs_tm x m
            | PCons (_, bnd) ->
              let _, m = unmbind bnd in
-             occurs x m)
+             occurs_tm x m)
          cls
   (* equality *)
-  | Eq (a, m, n) -> occurs x a || occurs x m || occurs x n
-  | Refl m -> occurs x m
+  | Eq (a, m, n) -> occurs_tm x a || occurs_tm x m || occurs_tm x n
+  | Refl m -> occurs_tm x m
   | Rew (bnd, p, m) ->
     let _, mot = unmbind bnd in
-    occurs x mot || occurs x p || occurs x m
+    occurs_tm x mot || occurs_tm x p || occurs_tm x m
   (* monadic *)
-  | IO a -> occurs x a
-  | Return m -> occurs x m
+  | IO a -> occurs_tm x a
+  | Return m -> occurs_tm x m
   | MLet (m, bnd) ->
     let _, n = unbind bnd in
-    occurs x m || occurs x n
+    occurs_tm x m || occurs_tm x n
   (* session *)
   | Act (_, _, a, bnd) ->
     let _, b = unbind bnd in
-    occurs x a || occurs x b
-  | Ch (_, a) -> occurs x a
+    occurs_tm x a || occurs_tm x b
+  | Ch (_, a) -> occurs_tm x a
   | Fork (a, bnd) ->
     let _, m = unbind bnd in
-    occurs x a || occurs x m
-  | Recv m -> occurs x m
-  | Send m -> occurs x m
-  | Close m -> occurs x m
+    occurs_tm x a || occurs_tm x m
+  | Recv m -> occurs_tm x m
+  | Send m -> occurs_tm x m
+  | Close m -> occurs_tm x m
   (* other *)
   | _ -> false
 
@@ -393,8 +397,8 @@ let rec simpl eqn =
         | _, SMeta _ -> [ Eqn0 (s2, s1) ]
         | _ -> failwith "simpl_Eqn0")
     | Eqn1 (env, m1, m2) -> (
-      let m1 = whnf [| Beta; Iota |] env m1 in
-      let m2 = whnf [| Beta; Iota |] env m2 in
+      let m1 = whnf rd_all env m1 in
+      let m2 = whnf rd_all env m2 in
       match (m1, m2) with
       (* inference *)
       | Meta _, _ -> [ Eqn1 (env, m1, m2) ]
@@ -420,22 +424,16 @@ let rec simpl eqn =
       | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) when rel1 = rel2 ->
         let _, m1, m2 = unbind2 bnd1 bnd2 in
         Eqn0 (s1, s2) :: simpl (Eqn1 (env, m1, m2))
-      | App _, App _ -> (
-        try
-          let hd1, sp1 = unApps m1 in
-          let hd2, sp2 = unApps m2 in
-          let eqns1 = simpl (Eqn1 (env, hd1, hd2)) in
-          let eqns2 =
-            List.fold_right2
-              (fun m n acc -> simpl (Eqn1 (env, m, n)) @ acc)
-              sp1 sp2 []
-          in
-          eqns1 @ eqns2
-        with
-        | _ ->
-          let m1 = whnf rd_all env m1 in
-          let m2 = whnf rd_all env m2 in
-          simpl (Eqn1 (env, m1, m2)))
+      | App _, App _ ->
+        let hd1, sp1 = unApps m1 in
+        let hd2, sp2 = unApps m2 in
+        let eqns1 = simpl (Eqn1 (env, hd1, hd2)) in
+        let eqns2 =
+          List.fold_right2
+            (fun m n acc -> simpl (Eqn1 (env, m, n)) @ acc)
+            sp1 sp2 []
+        in
+        eqns1 @ eqns2
       | Let (rel1, m1, bnd1), Let (rel2, m2, bnd2) when rel1 = rel2 ->
         let _, n1, n2 = unbind2 bnd1 bnd2 in
         let eqns1 = simpl (Eqn1 (env, m1, m2)) in
@@ -529,7 +527,7 @@ let rec simpl eqn =
       | Send m1, Send m2 -> simpl (Eqn1 (env, m1, m2))
       | Close m1, Close m2 -> simpl (Eqn1 (env, m1, m2))
       (* other *)
-      | _ -> []))
+      | _ -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2))
 
 let solve ((map0, map1) : map0 * map1) eqn =
   let meta_sspine sp =
@@ -551,20 +549,21 @@ let solve ((map0, map1) : map0 * map1) eqn =
     match (s1, s2) with
     | SMeta _, SMeta _ -> (map0, map1)
     | SMeta (x, xs), _ ->
-      let xs = meta_sspine xs in
-      if SVSet.subset (fsv s2) (SVSet.of_list xs) then
-        let bnd = bind_mvar (Array.of_list xs) (lift_sort s2) in
-        (MMap.add x (unbox bnd) map0, map1)
-      else
+      if occurs_sort x s2 then
         (map0, map1)
+      else
+        let xs = meta_sspine xs in
+        if SVSet.subset (fsv s2) (SVSet.of_list xs) then
+          let bnd = bind_mvar (Array.of_list xs) (lift_sort s2) in
+          (MMap.add x (unbox bnd) map0, map1)
+        else
+          (map0, map1)
     | _ -> (map0, map1))
   | Eqn1 (env, m1, m2) -> (
-    let m1 = whnf [| Beta; Iota |] env m1 in
-    let m2 = whnf [| Beta; Iota |] env m2 in
     match (m1, m2) with
     | Meta _, Meta _ -> (map0, map1)
     | Meta (x, ss, xs), _ ->
-      if occurs x m2 then
+      if occurs_tm x m2 then
         (map0, map1)
       else
         let ss = meta_sspine ss in
