@@ -9,14 +9,6 @@ type env_entry =
 
 type env = env_entry IMap.t
 
-type rd =
-  | Beta
-  | Delta
-  | Iota
-
-let rd_all = [| Beta; Delta; Iota |]
-let enabled mode rd = Array.exists (( = ) rd) mode
-
 let is_guarded sp =
   List.exists
     (function
@@ -24,48 +16,48 @@ let is_guarded sp =
       | _ -> false)
     sp
 
-let rec whnf mode (env : env) = function
+let rec whnf (env : env) = function
   (* inference *)
-  | Ann (m, a) -> whnf mode env m
+  | Ann (m, a) -> whnf env m
   (* core *)
-  | Const (x, ss) when enabled mode Delta -> (
+  | Const (x, ss) -> (
     match IMap.find_opt x env with
-    | Some entry when not entry.guarded -> whnf mode env (entry.scheme ss)
+    | Some entry when not entry.guarded -> whnf env (entry.scheme ss)
     | _ -> Const (x, ss))
-  | App _ as m when enabled mode Beta -> (
+  | App _ as m -> (
     let hd, sp = unApps m in
-    let hd = whnf mode env hd in
-    let sp = List.map (whnf mode env) sp in
+    let hd = whnf env hd in
+    let sp = List.map (whnf env) sp in
     match (hd, sp) with
-    | Lam (_, _, bnd), n :: sp -> whnf mode env (mkApps (subst bnd n) sp)
-    | Const (x, ss), _ when is_guarded sp && enabled mode Delta -> (
+    | Lam (_, _, bnd), n :: sp -> whnf env (mkApps (subst bnd n) sp)
+    | Const (x, ss), _ when is_guarded sp -> (
       match IMap.find_opt x env with
-      | Some entry -> whnf mode env (mkApps (entry.scheme ss) sp)
+      | Some entry -> whnf env (mkApps (entry.scheme ss) sp)
       | None -> mkApps hd sp)
     | _ -> mkApps hd sp)
   | Let (r, m, bnd) ->
-    let m = whnf mode env m in
-    whnf mode env (subst bnd m)
+    let m = whnf env m in
+    whnf env (subst bnd m)
   (* data *)
-  | Match (m, mot, cls) when enabled mode Iota -> (
-    let m = whnf mode env m in
+  | Match (m, mot, cls) -> (
+    let m = whnf env m in
     match match_cls cls m with
-    | Some m -> whnf mode env m
+    | Some m -> whnf env m
     | _ -> Match (m, mot, cls))
   (* equality *)
   | Rew (bnd, pf, m) -> (
-    let pf = whnf mode env pf in
+    let pf = whnf env pf in
     match pf with
-    | Refl _ -> whnf mode env m
+    | Refl _ -> whnf env m
     | _ -> Rew (bnd, pf, m))
   (* monadic *)
   | MLet (m, bnd) -> (
-    let m = whnf mode env m in
+    let m = whnf env m in
     match m with
-    | Return m -> whnf mode env (subst bnd m)
+    | Return m -> whnf env (subst bnd m)
     | _ -> MLet (m, bnd))
   (* session *)
-  | Ch (rol, a) -> Ch (rol, whnf mode env a)
+  | Ch (rol, a) -> Ch (rol, whnf env a)
   (* other *)
   | m -> m
 
@@ -151,13 +143,13 @@ let rec aeq tm1 tm2 =
     | _ -> false
 
 (* Beta/Delta/Iota equaltiy *)
-let eq_tm mode env m1 m2 =
+let eq_tm env m1 m2 =
   let rec equal m1 m2 =
     if aeq m1 m2 then
       true
     else
-      let m1 = whnf mode env m1 in
-      let m2 = whnf mode env m2 in
+      let m1 = whnf env m1 in
+      let m2 = whnf env m2 in
       match (m1, m2) with
       (* inference *)
       | Ann (m1, a1), Ann (m2, a2) -> equal m1 m2 && equal a1 a2

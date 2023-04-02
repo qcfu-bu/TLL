@@ -102,7 +102,7 @@ let assert_equal env m n : unit trans1e =
     pr "@[assert_equal(@;<1 2>%a@;<1 0>::::::@;<1 2>%a)@]@.@." pp_tm m pp_tm n
   in
   fun (eqns, map0, map1) ->
-    if eq_tm rd_all env m n then
+    if eq_tm env m n then
       ((), eqns, map0, map1)
     else
       ((), Eqn1 (env, m, n) :: eqns, map0, map1)
@@ -162,7 +162,7 @@ and infer_tm ctx env m0 : tm trans1e =
   | App (m, n) -> (
     let* ty_m = infer_tm ctx env m in
     let* ty_m = unify >> resolve_tm ty_m in
-    match whnf rd_all env ty_m with
+    match whnf env ty_m with
     | Pi (_, _, a, bnd) ->
       let* _ = check_tm ctx env n a in
       return (subst bnd n)
@@ -194,7 +194,7 @@ and infer_tm ctx env m0 : tm trans1e =
   | Match (m, mot, cls) -> (
     let* ty_m = infer_tm ctx env m in
     let* ty_m = unify >> resolve_tm ty_m in
-    match whnf rd_all env ty_m with
+    match whnf env ty_m with
     | Sigma (rel, s, a, bnd) ->
       let* _ = infer_pair ctx env rel s a bnd mot cls in
       return (subst mot m)
@@ -234,11 +234,11 @@ and infer_tm ctx env m0 : tm trans1e =
     let* ty_m = infer_tm ctx env m in
     let* ty_m = unify >> resolve_tm ty_m in
     let x, n = unbind bnd in
-    match whnf rd_all env ty_m with
+    match whnf env ty_m with
     | IO a -> (
       let* ty_n = infer_tm (add_var x a ctx) env n in
       let* ty_n = unify >> resolve_tm ty_n in
-      match whnf rd_all env ty_n with
+      match whnf env ty_n with
       | IO b -> return (IO b)
       | _ -> failwith "infer_MLet")
     | _ -> failwith "infer_MLet")
@@ -260,7 +260,7 @@ and infer_tm ctx env m0 : tm trans1e =
     let x, m = unbind bnd in
     let* _ = assert_sort ctx env a0 in
     let* a0 = unify >> resolve_tm a0 in
-    match whnf rd_all env a0 with
+    match whnf env a0 with
     | Ch (Pos, a) ->
       let ty = IO (Data (Prelude1.unit_d, [], [])) in
       let* _ = check_tm (add_var x a0 ctx) env m ty in
@@ -269,7 +269,7 @@ and infer_tm ctx env m0 : tm trans1e =
   | Recv m -> (
     let* ty_m = infer_tm ctx env m in
     let* ty_m = unify >> resolve_tm ty_m in
-    match whnf rd_all env ty_m with
+    match whnf env ty_m with
     | Ch (rol1, Act (rel, rol2, a, bnd)) when rol1 <> rol2 = true ->
       let x, b = unbind bnd in
       let bnd = unbox (bind_var x (lift_tm (Ch (rol1, b)))) in
@@ -278,7 +278,7 @@ and infer_tm ctx env m0 : tm trans1e =
   | Send m -> (
     let* ty_m = infer_tm ctx env m in
     let* ty_m = unify >> resolve_tm ty_m in
-    match whnf rd_all env ty_m with
+    match whnf env ty_m with
     | Ch (rol1, Act (rel, rol2, a, bnd)) when rol1 <> rol2 = false ->
       let x, b = unbind bnd in
       let bnd = unbox (bind_var x (lift_tm (IO (Ch (rol1, b))))) in
@@ -287,7 +287,7 @@ and infer_tm ctx env m0 : tm trans1e =
   | Close m -> (
     let* ty_m = infer_tm ctx env m in
     let* ty_m = unify >> resolve_tm ty_m in
-    match whnf rd_all env ty_m with
+    match whnf env ty_m with
     | Ch (_, End) -> return (IO (Data (Prelude1.unit_d, [], [])))
     | ty -> failwith "infer_Close(%a)" pp_tm ty)
 
@@ -389,7 +389,7 @@ and check_tm ctx env m0 a0 : unit trans1e =
   (* core *)
   | Lam (rel0, s0, bnd0) -> (
     let* a0 = unify >> resolve_tm a0 in
-    match whnf rd_all env a0 with
+    match whnf env a0 with
     | Pi (rel1, s1, a1, bnd1) when rel0 = rel1 ->
       let* _ = assert_equal0 s0 s1 in
       let x, m, b = unbind2 bnd0 bnd1 in
@@ -403,7 +403,7 @@ and check_tm ctx env m0 a0 : unit trans1e =
   (* data *)
   | Pair (rel0, s0, m, n) -> (
     let* a0 = unify >> resolve_tm a0 in
-    match whnf rd_all env a0 with
+    match whnf env a0 with
     | Sigma (rel1, s1, a, bnd) when rel0 = rel1 ->
       let* _ = assert_equal0 s0 s1 in
       let* _ = check_tm ctx env m a in
@@ -417,7 +417,7 @@ and check_tm ctx env m0 a0 : unit trans1e =
     let* _ = assert_sort ctx env a1 in
     let* _ = assert_equal env a0 a1 in
     let* ty_m = unify >> resolve_tm ty_m in
-    match whnf rd_all env ty_m with
+    match whnf env ty_m with
     | Sigma (rel, srt, a, bnd) -> infer_pair ctx env rel srt a bnd mot cls
     | Data (d, ss, ms) ->
       let _, cs = find_data d ctx in

@@ -248,8 +248,9 @@ let rec occurs_tm x = function
   (* other *)
   | _ -> false
 
-(* Alpha simplification *)
-let rec asimpl = function
+(* equation simplification *)
+let rec simpl eqn =
+  match eqn with
   | Eqn0 (s1, s2) -> (
     if eq_sort s1 s2 then
       []
@@ -257,277 +258,137 @@ let rec asimpl = function
       match (s1, s2) with
       | SMeta _, _ -> [ Eqn0 (s1, s2) ]
       | _, SMeta _ -> [ Eqn0 (s2, s1) ]
-      | _ -> failwith "asimpl_Eqn0")
+      | _ -> failwith "simpl_Eqn0")
   | Eqn1 (env, m1, m2) -> (
-    if eq_tm [| Beta; Iota |] env m1 m2 then
-      []
-    else
-      match (m1, m2) with
-      (* inference *)
-      | Meta _, _ -> [ Eqn1 (env, m1, m2) ]
-      | _, Meta _ -> [ Eqn1 (env, m2, m1) ]
-      (* core *)
-      | Type s1, Type s2 -> [ Eqn0 (s1, s2) ]
-      | Var x1, Var x2 when eq_vars x1 x2 -> []
-      | Const (x1, ss1), Const (x2, ss2) when I.equal x1 x2 ->
-        List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2
-      | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) when rel1 = rel2 ->
-        let _, b1, b2 = unbind2 bnd1 bnd2 in
-        let eqns1 = asimpl (Eqn1 (env, a1, a2)) in
-        let eqns2 = asimpl (Eqn1 (env, b1, b2)) in
-        Eqn0 (s1, s2) :: (eqns1 @ eqns2)
-      | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) when rel1 = rel2 ->
-        let _, m1, m2 = unbind2 bnd1 bnd2 in
-        Eqn0 (s1, s2) :: asimpl (Eqn1 (env, m1, m2))
-      | App _, App _ ->
-        let hd1, sp1 = unApps m1 in
-        let hd2, sp2 = unApps m2 in
-        let eqns1 = asimpl (Eqn1 (env, hd1, hd2)) in
-        let eqns2 =
-          List.fold_right2
-            (fun m n acc -> asimpl (Eqn1 (env, m, n)) @ acc)
-            sp1 sp2 []
-        in
-        eqns1 @ eqns2
-      | Let (rel1, m1, bnd1), Let (rel2, m2, bnd2) when rel1 = rel2 ->
-        let _, n1, n2 = unbind2 bnd1 bnd2 in
-        let eqns1 = asimpl (Eqn1 (env, m1, m2)) in
-        let eqns2 = asimpl (Eqn1 (env, n1, n2)) in
-        eqns1 @ eqns2
-      (* data *)
-      | Sigma (rel1, s1, a1, bnd1), Sigma (rel2, s2, a2, bnd2) when rel1 = rel2
-        ->
-        let _, b1, b2 = unbind2 bnd1 bnd2 in
-        let eqns1 = asimpl (Eqn1 (env, a1, a2)) in
-        let eqns2 = asimpl (Eqn1 (env, b1, b2)) in
-        Eqn0 (s1, s2) :: (eqns1 @ eqns2)
-      | Pair (rel1, s1, m1, n1), Pair (rel2, s2, m2, n2) when rel1 = rel2 ->
-        let eqns1 = asimpl (Eqn1 (env, m1, m2)) in
-        let eqns2 = asimpl (Eqn1 (env, n1, n2)) in
-        Eqn0 (s1, s2) :: (eqns1 @ eqns2)
-      | Data (d1, ss1, ms1), Data (d2, ss2, ms2) when D.equal d1 d2 ->
-        let eqns1 = List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2 in
-        let eqns2 =
-          List.fold_right2
-            (fun m1 m2 acc -> asimpl (Eqn1 (env, m1, m2)) @ acc)
-            ms1 ms2 []
-        in
-        eqns1 @ eqns2
-      | Cons (c1, ss1, ms1, ns1), Cons (c2, ss2, ms2, ns2) when C.equal c1 c2 ->
-        let eqns1 = List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2 in
-        let eqns2 =
-          List.fold_right2
-            (fun m1 m2 acc -> asimpl (Eqn1 (env, m1, m2)) @ acc)
-            (ms1 @ ns1) (ms2 @ ns2) []
-        in
-        eqns1 @ eqns2
-      | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
-        let _, mot1, mot2 = unbind2 bnd1 bnd2 in
-        let eqns1 = asimpl (Eqn1 (env, m1, m2)) in
-        let eqns2 = asimpl (Eqn1 (env, mot1, mot2)) in
-        let eqns3 =
-          List.fold_right2
-            (fun cl1 cl2 acc ->
-              match (cl1, cl2) with
-              | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2) when rel1 = rel2
-                ->
-                let _, m1, m2 = unmbind2 bnd1 bnd2 in
-                Eqn0 (s1, s2) :: (asimpl (Eqn1 (env, m1, m2)) @ acc)
-              | PCons (c1, bnd1), PCons (c2, bnd2) when C.equal c1 c2 ->
-                let _, m1, m2 = unmbind2 bnd1 bnd2 in
-                asimpl (Eqn1 (env, m1, m2)) @ acc
-              | _ -> failwith "asimpl_Match")
-            cls1 cls2 []
-        in
-        eqns1 @ eqns2 @ eqns3
-      (* equality *)
-      | Eq (a1, m1, n1), Eq (a2, m2, n2) ->
-        let eqns1 = asimpl (Eqn1 (env, a1, a2)) in
-        let eqns2 = asimpl (Eqn1 (env, m1, m2)) in
-        let eqns3 = asimpl (Eqn1 (env, n1, n2)) in
-        eqns1 @ eqns2 @ eqns3
-      | Refl m1, Refl m2 -> asimpl (Eqn1 (env, m1, m2))
-      | Rew (bnd1, p1, m1), Rew (bnd2, p2, m2) ->
-        let _, mot1, mot2 = unmbind2 bnd1 bnd2 in
-        let eqns1 = asimpl (Eqn1 (env, mot1, mot2)) in
-        let eqns2 = asimpl (Eqn1 (env, p1, p2)) in
-        let eqns3 = asimpl (Eqn1 (env, m1, m2)) in
-        eqns1 @ eqns2 @ eqns3
-      (* monadic *)
-      | IO a1, IO a2 -> asimpl (Eqn1 (env, a1, a2))
-      | Return m1, Return m2 -> asimpl (Eqn1 (env, m1, m2))
-      | MLet (m1, bnd1), MLet (m2, bnd2) ->
-        let _, n1, n2 = unbind2 bnd1 bnd2 in
-        let eqns1 = asimpl (Eqn1 (env, m1, m2)) in
-        let eqns2 = asimpl (Eqn1 (env, n1, n2)) in
-        eqns1 @ eqns2
-      (* session *)
-      | Proto, Proto -> []
-      | End, End -> []
-      | Act (rel1, rol1, a1, bnd1), Act (rel2, rol2, a2, bnd2)
-        when rel1 = rel2 && rol1 = rol2 ->
-        let _, b1, b2 = unbind2 bnd1 bnd2 in
-        let eqns1 = asimpl (Eqn1 (env, a1, a2)) in
-        let eqns2 = asimpl (Eqn1 (env, b1, b2)) in
-        eqns1 @ eqns2
-      | Ch (rol1, a1), Ch (rol2, a2) when rol1 = rol2 ->
-        asimpl (Eqn1 (env, a1, a2))
-      | Open prim1, Open prim2 when prim1 = prim2 -> []
-      | Fork (a1, bnd1), Fork (a2, bnd2) ->
-        let _, m1, m2 = unbind2 bnd1 bnd2 in
-        let eqns1 = asimpl (Eqn1 (env, a1, a2)) in
-        let eqns2 = asimpl (Eqn1 (env, m1, m2)) in
-        eqns1 @ eqns2
-      | Recv m1, Recv m2 -> asimpl (Eqn1 (env, m1, m2))
-      | Send m1, Send m2 -> asimpl (Eqn1 (env, m1, m2))
-      | Close m1, Close m2 -> asimpl (Eqn1 (env, m1, m2))
-      | _ -> failwith "asimpl")
-
-(* Beta/Delta/Iota simplification *)
-let rec simpl eqn =
-  try asimpl eqn with
-  | _ -> (
-    match eqn with
-    | Eqn0 (s1, s2) -> (
-      if eq_sort s1 s2 then
-        []
-      else
-        match (s1, s2) with
-        | SMeta _, _ -> [ Eqn0 (s1, s2) ]
-        | _, SMeta _ -> [ Eqn0 (s2, s1) ]
-        | _ -> failwith "simpl_Eqn0")
-    | Eqn1 (env, m1, m2) -> (
-      let m1 = whnf rd_all env m1 in
-      let m2 = whnf rd_all env m2 in
-      match (m1, m2) with
-      (* inference *)
-      | Meta _, _ -> [ Eqn1 (env, m1, m2) ]
-      | _, Meta _ -> [ Eqn1 (env, m2, m1) ]
-      (* core *)
-      | Type s1, Type s2 -> [ Eqn0 (s1, s2) ]
-      | Var x1, Var x2 when eq_vars x1 x2 -> []
-      | Const (x1, ss1), Const (x2, ss2) when I.equal x1 x2 ->
-        List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2
-      | Const (x, ss), _ -> (
-        match IMap.find_opt x env with
-        | Some entry -> simpl (Eqn1 (env, entry.scheme ss, m2))
-        | None -> [])
-      | _, Const (y, ss) -> (
-        match IMap.find_opt y env with
-        | Some entry -> simpl (Eqn1 (env, m1, entry.scheme ss))
-        | None -> [])
-      | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) when rel1 = rel2 ->
-        let _, b1, b2 = unbind2 bnd1 bnd2 in
-        let eqns1 = simpl (Eqn1 (env, a1, a2)) in
-        let eqns2 = simpl (Eqn1 (env, b1, b2)) in
-        Eqn0 (s1, s2) :: (eqns1 @ eqns2)
-      | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) when rel1 = rel2 ->
-        let _, m1, m2 = unbind2 bnd1 bnd2 in
-        Eqn0 (s1, s2) :: simpl (Eqn1 (env, m1, m2))
-      | App _, App _ ->
-        let hd1, sp1 = unApps m1 in
-        let hd2, sp2 = unApps m2 in
-        let eqns1 = simpl (Eqn1 (env, hd1, hd2)) in
-        let eqns2 =
-          List.fold_right2
-            (fun m n acc -> simpl (Eqn1 (env, m, n)) @ acc)
-            sp1 sp2 []
-        in
-        eqns1 @ eqns2
-      | Let (rel1, m1, bnd1), Let (rel2, m2, bnd2) when rel1 = rel2 ->
-        let _, n1, n2 = unbind2 bnd1 bnd2 in
-        let eqns1 = simpl (Eqn1 (env, m1, m2)) in
-        let eqns2 = simpl (Eqn1 (env, n1, n2)) in
-        eqns1 @ eqns2
-      (* data *)
-      | Sigma (rel1, s1, a1, bnd1), Sigma (rel2, s2, a2, bnd2) when rel1 = rel2
-        ->
-        let _, b1, b2 = unbind2 bnd1 bnd2 in
-        let eqns1 = simpl (Eqn1 (env, a1, a2)) in
-        let eqns2 = simpl (Eqn1 (env, b1, b2)) in
-        Eqn0 (s1, s2) :: (eqns1 @ eqns2)
-      | Pair (rel1, s1, m1, n1), Pair (rel2, s2, m2, n2) when rel1 = rel2 ->
-        let eqns1 = simpl (Eqn1 (env, m1, m2)) in
-        let eqns2 = simpl (Eqn1 (env, n1, n2)) in
-        Eqn0 (s1, s2) :: (eqns1 @ eqns2)
-      | Data (d1, ss1, ms1), Data (d2, ss2, ms2) when D.equal d1 d2 ->
-        let eqns1 = List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2 in
-        let eqns2 =
-          List.fold_right2
-            (fun m1 m2 acc -> simpl (Eqn1 (env, m1, m2)) @ acc)
-            ms1 ms2 []
-        in
-        eqns1 @ eqns2
-      | Cons (c1, ss1, ms1, ns1), Cons (c2, ss2, ms2, ns2) when C.equal c1 c2 ->
-        let eqns1 = List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2 in
-        let eqns2 =
-          List.fold_right2
-            (fun m1 m2 acc -> simpl (Eqn1 (env, m1, m2)) @ acc)
-            (ms1 @ ns1) (ms2 @ ns2) []
-        in
-        eqns1 @ eqns2
-      | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
-        let _, mot1, mot2 = unbind2 bnd1 bnd2 in
-        let eqns1 = simpl (Eqn1 (env, m1, m2)) in
-        let eqns2 = simpl (Eqn1 (env, mot1, mot2)) in
-        let eqns3 =
-          List.fold_right2
-            (fun cl1 cl2 acc ->
-              match (cl1, cl2) with
-              | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2) when rel1 = rel2
-                ->
-                let _, m1, m2 = unmbind2 bnd1 bnd2 in
-                Eqn0 (s1, s2) :: (simpl (Eqn1 (env, m1, m2)) @ acc)
-              | PCons (c1, bnd1), PCons (c2, bnd2) when C.equal c1 c2 ->
-                let _, m1, m2 = unmbind2 bnd1 bnd2 in
-                simpl (Eqn1 (env, m1, m2)) @ acc
-              | _ -> failwith "simpl_Match")
-            cls1 cls2 []
-        in
-        eqns1 @ eqns2 @ eqns3
-      (* equality *)
-      | Eq (a1, m1, n1), Eq (a2, m2, n2) ->
-        let eqns1 = simpl (Eqn1 (env, a1, a2)) in
-        let eqns2 = simpl (Eqn1 (env, m1, m2)) in
-        let eqns3 = simpl (Eqn1 (env, n1, n2)) in
-        eqns1 @ eqns2 @ eqns3
-      | Refl m1, Refl m2 -> simpl (Eqn1 (env, m1, m2))
-      | Rew (bnd1, p1, m1), Rew (bnd2, p2, m2) ->
-        let _, mot1, mot2 = unmbind2 bnd1 bnd2 in
-        let eqns1 = simpl (Eqn1 (env, mot1, mot2)) in
-        let eqns2 = simpl (Eqn1 (env, p1, p2)) in
-        let eqns3 = simpl (Eqn1 (env, m1, m2)) in
-        eqns1 @ eqns2 @ eqns3
-      (* monadic *)
-      | IO a1, IO a2 -> simpl (Eqn1 (env, a1, a2))
-      | Return m1, Return m2 -> simpl (Eqn1 (env, m1, m2))
-      | MLet (m1, bnd1), MLet (m2, bnd2) ->
-        let _, n1, n2 = unbind2 bnd1 bnd2 in
-        let eqns1 = simpl (Eqn1 (env, m1, m2)) in
-        let eqns2 = simpl (Eqn1 (env, n1, n2)) in
-        eqns1 @ eqns2
-      (* session *)
-      | Proto, Proto -> []
-      | End, End -> []
-      | Act (rel1, rol1, a1, bnd1), Act (rel2, rol2, a2, bnd2)
-        when rel1 = rel2 && rol1 = rol2 ->
-        let _, b1, b2 = unbind2 bnd1 bnd2 in
-        let eqns1 = simpl (Eqn1 (env, a1, a2)) in
-        let eqns2 = simpl (Eqn1 (env, b1, b2)) in
-        eqns1 @ eqns2
-      | Ch (rol1, a1), Ch (rol2, a2) when rol1 = rol2 ->
-        simpl (Eqn1 (env, a1, a2))
-      | Open prim1, Open prim2 when prim1 = prim2 -> []
-      | Fork (a1, bnd1), Fork (a2, bnd2) ->
-        let _, m1, m2 = unbind2 bnd1 bnd2 in
-        let eqns1 = simpl (Eqn1 (env, a1, a2)) in
-        let eqns2 = simpl (Eqn1 (env, m1, m2)) in
-        eqns1 @ eqns2
-      | Recv m1, Recv m2 -> simpl (Eqn1 (env, m1, m2))
-      | Send m1, Send m2 -> simpl (Eqn1 (env, m1, m2))
-      | Close m1, Close m2 -> simpl (Eqn1 (env, m1, m2))
-      (* other *)
-      | _ -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2))
+    let m1 = whnf env m1 in
+    let m2 = whnf env m2 in
+    match (m1, m2) with
+    (* inference *)
+    | Meta _, _ -> [ Eqn1 (env, m1, m2) ]
+    | _, Meta _ -> [ Eqn1 (env, m2, m1) ]
+    (* core *)
+    | Type s1, Type s2 -> [ Eqn0 (s1, s2) ]
+    | Var x1, Var x2 when eq_vars x1 x2 -> []
+    | Const (x1, ss1), Const (x2, ss2) when I.equal x1 x2 ->
+      List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2
+    | Const (x, ss), _ -> (
+      match IMap.find_opt x env with
+      | Some entry -> simpl (Eqn1 (env, entry.scheme ss, m2))
+      | None -> [])
+    | _, Const (y, ss) -> (
+      match IMap.find_opt y env with
+      | Some entry -> simpl (Eqn1 (env, m1, entry.scheme ss))
+      | None -> [])
+    | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) when rel1 = rel2 ->
+      let _, b1, b2 = unbind2 bnd1 bnd2 in
+      let eqns1 = simpl (Eqn1 (env, a1, a2)) in
+      let eqns2 = simpl (Eqn1 (env, b1, b2)) in
+      Eqn0 (s1, s2) :: (eqns1 @ eqns2)
+    | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) when rel1 = rel2 ->
+      let _, m1, m2 = unbind2 bnd1 bnd2 in
+      Eqn0 (s1, s2) :: simpl (Eqn1 (env, m1, m2))
+    | App _, App _ ->
+      let hd1, sp1 = unApps m1 in
+      let hd2, sp2 = unApps m2 in
+      let eqns1 = simpl (Eqn1 (env, hd1, hd2)) in
+      let eqns2 =
+        List.fold_right2
+          (fun m n acc -> simpl (Eqn1 (env, m, n)) @ acc)
+          sp1 sp2 []
+      in
+      eqns1 @ eqns2
+    | Let (rel1, m1, bnd1), Let (rel2, m2, bnd2) when rel1 = rel2 ->
+      let _, n1, n2 = unbind2 bnd1 bnd2 in
+      let eqns1 = simpl (Eqn1 (env, m1, m2)) in
+      let eqns2 = simpl (Eqn1 (env, n1, n2)) in
+      eqns1 @ eqns2
+    (* data *)
+    | Sigma (rel1, s1, a1, bnd1), Sigma (rel2, s2, a2, bnd2) when rel1 = rel2 ->
+      let _, b1, b2 = unbind2 bnd1 bnd2 in
+      let eqns1 = simpl (Eqn1 (env, a1, a2)) in
+      let eqns2 = simpl (Eqn1 (env, b1, b2)) in
+      Eqn0 (s1, s2) :: (eqns1 @ eqns2)
+    | Pair (rel1, s1, m1, n1), Pair (rel2, s2, m2, n2) when rel1 = rel2 ->
+      let eqns1 = simpl (Eqn1 (env, m1, m2)) in
+      let eqns2 = simpl (Eqn1 (env, n1, n2)) in
+      Eqn0 (s1, s2) :: (eqns1 @ eqns2)
+    | Data (d1, ss1, ms1), Data (d2, ss2, ms2) when D.equal d1 d2 ->
+      let eqns1 = List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2 in
+      let eqns2 =
+        List.fold_right2
+          (fun m1 m2 acc -> simpl (Eqn1 (env, m1, m2)) @ acc)
+          ms1 ms2 []
+      in
+      eqns1 @ eqns2
+    | Cons (c1, ss1, ms1, ns1), Cons (c2, ss2, ms2, ns2) when C.equal c1 c2 ->
+      let eqns1 = List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2 in
+      let eqns2 =
+        List.fold_right2
+          (fun m1 m2 acc -> simpl (Eqn1 (env, m1, m2)) @ acc)
+          (ms1 @ ns1) (ms2 @ ns2) []
+      in
+      eqns1 @ eqns2
+    | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
+      let _, mot1, mot2 = unbind2 bnd1 bnd2 in
+      let eqns1 = simpl (Eqn1 (env, m1, m2)) in
+      let eqns2 = simpl (Eqn1 (env, mot1, mot2)) in
+      let eqns3 =
+        List.fold_right2
+          (fun cl1 cl2 acc ->
+            match (cl1, cl2) with
+            | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2) when rel1 = rel2 ->
+              let _, m1, m2 = unmbind2 bnd1 bnd2 in
+              Eqn0 (s1, s2) :: (simpl (Eqn1 (env, m1, m2)) @ acc)
+            | PCons (c1, bnd1), PCons (c2, bnd2) when C.equal c1 c2 ->
+              let _, m1, m2 = unmbind2 bnd1 bnd2 in
+              simpl (Eqn1 (env, m1, m2)) @ acc
+            | _ -> failwith "simpl_Match")
+          cls1 cls2 []
+      in
+      eqns1 @ eqns2 @ eqns3
+    (* equality *)
+    | Eq (a1, m1, n1), Eq (a2, m2, n2) ->
+      let eqns1 = simpl (Eqn1 (env, a1, a2)) in
+      let eqns2 = simpl (Eqn1 (env, m1, m2)) in
+      let eqns3 = simpl (Eqn1 (env, n1, n2)) in
+      eqns1 @ eqns2 @ eqns3
+    | Refl m1, Refl m2 -> simpl (Eqn1 (env, m1, m2))
+    | Rew (bnd1, p1, m1), Rew (bnd2, p2, m2) ->
+      let _, mot1, mot2 = unmbind2 bnd1 bnd2 in
+      let eqns1 = simpl (Eqn1 (env, mot1, mot2)) in
+      let eqns2 = simpl (Eqn1 (env, p1, p2)) in
+      let eqns3 = simpl (Eqn1 (env, m1, m2)) in
+      eqns1 @ eqns2 @ eqns3
+    (* monadic *)
+    | IO a1, IO a2 -> simpl (Eqn1 (env, a1, a2))
+    | Return m1, Return m2 -> simpl (Eqn1 (env, m1, m2))
+    | MLet (m1, bnd1), MLet (m2, bnd2) ->
+      let _, n1, n2 = unbind2 bnd1 bnd2 in
+      let eqns1 = simpl (Eqn1 (env, m1, m2)) in
+      let eqns2 = simpl (Eqn1 (env, n1, n2)) in
+      eqns1 @ eqns2
+    (* session *)
+    | Proto, Proto -> []
+    | End, End -> []
+    | Act (rel1, rol1, a1, bnd1), Act (rel2, rol2, a2, bnd2)
+      when rel1 = rel2 && rol1 = rol2 ->
+      let _, b1, b2 = unbind2 bnd1 bnd2 in
+      let eqns1 = simpl (Eqn1 (env, a1, a2)) in
+      let eqns2 = simpl (Eqn1 (env, b1, b2)) in
+      eqns1 @ eqns2
+    | Ch (rol1, a1), Ch (rol2, a2) when rol1 = rol2 ->
+      simpl (Eqn1 (env, a1, a2))
+    | Open prim1, Open prim2 when prim1 = prim2 -> []
+    | Fork (a1, bnd1), Fork (a2, bnd2) ->
+      let _, m1, m2 = unbind2 bnd1 bnd2 in
+      let eqns1 = simpl (Eqn1 (env, a1, a2)) in
+      let eqns2 = simpl (Eqn1 (env, m1, m2)) in
+      eqns1 @ eqns2
+    | Recv m1, Recv m2 -> simpl (Eqn1 (env, m1, m2))
+    | Send m1, Send m2 -> simpl (Eqn1 (env, m1, m2))
+    | Close m1, Close m2 -> simpl (Eqn1 (env, m1, m2))
+    (* other *)
+    | _ -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2)
 
 let solve ((map0, map1) : map0 * map1) eqn =
   let meta_sspine sp =
