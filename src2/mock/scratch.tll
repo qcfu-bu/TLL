@@ -1,0 +1,64 @@
+inductive List‹s,t› (A : Type‹s›) : Type‹t› =
+| Nil
+| Cons of (hd : A) (tl : List‹t,s› A)
+
+/-
+
+For sort parameterized inductive types, during type checking
+the sort parameters are instantiated with all possible combinations
+of U/L. The derived inductive types are then checked for agains the
+linearity criterion. Constructors that do not satisfy the criterion
+are pruned.
+
+List<U,U>(A : U) : U {
+  Nil<U,U>
+  Cons<U,U> of (hd : A) (tl : List<U,U> A)
+}
+
+List<L,L>(A : L) : L {
+  Nil<L,L>
+  Cons<L,L> of (hd : A) (tl : List<L,L> A)
+}
+
+List<U,L> (A : U) : L {
+  Nil<U,L>
+  Cons<U,L> of (hd : A) (tl : List<L,U> A)
+}
+
+List<L,U> (A : L) : U {
+  Nil<L,U>
+  Cons<L,U> of (hd : A) (tl : List<U,L> A) -- pruned
+}
+
+-/
+
+inductive Tnsr<s,r,t> (A : Type<s>) (B : Type<r>) : Type<t> =
+| Pair of (m : A) (n : B)
+
+/-
+
+Tnsr<U,U,U> (A : U) (B : U) : U {
+  Pair<U,U,U> of (m : A) (n : B)
+}
+
+Tnsr<L,L,U> (A : L) (B : L) : U {
+  Pair<L,L,U> of (m : A) (n : B) -- pruned
+}
+
+...
+
+-/
+
+
+logical eq_sym<s> (A : Type<s>) (m n : A) (e : m ≡ n) : n ≡ m =
+  rew [ x, _ ⇒ x ≡ m ] e in refl
+
+/-
+
+logical eq_sym<U> (A : U) (m n : A) (e : m ≡ n) : n ≡ m =
+  rew [ x, _ ⇒ x ≡ m ] e in refl
+
+logical eq_sym<L> (A : L) (m n : A) (e : m ≡ n) : n ≡ m =
+  rew [ x, _ ⇒ x ≡ m ] e in refl
+
+-/
