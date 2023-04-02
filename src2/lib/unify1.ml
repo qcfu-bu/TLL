@@ -51,7 +51,7 @@ let rec fv ctx = function
     match VSet.find_opt x ctx with
     | Some _ -> VSet.empty
     | None -> VSet.singleton x)
-  | Const (x, _) -> VSet.singleton x
+  | Const _ -> VSet.empty
   | Pi (_, _, a, bnd) ->
     let x, b = unbind bnd in
     let fv1 = fv ctx a in
@@ -502,8 +502,8 @@ let solve ((map0, map1) : map0 * map1) eqn =
       else
         let xs = meta_spine xs in
         if VSet.subset (fv VSet.empty m2) (VSet.of_list xs) then
-          let m = bind_mvar (Array.of_list xs) (lift_tm m2) in
-          (map0, MMap.add x (Some (unbox m), None) map1)
+          let bnd = bind_mvar (Array.of_list xs) (lift_tm m2) in
+          (map0, MMap.add x (Some (unbox bnd), None) map1)
         else
           (map0, map1)
     | _ -> (map0, map1))
