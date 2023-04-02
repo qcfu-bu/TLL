@@ -23,10 +23,10 @@ let _ =
       let dcls1 = Prelude1.prelude_dcls @ dcls1 in
       let _ = pr "%a@.@." Pprint1.pp_dcls dcls1 in
       let _ = pr "trans01 success--------------------------@.@." in
-      (* (\* trans1e *\) *)
-      (* let dcls1e = Trans1e.trans_dcls dcls1 in *)
-      (* let _ = pr "%a@.@." Pprint1.pp_dcls dcls1e in *)
-      (* let _ = pr "trans1e success--------------------------@.@." in *)
+      (* trans1e *)
+      let dcls1e = Trans1e.trans_dcls dcls1 in
+      let _ = pr "%a@.@." Pprint1.pp_dcls dcls1e in
+      let _ = pr "trans1e success--------------------------@.@." in
       ()
   with
   | Failure s ->

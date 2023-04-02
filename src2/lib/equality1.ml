@@ -7,7 +7,7 @@ type env_entry =
   ; guarded : bool
   }
 
-type env = env_entry VMap.t
+type env = env_entry IMap.t
 
 type rd =
   | Beta
@@ -29,7 +29,7 @@ let rec whnf mode (env : env) = function
   | Ann (m, a) -> whnf mode env m
   (* core *)
   | Const (x, ss) when enabled mode Delta -> (
-    match VMap.find_opt x env with
+    match IMap.find_opt x env with
     | Some entry when not entry.guarded -> whnf mode env (entry.scheme ss)
     | _ -> Const (x, ss))
   | App _ as m when enabled mode Beta -> (
@@ -39,7 +39,7 @@ let rec whnf mode (env : env) = function
     match (hd, sp) with
     | Lam (_, _, bnd), n :: sp -> whnf mode env (mkApps (subst bnd n) sp)
     | Const (x, ss), _ when is_guarded sp && enabled mode Delta -> (
-      match VMap.find_opt x env with
+      match IMap.find_opt x env with
       | Some entry -> whnf mode env (mkApps (entry.scheme ss) sp)
       | None -> mkApps hd sp)
     | _ -> mkApps hd sp)
@@ -93,12 +93,12 @@ let rec aeq tm1 tm2 =
     match (tm1, tm2) with
     (* inference *)
     | Ann (m1, a1), Ann (m2, a2) -> aeq m1 m2 && aeq a1 a2
-    | Meta (x1, _), Meta (x2, _) -> M.equal x1 x2
+    | Meta (x1, _, _), Meta (x2, _, _) -> M.equal x1 x2
     (* core *)
     | Type s1, Type s2 -> eq_sort s1 s2
     | Var x1, Var x2 -> eq_vars x1 x2
     | Const (x1, ss1), Const (x2, ss2) ->
-      eq_vars x1 x2 && List.equal eq_sort ss1 ss2
+      I.equal x1 x2 && List.equal eq_sort ss1 ss2
     | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) ->
       rel1 = rel2 && eq_sort s1 s2 && aeq a1 a2 && eq_binder aeq bnd1 bnd2
     | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) ->
@@ -161,12 +161,12 @@ let eq_tm mode env m1 m2 =
       match (m1, m2) with
       (* inference *)
       | Ann (m1, a1), Ann (m2, a2) -> equal m1 m2 && equal a1 a2
-      | Meta (x1, _), Meta (x2, _) -> M.equal x1 x2
+      | Meta (x1, _, _), Meta (x2, _, _) -> M.equal x1 x2
       (* core *)
       | Type s1, Type s2 -> eq_sort s1 s2
       | Var x1, Var x2 -> eq_vars x1 x2
       | Const (x1, ss1), Const (x2, ss2) ->
-        eq_vars x1 x2 && List.equal eq_sort ss1 ss2
+        I.equal x1 x2 && List.equal eq_sort ss1 ss2
       | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) ->
         rel1 = rel2 && eq_sort s1 s2 && equal a1 a2 && eq_binder equal bnd1 bnd2
       | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) ->

@@ -38,11 +38,11 @@ let rec string_of = function
 let pipe fmt _ = pf fmt " | "
 let break fmt _ = pf fmt "@.@."
 
-let pp_sort fmt = function
+let rec pp_sort fmt = function
   | U -> pf fmt "U"
   | L -> pf fmt "L"
   | SVar x -> SV.pp fmt x
-  | SMeta x -> pf fmt "?%a" M.pp x
+  | SMeta (x, ss) -> pf fmt "?%a[%a]" M.pp x (list ~sep:comma pp_sort) ss
 
 let pp_role fmt = function
   | Pos -> pf fmt "!"
@@ -97,14 +97,14 @@ let rec lam_gather s m =
 let rec pp_tm fmt = function
   (* inference *)
   | Ann (m, a) -> pf fmt "@[(%a@;<1 2>: %a)@]" pp_tm m pp_tm a
-  | Meta (x, _) -> pf fmt "%a" M.pp x
+  | Meta (x, _, _) -> pf fmt "%a" M.pp x
   (* core *)
   | Type U -> pf fmt "U"
   | Type L -> pf fmt "L"
   | Type s -> pf fmt "Type‹%a›" pp_sort s
   | Var x -> V.pp fmt x
-  | Const (x, []) -> pf fmt "%a" V.pp x
-  | Const (x, ss) -> pf fmt "%a‹%a›" V.pp x (list ~sep:comma pp_sort) ss
+  | Const (x, []) -> pf fmt "%a" I.pp x
+  | Const (x, ss) -> pf fmt "%a‹%a›" I.pp x (list ~sep:comma pp_sort) ss
   | Pi (R, U, a, bnd) ->
     let x, b = unbind bnd in
     if binder_occur bnd then
@@ -329,13 +329,13 @@ let rec pp_dconss fmt = function
   | dcons :: dconss -> pf fmt "%a@;<1 0>%a" pp_dcons dcons pp_dconss dconss
 
 let rec pp_dcl fmt = function
-  | DTm (R, x, sch) ->
-    pf fmt "@[program %a@;<1 2>%a@]" V.pp x
+  | DTm (R, x, _, sch) ->
+    pf fmt "@[program %a@;<1 2>%a@]" I.pp x
       (pp_scheme (fun fmt (a, m) ->
            pf fmt ":@;<1 2>%a@;<1 0>=@;<1 2>%a" pp_tm a pp_tm m))
       sch
-  | DTm (N, x, sch) ->
-    pf fmt "@[logical %a@;<1 2>%a@]" V.pp x
+  | DTm (N, x, _, sch) ->
+    pf fmt "@[logical %a@;<1 2>%a@]" I.pp x
       (pp_scheme (fun fmt (a, m) ->
            pf fmt ":@;<1 2>%a@;<1 0>=@;<1 2>%a" pp_tm a pp_tm m))
       sch

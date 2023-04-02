@@ -9,8 +9,10 @@ open Pprint1
 type ctx =
   { (* types for variables *)
     var : tm VMap.t
+  ; (* sort variables in scope *)
+    svar : SVSet.t
   ; (* type-schemes for constants *)
-    const : tm scheme VMap.t
+    const : tm scheme IMap.t
   ; (* type-schemes for data *)
     data : (tm param scheme * CSet.t) DMap.t
   ; (* type-schemes for constructors *)
@@ -18,7 +20,12 @@ type ctx =
   }
 
 let add_var x a ctx = { ctx with var = VMap.add x a ctx.var }
-let add_const x sch ctx = { ctx with const = VMap.add x sch ctx.const }
+
+let add_svar xs ctx =
+  let svar = SVSet.of_list (Array.to_list xs) in
+  { ctx with svar = SVSet.union svar ctx.svar }
+
+let add_const x sch ctx = { ctx with const = IMap.add x sch ctx.const }
 let add_data d sch cs ctx = { ctx with data = DMap.add d (sch, cs) ctx.data }
 let add_cons c sch ctx = { ctx with cons = CMap.add c sch ctx.cons }
 
@@ -28,9 +35,9 @@ let find_var x ctx =
   | None -> failwith "find_var(%a)" V.pp x
 
 let find_const x ctx =
-  match VMap.find_opt x ctx.const with
+  match IMap.find_opt x ctx.const with
   | Some sch -> sch
-  | None -> failwith "find_const(%a)" V.pp x
+  | None -> failwith "find_const(%a)" I.pp x
 
 let find_data d ctx =
   match DMap.find_opt d ctx.data with
@@ -42,10 +49,16 @@ let find_cons c ctx =
   | Some sch -> sch
   | None -> failwith "find_cons(%a)" C.pp c
 
+let smeta_mk ctx =
+  let x = M.mk () in
+  let ss = ctx.svar |> SVSet.elements |> List.map (fun x -> SVar x) in
+  (SMeta (x, ss), x)
+
 let meta_mk ctx =
   let x = M.mk () in
+  let ss = ctx.svar |> SVSet.elements |> List.map (fun x -> SVar x) in
   let xs = ctx.var |> VMap.bindings |> List.map (fun x -> Var (fst x)) in
-  (Meta (x, xs), x)
+  (Meta (x, ss, xs), x)
 
 (* monad for collecting unification constraints *)
 type 'a trans1e = eqns * map0 * map1 -> 'a * eqns * map0 * map1
@@ -117,8 +130,8 @@ let resolve_tm m : tm trans1e =
 (* assert the sort of a type *)
 let rec assert_sort ctx env a : unit trans1e =
   let* srt = infer_tm ctx env a in
-  let x = M.mk () in
-  assert_equal env srt (Type (SMeta x))
+  let s, _ = smeta_mk ctx in
+  assert_equal env srt (Type s)
 
 and infer_tm ctx env m0 : tm trans1e =
   let _ = pr "@[infer_tm(@;<1 2>%a)@]@.@." pp_tm m0 in
@@ -128,7 +141,7 @@ and infer_tm ctx env m0 : tm trans1e =
     let* _ = assert_sort ctx env a in
     let* _ = check_tm ctx env m a in
     return a
-  | Meta (x, _) -> find_meta x ctx
+  | Meta (x, _, _) -> find_meta x ctx
   (* core *)
   | Type _ -> return (Type U)
   | Var x -> return (find_var x ctx)
@@ -240,9 +253,9 @@ and infer_tm ctx env m0 : tm trans1e =
   | Ch (_, a) ->
     let* _ = check_tm ctx env a Proto in
     return (Type L)
-  | Open Stdin -> return (IO (Ch (Pos, Const (Prelude1.stdin_t_v, []))))
-  | Open Stdout -> return (IO (Ch (Pos, Const (Prelude1.stdout_t_v, []))))
-  | Open Stderr -> return (IO (Ch (Pos, Const (Prelude1.stderr_t_v, []))))
+  | Open Stdin -> return (IO (Ch (Pos, Const (Prelude1.stdin_t_i, []))))
+  | Open Stdout -> return (IO (Ch (Pos, Const (Prelude1.stdout_t_i, []))))
+  | Open Stderr -> return (IO (Ch (Pos, Const (Prelude1.stderr_t_i, []))))
   | Fork (a0, bnd) -> (
     let x, m = unbind bnd in
     let* _ = assert_sort ctx env a0 in
@@ -367,7 +380,7 @@ and check_tm ctx env m0 a0 : unit trans1e =
   in
   match m0 with
   (* inference *)
-  | Meta (x, _) -> add_meta x a0
+  | Meta (x, _, _) -> add_meta x a0
   | Ann (m, a) ->
     let* _ = assert_sort ctx env a in
     let* _ = assert_equal env a a0 in
@@ -410,3 +423,90 @@ and check_tm ctx env m0 a0 : unit trans1e =
   | _ ->
     let* a1 = infer_tm ctx env m0 in
     assert_equal env a0 a1
+
+let rec check_dcls ctx env dcls =
+  match dcls with
+  | [] -> return ()
+  | DTm (_, x, guard, sch) :: dcls ->
+    let xs, (a, m) = unmbind sch in
+    let sch_a = unbox (bind_mvar xs (lift_tm a)) in
+    let sch_m = unbox (bind_mvar xs (lift_tm m)) in
+    let ctx' = add_svar xs ctx in
+    let* _ = assert_sort ctx' env a in
+    let* _ =
+      if guard then
+        check_tm (add_const x sch_a ctx') env m a
+      else
+        check_tm ctx' env m a
+    in
+    let ctx = add_const x sch_a ctx in
+    let env =
+      IMap.add x
+        { scheme = (fun ss -> msubst sch_m (Array.of_list ss))
+        ; guarded = guard
+        }
+        env
+    in
+    check_dcls ctx env dcls
+  | DData (d, sch, dconss) :: dcls ->
+    let xs, ptm = unmbind sch in
+    let ctx' = add_svar xs ctx in
+    let* _ = check_ptm ctx' env ptm in
+    let ctx' = add_data d sch CSet.empty ctx' in
+    let* dconss = check_dconss ctx' env d dconss in
+    let ctx, cs =
+      List.fold_right
+        (fun (c, sch) (ctx, cs) -> (add_cons c sch ctx, CSet.add c cs))
+        dconss (ctx, CSet.empty)
+    in
+    check_dcls (add_data d sch cs ctx) env dcls
+
+and check_ptm ctx env ptm =
+  match ptm with
+  | PBase (Type s) -> return s
+  | PBind (a, bnd) ->
+    let x, ptm = unbind bnd in
+    let* _ = assert_sort ctx env a in
+    check_ptm (add_var x a ctx) env ptm
+  | _ -> failwith "check_ptm"
+
+and check_dconss ctx env d dconss =
+  match dconss with
+  | [] -> return []
+  | DCons (c, sch) :: dconss ->
+    let _, ptl = unmbind sch in
+    let* _ = check_ptl ctx env d ptl in
+    let* dconss = check_dconss ctx env d dconss in
+    return ((c, sch) :: dconss)
+
+and check_ptl ctx env d ptl =
+  match ptl with
+  | PBase tl -> check_tl ctx env d tl
+  | PBind (a, bnd) ->
+    let x, ptl = unbind bnd in
+    let* _ = assert_sort ctx env a in
+    check_ptl (add_var x a ctx) env d ptl
+
+and check_tl ctx env d0 tl =
+  match tl with
+  | TBase (Data (d, _, _) as a) when D.equal d d0 -> assert_sort ctx env a
+  | TBind (_, a, bnd) ->
+    let x, tl = unbind bnd in
+    let* _ = assert_sort ctx env a in
+    check_tl (add_var x a ctx) env d0 tl
+  | _ -> failwith "check_tl"
+
+let trans_dcls dcls =
+  let ctx =
+    { var = VMap.empty
+    ; svar = SVSet.empty
+    ; const = IMap.empty
+    ; data = DMap.empty
+    ; cons = CMap.empty
+    }
+  in
+  let _, eqns, map0, map1 = run_trans1e (check_dcls ctx IMap.empty dcls) in
+  let map0, map1 = Unify1.unify (map0, map1) eqns in
+  let _ = pr "%a@.@." pp_map0 map0 in
+  let _ = pr "%a@.@." pp_map1 map1 in
+  resolve_dcls (map0, map1) dcls

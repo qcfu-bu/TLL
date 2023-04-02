@@ -22,6 +22,28 @@ end = struct
   let pp fmt id = pf fmt "??%d" id
 end
 
+(* constant identifiers *)
+module I : sig
+  type t
+
+  val mk : string -> t
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val pp : Format.formatter -> t -> unit
+end = struct
+  type t = string * int
+
+  let stamp = ref 0
+
+  let mk s =
+    incr stamp;
+    (s, !stamp)
+
+  let equal x y = snd x = snd y
+  let compare x y = Int.compare (snd x) (snd y)
+  let pp fmt (s, id) = pf fmt "%s_i%d" s id
+end
+
 (* data identifiers *)
 module D : sig
   type t
@@ -71,11 +93,13 @@ end
 (* sets *)
 module SSet = Set.Make (String)
 module MSet = Set.Make (M)
+module ISet = Set.Make (I)
 module CSet = Set.Make (C)
 module DSet = Set.Make (D)
 
 (* maps *)
 module SMap = Map.Make (String)
 module MMap = Map.Make (M)
+module IMap = Map.Make (I)
 module CMap = Map.Make (C)
 module DMap = Map.Make (D)

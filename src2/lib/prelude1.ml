@@ -26,9 +26,9 @@ let prelude_c id =
   with
   | _ -> failwith "prelude_c(%s)" id
 
-let prelude_v id =
+let prelude_i id =
   try Option.get (find_const id prelude_nspc) with
-  | _ -> failwith "prelude_v(%s)" id
+  | _ -> failwith "prelude_i(%s)" id
 
 (* unit *)
 let unit_d = prelude_d "unit"
@@ -38,21 +38,21 @@ let tt_c = prelude_c "tt"
 let bool_d = prelude_d "bool"
 let true_c = prelude_c "true"
 let false_c = prelude_c "false"
-let andb_v = prelude_v "andb"
-let orb_v = prelude_v "orb"
-let notb_v = prelude_v "notb"
+let andb_i = prelude_i "andb"
+let orb_i = prelude_i "orb"
+let notb_i = prelude_i "notb"
 
 (* natural numbers *)
 let nat_d = prelude_d "nat"
 let o_c = prelude_c "O"
 let s_c = prelude_c "S"
-let addn_v = prelude_v "addn"
-let muln_v = prelude_v "muln"
-let eqn_v = prelude_v "eqn"
-let lten_v = prelude_v "lten"
-let gten_v = prelude_v "gten"
-let ltn_v = prelude_v "ltn"
-let gtn_v = prelude_v "gtn"
+let addn_i = prelude_i "addn"
+let muln_i = prelude_i "muln"
+let eqn_i = prelude_i "eqn"
+let lten_i = prelude_i "lten"
+let gten_i = prelude_i "gten"
+let ltn_i = prelude_i "ltn"
+let gtn_i = prelude_i "gtn"
 
 (* ascii strings *)
 let ascii_d = prelude_d "ascii"
@@ -60,8 +60,8 @@ let ascii_c = prelude_c "Ascii"
 let string_d = prelude_d "string"
 let emptyString_c = prelude_c "EmptyString"
 let string_c = prelude_c "String"
-let cats_v = prelude_v "cats"
-let strlen_v = prelude_v "strlen"
+let cats_i = prelude_i "cats"
+let strlen_i = prelude_i "strlen"
 
 (* lists *)
 let list_d = prelude_d "list"
@@ -70,22 +70,21 @@ let cons_c = prelude_c "cons"
 let llist_d = prelude_d "llist"
 let lnil_c = prelude_c "lnil"
 let lcons_c = prelude_c "lcons"
-let len_v = prelude_v "len"
-
-(* let llen_v = prelude_v "llen" *)
-let append_v = prelude_v "append"
-let lappend_v = prelude_v "lappend"
+let len_i = prelude_i "len"
+let llen_i = prelude_i "llen"
+let append_i = prelude_i "append"
+let lappend_i = prelude_i "lappend"
 
 (* linear box *)
 let box_d = prelude_d "box"
 let box_c = prelude_c "Box"
-let map_box_v = prelude_v "map_box"
-let unbox_v = prelude_v "unbox"
+let map_box_i = prelude_i "map_box"
+let unbox_i = prelude_i "unbox"
 
 (* standard IO channels *)
-let stdin_t_v = prelude_v "stdin_t"
-let stdout_t_v = prelude_v "stdout_t"
-let stderr_t_v = prelude_v "stderr_t"
-(* let readline_v = prelude_v "readline" *)
-(* let print_v = prelude_v "print" *)
-(* let prerr_v = prelude_v "prerr" *)
+let stdin_t_i = prelude_i "stdin_t"
+let stdout_t_i = prelude_i "stdout_t"
+let stderr_t_i = prelude_i "stderr_t"
+let readline_i = prelude_i "readline"
+let print_i = prelude_i "print"
+let prerr_i = prelude_i "prerr"

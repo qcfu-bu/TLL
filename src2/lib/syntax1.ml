@@ -7,9 +7,9 @@ type sort =
   | U
   | L
   | SVar of sort var
-  | SMeta of M.t
+  | SMeta of M.t * sorts
 
-type sorts = sort list
+and sorts = sort list
 
 type rel =
   | N
@@ -27,11 +27,11 @@ type prim =
 type tm =
   (* inference *)
   | Ann of tm * tm
-  | Meta of M.t * tms
+  | Meta of M.t * sorts * tms
   (* core *)
   | Type of sort
   | Var of tm var
-  | Const of tm var * sorts
+  | Const of I.t * sorts
   | Pi of rel * sort * tm * (tm, tm) binder
   | Lam of rel * sort * (tm, tm) binder
   | App of tm * tm
@@ -70,7 +70,7 @@ and cl =
 and cls = cl list
 
 type dcl =
-  | DTm of rel * tm var * (tm * tm) scheme
+  | DTm of rel * I.t * bool * (tm * tm) scheme
   | DData of D.t * tm param scheme * dconss
 
 and 'a scheme = (sort, 'a) mbinder
@@ -90,7 +90,7 @@ and tele =
 let eq_sort s1 s2 =
   match (s1, s2) with
   | SVar x, SVar y -> eq_vars x y
-  | SMeta x, SMeta y -> M.equal x y
+  | SMeta (x, _), SMeta (y, _) -> M.equal x y
   | _ -> s1 = s2
 
 (* variable set/map *)
@@ -123,7 +123,7 @@ let var x = Var x
 let _U = box U
 let _L = box L
 let _SVar = box_var
-let _SMeta x = box (SMeta x)
+let _SMeta x = box_apply (fun ss -> SMeta (x, ss))
 
 (* rel *)
 let _N = box N
@@ -140,7 +140,7 @@ let _Stderr = box Stderr
 
 (* inference *)
 let _Ann = box_apply2 (fun m a -> Ann (m, a))
-let _Meta x = box_apply (fun ms -> Meta (x, ms))
+let _Meta x = box_apply2 (fun ss ms -> Meta (x, ss, ms))
 
 (* core *)
 let _Type = box_apply (fun s -> Type s)
@@ -184,7 +184,7 @@ let _PPair rel = box_apply2 (fun s bnd -> PPair (rel, s, bnd))
 let _PCons c = box_apply (fun bnd -> PCons (c, bnd))
 
 (* dcl *)
-let _DTm rel x = box_apply (fun sch -> DTm (rel, x, sch))
+let _DTm rel x guard = box_apply (fun sch -> DTm (rel, x, guard, sch))
 let _DData d = box_apply2 (fun sch dconss -> DData (d, sch, dconss))
 
 (* dcons *)
@@ -199,18 +199,21 @@ let _TBase = box_apply (fun a -> TBase a)
 let _TBind rel = box_apply2 (fun a bnd -> TBind (rel, a, bnd))
 
 (* lifting *)
-let lift_sort = function
+let rec lift_sort = function
   | U -> _U
   | L -> _L
   | SVar x -> _SVar x
-  | SMeta x -> _SMeta x
+  | SMeta (x, ss) ->
+    let ss = List.map lift_sort ss in
+    _SMeta x (box_list ss)
 
 let rec lift_tm = function
   (* inference *)
   | Ann (m, a) -> _Ann (lift_tm m) (lift_tm a)
-  | Meta (x, ms) ->
+  | Meta (x, ss, ms) ->
+    let ss = List.map lift_sort ss in
     let ms = List.map lift_tm ms in
-    _Meta x (box_list ms)
+    _Meta x (box_list ss) (box_list ms)
   (* core *)
   | Type s -> _Type (lift_sort s)
   | Var x -> _Var x
@@ -278,8 +281,8 @@ let lift_dcons (DCons (c, sch)) =
 let lift_dconss dconss = box_list (List.map lift_dcons dconss)
 
 let lift_dcl = function
-  | DTm (rel, x, sch) ->
-    _DTm rel x
+  | DTm (rel, x, guard, sch) ->
+    _DTm rel x guard
       (box_mbinder (fun (a, m) -> box_pair (lift_tm a) (lift_tm m)) sch)
   | DData (d, sch, dconss) ->
     _DData d (box_mbinder (lift_param lift_tm) sch) (lift_dconss dconss)

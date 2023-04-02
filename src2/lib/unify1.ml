@@ -10,12 +10,17 @@ type eqn =
   | Eqn1 of env * tm * tm (* term equations *)
 
 type eqns = eqn list
-type map0 = sort MMap.t
-type map1 = ((tm, tm) mbinder option * tm option) MMap.t
+type map0 = (sort, sort) mbinder MMap.t
+type map1 = ((sort, (tm, tm) mbinder) mbinder option * tm option) MMap.t
 
 let pp_map0 fmt (map0 : map0) =
   let aux fmt (map0 : map0) =
-    MMap.iter (fun x s -> pf fmt "%a := %a@;<1 0>" M.pp x pp_sort s) map0
+    MMap.iter
+      (fun x bnd ->
+        let xs, s = unmbind bnd in
+        pf fmt "%a := @[[%a]@]%a@;<1 0>" M.pp x (array ~sep:comma SV.pp) xs
+          pp_sort s)
+      map0
   in
   pf fmt "@[<v 0>{@;<1 2>@[<v 0>%a@]@;<1 0>}@]" aux map0
 
@@ -25,10 +30,12 @@ let pp_map1 fmt (map1 : map1) =
       (fun x (opt1, opt2) ->
         match (opt1, opt2) with
         | Some bnd, Some a ->
+          let _, bnd = unmbind bnd in
           let _, m = unmbind bnd in
           pf fmt "%a := @[%a : %a@]@;<1 0>" M.pp x pp_tm m pp_tm a
         | None, Some a -> pf fmt "%a := ?? : @[%a@]@;<1 0>" M.pp x pp_tm a
         | Some bnd, None ->
+          let _, bnd = unmbind bnd in
           let _, m = unmbind bnd in
           pf fmt "%a := @[%a@] : ??@;<1 0>" M.pp x pp_tm m
         | None, None -> pf fmt "%a := ?? : ??@;<1 0>" M.pp x)
@@ -39,92 +46,139 @@ let pp_map1 fmt (map1 : map1) =
 let bad_magic env m1 m2 =
   pr "@[bad_magic(@;<1 2>%a@;<1 0>::::::@;<1 2>%a)@]@.@." pp_tm m1 pp_tm m2
 
+(* free sort variables *)
+let rec fsv = function
+  | SVar x -> SVSet.singleton x
+  | SMeta (_, ss) ->
+    List.fold_left (fun acc s -> SVSet.union acc (fsv s)) SVSet.empty ss
+  | _ -> SVSet.empty
+
+let rec fsvs ss =
+  List.fold_left (fun acc s -> SVSet.union acc (fsv s)) SVSet.empty ss
+
 (* free term variables *)
 let rec fv ctx = function
   (* inference *)
-  | Ann (m, a) -> VSet.union (fv ctx m) (fv ctx a)
-  | Meta (_, ms) ->
-    List.fold_left (fun acc m -> VSet.union acc (fv ctx m)) VSet.empty ms
+  | Ann (m, a) ->
+    let fsv1, fv1 = fv ctx m in
+    let fsv2, fv2 = fv ctx a in
+    (SVSet.union fsv1 fsv2, VSet.union fv1 fv2)
+  | Meta (_, ss, ms) ->
+    let fsv = fsvs ss in
+    List.fold_left
+      (fun (acc0, acc1) m ->
+        let sfv, fv = fv ctx m in
+        (SVSet.union acc0 sfv, VSet.union acc1 fv))
+      (fsv, VSet.empty) ms
   (* core *)
-  | Type _ -> VSet.empty
+  | Type s -> (fsv s, VSet.empty)
   | Var x -> (
     match VSet.find_opt x ctx with
-    | Some _ -> VSet.empty
-    | None -> VSet.singleton x)
-  | Const _ -> VSet.empty
-  | Pi (_, _, a, bnd) ->
+    | Some _ -> (SVSet.empty, VSet.empty)
+    | None -> (SVSet.empty, VSet.singleton x))
+  | Const (_, ss) -> (fsvs ss, VSet.empty)
+  | Pi (_, s, a, bnd) ->
     let x, b = unbind bnd in
-    let fv1 = fv ctx a in
-    let fv2 = fv (VSet.add x ctx) b in
-    VSet.union fv1 fv2
+    let fsv0 = fsv s in
+    let fsv1, fv1 = fv ctx a in
+    let fsv2, fv2 = fv (VSet.add x ctx) b in
+    (SVSet.union (SVSet.union fsv0 fsv1) fsv2, VSet.union fv1 fv2)
   | Lam (_, _, bnd) ->
     let x, m = unbind bnd in
     fv (VSet.add x ctx) m
-  | App (m, n) -> VSet.union (fv ctx m) (fv ctx n)
+  | App (m, n) ->
+    let fsv1, fv1 = fv ctx m in
+    let fsv2, fv2 = fv ctx n in
+    (SVSet.union fsv1 fsv2, VSet.union fv1 fv2)
   | Let (_, m, bnd) ->
     let x, n = unbind bnd in
-    let fv1 = fv ctx m in
-    let fv2 = fv (VSet.add x ctx) n in
-    VSet.union fv1 fv2
+    let fsv1, fv1 = fv ctx m in
+    let fsv2, fv2 = fv (VSet.add x ctx) n in
+    (SVSet.union fsv1 fsv2, VSet.union fv1 fv2)
   (* data *)
-  | Sigma (_, _, a, bnd) ->
+  | Sigma (_, s, a, bnd) ->
     let x, b = unbind bnd in
-    let fv1 = fv ctx a in
-    let fv2 = fv (VSet.add x ctx) b in
-    VSet.union fv1 fv2
-  | Pair (_, _, m, n) -> VSet.union (fv ctx m) (fv ctx n)
-  | Data (_, _, ms) ->
-    List.fold_left (fun acc m -> VSet.union acc (fv ctx m)) VSet.empty ms
-  | Cons (_, _, ms, ns) ->
-    List.fold_left (fun acc m -> VSet.union acc (fv ctx m)) VSet.empty (ms @ ns)
+    let fsv0 = fsv s in
+    let fsv1, fv1 = fv ctx a in
+    let fsv2, fv2 = fv (VSet.add x ctx) b in
+    (SVSet.union (SVSet.union fsv0 fsv1) fsv2, VSet.union fv1 fv2)
+  | Pair (_, s, m, n) ->
+    let fsv0 = fsv s in
+    let fsv1, fv1 = fv ctx m in
+    let fsv2, fv2 = fv ctx m in
+    (SVSet.union (SVSet.union fsv0 fsv1) fsv2, VSet.union fv1 fv2)
+  | Data (_, ss, ms) ->
+    let fsv = fsvs ss in
+    List.fold_left
+      (fun (acc0, acc1) m ->
+        let fsv, fv = fv ctx m in
+        (SVSet.union fsv acc0, VSet.union fv acc1))
+      (fsv, VSet.empty) ms
+  | Cons (_, ss, ms, ns) ->
+    let fsv = fsvs ss in
+    List.fold_left
+      (fun (acc0, acc1) m ->
+        let fsv, fv = fv ctx m in
+        (SVSet.union fsv acc0, VSet.union fv acc1))
+      (fsv, VSet.empty) (ms @ ns)
   | Match (m, bnd, cls) ->
     let x, mot = unbind bnd in
-    let fv1 = fv ctx m in
-    let fv2 = fv (VSet.add x ctx) mot in
-    let fv3 =
+    let fsv1, fv1 = fv ctx m in
+    let fsv2, fv2 = fv (VSet.add x ctx) mot in
+    let fsv3, fv3 =
       List.fold_left
-        (fun acc -> function
-          | PPair (_, _, bnd) ->
+        (fun (acc0, acc1) -> function
+          | PPair (_, s, bnd) ->
             let xs, m = unmbind bnd in
-            fv (Array.fold_right VSet.add xs ctx) m
+            let fsv1 = fsv s in
+            let fsv2, fv = fv (Array.fold_right VSet.add xs ctx) m in
+            (SVSet.union (SVSet.union fsv1 fsv2) acc0, VSet.union fv acc1)
           | PCons (_, bnd) ->
             let xs, m = unmbind bnd in
-            fv (Array.fold_right VSet.add xs ctx) m)
-        VSet.empty cls
+            let fsv, fv = fv (Array.fold_right VSet.add xs ctx) m in
+            (SVSet.union fsv acc0, VSet.union fv acc1))
+        (SVSet.empty, VSet.empty) cls
     in
-    VSet.union (VSet.union fv1 fv2) fv3
+    ( SVSet.union (SVSet.union fsv1 fsv2) fsv3
+    , VSet.union (VSet.union fv1 fv2) fv3 )
   (* equality *)
-  | Eq (a, m, n) -> VSet.union (VSet.union (fv ctx a) (fv ctx m)) (fv ctx n)
+  | Eq (a, m, n) ->
+    let fsv1, fv1 = fv ctx a in
+    let fsv2, fv2 = fv ctx m in
+    let fsv3, fv3 = fv ctx n in
+    ( SVSet.union (SVSet.union fsv1 fsv2) fsv3
+    , VSet.union (VSet.union fv1 fv2) fv3 )
   | Refl m -> fv ctx m
   | Rew (bnd, p, m) ->
     let xs, mot = unmbind bnd in
-    let fv1 = fv (Array.fold_right VSet.add xs ctx) mot in
-    let fv2 = fv ctx p in
-    let fv3 = fv ctx m in
-    VSet.union (VSet.union fv1 fv2) fv3
+    let fsv1, fv1 = fv (Array.fold_right VSet.add xs ctx) mot in
+    let fsv2, fv2 = fv ctx p in
+    let fsv3, fv3 = fv ctx m in
+    ( SVSet.union (SVSet.union fsv1 fsv2) fsv3
+    , VSet.union (VSet.union fv1 fv2) fv3 )
   (* monadic *)
   | IO a -> fv ctx a
   | Return m -> fv ctx m
   | MLet (m, bnd) ->
     let x, n = unbind bnd in
-    let fv1 = fv ctx m in
-    let fv2 = fv (VSet.add x ctx) n in
-    VSet.union fv1 fv2
+    let fsv1, fv1 = fv ctx m in
+    let fsv2, fv2 = fv (VSet.add x ctx) n in
+    (SVSet.union fsv1 fsv2, VSet.union fv1 fv2)
   (* session *)
-  | Proto -> VSet.empty
-  | End -> VSet.empty
+  | Proto -> (SVSet.empty, VSet.empty)
+  | End -> (SVSet.empty, VSet.empty)
   | Act (_, _, a, bnd) ->
     let x, b = unbind bnd in
-    let fv1 = fv ctx a in
-    let fv2 = fv (VSet.add x ctx) b in
-    VSet.union fv1 fv2
+    let fsv1, fv1 = fv ctx a in
+    let fsv2, fv2 = fv (VSet.add x ctx) b in
+    (SVSet.union fsv1 fsv2, VSet.union fv1 fv2)
   | Ch (_, a) -> fv ctx a
-  | Open _ -> VSet.empty
+  | Open _ -> (SVSet.empty, VSet.empty)
   | Fork (a, bnd) ->
     let x, m = unbind bnd in
-    let fv1 = fv ctx a in
-    let fv2 = fv (VSet.add x ctx) m in
-    VSet.union fv1 fv2
+    let fsv1, fv1 = fv ctx a in
+    let fsv2, fv2 = fv (VSet.add x ctx) m in
+    (SVSet.union fsv1 fsv2, VSet.union fv1 fv2)
   | Recv m -> fv ctx m
   | Send m -> fv ctx m
   | Close m -> fv ctx m
@@ -133,7 +187,7 @@ let rec fv ctx = function
 let rec occurs x = function
   (* inference *)
   | Ann (m, a) -> occurs x m || occurs x a
-  | Meta (y, _) -> M.equal x y
+  | Meta (y, _, _) -> M.equal x y
   (* core *)
   | Pi (_, _, a, bnd) ->
     let _, b = unbind bnd in
@@ -211,7 +265,7 @@ let rec asimpl = function
       (* core *)
       | Type s1, Type s2 -> [ Eqn0 (s1, s2) ]
       | Var x1, Var x2 when eq_vars x1 x2 -> []
-      | Const (x1, ss1), Const (x2, ss2) when eq_vars x1 x2 ->
+      | Const (x1, ss1), Const (x2, ss2) when I.equal x1 x2 ->
         List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2
       | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) when rel1 = rel2 ->
         let _, b1, b2 = unbind2 bnd1 bnd2 in
@@ -348,14 +402,14 @@ let rec simpl eqn =
       (* core *)
       | Type s1, Type s2 -> [ Eqn0 (s1, s2) ]
       | Var x1, Var x2 when eq_vars x1 x2 -> []
-      | Const (x1, ss1), Const (x2, ss2) when eq_vars x1 x2 ->
+      | Const (x1, ss1), Const (x2, ss2) when I.equal x1 x2 ->
         List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2
       | Const (x, ss), _ -> (
-        match VMap.find_opt x env with
+        match IMap.find_opt x env with
         | Some entry -> simpl (Eqn1 (env, entry.scheme ss, m2))
         | None -> [])
       | _, Const (y, ss) -> (
-        match VMap.find_opt y env with
+        match IMap.find_opt y env with
         | Some entry -> simpl (Eqn1 (env, m1, entry.scheme ss))
         | None -> [])
       | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) when rel1 = rel2 ->
@@ -478,7 +532,14 @@ let rec simpl eqn =
       | _ -> []))
 
 let solve ((map0, map1) : map0 * map1) eqn =
-  let meta_spine sp =
+  let meta_sspine sp =
+    List.map
+      (function
+        | SVar x -> x
+        | _ -> SV.mk "_")
+      sp
+  in
+  let meta_vspine sp =
     List.map
       (function
         | Var x -> x
@@ -489,29 +550,43 @@ let solve ((map0, map1) : map0 * map1) eqn =
   | Eqn0 (s1, s2) -> (
     match (s1, s2) with
     | SMeta _, SMeta _ -> (map0, map1)
-    | SMeta x, _ -> (MMap.add x s2 map0, map1)
+    | SMeta (x, xs), _ ->
+      let xs = meta_sspine xs in
+      if SVSet.subset (fsv s2) (SVSet.of_list xs) then
+        let bnd = bind_mvar (Array.of_list xs) (lift_sort s2) in
+        (MMap.add x (unbox bnd) map0, map1)
+      else
+        (map0, map1)
     | _ -> (map0, map1))
   | Eqn1 (env, m1, m2) -> (
     let m1 = whnf [| Beta; Iota |] env m1 in
     let m2 = whnf [| Beta; Iota |] env m2 in
     match (m1, m2) with
     | Meta _, Meta _ -> (map0, map1)
-    | Meta (x, xs), _ ->
+    | Meta (x, ss, xs), _ ->
       if occurs x m2 then
         (map0, map1)
       else
-        let xs = meta_spine xs in
-        if VSet.subset (fv VSet.empty m2) (VSet.of_list xs) then
+        let ss = meta_sspine ss in
+        let xs = meta_vspine xs in
+        let fsv, fv = fv VSet.empty m2 in
+        if
+          SVSet.subset fsv (SVSet.of_list ss)
+          && VSet.subset fv (VSet.of_list xs)
+        then
           let bnd = bind_mvar (Array.of_list xs) (lift_tm m2) in
+          let bnd = bind_mvar (Array.of_list ss) bnd in
           (map0, MMap.add x (Some (unbox bnd), None) map1)
         else
           (map0, map1)
     | _ -> (map0, map1))
 
-let resolve_sort (map0 : map0) = function
-  | SMeta x as s -> (
+let rec resolve_sort (map0 : map0) = function
+  | SMeta (x, ss) as s -> (
     match MMap.find_opt x map0 with
-    | Some s -> s
+    | Some bnd ->
+      let s = msubst bnd (Array.of_list ss) in
+      resolve_sort map0 s
     | None -> s)
   | s -> s
 
@@ -519,10 +594,11 @@ let resolve_tm ((map0, map1) : map0 * map1) m =
   let rec resolve = function
     (* inference *)
     | Ann (m, a) -> Ann (resolve m, resolve a)
-    | Meta (x, ms) as m -> (
+    | Meta (x, ss, xs) as m -> (
       match MMap.find_opt x map1 with
       | Some (Some bnd, _) ->
-        let m = msubst bnd (Array.of_list ms) in
+        let bnd = msubst bnd (Array.of_list ss) in
+        let m = msubst bnd (Array.of_list xs) in
         resolve m
       | _ -> m)
     (* core *)
@@ -646,11 +722,11 @@ let resolve_dcons map (DCons (c, sch)) =
   DCons (c, unbox (bind_mvar xs (lift_param lift_tele ptl)))
 
 let resolve_dcl map = function
-  | DTm (rel, x, sch) ->
+  | DTm (rel, x, guard, sch) ->
     let xs, (a, m) = unmbind sch in
     let a = lift_tm (resolve_tm map a) in
     let m = lift_tm (resolve_tm map m) in
-    DTm (rel, x, unbox (bind_mvar xs (box_pair a m)))
+    DTm (rel, x, guard, unbox (bind_mvar xs (box_pair a m)))
   | DData (d, sch, dconss) ->
     let xs, ptm = unmbind sch in
     let ptm = resolve_param lift_tm resolve_tm map ptm in
