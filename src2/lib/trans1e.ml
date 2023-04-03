@@ -116,11 +116,9 @@ let assert_equal1 env m n : unit trans1e =
 
 (* assert equality between terms and their sorts *)
 let assert_equal env (m, s1) (n, s2) : unit trans1e =
- fun (mctx, eqns, map0, map1) ->
-  if eq_tm ~expand_const:false env m n then
-    ((), mctx, eqns, map0, map1)
-  else
-    ((), mctx, Eqn0 (s1, s2) :: Eqn1 (env, m, n) :: eqns, map0, map1)
+  let* _ = assert_equal0 s1 s2 in
+  let* _ = assert_equal1 env m n in
+  return ()
 
 let unify : unit trans1e =
  fun (mctx, eqns, map0, map1) ->
