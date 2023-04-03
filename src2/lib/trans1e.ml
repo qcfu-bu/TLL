@@ -101,14 +101,11 @@ let assert_equal0 s1 s2 : unit trans1e =
 
 (* assert equality between two terms *)
 let assert_equal env m n : unit trans1e =
-  let _ =
-    pr "@[assert_equal(@;<1 2>%a@;<1 0>::::::@;<1 2>%a)@]@.@." pp_tm m pp_tm n
-  in
-  fun (eqns, map0, map1) ->
-    if eq_tm env m n then
-      ((), eqns, map0, map1)
-    else
-      ((), Eqn1 (env, m, n) :: eqns, map0, map1)
+ fun (eqns, map0, map1) ->
+  if eq_tm env m n then
+    ((), eqns, map0, map1)
+  else
+    ((), Eqn1 (env, m, n) :: eqns, map0, map1)
 
 let unify : unit trans1e =
  fun (eqns, map0, map1) ->
@@ -133,11 +130,15 @@ let resolve_tm m : tm trans1e =
 (* assert the sort of a type *)
 let rec assert_sort ctx env a : unit trans1e =
   let* srt = infer_tm ctx env a in
-  let s, _ = smeta_mk ctx in
-  assert_equal env srt (Type s)
+  let* srt = resolve_tm srt in
+  match whnf env srt with
+  | Type _ -> return ()
+  | _ ->
+    let s, _ = smeta_mk ctx in
+    assert_equal env srt (Type s)
 
 and infer_tm ctx env m0 : tm trans1e =
-  let _ = pr "@[infer_tm(@;<1 2>%a)@]@.@." pp_tm m0 in
+  (* let _ = pr "@[infer_tm(@;<1 2>%a)@]@.@." pp_tm m0 in *)
   match m0 with
   (* inference *)
   | Ann (m, a) ->
@@ -235,9 +236,9 @@ and infer_tm ctx env m0 : tm trans1e =
     let* a = infer_tm ctx env m in
     return (IO a)
   | MLet (m, bnd) -> (
+    let x, n = unbind bnd in
     let* ty_m = infer_tm ctx env m in
     let* ty_m = unify >> resolve_tm ty_m in
-    let x, n = unbind bnd in
     match whnf env ty_m with
     | IO a -> (
       let* ty_n = infer_tm (add_var x a ctx) env n in
@@ -351,7 +352,6 @@ and infer_cl ctx env ss ms mot c bnd =
   return ()
 
 and infer_ptm ctx env ms ptm =
-  let _ = pr "infer_ptm@." in
   match (ms, ptm) with
   | [], PBase b ->
     let* _ = assert_sort ctx env b in
@@ -362,7 +362,6 @@ and infer_ptm ctx env ms ptm =
   | _ -> failwith "infer_ptm(%a)" pp_ptm ptm
 
 and infer_ptl ctx env ms ns ptl =
-  let _ = pr "infer_ptl@." in
   match (ms, ptl) with
   | [], PBase tl -> infer_tele ctx env ns tl
   | m :: ms, PBind (a, bnd) ->
@@ -371,7 +370,6 @@ and infer_ptl ctx env ms ns ptl =
   | _ -> failwith "infer_ptl(%a)" pp_ptl ptl
 
 and infer_tele ctx env ns tl =
-  let _ = pr "infer_tele@." in
   match (ns, tl) with
   | [], TBase b ->
     let* _ = assert_sort ctx env b in
@@ -382,44 +380,30 @@ and infer_tele ctx env ns tl =
   | _ -> failwith "infer_tele(%a)" pp_tele tl
 
 and check_tm ctx env m0 a0 : unit trans1e =
-  let _ =
-    pr "@[check_tm(@;<1 2>%a@;<1 0>::::::@;<1 2>%a)@]@.@." pp_tm m0 pp_tm a0
-  in
-  match m0 with
+  let* a0 = unify >> resolve_tm a0 in
+  match (m0, whnf env a0) with
   (* inference *)
-  | Meta (x, _, _) -> add_meta x a0
-  | Ann (m, a) ->
+  | Meta (x, _, _), _ -> add_meta x a0
+  | Ann (m, a), _ ->
     let* _ = assert_sort ctx env a in
     let* _ = assert_equal env a a0 in
     let* a = unify >> resolve_tm a in
     check_tm ctx env m a
   (* core *)
-  | Lam (rel0, s0, bnd0) -> (
-    let* a0 = unify >> resolve_tm a0 in
-    match whnf env a0 with
-    | Pi (rel1, s1, a1, bnd1) when rel0 = rel1 ->
-      let* _ = assert_equal0 s0 s1 in
-      let x, m, b = unbind2 bnd0 bnd1 in
-      check_tm (add_var x a1 ctx) env m b
-    | _ ->
-      let* a1 = infer_tm ctx env m0 in
-      assert_equal env a0 a1)
-  | Let (rel, m, bnd) ->
+  | Lam (rel0, s0, bnd0), Pi (rel1, s1, a1, bnd1) when rel0 = rel1 ->
+    let* _ = assert_equal0 s0 s1 in
+    let x, m, b = unbind2 bnd0 bnd1 in
+    check_tm (add_var x a1 ctx) env m b
+  | Let (rel, m, bnd), _ ->
     let* a = infer_tm ctx env m in
     let* a = unify >> resolve_tm a in
     check_tm ctx env (subst bnd (Ann (m, a))) a0
   (* data *)
-  | Pair (rel0, s0, m, n) -> (
-    let* a0 = unify >> resolve_tm a0 in
-    match whnf env a0 with
-    | Sigma (rel1, s1, a, bnd) when rel0 = rel1 ->
-      let* _ = assert_equal0 s0 s1 in
-      let* _ = check_tm ctx env m a in
-      check_tm ctx env n (subst bnd m)
-    | _ ->
-      let* a1 = infer_tm ctx env m0 in
-      assert_equal env a0 a1)
-  | Match (m, mot, cls) -> (
+  | Pair (rel0, s0, m, n), Sigma (rel1, s1, a, bnd) when rel0 = rel1 ->
+    let* _ = assert_equal0 s0 s1 in
+    let* _ = check_tm ctx env m a in
+    check_tm ctx env n (subst bnd m)
+  | Match (m, mot, cls), _ -> (
     let* ty_m = infer_tm ctx env m in
     let a1 = subst mot m in
     let* _ = assert_sort ctx env a1 in
@@ -432,11 +416,19 @@ and check_tm ctx env m0 a0 : unit trans1e =
       infer_cls ctx env cs ss ms mot cls
     | _ ->
       let* a1 = infer_tm ctx env m0 in
-      assert_equal env a0 a1)
+      let* s0 = infer_tm ctx env a0 in
+      let* s1 = infer_tm ctx env a1 in
+      let* _ = assert_equal env s0 s1 in
+      let* _ = assert_equal env a0 a1 in
+      return ())
   (* other *)
   | _ ->
     let* a1 = infer_tm ctx env m0 in
-    assert_equal env a0 a1
+    let* s0 = infer_tm ctx env a0 in
+    let* s1 = infer_tm ctx env a1 in
+    let* _ = assert_equal env s0 s1 in
+    let* _ = assert_equal env a0 a1 in
+    return ()
 
 let rec check_dcls ctx env dcls =
   match dcls with
@@ -521,6 +513,4 @@ let trans_dcls dcls =
   in
   let _, eqns, map0, map1 = run_trans1e (check_dcls ctx IMap.empty dcls) in
   let map0, map1 = Unify1.unify (map0, map1) eqns in
-  let _ = pr "%a@." pp_map0 map0 in
-  let _ = pr "%a@." pp_map1 map1 in
   resolve_dcls (map0, map1) dcls
