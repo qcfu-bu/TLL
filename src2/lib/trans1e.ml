@@ -138,7 +138,6 @@ let rec assert_sort ctx env a : unit trans1e =
     assert_equal env srt (Type s)
 
 and infer_tm ctx env m0 : tm trans1e =
-  (* let _ = pr "@[infer_tm(@;<1 2>%a)@]@.@." pp_tm m0 in *)
   match m0 with
   (* inference *)
   | Ann (m, a) ->

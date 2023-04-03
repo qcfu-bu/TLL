@@ -261,7 +261,7 @@ let rec simpl eqn =
       | SMeta (x, _), SMeta (y, _) when M.compare x y = 0 -> []
       | SMeta _, _ -> [ Eqn0 (s1, s2) ]
       | _, SMeta _ -> [ Eqn0 (s2, s1) ]
-      | _ -> failwith "simpl_Eqn0")
+      | _ -> failwith "simpl_Eqn0(%a, %a)" pp_sort s1 pp_sort s2)
   | Eqn1 (env, m1, m2) -> (
     let m1 = whnf env m1 in
     let m2 = whnf env m2 in
@@ -275,10 +275,10 @@ let rec simpl eqn =
     | Meta _, _ -> [ Eqn1 (env, m1, m2) ]
     | _, Meta _ -> [ Eqn1 (env, m2, m1) ]
     (* core *)
-    | Type s1, Type s2 -> [ Eqn0 (s1, s2) ]
+    | Type s1, Type s2 -> simpl (Eqn0 (s1, s2))
     | Var x1, Var x2 when eq_vars x1 x2 -> []
     | Const (x1, ss1), Const (x2, ss2) when I.equal x1 x2 ->
-      List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2
+      List.fold_right2 (fun s1 s2 acc -> simpl (Eqn0 (s1, s2)) @ acc) ss1 ss2 []
     | Const (x, ss), _ -> (
       match IMap.find_opt x env with
       | Some entry -> simpl (Eqn1 (env, entry.scheme ss, m2))
@@ -289,12 +289,13 @@ let rec simpl eqn =
       | None -> [])
     | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) when rel1 = rel2 ->
       let _, b1, b2 = unbind2 bnd1 bnd2 in
+      let eqns0 = simpl (Eqn0 (s1, s2)) in
       let eqns1 = simpl (Eqn1 (env, a1, a2)) in
       let eqns2 = simpl (Eqn1 (env, b1, b2)) in
-      Eqn0 (s1, s2) :: (eqns1 @ eqns2)
+      eqns0 @ eqns1 @ eqns2
     | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) when rel1 = rel2 ->
       let _, m1, m2 = unbind2 bnd1 bnd2 in
-      Eqn0 (s1, s2) :: simpl (Eqn1 (env, m1, m2))
+      simpl (Eqn0 (s1, s2)) @ simpl (Eqn1 (env, m1, m2))
     | App _, App _ ->
       let hd1, sp1 = unApps m1 in
       let hd2, sp2 = unApps m2 in
@@ -313,15 +314,21 @@ let rec simpl eqn =
     (* data *)
     | Sigma (rel1, s1, a1, bnd1), Sigma (rel2, s2, a2, bnd2) when rel1 = rel2 ->
       let _, b1, b2 = unbind2 bnd1 bnd2 in
+      let eqns0 = simpl (Eqn0 (s1, s2)) in
       let eqns1 = simpl (Eqn1 (env, a1, a2)) in
       let eqns2 = simpl (Eqn1 (env, b1, b2)) in
-      Eqn0 (s1, s2) :: (eqns1 @ eqns2)
+      eqns0 @ eqns1 @ eqns2
     | Pair (rel1, s1, m1, n1), Pair (rel2, s2, m2, n2) when rel1 = rel2 ->
+      let eqns0 = simpl (Eqn0 (s1, s2)) in
       let eqns1 = simpl (Eqn1 (env, m1, m2)) in
       let eqns2 = simpl (Eqn1 (env, n1, n2)) in
-      Eqn0 (s1, s2) :: (eqns1 @ eqns2)
+      eqns0 @ eqns1 @ eqns2
     | Data (d1, ss1, ms1), Data (d2, ss2, ms2) when D.equal d1 d2 ->
-      let eqns1 = List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2 in
+      let eqns1 =
+        List.fold_right2
+          (fun s1 s2 acc -> simpl (Eqn0 (s1, s2)) @ acc)
+          ss1 ss2 []
+      in
       let eqns2 =
         List.fold_right2
           (fun m1 m2 acc -> simpl (Eqn1 (env, m1, m2)) @ acc)
@@ -329,7 +336,11 @@ let rec simpl eqn =
       in
       eqns1 @ eqns2
     | Cons (c1, ss1, ms1, ns1), Cons (c2, ss2, ms2, ns2) when C.equal c1 c2 ->
-      let eqns1 = List.map2 (fun s1 s2 -> Eqn0 (s1, s2)) ss1 ss2 in
+      let eqns1 =
+        List.fold_right2
+          (fun s1 s2 acc -> simpl (Eqn0 (s1, s2)) @ acc)
+          ss1 ss2 []
+      in
       let eqns2 =
         List.fold_right2
           (fun m1 m2 acc -> simpl (Eqn1 (env, m1, m2)) @ acc)
@@ -346,7 +357,7 @@ let rec simpl eqn =
             match (cl1, cl2) with
             | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2) when rel1 = rel2 ->
               let _, m1, m2 = unmbind2 bnd1 bnd2 in
-              Eqn0 (s1, s2) :: (simpl (Eqn1 (env, m1, m2)) @ acc)
+              simpl (Eqn0 (s1, s2)) @ simpl (Eqn1 (env, m1, m2)) @ acc
             | PCons (c1, bnd1), PCons (c2, bnd2) when C.equal c1 c2 ->
               let _, m1, m2 = unmbind2 bnd1 bnd2 in
               simpl (Eqn1 (env, m1, m2)) @ acc
