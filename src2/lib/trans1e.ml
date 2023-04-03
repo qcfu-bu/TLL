@@ -100,24 +100,25 @@ let add_meta env x a : unit trans1e =
 
 (* assert equality between two sorts *)
 let assert_equal0 s1 s2 : unit trans1e =
- fun (mctx, eqns, map0, map1) -> ((), mctx, Eqn0 (s1, s2) :: eqns, map0, map1)
+ fun (mctx, eqns, map0, map1) ->
+  if eq_sort s1 s2 then
+    ((), mctx, eqns, map0, map1)
+  else
+    ((), mctx, Eqn0 (s1, s2) :: eqns, map0, map1)
 
 (* assert equality between two terms *)
-let assert_equal env (m, s1) (n, s2) : unit trans1e =
+let assert_equal1 env m n : unit trans1e =
  fun (mctx, eqns, map0, map1) ->
-  let eqns =
-    if eq_tm env m n then
-      eqns
-    else
-      Eqn1 (env, m, n) :: eqns
-  in
-  let eqns =
-    if eq_sort s1 s2 then
-      eqns
-    else
-      Eqn0 (s1, s2) :: eqns
-  in
-  ((), mctx, eqns, map0, map1)
+  if eq_tm env m n then
+    ((), mctx, eqns, map0, map1)
+  else
+    ((), mctx, Eqn1 (env, m, n) :: eqns, map0, map1)
+
+(* assert equality between terms and their sorts *)
+let assert_equal env (m, s1) (n, s2) : unit trans1e =
+  let* _ = assert_equal0 s1 s2 in
+  let* _ = assert_equal1 env m n in
+  return ()
 
 let unify : unit trans1e =
  fun (mctx, eqns, map0, map1) ->
@@ -147,7 +148,7 @@ let rec infer_sort ctx env a : sort trans1e =
   | Type s -> return s
   | _ ->
     let s, _ = smeta_mk ctx in
-    let* _ = assert_equal env (srt, U) (Type s, U) in
+    let* _ = assert_equal1 env srt (Type s) in
     return s
 
 and infer_tm ctx env m0 : tm trans1e =

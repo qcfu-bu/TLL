@@ -42,7 +42,7 @@ let rec pp_sort fmt = function
   | U -> pf fmt "U"
   | L -> pf fmt "L"
   | SVar x -> SV.pp fmt x
-  | SMeta (x, ss) -> pf fmt "?%a[%a]" M.pp x (list ~sep:comma pp_sort) ss
+  | SMeta (x, _) -> M.pp fmt x
 
 let pp_role fmt = function
   | Pos -> pf fmt "!"
