@@ -1,0 +1,12 @@
+inductive List‹s,t› (A : Type‹s›) : Type‹t› =
+| Nil
+| Cons of (hd : A) (tl : List‹s,t› A)
+
+program len‹s,t› {A : Type‹s›} (xs : List‹_,t› A) : nat ⊗ List A =
+  match xs with
+  | Nil ⇒ ⟨0, Nil⟩
+  | Cons x xs ⇒
+    match len A xs with
+    | ⟨n, xs⟩ ⇒ ⟨S n, Cons x xs⟩
+    end
+  end
