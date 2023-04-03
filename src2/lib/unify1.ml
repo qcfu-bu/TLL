@@ -13,6 +13,16 @@ type eqns = eqn list
 type map0 = (sort, sort) mbinder MMap.t
 type map1 = (sort, (tm, tm) mbinder) mbinder MMap.t
 
+let pp_eqns fmt (eqns : eqns) =
+  let aux fmt (eqns : eqns) =
+    List.iter
+      (function
+        | Eqn0 (s1, s2) -> pf fmt "[%a ?== %a]@;<1 0>" pp_sort s1 pp_sort s2
+        | Eqn1 (_, m1, m2) -> pf fmt "[%a ?== %a]@;<1 0>" pp_tm m1 pp_tm m2)
+      eqns
+  in
+  pf fmt "@[<v 0>{@;<1 2>@[<v 0>%a@]@;<1 0>}@]" aux eqns
+
 let pp_map0 fmt (map0 : map0) =
   let aux fmt (map0 : map0) =
     MMap.iter
@@ -241,28 +251,28 @@ let rec occurs_tm x = function
   | _ -> false
 
 (* equation simplification *)
-let rec simpl eqn =
+let rec simpl ?(expand_const = false) eqn =
   match eqn with
   | Eqn0 (s1, s2) -> (
     if eq_sort s1 s2 then
       []
     else
       match (s1, s2) with
-      | SMeta (x, _), SMeta (y, _) when M.compare x y < 0 -> [ Eqn0 (s1, s2) ]
-      | SMeta (x, _), SMeta (y, _) when M.compare x y > 0 -> [ Eqn0 (s2, s1) ]
+      | SMeta (x, _), SMeta (y, _) when M.compare x y < 0 -> [ Eqn0 (s2, s1) ]
+      | SMeta (x, _), SMeta (y, _) when M.compare x y > 0 -> [ Eqn0 (s1, s2) ]
       | SMeta (x, _), SMeta (y, _) when M.compare x y = 0 -> []
       | SMeta _, _ -> [ Eqn0 (s1, s2) ]
       | _, SMeta _ -> [ Eqn0 (s2, s1) ]
       | _ -> failwith "simpl_Eqn0(%a, %a)" pp_sort s1 pp_sort s2)
   | Eqn1 (env, m1, m2) -> (
-    let m1 = whnf env m1 in
-    let m2 = whnf env m2 in
+    let m1 = whnf ~expand_const env m1 in
+    let m2 = whnf ~expand_const env m2 in
     match (m1, m2) with
     (* inference *)
     | Meta (x, _, _), Meta (y, _, _) when M.compare x y < 0 ->
-      [ Eqn1 (env, m1, m2) ]
-    | Meta (x, _, _), Meta (y, _, _) when M.compare x y > 0 ->
       [ Eqn1 (env, m2, m1) ]
+    | Meta (x, _, _), Meta (y, _, _) when M.compare x y > 0 ->
+      [ Eqn1 (env, m1, m2) ]
     | Meta (x, _, _), Meta (y, _, _) when M.compare x y = 0 -> []
     | Meta _, _ -> [ Eqn1 (env, m1, m2) ]
     | _, Meta _ -> [ Eqn1 (env, m2, m1) ]
@@ -288,16 +298,24 @@ let rec simpl eqn =
     | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) when rel1 = rel2 ->
       let _, m1, m2 = unbind2 bnd1 bnd2 in
       simpl (Eqn0 (s1, s2)) @ simpl (Eqn1 (env, m1, m2))
-    | App _, App _ ->
-      let hd1, sp1 = unApps m1 in
-      let hd2, sp2 = unApps m2 in
-      let eqns1 = simpl (Eqn1 (env, hd1, hd2)) in
-      let eqns2 =
-        List.fold_right2
-          (fun m n acc -> simpl (Eqn1 (env, m, n)) @ acc)
-          sp1 sp2 []
-      in
-      eqns1 @ eqns2
+    | _, App _
+    | App _, _ -> (
+      try
+        let hd1, sp1 = unApps m1 in
+        let hd2, sp2 = unApps m2 in
+        let eqns1 = simpl (Eqn1 (env, hd1, hd2)) in
+        let eqns2 =
+          List.fold_right2
+            (fun m n acc -> simpl (Eqn1 (env, m, n)) @ acc)
+            sp1 sp2 []
+        in
+        eqns1 @ eqns2
+      with
+      | _ ->
+        if expand_const then
+          failwith "simpl_App(%a, %a)@." pp_tm m1 pp_tm m2
+        else
+          simpl ~expand_const:true (Eqn1 (env, m1, m2)))
     | Let (rel1, m1, bnd1), Let (rel2, m2, bnd2) when rel1 = rel2 ->
       let _, n1, n2 = unbind2 bnd1 bnd2 in
       let eqns1 = simpl (Eqn1 (env, m1, m2)) in

@@ -116,14 +116,16 @@ let assert_equal1 env m n : unit trans1e =
 
 (* assert equality between terms and their sorts *)
 let assert_equal env (m, s1) (n, s2) : unit trans1e =
-  let* _ = assert_equal0 s1 s2 in
-  let* _ = assert_equal1 env m n in
-  return ()
+ fun (mctx, eqns, map0, map1) ->
+  if eq_tm ~expand_const:false env m n then
+    ((), mctx, eqns, map0, map1)
+  else
+    ((), mctx, Eqn0 (s1, s2) :: Eqn1 (env, m, n) :: eqns, map0, map1)
 
 let unify : unit trans1e =
  fun (mctx, eqns, map0, map1) ->
   let map0, map1 = unify (map0, map1) eqns in
-  ((), mctx, eqns, map0, map1)
+  ((), mctx, [], map0, map1)
 
 let resolve_ptm ptm : tm param trans1e =
  fun (mctx, eqns, map0, map1) ->
@@ -396,8 +398,8 @@ and check_tm ctx env m0 a0 : unit trans1e =
   let* a0 = unify >> resolve_tm a0 in
   match (m0, whnf env a0) with
   (* inference *)
-  | Meta (x, _, _), _ -> add_meta env x a0
-  | Ann (m, a1), _ ->
+  | Meta (x, _, _), a0 -> add_meta env x a0
+  | Ann (m, a1), a0 ->
     let* s0 = infer_sort ctx env a0 in
     let* s1 = infer_sort ctx env a1 in
     let* _ = assert_equal env (a0, s0) (a1, s1) in
@@ -408,7 +410,7 @@ and check_tm ctx env m0 a0 : unit trans1e =
     let* _ = assert_equal0 s0 s1 in
     let x, m, b = unbind2 bnd0 bnd1 in
     check_tm (add_var x a1 ctx) env m b
-  | Let (rel, m, bnd), _ ->
+  | Let (rel, m, bnd), a0 ->
     let* a = infer_tm ctx env m in
     let* a = unify >> resolve_tm a in
     check_tm ctx env (subst bnd (Ann (m, a))) a0
@@ -417,7 +419,7 @@ and check_tm ctx env m0 a0 : unit trans1e =
     let* _ = assert_equal0 s0 s1 in
     let* _ = check_tm ctx env m a in
     check_tm ctx env n (subst bnd m)
-  | Match (m, mot, cls), _ -> (
+  | Match (m, mot, cls), a0 -> (
     let* ty_m = infer_tm ctx env m in
     let a1 = subst mot m in
     let* s0 = infer_sort ctx env a0 in
@@ -436,7 +438,7 @@ and check_tm ctx env m0 a0 : unit trans1e =
       let* _ = assert_equal env (a0, s0) (a1, s1) in
       return ())
   (* other *)
-  | _ ->
+  | m0, a0 ->
     let* a1 = infer_tm ctx env m0 in
     let* s0 = infer_sort ctx env a0 in
     let* s1 = infer_sort ctx env a1 in

@@ -16,48 +16,50 @@ let is_guarded sp =
       | _ -> false)
     sp
 
-let rec whnf (env : env) = function
+let rec whnf ?(expand_const = true) (env : env) = function
   (* inference *)
-  | Ann (m, a) -> whnf env m
+  | Ann (m, a) -> whnf ~expand_const env m
   (* core *)
   | Const (x, ss) -> (
     match IMap.find_opt x env with
-    | Some entry when not entry.guarded -> whnf env (entry.scheme ss)
+    | Some entry when expand_const && not entry.guarded ->
+      whnf ~expand_const env (entry.scheme ss)
     | _ -> Const (x, ss))
   | App _ as m -> (
     let hd, sp = unApps m in
-    let hd = whnf env hd in
-    let sp = List.map (whnf env) sp in
+    let hd = whnf ~expand_const env hd in
+    let sp = List.map (whnf ~expand_const env) sp in
     match (hd, sp) with
-    | Lam (_, _, bnd), n :: sp -> whnf env (mkApps (subst bnd n) sp)
-    | Const (x, ss), _ when is_guarded sp -> (
+    | Lam (_, _, bnd), n :: sp ->
+      whnf ~expand_const env (mkApps (subst bnd n) sp)
+    | Const (x, ss), _ when expand_const && is_guarded sp -> (
       match IMap.find_opt x env with
-      | Some entry -> whnf env (mkApps (entry.scheme ss) sp)
+      | Some entry -> whnf ~expand_const env (mkApps (entry.scheme ss) sp)
       | None -> mkApps hd sp)
     | _ -> mkApps hd sp)
   | Let (r, m, bnd) ->
-    let m = whnf env m in
-    whnf env (subst bnd m)
+    let m = whnf ~expand_const env m in
+    whnf ~expand_const env (subst bnd m)
   (* data *)
   | Match (m, mot, cls) -> (
-    let m = whnf env m in
+    let m = whnf ~expand_const env m in
     match match_cls cls m with
-    | Some m -> whnf env m
+    | Some m -> whnf ~expand_const env m
     | _ -> Match (m, mot, cls))
   (* equality *)
   | Rew (bnd, pf, m) -> (
-    let pf = whnf env pf in
+    let pf = whnf ~expand_const env pf in
     match pf with
-    | Refl _ -> whnf env m
+    | Refl _ -> whnf ~expand_const env m
     | _ -> Rew (bnd, pf, m))
   (* monadic *)
   | MLet (m, bnd) -> (
-    let m = whnf env m in
+    let m = whnf ~expand_const env m in
     match m with
-    | Return m -> whnf env (subst bnd m)
+    | Return m -> whnf ~expand_const env (subst bnd m)
     | _ -> MLet (m, bnd))
   (* session *)
-  | Ch (rol, a) -> Ch (rol, whnf env a)
+  | Ch (rol, a) -> Ch (rol, whnf ~expand_const env a)
   (* other *)
   | m -> m
 
@@ -143,13 +145,13 @@ let rec aeq tm1 tm2 =
     | _ -> false
 
 (* Beta/Delta/Iota equaltiy *)
-let eq_tm env m1 m2 =
+let eq_tm ?(expand_const = true) env m1 m2 =
   let rec equal m1 m2 =
     if aeq m1 m2 then
       true
     else
-      let m1 = whnf env m1 in
-      let m2 = whnf env m2 in
+      let m1 = whnf ~expand_const env m1 in
+      let m2 = whnf ~expand_const env m2 in
       match (m1, m2) with
       (* inference *)
       | Ann (m1, a1), Ann (m2, a2) -> equal m1 m2 && equal a1 a2

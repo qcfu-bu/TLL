@@ -25,17 +25,16 @@ logical llen_id (A : L) (ls : llist A) :
   with
   | lnil ⇒ refl
   | lcons x xs ⇒
-    let p = llen _ xs in
-    match p as p0 in
-      llen _ xs ≡ p0 →
+    match llen _ xs as p in
+      llen _ xs ≡ p →
       lcons x xs ≡ (snd _ _
-                     match p0 with
+                     match p with
                      | ⟨n, xs0⟩ ⇒ ⟨S n, lcons x xs0⟩
                      end)
     with
     | ⟨a, b⟩ ⇒ fn e0 ⇒
       let H = 
-        rew [ p0, _ ⇒ xs ≡ snd _ _ p0 ] e0 in llen_id A xs
+        rew [ p, _ ⇒ xs ≡ snd _ _ p ] e0 in llen_id A xs
       in
       rew [ l, _ ⇒ lcons x xs ≡ lcons x l ] H in refl
     end refl
