@@ -16,7 +16,6 @@ let _ =
       let ch = open_in fname in
       (* parsing *)
       let dcls0 = parse (Utf8.from_channel ch) in
-      let _ = pr "%a@.@." Pprint0.pp_dcls dcls0 in
       let _ = pr "parsing success--------------------------@.@." in
       (* trans01 *)
       let _, dcls1 = Trans01.trans_dcls prelude_nspc dcls0 in

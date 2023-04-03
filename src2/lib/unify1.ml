@@ -11,7 +11,7 @@ type eqn =
 
 type eqns = eqn list
 type map0 = (sort, sort) mbinder MMap.t
-type map1 = ((sort, (tm, tm) mbinder) mbinder option * tm option) MMap.t
+type map1 = (sort, (tm, tm) mbinder) mbinder MMap.t
 
 let pp_map0 fmt (map0 : map0) =
   let aux fmt (map0 : map0) =
@@ -27,18 +27,10 @@ let pp_map0 fmt (map0 : map0) =
 let pp_map1 fmt (map1 : map1) =
   let aux fmt map1 =
     MMap.iter
-      (fun x (opt1, opt2) ->
-        match (opt1, opt2) with
-        | Some bnd, Some a ->
-          let _, bnd = unmbind bnd in
-          let _, m = unmbind bnd in
-          pf fmt "%a := @[%a : %a@]@;<1 0>" M.pp x pp_tm m pp_tm a
-        | None, Some a -> pf fmt "%a := ?? : @[%a@]@;<1 0>" M.pp x pp_tm a
-        | Some bnd, None ->
-          let _, bnd = unmbind bnd in
-          let _, m = unmbind bnd in
-          pf fmt "%a := @[%a@] : ??@;<1 0>" M.pp x pp_tm m
-        | None, None -> pf fmt "%a := ?? : ??@;<1 0>" M.pp x)
+      (fun x bnd ->
+        let _, bnd = unmbind bnd in
+        let _, m = unmbind bnd in
+        pf fmt "%a := @[%a@] : ??@;<1 0>" M.pp x pp_tm m)
       map1
   in
   pf fmt "@[<v 0>{@;<1 2>@[<v 0>%a@]@;<1 0>}@]" aux map1
@@ -453,9 +445,7 @@ let solve ((map0, map1) : map0 * map1) eqn =
         then
           let bnd = bind_mvar (Array.of_list xs) (lift_tm m2) in
           let bnd = bind_mvar (Array.of_list ss) bnd in
-          match MMap.find_opt x map1 with
-          | Some (_, opt) -> (map0, MMap.add x (Some (unbox bnd), opt) map1)
-          | None -> (map0, MMap.add x (Some (unbox bnd), None) map1)
+          (map0, MMap.add x (unbox bnd) map1)
         else
           (map0, map1)
     | _ -> (map0, map1))
@@ -475,7 +465,7 @@ let resolve_tm ((map0, map1) : map0 * map1) m =
     | Ann (m, a) -> Ann (resolve m, resolve a)
     | Meta (x, ss, xs) as m -> (
       match MMap.find_opt x map1 with
-      | Some (Some bnd, _) ->
+      | Some bnd ->
         let bnd = msubst bnd (Array.of_list ss) in
         let m = msubst bnd (Array.of_list xs) in
         resolve m
