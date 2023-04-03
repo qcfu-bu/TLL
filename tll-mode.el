@@ -47,7 +47,7 @@
 
 ;;;###autoload
 (define-derived-mode tll-mode prog-mode
-  "tll mode"
+  "TLL"
   "Major mode for editing TLL"
   (setq font-lock-defaults '((tll-font-lock-keywords)))
   (set-syntax-table tll-mode-syntax-table)
