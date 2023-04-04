@@ -91,14 +91,12 @@ end = struct
 end
 
 (* sets *)
-module SSet = Set.Make (String)
 module MSet = Set.Make (M)
 module ISet = Set.Make (I)
 module CSet = Set.Make (C)
 module DSet = Set.Make (D)
 
 (* maps *)
-module SMap = Map.Make (String)
 module MMap = Map.Make (M)
 module IMap = Map.Make (I)
 module CMap = Map.Make (C)

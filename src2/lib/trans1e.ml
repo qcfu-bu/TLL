@@ -223,6 +223,7 @@ and infer_tm ctx env m0 : tm trans1e =
     | _ -> failwith "infer_Match(%a)" pp_tm m0)
   (* equality *)
   | Eq (a, m, n) ->
+    let* _ = infer_sort ctx env a in
     let* _ = check_tm ctx env m a in
     let* _ = check_tm ctx env n a in
     return (Type U)
@@ -233,7 +234,7 @@ and infer_tm ctx env m0 : tm trans1e =
     let xs, mot = unmbind bnd in
     let* ty_p = infer_tm ctx env p in
     let* ty_p = unify >> resolve_tm ty_p in
-    match (ty_p, xs) with
+    match (whnf env ty_p, xs) with
     | Eq (a, m, n), [| x; y |] ->
       let ctx' = add_var x a ctx in
       let ctx' = add_var y (Eq (a, m, Var x)) ctx' in
@@ -419,7 +420,7 @@ and check_tm ctx env m0 a0 : unit trans1e =
   | Pair (rel0, s0, m, n), Sigma (rel1, s1, a, bnd) when rel0 = rel1 ->
     let* _ = assert_equal0 s0 s1 in
     let* _ = check_tm ctx env m a in
-    check_tm ctx env n (subst bnd m)
+    check_tm ctx env n (subst bnd (Ann (m, a)))
   | Match (m, mot, cls), a0 -> (
     let* ty_m = infer_tm ctx env m in
     let a1 = subst mot m in
