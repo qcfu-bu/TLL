@@ -33,7 +33,7 @@ type tm =
   | Var of tm var
   | Const of I.t * sorts
   | Pi of rel * sort * tm * (tm, tm) binder
-  | Lam of rel * sort * (tm, tm) binder
+  | Lam of rel * sort * tm * (tm, tm) binder
   | App of tm * tm
   | Let of rel * tm * (tm, tm) binder
   (* data *)
@@ -147,7 +147,7 @@ let _Type = box_apply (fun s -> Type s)
 let _Var = box_var
 let _Const x = box_apply (fun ss -> Const (x, ss))
 let _Pi rel = box_apply3 (fun s a bnd -> Pi (rel, s, a, bnd))
-let _Lam rel = box_apply2 (fun s bnd -> Lam (rel, s, bnd))
+let _Lam rel = box_apply3 (fun s a bnd -> Lam (rel, s, a, bnd))
 let _App = box_apply2 (fun m n -> App (m, n))
 let _Let rel = box_apply2 (fun m bnd -> Let (rel, m, bnd))
 
@@ -222,7 +222,8 @@ let rec lift_tm = function
     _Const x (box_list ss)
   | Pi (rel, s, a, bnd) ->
     _Pi rel (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
-  | Lam (rel, s, bnd) -> _Lam rel (lift_sort s) (box_binder lift_tm bnd)
+  | Lam (rel, s, a, bnd) ->
+    _Lam rel (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
   | App (m, n) -> _App (lift_tm m) (lift_tm n)
   | Let (rel, m, bnd) -> _Let rel (lift_tm m) (box_binder lift_tm bnd)
   (* data *)
@@ -291,7 +292,7 @@ let lift_dcls dcls = box_list (List.map lift_dcl dcls)
 
 (* utility *)
 let _mLam rel s xs m =
-  List.fold_right (fun x m -> _Lam rel s (bind_var x m)) xs m
+  List.fold_right (fun (x, a) m -> _Lam rel s a (bind_var x m)) xs m
 
 let _mkApps hd ms = List.fold_left _App hd ms
 let mkApps hd ms = List.fold_left (fun hd m -> App (hd, m)) hd ms

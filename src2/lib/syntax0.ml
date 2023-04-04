@@ -39,7 +39,7 @@ type tm =
   | Type of sort
   | Id of id
   | Pi of rel * sort * tm * (id, tm) binder
-  | Lam of rel * sort * (id, tm) binder
+  | Lam of rel * sort * tm * (id, tm) binder
   | App of tms
   | Let of rel * tm * ((id, p) either, tm) binder
   (* data *)

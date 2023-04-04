@@ -170,9 +170,9 @@ and infer_tm ctx env m0 : tm trans1e =
     let* _ = infer_sort ctx env a in
     let* _ = infer_sort (add_var x a ctx) env b in
     return (Type s)
-  | Lam (rel, s, bnd) ->
+  | Lam (rel, s, a, bnd) ->
     let x, m = unbind bnd in
-    let a, _ = meta_mk ctx in
+    let* _ = infer_sort ctx env a in
     let* b = infer_tm (add_var x a ctx) env m in
     let bnd = bind_var x (lift_tm b) in
     return (Pi (rel, s, a, unbox bnd))
@@ -404,9 +404,12 @@ and check_tm ctx env m0 a0 : unit trans1e =
     let* a1 = unify >> resolve_tm a1 in
     check_tm ctx env m a1
   (* core *)
-  | Lam (rel0, s0, bnd0), Pi (rel1, s1, a1, bnd1) when rel0 = rel1 ->
-    let* _ = assert_equal0 s0 s1 in
+  | Lam (rel0, s0, a0, bnd0), Pi (rel1, s1, a1, bnd1) when rel0 = rel1 ->
     let x, m, b = unbind2 bnd0 bnd1 in
+    let* t0 = infer_sort ctx env a0 in
+    let* t1 = infer_sort ctx env a1 in
+    let* _ = assert_equal0 s0 s1 in
+    let* _ = assert_equal env (a0, t0) (a1, t1) in
     check_tm (add_var x a1 ctx) env m b
   | Let (rel, m, bnd), a0 ->
     let* a = infer_tm ctx env m in

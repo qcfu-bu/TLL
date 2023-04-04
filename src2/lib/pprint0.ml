@@ -39,13 +39,17 @@ let rec pp_tm fmt = function
     pf fmt "(forall‹%s›(%s : %a), %a)" sid id pp_tm a pp_tm b
   | Pi (N, SId sid, a, Binder (id, b)) ->
     pf fmt "(forall‹%s›{%s : %a}, %a)" sid id pp_tm a pp_tm b
-  | Lam (R, U, Binder (id, m)) -> pf fmt "(fn %s ⇒ %a)" id pp_tm m
-  | Lam (N, U, Binder (id, m)) -> pf fmt "(fn {%s} ⇒ %a)" id pp_tm m
-  | Lam (R, L, Binder (id, m)) -> pf fmt "(ln %s ⇒ %a)" id pp_tm m
-  | Lam (N, L, Binder (id, m)) -> pf fmt "(ln {%s} ⇒ %a)" id pp_tm m
-  | Lam (R, SId sid, Binder (id, m)) ->
+  | Lam (R, U, a, Binder (id, m)) ->
+    pf fmt "(fn (%s : %a) ⇒ %a)" id pp_tm a pp_tm m
+  | Lam (N, U, a, Binder (id, m)) ->
+    pf fmt "(fn {%s : %a} ⇒ %a)" id pp_tm a pp_tm m
+  | Lam (R, L, a, Binder (id, m)) ->
+    pf fmt "(ln (%s : %a) ⇒ %a)" id pp_tm a pp_tm m
+  | Lam (N, L, a, Binder (id, m)) ->
+    pf fmt "(ln {%s : %a} ⇒ %a)" id pp_tm a pp_tm m
+  | Lam (R, SId sid, a, Binder (id, m)) ->
     pf fmt "(function‹%s›(%s), %a)" sid id pp_tm m
-  | Lam (N, SId sid, Binder (id, m)) ->
+  | Lam (N, SId sid, a, Binder (id, m)) ->
     pf fmt "(function‹%s›{%s}, %a)" sid id pp_tm m
   | App ms -> pf fmt "(%a)" (list ~sep:sp (parens pp_tm)) ms
   | Let (R, m, Binder (Left id, n)) ->

@@ -30,7 +30,7 @@ let rec whnf ?(expand_const = true) (env : env) = function
     let hd = whnf ~expand_const env hd in
     let sp = List.map (whnf ~expand_const env) sp in
     match (hd, sp) with
-    | Lam (_, _, bnd), n :: sp ->
+    | Lam (_, _, _, bnd), n :: sp ->
       whnf ~expand_const env (mkApps (subst bnd n) sp)
     | Const (x, ss), _ when expand_const && is_guarded sp -> (
       match IMap.find_opt x env with
@@ -95,8 +95,8 @@ let rec aeq tm1 tm2 =
       I.equal x1 x2 && List.equal eq_sort ss1 ss2
     | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) ->
       rel1 = rel2 && eq_sort s1 s2 && aeq a1 a2 && eq_binder aeq bnd1 bnd2
-    | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) ->
-      rel1 = rel2 && eq_sort s1 s2 && eq_binder aeq bnd1 bnd2
+    | Lam (rel1, s1, a1, bnd1), Lam (rel2, s2, a2, bnd2) ->
+      rel1 = rel2 && eq_sort s1 s2 && aeq a1 a2 && eq_binder aeq bnd1 bnd2
     | App (m1, n1), App (m2, n2) -> aeq m1 m2 && aeq n1 n2
     | Let (rel1, m1, bnd1), Let (rel2, m2, bnd2) ->
       rel1 = rel2 && aeq m1 m2 && eq_binder aeq bnd1 bnd2
@@ -163,8 +163,8 @@ let eq_tm ?(expand_const = true) env m1 m2 =
         I.equal x1 x2 && List.equal eq_sort ss1 ss2
       | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) ->
         rel1 = rel2 && eq_sort s1 s2 && equal a1 a2 && eq_binder equal bnd1 bnd2
-      | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) ->
-        rel1 = rel2 && eq_sort s1 s2 && eq_binder equal bnd1 bnd2
+      | Lam (rel1, s1, a1, bnd1), Lam (rel2, s2, a2, bnd2) ->
+        rel1 = rel2 && eq_sort s1 s2 && equal a1 a2 && eq_binder equal bnd1 bnd2
       | App (m1, n1), App (m2, n2) -> equal m1 m2 && equal n1 n2
       | Let (rel1, m1, bnd1), Let (rel2, m2, bnd2) ->
         rel1 = rel2 && equal m1 m2 && eq_binder equal bnd1 bnd2

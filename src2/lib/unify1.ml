@@ -85,9 +85,12 @@ let rec fv ctx = function
     let fsv1, fv1 = fv ctx a in
     let fsv2, fv2 = fv (VSet.add x ctx) b in
     (SVSet.union (SVSet.union fsv0 fsv1) fsv2, VSet.union fv1 fv2)
-  | Lam (_, _, bnd) ->
+  | Lam (_, s, a, bnd) ->
     let x, m = unbind bnd in
-    fv (VSet.add x ctx) m
+    let fsv0 = fsv s in
+    let fsv1, fv1 = fv ctx a in
+    let fsv2, fv2 = fv (VSet.add x ctx) m in
+    (SVSet.union (SVSet.union fsv0 fsv1) fsv2, VSet.union fv1 fv2)
   | App (m, n) ->
     let fsv1, fv1 = fv ctx m in
     let fsv2, fv2 = fv ctx n in
@@ -198,9 +201,9 @@ let rec occurs_tm x = function
   | Pi (_, _, a, bnd) ->
     let _, b = unbind bnd in
     occurs_tm x a || occurs_tm x b
-  | Lam (_, _, bnd) ->
+  | Lam (_, _, a, bnd) ->
     let _, m = unbind bnd in
-    occurs_tm x m
+    occurs_tm x a || occurs_tm x m
   | App (m, n) -> occurs_tm x m || occurs_tm x n
   | Let (_, m, bnd) ->
     let _, n = unbind bnd in
@@ -295,9 +298,12 @@ let rec simpl ?(expand_const = false) eqn =
       let eqns1 = simpl (Eqn1 (env, a1, a2)) in
       let eqns2 = simpl (Eqn1 (env, b1, b2)) in
       eqns0 @ eqns1 @ eqns2
-    | Lam (rel1, s1, bnd1), Lam (rel2, s2, bnd2) when rel1 = rel2 ->
+    | Lam (rel1, s1, a1, bnd1), Lam (rel2, s2, a2, bnd2) when rel1 = rel2 ->
       let _, m1, m2 = unbind2 bnd1 bnd2 in
-      simpl (Eqn0 (s1, s2)) @ simpl (Eqn1 (env, m1, m2))
+      let eqns0 = simpl (Eqn0 (s1, s2)) in
+      let eqns1 = simpl (Eqn1 (env, a1, a2)) in
+      let eqns2 = simpl (Eqn1 (env, m1, m2)) in
+      eqns0 @ eqns1 @ eqns2
     | _, App _
     | App _, _ -> (
       try
@@ -499,11 +505,12 @@ let resolve_tm ((map0, map1) : map0 * map1) m =
       let a = resolve a in
       let b = lift_tm (resolve b) in
       Pi (rel, s, a, unbox (bind_var x b))
-    | Lam (rel, s, bnd) ->
+    | Lam (rel, s, a, bnd) ->
       let x, m = unbind bnd in
       let s = resolve_sort map0 s in
+      let a = resolve a in
       let m = lift_tm (resolve m) in
-      Lam (rel, s, unbox (bind_var x m))
+      Lam (rel, s, a, unbox (bind_var x m))
     | App (m, n) -> App (resolve m, resolve n)
     | Let (rel, m, bnd) ->
       let x, n = unbind bnd in

@@ -197,10 +197,13 @@ let rec trans_tm nspc = function
     Syntax1.
       ( _Pi (trans_rel rel) (trans_sort nspc s) a (bind_var x b)
       , ISet.union iset1 iset2 )
-  | Lam (rel, s, Binder (id, m)) ->
+  | Lam (rel, s, a, Binder (id, m)) ->
+    let a, iset1 = trans_tm nspc a in
     let x = Syntax1.(V.mk id) in
-    let m, iset = trans_tm ((id, EVar x) :: nspc) m in
-    Syntax1.(_Lam (trans_rel rel) (trans_sort nspc s) (bind_var x m), iset)
+    let m, iset2 = trans_tm ((id, EVar x) :: nspc) m in
+    Syntax1.
+      ( _Lam (trans_rel rel) (trans_sort nspc s) a (bind_var x m)
+      , ISet.union iset1 iset2 )
   | App ms -> (
     match ms with
     | Id id :: ms -> (
@@ -394,7 +397,7 @@ let rec trans_args nspc = function
     let b, m, iset = trans_args ((id, EVar x) :: nspc) args in
     Syntax1.
       ( _Pi (trans_rel rel) _U a (bind_var x b)
-      , _Lam (trans_rel rel) _U (bind_var x m)
+      , _Lam (trans_rel rel) _U a (bind_var x m)
       , iset )
 
 let trans_scheme nspc trans (Binder (ids, m)) =

@@ -203,15 +203,15 @@ let tm_type :=
 
 let tm_arg0 :=
   | id = identifier;
-    { [(R, id, None)] }
+    { [(R, id, Id "_")] }
   | LPAREN; ids = identifier+; RPAREN;
-    { List.map (fun id -> (R, id, None)) ids }
+    { List.map (fun id -> (R, id, Id "_")) ids }
   | LBRACE; ids = identifier+; RBRACE;
-    { List.map (fun id -> (N, id, None)) ids }
+    { List.map (fun id -> (N, id, Id "_")) ids }
   | LPAREN; ids = identifier+; COLON; a = tm; RPAREN;
-    { List.map (fun id -> (R, id, Some a)) ids } 
+    { List.map (fun id -> (R, id, a)) ids } 
   | LBRACE; ids = identifier+; COLON; a = tm; RBRACE;
-    { List.map (fun id -> (N, id, Some a)) ids } 
+    { List.map (fun id -> (N, id, a)) ids } 
 
 let tm_arg1 :=
   | LPAREN; ids = identifier+; COLON; a = tm; RPAREN;
@@ -245,42 +245,15 @@ let tm_pi :=
 
 let tm_lam :=
   | TM_FN; args = tm_args0; RIGHTARROW1; m = tm;
-    { let m, a =
-        List.fold_right (fun (rel, id, opt) (m, b) ->
-            match opt with
-            | Some a ->
-              (Lam (rel, U, Binder (id, m)),
-               Pi  (rel, U, a, Binder (id, b)))
-            | None ->
-              (Lam (rel, U, Binder (id, m)),
-               Pi  (rel, U, Id "_", Binder (id, b))))
-        args (m, Id "_")
-      in Ann (m, a) }
+    { List.fold_right (fun (rel, id, a) m ->
+        Lam (rel, U, a, Binder (id, m))) args m }
   | TM_LN; args = tm_args0; RIGHTARROW1; m = tm;
-    { let m, a =
-        List.fold_right (fun (rel, id, opt) (m, b) ->
-            match opt with
-            | Some a ->
-              (Lam (rel, L, Binder (id, m)),
-               Pi  (rel, L, a, Binder (id, b)))
-            | None ->
-              (Lam (rel, L, Binder (id, m)),
-               Pi  (rel, L, Id "_", Binder (id, b))))
-        args (m, Id "_")
-      in Ann (m, a) }
+    { List.fold_right (fun (rel, id, a) m ->
+        Lam (rel, L, a, Binder (id, m))) args m }
   | TM_FUNCTION;
     FLQ; s = sort; FRQ; args = tm_args0; COMMA; m = tm;
-    { let m, a =
-        List.fold_right (fun (rel, id, opt) (m, b) ->
-            match opt with
-            | Some a ->
-              (Lam (rel, s, Binder (id, m)),
-               Pi  (rel, s, a, Binder (id, b)))
-            | None ->
-              (Lam (rel, s, Binder (id, m)),
-               Pi  (rel, s, Id "_", Binder (id, b))))
-        args (m, Id "_")
-      in Ann (m, a) }
+    { List.fold_right (fun (rel, id, a) m ->
+        Lam (rel, s, a, Binder (id, m))) args m }
 
 let tm_p0 :=
   | LPAREN; LBRACE;
