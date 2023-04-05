@@ -192,7 +192,7 @@ module Usage = struct
         failwith "remove_const(%a)" I.pp x
     | _ -> failwith "remove_const(%a)" I.pp x
 
-  let usage_of_ctx (ctx : Context.t) =
+  let of_ctx (ctx : Context.t) =
     { var = VMap.map (fun (_, s) -> (s, true)) ctx.var
     ; const = IMap.map (fun (_, s) -> (s, true)) ctx.const
     }
@@ -403,7 +403,7 @@ module Logical = struct
     | PCons (c0, bnd) :: cls ->
       let c1 = Resolver.find_cons c0 ss res in
       if CSet.mem c1 cs then
-        let _ = infer_cl res ctx env ss ms mot c1 bnd in
+        let _ = infer_cl res ctx env ss ms mot c0 bnd in
         infer_cls res ctx env (CSet.remove c1 cs) ss ms mot cls
       else
         failwith "Logical.infer_cls"
@@ -432,6 +432,7 @@ module Logical = struct
     let ptl = Context.find_cons c1 ctx in
     let tl = init_param ms ptl in
     let ctx, ty = init_tele ctx xs tl in
+    let _ = infer_sort res ctx env ty in
     let mot = subst mot (Cons (c0, ss, ms, List.map var xs)) in
     let _ = infer_sort res ctx env mot in
     check_tm res ctx env rhs mot
@@ -499,6 +500,7 @@ module Logical = struct
       | _ ->
         let a1 = infer_tm res ctx env m0 in
         assert_equal env a0 a1)
+    (* core *)
     | m0, a0 ->
       let a1 = infer_tm res ctx env m0 in
       assert_equal env a0 a1
@@ -519,6 +521,7 @@ module Program = struct
     | Neg -> Syntax2.Neg
 
   let trans_var x = Syntax2.(copy_var x var (name_of x))
+  let trans_mvar xs = Array.map trans_var xs
 
   let rec infer_tm res ctx env m =
     match m with
@@ -605,7 +608,23 @@ module Program = struct
       let ptl = Context.find_cons c1 ctx in
       let a, ns_elab, usg = infer_ptl res ctx env ms ns ptl in
       Syntax2.(a, _Cons c1 (box_list ns_elab), usg)
-    | Match (m, mot, cls) -> _
+    | Match (m, mot, cls) -> (
+      let ty_m, m_elab, usg1 = infer_tm res ctx env m in
+      let s = Logical.infer_sort res ctx env ty_m in
+      match whnf env ty_m with
+      | Sigma (rel, _, a, bnd) ->
+        let cls_elab, usg2 = infer_pair res ctx env rel s a bnd mot cls in
+        let usg = Usage.merge usg1 usg2 in
+        Syntax2.
+          (subst mot m, _Match (trans_sort s) m_elab (box_list cls_elab), usg)
+      | Data (d0, ss, ms) ->
+        let d1 = Resolver.find_data d0 ss res in
+        let _, cs = Context.find_data d1 ctx in
+        let cls_elab, usg2 = infer_cls res ctx env cs ss ms mot cls in
+        let usg = Usage.merge usg1 usg2 in
+        Syntax2.
+          (subst mot m, _Match (trans_sort s) m_elab (box_list cls_elab), usg)
+      | _ -> failwith "Program.infer_Match")
     (* equality *)
     | Eq _ -> failwith "Program.infer_Eq"
     | Refl _ -> failwith "Program.infer_Refl"
@@ -688,6 +707,100 @@ module Program = struct
         Syntax2.(ty, _Close (trans_role rol) m_elab, usg)
       | _ -> failwith "Program.infer_Close")
 
+  and infer_pair res ctx env rel s a bnd mot cls =
+    match (rel, cls) with
+    | N, [ PPair (N, s0, bnd0) ] when eq_sort s s0 -> (
+      let xs, rhs = unmbind bnd0 in
+      match xs with
+      | [| x; y |] ->
+        let b = subst bnd (Var x) in
+        let r = Logical.infer_sort res ctx env a in
+        let ctx = Context.add_var x a r ctx in
+        let t = Logical.infer_sort res ctx env b in
+        let ctx = Context.add_var y b t ctx in
+        let tm = Pair (N, s, Var x, Var y) in
+        let ty = Sigma (N, s, a, bnd) in
+        let mot = subst mot (Ann (tm, ty)) in
+        let _ = Logical.infer_sort res ctx env mot in
+        let rhs_elab, usg = check_tm res ctx env rhs mot in
+        let usg = Usage.remove_var x usg N r in
+        let usg = Usage.remove_var y usg R t in
+        let x = trans_var x in
+        let y = trans_var y in
+        Syntax2.([ _PPair (bind_mvar [| x; y |] rhs_elab) ], usg)
+      | _ -> failwith "Program.infer_pair")
+    | R, [ PPair (R, s0, bnd0) ] when eq_sort s s0 -> (
+      let xs, rhs = unmbind bnd0 in
+      match xs with
+      | [| x; y |] ->
+        let b = subst bnd (Var x) in
+        let r = Logical.infer_sort res ctx env a in
+        let ctx = Context.add_var x a r ctx in
+        let t = Logical.infer_sort res ctx env b in
+        let ctx = Context.add_var y b t ctx in
+        let tm = Pair (R, s, Var x, Var y) in
+        let ty = Sigma (R, s, a, bnd) in
+        let mot = subst mot (Ann (tm, ty)) in
+        let _ = Logical.infer_sort res ctx env mot in
+        let rhs_elab, usg = check_tm res ctx env rhs mot in
+        let usg = Usage.remove_var x usg R r in
+        let usg = Usage.remove_var y usg R t in
+        let x = trans_var x in
+        let y = trans_var y in
+        Syntax2.([ _PPair (bind_mvar [| x; y |] rhs_elab) ], usg)
+      | _ -> failwith "Program.infer_pair")
+    | _ -> failwith "Program.infer_pair"
+
+  and infer_cls res ctx env cs ss ms mot cls =
+    match cls with
+    | [] when CSet.is_empty cs -> ([], Usage.of_ctx ctx)
+    | PCons (c0, bnd) :: cls ->
+      let c1 = Resolver.find_cons c0 ss res in
+      if CSet.mem c1 cs then
+        let bnd_elab, usg1 = infer_cl res ctx env ss ms mot c1 bnd in
+        let cls_elab, usg2 =
+          infer_cls res ctx env (CSet.remove c1 cs) ss ms mot cls
+        in
+        Syntax2.(_PCons c1 bnd_elab :: cls_elab, Usage.refine_usage usg1 usg2)
+      else
+        failwith "Program.infer_cls"
+    | _ -> failwith "Program.infer_cls"
+
+  and infer_cl res ctx env ss ms mot c0 bnd =
+    let rec init_param ms ptl =
+      match (ms, ptl) with
+      | [], PBase tl -> tl
+      | m :: ms, PBind (a, bnd) -> init_param ms (subst bnd (Ann (m, a)))
+      | _ -> failwith "Program.infer_cl"
+    in
+    let rec init_tele ctx xs tl =
+      match (xs, tl) with
+      | [], TBase b -> (ctx, [], b)
+      | x :: xs, TBind (rel, a, bnd) ->
+        let s = Logical.infer_sort res ctx env a in
+        let ctx = Context.add_var x a s ctx in
+        let tl = subst bnd (Var x) in
+        let ctx, xrs, b = init_tele ctx xs tl in
+        (ctx, (x, rel, s) :: xrs, b)
+      | _ -> failwith "Program.init_tele"
+    in
+    let xs0, rhs = unmbind bnd in
+    let xs1 = Array.to_list xs0 in
+    let c1 = Resolver.find_cons c0 ss res in
+    let ptl = Context.find_cons c1 ctx in
+    let tl = init_param ms ptl in
+    let ctx, xrs, ty = init_tele ctx xs1 tl in
+    let _ = Logical.infer_sort res ctx env ty in
+    let mot = subst mot (Cons (c0, ss, ms, List.map var xs1)) in
+    let _ = Logical.infer_sort res ctx env mot in
+    let rhs_elab, usg = check_tm res ctx env rhs mot in
+    let usg =
+      List.fold_left
+        (fun acc (x, rel, s) -> Usage.remove_var x acc rel s)
+        usg xrs
+    in
+    (bind_mvar (trans_mvar xs0) rhs_elab, usg)
+
   and infer_ptl res ctx env ms ns ptl =
     match (ms, ptl) with
     | [], PBase tl -> infer_tele res ctx env ns tl
@@ -711,5 +824,74 @@ module Program = struct
       (b, n_elab :: ns_elab, Usage.merge usg1 usg2)
     | _ -> failwith "Logical.infer_tele"
 
-  and check_tm res ctx env m a = _
+  and check_tm res ctx env m0 a0 =
+    match (m0, whnf env a0) with
+    (* core *)
+    | Lam (rel0, s0, a0, bnd0), Pi (rel1, s1, a1, bnd1)
+      when rel0 = rel1 && eq_sort s0 s1 -> (
+      let _ = Logical.assert_sort s0 in
+      let x, m, b = unbind2 bnd0 bnd1 in
+      let t = Logical.infer_sort res ctx env a0 in
+      let _ = Logical.assert_equal env a0 a1 in
+      let m_elab, usg = check_tm res (Context.add_var x a1 t ctx) env m b in
+      let usg = Usage.remove_var x usg rel0 s0 in
+      let m_bnd = Syntax2.(bind_var (trans_var x) m_elab) in
+      match s0 with
+      | U ->
+        let _ = Usage.assert_pure usg in
+        Syntax2.(_Lam m_bnd, usg)
+      | L -> Syntax2.(_Lam m_bnd, usg)
+      | _ -> failwith "Program.check_Lam")
+    | Let (N, m, bnd), a0 ->
+      let x, n = unbind bnd in
+      let a = Logical.infer_tm res ctx env m in
+      let s = Logical.infer_sort res ctx env a in
+      let ctx = Context.add_var x a s ctx in
+      let env = Env.add_var x m env in
+      let n_elab, usg = check_tm res ctx env n a0 in
+      let usg = Usage.remove_var x usg N s in
+      Syntax2.(_Let _Null (bind_var (trans_var x) n_elab), usg)
+    | Let (R, m, bnd), a0 ->
+      let x, n = unbind bnd in
+      let a, m_elab, usg1 = infer_tm res ctx env m in
+      let s = Logical.infer_sort res ctx env a in
+      let ctx = Context.add_var x a s ctx in
+      let env = Env.add_var x m env in
+      let n_elab, usg2 = check_tm res ctx env n a0 in
+      let usg = Usage.(merge usg1 (remove_var x usg2 R s)) in
+      Syntax2.(_Let m_elab (bind_var (trans_var x) n_elab), usg)
+    (* data *)
+    | Pair (N, s0, m, n), Sigma (N, s1, a, bnd) when eq_sort s0 s1 ->
+      let _ = Logical.assert_sort s0 in
+      let _ = Logical.check_tm res ctx env m a in
+      let n_elab, usg = check_tm res ctx env n (subst bnd (Ann (m, a))) in
+      Syntax2.(_Pair _Null n_elab, usg)
+    | Pair (R, s0, m, n), Sigma (R, s1, a, bnd) when eq_sort s0 s1 ->
+      let _ = Logical.assert_sort s0 in
+      let m_elab, usg1 = check_tm res ctx env m a in
+      let n_elab, usg2 = check_tm res ctx env n (subst bnd (Ann (m, a))) in
+      Syntax2.(_Pair m_elab n_elab, Usage.merge usg1 usg2)
+    | Match (m, mot, cls), a0 -> (
+      let ty_m, m_elab, usg1 = infer_tm res ctx env m in
+      let a1 = subst mot m in
+      let _ = Logical.infer_sort res ctx env a1 in
+      let _ = Logical.assert_equal env a0 a1 in
+      let s = Logical.infer_sort res ctx env ty_m in
+      match whnf env ty_m with
+      | Sigma (rel, _, a, bnd) ->
+        let cls_elab, usg2 = infer_pair res ctx env rel s a bnd mot cls in
+        let usg = Usage.merge usg1 usg2 in
+        Syntax2.(_Match (trans_sort s) m_elab (box_list cls_elab), usg)
+      | Data (d0, ss, ms) ->
+        let d1 = Resolver.find_data d0 ss res in
+        let _, cs = Context.find_data d1 ctx in
+        let cls_elab, usg2 = infer_cls res ctx env cs ss ms mot cls in
+        let usg = Usage.merge usg1 usg2 in
+        Syntax2.(_Match (trans_sort s) m_elab (box_list cls_elab), usg)
+      | _ -> failwith "Program.check_Match")
+    (* core *)
+    | m0, a0 ->
+      let a1, m_elab, usg = infer_tm res ctx env m0 in
+      let _ = Logical.assert_equal env a0 a1 in
+      (m_elab, usg)
 end

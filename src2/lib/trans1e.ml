@@ -360,6 +360,7 @@ and infer_cl ctx env ss ms mot c bnd =
   let ptl = msubst sch (Array.of_list ss) in
   let tl = init_param ms ptl in
   let ctx, ty = init_tele ctx xs tl in
+  let* _ = infer_sort ctx env ty in
   let mot = subst mot (Cons (c, ss, ms, List.map var xs)) in
   let* _ = infer_sort ctx env mot in
   let* _ = check_tm ctx env rhs mot in
