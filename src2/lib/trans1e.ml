@@ -185,9 +185,10 @@ and infer_tm ctx env m0 : tm trans1e =
       return (subst bnd n)
     | _ -> failwith "infer_App")
   | Let (rel, m, bnd) ->
+    let x, n = unbind bnd in
     let* a = infer_tm ctx env m in
     let* a = unify >> resolve_tm a in
-    infer_tm ctx env (subst bnd (Ann (m, a)))
+    infer_tm (add_var x a ctx) (Env.add_var x m env) n
   (* data *)
   | Sigma (rel, s, a, bnd) ->
     let x, b = unbind bnd in
@@ -198,9 +199,8 @@ and infer_tm ctx env m0 : tm trans1e =
     let* a = infer_tm ctx env m in
     let* b = infer_tm ctx env n in
     let x = V.mk "_" in
-    let bnd = unbox (bind_var x (lift_tm b)) in
-    let ty = Sigma (rel, s, a, bnd) in
-    return ty
+    let bnd = bind_var x (lift_tm b) in
+    return (Sigma (rel, s, a, unbox bnd))
   | Data (d, ss, ms) ->
     let sch, _ = find_data d ctx in
     let ptm = msubst sch (Array.of_list ss) in
@@ -413,9 +413,11 @@ and check_tm ctx env m0 a0 : unit trans1e =
     let* _ = assert_equal env (a0, t0) (a1, t1) in
     check_tm (add_var x a1 ctx) env m b
   | Let (rel, m, bnd), a0 ->
+    let x, n = unbind bnd in
     let* a = infer_tm ctx env m in
     let* a = unify >> resolve_tm a in
-    check_tm ctx env (subst bnd (Ann (m, a))) a0
+    let* m = unify >> resolve_tm m in
+    check_tm (add_var x a ctx) (Env.add_var x m env) n a0
   (* data *)
   | Pair (rel0, s0, m, n), Sigma (rel1, s1, a, bnd) when rel0 = rel1 ->
     let* _ = assert_equal0 s0 s1 in
@@ -464,7 +466,7 @@ let rec check_dcls ctx env dcls =
     in
     let ctx = add_const x sch_a ctx in
     let env =
-      IMap.add x
+      Env.add_const x
         { scheme = (fun ss -> msubst sch_m (Array.of_list ss))
         ; guarded = guard
         }
@@ -528,6 +530,6 @@ let trans_dcls dcls =
     ; cons = CMap.empty
     }
   in
-  let _, _, eqns, map0, map1 = run_trans1e (check_dcls ctx IMap.empty dcls) in
+  let _, _, eqns, map0, map1 = run_trans1e (check_dcls ctx Env.empty dcls) in
   let map0, map1 = Unify1.unify (map0, map1) eqns in
   resolve_dcls (map0, map1) dcls

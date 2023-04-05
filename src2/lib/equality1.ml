@@ -2,12 +2,23 @@ open Bindlib
 open Names
 open Syntax1
 
-type env_entry =
-  { scheme : sorts -> tm
-  ; guarded : bool
-  }
+module Env = struct
+  type const_entry =
+    { scheme : sorts -> tm
+    ; guarded : bool
+    }
 
-type env = env_entry IMap.t
+  type t =
+    { var : tm VMap.t
+    ; const : const_entry IMap.t
+    }
+
+  let empty = { var = VMap.empty; const = IMap.empty }
+  let find_var x env = VMap.find_opt x env.var
+  let find_const x env = IMap.find_opt x env.const
+  let add_var x m env = { env with var = VMap.add x m env.var }
+  let add_const x entry env = { env with const = IMap.add x entry env.const }
+end
 
 let is_guarded sp =
   List.exists
@@ -16,12 +27,16 @@ let is_guarded sp =
       | _ -> false)
     sp
 
-let rec whnf ?(expand_const = true) (env : env) = function
+let rec whnf ?(expand_const = true) (env : Env.t) = function
   (* inference *)
   | Ann (m, a) -> whnf ~expand_const env m
   (* core *)
+  | Var x -> (
+    match Env.find_var x env with
+    | Some m -> whnf ~expand_const env m
+    | _ -> Var x)
   | Const (x, ss) -> (
-    match IMap.find_opt x env with
+    match Env.find_const x env with
     | Some entry when expand_const && not entry.guarded ->
       whnf ~expand_const env (entry.scheme ss)
     | _ -> Const (x, ss))
@@ -33,7 +48,7 @@ let rec whnf ?(expand_const = true) (env : env) = function
     | Lam (_, _, _, bnd), n :: sp ->
       whnf ~expand_const env (mkApps (subst bnd n) sp)
     | Const (x, ss), _ when expand_const && is_guarded sp -> (
-      match IMap.find_opt x env with
+      match Env.find_const x env with
       | Some entry -> whnf ~expand_const env (mkApps (entry.scheme ss) sp)
       | None -> mkApps hd sp)
     | _ -> mkApps hd sp)

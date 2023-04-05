@@ -7,7 +7,7 @@ open Pprint1
 
 type eqn =
   | Eqn0 of sort * sort (* sort equations *)
-  | Eqn1 of env * tm * tm (* term equations *)
+  | Eqn1 of Env.t * tm * tm (* term equations *)
 
 type eqns = eqn list
 type map0 = (sort, sort) mbinder MMap.t
@@ -285,11 +285,11 @@ let rec simpl ?(expand_const = false) eqn =
     | Const (x1, ss1), Const (x2, ss2) when I.equal x1 x2 ->
       List.fold_right2 (fun s1 s2 acc -> simpl (Eqn0 (s1, s2)) @ acc) ss1 ss2 []
     | Const (x, ss), _ -> (
-      match IMap.find_opt x env with
+      match Env.find_const x env with
       | Some entry -> simpl (Eqn1 (env, entry.scheme ss, m2))
       | None -> [])
     | _, Const (y, ss) -> (
-      match IMap.find_opt y env with
+      match Env.find_const y env with
       | Some entry -> simpl (Eqn1 (env, m1, entry.scheme ss))
       | None -> [])
     | Pi (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) when rel1 = rel2 ->
