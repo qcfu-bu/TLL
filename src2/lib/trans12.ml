@@ -510,6 +510,14 @@ module Program = struct
     | L -> Syntax2.L
     | _ -> failwith "Program.trans_sort"
 
+  let trans_rel = function
+    | N -> Syntax2.N
+    | R -> Syntax2.R
+
+  let trans_role = function
+    | Pos -> Syntax2.Pos
+    | Neg -> Syntax2.Neg
+
   let trans_var x = Syntax2.(copy_var x var (name_of x))
 
   let rec infer_tm res ctx env m =
@@ -542,7 +550,8 @@ module Program = struct
       | U ->
         let _ = Usage.assert_pure usg in
         Syntax2.(Pi (rel, s, a, unbox b_bnd), _Lam m_bnd, usg)
-      | L -> Syntax2.(Pi (rel, s, a, unbox b_bnd), _Lam m_bnd, usg))
+      | L -> Syntax2.(Pi (rel, s, a, unbox b_bnd), _Lam m_bnd, usg)
+      | _ -> failwith "Program.infer_Lam")
     | App (m, n) -> (
       let a, m_elab, usg1 = infer_tm res ctx env m in
       match whnf env a with
@@ -654,8 +663,30 @@ module Program = struct
         let ty = IO (Data (Prelude1.unit_d, [], [])) in
         let m_elab, usg = check_tm res (Context.add_var x a0 s ctx) env m ty in
         Syntax2.(IO (Ch (Neg, a)), _Fork (bind_var (trans_var x) m_elab), usg)
-      | _ -> failwith "Logical.infer_Fork")
-    | _ -> _
+      | _ -> failwith "Program.infer_Fork")
+    | Recv m -> (
+      let ty_m, m_elab, usg = infer_tm res ctx env m in
+      match whnf env ty_m with
+      | Ch (rol1, Act (rel, rol2, a, bnd)) when rol1 <> rol2 = true ->
+        let x, b = unbind bnd in
+        let bnd = unbox (bind_var x (lift_tm (Ch (rol1, b)))) in
+        Syntax2.(IO (Sigma (rel, L, a, bnd)), _Recv (trans_rel rel) m_elab, usg)
+      | _ -> failwith "Program.infer_Recv")
+    | Send m -> (
+      let ty_m, m_elab, usg = infer_tm res ctx env m in
+      match whnf env ty_m with
+      | Ch (rol1, Act (rel, rol2, a, bnd)) when rol1 <> rol2 = false ->
+        let x, b = unbind bnd in
+        let bnd = unbox (bind_var x (lift_tm (IO (Ch (rol1, b))))) in
+        Syntax2.(Pi (rel, L, a, bnd), _Send (trans_rel rel) m_elab, usg)
+      | _ -> failwith "Program.infer_Send")
+    | Close m -> (
+      let ty_m, m_elab, usg = infer_tm res ctx env m in
+      match whnf env ty_m with
+      | Ch (rol, End) ->
+        let ty = IO (Data (Prelude1.unit_d, [], [])) in
+        Syntax2.(ty, _Close (trans_role rol) m_elab, usg)
+      | _ -> failwith "Program.infer_Close")
 
   and infer_ptl res ctx env ms ns ptl =
     match (ms, ptl) with

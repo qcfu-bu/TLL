@@ -6,6 +6,10 @@ type sort =
   | U
   | L
 
+type rel =
+  | N
+  | R
+
 type role =
   | Pos
   | Neg
@@ -32,8 +36,8 @@ type tm =
   (* session *)
   | Open of prim
   | Fork of (tm, tm) binder
-  | Recv of tm
-  | Send of tm
+  | Recv of rel * tm
+  | Send of rel * tm
   | Close of role * tm
   (* erasure *)
   | Null
@@ -64,14 +68,6 @@ end
 (* smart constructors *)
 let var x = Var x
 
-(* sort *)
-let _U = box U
-let _L = box L
-
-(* role *)
-let _Pos = box Pos
-let _Neg = box Neg
-
 (* prim *)
 let _Stdin = box Stdin
 let _Stdout = box Stdout
@@ -96,8 +92,8 @@ let _MLet = box_apply2 (fun m bnd -> MLet (m, bnd))
 (* session *)
 let _Open prim = box (Open prim)
 let _Fork = box_apply (fun bnd -> Fork bnd)
-let _Recv = box_apply (fun m -> Recv m)
-let _Send = box_apply (fun m -> Send m)
+let _Recv rel = box_apply (fun m -> Recv (rel, m))
+let _Send rel = box_apply (fun m -> Send (rel, m))
 let _Close rol = box_apply (fun m -> Close (rol, m))
 
 (* erasure *)
@@ -113,10 +109,6 @@ let _DData d = box_apply (fun dconss -> DData (d, dconss))
 
 (* dcons *)
 let _DCons c i = box (DCons (c, i))
-
-let lift_sort = function
-  | U -> _U
-  | L -> _L
 
 let rec lift_tm = function
   (* core *)
@@ -145,8 +137,8 @@ let rec lift_tm = function
   (* session *)
   | Open prim -> _Open prim
   | Fork bnd -> _Fork (box_binder lift_tm bnd)
-  | Recv m -> _Recv (lift_tm m)
-  | Send m -> _Send (lift_tm m)
+  | Recv (rel, m) -> _Recv rel (lift_tm m)
+  | Send (rel, m) -> _Send rel (lift_tm m)
   | Close (rol, m) -> _Close rol (lift_tm m)
   (* erasure *)
   | Null -> _Null
