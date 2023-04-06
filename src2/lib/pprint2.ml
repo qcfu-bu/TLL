@@ -64,7 +64,7 @@ and pp_tm fmt = function
   | Const x -> pf fmt "%a" I.pp x
   | Lam _ as m ->
     let xs, m = lam_gather m in
-    pf fmt "@[fn %a ⇒@;<1 2>%a@]" (list ~sep:sp V.pp) xs pp_tm m
+    pf fmt "@[fn %a ⇒@;<1 2>@[%a@]@]" (list ~sep:sp V.pp) xs pp_tm m
   | App (_, m, n) -> pf fmt "@[(%a@;<1 2>@[%a@])@]" pp_tm m pp_tm n
   | Let (m, bnd) ->
     let x, n = unbind bnd in
