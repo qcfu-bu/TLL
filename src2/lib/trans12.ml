@@ -976,8 +976,8 @@ let rec check_dcls res ctx env dcls =
               , RMap.add ss m env_acc
               , (x1, s) :: xs )
           with
-          | _ ->
-            let _ = epr "pruned_const(%a)@." I.pp x1 in
+          | e ->
+            let _ = epr "pruned_const(%a, %a)@." I.pp x1 exn e in
             (res_acc, ctx_acc, env_acc, xs))
         init
         Resolver.(RMap.empty, ctx, RMap.empty, [])
@@ -1022,8 +1022,8 @@ let rec check_dcls res ctx env dcls =
               , (x1, s) :: xs
               , Usage.merge usg usg_acc )
           with
-          | _ ->
-            let _ = epr "pruned_const(%a)@." I.pp x1 in
+          | e ->
+            let _ = epr "pruned_const(%a, %a)@." I.pp x1 exn e in
             (dtm_elab, res_acc, ctx_acc, env_acc, xs, usg_acc))
         init
         Resolver.([], RMap.empty, ctx, RMap.empty, [], Usage.empty)
@@ -1056,11 +1056,16 @@ let rec check_dcls res ctx env dcls =
             in
             let res_acc = Resolver.(add_data d0 ss d1 res_acc) in
             let ctx_acc = Context.(add_data d1 ptm cs ctx_acc) in
-            Syntax2.
-              (_DData d1 (box_list dconss_elab) :: ddata_elab, res_acc, ctx_acc)
+            match dconss_elab with
+            | [] -> (ddata_elab, res_acc, ctx_acc)
+            | _ ->
+              Syntax2.
+                ( _DData d1 (box_list dconss_elab) :: ddata_elab
+                , res_acc
+                , ctx_acc )
           with
-          | _ ->
-            let _ = epr "pruned_data(%a)@." D.pp d1 in
+          | e ->
+            let _ = epr "pruned_data(%a, %a)@." D.pp d1 exn e in
             (ddata_elab, res_acc, ctx_acc))
         init
         Resolver.([], res, ctx)
@@ -1089,8 +1094,8 @@ and check_dconss ss res ctx env d0 dconss res_acc ctx_acc =
         let i = check_ptl res ctx env d0 ptl in
         Some Syntax2.(_DCons c1 i, ptl)
       with
-      | _ ->
-        let _ = epr "pruned_cons(%a)@." C.pp c1 in
+      | e ->
+        let _ = epr "pruned_cons(%a, %a)@." C.pp c1 exn e in
         None
     in
     let dconss_elab, res_acc, ctx_acc, cs =
