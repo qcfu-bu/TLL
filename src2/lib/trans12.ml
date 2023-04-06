@@ -956,8 +956,8 @@ let rec check_dcls res ctx env dcls =
     let sargs, _ = unmbind sch in
     let init = make_init sargs in
     let res_acc, ctx, env_acc, xs =
-      List.fold_left
-        (fun (res_acc, ctx_acc, env_acc, xs) ss ->
+      List.fold_right
+        (fun ss (res_acc, ctx_acc, env_acc, xs) ->
           let x1 = const_extend x0 ss in
           try
             let a, m = msubst sch (Array.of_list ss) in
@@ -979,8 +979,8 @@ let rec check_dcls res ctx env dcls =
           | _ ->
             let _ = epr "pruned_const(%a)@." I.pp x1 in
             (res_acc, ctx_acc, env_acc, xs))
-        Resolver.(RMap.empty, ctx, RMap.empty, [])
         init
+        Resolver.(RMap.empty, ctx, RMap.empty, [])
     in
     let res = Resolver.add_const x0 res_acc res in
     let env =
@@ -997,8 +997,8 @@ let rec check_dcls res ctx env dcls =
     let sargs, _ = unmbind sch in
     let init = make_init sargs in
     let dtm_elab, res_acc, ctx, env_acc, xs, usg1 =
-      List.fold_left
-        (fun (dtm_elab, res_acc, ctx_acc, env_acc, xs, usg_acc) ss ->
+      List.fold_right
+        (fun ss (dtm_elab, res_acc, ctx_acc, env_acc, xs, usg_acc) ->
           let x1 = const_extend x0 ss in
           try
             let a, m = msubst sch (Array.of_list ss) in
@@ -1025,8 +1025,8 @@ let rec check_dcls res ctx env dcls =
           | _ ->
             let _ = epr "pruned_const(%a)@." I.pp x1 in
             (dtm_elab, res_acc, ctx_acc, env_acc, xs, usg_acc))
-        Resolver.([], RMap.empty, ctx, RMap.empty, [], Usage.empty)
         init
+        Resolver.([], RMap.empty, ctx, RMap.empty, [], Usage.empty)
     in
     let res = Resolver.add_const x0 res_acc res in
     let env =
@@ -1043,8 +1043,8 @@ let rec check_dcls res ctx env dcls =
     let sargs, _ = unmbind sch in
     let init = make_init sargs in
     let ddata_elab, res, ctx =
-      List.fold_left
-        (fun (ddata_elab, res_acc, ctx_acc) ss ->
+      List.fold_right
+        (fun ss (ddata_elab, res_acc, ctx_acc) ->
           let d1 = data_extend d0 ss in
           try
             let ptm = msubst sch (Array.of_list ss) in
@@ -1062,8 +1062,8 @@ let rec check_dcls res ctx env dcls =
           | _ ->
             let _ = epr "pruned_data(%a)@." D.pp d1 in
             (ddata_elab, res_acc, ctx_acc))
-        Resolver.([], res, ctx)
         init
+        Resolver.([], res, ctx)
     in
     let dcls_elab, usg = check_dcls res ctx env dcls in
     (ddata_elab @ dcls_elab, usg)
@@ -1082,20 +1082,26 @@ and check_dconss ss res ctx env d0 dconss res_acc ctx_acc =
   match dconss with
   | [] -> ([], res_acc, ctx_acc, CSet.empty)
   | DCons (c0, sch) :: dconss -> (
+    let c1 = cons_extend c0 ss in
+    let opt =
+      try
+        let ptl = msubst sch (Array.of_list ss) in
+        let i = check_ptl res ctx env d0 ptl in
+        Some Syntax2.(_DCons c1 i, ptl)
+      with
+      | _ ->
+        let _ = epr "pruned_cons(%a)@." C.pp c1 in
+        None
+    in
     let dconss_elab, res_acc, ctx_acc, cs =
       check_dconss ss res ctx env d0 dconss res_acc ctx_acc
     in
-    let c1 = cons_extend c0 ss in
-    try
-      let ptl = msubst sch (Array.of_list ss) in
-      let i = check_ptl res ctx env d0 ptl in
+    match opt with
+    | Some (dcons_elab, ptl) ->
       let res_acc = Resolver.add_cons c0 ss c1 res_acc in
       let ctx_acc = Context.add_cons c1 ptl ctx_acc in
-      Syntax2.(_DCons c1 i :: dconss_elab, res_acc, ctx_acc, CSet.add c1 cs)
-    with
-    | _ ->
-      let _ = epr "pruned_cons(%a)@." C.pp c1 in
-      (dconss_elab, res_acc, ctx_acc, cs))
+      Syntax2.(dcons_elab :: dconss_elab, res_acc, ctx_acc, CSet.add c1 cs)
+    | None -> (dconss_elab, res_acc, ctx_acc, cs))
 
 and check_ptl res ctx env d0 ptl =
   match ptl with
