@@ -29,6 +29,7 @@ module I : sig
   val mk : string -> t
   val equal : t -> t -> bool
   val compare : t -> t -> int
+  val extend : t -> string -> t
   val pp : Format.formatter -> t -> unit
 end = struct
   type t = string * int
@@ -41,6 +42,11 @@ end = struct
 
   let equal x y = snd x = snd y
   let compare x y = Int.compare (snd x) (snd y)
+
+  let extend (s0, _) s1 =
+    incr stamp;
+    (s0 ^ s1, !stamp)
+
   let pp fmt (s, id) = pf fmt "%s_i%d" s id
 end
 
@@ -51,6 +57,7 @@ module D : sig
   val mk : string -> t
   val equal : t -> t -> bool
   val compare : t -> t -> int
+  val extend : t -> string -> t
   val pp : Format.formatter -> t -> unit
 end = struct
   type t = string * int
@@ -63,6 +70,11 @@ end = struct
 
   let equal x y = snd x = snd y
   let compare x y = Int.compare (snd x) (snd y)
+
+  let extend (s0, _) s1 =
+    incr stamp;
+    (s0 ^ s1, !stamp)
+
   let pp fmt (s, id) = pf fmt "%s_d%d" s id
 end
 
@@ -74,6 +86,7 @@ module C : sig
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val get_id : t -> int
+  val extend : t -> string -> t
   val pp : Format.formatter -> t -> unit
 end = struct
   type t = string * int
@@ -87,6 +100,11 @@ end = struct
   let equal x y = snd x = snd y
   let compare x y = Int.compare (snd x) (snd y)
   let get_id (_, id) = id
+
+  let extend (s0, _) s1 =
+    incr stamp;
+    (s0 ^ s1, !stamp)
+
   let pp fmt (s, id) = pf fmt "%s_c%d" s id
 end
 

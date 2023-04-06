@@ -71,8 +71,26 @@ module Resolver = struct
     }
 
   let add_const x rmap res = { res with const = IMap.add x rmap res.const }
-  let add_data d rmap res = { res with data = DMap.add d rmap res.data }
-  let add_cons c rmap res = { res with cons = CMap.add c rmap res.cons }
+
+  let add_data d0 ss d1 res =
+    { res with
+      data =
+        DMap.add d0
+          (match DMap.find_opt d0 res.data with
+          | Some rmap -> RMap.add ss d1 rmap
+          | None -> RMap.singleton ss d1)
+          res.data
+    }
+
+  let add_cons c0 ss c1 res =
+    { res with
+      cons =
+        CMap.add c0
+          (match CMap.find_opt c0 res.cons with
+          | Some rmap -> RMap.add ss c1 rmap
+          | None -> RMap.singleton ss c1)
+          res.cons
+    }
 
   let find_const x0 ss res =
     match IMap.find_opt x0 res.const with
@@ -895,3 +913,196 @@ module Program = struct
       let _ = Logical.assert_equal env a0 a1 in
       (m_elab, usg)
 end
+
+let const_extend x ss =
+  let ss = String.concat "" (List.map (str "%a" pp_sort) ss) in
+  I.extend x ss
+
+let data_extend d ss =
+  let ss = String.concat "" (List.map (str "%a" pp_sort) ss) in
+  D.extend d ss
+
+let cons_extend c ss =
+  let ss = String.concat "" (List.map (str "%a" pp_sort) ss) in
+  C.extend c ss
+
+let make_init xs =
+  let rec loop xs =
+    match xs with
+    | [] -> [ [] ]
+    | _ :: xs ->
+      let ss = loop xs in
+      let ssU = List.(map (cons U)) ss in
+      let ssL = List.(map (cons L)) ss in
+      ssU @ ssL
+  in
+  loop (Array.to_list xs)
+
+let rec check_dcls res ctx env dcls =
+  match dcls with
+  | [] -> ([], Usage.empty)
+  | DTm (N, x0, guard, sch) :: dcls ->
+    let sargs, _ = unmbind sch in
+    let init = make_init sargs in
+    let res_acc, ctx, env_acc, xs =
+      List.fold_left
+        (fun (res_acc, ctx_acc, env_acc, xs) ss ->
+          try
+            let a, m = msubst sch (Array.of_list ss) in
+            let x1 = const_extend x0 ss in
+            let s = Logical.infer_sort res ctx env a in
+            let _ =
+              if guard then
+                let res = Resolver.(add_const x0 (RMap.singleton ss x1) res) in
+                let ctx = Context.(add_const x1 a s ctx) in
+                Logical.check_tm res ctx env m a
+              else
+                Logical.check_tm res ctx env m a
+            in
+            Resolver.
+              ( RMap.add ss x1 res_acc
+              , Context.add_const x1 a s ctx_acc
+              , RMap.add ss m env_acc
+              , (x1, s) :: xs )
+          with
+          | _ -> (res_acc, ctx_acc, env_acc, xs))
+        Resolver.(RMap.empty, ctx, RMap.empty, [])
+        init
+    in
+    let res = Resolver.add_const x0 res_acc res in
+    let env =
+      Env.add_const x0
+        { scheme = (fun ss -> Resolver.RMap.find ss env_acc); guarded = guard }
+        env
+    in
+    let dcls_elab, usg = check_dcls res ctx env dcls in
+    let usg =
+      List.fold_left (fun acc (x, s) -> Usage.remove_const x acc N s) usg xs
+    in
+    let dtm_elab = List.map (fun (x, _) -> Syntax2.(_DTm x _Null)) xs in
+    (dtm_elab @ dcls_elab, usg)
+  | DTm (R, x0, guard, sch) :: dcls ->
+    let sargs, _ = unmbind sch in
+    let init = make_init sargs in
+    let dtm_elab, res_acc, ctx, env_acc, xs, usg1 =
+      List.fold_left
+        (fun (dtm_elab, res_acc, ctx_acc, env_acc, xs, usg_acc) ss ->
+          try
+            let a, m = msubst sch (Array.of_list ss) in
+            let x1 = const_extend x0 ss in
+            let s = Logical.infer_sort res ctx env a in
+            let m_elab, usg =
+              if guard then
+                let res = Resolver.(add_const x0 (RMap.singleton ss x1) res) in
+                let ctx = Context.(add_const x1 a s ctx) in
+                let m_elab, usg = Program.check_tm res ctx env m a in
+                let usg = Usage.remove_const x1 usg R s in
+                let _ = Usage.assert_pure usg in
+                (m_elab, usg)
+              else
+                Program.check_tm res ctx env m a
+            in
+            Resolver.
+              ( Syntax2.(_DTm x1 m_elab) :: dtm_elab
+              , RMap.add ss x1 res_acc
+              , Context.add_const x1 a s ctx_acc
+              , RMap.add ss m env_acc
+              , (x1, s) :: xs
+              , Usage.merge usg usg_acc )
+          with
+          | _ -> (dtm_elab, res_acc, ctx_acc, env_acc, xs, usg_acc))
+        Resolver.([], RMap.empty, ctx, RMap.empty, [], Usage.empty)
+        init
+    in
+    let res = Resolver.add_const x0 res_acc res in
+    let env =
+      Env.add_const x0
+        { scheme = (fun ss -> Resolver.RMap.find ss env_acc); guarded = guard }
+        env
+    in
+    let dcls_elab, usg2 = check_dcls res ctx env dcls in
+    let usg2 =
+      List.fold_left (fun acc (x, s) -> Usage.remove_const x acc R s) usg2 xs
+    in
+    (dtm_elab @ dcls_elab, Usage.merge usg1 usg2)
+  | DData (d0, sch, dconss) :: dcls ->
+    let sargs, _ = unmbind sch in
+    let init = make_init sargs in
+    let ddata_elab, res, ctx =
+      List.fold_left
+        (fun (ddata_elab, res_acc, ctx_acc) ss ->
+          try
+            let ptm = msubst sch (Array.of_list ss) in
+            let _ = check_ptm res ctx env ptm in
+            let d1 = data_extend d0 ss in
+            let res = Resolver.(add_data d0 ss d1 res) in
+            let ctx = Context.(add_data d1 ptm CSet.empty ctx) in
+            let dconss_elab, res_acc, ctx_acc, cs =
+              check_dconss ss res ctx env d0 dconss res_acc ctx_acc
+            in
+            let res_acc = Resolver.(add_data d0 ss d1 res) in
+            let ctx_acc = Context.(add_data d1 ptm cs ctx_acc) in
+            Syntax2.
+              (_DData d1 (box_list dconss_elab) :: ddata_elab, res_acc, ctx_acc)
+          with
+          | _ -> (ddata_elab, res_acc, ctx_acc))
+        Resolver.([], res, ctx)
+        init
+    in
+    let dcls_elab, usg = check_dcls res ctx env dcls in
+    (ddata_elab @ dcls_elab, usg)
+
+and check_ptm res ctx env ptm =
+  match ptm with
+  | PBase (Type U) -> ()
+  | PBase (Type L) -> ()
+  | PBind (a, bnd) ->
+    let x, ptm = unbind bnd in
+    let s = Logical.infer_sort res ctx env a in
+    check_ptm res (Context.add_var x a s ctx) env ptm
+  | _ -> failwith "check_ptm"
+
+and check_dconss ss res ctx env d0 dconss res_acc ctx_acc =
+  match dconss with
+  | [] -> ([], res_acc, ctx_acc, CSet.empty)
+  | DCons (c0, sch) :: dconss -> (
+    let dconss_elab, res_acc, ctx_acc, cs =
+      check_dconss ss res ctx env d0 dconss res_acc ctx_acc
+    in
+    try
+      let ptl = msubst sch (Array.of_list ss) in
+      let i = check_ptl res ctx env d0 ptl in
+      let c1 = cons_extend c0 ss in
+      let res_acc = Resolver.add_cons c0 ss c1 res_acc in
+      let ctx_acc = Context.add_cons c1 ptl ctx_acc in
+      Syntax2.(_DCons c1 i :: dconss_elab, res_acc, ctx_acc, CSet.add c1 cs)
+    with
+    | _ -> (dconss_elab, res_acc, ctx_acc, cs))
+
+and check_ptl res ctx env d0 ptl =
+  match ptl with
+  | PBase tl -> fst (check_tl res ctx env d0 tl)
+  | PBind (a, bnd) ->
+    let x, ptl = unbind bnd in
+    let s = Logical.infer_sort res ctx env a in
+    check_ptl res (Context.add_var x a s ctx) env d0 ptl
+
+and check_tl res ctx env d0 tl =
+  match tl with
+  | TBase (Data (d, _, _) as a) when D.equal d d0 ->
+    let t = Logical.infer_sort res ctx env a in
+    (0, t)
+  | TBind (N, a, bnd) ->
+    let x, tl = unbind bnd in
+    let s = Logical.infer_sort res ctx env a in
+    let i, t = check_tl res (Context.add_var x a s ctx) env d0 tl in
+    (i + 1, t)
+  | TBind (R, a, bnd) ->
+    let x, tl = unbind bnd in
+    let s = Logical.infer_sort res ctx env a in
+    let i, t = check_tl res (Context.add_var x a s ctx) env d0 tl in
+    if s <= t then
+      (i + 1, t)
+    else
+      failwith "check_tl"
+  | _ -> failwith "check_tl"
