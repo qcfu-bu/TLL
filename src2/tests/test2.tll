@@ -30,6 +30,8 @@ program ls0 : List‹_,U› _ = (Cons 0 Nil)
 program ls1 : List‹_,U› _ = (Cons 0 Nil)
 program ls2 : _ = append _ ls0 ls1
 
+program id‹s› {A : Type‹s›} (x : A) : A = x
+
 program main (_ : unit) : IO unit =
  let s ⇐ readline () in 
- print s
+ id _ (print (id _ s))
