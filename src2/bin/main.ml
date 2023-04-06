@@ -28,7 +28,7 @@ let _ =
       let _ = pr "trans1e success--------------------------@.@." in
       (* trans12 *)
       let dcls2 = Trans12.trans_dcls dcls1e in
-      (* let _ = pr "%a@.@." Pprint1.pp_dcls dcls1e in *)
+      let _ = pr "%a@.@." Pprint2.pp_dcls dcls2 in
       let _ = pr "trans12 success--------------------------@.@." in
       ()
   with

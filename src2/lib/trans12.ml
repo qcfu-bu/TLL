@@ -32,22 +32,22 @@ module Context = struct
   let find_var x ctx =
     match VMap.find_opt x ctx.var with
     | Some a -> a
-    | None -> failwith "find_var(%a)" V.pp x
+    | None -> failwith "Context.find_var(%a)" V.pp x
 
   let find_const x ctx =
     match IMap.find_opt x ctx.const with
     | Some sch -> sch
-    | None -> failwith "find_const(%a)" I.pp x
+    | None -> failwith "Context.find_const(%a)" I.pp x
 
   let find_data d ctx =
     match DMap.find_opt d ctx.data with
     | Some res -> res
-    | None -> failwith "find_data(%a)" D.pp d
+    | None -> failwith "Context.find_data(%a)" D.pp d
 
   let find_cons c ctx =
     match CMap.find_opt c ctx.cons with
     | Some sch -> sch
-    | None -> failwith "find_cons(%a)" C.pp c
+    | None -> failwith "Context.find_cons(%a)" C.pp c
 end
 
 module Resolver = struct
@@ -105,24 +105,27 @@ module Resolver = struct
     | Some rmap -> (
       match RMap.find_opt ss rmap with
       | Some x1 -> x1
-      | None -> failwith "find_const(%a)" I.pp x0)
-    | None -> failwith "find_const(%a)" I.pp x0
+      | None -> failwith "Resolver.find_const(%a)" I.pp x0)
+    | None -> failwith "Resolver.find_const(%a)" I.pp x0
 
   let find_data d0 ss res =
     match DMap.find_opt d0 res.data with
     | Some rmap -> (
       match RMap.find_opt ss rmap with
       | Some d1 -> d1
-      | None -> failwith "find_data(%a)" D.pp d0)
-    | None -> failwith "find_data(%a)" D.pp d0
+      | None -> failwith "Resolver.find_data(%a)" D.pp d0)
+    | None -> failwith "Resolver.find_data(%a)" D.pp d0
 
   let find_cons c0 ss res =
     match CMap.find_opt c0 res.cons with
     | Some rmap -> (
       match RMap.find_opt ss rmap with
       | Some c1 -> c1
-      | None -> failwith "find_cons(%a)" C.pp c0)
-    | None -> failwith "find_cons(%a)" C.pp c0
+      | None ->
+        failwith "Resolver.find_cons1(%a, %a)" C.pp c0 (list ~sep:sp pp_sort) ss
+      )
+    | None ->
+      failwith "Resolver.find_cons0(%a, %a)" C.pp c0 (list ~sep:sp pp_sort) ss
 end
 
 module Usage = struct
@@ -244,6 +247,7 @@ module Logical = struct
     | _ -> failwith "Logical.infer_sort(%a : %a)" pp_tm a pp_tm srt
 
   and infer_tm res ctx env m0 =
+    let _ = pr "Logical.infer_tm(%a)@.@." pp_tm m0 in
     match m0 with
     (* inference *)
     | Ann (m, a) ->
@@ -426,7 +430,8 @@ module Logical = struct
   and infer_cls res ctx env cs ss ms mot cls =
     match cls with
     | [] when CSet.is_empty cs -> ()
-    | PCons (c0, bnd) :: cls ->
+    | (PCons (c0, bnd) as cl) :: cls ->
+      let _ = pr "Logical.infer_cl(%a)@.@." pp_cl cl in
       let c1 = Resolver.find_cons c0 ss res in
       if CSet.mem c1 cs then
         let _ = infer_cl res ctx env ss ms mot c0 bnd in
@@ -492,6 +497,7 @@ module Logical = struct
     | _ -> failwith "Logical.infer_tele(%a)" pp_tele tl
 
   and check_tm res ctx env m0 a0 =
+    let _ = pr "Logical.check_tm(%a, %a)@.@." pp_tm m0 pp_tm a0 in
     match (m0, whnf env a0) with
     (* core *)
     | Lam (rel0, s0, a0, bnd0), Pi (rel1, s1, a1, bnd1)
@@ -550,6 +556,7 @@ module Program = struct
   let trans_mvar xs = Array.map trans_var xs
 
   let rec infer_tm res ctx env m =
+    let _ = pr "Program.infer_tm(%a)@.@." pp_tm m in
     match m with
     (* inference *)
     | Ann (m, a) ->
@@ -670,7 +677,7 @@ module Program = struct
     | IO _ -> failwith "Program.infer_IO"
     | Return m ->
       let a, m_elab, usg = infer_tm res ctx env m in
-      Syntax2.(a, _Return m_elab, usg)
+      Syntax2.(IO a, _Return m_elab, usg)
     | MLet (m, bnd) -> (
       let x, n = unbind bnd in
       let ty_m, m_elab, usg1 = infer_tm res ctx env m in
@@ -684,8 +691,8 @@ module Program = struct
         match whnf env ty_n with
         | IO b ->
           Syntax2.(IO b, _MLet m_elab (bind_var (trans_var x) n_elab), usg)
-        | _ -> failwith "Program.infer_MLet")
-      | _ -> failwith "Program.infer_MLet")
+        | _ -> failwith "Program.infer_MLet0(%a)" pp_tm ty_n)
+      | _ -> failwith "Program.infer_MLet1")
     (* session *)
     | Proto -> failwith "Program.infer_Proto"
     | End -> failwith "Program.infer_End"
@@ -780,10 +787,11 @@ module Program = struct
   and infer_cls res ctx env cs ss ms mot cls =
     match cls with
     | [] when CSet.is_empty cs -> ([], Usage.of_ctx ctx)
-    | PCons (c0, bnd) :: cls ->
+    | (PCons (c0, bnd) as cl) :: cls ->
+      let _ = pr "Program.infer_cl(%a)@.@." pp_cl cl in
       let c1 = Resolver.find_cons c0 ss res in
       if CSet.mem c1 cs then
-        let bnd_elab, usg1 = infer_cl res ctx env ss ms mot c1 bnd in
+        let bnd_elab, usg1 = infer_cl res ctx env ss ms mot c0 bnd in
         let cls_elab, usg2 =
           infer_cls res ctx env (CSet.remove c1 cs) ss ms mot cls
         in
@@ -851,6 +859,7 @@ module Program = struct
     | _ -> failwith "Logical.infer_tele"
 
   and check_tm res ctx env m0 a0 =
+    let _ = pr "Program.check_tm(%a, %a)@.@." pp_tm m0 pp_tm a0 in
     match (m0, whnf env a0) with
     (* core *)
     | Lam (rel0, s0, a0, bnd0), Pi (rel1, s1, a1, bnd1)
@@ -949,7 +958,7 @@ let make_init xs =
 let rec check_dcls res ctx env dcls =
   match dcls with
   | [] -> ([], Usage.empty)
-  | DTm (N, x0, guard, sch) :: dcls ->
+  | (DTm (N, x0, guard, sch) as dcl) :: dcls ->
     let sargs, _ = unmbind sch in
     let init = make_init sargs in
     let res_acc, ctx, env_acc, xs =
@@ -967,6 +976,7 @@ let rec check_dcls res ctx env dcls =
               else
                 Logical.check_tm res ctx env m a
             in
+            let _ = pr "check_dcls(%a)@.@." pp_dcl dcl in
             Resolver.
               ( RMap.add ss x1 res_acc
               , Context.add_const x1 a s ctx_acc
@@ -989,7 +999,7 @@ let rec check_dcls res ctx env dcls =
     in
     let dtm_elab = List.map (fun (x, _) -> Syntax2.(_DTm x _Null)) xs in
     (dtm_elab @ dcls_elab, usg)
-  | DTm (R, x0, guard, sch) :: dcls ->
+  | (DTm (R, x0, guard, sch) as dcl) :: dcls ->
     let sargs, _ = unmbind sch in
     let init = make_init sargs in
     let dtm_elab, res_acc, ctx, env_acc, xs, usg1 =
@@ -1010,6 +1020,7 @@ let rec check_dcls res ctx env dcls =
               else
                 Program.check_tm res ctx env m a
             in
+            let _ = pr "check_dcls(%a)@.@." pp_dcl dcl in
             Resolver.
               ( Syntax2.(_DTm x1 m_elab) :: dtm_elab
               , RMap.add ss x1 res_acc
@@ -1048,7 +1059,7 @@ let rec check_dcls res ctx env dcls =
             let dconss_elab, res_acc, ctx_acc, cs =
               check_dconss ss res ctx env d0 dconss res_acc ctx_acc
             in
-            let res_acc = Resolver.(add_data d0 ss d1 res) in
+            let res_acc = Resolver.(add_data d0 ss d1 res_acc) in
             let ctx_acc = Context.(add_data d1 ptm cs ctx_acc) in
             Syntax2.
               (_DData d1 (box_list dconss_elab) :: ddata_elab, res_acc, ctx_acc)

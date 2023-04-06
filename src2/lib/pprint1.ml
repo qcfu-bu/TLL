@@ -45,8 +45,8 @@ let rec pp_sort fmt = function
   | SMeta (x, _) -> M.pp fmt x
 
 let pp_role fmt = function
-  | Pos -> pf fmt "!"
-  | Neg -> pf fmt "?"
+  | Pos -> pf fmt "⇑"
+  | Neg -> pf fmt "⇓"
 
 let pp_prim fmt = function
   | Stdin -> pf fmt "stdin"

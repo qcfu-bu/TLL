@@ -130,6 +130,7 @@ program strlen (s : string) : nat =
   | String _ s ⇒ S (strlen s)
   end
 
+
 -- ———————————————————————————————————————————————
 -- lists (linear + none-linear)
 -- ———————————————————————————————————————————————
@@ -162,11 +163,13 @@ program append {A : U} (xs ys : list A) : list A =
   | x :: xs ⇒ x :: append _ xs ys
   end
 
-program lappend {A : L} (xs ys : llist A) : llist A =
+program lappend {A : L} (xs : llist A) : llist A ⊸ llist A =
+ln ys ⇒
   match xs with
   | lnil ⇒ ys
   | x ;; xs ⇒ x ;; lappend _ xs ys
   end
+
 
 -- ———————————————————————————————————————————————
 -- linear box
@@ -174,7 +177,7 @@ program lappend {A : L} (xs ys : llist A) : llist A =
 inductive box (A : U) : L =
 | Box of (a : A)
 
-program map_box {A B : U} (m : box A) (f : A → B) : box B =
+program map_box {A B : U} (f : A → B) (m : box A) : box B =
   match m with
   | Box a ⇒ Box (f a)
   end

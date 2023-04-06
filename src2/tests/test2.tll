@@ -8,7 +8,8 @@ logical len‹s,t› {A : Type‹s›} (xs : List‹s,t› A) : nat =
   | Cons hd tl ⇒ 1 + len _ tl
   end
 
-program append‹s,t› {A : Type‹s›} (xs ys : List‹_,t› A) : List A =
+program append‹s,t› {A : Type‹s›} (xs : List‹_,t› A) : List A ⊸ List A =
+ln ys ⇒
   match xs with
   | Nil ⇒ ys
   | Cons x xs ⇒ Cons x (append _ xs ys)
@@ -25,4 +26,4 @@ logical append_len‹s,t› (A : Type‹s›) (xs ys : List‹_,t› A) :
       append_len _ xs0 ys in refl
   end
 
-program ls : List‹_,L› _ = (Cons 0 Nil)
+-- program ls : List‹_,L› _ = (Cons 0 Nil)
