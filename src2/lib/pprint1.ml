@@ -61,8 +61,8 @@ let rec pp_rxs fmt = function
     | R -> pf fmt "(%a : %a)" V.pp x pp_tm a)
   | (r, x, a) :: rxs -> (
     match r with
-    | R -> pf fmt "(%a : %a) %a" V.pp x pp_tm a pp_rxs rxs
-    | N -> pf fmt "{%a : %a} %a" V.pp x pp_tm a pp_rxs rxs)
+    | R -> pf fmt "(%a : %a)@;<1 0>%a" V.pp x pp_tm a pp_rxs rxs
+    | N -> pf fmt "{%a : %a}@;<1 0>%a" V.pp x pp_tm a pp_rxs rxs)
 
 and lam_gather s m =
   match m with
@@ -122,17 +122,17 @@ and pp_tm fmt = function
     let x, m = unbind bnd in
     let rxs, m = lam_gather U m in
     let rxs = (rel, x, a) :: rxs in
-    pf fmt "@[fn %a ⇒@;<1 2>%a@]" pp_rxs rxs pp_tm m
+    pf fmt "@[fn @[%a@] ⇒@;<1 2>%a@]" pp_rxs rxs pp_tm m
   | Lam (rel, L, a, bnd) ->
     let x, m = unbind bnd in
     let rxs, m = lam_gather U m in
     let rxs = (rel, x, a) :: rxs in
-    pf fmt "@[ln %a ⇒@;<1 2>%a@]" pp_rxs rxs pp_tm m
+    pf fmt "@[ln @[%a@] ⇒@;<1 2>%a@]" pp_rxs rxs pp_tm m
   | Lam (rel, s, a, bnd) ->
     let x, m = unbind bnd in
     let rxs, m = lam_gather s m in
     let rxs = (rel, x, a) :: rxs in
-    pf fmt "@[function‹%a›%a,@;<1 2>%a@]" pp_sort s pp_rxs rxs pp_tm m
+    pf fmt "@[function‹%a›@[%a@],@;<1 2>%a@]" pp_sort s pp_rxs rxs pp_tm m
   | App _ as m ->
     let m, ms = unApps m in
     pf fmt "@[(%a@;<1 2>@[%a@])@]" pp_tm m (list ~sep:sp pp_tm) ms
