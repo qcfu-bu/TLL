@@ -17,6 +17,13 @@ module Context = struct
       cons : tele param CMap.t
     }
 
+  let empty =
+    { var = VMap.empty
+    ; const = IMap.empty
+    ; data = DMap.empty
+    ; cons = CMap.empty
+    }
+
   let add_var x a s ctx = { ctx with var = VMap.add x (a, s) ctx.var }
   let add_const x a s ctx = { ctx with const = IMap.add x (a, s) ctx.const }
   let add_data d ptm cs ctx = { ctx with data = DMap.add d (ptm, cs) ctx.data }
@@ -70,6 +77,7 @@ module Resolver = struct
       cons : C.t RMap.t CMap.t
     }
 
+  let empty = { const = IMap.empty; data = DMap.empty; cons = CMap.empty }
   let add_const x rmap res = { res with const = IMap.add x rmap res.const }
 
   let add_data d0 ss d1 res =
@@ -1106,3 +1114,8 @@ and check_tl res ctx env d0 tl =
     else
       failwith "check_tl"
   | _ -> failwith "check_tl"
+
+let trans_dcls dcls =
+  let dcls, usg = check_dcls Resolver.empty Context.empty Env.empty dcls in
+  let _ = Usage.assert_empty usg in
+  unbox (box_list dcls)
