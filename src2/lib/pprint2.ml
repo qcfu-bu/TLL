@@ -100,10 +100,12 @@ and pp_tm fmt = function
   | Fork bnd ->
     let x, m = unbind bnd in
     pf fmt "@[@[fork %a in@]@;<1 2>%a@]" V.pp x pp_tm m
-  | Recv (_, m) -> pf fmt "recv %a" pp_tm m
-  | Send (_, m) -> pf fmt "send %a" pp_tm m
-  | Close (_, m) -> pf fmt "close %a" pp_tm m
-  | Null -> pf fmt "Null"
+  | Recv (R, m) -> pf fmt "recv %a" pp_tm m
+  | Send (R, m) -> pf fmt "send %a" pp_tm m
+  | Recv (N, m) -> pf fmt "{recv} %a" pp_tm m
+  | Send (N, m) -> pf fmt "{send} %a" pp_tm m
+  | Close (rol, m) -> pf fmt "close%a %a" pp_role rol pp_tm m
+  | NULL -> pf fmt "NULL"
 
 and pp_cl fmt = function
   | PPair bnd ->
@@ -126,7 +128,7 @@ let rec pp_dconss fmt = function
   | dcons :: dconss -> pf fmt "%a@;<1 0>%a" pp_dcons dcons pp_dconss dconss
 
 let rec pp_dcl fmt = function
-  | DTm (x, m) -> pf fmt "@[def %a@;<1 2>%a@]" I.pp x pp_tm m
+  | DTm (x, m) -> pf fmt "@[def %a =@;<1 2>%a@]" I.pp x pp_tm m
   | DData (d, dconss) ->
     pf fmt "@[<v 0>@[data %a =@]@;<1 0>@[%a@]@]" D.pp d pp_dconss dconss
 

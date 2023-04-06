@@ -40,7 +40,7 @@ type tm =
   | Send of rel * tm
   | Close of role * tm
   (* erasure *)
-  | Null
+  | NULL
 
 and tms = tm list
 
@@ -97,7 +97,7 @@ let _Send rel = box_apply (fun m -> Send (rel, m))
 let _Close rol = box_apply (fun m -> Close (rol, m))
 
 (* erasure *)
-let _Null = box Null
+let _NULL = box NULL
 
 (* cl *)
 let _PPair = box_apply (fun bnd -> PPair bnd)
@@ -141,7 +141,7 @@ let rec lift_tm = function
   | Send (rel, m) -> _Send rel (lift_tm m)
   | Close (rol, m) -> _Close rol (lift_tm m)
   (* erasure *)
-  | Null -> _Null
+  | NULL -> _NULL
 
 let lift_dcons (DCons (c, i)) = _DCons c i
 let lift_dconss dconss = box_list (List.map lift_dcons dconss)

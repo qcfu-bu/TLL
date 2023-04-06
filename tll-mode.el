@@ -1,6 +1,6 @@
 ;;; tll-mode.el --- major mode for tll -*- lexical-binding: t; -*-
 (setq tll-types '("let" "in" "rew" "match" "as" "with" "end" "fork" "return"))
-(setq tll-keywords '("of"))
+(setq tll-keywords '("of" "size"))
 (setq tll-session '("open" "send" "recv" "close"))
 
 (setq tll-pragma-start-regexp "\\(?:#\\)")
@@ -16,7 +16,7 @@
 (setq tll-assert-regexp "\\(?:assert_equal\\)")
 
 (setq tll-font-lock-keywords
-      `(("\\(\\<inductive\\>\\|\\<program\\>\\|\\<logical\\>\\)\s*\\([[:graph:]]*\\)"
+      `(("\\(\\<inductive\\>\\|\\<program\\>\\|\\<logical\\>\\|\\<data\\>\\|\\<def\\>\\)\s*\\([[:graph:]]*\\)"
          (1 font-lock-keyword-face)
          (2 font-lock-variable-name-face))
         (,tll-pragma-start-regexp . font-lock-keyword-face)

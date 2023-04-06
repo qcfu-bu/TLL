@@ -247,7 +247,6 @@ module Logical = struct
     | _ -> failwith "Logical.infer_sort(%a : %a)" pp_tm a pp_tm srt
 
   and infer_tm res ctx env m0 =
-    let _ = pr "Logical.infer_tm(%a)@.@." pp_tm m0 in
     match m0 with
     (* inference *)
     | Ann (m, a) ->
@@ -430,8 +429,7 @@ module Logical = struct
   and infer_cls res ctx env cs ss ms mot cls =
     match cls with
     | [] when CSet.is_empty cs -> ()
-    | (PCons (c0, bnd) as cl) :: cls ->
-      let _ = pr "Logical.infer_cl(%a)@.@." pp_cl cl in
+    | PCons (c0, bnd) :: cls ->
       let c1 = Resolver.find_cons c0 ss res in
       if CSet.mem c1 cs then
         let _ = infer_cl res ctx env ss ms mot c0 bnd in
@@ -497,7 +495,6 @@ module Logical = struct
     | _ -> failwith "Logical.infer_tele(%a)" pp_tele tl
 
   and check_tm res ctx env m0 a0 =
-    let _ = pr "Logical.check_tm(%a, %a)@.@." pp_tm m0 pp_tm a0 in
     match (m0, whnf env a0) with
     (* core *)
     | Lam (rel0, s0, a0, bnd0), Pi (rel1, s1, a1, bnd1)
@@ -556,7 +553,6 @@ module Program = struct
   let trans_mvar xs = Array.map trans_var xs
 
   let rec infer_tm res ctx env m =
-    let _ = pr "Program.infer_tm(%a)@.@." pp_tm m in
     match m with
     (* inference *)
     | Ann (m, a) ->
@@ -593,7 +589,7 @@ module Program = struct
       match whnf env a with
       | Pi (N, s, a, bnd) ->
         let _ = Logical.check_tm res ctx env n a in
-        Syntax2.(subst bnd n, _App (trans_sort s) m_elab _Null, usg1)
+        Syntax2.(subst bnd n, _App (trans_sort s) m_elab _NULL, usg1)
       | Pi (R, s, a, bnd) ->
         let n_elab, usg2 = check_tm res ctx env n a in
         Syntax2.
@@ -607,7 +603,7 @@ module Program = struct
       let env = Env.add_var x m env in
       let b, n_elab, usg = infer_tm res ctx env n in
       let usg = Usage.remove_var x usg N s in
-      Syntax2.(b, _Let _Null (bind_var (trans_var x) n_elab), usg)
+      Syntax2.(b, _Let _NULL (bind_var (trans_var x) n_elab), usg)
     | Let (R, m, bnd) ->
       let x, n = unbind bnd in
       let a, m_elab, usg1 = infer_tm res ctx env m in
@@ -625,7 +621,7 @@ module Program = struct
       let b, n_elab, usg = infer_tm res ctx env n in
       let x = V.mk "_" in
       let bnd = bind_var x (lift_tm b) in
-      Syntax2.(Sigma (N, s, a, unbox bnd), _Pair _Null n_elab, usg)
+      Syntax2.(Sigma (N, s, a, unbox bnd), _Pair _NULL n_elab, usg)
     | Pair (R, s, m, n) ->
       let _ = Logical.assert_sort s in
       let a, m_elab, usg1 = infer_tm res ctx env m in
@@ -787,8 +783,7 @@ module Program = struct
   and infer_cls res ctx env cs ss ms mot cls =
     match cls with
     | [] when CSet.is_empty cs -> ([], Usage.of_ctx ctx)
-    | (PCons (c0, bnd) as cl) :: cls ->
-      let _ = pr "Program.infer_cl(%a)@.@." pp_cl cl in
+    | PCons (c0, bnd) :: cls ->
       let c1 = Resolver.find_cons c0 ss res in
       if CSet.mem c1 cs then
         let bnd_elab, usg1 = infer_cl res ctx env ss ms mot c0 bnd in
@@ -851,7 +846,7 @@ module Program = struct
     | n :: ns, TBind (N, a, bnd) ->
       let _ = Logical.check_tm res ctx env n a in
       let b, ns_elab, usg = infer_tele res ctx env ns (subst bnd n) in
-      Syntax2.(b, _Null :: ns_elab, usg)
+      Syntax2.(b, _NULL :: ns_elab, usg)
     | n :: ns, TBind (R, a, bnd) ->
       let n_elab, usg1 = check_tm res ctx env n a in
       let b, ns_elab, usg2 = infer_tele res ctx env ns (subst bnd n) in
@@ -859,7 +854,6 @@ module Program = struct
     | _ -> failwith "Logical.infer_tele"
 
   and check_tm res ctx env m0 a0 =
-    let _ = pr "Program.check_tm(%a, %a)@.@." pp_tm m0 pp_tm a0 in
     match (m0, whnf env a0) with
     (* core *)
     | Lam (rel0, s0, a0, bnd0), Pi (rel1, s1, a1, bnd1)
@@ -885,7 +879,7 @@ module Program = struct
       let env = Env.add_var x m env in
       let n_elab, usg = check_tm res ctx env n a0 in
       let usg = Usage.remove_var x usg N s in
-      Syntax2.(_Let _Null (bind_var (trans_var x) n_elab), usg)
+      Syntax2.(_Let _NULL (bind_var (trans_var x) n_elab), usg)
     | Let (R, m, bnd), a0 ->
       let x, n = unbind bnd in
       let a, m_elab, usg1 = infer_tm res ctx env m in
@@ -900,7 +894,7 @@ module Program = struct
       let _ = Logical.assert_sort s0 in
       let _ = Logical.check_tm res ctx env m a in
       let n_elab, usg = check_tm res ctx env n (subst bnd (Ann (m, a))) in
-      Syntax2.(_Pair _Null n_elab, usg)
+      Syntax2.(_Pair _NULL n_elab, usg)
     | Pair (R, s0, m, n), Sigma (R, s1, a, bnd) when eq_sort s0 s1 ->
       let _ = Logical.assert_sort s0 in
       let m_elab, usg1 = check_tm res ctx env m a in
