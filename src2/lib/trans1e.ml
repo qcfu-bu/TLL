@@ -456,7 +456,6 @@ let rec check_dcls ctx env dcls =
   | DTm (_, x, guard, sch) :: dcls ->
     let xs, (a, m) = unmbind sch in
     let sch_a = unbox (bind_mvar xs (lift_tm a)) in
-    let sch_m = unbox (bind_mvar xs (lift_tm m)) in
     let ctx' = add_svar xs ctx in
     let* _ = infer_sort ctx' env a in
     let* _ =
@@ -465,6 +464,10 @@ let rec check_dcls ctx env dcls =
       else
         check_tm ctx' env m a
     in
+    let* a = unify >> resolve_tm a in
+    let* m = unify >> resolve_tm m in
+    let sch_a = unbox (bind_mvar xs (lift_tm a)) in
+    let sch_m = unbox (bind_mvar xs (lift_tm m)) in
     let ctx = add_const x sch_a ctx in
     let env =
       Env.add_const x
@@ -478,6 +481,8 @@ let rec check_dcls ctx env dcls =
     let xs, ptm = unmbind sch in
     let ctx' = add_svar xs ctx in
     let* _ = check_ptm ctx' env ptm in
+    let* ptm = unify >> resolve_ptm ptm in
+    let sch = unbox (bind_mvar xs (lift_param lift_tm ptm)) in
     let ctx' = add_data d sch CSet.empty ctx' in
     let* dconss = check_dconss ctx' env d dconss in
     let ctx, cs =
@@ -500,9 +505,11 @@ and check_dconss ctx env d dconss =
   match dconss with
   | [] -> return []
   | DCons (c, sch) :: dconss ->
-    let _, ptl = unmbind sch in
+    let xs, ptl = unmbind sch in
     let* _ = check_ptl ctx env d ptl in
     let* dconss = check_dconss ctx env d dconss in
+    let* _ = unify >> resolve_ptl ptl in
+    let sch = unbox (bind_mvar xs (lift_param lift_tele ptl)) in
     return ((c, sch) :: dconss)
 
 and check_ptl ctx env d ptl =
