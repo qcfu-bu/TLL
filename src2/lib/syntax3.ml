@@ -4,12 +4,12 @@ type value =
   | NULL
   | Reg of string
   | Env of int
-  | Proj of value * int
+  | Idx of value * int
 
 and values = value list
 
 and toplevel_entry =
-  { name : string
+  { fname : string
   ; arg : string option
   ; body : instrs
   ; return : value
@@ -18,22 +18,57 @@ and toplevel_entry =
 and toplevel = toplevel_entry list
 
 and ch =
-  | Ch of string * value * int * values
+  | Ch of
+      { fname : string
+      ; env_size : int
+      ; env_ext : values
+      }
   | Stdin
   | Stdout
   | Stderr
 
 and instr =
-  | Mov of string * value
-  | MakeClo of string * string * int * values
-  | CallClo of string * value * value
-  | MakeStruct of string * int * values
-  | Switch of value * cls
+  | Mov of
+      { lhs : string
+      ; rhs : value
+      }
+  | MakeClo of
+      { lhs : string
+      ; fname : string
+      ; env_size : int
+      ; env_ext : values
+      }
+  | CallClo of
+      { lhs : string
+      ; fun_ptr : value
+      ; arg_ptr : value
+      }
+  | MakeStruct of
+      { lhs : string
+      ; ctag : int
+      ; data : values
+      }
+  | Switch of
+      { cond : value
+      ; case : cls
+      }
   | Break
-  | Open of string * ch
-  | Send of string * value
-  | Recv of string * value
-  | Close of string * value
+  | Open of
+      { lhs : string
+      ; obj : ch
+      }
+  | Send of
+      { lhs : string
+      ; ch : value
+      }
+  | Recv of
+      { lhs : string
+      ; ch : value
+      }
+  | Close of
+      { lhs : string
+      ; ch : value
+      }
   | FreeClo of value
   | FreeStruct of value
   | FreeThread

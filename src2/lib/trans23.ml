@@ -87,137 +87,173 @@ let rec trans_tm procs local env m =
   | Lam bnd ->
     let x, m = unbind bnd in
     let arg = V.to_string x in
-    let procs, instr, v =
+    let procs, instr, ret =
       trans_tm procs [ Local0 (x, Reg arg) ] (Empty :: extend_env local env) m
     in
-    let name = V.(to_string (mk "lam")) in
-    let tmp = V.(to_string (mk "clo")) in
-    let proc = { name; arg = Some arg; body = instr; return = v } in
+    let fname = V.(to_string (mk "lambda_fun")) in
+    let lhs = V.(to_string (mk "lambda_lhs")) in
+    let proc = { fname; arg = Some arg; body = instr; return = ret } in
     ( procs @ [ proc ]
-    , [ MakeClo (tmp, name, List.length env, env_of_local local) ]
-    , Reg tmp )
+    , [ MakeClo
+          { lhs
+          ; fname
+          ; env_size = List.length env
+          ; env_ext = env_of_local local
+          }
+      ]
+    , Reg lhs )
   | App (s, m, n) ->
-    let procs, m_instr, m_v = trans_tm procs local env m in
-    let procs, n_instr, n_v = trans_tm procs local env n in
-    let tmp = V.(to_string (mk "app")) in
+    let procs, m_instr, m_ret = trans_tm procs local env m in
+    let procs, n_instr, n_ret = trans_tm procs local env n in
+    let lhs = V.(to_string (mk "app_lhs")) in
     let app_instr =
-      match s with
-      | U -> [ CallClo (tmp, m_v, n_v) ]
-      | L -> [ CallClo (tmp, m_v, n_v); FreeClo m_v ]
+      (match s with
+      | U -> [ CallClo { lhs; fun_ptr = m_ret; arg_ptr = n_ret } ]
+      | L -> [ CallClo { lhs; fun_ptr = m_ret; arg_ptr = n_ret } ])
+      @ [ FreeClo m_ret ]
     in
-    (procs, m_instr @ n_instr @ app_instr, Reg tmp)
+    (procs, m_instr @ n_instr @ app_instr, Reg lhs)
   | Let (m, bnd) ->
     let x, n = unbind bnd in
-    let id = V.to_string x in
-    let procs, m_instr, m_v = trans_tm procs local env m in
-    let procs, n_instr, n_v =
-      trans_tm procs (Local0 (x, Reg id) :: local) env n
+    let lhs = V.to_string x in
+    let procs, m_instr, m_ret = trans_tm procs local env m in
+    let procs, n_instr, n_ret =
+      trans_tm procs (Local0 (x, Reg lhs) :: local) env n
     in
-    (procs, m_instr @ [ Mov (id, m_v) ] @ n_instr, n_v)
+    (procs, m_instr @ [ Mov { lhs; rhs = m_ret } ] @ n_instr, n_ret)
   (* data *)
   | Pair (m, n) ->
-    let procs, m_instr, m_v = trans_tm procs local env m in
-    let procs, n_instr, n_v = trans_tm procs local env n in
-    let tmp = V.(to_string (mk "pair")) in
-    (procs, m_instr @ n_instr @ [ MakeStruct (tmp, 0, [ m_v; n_v ]) ], Reg tmp)
+    let procs, m_instr, m_ret = trans_tm procs local env m in
+    let procs, n_instr, n_ret = trans_tm procs local env n in
+    let lhs = V.(to_string (mk "pair_lhs")) in
+    ( procs
+    , m_instr @ n_instr
+      @ [ MakeStruct { lhs; ctag = 0; data = [ m_ret; n_ret ] } ]
+    , Reg lhs )
   | Cons (c, ms) ->
-    let procs, ms_instr, ms_v =
+    let procs, ms_instr, ms_ret =
       List.fold_left
         (fun (procs, ms_instr, ms_v) m ->
           let proc, m_instr, m_v = trans_tm procs local env m in
           (procs, ms_instr @ m_instr, ms_v @ [ m_v ]))
         (procs, [], []) ms
     in
-    let tmp = V.(to_string (mk (C.to_string c))) in
-    (procs, ms_instr @ [ MakeStruct (tmp, C.get_id c, ms_v) ], Reg tmp)
+    let lhs = V.(to_string (mk (C.to_string c))) in
+    ( procs
+    , ms_instr @ [ MakeStruct { lhs; ctag = C.get_id c; data = ms_ret } ]
+    , Reg lhs )
   | Match (s, m, cls) ->
-    let procs, m_instr, m_v = trans_tm procs local env m in
-    let tmp = V.(to_string (mk "match")) in
+    let procs, m_instr, m_ret = trans_tm procs local env m in
+    let ret = V.(to_string (mk "match_ret")) in
     let procs, cls =
       List.fold_left
         (fun (procs, cls) cl ->
-          let procs, cl = trans_cl procs local env tmp m_v cl s in
+          let procs, cl = trans_cl procs local env ret m_ret cl s in
           (procs, cls @ [ cl ]))
         (procs, []) cls
     in
-    (procs, m_instr @ [ Switch (m_v, cls) ], Reg tmp)
+    (procs, m_instr @ [ Switch { cond = m_ret; case = cls } ], Reg ret)
   (* monadic *)
   | Return m ->
     let procs, instr, v = trans_tm procs [] (Empty :: extend_env local env) m in
-    let name = V.(to_string (mk "return")) in
+    let fname = V.(to_string (mk "return_fun")) in
     let arg = V.(to_string (mk "_")) in
-    let tmp = V.(to_string (mk "tmp")) in
-    let proc = { name; arg = Some arg; body = instr; return = v } in
+    let lhs = V.(to_string (mk "return_lhs")) in
+    let proc = { fname; arg = Some arg; body = instr; return = v } in
     ( procs @ [ proc ]
-    , [ MakeClo (tmp, name, List.length env, env_of_local local) ]
-    , Reg tmp )
+    , [ MakeClo
+          { lhs
+          ; fname
+          ; env_size = List.length env
+          ; env_ext = env_of_local local
+          }
+      ]
+    , Reg lhs )
   | MLet (m, bnd) ->
     let x, n = unbind bnd in
-    let id = V.to_string x in
-    let procs, m_instr, m_v = trans_tm procs local env m in
-    let procs, n_instr, n_v =
-      trans_tm procs (Local0 (x, Reg id) :: local) env n
+    let xid = V.to_string x in
+    let procs, m_instr, m_ret = trans_tm procs local env m in
+    let procs, n_instr, n_ret =
+      trans_tm procs (Local0 (x, Reg xid) :: local) env n
     in
-    (procs, m_instr @ [ CallClo (id, m_v, NULL) ] @ n_instr, n_v)
+    ( procs
+    , m_instr
+      @ [ CallClo { lhs = xid; fun_ptr = m_ret; arg_ptr = NULL } ]
+      @ n_instr
+    , n_ret )
   (* session *)
   | Open prim ->
-    let tmp = V.(to_string (mk "tmp")) in
-    (procs, [ Open (tmp, trans_prim prim) ], Reg tmp)
+    let lhs = V.(to_string (mk "open_lhs")) in
+    (procs, [ Open { lhs; obj = trans_prim prim } ], Reg lhs)
   | Fork bnd ->
     let x, m = unbind bnd in
-    let procs, instr, v =
+    let procs, instr, rhs =
       trans_tm procs [] (Env0 x :: extend_env local env) m
     in
-    let ret = V.(to_string (mk "fork_return")) in
-    let instr = instr @ [ Mov (ret, v); FreeThread ] in
-    let res = V.(to_string (mk "fork_res")) in
-    let name = V.(to_string (mk "fork")) in
-    let proc = { name; arg = None; body = instr; return = Reg ret } in
+    let lhs = V.(to_string (mk "fork_lhs")) in
+    let ret = V.(to_string (mk "fork_ret")) in
+    let instr = instr @ [ Mov { lhs = ret; rhs }; FreeThread ] in
+    let fname = V.(to_string (mk "fork_fun")) in
+    let proc = { fname; arg = None; body = instr; return = Reg ret } in
     ( procs @ [ proc ]
-    , instr @ [ Open (res, Ch (name, v, List.length env, env_of_local local)) ]
-    , Reg res )
+    , instr
+      @ [ Open
+            { lhs
+            ; obj =
+                Ch
+                  { fname
+                  ; env_size = List.length env
+                  ; env_ext = env_of_local local
+                  }
+            }
+        ]
+    , Reg lhs )
   | Send (rel, m) -> (
-    let procs, instr, v = trans_tm procs local env m in
+    let procs, instr, ret = trans_tm procs local env m in
     match rel with
     | R ->
-      let tmp = V.(to_string (mk "send_tmp")) in
-      (procs, instr @ [ Send (tmp, v) ], Reg tmp)
-    | N -> (procs, instr, v))
+      let lhs = V.(to_string (mk "send_lhs")) in
+      (procs, instr @ [ Send { lhs; ch = ret } ], Reg lhs)
+    | N -> (procs, instr, ret))
   | Recv (rel, m) -> (
-    let procs, instr, v = trans_tm procs local env m in
-    let tmp = V.(to_string (mk "recv_tmp")) in
+    let procs, instr, ret = trans_tm procs local env m in
+    let lhs = V.(to_string (mk "recv_lhs")) in
     match rel with
-    | R -> (procs, instr @ [ Recv (tmp, v) ], Reg tmp)
-    | N -> (procs, instr @ [ MakeStruct (tmp, 0, [ NULL; v ]) ], Reg tmp))
+    | R -> (procs, instr @ [ Recv { lhs; ch = ret } ], Reg lhs)
+    | N ->
+      ( procs
+      , instr @ [ MakeStruct { lhs; ctag = 0; data = [ NULL; ret ] } ]
+      , Reg lhs ))
   | Close (rol, m) -> (
-    let procs, instr, v = trans_tm procs local env m in
-    let tmp = V.(to_string (mk "close_tmp")) in
+    let procs, instr, ret = trans_tm procs local env m in
+    let lhs = V.(to_string (mk "close_lhs")) in
     match rol with
-    | Pos -> (procs, instr @ [ Close (tmp, v) ], Reg tmp)
+    | Pos -> (procs, instr @ [ Close { lhs; ch = ret } ], Reg lhs)
     | Neg ->
-      (procs, instr @ [ MakeStruct (tmp, C.get_id Prelude1.tt_c, []) ], Reg tmp)
-    )
+      ( procs
+      , instr @ [ MakeStruct { lhs; ctag = C.get_id Prelude1.tt_c; data = [] } ]
+      , Reg lhs ))
   | NULL -> (procs, [], NULL)
 
-and trans_cl procs local env tmp v cl s =
+and trans_cl procs local env ret m_ret cl s =
   match cl with
   | PPair bnd ->
     let xs, rhs = unmbind bnd in
     let _, cl_instr, local =
       Array.fold_left
         (fun (i, instr, local) x ->
-          let id = V.to_string x in
+          let lhs = V.to_string x in
           ( i + 1
-          , instr @ [ Mov (id, Proj (v, i)) ]
-          , local @ [ Local0 (x, Reg id) ] ))
+          , instr @ [ Mov { lhs; rhs = Idx (m_ret, i) } ]
+          , local @ [ Local0 (x, Reg lhs) ] ))
         (0, [], local) xs
     in
-    let procs, rhs_instr, rhs_v = trans_tm procs local env rhs in
-    let rhs_instr = rhs_instr @ [ Mov (tmp, rhs_v); Break ] in
+    let procs, rhs_instr, rhs_ret = trans_tm procs local env rhs in
+    let rhs_instr = rhs_instr @ [ Mov { lhs = ret; rhs = rhs_ret }; Break ] in
     let instr =
       match s with
       | U -> cl_instr @ rhs_instr
-      | L -> cl_instr @ [ FreeStruct v ] @ rhs_instr
+      | L -> cl_instr @ [ FreeStruct m_ret ] @ rhs_instr
     in
     (procs, (0, instr))
   | PCons (c, bnd) ->
@@ -225,17 +261,17 @@ and trans_cl procs local env tmp v cl s =
     let _, cl_instr, local =
       Array.fold_left
         (fun (i, instr, local) x ->
-          let id = V.to_string x in
+          let lhs = V.to_string x in
           ( i + 1
-          , instr @ [ Mov (id, Proj (v, i)) ]
-          , local @ [ Local0 (x, Reg id) ] ))
+          , instr @ [ Mov { lhs; rhs = Idx (m_ret, i) } ]
+          , local @ [ Local0 (x, Reg lhs) ] ))
         (0, [], local) xs
     in
-    let procs, rhs_instr, rhs_v = trans_tm procs local env rhs in
-    let rhs_instr = rhs_instr @ [ Mov (tmp, rhs_v); Break ] in
+    let procs, rhs_instr, rhs_ret = trans_tm procs local env rhs in
+    let rhs_instr = rhs_instr @ [ Mov { lhs = ret; rhs = rhs_ret }; Break ] in
     let instr =
       match s with
       | U -> cl_instr @ rhs_instr
-      | L -> cl_instr @ [ FreeStruct v ] @ rhs_instr
+      | L -> cl_instr @ [ FreeStruct m_ret ] @ rhs_instr
     in
     (procs, (C.get_id c, instr))
