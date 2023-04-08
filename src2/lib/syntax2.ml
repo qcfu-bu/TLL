@@ -53,6 +53,7 @@ and cls = cl list
 type dcl =
   | DTm of I.t * tm
   | DData of D.t * dconss
+  | DMain of tm
 
 and dcons = DCons of C.t * int
 and dconss = dcons list
@@ -107,6 +108,7 @@ let _PCons c = box_apply (fun bnd -> PCons (c, bnd))
 (* dcl *)
 let _DTm x = box_apply (fun m -> DTm (x, m))
 let _DData d = box_apply (fun dconss -> DData (d, dconss))
+let _DMain = box_apply (fun m -> DMain m)
 
 (* dcons *)
 let _DCons c i = box (DCons (c, i))
@@ -150,5 +152,6 @@ let lift_dconss dconss = box_list (List.map lift_dcons dconss)
 let lift_dcl = function
   | DTm (x, m) -> _DTm x (lift_tm m)
   | DData (d, dconss) -> _DData d (lift_dconss dconss)
+  | DMain m -> _DMain (lift_tm m)
 
 let lift_dcls dcls = box_list (List.map lift_dcl dcls)

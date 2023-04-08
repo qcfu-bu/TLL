@@ -181,7 +181,9 @@ let rec trans_tm procs local env m =
       trans_tm procs (Local0 (x, Reg lhs) :: local) env n
     in
     ( procs
-    , m_instr @ [ CallClo { lhs; fptr = m_ret; aptr = NULL } ] @ n_instr
+    , m_instr
+      @ [ CallClo { lhs; fptr = m_ret; aptr = NULL }; FreeClo m_ret ]
+      @ n_instr
     , n_ret )
   (* session *)
   | Open prim ->
@@ -284,6 +286,12 @@ and trans_cl procs local env ret m_ret cl s =
 let trans_dcls dcls =
   let rec aux procs local env = function
     | [] -> (procs, [], NULL)
+    | DMain m :: _ ->
+      let lhs = V.(to_string (mk "_")) in
+      let procs, instr, ret = trans_tm procs local env m in
+      ( procs
+      , instr @ [ CallClo { lhs; fptr = ret; aptr = NULL }; FreeClo ret ]
+      , NULL )
     | DTm (x, Lam bnd) :: dcls ->
       let y, m = unbind bnd in
       let xid = I.to_string x in

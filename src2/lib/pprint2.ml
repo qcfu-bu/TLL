@@ -131,5 +131,6 @@ let rec pp_dcl fmt = function
   | DTm (x, m) -> pf fmt "@[def %a =@;<1 2>%a@]" I.pp x pp_tm m
   | DData (d, dconss) ->
     pf fmt "@[<v 0>@[data %a =@]@;<1 0>@[%a@]@]" D.pp d pp_dconss dconss
+  | DMain m -> pf fmt "@[main =@;<1 2>%a@]" pp_tm m
 
 let pp_dcls fmt dcls = pf fmt "%a" (list ~sep:break pp_dcl) dcls

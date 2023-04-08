@@ -34,6 +34,7 @@ module I : sig
   val extend : t -> string -> t
   val pp : Format.formatter -> t -> unit
   val to_string : t -> string
+  val is_main : t -> bool
 end = struct
   type t = string * int
 
@@ -52,6 +53,7 @@ end = struct
 
   let pp fmt (s, id) = pf fmt "%s_i%d" s id
   let to_string x = to_to_string pp x
+  let is_main (s, _) = s = "main"
 end
 
 (* data identifiers *)

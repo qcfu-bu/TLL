@@ -949,9 +949,17 @@ let make_init xs =
   in
   loop (Array.to_list xs)
 
-let rec check_dcls res ctx env dcls =
-  match dcls with
+let rec check_dcls res ctx env = function
   | [] -> ([], Usage.empty)
+  | [ DTm (R, x0, false, sch) ] when I.is_main x0 -> (
+    let sargs, (a, m) = unmbind sch in
+    match sargs with
+    | [||] ->
+      let ty = IO (Data (Prelude1.unit_d, [], [])) in
+      let _ = Logical.assert_equal env a ty in
+      let m_elab, usg = Program.check_tm res ctx env m a in
+      Syntax2.([ _DMain m_elab ], usg)
+    | _ -> failwith "check_dcls_Main")
   | DTm (N, x0, guard, sch) :: dcls ->
     let sargs, _ = unmbind sch in
     let init = make_init sargs in
