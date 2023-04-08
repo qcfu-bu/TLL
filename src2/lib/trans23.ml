@@ -170,13 +170,13 @@ let rec trans_tm procs local env m =
     , Reg lhs )
   | MLet (m, bnd) ->
     let x, n = unbind bnd in
-    let xid = V.to_string x in
+    let lhs = V.to_string x in
     let procs, m_instr, m_ret = trans_tm procs local env m in
     let procs, n_instr, n_ret =
-      trans_tm procs (Local0 (x, Reg xid) :: local) env n
+      trans_tm procs (Local0 (x, Reg lhs) :: local) env n
     in
     ( procs
-    , m_instr @ [ CallClo { lhs = xid; fptr = m_ret; aptr = NULL } ] @ n_instr
+    , m_instr @ [ CallClo { lhs; fptr = m_ret; aptr = NULL } ] @ n_instr
     , n_ret )
   (* session *)
   | Open prim ->
