@@ -30,6 +30,12 @@ let _ =
       let dcls2 = Trans12.trans_dcls dcls1e in
       let _ = pr "%a@.@." Pprint2.pp_dcls dcls2 in
       let _ = pr "trans12 success--------------------------@.@." in
+      (* trans23 *)
+      let procs, instr, ret = Trans23.trans_dcls dcls2 in
+      let _ = pr "%a@.@." Syntax3.pp_toplevel procs in
+      let _ = pr "%a@.@." Syntax3.pp_instrs instr in
+      let _ = pr "%a@.@." Syntax3.pp_value ret in
+      let _ = pr "trans23 success--------------------------@.@." in
       ()
   with
   | Failure s ->

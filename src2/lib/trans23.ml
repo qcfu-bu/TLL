@@ -81,9 +81,11 @@ let rec trans_tm procs local env m =
   match m with
   (* core *)
   | Var x -> (
-    try ([], [], local_var x local) with
-    | _ -> Syntax3.([], [], Env (env_var x env)))
-  | Const x -> Syntax3.([], [], Env (env_const x env))
+    try (procs, [], local_var x local) with
+    | _ -> Syntax3.(procs, [], Env (env_var x env)))
+  | Const x -> (
+    try (procs, [], local_const x local) with
+    | _ -> Syntax3.(procs, [], Env (env_const x env)))
   | Lam bnd ->
     let x, m = unbind bnd in
     let arg = V.to_string x in
@@ -127,19 +129,22 @@ let rec trans_tm procs local env m =
     let lhs = V.(to_string (mk "pair_lhs")) in
     ( procs
     , m_instr @ n_instr
-      @ [ MakeStruct { lhs; ctag = 0; data = [ m_ret; n_ret ] } ]
+      @ [ MakeStruct { lhs; ctag = 0; size = 2; data = [ m_ret; n_ret ] } ]
     , Reg lhs )
   | Cons (c, ms) ->
     let procs, ms_instr, ms_ret =
       List.fold_left
-        (fun (procs, ms_instr, ms_v) m ->
-          let proc, m_instr, m_v = trans_tm procs local env m in
-          (procs, ms_instr @ m_instr, ms_v @ [ m_v ]))
+        (fun (procs, ms_instr, ms_ret) m ->
+          let procs, m_instr, m_ret = trans_tm procs local env m in
+          (procs, ms_instr @ m_instr, ms_ret @ [ m_ret ]))
         (procs, [], []) ms
     in
     let lhs = V.(to_string (mk (C.to_string c))) in
     ( procs
-    , ms_instr @ [ MakeStruct { lhs; ctag = C.get_id c; data = ms_ret } ]
+    , ms_instr
+      @ [ MakeStruct
+            { lhs; ctag = C.get_id c; size = List.length ms; data = ms_ret }
+        ]
     , Reg lhs )
   | Match (s, m, cls) ->
     let procs, m_instr, m_ret = trans_tm procs local env m in
@@ -219,7 +224,7 @@ let rec trans_tm procs local env m =
     | R -> (procs, instr @ [ Recv { lhs; ch = ret } ], Reg lhs)
     | N ->
       ( procs
-      , instr @ [ MakeStruct { lhs; ctag = 0; data = [ NULL; ret ] } ]
+      , instr @ [ MakeStruct { lhs; ctag = 0; size = 2; data = [ NULL; ret ] } ]
       , Reg lhs ))
   | Close (rol, m) -> (
     let procs, instr, ret = trans_tm procs local env m in
@@ -228,7 +233,10 @@ let rec trans_tm procs local env m =
     | Pos -> (procs, instr @ [ Close { lhs; ch = ret } ], Reg lhs)
     | Neg ->
       ( procs
-      , instr @ [ MakeStruct { lhs; ctag = C.get_id Prelude1.tt_c; data = [] } ]
+      , instr
+        @ [ MakeStruct
+              { lhs; ctag = C.get_id Prelude1.tt_c; size = 0; data = [] }
+          ]
       , Reg lhs ))
   | NULL -> (procs, [], NULL)
 
@@ -272,3 +280,43 @@ and trans_cl procs local env ret m_ret cl s =
       | L -> cl_instr @ [ FreeStruct m_ret ] @ rhs_instr
     in
     (procs, (C.get_id c, instr))
+
+let trans_dcls dcls =
+  let rec aux procs local env = function
+    | [] -> (procs, [], NULL)
+    | DTm (x, Lam bnd) :: dcls ->
+      let y, m = unbind bnd in
+      let xid = I.to_string x in
+      let arg = V.to_string y in
+      let procs, m_instr, m_ret =
+        trans_tm procs
+          [ Local0 (y, Reg arg) ]
+          (Env1 x :: extend_env local env)
+          m
+      in
+      let fname = V.(to_string (mk "lambda_fun")) in
+      let proc = { fname; arg = Some arg; body = m_instr; return = m_ret } in
+      let procs, instr, ret =
+        aux (proc :: procs) (Local1 (x, Reg xid) :: local) env dcls
+      in
+      ( procs
+      , MakeClo
+          { lhs = xid
+          ; fname
+          ; env_size = List.length env
+          ; env_ext = env_of_local local
+          }
+        :: instr
+      , ret )
+    | DTm (x, m) :: dcls ->
+      let xid = I.to_string x in
+      let procs, m_instr, m_ret =
+        trans_tm procs (Local1 (x, Reg xid) :: local) env m
+      in
+      let procs, instr, ret =
+        aux procs (Local1 (x, Reg xid) :: local) env dcls
+      in
+      (procs, m_instr @ [ Mov { lhs = xid; rhs = m_ret } ] @ instr, ret)
+    | DData (_, _) :: dcls -> aux procs local env dcls
+  in
+  aux [] [] [] dcls

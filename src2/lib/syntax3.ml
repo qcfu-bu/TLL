@@ -5,6 +5,7 @@ type value =
   | Reg of string
   | Env of int
   | Idx of value * int
+[@@deriving show { with_path = false }]
 
 and values = value list
 
@@ -14,6 +15,7 @@ and toplevel_entry =
   ; body : instrs
   ; return : value
   }
+[@@deriving show { with_path = false }]
 
 and toplevel = toplevel_entry list
 
@@ -26,6 +28,7 @@ and ch =
   | Stdin
   | Stdout
   | Stderr
+[@@deriving show { with_path = false }]
 
 and instr =
   | Mov of
@@ -46,6 +49,7 @@ and instr =
   | MakeStruct of
       { lhs : string
       ; ctag : int
+      ; size : int
       ; data : values
       }
   | Switch of
@@ -72,6 +76,7 @@ and instr =
   | FreeClo of value
   | FreeStruct of value
   | FreeThread
+[@@deriving show { with_path = false }]
 
 and instrs = instr list
 and cl = int * instrs
