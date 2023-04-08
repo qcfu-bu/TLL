@@ -27,14 +27,13 @@ let _ =
       let _ = pr "%a@.@." Pprint1.pp_dcls dcls1e in
       let _ = pr "trans1e success--------------------------@.@." in
       (* trans12 *)
-      let dcls2 = Trans12.trans_dcls dcls1e in
+      let dcls2, res = Trans12.trans_dcls dcls1e in
       let _ = pr "%a@.@." Pprint2.pp_dcls dcls2 in
       let _ = pr "trans12 success--------------------------@.@." in
       (* trans23 *)
-      let procs, instr, ret = Trans23.trans_dcls dcls2 in
-      let _ = pr "%a@.@." Syntax3.pp_toplevel procs in
-      let _ = pr "%a@.@." Syntax3.pp_instrs instr in
-      let _ = pr "%a@.@." Syntax3.pp_value ret in
+      let procs, instr, ret = Trans23.trans_dcls res dcls2 in
+      let _ = pr "%a@.@." (Pprint3.pp_prelude res) () in
+      let _ = pr "%a@.@." Pprint3.pp_prog (procs, instr, ret) in
       let _ = pr "trans23 success--------------------------@.@." in
       ()
   with

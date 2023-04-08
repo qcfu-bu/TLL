@@ -950,15 +950,15 @@ let make_init xs =
   loop (Array.to_list xs)
 
 let rec check_dcls res ctx env = function
-  | [] -> ([], Usage.empty)
-  | [ DTm (R, x0, false, sch) ] when I.is_main x0 -> (
+  | [] -> ([], res, Usage.empty)
+  | DTm (R, x0, false, sch) :: _ when I.is_main x0 -> (
     let sargs, (a, m) = unmbind sch in
     match sargs with
     | [||] ->
       let ty = IO (Data (Prelude1.unit_d, [], [])) in
       let _ = Logical.assert_equal env a ty in
       let m_elab, usg = Program.check_tm res ctx env m a in
-      Syntax2.([ _DMain m_elab ], usg)
+      Syntax2.([ _DMain m_elab ], res, usg)
     | _ -> failwith "check_dcls_Main")
   | DTm (N, x0, guard, sch) :: dcls ->
     let sargs, _ = unmbind sch in
@@ -996,11 +996,11 @@ let rec check_dcls res ctx env = function
         { scheme = (fun ss -> Resolver.RMap.find ss env_acc); guarded = guard }
         env
     in
-    let dcls_elab, usg = check_dcls res ctx env dcls in
+    let dcls_elab, res, usg = check_dcls res ctx env dcls in
     let usg =
       List.fold_left (fun acc (x, s) -> Usage.remove_const x acc N s) usg xs
     in
-    (dcls_elab, usg)
+    (dcls_elab, res, usg)
   | DTm (R, x0, guard, sch) :: dcls ->
     let sargs, _ = unmbind sch in
     let init = make_init sargs in
@@ -1042,11 +1042,11 @@ let rec check_dcls res ctx env = function
         { scheme = (fun ss -> Resolver.RMap.find ss env_acc); guarded = guard }
         env
     in
-    let dcls_elab, usg2 = check_dcls res ctx env dcls in
+    let dcls_elab, res, usg2 = check_dcls res ctx env dcls in
     let usg2 =
       List.fold_left (fun acc (x, s) -> Usage.remove_const x acc R s) usg2 xs
     in
-    (dtm_elab @ dcls_elab, Usage.merge usg1 usg2)
+    (dtm_elab @ dcls_elab, res, Usage.merge usg1 usg2)
   | DData (d0, sch, dconss) :: dcls ->
     let sargs, _ = unmbind sch in
     let init = make_init sargs in
@@ -1078,8 +1078,8 @@ let rec check_dcls res ctx env = function
         init
         Resolver.([], res, ctx)
     in
-    let dcls_elab, usg = check_dcls res ctx env dcls in
-    (ddata_elab @ dcls_elab, usg)
+    let dcls_elab, res, usg = check_dcls res ctx env dcls in
+    (ddata_elab @ dcls_elab, res, usg)
 
 and check_ptm res ctx env ptm =
   match ptm with
@@ -1145,6 +1145,6 @@ and check_tl res ctx env d0 tl =
   | _ -> failwith "check_tl"
 
 let trans_dcls dcls =
-  let dcls, usg = check_dcls Resolver.empty Context.empty Env.empty dcls in
+  let dcls, res, usg = check_dcls Resolver.empty Context.empty Env.empty dcls in
   let _ = Usage.assert_empty usg in
-  unbox (box_list dcls)
+  (unbox (box_list dcls), res)

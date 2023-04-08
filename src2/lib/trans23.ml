@@ -4,8 +4,6 @@ open Names
 open Syntax2
 open Syntax3
 
-type 'a trans23 = toplevel * Trans12.Resolver.t -> 'a * toplevel
-
 type local_entry =
   | Local0 of V.t * value
   | Local1 of I.t * value
@@ -82,10 +80,10 @@ let rec trans_tm procs local env m =
   (* core *)
   | Var x -> (
     try (procs, [], local_var x local) with
-    | _ -> Syntax3.(procs, [], Env (env_var x env)))
+    | _ -> (procs, [], Env (env_var x env)))
   | Const x -> (
     try (procs, [], local_const x local) with
-    | _ -> Syntax3.(procs, [], Env (env_const x env)))
+    | _ -> (procs, [], Env (env_const x env)))
   | Lam bnd ->
     let x, m = unbind bnd in
     let arg = V.to_string x in
@@ -95,8 +93,8 @@ let rec trans_tm procs local env m =
     let fname = V.(to_string (mk "lambda_fun")) in
     let lhs = V.(to_string (mk "lambda_lhs")) in
     let proc = { fname; arg = Some arg; body = instr; return = ret } in
-    ( procs @ [ proc ]
-    , [ MakeClo
+    ( proc :: procs
+    , [ Clo
           { lhs
           ; fname
           ; env_size = List.length env
@@ -110,8 +108,8 @@ let rec trans_tm procs local env m =
     let lhs = V.(to_string (mk "app_lhs")) in
     let app_instr =
       match s with
-      | U -> [ CallClo { lhs; fptr = m_ret; aptr = n_ret } ]
-      | L -> [ CallClo { lhs; fptr = m_ret; aptr = n_ret }; FreeClo m_ret ]
+      | U -> [ Call { lhs; fptr = m_ret; aptr = n_ret } ]
+      | L -> [ Call { lhs; fptr = m_ret; aptr = n_ret }; FreeClo m_ret ]
     in
     (procs, m_instr @ n_instr @ app_instr, Reg lhs)
   | Let (m, bnd) ->
@@ -129,7 +127,7 @@ let rec trans_tm procs local env m =
     let lhs = V.(to_string (mk "pair_lhs")) in
     ( procs
     , m_instr @ n_instr
-      @ [ MakeStruct { lhs; ctag = 0; size = 2; data = [ m_ret; n_ret ] } ]
+      @ [ Struct { lhs; ctag = 0; size = 2; data = [ m_ret; n_ret ] } ]
     , Reg lhs )
   | Cons (c, ms) ->
     let procs, ms_instr, ms_ret =
@@ -142,7 +140,7 @@ let rec trans_tm procs local env m =
     let lhs = V.(to_string (mk (C.to_string c))) in
     ( procs
     , ms_instr
-      @ [ MakeStruct
+      @ [ Struct
             { lhs; ctag = C.get_id c; size = List.length ms; data = ms_ret }
         ]
     , Reg lhs )
@@ -156,16 +154,16 @@ let rec trans_tm procs local env m =
           (procs, cls @ [ cl ]))
         (procs, []) cls
     in
-    (procs, m_instr @ [ Switch { cond = m_ret; case = cls } ], Reg ret)
+    (procs, m_instr @ [ Switch { cond = m_ret; cases = cls } ], Reg ret)
   (* monadic *)
   | Return m ->
     let procs, instr, v = trans_tm procs [] (Empty :: extend_env local env) m in
-    let fname = V.(to_string (mk "return_fun")) in
+    let fname = V.(to_string (mk "thunk_fun")) in
     let arg = V.(to_string (mk "_")) in
-    let lhs = V.(to_string (mk "return_lhs")) in
+    let lhs = V.(to_string (mk "thunk_lhs")) in
     let proc = { fname; arg = Some arg; body = instr; return = v } in
     ( procs @ [ proc ]
-    , [ MakeClo
+    , [ Clo
           { lhs
           ; fname
           ; env_size = List.length env
@@ -182,7 +180,7 @@ let rec trans_tm procs local env m =
     in
     ( procs
     , m_instr
-      @ [ CallClo { lhs; fptr = m_ret; aptr = NULL }; FreeClo m_ret ]
+      @ [ Call { lhs; fptr = m_ret; aptr = NULL }; FreeClo m_ret ]
       @ n_instr
     , n_ret )
   (* session *)
@@ -214,32 +212,22 @@ let rec trans_tm procs local env m =
     , Reg lhs )
   | Send (rel, m) -> (
     let procs, instr, ret = trans_tm procs local env m in
+    let lhs = V.(to_string (mk "send_lhs")) in
     match rel with
-    | R ->
-      let lhs = V.(to_string (mk "send_lhs")) in
-      (procs, instr @ [ Send { lhs; ch = ret } ], Reg lhs)
-    | N -> (procs, instr, ret))
+    | R -> (procs, instr @ [ Send { lhs; ch = ret; mode = 1 } ], Reg lhs)
+    | N -> (procs, instr @ [ Send { lhs; ch = ret; mode = 0 } ], Reg lhs))
   | Recv (rel, m) -> (
     let procs, instr, ret = trans_tm procs local env m in
     let lhs = V.(to_string (mk "recv_lhs")) in
     match rel with
-    | R -> (procs, instr @ [ Recv { lhs; ch = ret } ], Reg lhs)
-    | N ->
-      ( procs
-      , instr @ [ MakeStruct { lhs; ctag = 0; size = 2; data = [ NULL; ret ] } ]
-      , Reg lhs ))
+    | R -> (procs, instr @ [ Recv { lhs; ch = ret; mode = 1 } ], Reg lhs)
+    | N -> (procs, instr @ [ Recv { lhs; ch = ret; mode = 0 } ], Reg lhs))
   | Close (rol, m) -> (
     let procs, instr, ret = trans_tm procs local env m in
     let lhs = V.(to_string (mk "close_lhs")) in
     match rol with
-    | Pos -> (procs, instr @ [ Close { lhs; ch = ret } ], Reg lhs)
-    | Neg ->
-      ( procs
-      , instr
-        @ [ MakeStruct
-              { lhs; ctag = C.get_id Prelude1.tt_c; size = 0; data = [] }
-          ]
-      , Reg lhs ))
+    | Pos -> (procs, instr @ [ Close { lhs; ch = ret; mode = 1 } ], Reg lhs)
+    | Neg -> (procs, instr @ [ Close { lhs; ch = ret; mode = 0 } ], Reg lhs))
   | NULL -> (procs, [], NULL)
 
 and trans_cl procs local env ret m_ret cl s =
@@ -283,14 +271,14 @@ and trans_cl procs local env ret m_ret cl s =
     in
     (procs, (C.get_id c, instr))
 
-let trans_dcls dcls =
+let trans_dcls res dcls =
   let rec aux procs local env = function
     | [] -> (procs, [], NULL)
     | DMain m :: _ ->
       let lhs = V.(to_string (mk "_")) in
       let procs, instr, ret = trans_tm procs local env m in
       ( procs
-      , instr @ [ CallClo { lhs; fptr = ret; aptr = NULL }; FreeClo ret ]
+      , instr @ [ Call { lhs; fptr = ret; aptr = NULL }; FreeClo ret ]
       , NULL )
     | DTm (x, Lam bnd) :: dcls ->
       let y, m = unbind bnd in
@@ -305,10 +293,10 @@ let trans_dcls dcls =
       let fname = V.(to_string (mk "lambda_fun")) in
       let proc = { fname; arg = Some arg; body = m_instr; return = m_ret } in
       let procs, instr, ret =
-        aux (proc :: procs) (Local1 (x, Reg xid) :: local) env dcls
+        aux procs (Local1 (x, Reg xid) :: local) env dcls
       in
-      ( procs
-      , MakeClo
+      ( proc :: procs
+      , Clo
           { lhs = xid
           ; fname
           ; env_size = List.length env

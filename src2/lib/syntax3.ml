@@ -9,7 +9,7 @@ type value =
 
 and values = value list
 
-and toplevel_entry =
+and proc =
   { fname : string
   ; arg : string option
   ; body : instrs
@@ -17,7 +17,7 @@ and toplevel_entry =
   }
 [@@deriving show { with_path = false }]
 
-and toplevel = toplevel_entry list
+and procs = proc list
 
 and ch =
   | Ch of
@@ -35,18 +35,18 @@ and instr =
       { lhs : string
       ; rhs : value
       }
-  | MakeClo of
+  | Clo of
       { lhs : string
       ; fname : string
       ; env_size : int
       ; env_ext : values
       }
-  | CallClo of
+  | Call of
       { lhs : string
       ; fptr : value
       ; aptr : value
       }
-  | MakeStruct of
+  | Struct of
       { lhs : string
       ; ctag : int
       ; size : int
@@ -54,7 +54,7 @@ and instr =
       }
   | Switch of
       { cond : value
-      ; case : cls
+      ; cases : cls
       }
   | Break
   | Open of
@@ -64,14 +64,17 @@ and instr =
   | Send of
       { lhs : string
       ; ch : value
+      ; mode : int
       }
   | Recv of
       { lhs : string
       ; ch : value
+      ; mode : int
       }
   | Close of
       { lhs : string
       ; ch : value
+      ; mode : int
       }
   | FreeClo of value
   | FreeStruct of value
