@@ -94,6 +94,7 @@ module C : sig
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val get_id : t -> int
+  val get_name : t -> string
   val extend : t -> string -> t
   val pp : Format.formatter -> t -> unit
   val to_string : t -> string
@@ -109,6 +110,7 @@ end = struct
   let equal x y = snd x = snd y
   let compare x y = Int.compare (snd x) (snd y)
   let get_id (_, id) = id
+  let get_name (s, _) = s
 
   let extend (s0, _) s1 =
     incr stamp;

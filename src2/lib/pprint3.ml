@@ -7,9 +7,10 @@ let resolve_c c res = Trans12.Resolver.find_cons c [] res
 let pp_prelude res fmt () =
   let pp_define fmt c0 =
     let c1 = resolve_c c0 res in
-    pf fmt "#define %s %d" (C.to_string c1) (C.get_id c1)
+    pf fmt "#define %s_c %d" (C.get_name c1) (C.get_id c1)
   in
-  pf fmt "#ifdef prelude_h@.@.@[<v 0>%a@]@.@.#endif" (list ~sep:sp pp_define)
+  pf fmt "#ifndef prelude_h@.#define prelude_h@.@.@[<v 0>%a@]@.@.#endif"
+    (list ~sep:sp pp_define)
     Prelude1.
       [ tt_c
       ; true_c
@@ -27,7 +28,7 @@ let pp_prelude res fmt () =
       ]
 
 let rec pp_value fmt = function
-  | NULL -> pf fmt "NULL"
+  | NULL -> pf fmt "0"
   | Reg x -> pf fmt "%s" x
   | Env i -> pf fmt "env[%d]" i
   | Idx (v, i) -> pf fmt "((tll_node)%a)->data[%d]" pp_value v i
@@ -80,7 +81,7 @@ let rec pp_proc fmt proc =
   let pp_arg fmt opt =
     match opt with
     | None -> ()
-    | Some x -> pf fmt "tllc_ptr %s, " x
+    | Some x -> pf fmt "tll_ptr %s, " x
   in
   pf fmt
     "@[<v 0>tll_ptr %s(%atll_env env)@;\
