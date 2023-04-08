@@ -8,6 +8,7 @@ module M : sig
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val pp : Format.formatter -> t -> unit
+  val to_string : t -> string
 end = struct
   type t = int
 
@@ -20,6 +21,7 @@ end = struct
   let equal x y = x = y
   let compare x y = Int.compare x y
   let pp fmt id = pf fmt "??%d" id
+  let to_string x = to_to_string pp x
 end
 
 (* constant identifiers *)
@@ -31,6 +33,7 @@ module I : sig
   val compare : t -> t -> int
   val extend : t -> string -> t
   val pp : Format.formatter -> t -> unit
+  val to_string : t -> string
 end = struct
   type t = string * int
 
@@ -48,6 +51,7 @@ end = struct
     (s0 ^ s1, !stamp)
 
   let pp fmt (s, id) = pf fmt "%s_i%d" s id
+  let to_string x = to_to_string pp x
 end
 
 (* data identifiers *)
@@ -59,6 +63,7 @@ module D : sig
   val compare : t -> t -> int
   val extend : t -> string -> t
   val pp : Format.formatter -> t -> unit
+  val to_string : t -> string
 end = struct
   type t = string * int
 
@@ -76,6 +81,7 @@ end = struct
     (s0 ^ s1, !stamp)
 
   let pp fmt (s, id) = pf fmt "%s_d%d" s id
+  let to_string x = to_to_string pp x
 end
 
 (* constructor identifiers *)
@@ -88,6 +94,7 @@ module C : sig
   val get_id : t -> int
   val extend : t -> string -> t
   val pp : Format.formatter -> t -> unit
+  val to_string : t -> string
 end = struct
   type t = string * int
 
@@ -106,6 +113,7 @@ end = struct
     (s0 ^ s1, !stamp)
 
   let pp fmt (s, id) = pf fmt "%s_c%d" s id
+  let to_string x = to_to_string pp x
 end
 
 (* sets *)

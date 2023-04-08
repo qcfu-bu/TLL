@@ -63,6 +63,7 @@ module V = struct
   let mk = new_var (fun x -> Var x)
   let compare = compare_vars
   let pp fmt x = pf fmt "%s_v%d" (name_of x) (uid_of x)
+  let to_string x = to_to_string pp x
 end
 
 (* smart constructors *)
