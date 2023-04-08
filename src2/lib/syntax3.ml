@@ -40,8 +40,8 @@ and instr =
       }
   | CallClo of
       { lhs : string
-      ; fun_ptr : value
-      ; arg_ptr : value
+      ; fptr : value
+      ; aptr : value
       }
   | MakeStruct of
       { lhs : string

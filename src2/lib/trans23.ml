@@ -107,10 +107,9 @@ let rec trans_tm procs local env m =
     let procs, n_instr, n_ret = trans_tm procs local env n in
     let lhs = V.(to_string (mk "app_lhs")) in
     let app_instr =
-      (match s with
-      | U -> [ CallClo { lhs; fun_ptr = m_ret; arg_ptr = n_ret } ]
-      | L -> [ CallClo { lhs; fun_ptr = m_ret; arg_ptr = n_ret } ])
-      @ [ FreeClo m_ret ]
+      match s with
+      | U -> [ CallClo { lhs; fptr = m_ret; aptr = n_ret } ]
+      | L -> [ CallClo { lhs; fptr = m_ret; aptr = n_ret }; FreeClo m_ret ]
     in
     (procs, m_instr @ n_instr @ app_instr, Reg lhs)
   | Let (m, bnd) ->
@@ -177,9 +176,7 @@ let rec trans_tm procs local env m =
       trans_tm procs (Local0 (x, Reg xid) :: local) env n
     in
     ( procs
-    , m_instr
-      @ [ CallClo { lhs = xid; fun_ptr = m_ret; arg_ptr = NULL } ]
-      @ n_instr
+    , m_instr @ [ CallClo { lhs = xid; fptr = m_ret; aptr = NULL } ] @ n_instr
     , n_ret )
   (* session *)
   | Open prim ->
