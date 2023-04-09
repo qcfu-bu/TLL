@@ -189,7 +189,17 @@ module Usage = struct
     if VMap.for_all aux usg.var && IMap.for_all aux usg.const then
       ()
     else
-      failwith "assert_empty"
+      let aux0 fmt map =
+        VMap.iter
+          (fun x (s, b) -> pf fmt "{%a, %a, %b}@." V.pp x pp_sort s b)
+          map
+      in
+      let aux1 fmt map =
+        IMap.iter
+          (fun x (s, b) -> pf fmt "{%a, %a, %b}@." I.pp x pp_sort s b)
+          map
+      in
+      failwith "assert_empty@.%a@.%a" aux0 usg.var aux1 usg.const
 
   let remove_var x usg r s =
     match (r, s) with
@@ -710,6 +720,7 @@ module Program = struct
       | Ch (Pos, a) ->
         let ty = IO (Data (Prelude1.unit_d, [], [])) in
         let m_elab, usg = check_tm res (Context.add_var x a0 s ctx) env m ty in
+        let usg = Usage.(remove_var x usg R L) in
         Syntax2.(IO (Ch (Neg, a)), _Fork (bind_var (trans_var x) m_elab), usg)
       | _ -> failwith "Program.infer_Fork")
     | Recv m -> (

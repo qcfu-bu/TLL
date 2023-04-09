@@ -388,8 +388,8 @@ let tm_act :=
       Act (rel, Neg, a, Binder (id, b)) }
 
 let tm_ch :=
-  | TM_CH; a = tm; FRQ; { Ch (Pos, a) }
-  | TM_HC; a = tm; FRQ; { Ch (Neg, a) }
+  | TM_CH; a = tm; RANGLE; { Ch (Pos, a) }
+  | TM_HC; a = tm; RANGLE; { Ch (Neg, a) }
 
 let tm_open :=
   | TM_OPEN; PRIM_STDIN; { Open Stdin }

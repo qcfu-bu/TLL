@@ -190,10 +190,9 @@ let rec trans_tm = function
     return Syntax3.(_Lam (trans_sort s) bnd)
   | Close (Pos, m) ->
     let arg = Syntax3.(V.mk "_") in
-    let x = Syntax3.(V.mk "x") in
     let* m = trans_tm m in
     let* c = resolve_c Prelude1.tt_c in
-    let bnd = Syntax3.(bind_var x (_Cons c (box []))) in
+    let bnd = Syntax3.(bind_var arg (_Cons c (box []))) in
     let bnd = Syntax3.(bind_var arg (_Let m bnd)) in
     return Syntax3.(_Lam L bnd)
   | Close (Neg, m) ->

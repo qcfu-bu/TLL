@@ -167,14 +167,12 @@ let rec trans_tm procs (vtbl : vtbl) m =
     (procs, [ Open { lhs; mode = trans_prim prim } ], Reg lhs)
   | Fork bnd ->
     let x, m = unbind bnd in
-    let xid = V.to_string x in
     let fvs = fv (VSet.singleton x) m in
     let env = List.map (fun x -> VMap.find x vtbl) fvs in
     let vtbl =
       Util.fold_lefti
         (fun i acc x -> VMap.add x (Env i) acc)
-        (VMap.singleton x (Reg xid))
-        fvs
+        VMap.empty (x :: fvs)
     in
     let procs, instr, ret = trans_tm procs vtbl m in
     let fname = T.mk "fork_fun" in

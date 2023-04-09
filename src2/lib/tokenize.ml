@@ -124,8 +124,8 @@ let tm_io = [%sedlex.regexp? "IO"]
 let tm_return = [%sedlex.regexp? "return"]
 let tm_proto = [%sedlex.regexp? "proto"]
 let tm_end = [%sedlex.regexp? "end"]
-let tm_ch = [%sedlex.regexp? "ch‹"]
-let tm_hc = [%sedlex.regexp? "hc‹"]
+let tm_ch = [%sedlex.regexp? "ch"]
+let tm_hc = [%sedlex.regexp? "hc"]
 let tm_open = [%sedlex.regexp? "open"]
 let tm_fork = [%sedlex.regexp? "fork"]
 let tm_recv = [%sedlex.regexp? "recv"]
@@ -258,8 +258,8 @@ let rec tokenize buf =
   | tm_return -> TM_RETURN
   | tm_proto -> TM_PROTO
   | tm_end -> TM_END
-  | tm_ch -> TM_CH
-  | tm_hc -> TM_HC
+  | tm_ch, langle -> TM_CH
+  | tm_hc, langle -> TM_HC
   | tm_open -> TM_OPEN
   | tm_fork -> TM_FORK
   | tm_recv -> TM_RECV
