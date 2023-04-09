@@ -5,8 +5,7 @@ type prim =
 [@@deriving show { with_path = false }]
 
 type value =
-  | GVar of string
-  | LVar of string
+  | Reg of string
   | Env of int
   | Idx of value * int
   | NULL

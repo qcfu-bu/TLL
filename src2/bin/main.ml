@@ -39,10 +39,8 @@ let _ =
       let _ = pr "%a@.@." Pprint3.pp_dcls dcls3e in
       let _ = pr "trans3e success--------------------------@.@." in
       (* trans34 *)
-      let procs, instr, ret = Trans34.trans_dcls dcls3e in
-      let _ = pr "%a@.@." Syntax4.pp_procs procs in
-      let _ = pr "%a@.@." Syntax4.pp_instrs instr in
-      let _ = pr "%a@.@." Syntax4.pp_value ret in
+      let dcls4 = Trans34.trans_dcls dcls3e in
+      let _ = pr "%a@.@." Pprint4.pp_prog dcls4 in
       let _ = pr "trans34 success--------------------------@.@." in
       ()
   with

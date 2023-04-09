@@ -82,7 +82,7 @@ let rec trans_tm procs (vtbl : vtbl) m =
   match m with
   (* core *)
   | Var x -> (procs, [], VMap.find x vtbl)
-  | Const x -> (procs, [], GVar (I.to_string x))
+  | Const x -> (procs, [], Reg (I.to_string x))
   | Lam (_, bnd) ->
     let x, m = unbind bnd in
     let xid = V.to_string x in
@@ -91,14 +91,14 @@ let rec trans_tm procs (vtbl : vtbl) m =
     let vtbl =
       Util.fold_lefti
         (fun i acc x -> VMap.add x (Env i) acc)
-        (VMap.singleton x (LVar xid))
+        (VMap.singleton x (Reg xid))
         fvs
     in
     let procs, instr, ret = trans_tm procs vtbl m in
     let fname = T.mk "lam_fun" in
     let lhs = T.mk "lam_clo" in
     let proc = LFun { fname; param = Some xid; body = instr; return = ret } in
-    (proc :: procs, [ Clo { lhs; fname; env } ], LVar lhs)
+    (proc :: procs, [ Clo { lhs; fname; env } ], Reg lhs)
   | Call (x, ms) ->
     let xid = I.to_string x in
     let lhs = T.mk "call_ret" in
@@ -109,7 +109,7 @@ let rec trans_tm procs (vtbl : vtbl) m =
           (procs, ms_instr @ m_instr, ms_ret @ [ m_ret ]))
         (procs, [], []) ms
     in
-    (procs, ms_instr @ [ Call { lhs; fname = xid; aptrs = ms_ret } ], LVar lhs)
+    (procs, ms_instr @ [ Call { lhs; fname = xid; aptrs = ms_ret } ], Reg lhs)
   | App (s, m, n) ->
     let procs, m_instr, m_ret = trans_tm procs vtbl m in
     let procs, n_instr, n_ret = trans_tm procs vtbl n in
@@ -119,12 +119,12 @@ let rec trans_tm procs (vtbl : vtbl) m =
       | U -> [ App { lhs = ret; fptr = m_ret; aptr = n_ret } ]
       | L -> [ App { lhs = ret; fptr = m_ret; aptr = n_ret }; FreeClo m_ret ]
     in
-    (procs, m_instr @ n_instr @ app_instr, LVar ret)
+    (procs, m_instr @ n_instr @ app_instr, Reg ret)
   | Let (m, bnd) ->
     let x, n = unbind bnd in
     let xid = V.to_string x in
     let procs, m_instr, m_ret = trans_tm procs vtbl m in
-    let procs, n_instr, n_ret = trans_tm procs (VMap.add x (LVar xid) vtbl) n in
+    let procs, n_instr, n_ret = trans_tm procs (VMap.add x (Reg xid) vtbl) n in
     (procs, m_instr @ [ Mov { lhs = xid; rhs = m_ret } ] @ n_instr, n_ret)
   (* data *)
   | Pair (m, n) ->
@@ -134,7 +134,7 @@ let rec trans_tm procs (vtbl : vtbl) m =
     ( procs
     , m_instr @ n_instr
       @ [ Struct { lhs; ctag = 0; size = 2; data = [ m_ret; n_ret ] } ]
-    , LVar lhs )
+    , Reg lhs )
   | Cons (c, ms) ->
     let procs, ms_instr, ms_ret =
       List.fold_left
@@ -149,10 +149,10 @@ let rec trans_tm procs (vtbl : vtbl) m =
       @ [ Struct
             { lhs; ctag = C.get_id c; size = List.length ms; data = ms_ret }
         ]
-    , LVar lhs )
+    , Reg lhs )
   | Match (s, m, cls) ->
     let procs, m_instr, m_ret = trans_tm procs vtbl m in
-    let ret = T.mk "switch_tmp" in
+    let ret = T.mk "switch_ret" in
     let procs, cls =
       List.fold_left
         (fun (procs, cls) cl ->
@@ -160,11 +160,11 @@ let rec trans_tm procs (vtbl : vtbl) m =
           (procs, cls @ [ cl ]))
         (procs, []) cls
     in
-    (procs, m_instr @ [ Switch { cond = m_ret; cases = cls } ], LVar ret)
+    (procs, m_instr @ [ Switch { cond = m_ret; cases = cls } ], Reg ret)
   (* effect *)
   | Open prim ->
     let lhs = T.mk "prim_ch" in
-    (procs, [ Open { lhs; mode = trans_prim prim } ], LVar lhs)
+    (procs, [ Open { lhs; mode = trans_prim prim } ], Reg lhs)
   | Fork bnd ->
     let x, m = unbind bnd in
     let xid = V.to_string x in
@@ -173,7 +173,7 @@ let rec trans_tm procs (vtbl : vtbl) m =
     let vtbl =
       Util.fold_lefti
         (fun i acc x -> VMap.add x (Env i) acc)
-        (VMap.singleton x (LVar xid))
+        (VMap.singleton x (Reg xid))
         fvs
     in
     let procs, instr, ret = trans_tm procs vtbl m in
@@ -181,23 +181,23 @@ let rec trans_tm procs (vtbl : vtbl) m =
     let lhs = T.mk "fork_ch" in
     let tmp = T.mk "fork_ret" in
     let instr = instr @ [ Mov { lhs = tmp; rhs = ret }; FreeThread ] in
-    let proc = LFun { fname; param = None; body = instr; return = LVar tmp } in
-    (proc :: procs, [ Fork { lhs; fname; env } ], LVar lhs)
+    let proc = LFun { fname; param = None; body = instr; return = Reg tmp } in
+    (proc :: procs, [ Fork { lhs; fname; env } ], Reg lhs)
   | Recv m ->
     let lhs = T.mk "recv_msg" in
     let procs, instr, ret = trans_tm procs vtbl m in
-    (procs, instr @ [ Recv { lhs; ch = ret } ], LVar lhs)
+    (procs, instr @ [ Recv { lhs; ch = ret } ], Reg lhs)
   | Send (m, n) ->
     let lhs = T.mk "send_ch" in
     let procs, m_instr, m_ret = trans_tm procs vtbl m in
     let procs, n_instr, n_ret = trans_tm procs vtbl n in
     ( procs
     , m_instr @ n_instr @ [ Send { lhs; ch = m_ret; msg = n_ret } ]
-    , LVar lhs )
+    , Reg lhs )
   | Close m ->
     let lhs = T.mk "close_tmp" in
     let procs, instr, ret = trans_tm procs vtbl m in
-    (procs, instr @ [ Close { lhs; ch = ret } ], LVar lhs)
+    (procs, instr @ [ Close { lhs; ch = ret } ], Reg lhs)
   (* erausre *)
   | NULL -> (procs, [], NULL)
 
@@ -211,7 +211,7 @@ and trans_cl procs vtbl ret m_ret cl s =
           let lhs = V.to_string x in
           ( i + 1
           , instr @ [ Mov { lhs; rhs = Idx (m_ret, i) } ]
-          , VMap.add x (LVar lhs) vtbl ))
+          , VMap.add x (Reg lhs) vtbl ))
         (0, [], vtbl) xs
     in
     let procs, rhs_instr, rhs_ret = trans_tm procs vtbl rhs in
@@ -230,7 +230,7 @@ and trans_cl procs vtbl ret m_ret cl s =
           let lhs = V.to_string x in
           ( i + 1
           , instr @ [ Mov { lhs; rhs = Idx (m_ret, i) } ]
-          , VMap.add x (LVar lhs) vtbl ))
+          , VMap.add x (Reg lhs) vtbl ))
         (0, [], vtbl) xs
     in
     let procs, rhs_instr, rhs_ret = trans_tm procs vtbl rhs in
@@ -252,14 +252,14 @@ let trans_dcls dcls =
       let xids = List.map V.to_string xs in
       let vtbl =
         List.fold_left2
-          (fun acc x xid -> VMap.add x (LVar xid) acc)
+          (fun acc x xid -> VMap.add x (Reg xid) acc)
           VMap.empty xs xids
       in
       let procs, instr, ret = trans_tm procs vtbl m in
       let proc =
         GFun { fname = xid; param = xids; body = instr; return = ret }
       in
-      aux (procs @ [ proc ]) dcls
+      aux (proc :: procs) dcls
     | DVal (x, m) :: dcls ->
       let xid = I.to_string x in
       let procs, m_instr, m_ret = trans_tm procs VMap.empty m in
@@ -269,4 +269,5 @@ let trans_dcls dcls =
       let procs, instr, ret = trans_tm procs VMap.empty m in
       (procs, instr @ [ FreeStruct ret ], NULL)
   in
-  aux [] dcls
+  let procs, instr, ret = aux [] dcls in
+  (List.rev procs, instr, ret)
