@@ -50,21 +50,28 @@ let pp_prim fmt = function
   | Stdout -> pf fmt "stdout"
   | Stderr -> pf fmt "stderr"
 
-let rec lam_gather m =
+let rec lam_gather s m =
   match m with
-  | Lam bnd ->
-    let x, m = unbind bnd in
-    let xs, m = lam_gather m in
-    (x :: xs, m)
+  | Lam (t, bnd) ->
+    if s = t then
+      let x, m = unbind bnd in
+      let xs, m = lam_gather s m in
+      (x :: xs, m)
+    else
+      ([], m)
   | m -> ([], m)
 
 and pp_tm fmt = function
   (* core *)
   | Var x -> V.pp fmt x
   | Const x -> pf fmt "%a" I.pp x
-  | Lam _ as m ->
-    let xs, m = lam_gather m in
-    pf fmt "@[fn @[%a@] ⇒@;<1 2>@[%a@]@]" (list ~sep:sp V.pp) xs pp_tm m
+  | Lam (s, bnd) -> (
+    let x, m = unbind bnd in
+    let xs, m = lam_gather s m in
+    let xs = x :: xs in
+    match s with
+    | U -> pf fmt "@[fn @[%a@] ⇒@;<1 2>@[%a@]@]" (list ~sep:sp V.pp) xs pp_tm m
+    | L -> pf fmt "@[ln @[%a@] ⇒@;<1 2>@[%a@]@]" (list ~sep:sp V.pp) xs pp_tm m)
   | App (_, m, n) -> pf fmt "@[(%a@;<1 2>@[%a@])@]" pp_tm m pp_tm n
   | Let (m, bnd) ->
     let x, n = unbind bnd in
@@ -101,9 +108,9 @@ and pp_tm fmt = function
     let x, m = unbind bnd in
     pf fmt "@[@[fork %a in@]@;<1 2>%a@]" V.pp x pp_tm m
   | Recv (R, m) -> pf fmt "recv %a" pp_tm m
-  | Send (R, m) -> pf fmt "send %a" pp_tm m
+  | Send (R, _, m) -> pf fmt "send %a" pp_tm m
   | Recv (N, m) -> pf fmt "{recv} %a" pp_tm m
-  | Send (N, m) -> pf fmt "{send} %a" pp_tm m
+  | Send (N, _, m) -> pf fmt "{send} %a" pp_tm m
   | Close (rol, m) -> pf fmt "close%a %a" pp_role rol pp_tm m
   | NULL -> pf fmt "NULL"
 

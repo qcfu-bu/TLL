@@ -581,8 +581,8 @@ module Program = struct
       match s with
       | U ->
         let _ = Usage.assert_pure usg in
-        Syntax2.(Pi (rel, s, a, unbox b_bnd), _Lam m_bnd, usg)
-      | L -> Syntax2.(Pi (rel, s, a, unbox b_bnd), _Lam m_bnd, usg)
+        Syntax2.(Pi (rel, s, a, unbox b_bnd), _Lam U m_bnd, usg)
+      | L -> Syntax2.(Pi (rel, s, a, unbox b_bnd), _Lam L m_bnd, usg)
       | _ -> failwith "Program.infer_Lam")
     | App (m, n) -> (
       let a, m_elab, usg1 = infer_tm res ctx env m in
@@ -725,8 +725,10 @@ module Program = struct
       match whnf env ty_m with
       | Ch (rol1, Act (rel, rol2, a, bnd)) when rol1 <> rol2 = false ->
         let x, b = unbind bnd in
+        let s = Logical.infer_sort res ctx env a in
         let bnd = unbox (bind_var x (lift_tm (IO (Ch (rol1, b))))) in
-        Syntax2.(Pi (rel, L, a, bnd), _Send (trans_rel rel) m_elab, usg)
+        Syntax2.
+          (Pi (rel, L, a, bnd), _Send (trans_rel rel) (trans_sort s) m_elab, usg)
       | _ -> failwith "Program.infer_Send")
     | Close m -> (
       let ty_m, m_elab, usg = infer_tm res ctx env m in
@@ -868,8 +870,8 @@ module Program = struct
       match s0 with
       | U ->
         let _ = Usage.assert_pure usg in
-        Syntax2.(_Lam m_bnd, usg)
-      | L -> Syntax2.(_Lam m_bnd, usg)
+        Syntax2.(_Lam U m_bnd, usg)
+      | L -> Syntax2.(_Lam L m_bnd, usg)
       | _ -> failwith "Program.check_Lam")
     | Let (N, m, bnd), a0 ->
       let x, n = unbind bnd in

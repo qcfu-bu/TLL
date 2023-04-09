@@ -23,7 +23,7 @@ type tm =
   (* core *)
   | Var of tm var
   | Const of I.t
-  | Lam of (tm, tm) binder
+  | Lam of sort * (tm, tm) binder
   | App of sort * tm * tm
   | Let of tm * (tm, tm) binder
   (* data *)
@@ -37,7 +37,7 @@ type tm =
   | Open of prim
   | Fork of (tm, tm) binder
   | Recv of rel * tm
-  | Send of rel * tm
+  | Send of rel * sort * tm
   | Close of role * tm
   (* erasure *)
   | NULL
@@ -78,7 +78,7 @@ let _Stderr = box Stderr
 (* core *)
 let _Var = box_var
 let _Const x = box (Const x)
-let _Lam = box_apply (fun bnd -> Lam bnd)
+let _Lam s = box_apply (fun bnd -> Lam (s, bnd))
 let _App s = box_apply2 (fun m n -> App (s, m, n))
 let _Let = box_apply2 (fun m bnd -> Let (m, bnd))
 
@@ -95,7 +95,7 @@ let _MLet = box_apply2 (fun m bnd -> MLet (m, bnd))
 let _Open prim = box (Open prim)
 let _Fork = box_apply (fun bnd -> Fork bnd)
 let _Recv rel = box_apply (fun m -> Recv (rel, m))
-let _Send rel = box_apply (fun m -> Send (rel, m))
+let _Send rel s = box_apply (fun m -> Send (rel, s, m))
 let _Close rol = box_apply (fun m -> Close (rol, m))
 
 (* erasure *)
@@ -117,7 +117,7 @@ let rec lift_tm = function
   (* core *)
   | Var x -> _Var x
   | Const x -> _Const x
-  | Lam bnd -> _Lam (box_binder lift_tm bnd)
+  | Lam (s, bnd) -> _Lam s (box_binder lift_tm bnd)
   | App (s, m, n) -> _App s (lift_tm m) (lift_tm n)
   | Let (m, bnd) -> _Let (lift_tm m) (box_binder lift_tm bnd)
   (* data *)
@@ -141,7 +141,7 @@ let rec lift_tm = function
   | Open prim -> _Open prim
   | Fork bnd -> _Fork (box_binder lift_tm bnd)
   | Recv (rel, m) -> _Recv rel (lift_tm m)
-  | Send (rel, m) -> _Send rel (lift_tm m)
+  | Send (rel, s, m) -> _Send rel s (lift_tm m)
   | Close (rol, m) -> _Close rol (lift_tm m)
   (* erasure *)
   | NULL -> _NULL
@@ -155,3 +155,11 @@ let lift_dcl = function
   | DMain m -> _DMain (lift_tm m)
 
 let lift_dcls dcls = box_list (List.map lift_dcl dcls)
+
+let unApps m =
+  let rec aux m ns =
+    match m with
+    | App (s, m, n) -> aux m (n :: ns)
+    | _ -> (m, ns)
+  in
+  aux m []

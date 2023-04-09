@@ -9,15 +9,21 @@
 #include "prelude.h"
 #include "runtime.h"
 
+/*-------------------------------------------------------*/
+
 void instr_init()
 {
   GC_INIT();
 }
 
+/*-------------------------------------------------------*/
+
 void instr_mov(tll_ptr *x, tll_ptr v)
 {
   *x = v;
 }
+
+/*-------------------------------------------------------*/
 
 void instr_clo(
     tll_ptr *x,
@@ -42,6 +48,8 @@ void instr_clo(
   *x = (tll_ptr)tmp;
 }
 
+/*-------------------------------------------------------*/
+
 void instr_call(tll_ptr *x, tll_ptr clo, tll_ptr v)
 {
   tll_ptr (*f)(tll_ptr, tll_env) = ((tll_clo)clo)->f;
@@ -49,6 +57,8 @@ void instr_call(tll_ptr *x, tll_ptr clo, tll_ptr v)
   env[0] = clo;
   *x = (*f)(v, env);
 }
+
+/*-------------------------------------------------------*/
 
 void instr_struct(tll_ptr *x, int tag, int size, ...)
 {
@@ -67,9 +77,15 @@ void instr_struct(tll_ptr *x, int tag, int size, ...)
   *x = (tll_ptr)tmp;
 }
 
+/*-------------------------------------------------------*/
+
+tll_ptr proc_open(tll_ptr __, tll_env env)
+{
+}
+
 void instr_open(
     tll_ptr *x,
-    tll_ptr (*f)(tll_env), tll_ptr m,
+    tll_ptr (*f)(tll_env),
     int size, tll_env env,
     int narg, ...)
 {
@@ -87,9 +103,11 @@ void instr_open(
   }
   va_end(ap);
 
-  pthread_create(&th, m, (void *)f, local);
-  instr_struct(x, 0, 2, ch, m);
+  pthread_create(&th, 0, (void *)f, local);
+  instr_struct(x, 0, 1, ch);
 }
+
+/*-------------------------------------------------------*/
 
 tll_ptr proc_sender(tll_ptr x, tll_env env)
 {
@@ -102,6 +120,8 @@ void instr_send(tll_ptr *x, tll_ptr ch, int mode)
   instr_clo(x, &proc_sender, 0, 0, 1, ch);
 }
 
+/*-------------------------------------------------------*/
+
 void instr_recv(tll_ptr *x, tll_ptr ch, int tag)
 {
   tll_ptr msg;
@@ -109,11 +129,15 @@ void instr_recv(tll_ptr *x, tll_ptr ch, int tag)
   instr_struct(x, tag, 2, msg, ch);
 }
 
+/*-------------------------------------------------------*/
+
 void instr_close(tll_ptr *x, tll_ptr ch, int mode)
 {
   chan_dispose((chan_t *)ch);
   instr_struct(x, tt_c, 0);
 }
+
+/*-------------------------------------------------------*/
 
 tll_ptr instr_to_bit(int i)
 {
@@ -200,6 +224,8 @@ char *instr_from_string(tll_ptr x)
   }
   return str;
 }
+
+/*-------------------------------------------------------*/
 
 tll_ptr proc_stdout(tll_ptr ch)
 {
@@ -305,17 +331,23 @@ void instr_prim(tll_ptr *x, tll_ptr (*f)(tll_ptr))
   *x = ch;
 }
 
+/*-------------------------------------------------------*/
+
 void instr_free_clo(tll_ptr *x)
 {
   GC_free(((tll_clo)x)->env);
   GC_free(x);
 }
 
+/*-------------------------------------------------------*/
+
 void instr_free_struct(tll_ptr *x)
 {
   GC_free(((tll_node)x)->data);
   GC_free(x);
 }
+
+/*-------------------------------------------------------*/
 
 void instr_free_thread(tll_env env)
 {

@@ -35,7 +35,7 @@ void instr_clo(tll_ptr *x, tll_ptr (*f)(tll_ptr, tll_env),
                int size, tll_env env, int narg, ...);
 void instr_call(tll_ptr *x, tll_ptr clo, tll_ptr v);
 void instr_struct(tll_ptr *x, int tag, int size, ...);
-void instr_open(tll_ptr *x, tll_ptr (*f)(tll_env), tll_ptr m,
+void instr_open(tll_ptr *x, tll_ptr (*f)(tll_env),
                 int size, tll_env env, int narg, ...);
 void instr_send(tll_ptr *x, tll_ptr ch, int mode);
 void instr_recv(tll_ptr *x, tll_ptr ch, int mode);
