@@ -125,9 +125,9 @@ and pp_instr fmt = function
     | Stdin -> pf fmt "instr_open(&%s, &proc_stdin);" lhs
     | Stderr -> pf fmt "instr_open(&%s, &proc_stderr);" lhs)
   | Fork { lhs; fname; env = [] } ->
-    pf fmt "instr_fork(&%s, &%s, %d)" lhs fname 0
+    pf fmt "instr_fork(&%s, &%s, %d);" lhs fname 0
   | Fork { lhs; fname; env } ->
-    pf fmt "instr_fork(&%s, &%s, %d, %a)" lhs fname (List.length env) pp_values
+    pf fmt "instr_fork(&%s, &%s, %d, %a);" lhs fname (List.length env) pp_values
       env
   | Send { lhs; ch; msg } ->
     pf fmt "instr_send(&%s, %a, %a);" lhs pp_value ch pp_value msg

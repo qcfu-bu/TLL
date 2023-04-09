@@ -87,7 +87,7 @@ let dot = [%sedlex.regexp? '.']
 let colon = [%sedlex.regexp? ':']
 let comma = [%sedlex.regexp? ',']
 let semi = [%sedlex.regexp? ';']
-let bullet = [%sedlex.regexp? 8226] (* • *)
+let bullet = [%sedlex.regexp? 8226 | 8729] (* • *)
 
 (* sort *)
 let sort_u = [%sedlex.regexp? 'U']
