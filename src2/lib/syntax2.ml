@@ -159,7 +159,7 @@ let lift_dcls dcls = box_list (List.map lift_dcl dcls)
 let unApps m =
   let rec aux m ns =
     match m with
-    | App (s, m, n) -> aux m (n :: ns)
+    | App (s, m, n) -> aux m ((n, s) :: ns)
     | _ -> (m, ns)
   in
   aux m []

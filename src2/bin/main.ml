@@ -31,10 +31,13 @@ let _ =
       let _ = pr "%a@.@." Pprint2.pp_dcls dcls2 in
       let _ = pr "trans12 success--------------------------@.@." in
       (* trans23 *)
-      let procs, instr, ret = Trans23.trans_dcls res dcls2 in
-      let _ = pr "%a@.@." (Pprint3.pp_prelude res) () in
-      let _ = pr "%a@.@." Pprint3.pp_prog (procs, instr, ret) in
+      let dcls3 = Trans23.trans_dcls res dcls2 in
+      let _ = pr "%a@.@." Pprint3.pp_dcls dcls3 in
       let _ = pr "trans23 success--------------------------@.@." in
+      (* trans3e *)
+      let dcls3e = Trans3e.trans_dcls dcls3 in
+      let _ = pr "%a@.@." Pprint3.pp_dcls dcls3e in
+      let _ = pr "trans3e success--------------------------@.@." in
       ()
   with
   | Failure s ->

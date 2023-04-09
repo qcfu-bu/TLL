@@ -4,7 +4,7 @@ open Names
 open Trans12
 open Syntax2
 
-type 'a trans23 = int IMap.t * Resolver.t -> 'a
+type 'a trans23 = (int * I.t) IMap.t * Resolver.t -> 'a
 
 let return m : 'a trans23 = fun arity -> m
 
@@ -12,7 +12,10 @@ let ( >>= ) (m : 'a trans23) (f : 'a -> 'b trans23) : 'b trans23 =
  fun arity -> f (m arity) arity
 
 let ( let* ) = ( >>= )
-let get_arity x : int trans23 = fun (arity, _) -> IMap.find x arity
+
+let get_arity x : (int * I.t) option trans23 =
+ fun (arity, _) -> IMap.find_opt x arity
+
 let resolve_c c : C.t trans23 = fun (_, res) -> Resolver.find_cons c [] res
 
 let set_arity x i (m : 'a trans23) : 'a trans23 =
@@ -29,9 +32,7 @@ let rec mapM (f : 'a -> 'b trans23) (xs : 'a list) : 'b list trans23 =
 let rec foldM xs acc f : 'b trans23 =
   match xs with
   | [] -> return acc
-  | x :: xs ->
-    let* acc = f x acc in
-    foldM xs acc f
+  | x :: xs -> foldM xs acc f >>= f x
 
 let trans_sort = function
   | U -> Syntax3.U
@@ -52,6 +53,14 @@ let rec gather_mlet = function
     ((x, m) :: xs, n)
   | m -> ([], m)
 
+let rec gather_lam m =
+  match m with
+  | Lam (s, bnd) ->
+    let x, m = unbind bnd in
+    let xs, m = gather_lam m in
+    ((x, s) :: xs, m)
+  | _ -> ([], m)
+
 let rec trans_tm = function
   | Var x -> return Syntax3.(_Var (trans_var x))
   | Const x -> return Syntax3.(_Const x)
@@ -63,15 +72,27 @@ let rec trans_tm = function
   | App (s, m, n) as tm -> (
     let hd, sp = unApps tm in
     match hd with
-    | Const x ->
-      let* i = get_arity x in
-      if i = List.length sp then
-        let* sp = mapM trans_tm sp in
-        return Syntax3.(_Call x (box_list sp))
-      else
+    | Const x0 -> (
+      let* opt = get_arity x0 in
+      match opt with
+      | Some (i, x1) ->
+        let* sp =
+          mapM
+            (fun (n, s) ->
+              let* n = trans_tm n in
+              let s = trans_sort s in
+              return (n, s))
+            sp
+        in
+        if i = List.length sp then
+          let sp = List.map fst sp in
+          return Syntax3.(_Call x0 (box_list sp))
+        else
+          return Syntax3.(_mkApps (_Const x1) sp)
+      | _ ->
         let* m = trans_tm m in
         let* n = trans_tm n in
-        return Syntax3.(_App (trans_sort s) m n)
+        return Syntax3.(_App (trans_sort s) m n))
     | _ ->
       let* m = trans_tm m in
       let* n = trans_tm n in
@@ -157,16 +178,16 @@ let rec trans_tm = function
     let arg = Syntax3.(V.mk "_") in
     let x = Syntax3.(V.mk "x") in
     let* m = trans_tm m in
-    let bnd = Syntax3.(bind_var x (_Send m (_Var x))) in
-    let bnd = Syntax3.(bind_var arg (_Lam (trans_sort s) bnd)) in
-    return Syntax3.(_Lam L bnd)
+    let bnd = Syntax3.(bind_var arg (_Send m (_Var x))) in
+    let bnd = Syntax3.(bind_var x (_Lam L bnd)) in
+    return Syntax3.(_Lam (trans_sort s) bnd)
   | Send (N, s, m) ->
     let arg = Syntax3.(V.mk "_") in
     let x = Syntax3.(V.mk "x") in
     let* m = trans_tm m in
-    let bnd = Syntax3.(bind_var x m) in
-    let bnd = Syntax3.(bind_var arg (_Lam (trans_sort s) bnd)) in
-    return Syntax3.(_Lam L bnd)
+    let bnd = Syntax3.(bind_var arg m) in
+    let bnd = Syntax3.(bind_var x (_Lam L bnd)) in
+    return Syntax3.(_Lam (trans_sort s) bnd)
   | Close (Pos, m) ->
     let arg = Syntax3.(V.mk "_") in
     let x = Syntax3.(V.mk "x") in
@@ -182,3 +203,33 @@ let rec trans_tm = function
     return Syntax3.(_Lam L bnd)
   (* erasure *)
   | NULL -> return Syntax3._NULL
+
+let trans_dcls res dcls =
+  let rec aux = function
+    | DTm (x0, (Lam _ as m)) :: dcls ->
+      let xs0, m = gather_lam m in
+      let xs1 = List.map (fun (x, s) -> trans_var x) xs0 in
+      let x1 = I.extend x0 "clo" in
+      let* m = set_arity x0 (List.length xs0, x1) (trans_tm m) in
+      let bnd = bind_mvar (Array.of_list xs1) m in
+      let clo =
+        List.fold_right
+          (fun (x, s) acc ->
+            Syntax3.(_Lam (trans_sort s) (bind_var (trans_var x) acc)))
+          xs0
+          Syntax3.(_Call x0 (box_list (List.map _Var xs1)))
+      in
+      let* dcls = set_arity x0 (List.length xs0, x1) (aux dcls) in
+      return Syntax3.(_DFun x0 bnd :: _DVal x1 clo :: dcls)
+    | DTm (x0, m) :: dcls ->
+      let* m = trans_tm m in
+      let* dcls = aux dcls in
+      return Syntax3.(_DVal x0 m :: dcls)
+    | DData _ :: dcls -> aux dcls
+    | DMain m :: _ ->
+      let* m = trans_tm m in
+      return Syntax3.[ _DMain (_App L m _NULL) ]
+    | [] -> return []
+  in
+  let dcls = aux dcls (IMap.empty, res) in
+  unbox (box_list dcls)
