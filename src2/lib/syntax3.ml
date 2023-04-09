@@ -23,7 +23,7 @@ type tm =
   | Pair of tm * tm
   | Cons of C.t * tms
   | Match of sort * tm * cls
-  (* effect *)
+  (* effect (non-monadic) *)
   | Open of prim
   | Fork of (tm, tm) binder
   | Recv of tm
@@ -53,6 +53,9 @@ module V = struct
   let pp fmt x = pf fmt "%s_v%d" (name_of x) (uid_of x)
   let to_string x = to_to_string pp x
 end
+
+module VSet = Set.Make (V)
+module VMap = Map.Make (V)
 
 (* smart constructors *)
 let var x = Var x
