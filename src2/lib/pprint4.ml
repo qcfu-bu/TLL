@@ -96,8 +96,8 @@ and pp_instr fmt = function
   | Clo { lhs; fname; env = [] } ->
     pf fmt "instr_clo(&%s, &%s, %d);" lhs fname 0
   | Clo { lhs; fname; env } ->
-    pf fmt "instr_clo(&%s, &%s, %d, %a);" lhs fname (List.length env) pp_values
-      env
+    pf fmt "instr_clo(@[&%s, &%s, %d,@;<1 0>@[%a@]@]);" lhs fname
+      (List.length env) pp_values env
   | Call { lhs; fname; aptrs } ->
     pf fmt "%s = %s(%a);" lhs fname pp_values aptrs
   | App { lhs; fptr; aptr } ->
@@ -105,8 +105,8 @@ and pp_instr fmt = function
   | Struct { lhs; ctag; size; data = [] } ->
     pf fmt "instr_struct(&%s, %d, %d);" lhs ctag 0
   | Struct { lhs; ctag; size; data } ->
-    pf fmt "instr_struct(&%s, %d, %d, %a);" lhs ctag (List.length data)
-      pp_values data
+    pf fmt "instr_struct(@[&%s, %d, %d,@;<1 0>@[%a@]@]);" lhs ctag
+      (List.length data) pp_values data
   | Switch { cond; cases } ->
     pf fmt "@[<v 0>switch(((tll_node)%a)->tag) {@;<1 2>@[%a@]@;<1 0>}@]"
       pp_value cond pp_cases cases

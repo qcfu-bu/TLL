@@ -224,42 +224,37 @@ void instr_fork(tll_ptr *x, tll_ptr (*f)(tll_env), int size, ...) {
   va_list ap;
   pthread_t th;
   tll_ptr ch = (tll_ptr)chan_init(0);
-  tll_env local = (tll_env)GC_malloc(tll_ptr_size * size);
+  tll_env local = (tll_env)GC_malloc(tll_ptr_size * (size + 1));
 
   local[0] = ch;
-  memcpy(local + narg + 1, env, size * tll_ptr_size);
-  va_start(ap, narg);
-  for (int i = 0; i < narg; i++) {
+  va_start(ap, size);
+  for (int i = 0; i < size; i++) {
     local[i + 1] = va_arg(ap, tll_ptr);
   }
   va_end(ap);
 
   pthread_create(&th, 0, (void *)f, local);
-  instr_struct(x, 0, 1, ch);
+  *x = ch;
 }
 
 /*-------------------------------------------------------*/
 
-tll_ptr proc_sender(tll_ptr x, tll_env env) {
-  int res = chan_send((chan_t *)env[1], x);
-  return env[1];
-}
-
-void instr_send(tll_ptr *x, tll_ptr ch, int mode) {
-  instr_clo(x, &proc_sender, 0, 0, 1, ch);
+void instr_send(tll_ptr *x, tll_ptr ch, tll_ptr msg) {
+  chan_send((chan_t *)ch, msg);
+  *x = ch;
 }
 
 /*-------------------------------------------------------*/
 
-void instr_recv(tll_ptr *x, tll_ptr ch, int tag) {
+void instr_recv(tll_ptr *x, tll_ptr ch) {
   tll_ptr msg;
-  int res = chan_recv((chan_t *)ch, &msg);
-  instr_struct(x, tag, 2, msg, ch);
+  chan_recv((chan_t *)ch, &msg);
+  instr_struct(x, 0, 2, msg, ch);
 }
 
 /*-------------------------------------------------------*/
 
-void instr_close(tll_ptr *x, tll_ptr ch, int mode) {
+void instr_close(tll_ptr *x, tll_ptr ch) {
   chan_dispose((chan_t *)ch);
   instr_struct(x, tt_c, 0);
 }
