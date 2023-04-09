@@ -40,6 +40,7 @@ let _ =
       let _ = pr "trans3e success--------------------------@.@." in
       (* trans34 *)
       let dcls4 = Trans34.trans_dcls dcls3e in
+      let _ = pr "%a@.@." Pprint4.pp_prelude res in
       let _ = pr "%a@.@." Pprint4.pp_prog dcls4 in
       let _ = pr "trans34 success--------------------------@.@." in
       ()

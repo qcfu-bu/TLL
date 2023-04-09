@@ -4,7 +4,7 @@ open Syntax4
 
 let resolve_c c res = Trans12.Resolver.find_cons c [] res
 
-let pp_prelude res fmt () =
+let pp_prelude fmt res =
   let pp_define fmt c0 =
     let c1 = resolve_c c0 res in
     pf fmt "#define %s_c %d" (C.get_name c1) (C.get_id c1)
@@ -61,7 +61,7 @@ let rec pp_proc fmt = function
     let xs = gather_var SSet.empty body in
     let rec pp_param fmt = function
       | [] -> ()
-      | [ x ] -> pf fmt "tll_ptl %s" x
+      | [ x ] -> pf fmt "tll_ptr %s" x
       | x :: xs -> pf fmt "tll_ptr %s, %a" x pp_param xs
     in
     pf fmt
