@@ -38,7 +38,7 @@ tll_ptr to_string(char *s) {
   tll_node x = (tll_node)GC_malloc(tll_node_size);
   x->tag = EmptyString_c;
   int len = strlen(s);
-  for (int i = 1; i <= len; i++) {
+  for (int i = 2; i <= len; i++) {
     tmp = (tll_node)GC_malloc(tll_node_size);
     tmp->tag = String_c;
     tmp->data = (tll_ptr *)GC_malloc(tll_ptr_size * 2);
