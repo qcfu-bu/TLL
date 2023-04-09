@@ -25,6 +25,7 @@ let rec pp_values fmt vs = pf fmt "@[%a@]" (list ~sep:comma pp_value) vs
 let rec gather_var ctx instrs =
   match instrs with
   | [] -> ctx
+  | Init _ :: instrs -> gather_var ctx instrs
   | Mov instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | Clo instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | Call instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
@@ -46,6 +47,12 @@ let rec gather_var ctx instrs =
   | FreeClo _ :: instrs -> gather_var ctx instrs
   | FreeStruct _ :: instrs -> gather_var ctx instrs
   | FreeThread :: instrs -> gather_var ctx instrs
+
+let rec gather_init ctx instrs =
+  match instrs with
+  | [] -> ctx
+  | Init instr :: instrs -> gather_init (SSet.add instr.lhs ctx) instrs
+  | _ :: instrs -> gather_init ctx instrs
 
 let pp_xs fmt ctx =
   let xs = SSet.elements ctx in
@@ -92,6 +99,7 @@ and pp_procs fmt = function
   | proc :: procs -> pf fmt "@[<v 0>%a@]@.@.%a" pp_proc proc pp_procs procs
 
 and pp_instr fmt = function
+  | Init { lhs; rhs } -> pf fmt "%s = %a;" lhs pp_value rhs
   | Mov { lhs; rhs } -> pf fmt "%s = %a;" lhs pp_value rhs
   | Clo { lhs; fname; env = [] } ->
     pf fmt "instr_clo(&%s, &%s, %d);" lhs fname 0
@@ -148,11 +156,13 @@ and pp_cases fmt cases =
   | case :: cases -> pf fmt "%a@;<1 0>%a" pp_case case pp_cases cases
 
 let pp_prog fmt (procs, instr, ret) =
-  let xs = gather_var SSet.empty instr in
+  let xs = gather_init SSet.empty instr in
+  let ys = gather_var SSet.empty instr in
   pf fmt
     "#include \"runtime.h\"@.@.@[<v 0>%a@]@.@.%a@.@.@[<v 0>int main()@;\
      <1 0>{@;\
      <1 2>@[<v 0>instr_init();@;\
+     <1 0>@[%a@]@;\
      <1 0>%a@;\
      <1 0>return %a;@]@;\
-     <1 0>}@]" pp_xs xs pp_procs procs pp_instrs instr pp_value ret
+     <1 0>}@]" pp_xs xs pp_procs procs pp_xs ys pp_instrs instr pp_value ret

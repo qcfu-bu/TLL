@@ -6,12 +6,8 @@ open Syntax4
 
 (* temporary identifiers *)
 module T : sig
-  type t
-
   val mk : string -> string
 end = struct
-  type t = string * int
-
   let stamp = ref 0
 
   let mk s =
@@ -262,7 +258,7 @@ let trans_dcls dcls =
       let xid = I.to_string x in
       let procs, m_instr, m_ret = trans_tm procs VMap.empty m in
       let procs, instr, ret = aux procs dcls in
-      (procs, m_instr @ [ Mov { lhs = xid; rhs = m_ret } ] @ instr, ret)
+      (procs, m_instr @ [ Init { lhs = xid; rhs = m_ret } ] @ instr, ret)
     | DMain m :: _ ->
       let procs, instr, ret = trans_tm procs VMap.empty m in
       (procs, instr @ [ FreeStruct ret ], NULL)

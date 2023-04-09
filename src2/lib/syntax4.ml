@@ -30,6 +30,10 @@ and proc =
 and procs = proc list
 
 and instr =
+  | Init of
+      { lhs : string
+      ; rhs : value
+      }
   | Mov of
       { lhs : string
       ; rhs : value
