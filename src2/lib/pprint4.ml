@@ -155,14 +155,30 @@ and pp_cases fmt cases =
   | [ case ] -> pp_case fmt case
   | case :: cases -> pf fmt "%a@;<1 0>%a" pp_case case pp_cases cases
 
+let rec pp_dcls fmt dcls =
+  let rec pp_param fmt = function
+    | [] -> ()
+    | [ x ] -> pf fmt "tll_ptr %s" x
+    | x :: xs -> pf fmt "tll_ptr %s, %a" x pp_param xs
+  in
+  match dcls with
+  | [] -> ()
+  | [ GFun { fname; param; body; return } ] ->
+    pf fmt "tll_ptr %s(%a);" fname pp_param param
+  | GFun { fname; param; body; return } :: dcls ->
+    pf fmt "tll_ptr %s(%a);@;<1 0>%a" fname pp_param param pp_dcls dcls
+  | _ :: dcls -> pp_dcls fmt dcls
+
 let pp_prog fmt (procs, instr, ret) =
   let xs = gather_init SSet.empty instr in
   let ys = gather_var SSet.empty instr in
   pf fmt
-    "#include \"runtime.h\"@.@.@[<v 0>%a@]@.@.%a@.@.@[<v 0>int main()@;\
+    "#include\"runtime.h\"@.@.@[<v 0>%a@;\
+     <1 0>%a@]@.@.%a@.@.@[<v 0>int main()@;\
      <1 0>{@;\
      <1 2>@[<v 0>instr_init();@;\
      <1 0>@[%a@]@;\
      <1 0>%a@;\
      <1 0>return %a;@]@;\
-     <1 0>}@]" pp_xs xs pp_procs procs pp_xs ys pp_instrs instr pp_value ret
+     <1 0>}@]" pp_dcls procs pp_xs xs pp_procs procs pp_xs ys pp_instrs instr
+    pp_value ret
