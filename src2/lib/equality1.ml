@@ -20,13 +20,6 @@ module Env = struct
   let add_const x entry env = { env with const = IMap.add x entry env.const }
 end
 
-let is_guarded sp =
-  List.exists
-    (function
-      | Cons _ -> true
-      | _ -> false)
-    sp
-
 let rec whnf ?(expand_const = true) (env : Env.t) = function
   (* inference *)
   | Ann (m, a) -> whnf ~expand_const env m
@@ -47,7 +40,7 @@ let rec whnf ?(expand_const = true) (env : Env.t) = function
     match (hd, sp) with
     | Lam (_, _, _, bnd), n :: sp ->
       whnf ~expand_const env (mkApps (subst bnd n) sp)
-    | Const (x, ss), _ when expand_const && is_guarded sp -> (
+    | Const (x, ss), _ when expand_const -> (
       match Env.find_const x env with
       | Some entry -> whnf ~expand_const env (mkApps (entry.scheme ss) sp)
       | None -> mkApps hd sp)

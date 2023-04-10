@@ -220,7 +220,7 @@ and infer_tm ctx env m0 : tm trans1e =
       let _, cs = find_data d ctx in
       let* _ = infer_cls ctx env cs ss ms mot cls in
       return (subst mot m)
-    | _ -> failwith "infer_Match(%a)" pp_tm m0)
+    | _ -> failwith "infer_Match(%a, %a)" pp_tm m0 pp_tm ty_m)
   (* equality *)
   | Eq (a, m, n) ->
     let* _ = infer_sort ctx env a in

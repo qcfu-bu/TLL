@@ -1,0 +1,27 @@
+inductive ref_msg : U = GET | SET | FREE
+
+logical ref_t (A : U) (x : unit) : proto =
+  ⇓(msg : ref_msg) →
+    match msg with
+    | GET ⇒ ⇑(A) → ref_t A x
+    | SET ⇒ ⇓(A) → ref_t A x
+    | FREE ⇒ ∙
+    end
+
+program ref_handler {A : U} (m : A) (c0 : ch⟨ ref_t A () ⟩) : IO unit =
+  let ⟨msg, c0⟩ ⇐ recv c0 in
+  match msg as msg0 in
+    ch⟨match msg0 with
+       | GET ⇒ ⇑(A) → ref_t A ()
+       | SET ⇒ ⇓(A) → ref_t A ()
+       | FREE ⇒ ∙
+       end⟩ ⊸ IO unit
+  with
+  | GET ⇒ ln c ⇒
+    let c ⇐ send c m in
+    ref_handler _ m c
+  | SET ⇒ ln c ⇒
+    let ⟨m, c⟩ ⇐ recv c in
+    ref_handler _ m c
+  | FREE ⇒ ln c ⇒ close c
+  end c0
