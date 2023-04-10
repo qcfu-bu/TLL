@@ -70,10 +70,8 @@
 %left STR_CAT
 
 // list
-%token ULIST_CONS // ::
-%token LLIST_CONS // ;;
-%right ULIST_CONS
-%right LLIST_CONS
+%token LIST_CONS // ::
+%right LIST_CONS
 
 // equality
 %token EQUAL  // =
@@ -260,7 +258,7 @@ let tm_p0 :=
       id1 = identifier; RBRACE; COMMA; id2 = identifier;
     RPAREN;
     { PPair (N, U, id1, id2) }
-  | LANGLE; RBRACE;
+  | LANGLE; LBRACE;
       id1 = identifier; RBRACE; COMMA; id2 = identifier;
     RANGLE;
     { PPair (N, L, id1, id2) }
@@ -335,10 +333,8 @@ let tm_ifte :=
 
 let tm_p :=
   | ~ = tm_p0; <>
-  | id1 = identifier; ULIST_CONS; id2 = identifier;
+  | id1 = identifier; LIST_CONS; id2 = identifier;
     { PCons ("cons", [id1; id2]) }
-  | id1 = identifier; LLIST_CONS; id2 = identifier;
-    { PCons ("lcons", [id1; id2]) }
   | id = identifier; ids = identifier*;
     { PCons (id, ids) }
 
@@ -453,8 +449,7 @@ let tm2 :=
   | m = tm2; BOOL_AND;   n = tm2; { App [Id "andb"; m; n] }
   | m = tm2; BOOL_OR;    n = tm2; { App [Id "orb"; m; n] }
   | m = tm2; STR_CAT;    n = tm2; { App [Id "cats"; m; n] }
-  | m = tm2; ULIST_CONS; n = tm2; { App [Id "cons"; m; n] }
-  | m = tm2; LLIST_CONS; n = tm2; { App [Id "lcons"; m; n] }
+  | m = tm2; LIST_CONS; n = tm2; { App [Id "cons"; m; n] }
   | m = tm2; SEMI;       n = tm2; { MLet (m, Binder (Left "_", n)) }
   | ~ = tm1; <>
 

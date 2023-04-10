@@ -73,8 +73,7 @@ let quote1 = [%sedlex.regexp? "\""]
 let str_cat = [%sedlex.regexp? '^']
 
 (* list *)
-let ulist_cons = [%sedlex.regexp? "::"]
-let llist_cons = [%sedlex.regexp? ";;"]
+let list_cons = [%sedlex.regexp? "::"]
 
 (* equality *)
 let equal = [%sedlex.regexp? '=']
@@ -216,8 +215,7 @@ let rec tokenize buf =
   | quote1 -> STRING (tokenize_string buf)
   | str_cat -> STR_CAT
   (* list *)
-  | ulist_cons -> ULIST_CONS
-  | llist_cons -> LLIST_CONS
+  | list_cons -> LIST_CONS
   (* equality *)
   | equal -> EQUAL
   | equiv -> EQUIV

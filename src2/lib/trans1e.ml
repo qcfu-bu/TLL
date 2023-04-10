@@ -324,8 +324,8 @@ and infer_pair ctx env rel s a b mot cls =
       let mot = subst mot (Ann (tm, ty)) in
       let* _ = infer_sort ctx env mot in
       check_tm ctx env rhs mot
-    | _ -> failwith "infer_pair")
-  | _ -> failwith "infer_pair"
+    | _ -> failwith "infer_pair0")
+  | _ -> failwith "infer_pair1(%a, %a)" pp_cls cls pp_rel rel
 
 and infer_cls ctx env cs ss ms mot cls =
   match cls with

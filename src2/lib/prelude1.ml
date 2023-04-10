@@ -63,6 +63,13 @@ let string_c = prelude_c "String"
 let cats_i = prelude_i "cats"
 let strlen_i = prelude_i "strlen"
 
+(* lists *)
+let list_d = prelude_d "list"
+let nil_c = prelude_c "nil"
+let cons_c = prelude_c "cons"
+let len_i = prelude_i "len"
+let append_i = prelude_i "append"
+
 (* standard IO channels *)
 let stdin_t_i = prelude_i "stdin_t"
 let stdout_t_i = prelude_i "stdout_t"

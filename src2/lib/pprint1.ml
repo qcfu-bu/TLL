@@ -44,6 +44,10 @@ let rec pp_sort fmt = function
   | SVar x -> SV.pp fmt x
   | SMeta (x, _) -> M.pp fmt x
 
+let pp_rel fmt = function
+  | R -> pf fmt "R"
+  | N -> pf fmt "N"
+
 let pp_role fmt = function
   | Pos -> pf fmt "⇑"
   | Neg -> pf fmt "⇓"

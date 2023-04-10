@@ -1,10 +1,10 @@
 program main : IO unit =
   let c ⇐
-    fork (c : ch⟨ ⇑(_ : string) → • ⟩) in
+    fork (c : ch⟨ ⇑{_ : string} → • ⟩) in
       let s ⇐ readline () in
       let c ⇐ send c s in 
       close c
   in
-  let ⟨msg, c⟩ ⇐ recv c in
-  close c;
-  print msg
+  let ⟨{ msg }, c⟩ ⇐ recv c in
+  close c
+  -- print msg

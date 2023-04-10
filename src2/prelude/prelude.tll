@@ -132,6 +132,30 @@ program strlen (s : string) : nat =
 
 
 -- ———————————————————————————————————————————————
+-- lists (linear + none-linear)
+-- ———————————————————————————————————————————————
+inductive list‹s,t› (A : Type‹s›) : Type‹t› =
+| nil
+| cons of (hd : A) (tl : list‹s,t› A)
+
+program len‹s,t› {A : Type‹s›} (xs : list‹_,t› A) : nat ⊗ list‹_,t› A =
+  match xs with
+  | nil ⇒ ⟨0, nil⟩
+  | x :: xs ⇒
+    match len _ xs with
+    | ⟨n, xs⟩ ⇒ ⟨S n, x :: xs⟩
+    end
+  end
+
+program append‹s,t› {A : Type‹s›} (xs : list‹_,t› A) : list‹_,t› A ⊸ list A =
+ln ys ⇒
+  match xs with
+  | nil ⇒ ys
+  | x :: xs ⇒ x :: append _ xs ys
+  end
+
+
+-- ———————————————————————————————————————————————
 -- standard IO channels
 -- ———————————————————————————————————————————————
 logical stdin_rec (_ : unit) : proto =
