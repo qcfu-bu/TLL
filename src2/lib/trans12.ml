@@ -585,7 +585,7 @@ module Program = struct
       let x, m = unbind bnd in
       let t = Logical.infer_sort res ctx env a in
       let b, m_elab, usg = infer_tm res (Context.add_var x a t ctx) env m in
-      let usg = Usage.remove_var x usg rel s in
+      let usg = Usage.remove_var x usg rel t in
       let b_bnd = bind_var x (lift_tm b) in
       let m_bnd = Syntax2.(bind_var (trans_var x) m_elab) in
       match s with
@@ -876,7 +876,7 @@ module Program = struct
       let t = Logical.infer_sort res ctx env a0 in
       let _ = Logical.assert_equal env a0 a1 in
       let m_elab, usg = check_tm res (Context.add_var x a1 t ctx) env m b in
-      let usg = Usage.remove_var x usg rel0 s0 in
+      let usg = Usage.remove_var x usg rel0 t in
       let m_bnd = Syntax2.(bind_var (trans_var x) m_elab) in
       match s0 with
       | U ->

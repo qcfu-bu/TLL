@@ -123,7 +123,7 @@ let assert_equal env (m, s1) (n, s2) : unit trans1e =
 let unify : unit trans1e =
  fun (mctx, eqns, map0, map1) ->
   let map0, map1 = unify (map0, map1) eqns in
-  ((), mctx, [], map0, map1)
+  ((), mctx, eqns, map0, map1)
 
 let resolve_ptm ptm : tm param trans1e =
  fun (mctx, eqns, map0, map1) ->
@@ -259,8 +259,11 @@ and infer_tm ctx env m0 : tm trans1e =
       let* ty_n = unify >> resolve_tm ty_n in
       match whnf env ty_n with
       | IO b -> return (IO b)
-      | _ -> failwith "infer_MLet")
-    | _ -> failwith "infer_MLet")
+      | ty_n ->
+        let b, _ = meta_mk ctx in
+        let* _ = assert_equal env (ty_n, L) (IO b, L) in
+        return (IO b))
+    | _ -> failwith "infer_MLet(%a, %a)" pp_tm m pp_tm ty_m)
   (* session *)
   | Proto -> return (Type U)
   | End -> return Proto
