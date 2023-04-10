@@ -1,5 +1,6 @@
 ;;; tll-mode.el --- major mode for tll -*- lexical-binding: t; -*-
-(setq tll-types '("let" "in" "rew" "match" "as" "with" "end" "fork" "return"))
+(setq tll-types '("let" "in" "rew" "match" "as" "with" "end"
+                  "if" "then" "else" "fork" "return"))
 (setq tll-keywords '("of" "size"))
 (setq tll-lambda '("fn" "ln" "fun" "val" "main"))
 (setq tll-session '("open" "send" "recv" "close"))

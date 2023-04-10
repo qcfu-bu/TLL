@@ -33,32 +33,6 @@ program notb (b : bool) : bool =
 -- ———————————————————————————————————————————————
 inductive nat : U = O | S of (n : nat)
 
-program addn (x : nat) (y : nat) : nat =
-  match x with
-  | O ⇒ y
-  | S x ⇒ S (x + y)
-  end
-
-program muln (x : nat) (y : nat) : nat =
-  match x with
-  | O ⇒ y
-  | S x ⇒ y + x * y
-  end
-
-program eqn (x : nat) (y : nat) : bool =
-  match x with
-  | O ⇒
-    match y with
-    | O ⇒ true
-    | S _ ⇒ false
-    end
-  | S x ⇒
-    match y with
-    | O ⇒ false
-    | S y ⇒ x == y
-    end
-  end
-
 program lten (x : nat) (y : nat) : bool =
   match x with
   | O ⇒ true
@@ -83,7 +57,7 @@ program gten (x : nat) (y : nat) : bool =
     end
   end
 
-logical ltn (x : nat) (y : nat) : bool =
+program ltn (x : nat) (y : nat) : bool =
   match x with
   | O ⇒
     match y with
@@ -97,7 +71,7 @@ logical ltn (x : nat) (y : nat) : bool =
     end
   end
 
-logical gtn (x : nat) (y : nat) : bool =
+program gtn (x : nat) (y : nat) : bool =
   match x with
   | O ⇒ false
   | S x ⇒
@@ -106,6 +80,51 @@ logical gtn (x : nat) (y : nat) : bool =
     | S y ⇒ x > y
     end
   end
+
+program eqn (x : nat) (y : nat) : bool =
+  match x with
+  | O ⇒
+    match y with
+    | O ⇒ true
+    | S _ ⇒ false
+    end
+  | S x ⇒
+    match y with
+    | O ⇒ false
+    | S y ⇒ x == y
+    end
+  end
+
+program pred (x : nat) : nat =
+  match x with
+  | O ⇒ O
+  | S x ⇒ x
+  end
+
+program addn (x : nat) (y : nat) : nat =
+  match x with
+  | O ⇒ y
+  | S x ⇒ S (x + y)
+  end
+
+program subn (x : nat) (y : nat) : nat =
+  match y with
+  | O ⇒ x
+  | S y ⇒ (pred x) - y
+  end
+
+program muln (x : nat) (y : nat) : nat =
+  match x with
+  | O ⇒ O
+  | S x ⇒ y + x * y
+  end
+
+program divn (x : nat) (y : nat) : nat =
+  if x < y then O
+  else S ((x - y) / y)
+
+program modn (x : nat) (y : nat) : nat =
+  x - ((x / y) * y)
 
 
 -- ———————————————————————————————————————————————
