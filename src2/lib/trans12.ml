@@ -939,16 +939,25 @@ module Program = struct
 end
 
 let const_extend x ss =
-  let ss = String.concat "" (List.map (str "%a" pp_sort) ss) in
-  I.extend x ss
+  match ss with
+  | [] -> x
+  | _ ->
+    let ss = String.concat "" (List.map (str "%a" pp_sort) ss) in
+    I.extend x ss
 
 let data_extend d ss =
-  let ss = String.concat "" (List.map (str "%a" pp_sort) ss) in
-  D.extend d ss
+  match ss with
+  | [] -> d
+  | _ ->
+    let ss = String.concat "" (List.map (str "%a" pp_sort) ss) in
+    D.extend d ss
 
 let cons_extend c ss =
-  let ss = String.concat "" (List.map (str "%a" pp_sort) ss) in
-  C.extend c ss
+  match ss with
+  | [] -> c
+  | _ ->
+    let ss = String.concat "" (List.map (str "%a" pp_sort) ss) in
+    C.extend c ss
 
 let make_init xs =
   let rec loop xs =
