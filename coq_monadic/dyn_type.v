@@ -101,7 +101,7 @@ Proof with eauto using dyn_wf.
     inv ihn.
     apply: dyn_wf_merge... }
 Qed.
-Hint Resolve dyn_type_wf.
+#[global] Hint Resolve dyn_type_wf.
 
 Lemma dyn_wf_inv Γ Δ Δ1 Δ2 :
   Δ1 ∘ Δ2 => Δ -> dyn_wf Γ Δ -> dyn_wf Γ Δ1 /\ dyn_wf Γ Δ2.

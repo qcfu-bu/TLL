@@ -77,7 +77,7 @@ Proof with eauto using dyn_agree_subst.
       have:(A.[ids] :: Γ); _: Δ0 ⊢ up ids ⊣ (A :: Γ); _: Δ0...
       by asimpl. } }
 Qed.
-Hint Resolve dyn_agree_subst_refl.
+#[global] Hint Resolve dyn_agree_subst_refl.
 
 Lemma dyn_agree_subst_has Γ1 Γ2 σ Δ1 Δ2 x s A :
   Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 -> dyn_wf Γ1 Δ1 -> dyn_has Δ2 x s A -> Γ1 ; Δ1 ⊢ (σ x) : A.[σ].

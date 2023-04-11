@@ -84,7 +84,7 @@ Proof with eauto using era_agree_subst.
       have:(A.[ids] :: Γ); _: Δ0 ⊢ up ids ~ up ids ⊣ (A :: Γ); _: Δ0...
       by asimpl. } }
 Qed.
-Hint Resolve era_agree_subst_refl.
+#[global] Hint Resolve era_agree_subst_refl.
 
 Lemma era_agree_subst_has Γ1 Γ2 σ1 σ2 Δ1 Δ2 x s A :
   Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 -> dyn_wf Γ1 Δ1 -> dyn_has Δ2 x s A ->
