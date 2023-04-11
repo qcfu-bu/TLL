@@ -83,8 +83,7 @@ tll_ptr string_of_natclo_i99;
 tll_ptr strlenclo_i77;
 tll_ptr subnclo_i72;
 
-tll_ptr andb_i1(tll_ptr b1_v140582, tll_ptr b2_v140583)
-{
+tll_ptr andb_i1(tll_ptr b1_v140582, tll_ptr b2_v140583) {
   tll_ptr false_t2; tll_ptr switch_ret_t1;
   switch(((tll_node)b1_v140582)->tag) {
     case 2:
@@ -98,22 +97,19 @@ tll_ptr andb_i1(tll_ptr b1_v140582, tll_ptr b2_v140583)
   return switch_ret_t1;
 }
 
-tll_ptr lam_fun_t4(tll_ptr b2_v140586, tll_env env)
-{
+tll_ptr lam_fun_t4(tll_ptr b2_v140586, tll_env env) {
   tll_ptr call_ret_t3;
   call_ret_t3 = andb_i1(env[0], b2_v140586);
   return call_ret_t3;
 }
 
-tll_ptr lam_fun_t6(tll_ptr b1_v140584, tll_env env)
-{
+tll_ptr lam_fun_t6(tll_ptr b1_v140584, tll_env env) {
   tll_ptr lam_clo_t5;
   instr_clo(&lam_clo_t5, &lam_fun_t4, 1, b1_v140584);
   return lam_clo_t5;
 }
 
-tll_ptr orb_i2(tll_ptr b1_v140587, tll_ptr b2_v140588)
-{
+tll_ptr orb_i2(tll_ptr b1_v140587, tll_ptr b2_v140588) {
   tll_ptr switch_ret_t8; tll_ptr true_t9;
   switch(((tll_node)b1_v140587)->tag) {
     case 2:
@@ -127,22 +123,19 @@ tll_ptr orb_i2(tll_ptr b1_v140587, tll_ptr b2_v140588)
   return switch_ret_t8;
 }
 
-tll_ptr lam_fun_t11(tll_ptr b2_v140591, tll_env env)
-{
+tll_ptr lam_fun_t11(tll_ptr b2_v140591, tll_env env) {
   tll_ptr call_ret_t10;
   call_ret_t10 = orb_i2(env[0], b2_v140591);
   return call_ret_t10;
 }
 
-tll_ptr lam_fun_t13(tll_ptr b1_v140589, tll_env env)
-{
+tll_ptr lam_fun_t13(tll_ptr b1_v140589, tll_env env) {
   tll_ptr lam_clo_t12;
   instr_clo(&lam_clo_t12, &lam_fun_t11, 1, b1_v140589);
   return lam_clo_t12;
 }
 
-tll_ptr notb_i3(tll_ptr b_v140592)
-{
+tll_ptr notb_i3(tll_ptr b_v140592) {
   tll_ptr false_t16; tll_ptr switch_ret_t15; tll_ptr true_t17;
   switch(((tll_node)b_v140592)->tag) {
     case 2:
@@ -157,15 +150,13 @@ tll_ptr notb_i3(tll_ptr b_v140592)
   return switch_ret_t15;
 }
 
-tll_ptr lam_fun_t19(tll_ptr b_v140593, tll_env env)
-{
+tll_ptr lam_fun_t19(tll_ptr b_v140593, tll_env env) {
   tll_ptr call_ret_t18;
   call_ret_t18 = notb_i3(b_v140593);
   return call_ret_t18;
 }
 
-tll_ptr lten_i4(tll_ptr x_v140594, tll_ptr y_v140595)
-{
+tll_ptr lten_i4(tll_ptr x_v140594, tll_ptr y_v140595) {
   tll_ptr call_ret_t25; tll_ptr false_t24; tll_ptr switch_ret_t21;
   tll_ptr switch_ret_t23; tll_ptr true_t22; tll_ptr x_v140596;
   tll_ptr y_v140597;
@@ -193,22 +184,19 @@ tll_ptr lten_i4(tll_ptr x_v140594, tll_ptr y_v140595)
   return switch_ret_t21;
 }
 
-tll_ptr lam_fun_t27(tll_ptr y_v140600, tll_env env)
-{
+tll_ptr lam_fun_t27(tll_ptr y_v140600, tll_env env) {
   tll_ptr call_ret_t26;
   call_ret_t26 = lten_i4(env[0], y_v140600);
   return call_ret_t26;
 }
 
-tll_ptr lam_fun_t29(tll_ptr x_v140598, tll_env env)
-{
+tll_ptr lam_fun_t29(tll_ptr x_v140598, tll_env env) {
   tll_ptr lam_clo_t28;
   instr_clo(&lam_clo_t28, &lam_fun_t27, 1, x_v140598);
   return lam_clo_t28;
 }
 
-tll_ptr gten_i5(tll_ptr x_v140601, tll_ptr y_v140602)
-{
+tll_ptr gten_i5(tll_ptr x_v140601, tll_ptr y_v140602) {
   tll_ptr __v140603; tll_ptr call_ret_t37; tll_ptr false_t34;
   tll_ptr switch_ret_t31; tll_ptr switch_ret_t32; tll_ptr switch_ret_t35;
   tll_ptr true_t33; tll_ptr true_t36; tll_ptr x_v140604; tll_ptr y_v140605;
@@ -246,22 +234,19 @@ tll_ptr gten_i5(tll_ptr x_v140601, tll_ptr y_v140602)
   return switch_ret_t31;
 }
 
-tll_ptr lam_fun_t39(tll_ptr y_v140608, tll_env env)
-{
+tll_ptr lam_fun_t39(tll_ptr y_v140608, tll_env env) {
   tll_ptr call_ret_t38;
   call_ret_t38 = gten_i5(env[0], y_v140608);
   return call_ret_t38;
 }
 
-tll_ptr lam_fun_t41(tll_ptr x_v140606, tll_env env)
-{
+tll_ptr lam_fun_t41(tll_ptr x_v140606, tll_env env) {
   tll_ptr lam_clo_t40;
   instr_clo(&lam_clo_t40, &lam_fun_t39, 1, x_v140606);
   return lam_clo_t40;
 }
 
-tll_ptr ltn_i6(tll_ptr x_v140609, tll_ptr y_v140610)
-{
+tll_ptr ltn_i6(tll_ptr x_v140609, tll_ptr y_v140610) {
   tll_ptr call_ret_t49; tll_ptr false_t45; tll_ptr false_t48;
   tll_ptr switch_ret_t43; tll_ptr switch_ret_t44; tll_ptr switch_ret_t47;
   tll_ptr true_t46; tll_ptr x_v140612; tll_ptr y_v140611; tll_ptr y_v140613;
@@ -299,22 +284,19 @@ tll_ptr ltn_i6(tll_ptr x_v140609, tll_ptr y_v140610)
   return switch_ret_t43;
 }
 
-tll_ptr lam_fun_t51(tll_ptr y_v140616, tll_env env)
-{
+tll_ptr lam_fun_t51(tll_ptr y_v140616, tll_env env) {
   tll_ptr call_ret_t50;
   call_ret_t50 = ltn_i6(env[0], y_v140616);
   return call_ret_t50;
 }
 
-tll_ptr lam_fun_t53(tll_ptr x_v140614, tll_env env)
-{
+tll_ptr lam_fun_t53(tll_ptr x_v140614, tll_env env) {
   tll_ptr lam_clo_t52;
   instr_clo(&lam_clo_t52, &lam_fun_t51, 1, x_v140614);
   return lam_clo_t52;
 }
 
-tll_ptr gtn_i7(tll_ptr x_v140617, tll_ptr y_v140618)
-{
+tll_ptr gtn_i7(tll_ptr x_v140617, tll_ptr y_v140618) {
   tll_ptr call_ret_t59; tll_ptr false_t56; tll_ptr switch_ret_t55;
   tll_ptr switch_ret_t57; tll_ptr true_t58; tll_ptr x_v140619;
   tll_ptr y_v140620;
@@ -342,22 +324,19 @@ tll_ptr gtn_i7(tll_ptr x_v140617, tll_ptr y_v140618)
   return switch_ret_t55;
 }
 
-tll_ptr lam_fun_t61(tll_ptr y_v140623, tll_env env)
-{
+tll_ptr lam_fun_t61(tll_ptr y_v140623, tll_env env) {
   tll_ptr call_ret_t60;
   call_ret_t60 = gtn_i7(env[0], y_v140623);
   return call_ret_t60;
 }
 
-tll_ptr lam_fun_t63(tll_ptr x_v140621, tll_env env)
-{
+tll_ptr lam_fun_t63(tll_ptr x_v140621, tll_env env) {
   tll_ptr lam_clo_t62;
   instr_clo(&lam_clo_t62, &lam_fun_t61, 1, x_v140621);
   return lam_clo_t62;
 }
 
-tll_ptr eqn_i8(tll_ptr x_v140624, tll_ptr y_v140625)
-{
+tll_ptr eqn_i8(tll_ptr x_v140624, tll_ptr y_v140625) {
   tll_ptr __v140626; tll_ptr call_ret_t71; tll_ptr false_t68;
   tll_ptr false_t70; tll_ptr switch_ret_t65; tll_ptr switch_ret_t66;
   tll_ptr switch_ret_t69; tll_ptr true_t67; tll_ptr x_v140627;
@@ -396,22 +375,19 @@ tll_ptr eqn_i8(tll_ptr x_v140624, tll_ptr y_v140625)
   return switch_ret_t65;
 }
 
-tll_ptr lam_fun_t73(tll_ptr y_v140631, tll_env env)
-{
+tll_ptr lam_fun_t73(tll_ptr y_v140631, tll_env env) {
   tll_ptr call_ret_t72;
   call_ret_t72 = eqn_i8(env[0], y_v140631);
   return call_ret_t72;
 }
 
-tll_ptr lam_fun_t75(tll_ptr x_v140629, tll_env env)
-{
+tll_ptr lam_fun_t75(tll_ptr x_v140629, tll_env env) {
   tll_ptr lam_clo_t74;
   instr_clo(&lam_clo_t74, &lam_fun_t73, 1, x_v140629);
   return lam_clo_t74;
 }
 
-tll_ptr pred_i9(tll_ptr x_v140632)
-{
+tll_ptr pred_i9(tll_ptr x_v140632) {
   tll_ptr O_t78; tll_ptr switch_ret_t77; tll_ptr x_v140633;
   switch(((tll_node)x_v140632)->tag) {
     case 4:
@@ -426,15 +402,13 @@ tll_ptr pred_i9(tll_ptr x_v140632)
   return switch_ret_t77;
 }
 
-tll_ptr lam_fun_t80(tll_ptr x_v140634, tll_env env)
-{
+tll_ptr lam_fun_t80(tll_ptr x_v140634, tll_env env) {
   tll_ptr call_ret_t79;
   call_ret_t79 = pred_i9(x_v140634);
   return call_ret_t79;
 }
 
-tll_ptr addn_i10(tll_ptr x_v140635, tll_ptr y_v140636)
-{
+tll_ptr addn_i10(tll_ptr x_v140635, tll_ptr y_v140636) {
   tll_ptr S_t84; tll_ptr call_ret_t83; tll_ptr switch_ret_t82;
   tll_ptr x_v140637;
   switch(((tll_node)x_v140635)->tag) {
@@ -451,22 +425,19 @@ tll_ptr addn_i10(tll_ptr x_v140635, tll_ptr y_v140636)
   return switch_ret_t82;
 }
 
-tll_ptr lam_fun_t86(tll_ptr y_v140640, tll_env env)
-{
+tll_ptr lam_fun_t86(tll_ptr y_v140640, tll_env env) {
   tll_ptr call_ret_t85;
   call_ret_t85 = addn_i10(env[0], y_v140640);
   return call_ret_t85;
 }
 
-tll_ptr lam_fun_t88(tll_ptr x_v140638, tll_env env)
-{
+tll_ptr lam_fun_t88(tll_ptr x_v140638, tll_env env) {
   tll_ptr lam_clo_t87;
   instr_clo(&lam_clo_t87, &lam_fun_t86, 1, x_v140638);
   return lam_clo_t87;
 }
 
-tll_ptr subn_i11(tll_ptr x_v140641, tll_ptr y_v140642)
-{
+tll_ptr subn_i11(tll_ptr x_v140641, tll_ptr y_v140642) {
   tll_ptr call_ret_t91; tll_ptr call_ret_t92; tll_ptr switch_ret_t90;
   tll_ptr y_v140643;
   switch(((tll_node)y_v140642)->tag) {
@@ -483,22 +454,19 @@ tll_ptr subn_i11(tll_ptr x_v140641, tll_ptr y_v140642)
   return switch_ret_t90;
 }
 
-tll_ptr lam_fun_t94(tll_ptr y_v140646, tll_env env)
-{
+tll_ptr lam_fun_t94(tll_ptr y_v140646, tll_env env) {
   tll_ptr call_ret_t93;
   call_ret_t93 = subn_i11(env[0], y_v140646);
   return call_ret_t93;
 }
 
-tll_ptr lam_fun_t96(tll_ptr x_v140644, tll_env env)
-{
+tll_ptr lam_fun_t96(tll_ptr x_v140644, tll_env env) {
   tll_ptr lam_clo_t95;
   instr_clo(&lam_clo_t95, &lam_fun_t94, 1, x_v140644);
   return lam_clo_t95;
 }
 
-tll_ptr muln_i12(tll_ptr x_v140647, tll_ptr y_v140648)
-{
+tll_ptr muln_i12(tll_ptr x_v140647, tll_ptr y_v140648) {
   tll_ptr O_t99; tll_ptr call_ret_t100; tll_ptr call_ret_t101;
   tll_ptr switch_ret_t98; tll_ptr x_v140649;
   switch(((tll_node)x_v140647)->tag) {
@@ -516,22 +484,19 @@ tll_ptr muln_i12(tll_ptr x_v140647, tll_ptr y_v140648)
   return switch_ret_t98;
 }
 
-tll_ptr lam_fun_t103(tll_ptr y_v140652, tll_env env)
-{
+tll_ptr lam_fun_t103(tll_ptr y_v140652, tll_env env) {
   tll_ptr call_ret_t102;
   call_ret_t102 = muln_i12(env[0], y_v140652);
   return call_ret_t102;
 }
 
-tll_ptr lam_fun_t105(tll_ptr x_v140650, tll_env env)
-{
+tll_ptr lam_fun_t105(tll_ptr x_v140650, tll_env env) {
   tll_ptr lam_clo_t104;
   instr_clo(&lam_clo_t104, &lam_fun_t103, 1, x_v140650);
   return lam_clo_t104;
 }
 
-tll_ptr divn_i13(tll_ptr x_v140653, tll_ptr y_v140654)
-{
+tll_ptr divn_i13(tll_ptr x_v140653, tll_ptr y_v140654) {
   tll_ptr O_t109; tll_ptr S_t112; tll_ptr call_ret_t107;
   tll_ptr call_ret_t110; tll_ptr call_ret_t111; tll_ptr switch_ret_t108;
   call_ret_t107 = ltn_i6(x_v140653, y_v140654);
@@ -550,22 +515,19 @@ tll_ptr divn_i13(tll_ptr x_v140653, tll_ptr y_v140654)
   return switch_ret_t108;
 }
 
-tll_ptr lam_fun_t114(tll_ptr y_v140657, tll_env env)
-{
+tll_ptr lam_fun_t114(tll_ptr y_v140657, tll_env env) {
   tll_ptr call_ret_t113;
   call_ret_t113 = divn_i13(env[0], y_v140657);
   return call_ret_t113;
 }
 
-tll_ptr lam_fun_t116(tll_ptr x_v140655, tll_env env)
-{
+tll_ptr lam_fun_t116(tll_ptr x_v140655, tll_env env) {
   tll_ptr lam_clo_t115;
   instr_clo(&lam_clo_t115, &lam_fun_t114, 1, x_v140655);
   return lam_clo_t115;
 }
 
-tll_ptr modn_i14(tll_ptr x_v140658, tll_ptr y_v140659)
-{
+tll_ptr modn_i14(tll_ptr x_v140658, tll_ptr y_v140659) {
   tll_ptr call_ret_t118; tll_ptr call_ret_t119; tll_ptr call_ret_t120;
   call_ret_t120 = divn_i13(x_v140658, y_v140659);
   call_ret_t119 = muln_i12(call_ret_t120, y_v140659);
@@ -573,22 +535,19 @@ tll_ptr modn_i14(tll_ptr x_v140658, tll_ptr y_v140659)
   return call_ret_t118;
 }
 
-tll_ptr lam_fun_t122(tll_ptr y_v140662, tll_env env)
-{
+tll_ptr lam_fun_t122(tll_ptr y_v140662, tll_env env) {
   tll_ptr call_ret_t121;
   call_ret_t121 = modn_i14(env[0], y_v140662);
   return call_ret_t121;
 }
 
-tll_ptr lam_fun_t124(tll_ptr x_v140660, tll_env env)
-{
+tll_ptr lam_fun_t124(tll_ptr x_v140660, tll_env env) {
   tll_ptr lam_clo_t123;
   instr_clo(&lam_clo_t123, &lam_fun_t122, 1, x_v140660);
   return lam_clo_t123;
 }
 
-tll_ptr cats_i15(tll_ptr s1_v140663, tll_ptr s2_v140664)
-{
+tll_ptr cats_i15(tll_ptr s1_v140663, tll_ptr s2_v140664) {
   tll_ptr String_t128; tll_ptr c_v140665; tll_ptr call_ret_t127;
   tll_ptr s1_v140666; tll_ptr switch_ret_t126;
   switch(((tll_node)s1_v140663)->tag) {
@@ -606,22 +565,19 @@ tll_ptr cats_i15(tll_ptr s1_v140663, tll_ptr s2_v140664)
   return switch_ret_t126;
 }
 
-tll_ptr lam_fun_t130(tll_ptr s2_v140669, tll_env env)
-{
+tll_ptr lam_fun_t130(tll_ptr s2_v140669, tll_env env) {
   tll_ptr call_ret_t129;
   call_ret_t129 = cats_i15(env[0], s2_v140669);
   return call_ret_t129;
 }
 
-tll_ptr lam_fun_t132(tll_ptr s1_v140667, tll_env env)
-{
+tll_ptr lam_fun_t132(tll_ptr s1_v140667, tll_env env) {
   tll_ptr lam_clo_t131;
   instr_clo(&lam_clo_t131, &lam_fun_t130, 1, s1_v140667);
   return lam_clo_t131;
 }
 
-tll_ptr strlen_i16(tll_ptr s_v140670)
-{
+tll_ptr strlen_i16(tll_ptr s_v140670) {
   tll_ptr O_t135; tll_ptr S_t137; tll_ptr __v140671; tll_ptr call_ret_t136;
   tll_ptr s_v140672; tll_ptr switch_ret_t134;
   switch(((tll_node)s_v140670)->tag) {
@@ -640,15 +596,13 @@ tll_ptr strlen_i16(tll_ptr s_v140670)
   return switch_ret_t134;
 }
 
-tll_ptr lam_fun_t139(tll_ptr s_v140673, tll_env env)
-{
+tll_ptr lam_fun_t139(tll_ptr s_v140673, tll_env env) {
   tll_ptr call_ret_t138;
   call_ret_t138 = strlen_i16(s_v140673);
   return call_ret_t138;
 }
 
-tll_ptr lenUU_i43(tll_ptr A_v140674, tll_ptr xs_v140675)
-{
+tll_ptr lenUU_i43(tll_ptr A_v140674, tll_ptr xs_v140675) {
   tll_ptr O_t142; tll_ptr S_t147; tll_ptr call_ret_t145; tll_ptr consUU_t148;
   tll_ptr n_v140678; tll_ptr nilUU_t143; tll_ptr pair_struct_t144;
   tll_ptr pair_struct_t149; tll_ptr switch_ret_t141; tll_ptr switch_ret_t146;
@@ -681,22 +635,19 @@ tll_ptr lenUU_i43(tll_ptr A_v140674, tll_ptr xs_v140675)
   return switch_ret_t141;
 }
 
-tll_ptr lam_fun_t151(tll_ptr xs_v140682, tll_env env)
-{
+tll_ptr lam_fun_t151(tll_ptr xs_v140682, tll_env env) {
   tll_ptr call_ret_t150;
   call_ret_t150 = lenUU_i43(env[0], xs_v140682);
   return call_ret_t150;
 }
 
-tll_ptr lam_fun_t153(tll_ptr A_v140680, tll_env env)
-{
+tll_ptr lam_fun_t153(tll_ptr A_v140680, tll_env env) {
   tll_ptr lam_clo_t152;
   instr_clo(&lam_clo_t152, &lam_fun_t151, 1, A_v140680);
   return lam_clo_t152;
 }
 
-tll_ptr lenUL_i42(tll_ptr A_v140683, tll_ptr xs_v140684)
-{
+tll_ptr lenUL_i42(tll_ptr A_v140683, tll_ptr xs_v140684) {
   tll_ptr O_t156; tll_ptr S_t161; tll_ptr call_ret_t159; tll_ptr consUL_t162;
   tll_ptr n_v140687; tll_ptr nilUL_t157; tll_ptr pair_struct_t158;
   tll_ptr pair_struct_t163; tll_ptr switch_ret_t155; tll_ptr switch_ret_t160;
@@ -731,22 +682,19 @@ tll_ptr lenUL_i42(tll_ptr A_v140683, tll_ptr xs_v140684)
   return switch_ret_t155;
 }
 
-tll_ptr lam_fun_t165(tll_ptr xs_v140691, tll_env env)
-{
+tll_ptr lam_fun_t165(tll_ptr xs_v140691, tll_env env) {
   tll_ptr call_ret_t164;
   call_ret_t164 = lenUL_i42(env[0], xs_v140691);
   return call_ret_t164;
 }
 
-tll_ptr lam_fun_t167(tll_ptr A_v140689, tll_env env)
-{
+tll_ptr lam_fun_t167(tll_ptr A_v140689, tll_env env) {
   tll_ptr lam_clo_t166;
   instr_clo(&lam_clo_t166, &lam_fun_t165, 1, A_v140689);
   return lam_clo_t166;
 }
 
-tll_ptr lenLL_i40(tll_ptr A_v140692, tll_ptr xs_v140693)
-{
+tll_ptr lenLL_i40(tll_ptr A_v140692, tll_ptr xs_v140693) {
   tll_ptr O_t170; tll_ptr S_t175; tll_ptr call_ret_t173; tll_ptr consLL_t176;
   tll_ptr n_v140696; tll_ptr nilLL_t171; tll_ptr pair_struct_t172;
   tll_ptr pair_struct_t177; tll_ptr switch_ret_t169; tll_ptr switch_ret_t174;
@@ -781,22 +729,19 @@ tll_ptr lenLL_i40(tll_ptr A_v140692, tll_ptr xs_v140693)
   return switch_ret_t169;
 }
 
-tll_ptr lam_fun_t179(tll_ptr xs_v140700, tll_env env)
-{
+tll_ptr lam_fun_t179(tll_ptr xs_v140700, tll_env env) {
   tll_ptr call_ret_t178;
   call_ret_t178 = lenLL_i40(env[0], xs_v140700);
   return call_ret_t178;
 }
 
-tll_ptr lam_fun_t181(tll_ptr A_v140698, tll_env env)
-{
+tll_ptr lam_fun_t181(tll_ptr A_v140698, tll_env env) {
   tll_ptr lam_clo_t180;
   instr_clo(&lam_clo_t180, &lam_fun_t179, 1, A_v140698);
   return lam_clo_t180;
 }
 
-tll_ptr appendUU_i47(tll_ptr A_v140701, tll_ptr xs_v140702, tll_ptr ys_v140703)
-{
+tll_ptr appendUU_i47(tll_ptr A_v140701, tll_ptr xs_v140702, tll_ptr ys_v140703) {
   tll_ptr call_ret_t184; tll_ptr consUU_t185; tll_ptr switch_ret_t183;
   tll_ptr x_v140704; tll_ptr xs_v140705;
   switch(((tll_node)xs_v140702)->tag) {
@@ -814,29 +759,25 @@ tll_ptr appendUU_i47(tll_ptr A_v140701, tll_ptr xs_v140702, tll_ptr ys_v140703)
   return switch_ret_t183;
 }
 
-tll_ptr lam_fun_t187(tll_ptr ys_v140711, tll_env env)
-{
+tll_ptr lam_fun_t187(tll_ptr ys_v140711, tll_env env) {
   tll_ptr call_ret_t186;
   call_ret_t186 = appendUU_i47(env[1], env[0], ys_v140711);
   return call_ret_t186;
 }
 
-tll_ptr lam_fun_t189(tll_ptr xs_v140709, tll_env env)
-{
+tll_ptr lam_fun_t189(tll_ptr xs_v140709, tll_env env) {
   tll_ptr lam_clo_t188;
   instr_clo(&lam_clo_t188, &lam_fun_t187, 2, xs_v140709, env[0]);
   return lam_clo_t188;
 }
 
-tll_ptr lam_fun_t191(tll_ptr A_v140706, tll_env env)
-{
+tll_ptr lam_fun_t191(tll_ptr A_v140706, tll_env env) {
   tll_ptr lam_clo_t190;
   instr_clo(&lam_clo_t190, &lam_fun_t189, 1, A_v140706);
   return lam_clo_t190;
 }
 
-tll_ptr appendUL_i46(tll_ptr A_v140712, tll_ptr xs_v140713, tll_ptr ys_v140714)
-{
+tll_ptr appendUL_i46(tll_ptr A_v140712, tll_ptr xs_v140713, tll_ptr ys_v140714) {
   tll_ptr call_ret_t194; tll_ptr consUL_t195; tll_ptr switch_ret_t193;
   tll_ptr x_v140715; tll_ptr xs_v140716;
   switch(((tll_node)xs_v140713)->tag) {
@@ -856,29 +797,25 @@ tll_ptr appendUL_i46(tll_ptr A_v140712, tll_ptr xs_v140713, tll_ptr ys_v140714)
   return switch_ret_t193;
 }
 
-tll_ptr lam_fun_t197(tll_ptr ys_v140722, tll_env env)
-{
+tll_ptr lam_fun_t197(tll_ptr ys_v140722, tll_env env) {
   tll_ptr call_ret_t196;
   call_ret_t196 = appendUL_i46(env[1], env[0], ys_v140722);
   return call_ret_t196;
 }
 
-tll_ptr lam_fun_t199(tll_ptr xs_v140720, tll_env env)
-{
+tll_ptr lam_fun_t199(tll_ptr xs_v140720, tll_env env) {
   tll_ptr lam_clo_t198;
   instr_clo(&lam_clo_t198, &lam_fun_t197, 2, xs_v140720, env[0]);
   return lam_clo_t198;
 }
 
-tll_ptr lam_fun_t201(tll_ptr A_v140717, tll_env env)
-{
+tll_ptr lam_fun_t201(tll_ptr A_v140717, tll_env env) {
   tll_ptr lam_clo_t200;
   instr_clo(&lam_clo_t200, &lam_fun_t199, 1, A_v140717);
   return lam_clo_t200;
 }
 
-tll_ptr appendLL_i44(tll_ptr A_v140723, tll_ptr xs_v140724, tll_ptr ys_v140725)
-{
+tll_ptr appendLL_i44(tll_ptr A_v140723, tll_ptr xs_v140724, tll_ptr ys_v140725) {
   tll_ptr call_ret_t204; tll_ptr consLL_t205; tll_ptr switch_ret_t203;
   tll_ptr x_v140726; tll_ptr xs_v140727;
   switch(((tll_node)xs_v140724)->tag) {
@@ -898,29 +835,25 @@ tll_ptr appendLL_i44(tll_ptr A_v140723, tll_ptr xs_v140724, tll_ptr ys_v140725)
   return switch_ret_t203;
 }
 
-tll_ptr lam_fun_t207(tll_ptr ys_v140733, tll_env env)
-{
+tll_ptr lam_fun_t207(tll_ptr ys_v140733, tll_env env) {
   tll_ptr call_ret_t206;
   call_ret_t206 = appendLL_i44(env[1], env[0], ys_v140733);
   return call_ret_t206;
 }
 
-tll_ptr lam_fun_t209(tll_ptr xs_v140731, tll_env env)
-{
+tll_ptr lam_fun_t209(tll_ptr xs_v140731, tll_env env) {
   tll_ptr lam_clo_t208;
   instr_clo(&lam_clo_t208, &lam_fun_t207, 2, xs_v140731, env[0]);
   return lam_clo_t208;
 }
 
-tll_ptr lam_fun_t211(tll_ptr A_v140728, tll_env env)
-{
+tll_ptr lam_fun_t211(tll_ptr A_v140728, tll_env env) {
   tll_ptr lam_clo_t210;
   instr_clo(&lam_clo_t210, &lam_fun_t209, 1, A_v140728);
   return lam_clo_t210;
 }
 
-tll_ptr lam_fun_t221(tll_ptr __v140735, tll_env env)
-{
+tll_ptr lam_fun_t221(tll_ptr __v140735, tll_env env) {
   tll_ptr __v140746; tll_ptr __v140750; tll_ptr __v140751;
   tll_ptr ch_v140744; tll_ptr ch_v140745; tll_ptr ch_v140748;
   tll_ptr ch_v140749; tll_ptr false_t219; tll_ptr prim_ch_t213;
@@ -951,22 +884,19 @@ tll_ptr lam_fun_t221(tll_ptr __v140735, tll_env env)
   return switch_ret_t217;
 }
 
-tll_ptr readline_i25(tll_ptr __v140734)
-{
+tll_ptr readline_i25(tll_ptr __v140734) {
   tll_ptr lam_clo_t222;
   instr_clo(&lam_clo_t222, &lam_fun_t221, 0);
   return lam_clo_t222;
 }
 
-tll_ptr lam_fun_t224(tll_ptr __v140752, tll_env env)
-{
+tll_ptr lam_fun_t224(tll_ptr __v140752, tll_env env) {
   tll_ptr call_ret_t223;
   call_ret_t223 = readline_i25(__v140752);
   return call_ret_t223;
 }
 
-tll_ptr lam_fun_t233(tll_ptr __v140754, tll_env env)
-{
+tll_ptr lam_fun_t233(tll_ptr __v140754, tll_env env) {
   tll_ptr __v140764; tll_ptr ch_v140760; tll_ptr ch_v140761;
   tll_ptr ch_v140762; tll_ptr ch_v140763; tll_ptr false_t231;
   tll_ptr prim_ch_t226; tll_ptr send_ch_t227; tll_ptr send_ch_t229;
@@ -986,22 +916,19 @@ tll_ptr lam_fun_t233(tll_ptr __v140754, tll_env env)
   return tt_t232;
 }
 
-tll_ptr print_i26(tll_ptr s_v140753)
-{
+tll_ptr print_i26(tll_ptr s_v140753) {
   tll_ptr lam_clo_t234;
   instr_clo(&lam_clo_t234, &lam_fun_t233, 1, s_v140753);
   return lam_clo_t234;
 }
 
-tll_ptr lam_fun_t236(tll_ptr s_v140765, tll_env env)
-{
+tll_ptr lam_fun_t236(tll_ptr s_v140765, tll_env env) {
   tll_ptr call_ret_t235;
   call_ret_t235 = print_i26(s_v140765);
   return call_ret_t235;
 }
 
-tll_ptr lam_fun_t245(tll_ptr __v140767, tll_env env)
-{
+tll_ptr lam_fun_t245(tll_ptr __v140767, tll_env env) {
   tll_ptr __v140777; tll_ptr ch_v140773; tll_ptr ch_v140774;
   tll_ptr ch_v140775; tll_ptr ch_v140776; tll_ptr false_t243;
   tll_ptr prim_ch_t238; tll_ptr send_ch_t239; tll_ptr send_ch_t241;
@@ -1021,22 +948,19 @@ tll_ptr lam_fun_t245(tll_ptr __v140767, tll_env env)
   return tt_t244;
 }
 
-tll_ptr prerr_i27(tll_ptr s_v140766)
-{
+tll_ptr prerr_i27(tll_ptr s_v140766) {
   tll_ptr lam_clo_t246;
   instr_clo(&lam_clo_t246, &lam_fun_t245, 1, s_v140766);
   return lam_clo_t246;
 }
 
-tll_ptr lam_fun_t248(tll_ptr s_v140778, tll_env env)
-{
+tll_ptr lam_fun_t248(tll_ptr s_v140778, tll_env env) {
   tll_ptr call_ret_t247;
   call_ret_t247 = prerr_i27(s_v140778);
   return call_ret_t247;
 }
 
-tll_ptr splitU_i49(tll_ptr zs_v140779)
-{
+tll_ptr splitU_i49(tll_ptr zs_v140779) {
   tll_ptr __v140784; tll_ptr call_ret_t259; tll_ptr consUU_t256;
   tll_ptr consUU_t261; tll_ptr consUU_t262; tll_ptr nilUU_t251;
   tll_ptr nilUU_t252; tll_ptr nilUU_t255; tll_ptr nilUU_t257;
@@ -1088,15 +1012,13 @@ tll_ptr splitU_i49(tll_ptr zs_v140779)
   return switch_ret_t250;
 }
 
-tll_ptr lam_fun_t265(tll_ptr zs_v140787, tll_env env)
-{
+tll_ptr lam_fun_t265(tll_ptr zs_v140787, tll_env env) {
   tll_ptr call_ret_t264;
   call_ret_t264 = splitU_i49(zs_v140787);
   return call_ret_t264;
 }
 
-tll_ptr splitL_i48(tll_ptr zs_v140788)
-{
+tll_ptr splitL_i48(tll_ptr zs_v140788) {
   tll_ptr __v140793; tll_ptr call_ret_t276; tll_ptr consUL_t273;
   tll_ptr consUL_t278; tll_ptr consUL_t279; tll_ptr nilUL_t268;
   tll_ptr nilUL_t269; tll_ptr nilUL_t272; tll_ptr nilUL_t274;
@@ -1152,15 +1074,13 @@ tll_ptr splitL_i48(tll_ptr zs_v140788)
   return switch_ret_t267;
 }
 
-tll_ptr lam_fun_t282(tll_ptr zs_v140796, tll_env env)
-{
+tll_ptr lam_fun_t282(tll_ptr zs_v140796, tll_env env) {
   tll_ptr call_ret_t281;
   call_ret_t281 = splitL_i48(zs_v140796);
   return call_ret_t281;
 }
 
-tll_ptr mergeU_i51(tll_ptr xs_v140797, tll_ptr ys_v140798)
-{
+tll_ptr mergeU_i51(tll_ptr xs_v140797, tll_ptr ys_v140798) {
   tll_ptr call_ret_t287; tll_ptr call_ret_t289; tll_ptr call_ret_t292;
   tll_ptr consUU_t286; tll_ptr consUU_t290; tll_ptr consUU_t291;
   tll_ptr consUU_t293; tll_ptr consUU_t294; tll_ptr switch_ret_t284;
@@ -1205,22 +1125,19 @@ tll_ptr mergeU_i51(tll_ptr xs_v140797, tll_ptr ys_v140798)
   return switch_ret_t284;
 }
 
-tll_ptr lam_fun_t296(tll_ptr ys_v140805, tll_env env)
-{
+tll_ptr lam_fun_t296(tll_ptr ys_v140805, tll_env env) {
   tll_ptr call_ret_t295;
   call_ret_t295 = mergeU_i51(env[0], ys_v140805);
   return call_ret_t295;
 }
 
-tll_ptr lam_fun_t298(tll_ptr xs_v140803, tll_env env)
-{
+tll_ptr lam_fun_t298(tll_ptr xs_v140803, tll_env env) {
   tll_ptr lam_clo_t297;
   instr_clo(&lam_clo_t297, &lam_fun_t296, 1, xs_v140803);
   return lam_clo_t297;
 }
 
-tll_ptr mergeL_i50(tll_ptr xs_v140806, tll_ptr ys_v140807)
-{
+tll_ptr mergeL_i50(tll_ptr xs_v140806, tll_ptr ys_v140807) {
   tll_ptr call_ret_t303; tll_ptr call_ret_t305; tll_ptr call_ret_t308;
   tll_ptr consUL_t302; tll_ptr consUL_t306; tll_ptr consUL_t307;
   tll_ptr consUL_t309; tll_ptr consUL_t310; tll_ptr switch_ret_t300;
@@ -1269,22 +1186,19 @@ tll_ptr mergeL_i50(tll_ptr xs_v140806, tll_ptr ys_v140807)
   return switch_ret_t300;
 }
 
-tll_ptr lam_fun_t312(tll_ptr ys_v140814, tll_env env)
-{
+tll_ptr lam_fun_t312(tll_ptr ys_v140814, tll_env env) {
   tll_ptr call_ret_t311;
   call_ret_t311 = mergeL_i50(env[0], ys_v140814);
   return call_ret_t311;
 }
 
-tll_ptr lam_fun_t314(tll_ptr xs_v140812, tll_env env)
-{
+tll_ptr lam_fun_t314(tll_ptr xs_v140812, tll_env env) {
   tll_ptr lam_clo_t313;
   instr_clo(&lam_clo_t313, &lam_fun_t312, 1, xs_v140812);
   return lam_clo_t313;
 }
 
-tll_ptr msortU_i53(tll_ptr zs_v140815)
-{
+tll_ptr msortU_i53(tll_ptr zs_v140815) {
   tll_ptr __v140820; tll_ptr call_ret_t321; tll_ptr call_ret_t325;
   tll_ptr call_ret_t326; tll_ptr call_ret_t327; tll_ptr consUU_t320;
   tll_ptr consUU_t322; tll_ptr consUU_t323; tll_ptr nilUU_t317;
@@ -1333,15 +1247,13 @@ tll_ptr msortU_i53(tll_ptr zs_v140815)
   return switch_ret_t316;
 }
 
-tll_ptr lam_fun_t329(tll_ptr zs_v140823, tll_env env)
-{
+tll_ptr lam_fun_t329(tll_ptr zs_v140823, tll_env env) {
   tll_ptr call_ret_t328;
   call_ret_t328 = msortU_i53(zs_v140823);
   return call_ret_t328;
 }
 
-tll_ptr msortL_i52(tll_ptr zs_v140824)
-{
+tll_ptr msortL_i52(tll_ptr zs_v140824) {
   tll_ptr __v140829; tll_ptr call_ret_t336; tll_ptr call_ret_t340;
   tll_ptr call_ret_t341; tll_ptr call_ret_t342; tll_ptr consUL_t335;
   tll_ptr consUL_t337; tll_ptr consUL_t338; tll_ptr nilUL_t332;
@@ -1394,15 +1306,13 @@ tll_ptr msortL_i52(tll_ptr zs_v140824)
   return switch_ret_t331;
 }
 
-tll_ptr lam_fun_t344(tll_ptr zs_v140832, tll_env env)
-{
+tll_ptr lam_fun_t344(tll_ptr zs_v140832, tll_env env) {
   tll_ptr call_ret_t343;
   call_ret_t343 = msortL_i52(zs_v140832);
   return call_ret_t343;
 }
 
-tll_ptr lam_fun_t351(tll_ptr __v140835, tll_env env)
-{
+tll_ptr lam_fun_t351(tll_ptr __v140835, tll_env env) {
   tll_ptr UniqU_t349; tll_ptr __v140839; tll_ptr c_v140838;
   tll_ptr nilUU_t348; tll_ptr send_ch_t347; tll_ptr tt_t350;
   instr_struct(&nilUU_t348, 18, 0);
@@ -1414,8 +1324,7 @@ tll_ptr lam_fun_t351(tll_ptr __v140835, tll_env env)
   return tt_t350;
 }
 
-tll_ptr lam_fun_t359(tll_ptr __v140842, tll_env env)
-{
+tll_ptr lam_fun_t359(tll_ptr __v140842, tll_env env) {
   tll_ptr UniqU_t357; tll_ptr __v140846; tll_ptr c_v140845;
   tll_ptr consUU_t356; tll_ptr nilUU_t355; tll_ptr send_ch_t354;
   tll_ptr tt_t358;
@@ -1429,8 +1338,7 @@ tll_ptr lam_fun_t359(tll_ptr __v140842, tll_env env)
   return tt_t358;
 }
 
-tll_ptr fork_fun_t367(tll_env env)
-{
+tll_ptr fork_fun_t367(tll_env env) {
   tll_ptr app_ret_t366; tll_ptr call_ret_t365; tll_ptr fork_ret_t369;
   call_ret_t365 = cmsort_workerU_i57(env[1], env[0]);
   instr_app(&app_ret_t366, call_ret_t365, 0);
@@ -1440,8 +1348,7 @@ tll_ptr fork_fun_t367(tll_env env)
   return fork_ret_t369;
 }
 
-tll_ptr fork_fun_t372(tll_env env)
-{
+tll_ptr fork_fun_t372(tll_env env) {
   tll_ptr app_ret_t371; tll_ptr call_ret_t370; tll_ptr fork_ret_t374;
   call_ret_t370 = cmsort_workerU_i57(env[1], env[0]);
   instr_app(&app_ret_t371, call_ret_t370, 0);
@@ -1451,8 +1358,7 @@ tll_ptr fork_fun_t372(tll_env env)
   return fork_ret_t374;
 }
 
-tll_ptr lam_fun_t387(tll_ptr __v140851, tll_env env)
-{
+tll_ptr lam_fun_t387(tll_ptr __v140851, tll_env env) {
   tll_ptr UniqU_t383; tll_ptr __v140875; tll_ptr __v140878;
   tll_ptr __v140887; tll_ptr __v140888; tll_ptr __v140889; tll_ptr c_v140886;
   tll_ptr call_ret_t381; tll_ptr close_tmp_t384; tll_ptr close_tmp_t385;
@@ -1515,8 +1421,7 @@ tll_ptr lam_fun_t387(tll_ptr __v140851, tll_env env)
   return switch_ret_t376;
 }
 
-tll_ptr cmsort_workerU_i57(tll_ptr zs_v140833, tll_ptr c_v140834)
-{
+tll_ptr cmsort_workerU_i57(tll_ptr zs_v140833, tll_ptr c_v140834) {
   tll_ptr call_ret_t361; tll_ptr consUU_t362; tll_ptr consUU_t363;
   tll_ptr lam_clo_t352; tll_ptr lam_clo_t360; tll_ptr lam_clo_t388;
   tll_ptr switch_ret_t346; tll_ptr switch_ret_t353; tll_ptr switch_ret_t364;
@@ -1560,22 +1465,19 @@ tll_ptr cmsort_workerU_i57(tll_ptr zs_v140833, tll_ptr c_v140834)
   return switch_ret_t346;
 }
 
-tll_ptr lam_fun_t390(tll_ptr c_v140892, tll_env env)
-{
+tll_ptr lam_fun_t390(tll_ptr c_v140892, tll_env env) {
   tll_ptr call_ret_t389;
   call_ret_t389 = cmsort_workerU_i57(env[0], c_v140892);
   return call_ret_t389;
 }
 
-tll_ptr lam_fun_t392(tll_ptr zs_v140890, tll_env env)
-{
+tll_ptr lam_fun_t392(tll_ptr zs_v140890, tll_env env) {
   tll_ptr lam_clo_t391;
   instr_clo(&lam_clo_t391, &lam_fun_t390, 1, zs_v140890);
   return lam_clo_t391;
 }
 
-tll_ptr lam_fun_t399(tll_ptr __v140895, tll_env env)
-{
+tll_ptr lam_fun_t399(tll_ptr __v140895, tll_env env) {
   tll_ptr UniqL_t397; tll_ptr __v140899; tll_ptr c_v140898;
   tll_ptr nilUL_t396; tll_ptr send_ch_t395; tll_ptr tt_t398;
   instr_struct(&nilUL_t396, 16, 0);
@@ -1587,8 +1489,7 @@ tll_ptr lam_fun_t399(tll_ptr __v140895, tll_env env)
   return tt_t398;
 }
 
-tll_ptr lam_fun_t407(tll_ptr __v140902, tll_env env)
-{
+tll_ptr lam_fun_t407(tll_ptr __v140902, tll_env env) {
   tll_ptr UniqL_t405; tll_ptr __v140906; tll_ptr c_v140905;
   tll_ptr consUL_t404; tll_ptr nilUL_t403; tll_ptr send_ch_t402;
   tll_ptr tt_t406;
@@ -1602,8 +1503,7 @@ tll_ptr lam_fun_t407(tll_ptr __v140902, tll_env env)
   return tt_t406;
 }
 
-tll_ptr fork_fun_t415(tll_env env)
-{
+tll_ptr fork_fun_t415(tll_env env) {
   tll_ptr app_ret_t414; tll_ptr call_ret_t413; tll_ptr fork_ret_t417;
   call_ret_t413 = cmsort_workerL_i56(env[1], env[0]);
   instr_app(&app_ret_t414, call_ret_t413, 0);
@@ -1613,8 +1513,7 @@ tll_ptr fork_fun_t415(tll_env env)
   return fork_ret_t417;
 }
 
-tll_ptr fork_fun_t420(tll_env env)
-{
+tll_ptr fork_fun_t420(tll_env env) {
   tll_ptr app_ret_t419; tll_ptr call_ret_t418; tll_ptr fork_ret_t422;
   call_ret_t418 = cmsort_workerL_i56(env[1], env[0]);
   instr_app(&app_ret_t419, call_ret_t418, 0);
@@ -1624,8 +1523,7 @@ tll_ptr fork_fun_t420(tll_env env)
   return fork_ret_t422;
 }
 
-tll_ptr lam_fun_t435(tll_ptr __v140911, tll_env env)
-{
+tll_ptr lam_fun_t435(tll_ptr __v140911, tll_env env) {
   tll_ptr UniqL_t431; tll_ptr __v140935; tll_ptr __v140938;
   tll_ptr __v140947; tll_ptr __v140948; tll_ptr __v140949; tll_ptr c_v140946;
   tll_ptr call_ret_t429; tll_ptr close_tmp_t432; tll_ptr close_tmp_t433;
@@ -1690,8 +1588,7 @@ tll_ptr lam_fun_t435(tll_ptr __v140911, tll_env env)
   return switch_ret_t424;
 }
 
-tll_ptr cmsort_workerL_i56(tll_ptr zs_v140893, tll_ptr c_v140894)
-{
+tll_ptr cmsort_workerL_i56(tll_ptr zs_v140893, tll_ptr c_v140894) {
   tll_ptr call_ret_t409; tll_ptr consUL_t410; tll_ptr consUL_t411;
   tll_ptr lam_clo_t400; tll_ptr lam_clo_t408; tll_ptr lam_clo_t436;
   tll_ptr switch_ret_t394; tll_ptr switch_ret_t401; tll_ptr switch_ret_t412;
@@ -1739,22 +1636,19 @@ tll_ptr cmsort_workerL_i56(tll_ptr zs_v140893, tll_ptr c_v140894)
   return switch_ret_t394;
 }
 
-tll_ptr lam_fun_t438(tll_ptr c_v140952, tll_env env)
-{
+tll_ptr lam_fun_t438(tll_ptr c_v140952, tll_env env) {
   tll_ptr call_ret_t437;
   call_ret_t437 = cmsort_workerL_i56(env[0], c_v140952);
   return call_ret_t437;
 }
 
-tll_ptr lam_fun_t440(tll_ptr zs_v140950, tll_env env)
-{
+tll_ptr lam_fun_t440(tll_ptr zs_v140950, tll_env env) {
   tll_ptr lam_clo_t439;
   instr_clo(&lam_clo_t439, &lam_fun_t438, 1, zs_v140950);
   return lam_clo_t439;
 }
 
-tll_ptr fork_fun_t444(tll_env env)
-{
+tll_ptr fork_fun_t444(tll_env env) {
   tll_ptr app_ret_t443; tll_ptr call_ret_t442; tll_ptr fork_ret_t446;
   call_ret_t442 = cmsort_workerU_i57(env[1], env[0]);
   instr_app(&app_ret_t443, call_ret_t442, 0);
@@ -1764,8 +1658,7 @@ tll_ptr fork_fun_t444(tll_env env)
   return fork_ret_t446;
 }
 
-tll_ptr lam_fun_t450(tll_ptr __v140954, tll_env env)
-{
+tll_ptr lam_fun_t450(tll_ptr __v140954, tll_env env) {
   tll_ptr __v140963; tll_ptr __v140966; tll_ptr c_v140961; tll_ptr c_v140965;
   tll_ptr close_tmp_t449; tll_ptr fork_ch_t445; tll_ptr msg_v140964;
   tll_ptr recv_msg_t447; tll_ptr switch_ret_t448;
@@ -1786,22 +1679,19 @@ tll_ptr lam_fun_t450(tll_ptr __v140954, tll_env env)
   return switch_ret_t448;
 }
 
-tll_ptr cmsortU_i59(tll_ptr zs_v140953)
-{
+tll_ptr cmsortU_i59(tll_ptr zs_v140953) {
   tll_ptr lam_clo_t451;
   instr_clo(&lam_clo_t451, &lam_fun_t450, 1, zs_v140953);
   return lam_clo_t451;
 }
 
-tll_ptr lam_fun_t453(tll_ptr zs_v140967, tll_env env)
-{
+tll_ptr lam_fun_t453(tll_ptr zs_v140967, tll_env env) {
   tll_ptr call_ret_t452;
   call_ret_t452 = cmsortU_i59(zs_v140967);
   return call_ret_t452;
 }
 
-tll_ptr fork_fun_t457(tll_env env)
-{
+tll_ptr fork_fun_t457(tll_env env) {
   tll_ptr app_ret_t456; tll_ptr call_ret_t455; tll_ptr fork_ret_t459;
   call_ret_t455 = cmsort_workerL_i56(env[1], env[0]);
   instr_app(&app_ret_t456, call_ret_t455, 0);
@@ -1811,8 +1701,7 @@ tll_ptr fork_fun_t457(tll_env env)
   return fork_ret_t459;
 }
 
-tll_ptr lam_fun_t463(tll_ptr __v140969, tll_env env)
-{
+tll_ptr lam_fun_t463(tll_ptr __v140969, tll_env env) {
   tll_ptr __v140978; tll_ptr __v140981; tll_ptr c_v140976; tll_ptr c_v140980;
   tll_ptr close_tmp_t462; tll_ptr fork_ch_t458; tll_ptr msg_v140979;
   tll_ptr recv_msg_t460; tll_ptr switch_ret_t461;
@@ -1833,22 +1722,19 @@ tll_ptr lam_fun_t463(tll_ptr __v140969, tll_env env)
   return switch_ret_t461;
 }
 
-tll_ptr cmsortL_i58(tll_ptr zs_v140968)
-{
+tll_ptr cmsortL_i58(tll_ptr zs_v140968) {
   tll_ptr lam_clo_t464;
   instr_clo(&lam_clo_t464, &lam_fun_t463, 1, zs_v140968);
   return lam_clo_t464;
 }
 
-tll_ptr lam_fun_t466(tll_ptr zs_v140982, tll_env env)
-{
+tll_ptr lam_fun_t466(tll_ptr zs_v140982, tll_env env) {
   tll_ptr call_ret_t465;
   call_ret_t465 = cmsortL_i58(zs_v140982);
   return call_ret_t465;
 }
 
-tll_ptr get_at_i35(tll_ptr A_v140983, tll_ptr n_v140984, tll_ptr xs_v140985, tll_ptr a_v140986)
-{
+tll_ptr get_at_i35(tll_ptr A_v140983, tll_ptr n_v140984, tll_ptr xs_v140985, tll_ptr a_v140986) {
   tll_ptr __v140988; tll_ptr __v140990; tll_ptr call_ret_t592;
   tll_ptr n_v140989; tll_ptr switch_ret_t589; tll_ptr switch_ret_t590;
   tll_ptr switch_ret_t591; tll_ptr x_v140987; tll_ptr xs_v140991;
@@ -1885,51 +1771,44 @@ tll_ptr get_at_i35(tll_ptr A_v140983, tll_ptr n_v140984, tll_ptr xs_v140985, tll
   return switch_ret_t589;
 }
 
-tll_ptr lam_fun_t594(tll_ptr a_v141001, tll_env env)
-{
+tll_ptr lam_fun_t594(tll_ptr a_v141001, tll_env env) {
   tll_ptr call_ret_t593;
   call_ret_t593 = get_at_i35(env[2], env[1], env[0], a_v141001);
   return call_ret_t593;
 }
 
-tll_ptr lam_fun_t596(tll_ptr xs_v140999, tll_env env)
-{
+tll_ptr lam_fun_t596(tll_ptr xs_v140999, tll_env env) {
   tll_ptr lam_clo_t595;
   instr_clo(&lam_clo_t595, &lam_fun_t594, 3, xs_v140999, env[0], env[1]);
   return lam_clo_t595;
 }
 
-tll_ptr lam_fun_t598(tll_ptr n_v140996, tll_env env)
-{
+tll_ptr lam_fun_t598(tll_ptr n_v140996, tll_env env) {
   tll_ptr lam_clo_t597;
   instr_clo(&lam_clo_t597, &lam_fun_t596, 2, n_v140996, env[0]);
   return lam_clo_t597;
 }
 
-tll_ptr lam_fun_t600(tll_ptr A_v140992, tll_env env)
-{
+tll_ptr lam_fun_t600(tll_ptr A_v140992, tll_env env) {
   tll_ptr lam_clo_t599;
   instr_clo(&lam_clo_t599, &lam_fun_t598, 1, A_v140992);
   return lam_clo_t599;
 }
 
-tll_ptr string_of_digit_i36(tll_ptr n_v141002)
-{
+tll_ptr string_of_digit_i36(tll_ptr n_v141002) {
   tll_ptr EmptyString_t603; tll_ptr call_ret_t602;
   instr_struct(&EmptyString_t603, 7, 0);
   call_ret_t602 = get_at_i35(0, n_v141002, digits_i34, EmptyString_t603);
   return call_ret_t602;
 }
 
-tll_ptr lam_fun_t605(tll_ptr n_v141003, tll_env env)
-{
+tll_ptr lam_fun_t605(tll_ptr n_v141003, tll_env env) {
   tll_ptr call_ret_t604;
   call_ret_t604 = string_of_digit_i36(n_v141003);
   return call_ret_t604;
 }
 
-tll_ptr string_of_nat_i37(tll_ptr n_v141004)
-{
+tll_ptr string_of_nat_i37(tll_ptr n_v141004) {
   tll_ptr O_t609; tll_ptr O_t621; tll_ptr O_t633; tll_ptr S_t610;
   tll_ptr S_t611; tll_ptr S_t612; tll_ptr S_t613; tll_ptr S_t614;
   tll_ptr S_t615; tll_ptr S_t616; tll_ptr S_t617; tll_ptr S_t618;
@@ -1981,15 +1860,13 @@ tll_ptr string_of_nat_i37(tll_ptr n_v141004)
   return switch_ret_t634;
 }
 
-tll_ptr lam_fun_t638(tll_ptr n_v141007, tll_env env)
-{
+tll_ptr lam_fun_t638(tll_ptr n_v141007, tll_env env) {
   tll_ptr call_ret_t637;
   call_ret_t637 = string_of_nat_i37(n_v141007);
   return call_ret_t637;
 }
 
-tll_ptr string_of_listU_i61(tll_ptr xs_v141008)
-{
+tll_ptr string_of_listU_i61(tll_ptr xs_v141008) {
   tll_ptr Ascii_t649; tll_ptr Ascii_t658; tll_ptr Ascii_t667;
   tll_ptr Ascii_t683; tll_ptr Ascii_t692; tll_ptr Ascii_t701;
   tll_ptr Ascii_t710; tll_ptr EmptyString_t668; tll_ptr EmptyString_t711;
@@ -2118,15 +1995,13 @@ tll_ptr string_of_listU_i61(tll_ptr xs_v141008)
   return switch_ret_t640;
 }
 
-tll_ptr lam_fun_t718(tll_ptr xs_v141011, tll_env env)
-{
+tll_ptr lam_fun_t718(tll_ptr xs_v141011, tll_env env) {
   tll_ptr call_ret_t717;
   call_ret_t717 = string_of_listU_i61(xs_v141011);
   return call_ret_t717;
 }
 
-tll_ptr string_of_listL_i60(tll_ptr xs_v141012)
-{
+tll_ptr string_of_listL_i60(tll_ptr xs_v141012) {
   tll_ptr Ascii_t729; tll_ptr Ascii_t738; tll_ptr Ascii_t747;
   tll_ptr Ascii_t763; tll_ptr Ascii_t772; tll_ptr Ascii_t781;
   tll_ptr Ascii_t790; tll_ptr EmptyString_t748; tll_ptr EmptyString_t791;
@@ -2257,15 +2132,13 @@ tll_ptr string_of_listL_i60(tll_ptr xs_v141012)
   return switch_ret_t720;
 }
 
-tll_ptr lam_fun_t798(tll_ptr xs_v141015, tll_env env)
-{
+tll_ptr lam_fun_t798(tll_ptr xs_v141015, tll_env env) {
   tll_ptr call_ret_t797;
   call_ret_t797 = string_of_listL_i60(xs_v141015);
   return call_ret_t797;
 }
 
-int main()
-{
+int main() {
   instr_init();
   tll_ptr Ascii_t476; tll_ptr Ascii_t487; tll_ptr Ascii_t498;
   tll_ptr Ascii_t509; tll_ptr Ascii_t520; tll_ptr Ascii_t531;

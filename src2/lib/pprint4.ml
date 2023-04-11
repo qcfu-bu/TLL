@@ -72,8 +72,7 @@ let rec pp_proc fmt = function
       | x :: xs -> pf fmt "tll_ptr %s, %a" x pp_param xs
     in
     pf fmt
-      "@[<v 0>tll_ptr %s(%a)@;\
-       <1 0>{@;\
+      "@[<v 0>tll_ptr %s(%a) {@;\
        <1 2>@[<v 0>@[%a@]@;\
        <1 0>%a@;\
        <1 0>return %a@];@;\
@@ -86,8 +85,7 @@ let rec pp_proc fmt = function
       | Some x -> pf fmt "tll_ptr %s, " x
     in
     pf fmt
-      "@[<v 0>tll_ptr %s(%atll_env env)@;\
-       <1 0>{@;\
+      "@[<v 0>tll_ptr %s(%atll_env env) {@;\
        <1 2>@[<v 0>@[%a@]@;\
        <1 0>%a@;\
        <1 0>return %a@];@;\
@@ -174,8 +172,7 @@ let pp_prog fmt (procs, instr, ret) =
   let ys = gather_var SSet.empty instr in
   pf fmt
     "#include\"runtime.h\"@.@.@[<v 0>%a@;\
-     <1 0>%a@]@.@.%a@.@.@[<v 0>int main()@;\
-     <1 0>{@;\
+     <1 0>%a@]@.@.%a@.@.@[<v 0>int main() {@;\
      <1 2>@[<v 0>instr_init();@;\
      <1 0>@[%a@]@;\
      <1 0>%a@;\
