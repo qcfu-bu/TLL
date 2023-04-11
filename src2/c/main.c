@@ -2266,6 +2266,7 @@ tll_ptr lam_fun_t798(tll_ptr xs_v138735, tll_env env)
 
 int main()
 {
+  instr_init();
   tll_ptr Ascii_t476; tll_ptr Ascii_t487; tll_ptr Ascii_t498;
   tll_ptr Ascii_t509; tll_ptr Ascii_t520; tll_ptr Ascii_t531;
   tll_ptr Ascii_t542; tll_ptr Ascii_t553; tll_ptr Ascii_t564;

@@ -1,4 +1,7 @@
+#define GC_THREADS
+
 #include "chan.h"
+#include "gc.h"
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -8,8 +11,9 @@
 #include "prelude.h"
 #include "runtime.h"
 
-#define MALLOC malloc
-#define FREE free
+#define INIT() GC_INIT()
+#define MALLOC GC_malloc
+#define FREE GC_free
 
 /*-------------------------------------------------------*/
 
@@ -163,6 +167,10 @@ tll_ptr proc_stderr(tll_ptr ch) {
   }
   return NULL;
 }
+
+/*-------------------------------------------------------*/
+
+void instr_init() { INIT() }
 
 /*-------------------------------------------------------*/
 
