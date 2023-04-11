@@ -45,19 +45,11 @@ logical cmsort_ch‹t› (xs : list‹_,t› nat) : L =
 
 program cmsort_worker‹t› (zs : list‹_,t› nat) : cmsort_ch‹t› zs ⊸ IO unit =
 ln c ⇒
-  match zs as _zs_ in
-    cmsort_ch _zs_ ⊸  IO unit
-  with
-  | nil ⇒ ln c ⇒
-    let c ⇐ send c (Uniq nil refl) in
-    close c
+  match zs as _zs_ in cmsort_ch _zs_ ⊸  IO unit with
+  | nil ⇒ ln c ⇒ let c ⇐ send c (Uniq nil refl) in close c
   | z0 :: zs0 ⇒ ln c ⇒
-    match zs0 as _zs0_ in
-      cmsort_ch (z0 :: _zs0_) ⊸ IO unit
-    with
-    | nil ⇒ ln c ⇒
-      let c ⇐ send c (Uniq (z0 :: nil) refl) in
-      close c
+    match zs0 as _zs0_ in cmsort_ch (z0 :: _zs0_) ⊸ IO unit with
+    | nil ⇒ ln c ⇒ let c ⇐ send c (Uniq (z0 :: nil) refl) in close c
     | z1 :: zs1 ⇒ ln c ⇒
       match split (z0 :: z1 :: zs1) as _p_ in
         {_p_ ≡ split (z0 :: z1 :: zs1)} ⊸ IO unit
@@ -75,10 +67,7 @@ ln c ⇒
             rew [l, _ ⇒ zs ≡ merge l (msort ys0)] pf1 in
             rew [l, _ ⇒ zs ≡ merge xs1 l] pf2 in
             refl)
-          in
-          close r1;
-          close r2;
-          close c
+          in close r1; close r2; close c
         end end
       end refl
     end c
