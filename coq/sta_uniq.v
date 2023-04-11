@@ -47,7 +47,7 @@ Inductive sim (m n : term) : Prop :=
 
 Lemma head_sim_reflexive m : head_sim m m.
 Proof with eauto using head_sim. elim: m... Qed.
-Hint Resolve head_sim_reflexive.
+#[global] Hint Resolve head_sim_reflexive.
 
 Lemma head_sim_sym m n : head_sim m n -> head_sim n m.
 Proof with eauto using head_sim. elim=>{m n}... Qed.
@@ -59,7 +59,7 @@ Qed.
 
 Lemma sim_reflexive m : sim m m.
 Proof with eauto. econstructor... Qed.
-Hint Resolve sim_reflexive.
+#[global] Hint Resolve sim_reflexive.
 
 Lemma sim_sym m n : sim m n -> sim n m.
 Proof with eauto.

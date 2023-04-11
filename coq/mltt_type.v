@@ -84,7 +84,7 @@ with mltt0_wf_mut := Induction for mltt0_wf Sort Prop.
 
 Lemma mltt0_type_wf Γ m A : mltt0_type Γ m A -> mltt0_wf Γ.
 Proof with eauto. elim=>{Γ m A}... Qed.
-Hint Resolve mltt0_type_wf.
+#[global] Hint Resolve mltt0_type_wf.
 
 Reserved Notation "Γ ⊢ m : A" (at level 50, m, A at next level).
 Inductive mltt_type : mltt_ctx -> term -> term -> Prop :=
@@ -170,7 +170,7 @@ Proof with eauto.
   elim=>{Γ m A}...
   move=>Γ A B m tym wf. inv wf...
 Qed.
-Hint Resolve mltt_type_wf.
+#[global] Hint Resolve mltt_type_wf.
 
 Lemma mltt_mltt0_type Γ m A : Γ ⊢ m : A -> mltt0_type Γ m A.
 Proof with eauto using mltt0_type, mltt0_wf.
@@ -179,4 +179,4 @@ Proof with eauto using mltt0_type, mltt0_wf.
   have wf0:=mltt0_type_wf ihm. inv wf0.
   apply: mltt0_lam...
 Qed.
-Hint Resolve mltt_mltt0_type.
+#[global] Hint Resolve mltt_mltt0_type.

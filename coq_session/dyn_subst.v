@@ -76,7 +76,7 @@ Proof with eauto using dyn_agree_subst.
       have:Θ ; (A.[ids] :: Γ); _: Δ0 ⊢ up ids ⊣ (A :: Γ); _: Δ0...
       by asimpl. } }
 Qed.
-Hint Resolve dyn_agree_subst_refl.
+#[global] Hint Resolve dyn_agree_subst_refl.
 
 Lemma dyn_type_empty Θ1 Γ Δ m A :
   Θ1 ; Γ ; Δ ⊢ m : A -> exists Θ, dyn_empty Θ /\ Θ ∘ Θ1 => Θ1.

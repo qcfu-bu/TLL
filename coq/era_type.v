@@ -79,7 +79,7 @@ where "Γ ; Δ ⊢ m ~ n : A" := (era_type Γ Δ m n A).
 Lemma era_dyn_type Γ Δ m m' A :
   Γ ; Δ ⊢ m ~ m' : A -> Γ ; Δ ⊢ m : A.
 Proof with eauto using dyn_type. elim... Qed.
-Hint Resolve era_dyn_type.
+#[global] Hint Resolve era_dyn_type.
 
 Lemma dyn_era_type Γ Δ m A :
   Γ ; Δ ⊢ m : A -> exists m', Γ ; Δ ⊢ m ~ m' : A.

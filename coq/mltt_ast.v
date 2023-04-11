@@ -23,7 +23,7 @@ Inductive term : Type :=
 | Refl (m : term)
 | Rw (A : {bind 2 of term}) (H P : term) (* R=([x,p]A,H,P) *).
 
-Instance Ids_term : Ids term. derive. Defined.
-Instance Rename_term : Rename term. derive. Defined.
-Instance Subst_term : Subst term. derive. Defined.
-Instance substLemmas_term : SubstLemmas term. derive. Qed.
+#[global] Instance Ids_term : Ids term. derive. Defined.
+#[global] Instance Rename_term : Rename term. derive. Defined.
+#[global] Instance Subst_term : Subst term. derive. Defined.
+#[global] Instance substLemmas_term : SubstLemmas term. derive. Qed.

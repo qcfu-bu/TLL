@@ -404,7 +404,7 @@ Proof.
   move=>n ih σ τ /ih/sred_up. by asimpl.
 Qed.
 
-Hint Resolve
+#[export] Hint Resolve
   sta_red_pi0 sta_red_pi1
   sta_red_lam0 sta_red_lam1
   sta_red_app0 sta_red_app1
@@ -424,7 +424,7 @@ Proof. elim: s σ τ => *; asimpl; eauto 8 with sta_red_congr. Qed.
 
 Lemma sta_pstep_refl m : m ≈> m.
 Proof. elim: m; eauto using sta_pstep. Qed.
-Hint Resolve sta_pstep_refl.
+#[global] Hint Resolve sta_pstep_refl.
 
 Lemma sta_step_pstep m m' : m ~> m' -> m ≈> m'.
 Proof with eauto using sta_pstep, sta_pstep_refl. elim... Qed.
@@ -679,7 +679,7 @@ Proof.
   move=>n ih σ τ /ih/sconv_up. by asimpl.
 Qed.
 
-Hint Resolve
+#[export] Hint Resolve
   sta_conv_pi0 sta_conv_pi1
   sta_conv_lam0 sta_conv_lam1
   sta_conv_app0 sta_conv_app1

@@ -193,7 +193,7 @@ Proof with eauto 8 using dyn_wf.
     inv wf2. apply: dyn_wf_merge... }
   { move=>Θ Γ Δ m A tym wf. inv wf... }
 Qed.
-Hint Resolve dyn_type_wf.
+#[global] Hint Resolve dyn_type_wf.
 
 Lemma dyn_sta_wf Γ Δ : dyn_wf Γ Δ -> sta_wf Γ.
 Proof with eauto using sta_wf. elim... Qed.

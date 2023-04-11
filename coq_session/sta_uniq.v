@@ -62,7 +62,7 @@ Inductive sta_ctx_sim : sta_ctx -> sta_ctx -> Prop :=
 
 Lemma head_sim_reflexive m : head_sim m m.
 Proof with eauto using head_sim. elim: m... Qed.
-Hint Resolve head_sim_reflexive.
+#[global] Hint Resolve head_sim_reflexive.
 
 Lemma head_sim_sym m n : head_sim m n -> head_sim n m.
 Proof with eauto using head_sim. elim... Qed.
@@ -74,7 +74,7 @@ Qed.
 
 Lemma sim_reflexive m : sim m m.
 Proof with eauto. econstructor... Qed.
-Hint Resolve sim_reflexive.
+#[global] Hint Resolve sim_reflexive.
 
 Lemma sim_transL x y z : sim x y -> y === z -> sim x z.
 Proof with eauto.
@@ -115,7 +115,7 @@ Proof with eauto using sim_sym, sta_ctx_sim. elim... Qed.
 
 Lemma sta_ctx_sim_reflexive Γ : sta_ctx_sim Γ Γ.
 Proof with eauto using sta_ctx_sim. elim: Γ... Qed.
-Hint Resolve sta_ctx_sim_reflexive.
+#[global] Hint Resolve sta_ctx_sim_reflexive.
 
 Ltac solve_sim :=
   match goal with

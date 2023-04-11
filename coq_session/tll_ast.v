@@ -24,7 +24,7 @@ Notation "s ⊑ t" := (sort_leq s t) (at level 30) : sort_scope.
 
 Lemma sort_leq_Lgt s : s ⊑ L.
 Proof with eauto using sort_leq. destruct s... Qed.
-Hint Resolve sort_leq_Lgt.
+#[global] Hint Resolve sort_leq_Lgt.
 
 Inductive term : Type :=
 (* core *)
@@ -65,8 +65,8 @@ Inductive term : Type :=
 | Close (m : term)
 | Wait (m : term).
 
-Instance Ids_term : Ids term. derive. Defined.
-Instance Rename_term : Rename term. derive. Defined.
-Instance Subst_term : Subst term. derive. Defined.
-Instance substLemmas_term : SubstLemmas term. derive. Qed.
+#[global] Instance Ids_term : Ids term. derive. Defined.
+#[global] Instance Rename_term : Rename term. derive. Defined.
+#[global] Instance Subst_term : Subst term. derive. Defined.
+#[global] Instance substLemmas_term : SubstLemmas term. derive. Qed.
 

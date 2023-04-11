@@ -234,7 +234,7 @@ Proof.
   move=>n ih σ τ /ih/sred_up. by asimpl.
 Qed.
 
-Hint Resolve
+#[export] Hint Resolve
   mltt_red_app mltt_red_lam mltt_red_pi
   mltt_red_sig mltt_red_dpair mltt_red_letin
   mltt_red_tuple mltt_red_pair mltt_red_fst mltt_red_snd
@@ -381,7 +381,7 @@ Proof.
   move=>n ih σ τ /ih/sconv_up. by asimpl.
 Qed.
 
-Hint Resolve
+#[export] Hint Resolve
   mltt_conv_app mltt_conv_lam mltt_conv_pi
   mltt_conv_sig mltt_conv_dpair mltt_conv_letin
   mltt_conv_tuple mltt_conv_pair mltt_conv_fst mltt_conv_snd
@@ -397,7 +397,7 @@ Proof. move=> c. by apply: mltt_conv_compat => -[]. Qed.
 
 Lemma pstep_reflexive m : pstep m m.
 Proof. elim: m; eauto using pstep. Qed.
-Hint Resolve pstep_reflexive.
+#[global] Hint Resolve pstep_reflexive.
 
 Lemma mltt_step_pstep m m' : mltt_step m m' -> pstep m m'.
 Proof with eauto using pstep, pstep_reflexive. elim... Qed.

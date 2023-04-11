@@ -43,10 +43,10 @@ Inductive term : Type :=
 | Box
 | Ptr (l : nat).
 
-Instance Ids_term : Ids term. derive. Defined.
-Instance Rename_term : Rename term. derive. Defined.
-Instance Subst_term : Subst term. derive. Defined.
-Instance substLemmas_term : SubstLemmas term. derive. Qed.
+#[global] Instance Ids_term : Ids term. derive. Defined.
+#[global] Instance Rename_term : Rename term. derive. Defined.
+#[global] Instance Subst_term : Subst term. derive. Defined.
+#[global] Instance substLemmas_term : SubstLemmas term. derive. Qed.
 
 Lemma sort_leq_equiv s t :
   ((t = U) -> (s = U)) <-> s ⊑ t.

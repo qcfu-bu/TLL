@@ -177,7 +177,7 @@ with sta0_wf_mut := Induction for sta0_wf Sort Prop.
 
 Lemma sta0_type_wf Γ m A : sta0_type Γ m A -> sta0_wf Γ.
 Proof with eauto. elim=>{Γ m A}... Qed.
-Hint Resolve sta0_type_wf.
+#[global] Hint Resolve sta0_type_wf.
 
 Reserved Notation "Γ ⊢ m : A" (at level 50, m, A at next level).
 Inductive sta_type : sta_ctx -> term -> term -> Prop :=
@@ -354,7 +354,7 @@ Proof with eauto.
   { move=>Γ _ A _ _ wf. inv wf... }
   { move=>Γ _ A _ wf. inv wf... }
 Qed.
-Hint Resolve sta_type_wf.
+#[global] Hint Resolve sta_type_wf.
 
 Lemma sta_sta0_type Γ m A : Γ ⊢ m : A -> sta0_type Γ m A.
 Proof with eauto using sta0_type, sta0_wf.
@@ -379,7 +379,7 @@ Proof with eauto using sta0_type, sta0_wf.
     apply: sta0_fork... }
   Unshelve. all: eauto using nat, bool.
 Qed.
-Hint Resolve sta_sta0_type.
+#[global] Hint Resolve sta_sta0_type.
 
 Lemma sta0_sta_type Γ m A : sta0_type Γ m A -> Γ ⊢ m : A.
 Proof with eauto using sta_type, sta_wf.

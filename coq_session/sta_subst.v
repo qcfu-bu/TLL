@@ -39,7 +39,7 @@ Proof with eauto using sta_agree_subst.
   have: (A.[ids] :: Γ) ⊢ up ids ⊣ (A :: Γ)...
   by asimpl...
 Qed.
-Hint Resolve sta_agree_subst_refl.
+#[global] Hint Resolve sta_agree_subst_refl.
 
 Lemma sta_agree_subst_has Γ1 σ Γ2 x A :
   Γ1 ⊢ σ ⊣ Γ2 -> sta_wf Γ1 -> sta_has Γ2 x A -> Γ1 ⊢ σ x : A.[σ].
