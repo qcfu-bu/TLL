@@ -26,6 +26,25 @@ let rec trans_tm m0 =
     let n = unbox (trans_tm n) in
     match m with
     | Lam (_, bnd) when simpl_arg n -> lift_tm (subst bnd n)
+    | Match (s, m, cls) when simpl_arg n ->
+      let cls =
+        List.map
+          (function
+            | PPair bnd ->
+              let xs, rhs = unmbind bnd in
+              let rhs = _App s (lift_tm rhs) (lift_tm n) in
+              _PPair (bind_mvar xs (trans_tm (unbox rhs)))
+            | PCons (c, bnd) ->
+              let xs, rhs = unmbind bnd in
+              let rhs = _App s (lift_tm rhs) (lift_tm n) in
+              _PCons c (bind_mvar xs (trans_tm (unbox rhs))))
+          cls
+      in
+      _Match s (lift_tm m) (box_list cls)
+    | Let (m, bnd) when simpl_arg n ->
+      let x, rhs = unbind bnd in
+      let rhs = _App s (lift_tm rhs) (lift_tm n) in
+      _Let (lift_tm m) (bind_var x (trans_tm (unbox rhs)))
     | _ -> _App s (lift_tm m) (lift_tm n))
   | Let (m, bnd) ->
     let x, n = unbind bnd in
