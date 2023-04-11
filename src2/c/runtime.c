@@ -1,5 +1,4 @@
 #include "chan.h"
-#include "gc.h"
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -9,10 +8,13 @@
 #include "prelude.h"
 #include "runtime.h"
 
+#define MALLOC malloc
+#define FREE free
+
 /*-------------------------------------------------------*/
 
 tll_ptr to_bit(int i) {
-  tll_node x = (tll_node)GC_malloc(tll_node_size);
+  tll_node x = (tll_node)MALLOC(tll_node_size);
   if (i) {
     x->tag = true_c;
   } else {
@@ -22,9 +24,9 @@ tll_ptr to_bit(int i) {
 }
 
 tll_ptr to_ascii(char c) {
-  tll_node x = (tll_node)GC_malloc(tll_node_size);
+  tll_node x = (tll_node)MALLOC(tll_node_size);
   x->tag = Ascii_c;
-  x->data = (tll_ptr *)GC_malloc(tll_ptr_size * 8);
+  x->data = (tll_ptr *)MALLOC(tll_ptr_size * 8);
   int bit;
   for (int i = 0; i < 8; i++) {
     bit = (c & (1 << i)) >> i;
@@ -35,13 +37,13 @@ tll_ptr to_ascii(char c) {
 
 tll_ptr to_string(char *s) {
   tll_node tmp;
-  tll_node x = (tll_node)GC_malloc(tll_node_size);
+  tll_node x = (tll_node)MALLOC(tll_node_size);
   x->tag = EmptyString_c;
   int len = strlen(s);
   for (int i = 2; i <= len; i++) {
-    tmp = (tll_node)GC_malloc(tll_node_size);
+    tmp = (tll_node)MALLOC(tll_node_size);
     tmp->tag = String_c;
-    tmp->data = (tll_ptr *)GC_malloc(tll_ptr_size * 2);
+    tmp->data = (tll_ptr *)MALLOC(tll_ptr_size * 2);
     tmp->data[0] = to_ascii(s[len - i]);
     tmp->data[1] = x;
     x = tmp;
@@ -74,7 +76,7 @@ char *from_string(tll_ptr x) {
     tmp = (tll_node)(tmp->data[1]);
     len++;
   }
-  str = (char *)GC_malloc(len + 1);
+  str = (char *)MALLOC(len + 1);
   tmp = (tll_node)x;
   for (int i = 0; i < len; i++) {
     str[i] = from_ascii(tmp->data[0]);
@@ -94,7 +96,7 @@ tll_ptr proc_stdout(tll_ptr ch) {
     if (b) {
       str = from_string(msg);
       fputs(str, stdout);
-      GC_free(str);
+      FREE(str);
       b = !b;
     } else {
       switch (((tll_node)msg)->tag) {
@@ -146,7 +148,7 @@ tll_ptr proc_stderr(tll_ptr ch) {
     if (b) {
       str = from_string(msg);
       fputs(str, stderr);
-      GC_free(str);
+      FREE(str);
       b = !b;
     } else {
       switch (((tll_node)msg)->tag) {
@@ -164,15 +166,11 @@ tll_ptr proc_stderr(tll_ptr ch) {
 
 /*-------------------------------------------------------*/
 
-void instr_init() { GC_INIT(); }
-
-/*-------------------------------------------------------*/
-
 void instr_clo(tll_ptr *x, tll_ptr (*f)(tll_ptr, tll_env), int size, ...) {
   va_list ap;
-  tll_clo tmp = (tll_clo)GC_malloc(tll_clo_size);
+  tll_clo tmp = (tll_clo)MALLOC(tll_clo_size);
   tmp->f = f;
-  tmp->env = (tll_env)GC_malloc(tll_ptr_size * size);
+  tmp->env = (tll_env)MALLOC(tll_ptr_size * size);
 
   va_start(ap, size);
   for (int i = 0; i < size; i++) {
@@ -195,9 +193,9 @@ void instr_app(tll_ptr *x, tll_ptr clo, tll_ptr v) {
 
 void instr_struct(tll_ptr *x, int tag, int size, ...) {
   va_list ap;
-  tll_node tmp = (tll_node)GC_malloc(tll_node_size);
+  tll_node tmp = (tll_node)MALLOC(tll_node_size);
   tmp->tag = tag;
-  tmp->data = (tll_ptr *)GC_malloc(tll_ptr_size * size);
+  tmp->data = (tll_ptr *)MALLOC(tll_ptr_size * size);
 
   va_start(ap, size);
   for (int i = 0; i < size; i++) {
@@ -224,7 +222,7 @@ void instr_fork(tll_ptr *x, tll_ptr (*f)(tll_env), int size, ...) {
   va_list ap;
   pthread_t th;
   tll_ptr ch = (tll_ptr)chan_init(0);
-  tll_env local = (tll_env)GC_malloc(tll_ptr_size * (size + 1));
+  tll_env local = (tll_env)MALLOC(tll_ptr_size * (size + 1));
 
   local[0] = ch;
   va_start(ap, size);
@@ -262,17 +260,17 @@ void instr_close(tll_ptr *x, tll_ptr ch) {
 /*-------------------------------------------------------*/
 
 void instr_free_clo(tll_ptr *x) {
-  GC_free(((tll_clo)x)->env);
-  GC_free(x);
+  FREE(((tll_clo)x)->env);
+  FREE(x);
 }
 
 /*-------------------------------------------------------*/
 
 void instr_free_struct(tll_ptr *x) {
-  GC_free(((tll_node)x)->data);
-  GC_free(x);
+  FREE(((tll_node)x)->data);
+  FREE(x);
 }
 
 /*-------------------------------------------------------*/
 
-void instr_free_thread(tll_env env) { GC_free(env); }
+void instr_free_thread(tll_env env) { FREE(env); }

@@ -1,6 +1,6 @@
 CC=gcc
 RMF=rm -rf
-CFLAGS=-g -O2 -lgc
+CFLAGS=-g -O2
 SRC = main.c runtime.c chan.c queue.c
 
 all: main.out

@@ -176,8 +176,7 @@ let pp_prog fmt (procs, instr, ret) =
     "#include\"runtime.h\"@.@.@[<v 0>%a@;\
      <1 0>%a@]@.@.%a@.@.@[<v 0>int main()@;\
      <1 0>{@;\
-     <1 2>@[<v 0>instr_init();@;\
-     <1 0>@[%a@]@;\
+     <1 2>@[<v 0>@[%a@]@;\
      <1 0>%a@;\
      <1 0>return %a;@]@;\
      <1 0>}@]" pp_dcls procs pp_xs xs pp_procs procs pp_xs ys pp_instrs instr

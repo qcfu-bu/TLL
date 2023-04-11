@@ -2439,7 +2439,6 @@ tll_ptr lam_fun_t883(tll_ptr __v124255, tll_env env)
 
 int main()
 {
-  instr_init();
   tll_ptr Ascii_t523; tll_ptr Ascii_t534; tll_ptr Ascii_t545;
   tll_ptr Ascii_t556; tll_ptr Ascii_t567; tll_ptr Ascii_t578;
   tll_ptr Ascii_t589; tll_ptr Ascii_t600; tll_ptr Ascii_t611;
