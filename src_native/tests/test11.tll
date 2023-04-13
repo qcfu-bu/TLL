@@ -74,13 +74,20 @@ program mkList‹t› (n : nat) : list‹_,t› nat =
   | S n0 ⇒ n :: mkList n0
   end
 
--- program main : IO unit =
---   let test = mkList‹U› 800000 in
---   let sorted = msort test in
---   return ()
-  
+program free {A : U} (ls : list‹_,L› A) : unit =
+  match ls with
+  | nil ⇒ ()
+  | _ :: ls ⇒ free _ ls
+  end
+
 program main : IO unit =
-  let test = mkList‹U› 800000 in
-  let sorted ⇐ cmsort test in
+  let test = mkList‹L› 400000 in
+  let sorted = msort test in
+  let _ = free _ sorted in
   return ()
   
+-- program main : IO unit =
+--   let test = mkList‹L› 400000 in
+--   let sorted ⇐ cmsort test in
+--   let _ = free _ sorted in
+--   return ()

@@ -46,208 +46,213 @@ program mkList‹t› (n : nat) : ((list‹_, t›)
 (nat)) = match n as _ in _ with O ⇒ nil | S n0 ⇒ ((cons) (n)
 (((mkList) (n0))))
 
-program main‹› : IO unit = let test = ((mkList‹U›)
-(O.+800000)) in let sorted ⇐ ((cmsort)
-(test)) in return ()
+program free‹› {A : U} (ls : ((list‹_, L›)
+(A))) : unit = match ls as _ in _ with nil  ⇒ () | cons _ ls ⇒ ((free)
+(_)
+(ls))
+
+program main‹› : IO unit = let test = ((mkList‹L›)
+(O.+400000)) in let sorted = ((msort) (test)) in let _ = ((free) (_)
+(sorted)) in return ()
 
 parsing success--------------------------
 
 program andb_i1 : bool → bool → bool =
-  fn (b1_v222 : bool) (b2_v223 : bool) ⇒
-    match b1_v222 as __v224 in ??1 with
-    | true ⇒ b2_v223 | false ⇒ false
+  fn (b1_v228 : bool) (b2_v229 : bool) ⇒
+    match b1_v228 as __v230 in ??1 with
+    | true ⇒ b2_v229 | false ⇒ false
     end
 
 program orb_i2 : bool → bool → bool =
-  fn (b1_v227 : bool) (b2_v228 : bool) ⇒
-    match b1_v227 as __v229 in ??2 with
-    | true ⇒ true | false ⇒ b2_v228
+  fn (b1_v233 : bool) (b2_v234 : bool) ⇒
+    match b1_v233 as __v235 in ??2 with
+    | true ⇒ true | false ⇒ b2_v234
     end
 
 program notb_i3 : bool → bool =
-  fn (b_v231 : bool) ⇒
-    match b_v231 as __v232 in ??3 with
+  fn (b_v237 : bool) ⇒
+    match b_v237 as __v238 in ??3 with
     | true ⇒ false | false ⇒ true
     end
 
 program lten_i4 : nat → nat → bool =
-  fn (x_v235 : nat) (y_v236 : nat) ⇒
-    match x_v235 as __v237 in ??4 with
+  fn (x_v241 : nat) (y_v242 : nat) ⇒
+    match x_v241 as __v243 in ??4 with
     | O ⇒ true
-    | S x_v238 ⇒
-      match y_v236 as __v239 in ??5 with
-      | O ⇒ false | S y_v240 ⇒ (lten_i4 x_v238 y_v240)
+    | S x_v244 ⇒
+      match y_v242 as __v245 in ??5 with
+      | O ⇒ false | S y_v246 ⇒ (lten_i4 x_v244 y_v246)
       end
     end
 
 program gten_i5 : nat → nat → bool =
-  fn (x_v243 : nat) (y_v244 : nat) ⇒
-    match x_v243 as __v245 in ??6 with
+  fn (x_v249 : nat) (y_v250 : nat) ⇒
+    match x_v249 as __v251 in ??6 with
     | O ⇒
-      match y_v244 as __v246 in ??8 with
-      | O ⇒ true | S __v247 ⇒ false
+      match y_v250 as __v252 in ??8 with
+      | O ⇒ true | S __v253 ⇒ false
       end
-    | S x_v248 ⇒
-      match y_v244 as __v249 in ??7 with
-      | O ⇒ true | S y_v250 ⇒ (gten_i5 x_v248 y_v250)
+    | S x_v254 ⇒
+      match y_v250 as __v255 in ??7 with
+      | O ⇒ true | S y_v256 ⇒ (gten_i5 x_v254 y_v256)
       end
     end
 
 program ltn_i6 : nat → nat → bool =
-  fn (x_v253 : nat) (y_v254 : nat) ⇒
-    match x_v253 as __v255 in ??9 with
+  fn (x_v259 : nat) (y_v260 : nat) ⇒
+    match x_v259 as __v261 in ??9 with
     | O ⇒
-      match y_v254 as __v256 in ??11 with
-      | O ⇒ false | S y_v257 ⇒ true
+      match y_v260 as __v262 in ??11 with
+      | O ⇒ false | S y_v263 ⇒ true
       end
-    | S x_v258 ⇒
-      match y_v254 as __v259 in ??10 with
-      | O ⇒ false | S y_v260 ⇒ (ltn_i6 x_v258 y_v260)
+    | S x_v264 ⇒
+      match y_v260 as __v265 in ??10 with
+      | O ⇒ false | S y_v266 ⇒ (ltn_i6 x_v264 y_v266)
       end
     end
 
 program gtn_i7 : nat → nat → bool =
-  fn (x_v263 : nat) (y_v264 : nat) ⇒
-    match x_v263 as __v265 in ??12 with
+  fn (x_v269 : nat) (y_v270 : nat) ⇒
+    match x_v269 as __v271 in ??12 with
     | O ⇒ false
-    | S x_v266 ⇒
-      match y_v264 as __v267 in ??13 with
-      | O ⇒ true | S y_v268 ⇒ (gtn_i7 x_v266 y_v268)
+    | S x_v272 ⇒
+      match y_v270 as __v273 in ??13 with
+      | O ⇒ true | S y_v274 ⇒ (gtn_i7 x_v272 y_v274)
       end
     end
 
 program eqn_i8 : nat → nat → bool =
-  fn (x_v271 : nat) (y_v272 : nat) ⇒
-    match x_v271 as __v273 in ??14 with
+  fn (x_v277 : nat) (y_v278 : nat) ⇒
+    match x_v277 as __v279 in ??14 with
     | O ⇒
-      match y_v272 as __v274 in ??16 with
-      | O ⇒ true | S __v275 ⇒ false
+      match y_v278 as __v280 in ??16 with
+      | O ⇒ true | S __v281 ⇒ false
       end
-    | S x_v276 ⇒
-      match y_v272 as __v277 in ??15 with
-      | O ⇒ false | S y_v278 ⇒ (eqn_i8 x_v276 y_v278)
+    | S x_v282 ⇒
+      match y_v278 as __v283 in ??15 with
+      | O ⇒ false | S y_v284 ⇒ (eqn_i8 x_v282 y_v284)
       end
     end
 
 program pred_i9 : nat → nat =
-  fn (x_v280 : nat) ⇒
-    match x_v280 as __v281 in ??17 with
-    | O ⇒ 0 | S x_v282 ⇒ x_v282
+  fn (x_v286 : nat) ⇒
+    match x_v286 as __v287 in ??17 with
+    | O ⇒ 0 | S x_v288 ⇒ x_v288
     end
 
 program addn_i10 : nat → nat → nat =
-  fn (x_v285 : nat) (y_v286 : nat) ⇒
-    match x_v285 as __v287 in ??18 with
-    | O ⇒ y_v286 | S x_v288 ⇒ (addn_i10 x_v288 y_v286).+1
+  fn (x_v291 : nat) (y_v292 : nat) ⇒
+    match x_v291 as __v293 in ??18 with
+    | O ⇒ y_v292 | S x_v294 ⇒ (addn_i10 x_v294 y_v292).+1
     end
 
 program subn_i11 : nat → nat → nat =
-  fn (x_v291 : nat) (y_v292 : nat) ⇒
-    match y_v292 as __v293 in ??19 with
-    | O ⇒ x_v291 | S y_v294 ⇒ (subn_i11 (pred_i9 x_v291) y_v294)
+  fn (x_v297 : nat) (y_v298 : nat) ⇒
+    match y_v298 as __v299 in ??19 with
+    | O ⇒ x_v297 | S y_v300 ⇒ (subn_i11 (pred_i9 x_v297) y_v300)
     end
 
 program muln_i12 : nat → nat → nat =
-  fn (x_v297 : nat) (y_v298 : nat) ⇒
-    match x_v297 as __v299 in ??20 with
-    | O ⇒ 0 | S x_v300 ⇒ (addn_i10 y_v298 (muln_i12 x_v300 y_v298))
+  fn (x_v303 : nat) (y_v304 : nat) ⇒
+    match x_v303 as __v305 in ??20 with
+    | O ⇒ 0 | S x_v306 ⇒ (addn_i10 y_v304 (muln_i12 x_v306 y_v304))
     end
 
 program divn_i13 : nat → nat → nat =
-  fn (x_v303 : nat) (y_v304 : nat) ⇒
-    match (ltn_i6 x_v303 y_v304) as __v305 in ??21 with
-    | true ⇒ 0 | false ⇒ (divn_i13 (subn_i11 x_v303 y_v304) y_v304).+1
+  fn (x_v309 : nat) (y_v310 : nat) ⇒
+    match (ltn_i6 x_v309 y_v310) as __v311 in ??21 with
+    | true ⇒ 0 | false ⇒ (divn_i13 (subn_i11 x_v309 y_v310) y_v310).+1
     end
 
 program modn_i14 : nat → nat → nat =
-  fn (x_v308 : nat) (y_v309 : nat) ⇒
-    (subn_i11 x_v308 (muln_i12 (divn_i13 x_v308 y_v309) y_v309))
+  fn (x_v314 : nat) (y_v315 : nat) ⇒
+    (subn_i11 x_v314 (muln_i12 (divn_i13 x_v314 y_v315) y_v315))
 
 inductive char_d1 : U =
-| Char_c1 of (n_v310 : nat) : char_d1
+| Char_c1 of (n_v316 : nat) : char_d1
 
 inductive string_d2 : U =
 | EmptyString_c2 of : string_d2
-| String_c3 of (c_v311 : char_d1) (s_v312 : string_d2) : string_d2
+| String_c3 of (c_v317 : char_d1) (s_v318 : string_d2) : string_d2
 
 program cats_i15 : string_d2 → string_d2 → string_d2 =
-  fn (s1_v315 : string_d2) (s2_v316 : string_d2) ⇒
-    match s1_v315 as __v317 in ??22 with
-    | EmptyString_c2  ⇒ s2_v316
-    | String_c3 c_v318 s1_v319 ⇒
-      (String_c3‹› c_v318 (cats_i15 s1_v319 s2_v316))
+  fn (s1_v321 : string_d2) (s2_v322 : string_d2) ⇒
+    match s1_v321 as __v323 in ??22 with
+    | EmptyString_c2  ⇒ s2_v322
+    | String_c3 c_v324 s1_v325 ⇒
+      (String_c3‹› c_v324 (cats_i15 s1_v325 s2_v322))
     end
 
 program strlen_i16 : string_d2 → nat =
-  fn (s_v321 : string_d2) ⇒
-    match s_v321 as __v322 in ??23 with
+  fn (s_v327 : string_d2) ⇒
+    match s_v327 as __v328 in ??23 with
     | EmptyString_c2  ⇒ 0
-    | String_c3 __v323 s_v324 ⇒ (strlen_i16 s_v324).+1
+    | String_c3 __v329 s_v330 ⇒ (strlen_i16 s_v330).+1
     end
 
-inductive list_d3 ‹s_s325, t_s326›
-  (A_v327 : Type‹s_s325›) : Type‹t_s326›
+inductive list_d3 ‹s_s331, t_s332›
+  (A_v333 : Type‹s_s331›) : Type‹t_s332›
 =
 | nil_c4 of
-    ‹s_s328, t_s329› (A_v330 : Type‹s_s328›)
-    : (list_d3‹s_s328, t_s329› A_v330)
+    ‹s_s334, t_s335› (A_v336 : Type‹s_s334›)
+    : (list_d3‹s_s334, t_s335› A_v336)
 | cons_c5 of
-    ‹s_s331, t_s332› (A_v333 : Type‹s_s331›) (hd_v334 : A_v333)
-    (tl_v335 : (list_d3‹s_s331, t_s332› A_v333))
-    : (list_d3‹s_s331, t_s332› A_v333)
+    ‹s_s337, t_s338› (A_v339 : Type‹s_s337›) (hd_v340 : A_v339)
+    (tl_v341 : (list_d3‹s_s337, t_s338› A_v339))
+    : (list_d3‹s_s337, t_s338› A_v339)
 
-program len_i17 ‹s_s336, t_s337› :
-  ∀ {A_v338 : Type‹s_s336›} →
-    (list_d3‹??24, t_s337› A_v338) →
-      nat ⊗ (list_d3‹??25, t_s337› A_v338)
+program len_i17 ‹s_s342, t_s343› :
+  ∀ {A_v344 : Type‹s_s342›} →
+    (list_d3‹??24, t_s343› A_v344) →
+      nat ⊗ (list_d3‹??25, t_s343› A_v344)
 =
-  fn {A_v341 : Type‹s_s336›}
-     (xs_v342 : (list_d3‹??24, t_s337› A_v341)) ⇒
-    match xs_v342 as __v343 in ??26 with
+  fn {A_v347 : Type‹s_s342›}
+     (xs_v348 : (list_d3‹??24, t_s343› A_v347)) ⇒
+    match xs_v348 as __v349 in ??26 with
     | nil_c4  ⇒ ⟨0, nil_c4‹??36, ??35›⟩
-    | cons_c5 x_v344 xs_v345 ⇒
-      match (len_i17‹??29, ??28› ??27 xs_v345) as __v346 in ??30 with
-      | ⟨n_v347, xs_v348⟩ ⇒
-        ⟨n_v347.+1, (cons_c5‹??33, ??32› x_v344 xs_v348)⟩
+    | cons_c5 x_v350 xs_v351 ⇒
+      match (len_i17‹??29, ??28› ??27 xs_v351) as __v352 in ??30 with
+      | ⟨n_v353, xs_v354⟩ ⇒
+        ⟨n_v353.+1, (cons_c5‹??33, ??32› x_v350 xs_v354)⟩
       end
     end
 
-program append_i18 ‹s_s349, t_s350› :
-  ∀ {A_v351 : Type‹s_s349›} →
-    (list_d3‹??37, t_s350› A_v351) →
-      (list_d3‹??38, t_s350› A_v351) ⊸ (list_d3‹??40, ??39› A_v351)
+program append_i18 ‹s_s355, t_s356› :
+  ∀ {A_v357 : Type‹s_s355›} →
+    (list_d3‹??37, t_s356› A_v357) →
+      (list_d3‹??38, t_s356› A_v357) ⊸ (list_d3‹??40, ??39› A_v357)
 =
-  fn {A_v354 : Type‹s_s349›}
-     (xs_v355 : (list_d3‹??37, t_s350› A_v354)) ⇒
-    ln (ys_v356 : ??41) ⇒
-      match xs_v355 as __v357 in ??42 with
-      | nil_c4  ⇒ ys_v356
-      | cons_c5 x_v358 xs_v359 ⇒
+  fn {A_v360 : Type‹s_s355›}
+     (xs_v361 : (list_d3‹??37, t_s356› A_v360)) ⇒
+    ln (ys_v362 : ??41) ⇒
+      match xs_v361 as __v363 in ??42 with
+      | nil_c4  ⇒ ys_v362
+      | cons_c5 x_v364 xs_v365 ⇒
         (cons_c5‹??48, ??47›
-          x_v358 (append_i18‹??45, ??44› ??43 xs_v359 ys_v356))
+          x_v364 (append_i18‹??45, ??44› ??43 xs_v365 ys_v362))
       end
 
 logical stdin_rec_i19 : unit → proto =
-  fn (__v361 : unit) ⇒
-    ⇑(b_v362 : bool) ⇒
-      match b_v362 as __v363 in ??49 with
-      | true ⇒ ⇓(__v364 : string_d2) ⇒ (stdin_rec_i19 ())
+  fn (__v367 : unit) ⇒
+    ⇑(b_v368 : bool) ⇒
+      match b_v368 as __v369 in ??49 with
+      | true ⇒ ⇓(__v370 : string_d2) ⇒ (stdin_rec_i19 ())
       | false ⇒ end
       end
 
 logical stdout_rec_i20 : unit → proto =
-  fn (__v366 : unit) ⇒
-    ⇑(b_v367 : bool) ⇒
-      match b_v367 as __v368 in ??50 with
-      | true ⇒ ⇑(__v369 : string_d2) ⇒ (stdout_rec_i20 ())
+  fn (__v372 : unit) ⇒
+    ⇑(b_v373 : bool) ⇒
+      match b_v373 as __v374 in ??50 with
+      | true ⇒ ⇑(__v375 : string_d2) ⇒ (stdout_rec_i20 ())
       | false ⇒ end
       end
 
 logical stderr_rec_i21 : unit → proto =
-  fn (__v371 : unit) ⇒
-    ⇑(b_v372 : bool) ⇒
-      match b_v372 as __v373 in ??51 with
-      | true ⇒ ⇑(__v374 : string_d2) ⇒ (stderr_rec_i21 ())
+  fn (__v377 : unit) ⇒
+    ⇑(b_v378 : bool) ⇒
+      match b_v378 as __v379 in ??51 with
+      | true ⇒ ⇑(__v380 : string_d2) ⇒ (stderr_rec_i21 ())
       | false ⇒ end
       end
 
@@ -258,154 +263,154 @@ logical stdout_t_i23 : proto = (stdout_rec_i20 ())
 logical stderr_t_i24 : proto = (stderr_rec_i21 ())
 
 program readline_i25 : unit → IO string_d2 =
-  fn (__v376 : unit) ⇒
-    let ch_v377 ⇐ open stdin in
-    let ch_v378 ⇐ (send ch_v377 true) in
-    let __v379 ⇐ recv ch_v378 in
-    match __v379 as __v380 in ??52 with
-    | ⟨s_v381, ch_v382⟩ ⇒
-      let ch_v383 ⇐ (send ch_v382 false) in
-      let __v384 ⇐ close ch_v383 in return s_v381
+  fn (__v382 : unit) ⇒
+    let ch_v383 ⇐ open stdin in
+    let ch_v384 ⇐ (send ch_v383 true) in
+    let __v385 ⇐ recv ch_v384 in
+    match __v385 as __v386 in ??52 with
+    | ⟨s_v387, ch_v388⟩ ⇒
+      let ch_v389 ⇐ (send ch_v388 false) in
+      let __v390 ⇐ close ch_v389 in return s_v387
     end
 
 program print_i26 : string_d2 → IO unit =
-  fn (s_v386 : string_d2) ⇒
-    let ch_v387 ⇐ open stdout in
-    let ch_v388 ⇐ (send ch_v387 true) in
-    let ch_v389 ⇐ (send ch_v388 s_v386) in
-    let ch_v390 ⇐ (send ch_v389 false) in close ch_v390
-
-program prerr_i27 : string_d2 → IO unit =
   fn (s_v392 : string_d2) ⇒
-    let ch_v393 ⇐ open stderr in
+    let ch_v393 ⇐ open stdout in
     let ch_v394 ⇐ (send ch_v393 true) in
     let ch_v395 ⇐ (send ch_v394 s_v392) in
     let ch_v396 ⇐ (send ch_v395 false) in close ch_v396
 
-program split_i28 ‹t_s397› :
-  (list_d3‹??53, t_s397› nat) →
-    (list_d3‹??54, t_s397› nat) ⊗ (list_d3‹??55, t_s397› nat)
+program prerr_i27 : string_d2 → IO unit =
+  fn (s_v398 : string_d2) ⇒
+    let ch_v399 ⇐ open stderr in
+    let ch_v400 ⇐ (send ch_v399 true) in
+    let ch_v401 ⇐ (send ch_v400 s_v398) in
+    let ch_v402 ⇐ (send ch_v401 false) in close ch_v402
+
+program split_i28 ‹t_s403› :
+  (list_d3‹??53, t_s403› nat) →
+    (list_d3‹??54, t_s403› nat) ⊗ (list_d3‹??55, t_s403› nat)
 =
-  fn (zs_v400 : (list_d3‹??53, t_s397› nat)) ⇒
-    match zs_v400 as __v401 in ??56 with
+  fn (zs_v406 : (list_d3‹??53, t_s403› nat)) ⇒
+    match zs_v406 as __v407 in ??56 with
     | nil_c4  ⇒ ⟨nil_c4‹??77, ??76›, nil_c4‹??80, ??79›⟩
-    | cons_c5 x_v402 zs_v403 ⇒
-      match zs_v403 as __v404 in ??57 with
+    | cons_c5 x_v408 zs_v409 ⇒
+      match zs_v409 as __v410 in ??57 with
       | nil_c4  ⇒
-        ⟨(cons_c5‹??71, ??70› x_v402 nil_c4‹??68, ??67›), nil_c4‹??74,
+        ⟨(cons_c5‹??71, ??70› x_v408 nil_c4‹??68, ??67›), nil_c4‹??74,
         ??73›⟩
-      | cons_c5 y_v405 zs_v406 ⇒
-        let __v407 = (split_i28‹??58› zs_v406) in
-        match __v407 as __v408 in ??65 with
-        | ⟨xs_v409, ys_v410⟩ ⇒
-          ⟨(cons_c5‹??61, ??60› x_v402 xs_v409), (cons_c5‹??64,
+      | cons_c5 y_v411 zs_v412 ⇒
+        let __v413 = (split_i28‹??58› zs_v412) in
+        match __v413 as __v414 in ??65 with
+        | ⟨xs_v415, ys_v416⟩ ⇒
+          ⟨(cons_c5‹??61, ??60› x_v408 xs_v415), (cons_c5‹??64,
                                                        ??63›
-                                                         y_v405 ys_v410)⟩
+                                                         y_v411 ys_v416)⟩
         end
       end
     end
 
-program merge_i29 ‹t_s411› :
-  (list_d3‹??81, t_s411› nat) →
-    (list_d3‹??82, t_s411› nat) ⊸ (list_d3‹??83, t_s411› nat)
+program merge_i29 ‹t_s417› :
+  (list_d3‹??81, t_s417› nat) →
+    (list_d3‹??82, t_s417› nat) ⊸ (list_d3‹??83, t_s417› nat)
 =
-  fn (xs_v414 : (list_d3‹??81, t_s411› nat)) ⇒
-    ln (ys_v415 : ??84) ⇒
-      match xs_v414 as __v416 in ??85 with
-      | nil_c4  ⇒ ys_v415
-      | cons_c5 x_v417 xs0_v418 ⇒
-        match ys_v415 as __v419 in ??86 with
-        | nil_c4  ⇒ (cons_c5‹??104, ??103› x_v417 xs0_v418)
-        | cons_c5 y_v420 ys0_v421 ⇒
-          match (lten_i4 x_v417 y_v420) as __v422 in ??87 with
+  fn (xs_v420 : (list_d3‹??81, t_s417› nat)) ⇒
+    ln (ys_v421 : ??84) ⇒
+      match xs_v420 as __v422 in ??85 with
+      | nil_c4  ⇒ ys_v421
+      | cons_c5 x_v423 xs0_v424 ⇒
+        match ys_v421 as __v425 in ??86 with
+        | nil_c4  ⇒ (cons_c5‹??104, ??103› x_v423 xs0_v424)
+        | cons_c5 y_v426 ys0_v427 ⇒
+          match (lten_i4 x_v423 y_v426) as __v428 in ??87 with
           | true ⇒
             (cons_c5‹??101, ??100›
-              x_v417
+              x_v423
               (merge_i29‹??98›
-                xs0_v418 (cons_c5‹??97, ??96› y_v420 ys0_v421)))
+                xs0_v424 (cons_c5‹??97, ??96› y_v426 ys0_v427)))
           | false ⇒
             (cons_c5‹??94, ??93›
-              y_v420
+              y_v426
               (merge_i29‹??91›
-                (cons_c5‹??90, ??89› x_v417 xs0_v418) ys0_v421))
+                (cons_c5‹??90, ??89› x_v423 xs0_v424) ys0_v427))
           end
         end
       end
 
-program msort_i30 ‹t_s423› :
-  (list_d3‹??105, t_s423› nat) → (list_d3‹??106, t_s423› nat)
+program msort_i30 ‹t_s429› :
+  (list_d3‹??105, t_s429› nat) → (list_d3‹??106, t_s429› nat)
 =
-  fn (zs_v425 : (list_d3‹??105, t_s423› nat)) ⇒
-    match zs_v425 as __v426 in ??107 with
+  fn (zs_v431 : (list_d3‹??105, t_s429› nat)) ⇒
+    match zs_v431 as __v432 in ??107 with
     | nil_c4  ⇒ nil_c4‹??128, ??127›
-    | cons_c5 x_v427 zs_v428 ⇒
-      match zs_v428 as __v429 in ??108 with
+    | cons_c5 x_v433 zs_v434 ⇒
+      match zs_v434 as __v435 in ??108 with
       | nil_c4  ⇒
-        (cons_c5‹??125, ??124› x_v427 nil_c4‹??122, ??121›)
-      | cons_c5 y_v430 zs_v431 ⇒
-        let __v432 =
+        (cons_c5‹??125, ??124› x_v433 nil_c4‹??122, ??121›)
+      | cons_c5 y_v436 zs_v437 ⇒
+        let __v438 =
           (split_i28‹??115›
             (cons_c5‹??114, ??113›
-              x_v427 (cons_c5‹??111, ??110› y_v430 zs_v431)))
+              x_v433 (cons_c5‹??111, ??110› y_v436 zs_v437)))
         in
-        match __v432 as __v433 in ??119 with
-        | ⟨xs_v434, ys_v435⟩ ⇒
+        match __v438 as __v439 in ??119 with
+        | ⟨xs_v440, ys_v441⟩ ⇒
           (merge_i29‹??118›
-            (msort_i30‹??117› xs_v434) (msort_i30‹??116› ys_v435))
+            (msort_i30‹??117› xs_v440) (msort_i30‹??116› ys_v441))
         end
       end
     end
 
-logical cmsort_ch_i31 ‹t_s436› : L =
-  ch⟨⇑(__v437 : (list_d3‹??129, t_s436› nat)) ⇒ end⟩
+logical cmsort_ch_i31 ‹t_s442› : L =
+  ch⟨⇑(__v443 : (list_d3‹??129, t_s442› nat)) ⇒ end⟩
 
-program cmsort_worker_i32 ‹t_s438› :
+program cmsort_worker_i32 ‹t_s444› :
   nat →
-    (list_d3‹??130, t_s438› nat) →
-      cmsort_ch_i31‹t_s438› ⊸ IO unit
+    (list_d3‹??130, t_s444› nat) →
+      cmsort_ch_i31‹t_s444› ⊸ IO unit
 =
-  fn (n_v442 : nat) (zs_v443 : (list_d3‹??130, t_s438› nat)) ⇒
-    ln (c_v444 : ??131) ⇒
-      match n_v442 as __v445 in ??132 with
+  fn (n_v448 : nat) (zs_v449 : (list_d3‹??130, t_s444› nat)) ⇒
+    ln (c_v450 : ??131) ⇒
+      match n_v448 as __v451 in ??132 with
       | O ⇒
-        let c_v446 ⇐ (send c_v444 (msort_i30‹??156› zs_v443)) in
-        close c_v446
-      | S n_v447 ⇒
-        match zs_v443 as __v448 in ??133 with
+        let c_v452 ⇐ (send c_v450 (msort_i30‹??156› zs_v449)) in
+        close c_v452
+      | S n_v453 ⇒
+        match zs_v449 as __v454 in ??133 with
         | nil_c4  ⇒
-          let c_v449 ⇐ (send c_v444 nil_c4‹??155, ??154›) in
-          close c_v449
-        | cons_c5 z0_v450 zs0_v451 ⇒
-          match zs0_v451 as __v452 in ??134 with
+          let c_v455 ⇐ (send c_v450 nil_c4‹??155, ??154›) in
+          close c_v455
+        | cons_c5 z0_v456 zs0_v457 ⇒
+          match zs0_v457 as __v458 in ??134 with
           | nil_c4  ⇒
-            let c_v453 ⇐ (send c_v444 nil_c4‹??152, ??151›) in
-            close c_v453
-          | cons_c5 z1_v454 zs1_v455 ⇒
-            let __v456 =
+            let c_v459 ⇐ (send c_v450 nil_c4‹??152, ??151›) in
+            close c_v459
+          | cons_c5 z1_v460 zs1_v461 ⇒
+            let __v462 =
               (split_i28‹??141›
                 (cons_c5‹??140, ??139›
-                  z0_v450 (cons_c5‹??137, ??136› z1_v454 zs1_v455)))
+                  z0_v456 (cons_c5‹??137, ??136› z1_v460 zs1_v461)))
             in
-            match __v456 as __v457 in ??149 with
-            | ⟨xs0_v458, ys0_v459⟩ ⇒
-              let r1_v460 ⇐
-                fork (r1_v461 : cmsort_ch_i31‹??142›) in
-                  (cmsort_worker_i32‹??143› n_v447 xs0_v458 r1_v461)
+            match __v462 as __v463 in ??149 with
+            | ⟨xs0_v464, ys0_v465⟩ ⇒
+              let r1_v466 ⇐
+                fork (r1_v467 : cmsort_ch_i31‹??142›) in
+                  (cmsort_worker_i32‹??143› n_v453 xs0_v464 r1_v467)
               in
-              let r2_v462 ⇐
-                fork (r2_v463 : cmsort_ch_i31‹??144›) in
-                  (cmsort_worker_i32‹??145› n_v447 ys0_v459 r2_v463)
+              let r2_v468 ⇐
+                fork (r2_v469 : cmsort_ch_i31‹??144›) in
+                  (cmsort_worker_i32‹??145› n_v453 ys0_v465 r2_v469)
               in
-              let __v464 ⇐ recv r1_v460 in
-              match __v464 as __v465 in ??148 with
-              | ⟨xs1_v466, r1_v467⟩ ⇒
-                let __v468 ⇐ recv r2_v462 in
-                match __v468 as __v469 in ??147 with
-                | ⟨ys1_v470, r2_v471⟩ ⇒
-                  let zs_v472 = (merge_i29‹??146› xs1_v466 ys1_v470) in
-                  let c_v473 ⇐ (send c_v444 zs_v472) in
-                  let __v474 ⇐ close r1_v467 in
-                  let __v475 ⇐ close r2_v471 in close c_v473
+              let __v470 ⇐ recv r1_v466 in
+              match __v470 as __v471 in ??148 with
+              | ⟨xs1_v472, r1_v473⟩ ⇒
+                let __v474 ⇐ recv r2_v468 in
+                match __v474 as __v475 in ??147 with
+                | ⟨ys1_v476, r2_v477⟩ ⇒
+                  let zs_v478 = (merge_i29‹??146› xs1_v472 ys1_v476) in
+                  let c_v479 ⇐ (send c_v450 zs_v478) in
+                  let __v480 ⇐ close r1_v473 in
+                  let __v481 ⇐ close r2_v477 in close c_v479
                 end
               end
             end
@@ -413,238 +418,247 @@ program cmsort_worker_i32 ‹t_s438› :
         end
       end
 
-program cmsort_i33 ‹t_s476› :
-  (list_d3‹??157, t_s476› nat) → IO (list_d3‹??158, t_s476› nat)
+program cmsort_i33 ‹t_s482› :
+  (list_d3‹??157, t_s482› nat) → IO (list_d3‹??158, t_s482› nat)
 =
-  fn (zs0_v478 : (list_d3‹??157, t_s476› nat)) ⇒
-    let c_v479 ⇐
-      fork (c_v480 : cmsort_ch_i31‹??159›) in
-        (cmsort_worker_i32‹??160› 4 zs0_v478 c_v480)
+  fn (zs0_v484 : (list_d3‹??157, t_s482› nat)) ⇒
+    let c_v485 ⇐
+      fork (c_v486 : cmsort_ch_i31‹??159›) in
+        (cmsort_worker_i32‹??160› 4 zs0_v484 c_v486)
     in
-    let __v481 ⇐ recv c_v479 in
-    match __v481 as __v482 in ??161 with
-    | ⟨zs1_v483, c_v484⟩ ⇒
-      let __v485 ⇐ close c_v484 in return zs1_v483
+    let __v487 ⇐ recv c_v485 in
+    match __v487 as __v488 in ??161 with
+    | ⟨zs1_v489, c_v490⟩ ⇒
+      let __v491 ⇐ close c_v490 in return zs1_v489
     end
 
-program mkList_i34 ‹t_s486› : nat → (list_d3‹??162, t_s486› nat) =
-  fn (n_v488 : nat) ⇒
-    match n_v488 as __v489 in ??163 with
+program mkList_i34 ‹t_s492› : nat → (list_d3‹??162, t_s492› nat) =
+  fn (n_v494 : nat) ⇒
+    match n_v494 as __v495 in ??163 with
     | O ⇒ nil_c4‹??170, ??169›
-    | S n0_v490 ⇒
-      (cons_c5‹??167, ??166› n_v488 (mkList_i34‹??164› n0_v490))
+    | S n0_v496 ⇒
+      (cons_c5‹??167, ??166› n_v494 (mkList_i34‹??164› n0_v496))
     end
 
-program main_i35 : IO unit =
-  let test_v491 = (mkList_i34‹U› 800000) in
-  let sorted_v492 ⇐ (cmsort_i33‹??171› test_v491) in return ()
+program free_i35 :
+  ∀ {A_v497 : U} → (list_d3‹??171, L› A_v497) → unit
+=
+  fn {A_v499 : U} (ls_v500 : (list_d3‹??171, L› A_v499)) ⇒
+    match ls_v500 as __v501 in ??172 with
+    | nil_c4  ⇒ () | cons_c5 __v502 ls_v503 ⇒ (free_i35 ??173 ls_v503)
+    end
+
+program main_i36 : IO unit =
+  let test_v504 = (mkList_i34‹L› 400000) in
+  let sorted_v505 = (msort_i30‹??174› test_v504) in
+  let __v506 = (free_i35 ??175 sorted_v505) in return ()
 
 trans01 success--------------------------
 
 program andb_i1 : bool → bool → bool =
-  fn (b1_v12164 : bool) (b2_v12165 : bool) ⇒
-    match b1_v12164 as __v12166 in bool with
-    | true ⇒ b2_v12165 | false ⇒ false
+  fn (b1_v12955 : bool) (b2_v12956 : bool) ⇒
+    match b1_v12955 as __v12957 in bool with
+    | true ⇒ b2_v12956 | false ⇒ false
     end
 
 program orb_i2 : bool → bool → bool =
-  fn (b1_v12169 : bool) (b2_v12170 : bool) ⇒
-    match b1_v12169 as __v12171 in bool with
-    | true ⇒ true | false ⇒ b2_v12170
+  fn (b1_v12960 : bool) (b2_v12961 : bool) ⇒
+    match b1_v12960 as __v12962 in bool with
+    | true ⇒ true | false ⇒ b2_v12961
     end
 
 program notb_i3 : bool → bool =
-  fn (b_v12173 : bool) ⇒
-    match b_v12173 as __v12174 in bool with
+  fn (b_v12964 : bool) ⇒
+    match b_v12964 as __v12965 in bool with
     | true ⇒ false | false ⇒ true
     end
 
 program lten_i4 : nat → nat → bool =
-  fn (x_v12177 : nat) (y_v12178 : nat) ⇒
-    match x_v12177 as __v12179 in bool with
+  fn (x_v12968 : nat) (y_v12969 : nat) ⇒
+    match x_v12968 as __v12970 in bool with
     | O ⇒ true
-    | S x_v12180 ⇒
-      match y_v12178 as __v12181 in bool with
-      | O ⇒ false | S y_v12182 ⇒ (lten_i4 x_v12180 y_v12182)
+    | S x_v12971 ⇒
+      match y_v12969 as __v12972 in bool with
+      | O ⇒ false | S y_v12973 ⇒ (lten_i4 x_v12971 y_v12973)
       end
     end
 
 program gten_i5 : nat → nat → bool =
-  fn (x_v12185 : nat) (y_v12186 : nat) ⇒
-    match x_v12185 as __v12187 in bool with
+  fn (x_v12976 : nat) (y_v12977 : nat) ⇒
+    match x_v12976 as __v12978 in bool with
     | O ⇒
-      match y_v12186 as __v12188 in bool with
-      | O ⇒ true | S __v12189 ⇒ false
+      match y_v12977 as __v12979 in bool with
+      | O ⇒ true | S __v12980 ⇒ false
       end
-    | S x_v12190 ⇒
-      match y_v12186 as __v12191 in bool with
-      | O ⇒ true | S y_v12192 ⇒ (gten_i5 x_v12190 y_v12192)
+    | S x_v12981 ⇒
+      match y_v12977 as __v12982 in bool with
+      | O ⇒ true | S y_v12983 ⇒ (gten_i5 x_v12981 y_v12983)
       end
     end
 
 program ltn_i6 : nat → nat → bool =
-  fn (x_v12195 : nat) (y_v12196 : nat) ⇒
-    match x_v12195 as __v12197 in bool with
+  fn (x_v12986 : nat) (y_v12987 : nat) ⇒
+    match x_v12986 as __v12988 in bool with
     | O ⇒
-      match y_v12196 as __v12198 in bool with
-      | O ⇒ false | S y_v12199 ⇒ true
+      match y_v12987 as __v12989 in bool with
+      | O ⇒ false | S y_v12990 ⇒ true
       end
-    | S x_v12200 ⇒
-      match y_v12196 as __v12201 in bool with
-      | O ⇒ false | S y_v12202 ⇒ (ltn_i6 x_v12200 y_v12202)
+    | S x_v12991 ⇒
+      match y_v12987 as __v12992 in bool with
+      | O ⇒ false | S y_v12993 ⇒ (ltn_i6 x_v12991 y_v12993)
       end
     end
 
 program gtn_i7 : nat → nat → bool =
-  fn (x_v12205 : nat) (y_v12206 : nat) ⇒
-    match x_v12205 as __v12207 in bool with
+  fn (x_v12996 : nat) (y_v12997 : nat) ⇒
+    match x_v12996 as __v12998 in bool with
     | O ⇒ false
-    | S x_v12208 ⇒
-      match y_v12206 as __v12209 in bool with
-      | O ⇒ true | S y_v12210 ⇒ (gtn_i7 x_v12208 y_v12210)
+    | S x_v12999 ⇒
+      match y_v12997 as __v13000 in bool with
+      | O ⇒ true | S y_v13001 ⇒ (gtn_i7 x_v12999 y_v13001)
       end
     end
 
 program eqn_i8 : nat → nat → bool =
-  fn (x_v12213 : nat) (y_v12214 : nat) ⇒
-    match x_v12213 as __v12215 in bool with
+  fn (x_v13004 : nat) (y_v13005 : nat) ⇒
+    match x_v13004 as __v13006 in bool with
     | O ⇒
-      match y_v12214 as __v12216 in bool with
-      | O ⇒ true | S __v12217 ⇒ false
+      match y_v13005 as __v13007 in bool with
+      | O ⇒ true | S __v13008 ⇒ false
       end
-    | S x_v12218 ⇒
-      match y_v12214 as __v12219 in bool with
-      | O ⇒ false | S y_v12220 ⇒ (eqn_i8 x_v12218 y_v12220)
+    | S x_v13009 ⇒
+      match y_v13005 as __v13010 in bool with
+      | O ⇒ false | S y_v13011 ⇒ (eqn_i8 x_v13009 y_v13011)
       end
     end
 
 program pred_i9 : nat → nat =
-  fn (x_v12222 : nat) ⇒
-    match x_v12222 as __v12223 in nat with
-    | O ⇒ 0 | S x_v12224 ⇒ x_v12224
+  fn (x_v13013 : nat) ⇒
+    match x_v13013 as __v13014 in nat with
+    | O ⇒ 0 | S x_v13015 ⇒ x_v13015
     end
 
 program addn_i10 : nat → nat → nat =
-  fn (x_v12227 : nat) (y_v12228 : nat) ⇒
-    match x_v12227 as __v12229 in nat with
-    | O ⇒ y_v12228 | S x_v12230 ⇒ (addn_i10 x_v12230 y_v12228).+1
+  fn (x_v13018 : nat) (y_v13019 : nat) ⇒
+    match x_v13018 as __v13020 in nat with
+    | O ⇒ y_v13019 | S x_v13021 ⇒ (addn_i10 x_v13021 y_v13019).+1
     end
 
 program subn_i11 : nat → nat → nat =
-  fn (x_v12233 : nat) (y_v12234 : nat) ⇒
-    match y_v12234 as __v12235 in nat with
-    | O ⇒ x_v12233 | S y_v12236 ⇒ (subn_i11 (pred_i9 x_v12233) y_v12236)
+  fn (x_v13024 : nat) (y_v13025 : nat) ⇒
+    match y_v13025 as __v13026 in nat with
+    | O ⇒ x_v13024 | S y_v13027 ⇒ (subn_i11 (pred_i9 x_v13024) y_v13027)
     end
 
 program muln_i12 : nat → nat → nat =
-  fn (x_v12239 : nat) (y_v12240 : nat) ⇒
-    match x_v12239 as __v12241 in nat with
+  fn (x_v13030 : nat) (y_v13031 : nat) ⇒
+    match x_v13030 as __v13032 in nat with
     | O ⇒ 0
-    | S x_v12242 ⇒ (addn_i10 y_v12240 (muln_i12 x_v12242 y_v12240))
+    | S x_v13033 ⇒ (addn_i10 y_v13031 (muln_i12 x_v13033 y_v13031))
     end
 
 program divn_i13 : nat → nat → nat =
-  fn (x_v12245 : nat) (y_v12246 : nat) ⇒
-    match (ltn_i6 x_v12245 y_v12246) as __v12247 in nat with
+  fn (x_v13036 : nat) (y_v13037 : nat) ⇒
+    match (ltn_i6 x_v13036 y_v13037) as __v13038 in nat with
     | true ⇒ 0
-    | false ⇒ (divn_i13 (subn_i11 x_v12245 y_v12246) y_v12246).+1
+    | false ⇒ (divn_i13 (subn_i11 x_v13036 y_v13037) y_v13037).+1
     end
 
 program modn_i14 : nat → nat → nat =
-  fn (x_v12250 : nat) (y_v12251 : nat) ⇒
-    (subn_i11 x_v12250 (muln_i12 (divn_i13 x_v12250 y_v12251) y_v12251))
+  fn (x_v13041 : nat) (y_v13042 : nat) ⇒
+    (subn_i11 x_v13041 (muln_i12 (divn_i13 x_v13041 y_v13042) y_v13042))
 
 inductive char_d1 : U =
-| Char_c1 of (n_v12252 : nat) : char_d1
+| Char_c1 of (n_v13043 : nat) : char_d1
 
 inductive string_d2 : U =
 | EmptyString_c2 of : string_d2
-| String_c3 of (c_v12253 : char_d1) (s_v12254 : string_d2) : string_d2
+| String_c3 of (c_v13044 : char_d1) (s_v13045 : string_d2) : string_d2
 
 program cats_i15 : string_d2 → string_d2 → string_d2 =
-  fn (s1_v12257 : string_d2) (s2_v12258 : string_d2) ⇒
-    match s1_v12257 as __v12259 in string_d2 with
-    | EmptyString_c2  ⇒ s2_v12258
-    | String_c3 c_v12260 s1_v12261 ⇒
-      (String_c3‹› c_v12260 (cats_i15 s1_v12261 s2_v12258))
+  fn (s1_v13048 : string_d2) (s2_v13049 : string_d2) ⇒
+    match s1_v13048 as __v13050 in string_d2 with
+    | EmptyString_c2  ⇒ s2_v13049
+    | String_c3 c_v13051 s1_v13052 ⇒
+      (String_c3‹› c_v13051 (cats_i15 s1_v13052 s2_v13049))
     end
 
 program strlen_i16 : string_d2 → nat =
-  fn (s_v12263 : string_d2) ⇒
-    match s_v12263 as __v12264 in nat with
+  fn (s_v13054 : string_d2) ⇒
+    match s_v13054 as __v13055 in nat with
     | EmptyString_c2  ⇒ 0
-    | String_c3 __v12265 s_v12266 ⇒ (strlen_i16 s_v12266).+1
+    | String_c3 __v13056 s_v13057 ⇒ (strlen_i16 s_v13057).+1
     end
 
-inductive list_d3 ‹s_s12267, t_s12268›
-  (A_v12269 : Type‹s_s12267›) : Type‹t_s12268›
+inductive list_d3 ‹s_s13058, t_s13059›
+  (A_v13060 : Type‹s_s13058›) : Type‹t_s13059›
 =
 | nil_c4 of
-    ‹s_s12270, t_s12271› (A_v12272 : Type‹s_s12270›)
-    : (list_d3‹s_s12270, t_s12271› A_v12272)
+    ‹s_s13061, t_s13062› (A_v13063 : Type‹s_s13061›)
+    : (list_d3‹s_s13061, t_s13062› A_v13063)
 | cons_c5 of
-    ‹s_s12273, t_s12274› (A_v12275 : Type‹s_s12273›)
-    (hd_v12276 : A_v12275)
-    (tl_v12277 : (list_d3‹s_s12273, t_s12274› A_v12275))
-    : (list_d3‹s_s12273, t_s12274› A_v12275)
+    ‹s_s13064, t_s13065› (A_v13066 : Type‹s_s13064›)
+    (hd_v13067 : A_v13066)
+    (tl_v13068 : (list_d3‹s_s13064, t_s13065› A_v13066))
+    : (list_d3‹s_s13064, t_s13065› A_v13066)
 
-program len_i17 ‹s_s12278, t_s12279› :
-  ∀ {A_v12280 : Type‹s_s12278›} →
-    (list_d3‹s_s12278, t_s12279› A_v12280) →
-      nat ⊗ (list_d3‹s_s12278, t_s12279› A_v12280)
+program len_i17 ‹s_s13069, t_s13070› :
+  ∀ {A_v13071 : Type‹s_s13069›} →
+    (list_d3‹s_s13069, t_s13070› A_v13071) →
+      nat ⊗ (list_d3‹s_s13069, t_s13070› A_v13071)
 =
-  fn {A_v12283 : Type‹s_s12278›}
-     (xs_v12284 : (list_d3‹s_s12278, t_s12279› A_v12283)) ⇒
-    match xs_v12284 as __v12285 in
-      nat ⊗ (list_d3‹s_s12278, t_s12279› A_v12283) with
-    | nil_c4  ⇒ ⟨0, nil_c4‹s_s12278, t_s12279›⟩
-    | cons_c5 x_v12287 xs_v12288 ⇒
-      match (len_i17‹s_s12278, t_s12279› A_v12283 xs_v12288) as __v12289 in
-        nat ⊗ (list_d3‹s_s12278, t_s12279› A_v12283) with
-      | ⟨n_v12291, xs_v12292⟩ ⇒
-        ⟨n_v12291.+1, (cons_c5‹s_s12278, t_s12279› x_v12287 xs_v12292)⟩
+  fn {A_v13074 : Type‹s_s13069›}
+     (xs_v13075 : (list_d3‹s_s13069, t_s13070› A_v13074)) ⇒
+    match xs_v13075 as __v13076 in
+      nat ⊗ (list_d3‹s_s13069, t_s13070› A_v13074) with
+    | nil_c4  ⇒ ⟨0, nil_c4‹s_s13069, t_s13070›⟩
+    | cons_c5 x_v13078 xs_v13079 ⇒
+      match (len_i17‹s_s13069, t_s13070› A_v13074 xs_v13079) as __v13080 in
+        nat ⊗ (list_d3‹s_s13069, t_s13070› A_v13074) with
+      | ⟨n_v13082, xs_v13083⟩ ⇒
+        ⟨n_v13082.+1, (cons_c5‹s_s13069, t_s13070› x_v13078 xs_v13083)⟩
       end
     end
 
-program append_i18 ‹s_s12293, t_s12294› :
-  ∀ {A_v12295 : Type‹s_s12293›} →
-    (list_d3‹s_s12293, t_s12294› A_v12295) →
-      (list_d3‹s_s12293, t_s12294› A_v12295) ⊸
-        (list_d3‹s_s12293, t_s12294› A_v12295)
+program append_i18 ‹s_s13084, t_s13085› :
+  ∀ {A_v13086 : Type‹s_s13084›} →
+    (list_d3‹s_s13084, t_s13085› A_v13086) →
+      (list_d3‹s_s13084, t_s13085› A_v13086) ⊸
+        (list_d3‹s_s13084, t_s13085› A_v13086)
 =
-  fn {A_v12298 : Type‹s_s12293›}
-     (xs_v12299 : (list_d3‹s_s12293, t_s12294› A_v12298)) ⇒
-    ln (ys_v12300 : (list_d3‹s_s12293, t_s12294› A_v12298)) ⇒
-      match xs_v12299 as __v12301 in
-        (list_d3‹s_s12293, t_s12294› A_v12298) with
-      | nil_c4  ⇒ ys_v12300
-      | cons_c5 x_v12302 xs_v12303 ⇒
-        (cons_c5‹s_s12293, t_s12294›
-          x_v12302
-          (append_i18‹s_s12293, t_s12294› A_v12298 xs_v12303 ys_v12300))
+  fn {A_v13089 : Type‹s_s13084›}
+     (xs_v13090 : (list_d3‹s_s13084, t_s13085› A_v13089)) ⇒
+    ln (ys_v13091 : (list_d3‹s_s13084, t_s13085› A_v13089)) ⇒
+      match xs_v13090 as __v13092 in
+        (list_d3‹s_s13084, t_s13085› A_v13089) with
+      | nil_c4  ⇒ ys_v13091
+      | cons_c5 x_v13093 xs_v13094 ⇒
+        (cons_c5‹s_s13084, t_s13085›
+          x_v13093
+          (append_i18‹s_s13084, t_s13085› A_v13089 xs_v13094 ys_v13091))
       end
 
 logical stdin_rec_i19 : unit → proto =
-  fn (__v12305 : unit) ⇒
-    ⇑(b_v12306 : bool) ⇒
-      match b_v12306 as __v12307 in proto with
-      | true ⇒ ⇓(__v12308 : string_d2) ⇒ (stdin_rec_i19 ())
+  fn (__v13096 : unit) ⇒
+    ⇑(b_v13097 : bool) ⇒
+      match b_v13097 as __v13098 in proto with
+      | true ⇒ ⇓(__v13099 : string_d2) ⇒ (stdin_rec_i19 ())
       | false ⇒ end
       end
 
 logical stdout_rec_i20 : unit → proto =
-  fn (__v12310 : unit) ⇒
-    ⇑(b_v12311 : bool) ⇒
-      match b_v12311 as __v12312 in proto with
-      | true ⇒ ⇑(__v12313 : string_d2) ⇒ (stdout_rec_i20 ())
+  fn (__v13101 : unit) ⇒
+    ⇑(b_v13102 : bool) ⇒
+      match b_v13102 as __v13103 in proto with
+      | true ⇒ ⇑(__v13104 : string_d2) ⇒ (stdout_rec_i20 ())
       | false ⇒ end
       end
 
 logical stderr_rec_i21 : unit → proto =
-  fn (__v12315 : unit) ⇒
-    ⇑(b_v12316 : bool) ⇒
-      match b_v12316 as __v12317 in proto with
-      | true ⇒ ⇑(__v12318 : string_d2) ⇒ (stderr_rec_i21 ())
+  fn (__v13106 : unit) ⇒
+    ⇑(b_v13107 : bool) ⇒
+      match b_v13107 as __v13108 in proto with
+      | true ⇒ ⇑(__v13109 : string_d2) ⇒ (stderr_rec_i21 ())
       | false ⇒ end
       end
 
@@ -655,164 +669,164 @@ logical stdout_t_i23 : proto = (stdout_rec_i20 ())
 logical stderr_t_i24 : proto = (stderr_rec_i21 ())
 
 program readline_i25 : unit → IO string_d2 =
-  fn (__v12320 : unit) ⇒
-    let ch_v12321 ⇐ open stdin in
-    let ch_v12322 ⇐ (send ch_v12321 true) in
-    let __v12323 ⇐ recv ch_v12322 in
-    match __v12323 as __v12324 in IO string_d2 with
-    | ⟨s_v12325, ch_v12326⟩ ⇒
-      let ch_v12327 ⇐ (send ch_v12326 false) in
-      let __v12328 ⇐ close ch_v12327 in return s_v12325
+  fn (__v13111 : unit) ⇒
+    let ch_v13112 ⇐ open stdin in
+    let ch_v13113 ⇐ (send ch_v13112 true) in
+    let __v13114 ⇐ recv ch_v13113 in
+    match __v13114 as __v13115 in IO string_d2 with
+    | ⟨s_v13116, ch_v13117⟩ ⇒
+      let ch_v13118 ⇐ (send ch_v13117 false) in
+      let __v13119 ⇐ close ch_v13118 in return s_v13116
     end
 
 program print_i26 : string_d2 → IO unit =
-  fn (s_v12330 : string_d2) ⇒
-    let ch_v12331 ⇐ open stdout in
-    let ch_v12332 ⇐ (send ch_v12331 true) in
-    let ch_v12333 ⇐ (send ch_v12332 s_v12330) in
-    let ch_v12334 ⇐ (send ch_v12333 false) in close ch_v12334
+  fn (s_v13121 : string_d2) ⇒
+    let ch_v13122 ⇐ open stdout in
+    let ch_v13123 ⇐ (send ch_v13122 true) in
+    let ch_v13124 ⇐ (send ch_v13123 s_v13121) in
+    let ch_v13125 ⇐ (send ch_v13124 false) in close ch_v13125
 
 program prerr_i27 : string_d2 → IO unit =
-  fn (s_v12336 : string_d2) ⇒
-    let ch_v12337 ⇐ open stderr in
-    let ch_v12338 ⇐ (send ch_v12337 true) in
-    let ch_v12339 ⇐ (send ch_v12338 s_v12336) in
-    let ch_v12340 ⇐ (send ch_v12339 false) in close ch_v12340
+  fn (s_v13127 : string_d2) ⇒
+    let ch_v13128 ⇐ open stderr in
+    let ch_v13129 ⇐ (send ch_v13128 true) in
+    let ch_v13130 ⇐ (send ch_v13129 s_v13127) in
+    let ch_v13131 ⇐ (send ch_v13130 false) in close ch_v13131
 
-program split_i28 ‹t_s12341› :
-  (list_d3‹U, t_s12341› nat) →
-    (list_d3‹U, t_s12341› nat) ⊗ (list_d3‹U, t_s12341› nat)
+program split_i28 ‹t_s13132› :
+  (list_d3‹U, t_s13132› nat) →
+    (list_d3‹U, t_s13132› nat) ⊗ (list_d3‹U, t_s13132› nat)
 =
-  fn (zs_v12344 : (list_d3‹U, t_s12341› nat)) ⇒
-    match zs_v12344 as __v12345 in
-      (list_d3‹U, t_s12341› nat) ⊗ (list_d3‹U, t_s12341› nat) with
-    | nil_c4  ⇒ ⟨nil_c4‹U, t_s12341›, nil_c4‹U, t_s12341›⟩
-    | cons_c5 x_v12347 zs_v12348 ⇒
-      match zs_v12348 as __v12349 in
-        (list_d3‹U, t_s12341› nat) ⊗ (list_d3‹U, t_s12341› nat) with
+  fn (zs_v13135 : (list_d3‹U, t_s13132› nat)) ⇒
+    match zs_v13135 as __v13136 in
+      (list_d3‹U, t_s13132› nat) ⊗ (list_d3‹U, t_s13132› nat) with
+    | nil_c4  ⇒ ⟨nil_c4‹U, t_s13132›, nil_c4‹U, t_s13132›⟩
+    | cons_c5 x_v13138 zs_v13139 ⇒
+      match zs_v13139 as __v13140 in
+        (list_d3‹U, t_s13132› nat) ⊗ (list_d3‹U, t_s13132› nat) with
       | nil_c4  ⇒
-        ⟨(cons_c5‹U, t_s12341› x_v12347 nil_c4‹U, t_s12341›), nil_c4‹U,
-        t_s12341›⟩
-      | cons_c5 y_v12351 zs_v12352 ⇒
-        let __v12353 = (split_i28‹t_s12341› zs_v12352) in
-        match __v12353 as __v12354 in
-          (list_d3‹U, t_s12341› nat) ⊗ (list_d3‹U, t_s12341› nat) with
-        | ⟨xs_v12356, ys_v12357⟩ ⇒
-          ⟨(cons_c5‹U, t_s12341› x_v12347 xs_v12356), (cons_c5‹U,
-                                                            t_s12341›
-                                                              y_v12351
-                                                              ys_v12357)⟩
+        ⟨(cons_c5‹U, t_s13132› x_v13138 nil_c4‹U, t_s13132›), nil_c4‹U,
+        t_s13132›⟩
+      | cons_c5 y_v13142 zs_v13143 ⇒
+        let __v13144 = (split_i28‹t_s13132› zs_v13143) in
+        match __v13144 as __v13145 in
+          (list_d3‹U, t_s13132› nat) ⊗ (list_d3‹U, t_s13132› nat) with
+        | ⟨xs_v13147, ys_v13148⟩ ⇒
+          ⟨(cons_c5‹U, t_s13132› x_v13138 xs_v13147), (cons_c5‹U,
+                                                            t_s13132›
+                                                              y_v13142
+                                                              ys_v13148)⟩
         end
       end
     end
 
-program merge_i29 ‹t_s12358› :
-  (list_d3‹U, t_s12358› nat) →
-    (list_d3‹U, t_s12358› nat) ⊸ (list_d3‹U, t_s12358› nat)
+program merge_i29 ‹t_s13149› :
+  (list_d3‹U, t_s13149› nat) →
+    (list_d3‹U, t_s13149› nat) ⊸ (list_d3‹U, t_s13149› nat)
 =
-  fn (xs_v12361 : (list_d3‹U, t_s12358› nat)) ⇒
-    ln (ys_v12362 : (list_d3‹U, t_s12358› nat)) ⇒
-      match xs_v12361 as __v12363 in (list_d3‹U, t_s12358› nat) with
-      | nil_c4  ⇒ ys_v12362
-      | cons_c5 x_v12364 xs0_v12365 ⇒
-        match ys_v12362 as __v12366 in (list_d3‹U, t_s12358› nat) with
-        | nil_c4  ⇒ (cons_c5‹U, t_s12358› x_v12364 xs0_v12365)
-        | cons_c5 y_v12367 ys0_v12368 ⇒
-          match (lten_i4 x_v12364 y_v12367) as __v12369 in
-            (list_d3‹U, t_s12358› nat) with
+  fn (xs_v13152 : (list_d3‹U, t_s13149› nat)) ⇒
+    ln (ys_v13153 : (list_d3‹U, t_s13149› nat)) ⇒
+      match xs_v13152 as __v13154 in (list_d3‹U, t_s13149› nat) with
+      | nil_c4  ⇒ ys_v13153
+      | cons_c5 x_v13155 xs0_v13156 ⇒
+        match ys_v13153 as __v13157 in (list_d3‹U, t_s13149› nat) with
+        | nil_c4  ⇒ (cons_c5‹U, t_s13149› x_v13155 xs0_v13156)
+        | cons_c5 y_v13158 ys0_v13159 ⇒
+          match (lten_i4 x_v13155 y_v13158) as __v13160 in
+            (list_d3‹U, t_s13149› nat) with
           | true ⇒
-            (cons_c5‹U, t_s12358›
-              x_v12364
-              (merge_i29‹t_s12358›
-                xs0_v12365 (cons_c5‹U, t_s12358› y_v12367 ys0_v12368)))
+            (cons_c5‹U, t_s13149›
+              x_v13155
+              (merge_i29‹t_s13149›
+                xs0_v13156 (cons_c5‹U, t_s13149› y_v13158 ys0_v13159)))
           | false ⇒
-            (cons_c5‹U, t_s12358›
-              y_v12367
-              (merge_i29‹t_s12358›
-                (cons_c5‹U, t_s12358› x_v12364 xs0_v12365) ys0_v12368))
+            (cons_c5‹U, t_s13149›
+              y_v13158
+              (merge_i29‹t_s13149›
+                (cons_c5‹U, t_s13149› x_v13155 xs0_v13156) ys0_v13159))
           end
         end
       end
 
-program msort_i30 ‹t_s12370› :
-  (list_d3‹U, t_s12370› nat) → (list_d3‹U, t_s12370› nat)
+program msort_i30 ‹t_s13161› :
+  (list_d3‹U, t_s13161› nat) → (list_d3‹U, t_s13161› nat)
 =
-  fn (zs_v12372 : (list_d3‹U, t_s12370› nat)) ⇒
-    match zs_v12372 as __v12373 in (list_d3‹U, t_s12370› nat) with
-    | nil_c4  ⇒ nil_c4‹U, t_s12370›
-    | cons_c5 x_v12374 zs_v12375 ⇒
-      match zs_v12375 as __v12376 in (list_d3‹U, t_s12370› nat) with
+  fn (zs_v13163 : (list_d3‹U, t_s13161› nat)) ⇒
+    match zs_v13163 as __v13164 in (list_d3‹U, t_s13161› nat) with
+    | nil_c4  ⇒ nil_c4‹U, t_s13161›
+    | cons_c5 x_v13165 zs_v13166 ⇒
+      match zs_v13166 as __v13167 in (list_d3‹U, t_s13161› nat) with
       | nil_c4  ⇒
-        (cons_c5‹U, t_s12370› x_v12374 nil_c4‹U, t_s12370›)
-      | cons_c5 y_v12377 zs_v12378 ⇒
-        let __v12379 =
-          (split_i28‹t_s12370›
-            (cons_c5‹U, t_s12370›
-              x_v12374 (cons_c5‹U, t_s12370› y_v12377 zs_v12378)))
+        (cons_c5‹U, t_s13161› x_v13165 nil_c4‹U, t_s13161›)
+      | cons_c5 y_v13168 zs_v13169 ⇒
+        let __v13170 =
+          (split_i28‹t_s13161›
+            (cons_c5‹U, t_s13161›
+              x_v13165 (cons_c5‹U, t_s13161› y_v13168 zs_v13169)))
         in
-        match __v12379 as __v12380 in (list_d3‹U, t_s12370› nat) with
-        | ⟨xs_v12381, ys_v12382⟩ ⇒
-          (merge_i29‹t_s12370›
-            (msort_i30‹t_s12370› xs_v12381)
-            (msort_i30‹t_s12370› ys_v12382))
+        match __v13170 as __v13171 in (list_d3‹U, t_s13161› nat) with
+        | ⟨xs_v13172, ys_v13173⟩ ⇒
+          (merge_i29‹t_s13161›
+            (msort_i30‹t_s13161› xs_v13172)
+            (msort_i30‹t_s13161› ys_v13173))
         end
       end
     end
 
-logical cmsort_ch_i31 ‹t_s12383› : L =
-  ch⟨⇑(__v12384 : (list_d3‹U, t_s12383› nat)) ⇒ end⟩
+logical cmsort_ch_i31 ‹t_s13174› : L =
+  ch⟨⇑(__v13175 : (list_d3‹U, t_s13174› nat)) ⇒ end⟩
 
-program cmsort_worker_i32 ‹t_s12385› :
+program cmsort_worker_i32 ‹t_s13176› :
   nat →
-    (list_d3‹U, t_s12385› nat) →
-      cmsort_ch_i31‹t_s12385› ⊸ IO unit
+    (list_d3‹U, t_s13176› nat) →
+      cmsort_ch_i31‹t_s13176› ⊸ IO unit
 =
-  fn (n_v12389 : nat) (zs_v12390 : (list_d3‹U, t_s12385› nat)) ⇒
-    ln (c_v12391 : cmsort_ch_i31‹t_s12385›) ⇒
-      match n_v12389 as __v12392 in IO unit with
+  fn (n_v13180 : nat) (zs_v13181 : (list_d3‹U, t_s13176› nat)) ⇒
+    ln (c_v13182 : cmsort_ch_i31‹t_s13176›) ⇒
+      match n_v13180 as __v13183 in IO unit with
       | O ⇒
-        let c_v12393 ⇐ (send c_v12391 (msort_i30‹t_s12385› zs_v12390))
-        in close c_v12393
-      | S n_v12394 ⇒
-        match zs_v12390 as __v12395 in IO unit with
+        let c_v13184 ⇐ (send c_v13182 (msort_i30‹t_s13176› zs_v13181))
+        in close c_v13184
+      | S n_v13185 ⇒
+        match zs_v13181 as __v13186 in IO unit with
         | nil_c4  ⇒
-          let c_v12396 ⇐ (send c_v12391 nil_c4‹U, t_s12385›) in
-          close c_v12396
-        | cons_c5 z0_v12397 zs0_v12398 ⇒
-          match zs0_v12398 as __v12399 in IO unit with
+          let c_v13187 ⇐ (send c_v13182 nil_c4‹U, t_s13176›) in
+          close c_v13187
+        | cons_c5 z0_v13188 zs0_v13189 ⇒
+          match zs0_v13189 as __v13190 in IO unit with
           | nil_c4  ⇒
-            let c_v12400 ⇐ (send c_v12391 nil_c4‹U, t_s12385›) in
-            close c_v12400
-          | cons_c5 z1_v12401 zs1_v12402 ⇒
-            let __v12403 =
-              (split_i28‹t_s12385›
-                (cons_c5‹U, t_s12385›
-                  z0_v12397 (cons_c5‹U, t_s12385› z1_v12401 zs1_v12402)))
+            let c_v13191 ⇐ (send c_v13182 nil_c4‹U, t_s13176›) in
+            close c_v13191
+          | cons_c5 z1_v13192 zs1_v13193 ⇒
+            let __v13194 =
+              (split_i28‹t_s13176›
+                (cons_c5‹U, t_s13176›
+                  z0_v13188 (cons_c5‹U, t_s13176› z1_v13192 zs1_v13193)))
             in
-            match __v12403 as __v12404 in IO unit with
-            | ⟨xs0_v12405, ys0_v12406⟩ ⇒
-              let r1_v12407 ⇐
-                fork (r1_v12408 : cmsort_ch_i31‹t_s12385›) in
-                  (cmsort_worker_i32‹t_s12385›
-                    n_v12394 xs0_v12405 r1_v12408)
+            match __v13194 as __v13195 in IO unit with
+            | ⟨xs0_v13196, ys0_v13197⟩ ⇒
+              let r1_v13198 ⇐
+                fork (r1_v13199 : cmsort_ch_i31‹t_s13176›) in
+                  (cmsort_worker_i32‹t_s13176›
+                    n_v13185 xs0_v13196 r1_v13199)
               in
-              let r2_v12409 ⇐
-                fork (r2_v12410 : cmsort_ch_i31‹t_s12385›) in
-                  (cmsort_worker_i32‹t_s12385›
-                    n_v12394 ys0_v12406 r2_v12410)
+              let r2_v13200 ⇐
+                fork (r2_v13201 : cmsort_ch_i31‹t_s13176›) in
+                  (cmsort_worker_i32‹t_s13176›
+                    n_v13185 ys0_v13197 r2_v13201)
               in
-              let __v12411 ⇐ recv r1_v12407 in
-              match __v12411 as __v12412 in IO unit with
-              | ⟨xs1_v12413, r1_v12414⟩ ⇒
-                let __v12415 ⇐ recv r2_v12409 in
-                match __v12415 as __v12416 in IO unit with
-                | ⟨ys1_v12417, r2_v12418⟩ ⇒
-                  let zs_v12419 =
-                    (merge_i29‹t_s12385› xs1_v12413 ys1_v12417)
+              let __v13202 ⇐ recv r1_v13198 in
+              match __v13202 as __v13203 in IO unit with
+              | ⟨xs1_v13204, r1_v13205⟩ ⇒
+                let __v13206 ⇐ recv r2_v13200 in
+                match __v13206 as __v13207 in IO unit with
+                | ⟨ys1_v13208, r2_v13209⟩ ⇒
+                  let zs_v13210 =
+                    (merge_i29‹t_s13176› xs1_v13204 ys1_v13208)
                   in
-                  let c_v12420 ⇐ (send c_v12391 zs_v12419) in
-                  let __v12421 ⇐ close r1_v12414 in
-                  let __v12422 ⇐ close r2_v12418 in close c_v12420
+                  let c_v13211 ⇐ (send c_v13182 zs_v13210) in
+                  let __v13212 ⇐ close r1_v13205 in
+                  let __v13213 ⇐ close r2_v13209 in close c_v13211
                 end
               end
             end
@@ -820,144 +834,154 @@ program cmsort_worker_i32 ‹t_s12385› :
         end
       end
 
-program cmsort_i33 ‹t_s12423› :
-  (list_d3‹U, t_s12423› nat) → IO (list_d3‹U, t_s12423› nat)
+program cmsort_i33 ‹t_s13214› :
+  (list_d3‹U, t_s13214› nat) → IO (list_d3‹U, t_s13214› nat)
 =
-  fn (zs0_v12425 : (list_d3‹U, t_s12423› nat)) ⇒
-    let c_v12426 ⇐
-      fork (c_v12427 : cmsort_ch_i31‹t_s12423›) in
-        (cmsort_worker_i32‹t_s12423› 4 zs0_v12425 c_v12427)
+  fn (zs0_v13216 : (list_d3‹U, t_s13214› nat)) ⇒
+    let c_v13217 ⇐
+      fork (c_v13218 : cmsort_ch_i31‹t_s13214›) in
+        (cmsort_worker_i32‹t_s13214› 4 zs0_v13216 c_v13218)
     in
-    let __v12428 ⇐ recv c_v12426 in
-    match __v12428 as __v12429 in IO (list_d3‹U, t_s12423› nat) with
-    | ⟨zs1_v12430, c_v12431⟩ ⇒
-      let __v12432 ⇐ close c_v12431 in return zs1_v12430
+    let __v13219 ⇐ recv c_v13217 in
+    match __v13219 as __v13220 in IO (list_d3‹U, t_s13214› nat) with
+    | ⟨zs1_v13221, c_v13222⟩ ⇒
+      let __v13223 ⇐ close c_v13222 in return zs1_v13221
     end
 
-program mkList_i34 ‹t_s12433› : nat → (list_d3‹U, t_s12433› nat) =
-  fn (n_v12435 : nat) ⇒
-    match n_v12435 as __v12436 in (list_d3‹U, t_s12433› nat) with
-    | O ⇒ nil_c4‹U, t_s12433›
-    | S n0_v12437 ⇒
-      (cons_c5‹U, t_s12433›
-        n_v12435 (mkList_i34‹t_s12433› n0_v12437))
+program mkList_i34 ‹t_s13224› : nat → (list_d3‹U, t_s13224› nat) =
+  fn (n_v13226 : nat) ⇒
+    match n_v13226 as __v13227 in (list_d3‹U, t_s13224› nat) with
+    | O ⇒ nil_c4‹U, t_s13224›
+    | S n0_v13228 ⇒
+      (cons_c5‹U, t_s13224›
+        n_v13226 (mkList_i34‹t_s13224› n0_v13228))
     end
 
-program main_i35 : IO unit =
-  let test_v12438 = (mkList_i34‹U› 800000) in
-  let sorted_v12439 ⇐ (cmsort_i33‹U› test_v12438) in return ()
+program free_i35 :
+  ∀ {A_v13229 : U} → (list_d3‹U, L› A_v13229) → unit
+=
+  fn {A_v13231 : U} (ls_v13232 : (list_d3‹U, L› A_v13231)) ⇒
+    match ls_v13232 as __v13233 in unit with
+    | nil_c4  ⇒ ()
+    | cons_c5 __v13234 ls_v13235 ⇒ (free_i35 A_v13231 ls_v13235)
+    end
+
+program main_i36 : IO unit =
+  let test_v13236 = (mkList_i34‹L› 400000) in
+  let sorted_v13237 = (msort_i30‹L› test_v13236) in
+  let __v13238 = (free_i35 nat sorted_v13237) in return ()
 
 trans1e success--------------------------
 
 def andb_i1 =
-  fn b1_v12902 b2_v12903 ⇒
-    match b1_v12902 with
-    | true ⇒ b2_v12903 | false ⇒ false
+  fn b1_v13708 b2_v13709 ⇒
+    match b1_v13708 with
+    | true ⇒ b2_v13709 | false ⇒ false
     end
 
 def orb_i2 =
-  fn b1_v12904 b2_v12905 ⇒
-    match b1_v12904 with
-    | true ⇒ true | false ⇒ b2_v12905
+  fn b1_v13710 b2_v13711 ⇒
+    match b1_v13710 with
+    | true ⇒ true | false ⇒ b2_v13711
     end
 
 def notb_i3 =
-  fn b_v12906 ⇒ match b_v12906 with
+  fn b_v13712 ⇒ match b_v13712 with
                   | true ⇒ false | false ⇒ true
                   end
 
 def lten_i4 =
-  fn x_v12907 y_v12908 ⇒
-    match x_v12907 with
+  fn x_v13713 y_v13714 ⇒
+    match x_v13713 with
     | O ⇒ true
-    | S x_v12909 ⇒
-      match y_v12908 with
-      | O ⇒ false | S y_v12910 ⇒ ((lten_i4 x_v12909) y_v12910)
+    | S x_v13715 ⇒
+      match y_v13714 with
+      | O ⇒ false | S y_v13716 ⇒ ((lten_i4 x_v13715) y_v13716)
       end
     end
 
 def gten_i5 =
-  fn x_v12911 y_v12912 ⇒
-    match x_v12911 with
-    | O ⇒ match y_v12912 with
-            | O ⇒ true | S __v12913 ⇒ false
+  fn x_v13717 y_v13718 ⇒
+    match x_v13717 with
+    | O ⇒ match y_v13718 with
+            | O ⇒ true | S __v13719 ⇒ false
             end
-    | S x_v12914 ⇒
-      match y_v12912 with
-      | O ⇒ true | S y_v12915 ⇒ ((gten_i5 x_v12914) y_v12915)
+    | S x_v13720 ⇒
+      match y_v13718 with
+      | O ⇒ true | S y_v13721 ⇒ ((gten_i5 x_v13720) y_v13721)
       end
     end
 
 def ltn_i6 =
-  fn x_v12916 y_v12917 ⇒
-    match x_v12916 with
-    | O ⇒ match y_v12917 with
-            | O ⇒ false | S y_v12918 ⇒ true
+  fn x_v13722 y_v13723 ⇒
+    match x_v13722 with
+    | O ⇒ match y_v13723 with
+            | O ⇒ false | S y_v13724 ⇒ true
             end
-    | S x_v12919 ⇒
-      match y_v12917 with
-      | O ⇒ false | S y_v12920 ⇒ ((ltn_i6 x_v12919) y_v12920)
+    | S x_v13725 ⇒
+      match y_v13723 with
+      | O ⇒ false | S y_v13726 ⇒ ((ltn_i6 x_v13725) y_v13726)
       end
     end
 
 def gtn_i7 =
-  fn x_v12921 y_v12922 ⇒
-    match x_v12921 with
+  fn x_v13727 y_v13728 ⇒
+    match x_v13727 with
     | O ⇒ false
-    | S x_v12923 ⇒
-      match y_v12922 with
-      | O ⇒ true | S y_v12924 ⇒ ((gtn_i7 x_v12923) y_v12924)
+    | S x_v13729 ⇒
+      match y_v13728 with
+      | O ⇒ true | S y_v13730 ⇒ ((gtn_i7 x_v13729) y_v13730)
       end
     end
 
 def eqn_i8 =
-  fn x_v12925 y_v12926 ⇒
-    match x_v12925 with
-    | O ⇒ match y_v12926 with
-            | O ⇒ true | S __v12927 ⇒ false
+  fn x_v13731 y_v13732 ⇒
+    match x_v13731 with
+    | O ⇒ match y_v13732 with
+            | O ⇒ true | S __v13733 ⇒ false
             end
-    | S x_v12928 ⇒
-      match y_v12926 with
-      | O ⇒ false | S y_v12929 ⇒ ((eqn_i8 x_v12928) y_v12929)
+    | S x_v13734 ⇒
+      match y_v13732 with
+      | O ⇒ false | S y_v13735 ⇒ ((eqn_i8 x_v13734) y_v13735)
       end
     end
 
 def pred_i9 =
-  fn x_v12930 ⇒ match x_v12930 with
-                  | O ⇒ 0 | S x_v12931 ⇒ x_v12931
+  fn x_v13736 ⇒ match x_v13736 with
+                  | O ⇒ 0 | S x_v13737 ⇒ x_v13737
                   end
 
 def addn_i10 =
-  fn x_v12932 y_v12933 ⇒
-    match x_v12932 with
-    | O ⇒ y_v12933 | S x_v12934 ⇒ ((addn_i10 x_v12934) y_v12933).+1
+  fn x_v13738 y_v13739 ⇒
+    match x_v13738 with
+    | O ⇒ y_v13739 | S x_v13740 ⇒ ((addn_i10 x_v13740) y_v13739).+1
     end
 
 def subn_i11 =
-  fn x_v12935 y_v12936 ⇒
-    match y_v12936 with
-    | O ⇒ x_v12935
-    | S y_v12937 ⇒ ((subn_i11 (pred_i9 x_v12935)) y_v12937)
+  fn x_v13741 y_v13742 ⇒
+    match y_v13742 with
+    | O ⇒ x_v13741
+    | S y_v13743 ⇒ ((subn_i11 (pred_i9 x_v13741)) y_v13743)
     end
 
 def muln_i12 =
-  fn x_v12938 y_v12939 ⇒
-    match x_v12938 with
+  fn x_v13744 y_v13745 ⇒
+    match x_v13744 with
     | O ⇒ 0
-    | S x_v12940 ⇒ ((addn_i10 y_v12939) ((muln_i12 x_v12940) y_v12939))
+    | S x_v13746 ⇒ ((addn_i10 y_v13745) ((muln_i12 x_v13746) y_v13745))
     end
 
 def divn_i13 =
-  fn x_v12941 y_v12942 ⇒
-    match ((ltn_i6 x_v12941) y_v12942) with
+  fn x_v13747 y_v13748 ⇒
+    match ((ltn_i6 x_v13747) y_v13748) with
     | true ⇒ 0
-    | false ⇒ ((divn_i13 ((subn_i11 x_v12941) y_v12942)) y_v12942).+1
+    | false ⇒ ((divn_i13 ((subn_i11 x_v13747) y_v13748)) y_v13748).+1
     end
 
 def modn_i14 =
-  fn x_v12943 y_v12944 ⇒
-    ((subn_i11 x_v12943)
-      ((muln_i12 ((divn_i13 x_v12943) y_v12944)) y_v12944))
+  fn x_v13749 y_v13750 ⇒
+    ((subn_i11 x_v13749)
+      ((muln_i12 ((divn_i13 x_v13749) y_v13750)) y_v13750))
 
 data char_d1 =
 | Char_c1 of size(1)
@@ -966,18 +990,18 @@ data string_d2 =
 | EmptyString_c2 of size(0) | String_c3 of size(2)
 
 def cats_i15 =
-  fn s1_v12945 s2_v12946 ⇒
-    match s1_v12945 with
-    | EmptyString_c2  ⇒ s2_v12946
-    | String_c3 c_v12947 s1_v12948 ⇒
-      (String_c3 c_v12947 ((cats_i15 s1_v12948) s2_v12946))
+  fn s1_v13751 s2_v13752 ⇒
+    match s1_v13751 with
+    | EmptyString_c2  ⇒ s2_v13752
+    | String_c3 c_v13753 s1_v13754 ⇒
+      (String_c3 c_v13753 ((cats_i15 s1_v13754) s2_v13752))
     end
 
 def strlen_i16 =
-  fn s_v12949 ⇒
-    match s_v12949 with
+  fn s_v13755 ⇒
+    match s_v13755 with
     | EmptyString_c2  ⇒ 0
-    | String_c3 __v12950 s_v12951 ⇒ (strlen_i16 s_v12951).+1
+    | String_c3 __v13756 s_v13757 ⇒ (strlen_i16 s_v13757).+1
     end
 
 data listUU_d7 =
@@ -992,243 +1016,243 @@ data listLU_d5 =
 data listLL_d4 =
 | nilLL_c6 of size(0) | consLL_c7 of size(2)
 
-def lenUU_i39 =
-  fn A_v12952 xs_v12953 ⇒
-    match xs_v12953 with
+def lenUU_i40 =
+  fn A_v13758 xs_v13759 ⇒
+    match xs_v13759 with
     | nilUU_c12  ⇒ (0, nilUU_c12)
-    | consUU_c13 x_v12954 xs_v12955 ⇒
-      match ((lenUU_i39 NULL) xs_v12955) with
-      | (n_v12956, xs_v12957) ⇒
-        (n_v12956.+1, (consUU_c13 x_v12954 xs_v12957))
+    | consUU_c13 x_v13760 xs_v13761 ⇒
+      match ((lenUU_i40 NULL) xs_v13761) with
+      | (n_v13762, xs_v13763) ⇒
+        (n_v13762.+1, (consUU_c13 x_v13760 xs_v13763))
       end
     end
 
-def lenUL_i38 =
-  fn A_v12958 xs_v12959 ⇒
-    match xs_v12959 with
+def lenUL_i39 =
+  fn A_v13764 xs_v13765 ⇒
+    match xs_v13765 with
     | nilUL_c10  ⇒ (0, nilUL_c10)
-    | consUL_c11 x_v12960 xs_v12961 ⇒
-      match ((lenUL_i38 NULL) xs_v12961) with
-      | (n_v12962, xs_v12963) ⇒
-        (n_v12962.+1, (consUL_c11 x_v12960 xs_v12963))
+    | consUL_c11 x_v13766 xs_v13767 ⇒
+      match ((lenUL_i39 NULL) xs_v13767) with
+      | (n_v13768, xs_v13769) ⇒
+        (n_v13768.+1, (consUL_c11 x_v13766 xs_v13769))
       end
     end
 
-def lenLL_i36 =
-  fn A_v12964 xs_v12965 ⇒
-    match xs_v12965 with
+def lenLL_i37 =
+  fn A_v13770 xs_v13771 ⇒
+    match xs_v13771 with
     | nilLL_c6  ⇒ (0, nilLL_c6)
-    | consLL_c7 x_v12966 xs_v12967 ⇒
-      match ((lenLL_i36 NULL) xs_v12967) with
-      | (n_v12968, xs_v12969) ⇒
-        (n_v12968.+1, (consLL_c7 x_v12966 xs_v12969))
+    | consLL_c7 x_v13772 xs_v13773 ⇒
+      match ((lenLL_i37 NULL) xs_v13773) with
+      | (n_v13774, xs_v13775) ⇒
+        (n_v13774.+1, (consLL_c7 x_v13772 xs_v13775))
       end
     end
 
-def appendUU_i43 =
-  fn A_v12970 xs_v12971 ⇒
-    ln ys_v12972 ⇒
-      match xs_v12971 with
-      | nilUU_c12  ⇒ ys_v12972
-      | consUU_c13 x_v12973 xs_v12974 ⇒
-        (consUU_c13 x_v12973 (((appendUU_i43 NULL) xs_v12974) ys_v12972))
+def appendUU_i44 =
+  fn A_v13776 xs_v13777 ⇒
+    ln ys_v13778 ⇒
+      match xs_v13777 with
+      | nilUU_c12  ⇒ ys_v13778
+      | consUU_c13 x_v13779 xs_v13780 ⇒
+        (consUU_c13 x_v13779 (((appendUU_i44 NULL) xs_v13780) ys_v13778))
       end
 
-def appendUL_i42 =
-  fn A_v12975 xs_v12976 ⇒
-    ln ys_v12977 ⇒
-      match xs_v12976 with
-      | nilUL_c10  ⇒ ys_v12977
-      | consUL_c11 x_v12978 xs_v12979 ⇒
-        (consUL_c11 x_v12978 (((appendUL_i42 NULL) xs_v12979) ys_v12977))
+def appendUL_i43 =
+  fn A_v13781 xs_v13782 ⇒
+    ln ys_v13783 ⇒
+      match xs_v13782 with
+      | nilUL_c10  ⇒ ys_v13783
+      | consUL_c11 x_v13784 xs_v13785 ⇒
+        (consUL_c11 x_v13784 (((appendUL_i43 NULL) xs_v13785) ys_v13783))
       end
 
-def appendLL_i40 =
-  fn A_v12980 xs_v12981 ⇒
-    ln ys_v12982 ⇒
-      match xs_v12981 with
-      | nilLL_c6  ⇒ ys_v12982
-      | consLL_c7 x_v12983 xs_v12984 ⇒
-        (consLL_c7 x_v12983 (((appendLL_i40 NULL) xs_v12984) ys_v12982))
+def appendLL_i41 =
+  fn A_v13786 xs_v13787 ⇒
+    ln ys_v13788 ⇒
+      match xs_v13787 with
+      | nilLL_c6  ⇒ ys_v13788
+      | consLL_c7 x_v13789 xs_v13790 ⇒
+        (consLL_c7 x_v13789 (((appendLL_i41 NULL) xs_v13790) ys_v13788))
       end
 
 def readline_i25 =
-  fn __v12985 ⇒
-    let ch_v12986 ⇐ open stdin in
-    let ch_v12987 ⇐ (send ch_v12986 true) in
-    let __v12988 ⇐ recv ch_v12987 in
-    match __v12988 with
-    | (s_v12989, ch_v12990) ⇒
-      let ch_v12991 ⇐ (send ch_v12990 false) in
-      let __v12992 ⇐ close⇑ ch_v12991 in return s_v12989
+  fn __v13791 ⇒
+    let ch_v13792 ⇐ open stdin in
+    let ch_v13793 ⇐ (send ch_v13792 true) in
+    let __v13794 ⇐ recv ch_v13793 in
+    match __v13794 with
+    | (s_v13795, ch_v13796) ⇒
+      let ch_v13797 ⇐ (send ch_v13796 false) in
+      let __v13798 ⇐ close⇑ ch_v13797 in return s_v13795
     end
 
 def print_i26 =
-  fn s_v12993 ⇒
-    let ch_v12994 ⇐ open stdout in
-    let ch_v12995 ⇐ (send ch_v12994 true) in
-    let ch_v12996 ⇐ (send ch_v12995 s_v12993) in
-    let ch_v12997 ⇐ (send ch_v12996 false) in close⇑ ch_v12997
+  fn s_v13799 ⇒
+    let ch_v13800 ⇐ open stdout in
+    let ch_v13801 ⇐ (send ch_v13800 true) in
+    let ch_v13802 ⇐ (send ch_v13801 s_v13799) in
+    let ch_v13803 ⇐ (send ch_v13802 false) in close⇑ ch_v13803
 
 def prerr_i27 =
-  fn s_v12998 ⇒
-    let ch_v12999 ⇐ open stderr in
-    let ch_v13000 ⇐ (send ch_v12999 true) in
-    let ch_v13001 ⇐ (send ch_v13000 s_v12998) in
-    let ch_v13002 ⇐ (send ch_v13001 false) in close⇑ ch_v13002
+  fn s_v13804 ⇒
+    let ch_v13805 ⇐ open stderr in
+    let ch_v13806 ⇐ (send ch_v13805 true) in
+    let ch_v13807 ⇐ (send ch_v13806 s_v13804) in
+    let ch_v13808 ⇐ (send ch_v13807 false) in close⇑ ch_v13808
 
-def splitU_i45 =
-  fn zs_v13003 ⇒
-    match zs_v13003 with
+def splitU_i46 =
+  fn zs_v13809 ⇒
+    match zs_v13809 with
     | nilUU_c12  ⇒ (nilUU_c12, nilUU_c12)
-    | consUU_c13 x_v13004 zs_v13005 ⇒
-      match zs_v13005 with
-      | nilUU_c12  ⇒ ((consUU_c13 x_v13004 nilUU_c12), nilUU_c12)
-      | consUU_c13 y_v13006 zs_v13007 ⇒
-        let __v13008 = (splitU_i45 zs_v13007) in
-        match __v13008 with
-        | (xs_v13009, ys_v13010) ⇒
-          ((consUU_c13 x_v13004 xs_v13009), (consUU_c13 y_v13006 ys_v13010))
+    | consUU_c13 x_v13810 zs_v13811 ⇒
+      match zs_v13811 with
+      | nilUU_c12  ⇒ ((consUU_c13 x_v13810 nilUU_c12), nilUU_c12)
+      | consUU_c13 y_v13812 zs_v13813 ⇒
+        let __v13814 = (splitU_i46 zs_v13813) in
+        match __v13814 with
+        | (xs_v13815, ys_v13816) ⇒
+          ((consUU_c13 x_v13810 xs_v13815), (consUU_c13 y_v13812 ys_v13816))
         end
       end
     end
 
-def splitL_i44 =
-  fn zs_v13011 ⇒
-    match zs_v13011 with
+def splitL_i45 =
+  fn zs_v13817 ⇒
+    match zs_v13817 with
     | nilUL_c10  ⇒ (nilUL_c10, nilUL_c10)
-    | consUL_c11 x_v13012 zs_v13013 ⇒
-      match zs_v13013 with
-      | nilUL_c10  ⇒ ((consUL_c11 x_v13012 nilUL_c10), nilUL_c10)
-      | consUL_c11 y_v13014 zs_v13015 ⇒
-        let __v13016 = (splitL_i44 zs_v13015) in
-        match __v13016 with
-        | (xs_v13017, ys_v13018) ⇒
-          ((consUL_c11 x_v13012 xs_v13017), (consUL_c11 y_v13014 ys_v13018))
+    | consUL_c11 x_v13818 zs_v13819 ⇒
+      match zs_v13819 with
+      | nilUL_c10  ⇒ ((consUL_c11 x_v13818 nilUL_c10), nilUL_c10)
+      | consUL_c11 y_v13820 zs_v13821 ⇒
+        let __v13822 = (splitL_i45 zs_v13821) in
+        match __v13822 with
+        | (xs_v13823, ys_v13824) ⇒
+          ((consUL_c11 x_v13818 xs_v13823), (consUL_c11 y_v13820 ys_v13824))
         end
       end
     end
 
-def mergeU_i47 =
-  fn xs_v13019 ⇒
-    ln ys_v13020 ⇒
-      match xs_v13019 with
-      | nilUU_c12  ⇒ ys_v13020
-      | consUU_c13 x_v13021 xs0_v13022 ⇒
-        match ys_v13020 with
-        | nilUU_c12  ⇒ (consUU_c13 x_v13021 xs0_v13022)
-        | consUU_c13 y_v13023 ys0_v13024 ⇒
-          match ((lten_i4 x_v13021) y_v13023) with
+def mergeU_i48 =
+  fn xs_v13825 ⇒
+    ln ys_v13826 ⇒
+      match xs_v13825 with
+      | nilUU_c12  ⇒ ys_v13826
+      | consUU_c13 x_v13827 xs0_v13828 ⇒
+        match ys_v13826 with
+        | nilUU_c12  ⇒ (consUU_c13 x_v13827 xs0_v13828)
+        | consUU_c13 y_v13829 ys0_v13830 ⇒
+          match ((lten_i4 x_v13827) y_v13829) with
           | true ⇒
             (consUU_c13
-              x_v13021
-              ((mergeU_i47 xs0_v13022) (consUU_c13 y_v13023 ys0_v13024)))
+              x_v13827
+              ((mergeU_i48 xs0_v13828) (consUU_c13 y_v13829 ys0_v13830)))
           | false ⇒
             (consUU_c13
-              y_v13023
-              ((mergeU_i47 (consUU_c13 x_v13021 xs0_v13022)) ys0_v13024))
+              y_v13829
+              ((mergeU_i48 (consUU_c13 x_v13827 xs0_v13828)) ys0_v13830))
           end
         end
       end
 
-def mergeL_i46 =
-  fn xs_v13025 ⇒
-    ln ys_v13026 ⇒
-      match xs_v13025 with
-      | nilUL_c10  ⇒ ys_v13026
-      | consUL_c11 x_v13027 xs0_v13028 ⇒
-        match ys_v13026 with
-        | nilUL_c10  ⇒ (consUL_c11 x_v13027 xs0_v13028)
-        | consUL_c11 y_v13029 ys0_v13030 ⇒
-          match ((lten_i4 x_v13027) y_v13029) with
+def mergeL_i47 =
+  fn xs_v13831 ⇒
+    ln ys_v13832 ⇒
+      match xs_v13831 with
+      | nilUL_c10  ⇒ ys_v13832
+      | consUL_c11 x_v13833 xs0_v13834 ⇒
+        match ys_v13832 with
+        | nilUL_c10  ⇒ (consUL_c11 x_v13833 xs0_v13834)
+        | consUL_c11 y_v13835 ys0_v13836 ⇒
+          match ((lten_i4 x_v13833) y_v13835) with
           | true ⇒
             (consUL_c11
-              x_v13027
-              ((mergeL_i46 xs0_v13028) (consUL_c11 y_v13029 ys0_v13030)))
+              x_v13833
+              ((mergeL_i47 xs0_v13834) (consUL_c11 y_v13835 ys0_v13836)))
           | false ⇒
             (consUL_c11
-              y_v13029
-              ((mergeL_i46 (consUL_c11 x_v13027 xs0_v13028)) ys0_v13030))
+              y_v13835
+              ((mergeL_i47 (consUL_c11 x_v13833 xs0_v13834)) ys0_v13836))
           end
         end
       end
 
-def msortU_i49 =
-  fn zs_v13031 ⇒
-    match zs_v13031 with
+def msortU_i50 =
+  fn zs_v13837 ⇒
+    match zs_v13837 with
     | nilUU_c12  ⇒ nilUU_c12
-    | consUU_c13 x_v13032 zs_v13033 ⇒
-      match zs_v13033 with
-      | nilUU_c12  ⇒ (consUU_c13 x_v13032 nilUU_c12)
-      | consUU_c13 y_v13034 zs_v13035 ⇒
-        let __v13036 =
-          (splitU_i45 (consUU_c13 x_v13032 (consUU_c13 y_v13034 zs_v13035)))
+    | consUU_c13 x_v13838 zs_v13839 ⇒
+      match zs_v13839 with
+      | nilUU_c12  ⇒ (consUU_c13 x_v13838 nilUU_c12)
+      | consUU_c13 y_v13840 zs_v13841 ⇒
+        let __v13842 =
+          (splitU_i46 (consUU_c13 x_v13838 (consUU_c13 y_v13840 zs_v13841)))
         in
-        match __v13036 with
-        | (xs_v13037, ys_v13038) ⇒
-          ((mergeU_i47 (msortU_i49 xs_v13037)) (msortU_i49 ys_v13038))
+        match __v13842 with
+        | (xs_v13843, ys_v13844) ⇒
+          ((mergeU_i48 (msortU_i50 xs_v13843)) (msortU_i50 ys_v13844))
         end
       end
     end
 
-def msortL_i48 =
-  fn zs_v13039 ⇒
-    match zs_v13039 with
+def msortL_i49 =
+  fn zs_v13845 ⇒
+    match zs_v13845 with
     | nilUL_c10  ⇒ nilUL_c10
-    | consUL_c11 x_v13040 zs_v13041 ⇒
-      match zs_v13041 with
-      | nilUL_c10  ⇒ (consUL_c11 x_v13040 nilUL_c10)
-      | consUL_c11 y_v13042 zs_v13043 ⇒
-        let __v13044 =
-          (splitL_i44 (consUL_c11 x_v13040 (consUL_c11 y_v13042 zs_v13043)))
+    | consUL_c11 x_v13846 zs_v13847 ⇒
+      match zs_v13847 with
+      | nilUL_c10  ⇒ (consUL_c11 x_v13846 nilUL_c10)
+      | consUL_c11 y_v13848 zs_v13849 ⇒
+        let __v13850 =
+          (splitL_i45 (consUL_c11 x_v13846 (consUL_c11 y_v13848 zs_v13849)))
         in
-        match __v13044 with
-        | (xs_v13045, ys_v13046) ⇒
-          ((mergeL_i46 (msortL_i48 xs_v13045)) (msortL_i48 ys_v13046))
+        match __v13850 with
+        | (xs_v13851, ys_v13852) ⇒
+          ((mergeL_i47 (msortL_i49 xs_v13851)) (msortL_i49 ys_v13852))
         end
       end
     end
 
-def cmsort_workerU_i53 =
-  fn n_v13047 zs_v13048 ⇒
-    ln c_v13049 ⇒
-      match n_v13047 with
+def cmsort_workerU_i54 =
+  fn n_v13853 zs_v13854 ⇒
+    ln c_v13855 ⇒
+      match n_v13853 with
       | O ⇒
-        let c_v13050 ⇐ (send c_v13049 (msortU_i49 zs_v13048)) in
-        close⇑ c_v13050
-      | S n_v13051 ⇒
-        match zs_v13048 with
+        let c_v13856 ⇐ (send c_v13855 (msortU_i50 zs_v13854)) in
+        close⇑ c_v13856
+      | S n_v13857 ⇒
+        match zs_v13854 with
         | nilUU_c12  ⇒
-          let c_v13052 ⇐ (send c_v13049 nilUU_c12) in close⇑ c_v13052
-        | consUU_c13 z0_v13053 zs0_v13054 ⇒
-          match zs0_v13054 with
+          let c_v13858 ⇐ (send c_v13855 nilUU_c12) in close⇑ c_v13858
+        | consUU_c13 z0_v13859 zs0_v13860 ⇒
+          match zs0_v13860 with
           | nilUU_c12  ⇒
-            let c_v13055 ⇐ (send c_v13049 nilUU_c12) in close⇑ c_v13055
-          | consUU_c13 z1_v13056 zs1_v13057 ⇒
-            let __v13058 =
-              (splitU_i45
-                (consUU_c13 z0_v13053 (consUU_c13 z1_v13056 zs1_v13057)))
+            let c_v13861 ⇐ (send c_v13855 nilUU_c12) in close⇑ c_v13861
+          | consUU_c13 z1_v13862 zs1_v13863 ⇒
+            let __v13864 =
+              (splitU_i46
+                (consUU_c13 z0_v13859 (consUU_c13 z1_v13862 zs1_v13863)))
             in
-            match __v13058 with
-            | (xs0_v13059, ys0_v13060) ⇒
-              let r1_v13061 ⇐
-                fork r1_v13062 in
-                  (((cmsort_workerU_i53 n_v13051) xs0_v13059) r1_v13062)
+            match __v13864 with
+            | (xs0_v13865, ys0_v13866) ⇒
+              let r1_v13867 ⇐
+                fork r1_v13868 in
+                  (((cmsort_workerU_i54 n_v13857) xs0_v13865) r1_v13868)
               in
-              let r2_v13063 ⇐
-                fork r2_v13064 in
-                  (((cmsort_workerU_i53 n_v13051) ys0_v13060) r2_v13064)
+              let r2_v13869 ⇐
+                fork r2_v13870 in
+                  (((cmsort_workerU_i54 n_v13857) ys0_v13866) r2_v13870)
               in
-              let __v13065 ⇐ recv r1_v13061 in
-              match __v13065 with
-              | (xs1_v13066, r1_v13067) ⇒
-                let __v13068 ⇐ recv r2_v13063 in
-                match __v13068 with
-                | (ys1_v13069, r2_v13070) ⇒
-                  let zs_v13071 = ((mergeU_i47 xs1_v13066) ys1_v13069) in
-                  let c_v13072 ⇐ (send c_v13049 zs_v13071) in
-                  let __v13073 ⇐ close⇓ r1_v13067 in
-                  let __v13074 ⇐ close⇓ r2_v13070 in close⇑ c_v13072
+              let __v13871 ⇐ recv r1_v13867 in
+              match __v13871 with
+              | (xs1_v13872, r1_v13873) ⇒
+                let __v13874 ⇐ recv r2_v13869 in
+                match __v13874 with
+                | (ys1_v13875, r2_v13876) ⇒
+                  let zs_v13877 = ((mergeU_i48 xs1_v13872) ys1_v13875) in
+                  let c_v13878 ⇐ (send c_v13855 zs_v13877) in
+                  let __v13879 ⇐ close⇓ r1_v13873 in
+                  let __v13880 ⇐ close⇓ r2_v13876 in close⇑ c_v13878
                 end
               end
             end
@@ -1236,46 +1260,46 @@ def cmsort_workerU_i53 =
         end
       end
 
-def cmsort_workerL_i52 =
-  fn n_v13075 zs_v13076 ⇒
-    ln c_v13077 ⇒
-      match n_v13075 with
+def cmsort_workerL_i53 =
+  fn n_v13881 zs_v13882 ⇒
+    ln c_v13883 ⇒
+      match n_v13881 with
       | O ⇒
-        let c_v13078 ⇐ (send c_v13077 (msortL_i48 zs_v13076)) in
-        close⇑ c_v13078
-      | S n_v13079 ⇒
-        match zs_v13076 with
+        let c_v13884 ⇐ (send c_v13883 (msortL_i49 zs_v13882)) in
+        close⇑ c_v13884
+      | S n_v13885 ⇒
+        match zs_v13882 with
         | nilUL_c10  ⇒
-          let c_v13080 ⇐ (send c_v13077 nilUL_c10) in close⇑ c_v13080
-        | consUL_c11 z0_v13081 zs0_v13082 ⇒
-          match zs0_v13082 with
+          let c_v13886 ⇐ (send c_v13883 nilUL_c10) in close⇑ c_v13886
+        | consUL_c11 z0_v13887 zs0_v13888 ⇒
+          match zs0_v13888 with
           | nilUL_c10  ⇒
-            let c_v13083 ⇐ (send c_v13077 nilUL_c10) in close⇑ c_v13083
-          | consUL_c11 z1_v13084 zs1_v13085 ⇒
-            let __v13086 =
-              (splitL_i44
-                (consUL_c11 z0_v13081 (consUL_c11 z1_v13084 zs1_v13085)))
+            let c_v13889 ⇐ (send c_v13883 nilUL_c10) in close⇑ c_v13889
+          | consUL_c11 z1_v13890 zs1_v13891 ⇒
+            let __v13892 =
+              (splitL_i45
+                (consUL_c11 z0_v13887 (consUL_c11 z1_v13890 zs1_v13891)))
             in
-            match __v13086 with
-            | (xs0_v13087, ys0_v13088) ⇒
-              let r1_v13089 ⇐
-                fork r1_v13090 in
-                  (((cmsort_workerL_i52 n_v13079) xs0_v13087) r1_v13090)
+            match __v13892 with
+            | (xs0_v13893, ys0_v13894) ⇒
+              let r1_v13895 ⇐
+                fork r1_v13896 in
+                  (((cmsort_workerL_i53 n_v13885) xs0_v13893) r1_v13896)
               in
-              let r2_v13091 ⇐
-                fork r2_v13092 in
-                  (((cmsort_workerL_i52 n_v13079) ys0_v13088) r2_v13092)
+              let r2_v13897 ⇐
+                fork r2_v13898 in
+                  (((cmsort_workerL_i53 n_v13885) ys0_v13894) r2_v13898)
               in
-              let __v13093 ⇐ recv r1_v13089 in
-              match __v13093 with
-              | (xs1_v13094, r1_v13095) ⇒
-                let __v13096 ⇐ recv r2_v13091 in
-                match __v13096 with
-                | (ys1_v13097, r2_v13098) ⇒
-                  let zs_v13099 = ((mergeL_i46 xs1_v13094) ys1_v13097) in
-                  let c_v13100 ⇐ (send c_v13077 zs_v13099) in
-                  let __v13101 ⇐ close⇓ r1_v13095 in
-                  let __v13102 ⇐ close⇓ r2_v13098 in close⇑ c_v13100
+              let __v13899 ⇐ recv r1_v13895 in
+              match __v13899 with
+              | (xs1_v13900, r1_v13901) ⇒
+                let __v13902 ⇐ recv r2_v13897 in
+                match __v13902 with
+                | (ys1_v13903, r2_v13904) ⇒
+                  let zs_v13905 = ((mergeL_i47 xs1_v13900) ys1_v13903) in
+                  let c_v13906 ⇐ (send c_v13883 zs_v13905) in
+                  let __v13907 ⇐ close⇓ r1_v13901 in
+                  let __v13908 ⇐ close⇓ r2_v13904 in close⇑ c_v13906
                 end
               end
             end
@@ -1283,1162 +1307,1186 @@ def cmsort_workerL_i52 =
         end
       end
 
-def cmsortU_i55 =
-  fn zs0_v13103 ⇒
-    let c_v13104 ⇐
-      fork c_v13105 in (((cmsort_workerU_i53 4) zs0_v13103) c_v13105)
+def cmsortU_i56 =
+  fn zs0_v13909 ⇒
+    let c_v13910 ⇐
+      fork c_v13911 in (((cmsort_workerU_i54 4) zs0_v13909) c_v13911)
     in
-    let __v13106 ⇐ recv c_v13104 in
-    match __v13106 with
-    | (zs1_v13107, c_v13108) ⇒
-      let __v13109 ⇐ close⇓ c_v13108 in return zs1_v13107
+    let __v13912 ⇐ recv c_v13910 in
+    match __v13912 with
+    | (zs1_v13913, c_v13914) ⇒
+      let __v13915 ⇐ close⇓ c_v13914 in return zs1_v13913
     end
 
-def cmsortL_i54 =
-  fn zs0_v13110 ⇒
-    let c_v13111 ⇐
-      fork c_v13112 in (((cmsort_workerL_i52 4) zs0_v13110) c_v13112)
+def cmsortL_i55 =
+  fn zs0_v13916 ⇒
+    let c_v13917 ⇐
+      fork c_v13918 in (((cmsort_workerL_i53 4) zs0_v13916) c_v13918)
     in
-    let __v13113 ⇐ recv c_v13111 in
-    match __v13113 with
-    | (zs1_v13114, c_v13115) ⇒
-      let __v13116 ⇐ close⇓ c_v13115 in return zs1_v13114
+    let __v13919 ⇐ recv c_v13917 in
+    match __v13919 with
+    | (zs1_v13920, c_v13921) ⇒
+      let __v13922 ⇐ close⇓ c_v13921 in return zs1_v13920
     end
 
-def mkListU_i57 =
-  fn n_v13117 ⇒
-    match n_v13117 with
+def mkListU_i58 =
+  fn n_v13923 ⇒
+    match n_v13923 with
     | O ⇒ nilUU_c12
-    | S n0_v13118 ⇒ (consUU_c13 n_v13117 (mkListU_i57 n0_v13118))
+    | S n0_v13924 ⇒ (consUU_c13 n_v13923 (mkListU_i58 n0_v13924))
     end
 
-def mkListL_i56 =
-  fn n_v13119 ⇒
-    match n_v13119 with
+def mkListL_i57 =
+  fn n_v13925 ⇒
+    match n_v13925 with
     | O ⇒ nilUL_c10
-    | S n0_v13120 ⇒ (consUL_c11 n_v13119 (mkListL_i56 n0_v13120))
+    | S n0_v13926 ⇒ (consUL_c11 n_v13925 (mkListL_i57 n0_v13926))
+    end
+
+def free_i35 =
+  fn A_v13927 ls_v13928 ⇒
+    match ls_v13928 with
+    | nilUL_c10  ⇒ ()
+    | consUL_c11 __v13929 ls_v13930 ⇒ ((free_i35 NULL) ls_v13930)
     end
 
 main =
-  let test_v13121 = (mkListU_i57 800000) in
-  let sorted_v13122 ⇐ (cmsortU_i55 test_v13121) in return ()
+  let test_v13931 = (mkListL_i57 400000) in
+  let sorted_v13932 = (msortL_i49 test_v13931) in
+  let __v13933 = ((free_i35 NULL) sorted_v13932) in return ()
 
 trans12 success--------------------------
 
-fun andb_i1(b1_v13455, b2_v13456) = if b1_v13455 then
-                                      b2_v13456
+fun andb_i1(b1_v14270, b2_v14271) = if b1_v14270 then
+                                      b2_v14271
                                     else
                                       0
 
-val andbclo_i58 = fn b1_v13457 b2_v13458 ⇒ andb_i1(b1_v13457, b2_v13458)
+val andbclo_i59 = fn b1_v14272 b2_v14273 ⇒ andb_i1(b1_v14272, b2_v14273)
 
-fun orb_i2(b1_v13459, b2_v13460) = if b1_v13459 then
+fun orb_i2(b1_v14274, b2_v14275) = if b1_v14274 then
                                      1
                                    else
-                                     b2_v13460
+                                     b2_v14275
 
-val orbclo_i59 = fn b1_v13461 b2_v13462 ⇒ orb_i2(b1_v13461, b2_v13462)
+val orbclo_i60 = fn b1_v14276 b2_v14277 ⇒ orb_i2(b1_v14276, b2_v14277)
 
-fun notb_i3(b_v13463) = if b_v13463 then
+fun notb_i3(b_v14278) = if b_v14278 then
                           0
                         else
                           1
 
-val notbclo_i60 = fn b_v13464 ⇒ notb_i3(b_v13464)
+val notbclo_i61 = fn b_v14279 ⇒ notb_i3(b_v14279)
 
-fun lten_i4(x_v13465, y_v13466) =
-  let __v13467 = x_v13465 in
-  if __v13467 then
-    let x_v13468 = __v13467.-1 in
-    let __v13469 = y_v13466 in
-    if __v13469 then
-      let y_v13470 = __v13469.-1 in lten_i4(x_v13468, y_v13470)
+fun lten_i4(x_v14280, y_v14281) =
+  let __v14282 = x_v14280 in
+  if __v14282 then
+    let x_v14283 = __v14282.-1 in
+    let __v14284 = y_v14281 in
+    if __v14284 then
+      let y_v14285 = __v14284.-1 in lten_i4(x_v14283, y_v14285)
     else
       0
   else
     1
 
-val ltenclo_i61 = fn x_v13471 y_v13472 ⇒ lten_i4(x_v13471, y_v13472)
+val ltenclo_i62 = fn x_v14286 y_v14287 ⇒ lten_i4(x_v14286, y_v14287)
 
-fun gten_i5(x_v13473, y_v13474) =
-  let __v13475 = x_v13473 in
-  if __v13475 then
-    let x_v13476 = __v13475.-1 in
-    let __v13477 = y_v13474 in
-    if __v13477 then
-      let y_v13478 = __v13477.-1 in gten_i5(x_v13476, y_v13478)
+fun gten_i5(x_v14288, y_v14289) =
+  let __v14290 = x_v14288 in
+  if __v14290 then
+    let x_v14291 = __v14290.-1 in
+    let __v14292 = y_v14289 in
+    if __v14292 then
+      let y_v14293 = __v14292.-1 in gten_i5(x_v14291, y_v14293)
     else
       1
   else
-    let __v13479 = y_v13474 in
-    if __v13479 then
-      let __v13480 = __v13479.-1 in 0
+    let __v14294 = y_v14289 in
+    if __v14294 then
+      let __v14295 = __v14294.-1 in 0
     else
       1
 
-val gtenclo_i62 = fn x_v13481 y_v13482 ⇒ gten_i5(x_v13481, y_v13482)
+val gtenclo_i63 = fn x_v14296 y_v14297 ⇒ gten_i5(x_v14296, y_v14297)
 
-fun ltn_i6(x_v13483, y_v13484) =
-  let __v13485 = x_v13483 in
-  if __v13485 then
-    let x_v13486 = __v13485.-1 in
-    let __v13487 = y_v13484 in
-    if __v13487 then
-      let y_v13488 = __v13487.-1 in ltn_i6(x_v13486, y_v13488)
+fun ltn_i6(x_v14298, y_v14299) =
+  let __v14300 = x_v14298 in
+  if __v14300 then
+    let x_v14301 = __v14300.-1 in
+    let __v14302 = y_v14299 in
+    if __v14302 then
+      let y_v14303 = __v14302.-1 in ltn_i6(x_v14301, y_v14303)
     else
       0
   else
-    let __v13489 = y_v13484 in
-    if __v13489 then
-      let y_v13490 = __v13489.-1 in 1
+    let __v14304 = y_v14299 in
+    if __v14304 then
+      let y_v14305 = __v14304.-1 in 1
     else
       0
 
-val ltnclo_i63 = fn x_v13491 y_v13492 ⇒ ltn_i6(x_v13491, y_v13492)
+val ltnclo_i64 = fn x_v14306 y_v14307 ⇒ ltn_i6(x_v14306, y_v14307)
 
-fun gtn_i7(x_v13493, y_v13494) =
-  let __v13495 = x_v13493 in
-  if __v13495 then
-    let x_v13496 = __v13495.-1 in
-    let __v13497 = y_v13494 in
-    if __v13497 then
-      let y_v13498 = __v13497.-1 in gtn_i7(x_v13496, y_v13498)
+fun gtn_i7(x_v14308, y_v14309) =
+  let __v14310 = x_v14308 in
+  if __v14310 then
+    let x_v14311 = __v14310.-1 in
+    let __v14312 = y_v14309 in
+    if __v14312 then
+      let y_v14313 = __v14312.-1 in gtn_i7(x_v14311, y_v14313)
     else
       1
   else
     0
 
-val gtnclo_i64 = fn x_v13499 y_v13500 ⇒ gtn_i7(x_v13499, y_v13500)
+val gtnclo_i65 = fn x_v14314 y_v14315 ⇒ gtn_i7(x_v14314, y_v14315)
 
-fun eqn_i8(x_v13501, y_v13502) =
-  let __v13503 = x_v13501 in
-  if __v13503 then
-    let x_v13504 = __v13503.-1 in
-    let __v13505 = y_v13502 in
-    if __v13505 then
-      let y_v13506 = __v13505.-1 in eqn_i8(x_v13504, y_v13506)
+fun eqn_i8(x_v14316, y_v14317) =
+  let __v14318 = x_v14316 in
+  if __v14318 then
+    let x_v14319 = __v14318.-1 in
+    let __v14320 = y_v14317 in
+    if __v14320 then
+      let y_v14321 = __v14320.-1 in eqn_i8(x_v14319, y_v14321)
     else
       0
   else
-    let __v13507 = y_v13502 in
-    if __v13507 then
-      let __v13508 = __v13507.-1 in 0
+    let __v14322 = y_v14317 in
+    if __v14322 then
+      let __v14323 = __v14322.-1 in 0
     else
       1
 
-val eqnclo_i65 = fn x_v13509 y_v13510 ⇒ eqn_i8(x_v13509, y_v13510)
+val eqnclo_i66 = fn x_v14324 y_v14325 ⇒ eqn_i8(x_v14324, y_v14325)
 
-fun pred_i9(x_v13511) =
-  let __v13512 = x_v13511 in
-  if __v13512 then
-    let x_v13513 = __v13512.-1 in x_v13513
+fun pred_i9(x_v14326) =
+  let __v14327 = x_v14326 in
+  if __v14327 then
+    let x_v14328 = __v14327.-1 in x_v14328
   else
     0
 
-val predclo_i66 = fn x_v13514 ⇒ pred_i9(x_v13514)
+val predclo_i67 = fn x_v14329 ⇒ pred_i9(x_v14329)
 
-fun addn_i10(x_v13515, y_v13516) =
-  let __v13517 = x_v13515 in
-  if __v13517 then
-    let x_v13518 = __v13517.-1 in addn_i10(x_v13518, y_v13516).+1
+fun addn_i10(x_v14330, y_v14331) =
+  let __v14332 = x_v14330 in
+  if __v14332 then
+    let x_v14333 = __v14332.-1 in addn_i10(x_v14333, y_v14331).+1
   else
-    y_v13516
+    y_v14331
 
-val addnclo_i67 = fn x_v13519 y_v13520 ⇒ addn_i10(x_v13519, y_v13520)
+val addnclo_i68 = fn x_v14334 y_v14335 ⇒ addn_i10(x_v14334, y_v14335)
 
-fun subn_i11(x_v13521, y_v13522) =
-  let __v13523 = y_v13522 in
-  if __v13523 then
-    let y_v13524 = __v13523.-1 in subn_i11(pred_i9(x_v13521), y_v13524)
+fun subn_i11(x_v14336, y_v14337) =
+  let __v14338 = y_v14337 in
+  if __v14338 then
+    let y_v14339 = __v14338.-1 in subn_i11(pred_i9(x_v14336), y_v14339)
   else
-    x_v13521
+    x_v14336
 
-val subnclo_i68 = fn x_v13525 y_v13526 ⇒ subn_i11(x_v13525, y_v13526)
+val subnclo_i69 = fn x_v14340 y_v14341 ⇒ subn_i11(x_v14340, y_v14341)
 
-fun muln_i12(x_v13527, y_v13528) =
-  let __v13529 = x_v13527 in
-  if __v13529 then
-    let x_v13530 = __v13529.-1 in
-    addn_i10(y_v13528, muln_i12(x_v13530, y_v13528))
+fun muln_i12(x_v14342, y_v14343) =
+  let __v14344 = x_v14342 in
+  if __v14344 then
+    let x_v14345 = __v14344.-1 in
+    addn_i10(y_v14343, muln_i12(x_v14345, y_v14343))
   else
     0
 
-val mulnclo_i69 = fn x_v13531 y_v13532 ⇒ muln_i12(x_v13531, y_v13532)
+val mulnclo_i70 = fn x_v14346 y_v14347 ⇒ muln_i12(x_v14346, y_v14347)
 
-fun divn_i13(x_v13533, y_v13534) =
-  if ltn_i6(x_v13533, y_v13534) then
+fun divn_i13(x_v14348, y_v14349) =
+  if ltn_i6(x_v14348, y_v14349) then
     0
   else
-    divn_i13(subn_i11(x_v13533, y_v13534), y_v13534).+1
+    divn_i13(subn_i11(x_v14348, y_v14349), y_v14349).+1
 
-val divnclo_i70 = fn x_v13535 y_v13536 ⇒ divn_i13(x_v13535, y_v13536)
+val divnclo_i71 = fn x_v14350 y_v14351 ⇒ divn_i13(x_v14350, y_v14351)
 
-fun modn_i14(x_v13537, y_v13538) =
-  subn_i11(x_v13537, muln_i12(divn_i13(x_v13537, y_v13538), y_v13538))
+fun modn_i14(x_v14352, y_v14353) =
+  subn_i11(x_v14352, muln_i12(divn_i13(x_v14352, y_v14353), y_v14353))
 
-val modnclo_i71 = fn x_v13539 y_v13540 ⇒ modn_i14(x_v13539, y_v13540)
+val modnclo_i72 = fn x_v14354 y_v14355 ⇒ modn_i14(x_v14354, y_v14355)
 
-fun cats_i15(s1_v13541, s2_v13542) =
-  match s1_v13541 with
-  | EmptyString_c2  ⇒ s2_v13542
-  | String_c3 c_v13543 s1_v13544 ⇒
-    (String_c3 c_v13543 cats_i15(s1_v13544, s2_v13542))
+fun cats_i15(s1_v14356, s2_v14357) =
+  match s1_v14356 with
+  | EmptyString_c2  ⇒ s2_v14357
+  | String_c3 c_v14358 s1_v14359 ⇒
+    (String_c3 c_v14358 cats_i15(s1_v14359, s2_v14357))
   end
 
-val catsclo_i72 = fn s1_v13545 s2_v13546 ⇒ cats_i15(s1_v13545, s2_v13546)
+val catsclo_i73 = fn s1_v14360 s2_v14361 ⇒ cats_i15(s1_v14360, s2_v14361)
 
-fun strlen_i16(s_v13547) =
-  match s_v13547 with
+fun strlen_i16(s_v14362) =
+  match s_v14362 with
   | EmptyString_c2  ⇒ 0
-  | String_c3 __v13548 s_v13549 ⇒ strlen_i16(s_v13549).+1
+  | String_c3 __v14363 s_v14364 ⇒ strlen_i16(s_v14364).+1
   end
 
-val strlenclo_i73 = fn s_v13550 ⇒ strlen_i16(s_v13550)
+val strlenclo_i74 = fn s_v14365 ⇒ strlen_i16(s_v14365)
 
-fun lenUU_i39(A_v13551, xs_v13552) =
-  match xs_v13552 with
+fun lenUU_i40(A_v14366, xs_v14367) =
+  match xs_v14367 with
   | nilUU_c12  ⇒ (0, nilUU_c12)
-  | consUU_c13 x_v13553 xs_v13554 ⇒
-    match lenUU_i39(NULL, xs_v13554) with
-    | (n_v13555, xs_v13556) ⇒
-      (n_v13555.+1, (consUU_c13 x_v13553 xs_v13556))
+  | consUU_c13 x_v14368 xs_v14369 ⇒
+    match lenUU_i40(NULL, xs_v14369) with
+    | (n_v14370, xs_v14371) ⇒
+      (n_v14370.+1, (consUU_c13 x_v14368 xs_v14371))
     end
   end
 
-val lenUUclo_i74 = fn A_v13557 xs_v13558 ⇒ lenUU_i39(A_v13557, xs_v13558)
+val lenUUclo_i75 = fn A_v14372 xs_v14373 ⇒ lenUU_i40(A_v14372, xs_v14373)
 
-fun lenUL_i38(A_v13559, xs_v13560) =
-  match xs_v13560 with
+fun lenUL_i39(A_v14374, xs_v14375) =
+  match xs_v14375 with
   | nilUL_c10  ⇒ (0, nilUL_c10)
-  | consUL_c11 x_v13561 xs_v13562 ⇒
-    match lenUL_i38(NULL, xs_v13562) with
-    | (n_v13563, xs_v13564) ⇒
-      (n_v13563.+1, (consUL_c11 x_v13561 xs_v13564))
+  | consUL_c11 x_v14376 xs_v14377 ⇒
+    match lenUL_i39(NULL, xs_v14377) with
+    | (n_v14378, xs_v14379) ⇒
+      (n_v14378.+1, (consUL_c11 x_v14376 xs_v14379))
     end
   end
 
-val lenULclo_i75 = fn A_v13565 xs_v13566 ⇒ lenUL_i38(A_v13565, xs_v13566)
+val lenULclo_i76 = fn A_v14380 xs_v14381 ⇒ lenUL_i39(A_v14380, xs_v14381)
 
-fun lenLL_i36(A_v13567, xs_v13568) =
-  match xs_v13568 with
+fun lenLL_i37(A_v14382, xs_v14383) =
+  match xs_v14383 with
   | nilLL_c6  ⇒ (0, nilLL_c6)
-  | consLL_c7 x_v13569 xs_v13570 ⇒
-    match lenLL_i36(NULL, xs_v13570) with
-    | (n_v13571, xs_v13572) ⇒ (n_v13571.+1, (consLL_c7 x_v13569 xs_v13572))
+  | consLL_c7 x_v14384 xs_v14385 ⇒
+    match lenLL_i37(NULL, xs_v14385) with
+    | (n_v14386, xs_v14387) ⇒ (n_v14386.+1, (consLL_c7 x_v14384 xs_v14387))
     end
   end
 
-val lenLLclo_i76 = fn A_v13573 xs_v13574 ⇒ lenLL_i36(A_v13573, xs_v13574)
+val lenLLclo_i77 = fn A_v14388 xs_v14389 ⇒ lenLL_i37(A_v14388, xs_v14389)
 
-fun appendUU_i43(A_v13575, xs_v13576, ys_v13577) =
-  match xs_v13576 with
-  | nilUU_c12  ⇒ ys_v13577
-  | consUU_c13 x_v13578 xs_v13579 ⇒
-    (consUU_c13 x_v13578 appendUU_i43(NULL, xs_v13579, ys_v13577))
+fun appendUU_i44(A_v14390, xs_v14391, ys_v14392) =
+  match xs_v14391 with
+  | nilUU_c12  ⇒ ys_v14392
+  | consUU_c13 x_v14393 xs_v14394 ⇒
+    (consUU_c13 x_v14393 appendUU_i44(NULL, xs_v14394, ys_v14392))
   end
 
-val appendUUclo_i77 =
-  fn A_v13580 xs_v13581 ⇒
-    ln ys_v13582 ⇒ appendUU_i43(A_v13580, xs_v13581, ys_v13582)
+val appendUUclo_i78 =
+  fn A_v14395 xs_v14396 ⇒
+    ln ys_v14397 ⇒ appendUU_i44(A_v14395, xs_v14396, ys_v14397)
 
-fun appendUL_i42(A_v13583, xs_v13584, ys_v13585) =
-  match xs_v13584 with
-  | nilUL_c10  ⇒ ys_v13585
-  | consUL_c11 x_v13586 xs_v13587 ⇒
-    (consUL_c11 x_v13586 appendUL_i42(NULL, xs_v13587, ys_v13585))
+fun appendUL_i43(A_v14398, xs_v14399, ys_v14400) =
+  match xs_v14399 with
+  | nilUL_c10  ⇒ ys_v14400
+  | consUL_c11 x_v14401 xs_v14402 ⇒
+    (consUL_c11 x_v14401 appendUL_i43(NULL, xs_v14402, ys_v14400))
   end
 
-val appendULclo_i78 =
-  fn A_v13588 xs_v13589 ⇒
-    ln ys_v13590 ⇒ appendUL_i42(A_v13588, xs_v13589, ys_v13590)
+val appendULclo_i79 =
+  fn A_v14403 xs_v14404 ⇒
+    ln ys_v14405 ⇒ appendUL_i43(A_v14403, xs_v14404, ys_v14405)
 
-fun appendLL_i40(A_v13591, xs_v13592, ys_v13593) =
-  match xs_v13592 with
-  | nilLL_c6  ⇒ ys_v13593
-  | consLL_c7 x_v13594 xs_v13595 ⇒
-    (consLL_c7 x_v13594 appendLL_i40(NULL, xs_v13595, ys_v13593))
+fun appendLL_i41(A_v14406, xs_v14407, ys_v14408) =
+  match xs_v14407 with
+  | nilLL_c6  ⇒ ys_v14408
+  | consLL_c7 x_v14409 xs_v14410 ⇒
+    (consLL_c7 x_v14409 appendLL_i41(NULL, xs_v14410, ys_v14408))
   end
 
-val appendLLclo_i79 =
-  fn A_v13596 xs_v13597 ⇒
-    ln ys_v13598 ⇒ appendLL_i40(A_v13596, xs_v13597, ys_v13598)
+val appendLLclo_i80 =
+  fn A_v14411 xs_v14412 ⇒
+    ln ys_v14413 ⇒ appendLL_i41(A_v14411, xs_v14412, ys_v14413)
 
-fun readline_i25(__v13599) =
-  ln __v13600 ⇒
-    let ch_v13601 = (ln __v13602 ⇒ open stdin) NULL in
-    let ch_v13603 =
-      ((fn x_v13604 ⇒ ln __v13605 ⇒ send(ch_v13601, x_v13604)) 1) NULL
+fun readline_i25(__v14414) =
+  ln __v14415 ⇒
+    let ch_v14416 = (ln __v14417 ⇒ open stdin) NULL in
+    let ch_v14418 =
+      ((fn x_v14419 ⇒ ln __v14420 ⇒ send(ch_v14416, x_v14419)) 1) NULL
     in
-    let __v13606 = (ln __v13607 ⇒ recv(ch_v13603)) NULL in
-    (match __v13606 with
-     | (s_v13608, ch_v13609) ⇒
-       ln __v13610 ⇒
-         let ch_v13611 =
-           ((fn x_v13612 ⇒ ln __v13613 ⇒ send(ch_v13609, x_v13612)) 0)
+    let __v14421 = (ln __v14422 ⇒ recv(ch_v14418)) NULL in
+    (match __v14421 with
+     | (s_v14423, ch_v14424) ⇒
+       ln __v14425 ⇒
+         let ch_v14426 =
+           ((fn x_v14427 ⇒ ln __v14428 ⇒ send(ch_v14424, x_v14427)) 0)
              NULL
          in
-         let __v13614 =
-           (ln __v13615 ⇒ let __v13616 = ch_v13611 in NULL) NULL
-         in (ln __v13617 ⇒ s_v13608) NULL
+         let __v14429 =
+           (ln __v14430 ⇒ let __v14431 = ch_v14426 in NULL) NULL
+         in (ln __v14432 ⇒ s_v14423) NULL
      end) NULL
 
-val readlineclo_i80 = fn __v13618 ⇒ readline_i25(__v13618)
+val readlineclo_i81 = fn __v14433 ⇒ readline_i25(__v14433)
 
-fun print_i26(s_v13619) =
-  ln __v13620 ⇒
-    let ch_v13621 = (ln __v13622 ⇒ open stdout) NULL in
-    let ch_v13623 =
-      ((fn x_v13624 ⇒ ln __v13625 ⇒ send(ch_v13621, x_v13624)) 1) NULL
+fun print_i26(s_v14434) =
+  ln __v14435 ⇒
+    let ch_v14436 = (ln __v14437 ⇒ open stdout) NULL in
+    let ch_v14438 =
+      ((fn x_v14439 ⇒ ln __v14440 ⇒ send(ch_v14436, x_v14439)) 1) NULL
     in
-    let ch_v13626 =
-      ((fn x_v13627 ⇒ ln __v13628 ⇒ send(ch_v13623, x_v13627)) s_v13619)
+    let ch_v14441 =
+      ((fn x_v14442 ⇒ ln __v14443 ⇒ send(ch_v14438, x_v14442)) s_v14434)
         NULL
     in
-    let ch_v13629 =
-      ((fn x_v13630 ⇒ ln __v13631 ⇒ send(ch_v13626, x_v13630)) 0) NULL
-    in (ln __v13632 ⇒ let __v13633 = ch_v13629 in NULL) NULL
+    let ch_v14444 =
+      ((fn x_v14445 ⇒ ln __v14446 ⇒ send(ch_v14441, x_v14445)) 0) NULL
+    in (ln __v14447 ⇒ let __v14448 = ch_v14444 in NULL) NULL
 
-val printclo_i81 = fn s_v13634 ⇒ print_i26(s_v13634)
+val printclo_i82 = fn s_v14449 ⇒ print_i26(s_v14449)
 
-fun prerr_i27(s_v13635) =
-  ln __v13636 ⇒
-    let ch_v13637 = (ln __v13638 ⇒ open stderr) NULL in
-    let ch_v13639 =
-      ((fn x_v13640 ⇒ ln __v13641 ⇒ send(ch_v13637, x_v13640)) 1) NULL
+fun prerr_i27(s_v14450) =
+  ln __v14451 ⇒
+    let ch_v14452 = (ln __v14453 ⇒ open stderr) NULL in
+    let ch_v14454 =
+      ((fn x_v14455 ⇒ ln __v14456 ⇒ send(ch_v14452, x_v14455)) 1) NULL
     in
-    let ch_v13642 =
-      ((fn x_v13643 ⇒ ln __v13644 ⇒ send(ch_v13639, x_v13643)) s_v13635)
+    let ch_v14457 =
+      ((fn x_v14458 ⇒ ln __v14459 ⇒ send(ch_v14454, x_v14458)) s_v14450)
         NULL
     in
-    let ch_v13645 =
-      ((fn x_v13646 ⇒ ln __v13647 ⇒ send(ch_v13642, x_v13646)) 0) NULL
-    in (ln __v13648 ⇒ let __v13649 = ch_v13645 in NULL) NULL
+    let ch_v14460 =
+      ((fn x_v14461 ⇒ ln __v14462 ⇒ send(ch_v14457, x_v14461)) 0) NULL
+    in (ln __v14463 ⇒ let __v14464 = ch_v14460 in NULL) NULL
 
-val prerrclo_i82 = fn s_v13650 ⇒ prerr_i27(s_v13650)
+val prerrclo_i83 = fn s_v14465 ⇒ prerr_i27(s_v14465)
 
-fun splitU_i45(zs_v13651) =
-  match zs_v13651 with
+fun splitU_i46(zs_v14466) =
+  match zs_v14466 with
   | nilUU_c12  ⇒ (nilUU_c12, nilUU_c12)
-  | consUU_c13 x_v13652 zs_v13653 ⇒
-    match zs_v13653 with
-    | nilUU_c12  ⇒ ((consUU_c13 x_v13652 nilUU_c12), nilUU_c12)
-    | consUU_c13 y_v13654 zs_v13655 ⇒
-      let __v13656 = splitU_i45(zs_v13655) in
-      match __v13656 with
-      | (xs_v13657, ys_v13658) ⇒
-        ((consUU_c13 x_v13652 xs_v13657), (consUU_c13 y_v13654 ys_v13658))
+  | consUU_c13 x_v14467 zs_v14468 ⇒
+    match zs_v14468 with
+    | nilUU_c12  ⇒ ((consUU_c13 x_v14467 nilUU_c12), nilUU_c12)
+    | consUU_c13 y_v14469 zs_v14470 ⇒
+      let __v14471 = splitU_i46(zs_v14470) in
+      match __v14471 with
+      | (xs_v14472, ys_v14473) ⇒
+        ((consUU_c13 x_v14467 xs_v14472), (consUU_c13 y_v14469 ys_v14473))
       end
     end
   end
 
-val splitUclo_i83 = fn zs_v13659 ⇒ splitU_i45(zs_v13659)
+val splitUclo_i84 = fn zs_v14474 ⇒ splitU_i46(zs_v14474)
 
-fun splitL_i44(zs_v13660) =
-  match zs_v13660 with
+fun splitL_i45(zs_v14475) =
+  match zs_v14475 with
   | nilUL_c10  ⇒ (nilUL_c10, nilUL_c10)
-  | consUL_c11 x_v13661 zs_v13662 ⇒
-    match zs_v13662 with
-    | nilUL_c10  ⇒ ((consUL_c11 x_v13661 nilUL_c10), nilUL_c10)
-    | consUL_c11 y_v13663 zs_v13664 ⇒
-      let __v13665 = splitL_i44(zs_v13664) in
-      match __v13665 with
-      | (xs_v13666, ys_v13667) ⇒
-        ((consUL_c11 x_v13661 xs_v13666), (consUL_c11 y_v13663 ys_v13667))
+  | consUL_c11 x_v14476 zs_v14477 ⇒
+    match zs_v14477 with
+    | nilUL_c10  ⇒ ((consUL_c11 x_v14476 nilUL_c10), nilUL_c10)
+    | consUL_c11 y_v14478 zs_v14479 ⇒
+      let __v14480 = splitL_i45(zs_v14479) in
+      match __v14480 with
+      | (xs_v14481, ys_v14482) ⇒
+        ((consUL_c11 x_v14476 xs_v14481), (consUL_c11 y_v14478 ys_v14482))
       end
     end
   end
 
-val splitLclo_i84 = fn zs_v13668 ⇒ splitL_i44(zs_v13668)
+val splitLclo_i85 = fn zs_v14483 ⇒ splitL_i45(zs_v14483)
 
-fun mergeU_i47(xs_v13669, ys_v13670) =
-  match xs_v13669 with
-  | nilUU_c12  ⇒ ys_v13670
-  | consUU_c13 x_v13671 xs0_v13672 ⇒
-    match ys_v13670 with
-    | nilUU_c12  ⇒ (consUU_c13 x_v13671 xs0_v13672)
-    | consUU_c13 y_v13673 ys0_v13674 ⇒
-      if lten_i4(x_v13671, y_v13673) then
+fun mergeU_i48(xs_v14484, ys_v14485) =
+  match xs_v14484 with
+  | nilUU_c12  ⇒ ys_v14485
+  | consUU_c13 x_v14486 xs0_v14487 ⇒
+    match ys_v14485 with
+    | nilUU_c12  ⇒ (consUU_c13 x_v14486 xs0_v14487)
+    | consUU_c13 y_v14488 ys0_v14489 ⇒
+      if lten_i4(x_v14486, y_v14488) then
         (consUU_c13
-          x_v13671 mergeU_i47(xs0_v13672, (consUU_c13 y_v13673 ys0_v13674)))
+          x_v14486 mergeU_i48(xs0_v14487, (consUU_c13 y_v14488 ys0_v14489)))
       else
         (consUU_c13
-          y_v13673 mergeU_i47((consUU_c13 x_v13671 xs0_v13672), ys0_v13674))
+          y_v14488 mergeU_i48((consUU_c13 x_v14486 xs0_v14487), ys0_v14489))
     end
   end
 
-val mergeUclo_i85 =
-  fn xs_v13675 ⇒ ln ys_v13676 ⇒ mergeU_i47(xs_v13675, ys_v13676)
+val mergeUclo_i86 =
+  fn xs_v14490 ⇒ ln ys_v14491 ⇒ mergeU_i48(xs_v14490, ys_v14491)
 
-fun mergeL_i46(xs_v13677, ys_v13678) =
-  match xs_v13677 with
-  | nilUL_c10  ⇒ ys_v13678
-  | consUL_c11 x_v13679 xs0_v13680 ⇒
-    match ys_v13678 with
-    | nilUL_c10  ⇒ (consUL_c11 x_v13679 xs0_v13680)
-    | consUL_c11 y_v13681 ys0_v13682 ⇒
-      if lten_i4(x_v13679, y_v13681) then
+fun mergeL_i47(xs_v14492, ys_v14493) =
+  match xs_v14492 with
+  | nilUL_c10  ⇒ ys_v14493
+  | consUL_c11 x_v14494 xs0_v14495 ⇒
+    match ys_v14493 with
+    | nilUL_c10  ⇒ (consUL_c11 x_v14494 xs0_v14495)
+    | consUL_c11 y_v14496 ys0_v14497 ⇒
+      if lten_i4(x_v14494, y_v14496) then
         (consUL_c11
-          x_v13679 mergeL_i46(xs0_v13680, (consUL_c11 y_v13681 ys0_v13682)))
+          x_v14494 mergeL_i47(xs0_v14495, (consUL_c11 y_v14496 ys0_v14497)))
       else
         (consUL_c11
-          y_v13681 mergeL_i46((consUL_c11 x_v13679 xs0_v13680), ys0_v13682))
+          y_v14496 mergeL_i47((consUL_c11 x_v14494 xs0_v14495), ys0_v14497))
     end
   end
 
-val mergeLclo_i86 =
-  fn xs_v13683 ⇒ ln ys_v13684 ⇒ mergeL_i46(xs_v13683, ys_v13684)
+val mergeLclo_i87 =
+  fn xs_v14498 ⇒ ln ys_v14499 ⇒ mergeL_i47(xs_v14498, ys_v14499)
 
-fun msortU_i49(zs_v13685) =
-  match zs_v13685 with
+fun msortU_i50(zs_v14500) =
+  match zs_v14500 with
   | nilUU_c12  ⇒ nilUU_c12
-  | consUU_c13 x_v13686 zs_v13687 ⇒
-    match zs_v13687 with
-    | nilUU_c12  ⇒ (consUU_c13 x_v13686 nilUU_c12)
-    | consUU_c13 y_v13688 zs_v13689 ⇒
-      let __v13690 =
-        splitU_i45((consUU_c13 x_v13686 (consUU_c13 y_v13688 zs_v13689)))
+  | consUU_c13 x_v14501 zs_v14502 ⇒
+    match zs_v14502 with
+    | nilUU_c12  ⇒ (consUU_c13 x_v14501 nilUU_c12)
+    | consUU_c13 y_v14503 zs_v14504 ⇒
+      let __v14505 =
+        splitU_i46((consUU_c13 x_v14501 (consUU_c13 y_v14503 zs_v14504)))
       in
-      match __v13690 with
-      | (xs_v13691, ys_v13692) ⇒
-        mergeU_i47(msortU_i49(xs_v13691), msortU_i49(ys_v13692))
+      match __v14505 with
+      | (xs_v14506, ys_v14507) ⇒
+        mergeU_i48(msortU_i50(xs_v14506), msortU_i50(ys_v14507))
       end
     end
   end
 
-val msortUclo_i87 = fn zs_v13693 ⇒ msortU_i49(zs_v13693)
+val msortUclo_i88 = fn zs_v14508 ⇒ msortU_i50(zs_v14508)
 
-fun msortL_i48(zs_v13694) =
-  match zs_v13694 with
+fun msortL_i49(zs_v14509) =
+  match zs_v14509 with
   | nilUL_c10  ⇒ nilUL_c10
-  | consUL_c11 x_v13695 zs_v13696 ⇒
-    match zs_v13696 with
-    | nilUL_c10  ⇒ (consUL_c11 x_v13695 nilUL_c10)
-    | consUL_c11 y_v13697 zs_v13698 ⇒
-      let __v13699 =
-        splitL_i44((consUL_c11 x_v13695 (consUL_c11 y_v13697 zs_v13698)))
+  | consUL_c11 x_v14510 zs_v14511 ⇒
+    match zs_v14511 with
+    | nilUL_c10  ⇒ (consUL_c11 x_v14510 nilUL_c10)
+    | consUL_c11 y_v14512 zs_v14513 ⇒
+      let __v14514 =
+        splitL_i45((consUL_c11 x_v14510 (consUL_c11 y_v14512 zs_v14513)))
       in
-      match __v13699 with
-      | (xs_v13700, ys_v13701) ⇒
-        mergeL_i46(msortL_i48(xs_v13700), msortL_i48(ys_v13701))
+      match __v14514 with
+      | (xs_v14515, ys_v14516) ⇒
+        mergeL_i47(msortL_i49(xs_v14515), msortL_i49(ys_v14516))
       end
     end
   end
 
-val msortLclo_i88 = fn zs_v13702 ⇒ msortL_i48(zs_v13702)
+val msortLclo_i89 = fn zs_v14517 ⇒ msortL_i49(zs_v14517)
 
-fun cmsort_workerU_i53(n_v13703, zs_v13704, c_v13705) =
-  let __v13706 = n_v13703 in
-  if __v13706 then
-    let n_v13707 = __v13706.-1 in
-    match zs_v13704 with
+fun cmsort_workerU_i54(n_v14518, zs_v14519, c_v14520) =
+  let __v14521 = n_v14518 in
+  if __v14521 then
+    let n_v14522 = __v14521.-1 in
+    match zs_v14519 with
     | nilUU_c12  ⇒
-      ln __v13708 ⇒
-        let c_v13709 =
-          ((fn x_v13710 ⇒ ln __v13711 ⇒ send(c_v13705, x_v13710))
+      ln __v14523 ⇒
+        let c_v14524 =
+          ((fn x_v14525 ⇒ ln __v14526 ⇒ send(c_v14520, x_v14525))
              nilUU_c12)
             NULL
-        in (ln __v13712 ⇒ let __v13713 = c_v13709 in NULL) NULL
-    | consUU_c13 z0_v13714 zs0_v13715 ⇒
-      match zs0_v13715 with
+        in (ln __v14527 ⇒ let __v14528 = c_v14524 in NULL) NULL
+    | consUU_c13 z0_v14529 zs0_v14530 ⇒
+      match zs0_v14530 with
       | nilUU_c12  ⇒
-        ln __v13716 ⇒
-          let c_v13717 =
-            ((fn x_v13718 ⇒ ln __v13719 ⇒ send(c_v13705, x_v13718))
+        ln __v14531 ⇒
+          let c_v14532 =
+            ((fn x_v14533 ⇒ ln __v14534 ⇒ send(c_v14520, x_v14533))
                nilUU_c12)
               NULL
-          in (ln __v13720 ⇒ let __v13721 = c_v13717 in NULL) NULL
-      | consUU_c13 z1_v13722 zs1_v13723 ⇒
-        let __v13724 =
-          splitU_i45((consUU_c13 z0_v13714 (consUU_c13 z1_v13722 zs1_v13723)))
+          in (ln __v14535 ⇒ let __v14536 = c_v14532 in NULL) NULL
+      | consUU_c13 z1_v14537 zs1_v14538 ⇒
+        let __v14539 =
+          splitU_i46((consUU_c13 z0_v14529 (consUU_c13 z1_v14537 zs1_v14538)))
         in
-        match __v13724 with
-        | (xs0_v13725, ys0_v13726) ⇒
-          ln __v13727 ⇒
-            let r1_v13728 =
-              (ln __v13729 ⇒
-                 fork r1_v13730 in
-                   (cmsort_workerU_i53(n_v13707, xs0_v13725, r1_v13730)) NULL)
+        match __v14539 with
+        | (xs0_v14540, ys0_v14541) ⇒
+          ln __v14542 ⇒
+            let r1_v14543 =
+              (ln __v14544 ⇒
+                 fork r1_v14545 in
+                   (cmsort_workerU_i54(n_v14522, xs0_v14540, r1_v14545)) NULL)
                 NULL
             in
-            let r2_v13731 =
-              (ln __v13732 ⇒
-                 fork r2_v13733 in
-                   (cmsort_workerU_i53(n_v13707, ys0_v13726, r2_v13733)) NULL)
+            let r2_v14546 =
+              (ln __v14547 ⇒
+                 fork r2_v14548 in
+                   (cmsort_workerU_i54(n_v14522, ys0_v14541, r2_v14548)) NULL)
                 NULL
             in
-            let __v13734 = (ln __v13735 ⇒ recv(r1_v13728)) NULL in
-            (match __v13734 with
-             | (xs1_v13736, r1_v13737) ⇒
-               ln __v13738 ⇒
-                 let __v13739 = (ln __v13740 ⇒ recv(r2_v13731)) NULL in
-                 (match __v13739 with
-                  | (ys1_v13741, r2_v13742) ⇒
-                    let zs_v13743 = mergeU_i47(xs1_v13736, ys1_v13741) in
-                    ln __v13744 ⇒
-                      let c_v13745 =
-                        ((fn x_v13746 ⇒
-                            ln __v13747 ⇒ send(c_v13705, x_v13746))
-                           zs_v13743)
+            let __v14549 = (ln __v14550 ⇒ recv(r1_v14543)) NULL in
+            (match __v14549 with
+             | (xs1_v14551, r1_v14552) ⇒
+               ln __v14553 ⇒
+                 let __v14554 = (ln __v14555 ⇒ recv(r2_v14546)) NULL in
+                 (match __v14554 with
+                  | (ys1_v14556, r2_v14557) ⇒
+                    let zs_v14558 = mergeU_i48(xs1_v14551, ys1_v14556) in
+                    ln __v14559 ⇒
+                      let c_v14560 =
+                        ((fn x_v14561 ⇒
+                            ln __v14562 ⇒ send(c_v14520, x_v14561))
+                           zs_v14558)
                           NULL
                       in
-                      let __v13748 = (ln __v13749 ⇒ close(r1_v13737)) NULL
+                      let __v14563 = (ln __v14564 ⇒ close(r1_v14552)) NULL
                       in
-                      let __v13750 = (ln __v13751 ⇒ close(r2_v13742)) NULL
+                      let __v14565 = (ln __v14566 ⇒ close(r2_v14557)) NULL
                       in
-                      (ln __v13752 ⇒ let __v13753 = c_v13745 in NULL) NULL
+                      (ln __v14567 ⇒ let __v14568 = c_v14560 in NULL) NULL
                   end) NULL
              end) NULL
         end
       end
     end
   else
-    ln __v13754 ⇒
-      let c_v13755 =
-        ((fn x_v13756 ⇒ ln __v13757 ⇒ send(c_v13705, x_v13756))
-           msortU_i49(zs_v13704))
+    ln __v14569 ⇒
+      let c_v14570 =
+        ((fn x_v14571 ⇒ ln __v14572 ⇒ send(c_v14520, x_v14571))
+           msortU_i50(zs_v14519))
           NULL
-      in (ln __v13758 ⇒ let __v13759 = c_v13755 in NULL) NULL
+      in (ln __v14573 ⇒ let __v14574 = c_v14570 in NULL) NULL
 
-val cmsort_workerUclo_i89 =
-  fn n_v13760 zs_v13761 ⇒
-    ln c_v13762 ⇒ cmsort_workerU_i53(n_v13760, zs_v13761, c_v13762)
+val cmsort_workerUclo_i90 =
+  fn n_v14575 zs_v14576 ⇒
+    ln c_v14577 ⇒ cmsort_workerU_i54(n_v14575, zs_v14576, c_v14577)
 
-fun cmsort_workerL_i52(n_v13763, zs_v13764, c_v13765) =
-  let __v13766 = n_v13763 in
-  if __v13766 then
-    let n_v13767 = __v13766.-1 in
-    match zs_v13764 with
+fun cmsort_workerL_i53(n_v14578, zs_v14579, c_v14580) =
+  let __v14581 = n_v14578 in
+  if __v14581 then
+    let n_v14582 = __v14581.-1 in
+    match zs_v14579 with
     | nilUL_c10  ⇒
-      ln __v13768 ⇒
-        let c_v13769 =
-          ((ln x_v13770 __v13771 ⇒ send(c_v13765, x_v13770)) nilUL_c10)
+      ln __v14583 ⇒
+        let c_v14584 =
+          ((ln x_v14585 __v14586 ⇒ send(c_v14580, x_v14585)) nilUL_c10)
             NULL
-        in (ln __v13772 ⇒ let __v13773 = c_v13769 in NULL) NULL
-    | consUL_c11 z0_v13774 zs0_v13775 ⇒
-      match zs0_v13775 with
+        in (ln __v14587 ⇒ let __v14588 = c_v14584 in NULL) NULL
+    | consUL_c11 z0_v14589 zs0_v14590 ⇒
+      match zs0_v14590 with
       | nilUL_c10  ⇒
-        ln __v13776 ⇒
-          let c_v13777 =
-            ((ln x_v13778 __v13779 ⇒ send(c_v13765, x_v13778)) nilUL_c10)
+        ln __v14591 ⇒
+          let c_v14592 =
+            ((ln x_v14593 __v14594 ⇒ send(c_v14580, x_v14593)) nilUL_c10)
               NULL
-          in (ln __v13780 ⇒ let __v13781 = c_v13777 in NULL) NULL
-      | consUL_c11 z1_v13782 zs1_v13783 ⇒
-        let __v13784 =
-          splitL_i44((consUL_c11 z0_v13774 (consUL_c11 z1_v13782 zs1_v13783)))
+          in (ln __v14595 ⇒ let __v14596 = c_v14592 in NULL) NULL
+      | consUL_c11 z1_v14597 zs1_v14598 ⇒
+        let __v14599 =
+          splitL_i45((consUL_c11 z0_v14589 (consUL_c11 z1_v14597 zs1_v14598)))
         in
-        match __v13784 with
-        | (xs0_v13785, ys0_v13786) ⇒
-          ln __v13787 ⇒
-            let r1_v13788 =
-              (ln __v13789 ⇒
-                 fork r1_v13790 in
-                   (cmsort_workerL_i52(n_v13767, xs0_v13785, r1_v13790)) NULL)
+        match __v14599 with
+        | (xs0_v14600, ys0_v14601) ⇒
+          ln __v14602 ⇒
+            let r1_v14603 =
+              (ln __v14604 ⇒
+                 fork r1_v14605 in
+                   (cmsort_workerL_i53(n_v14582, xs0_v14600, r1_v14605)) NULL)
                 NULL
             in
-            let r2_v13791 =
-              (ln __v13792 ⇒
-                 fork r2_v13793 in
-                   (cmsort_workerL_i52(n_v13767, ys0_v13786, r2_v13793)) NULL)
+            let r2_v14606 =
+              (ln __v14607 ⇒
+                 fork r2_v14608 in
+                   (cmsort_workerL_i53(n_v14582, ys0_v14601, r2_v14608)) NULL)
                 NULL
             in
-            let __v13794 = (ln __v13795 ⇒ recv(r1_v13788)) NULL in
-            (match __v13794 with
-             | (xs1_v13796, r1_v13797) ⇒
-               ln __v13798 ⇒
-                 let __v13799 = (ln __v13800 ⇒ recv(r2_v13791)) NULL in
-                 (match __v13799 with
-                  | (ys1_v13801, r2_v13802) ⇒
-                    let zs_v13803 = mergeL_i46(xs1_v13796, ys1_v13801) in
-                    ln __v13804 ⇒
-                      let c_v13805 =
-                        ((ln x_v13806 __v13807 ⇒ send(c_v13765, x_v13806))
-                           zs_v13803)
+            let __v14609 = (ln __v14610 ⇒ recv(r1_v14603)) NULL in
+            (match __v14609 with
+             | (xs1_v14611, r1_v14612) ⇒
+               ln __v14613 ⇒
+                 let __v14614 = (ln __v14615 ⇒ recv(r2_v14606)) NULL in
+                 (match __v14614 with
+                  | (ys1_v14616, r2_v14617) ⇒
+                    let zs_v14618 = mergeL_i47(xs1_v14611, ys1_v14616) in
+                    ln __v14619 ⇒
+                      let c_v14620 =
+                        ((ln x_v14621 __v14622 ⇒ send(c_v14580, x_v14621))
+                           zs_v14618)
                           NULL
                       in
-                      let __v13808 = (ln __v13809 ⇒ close(r1_v13797)) NULL
+                      let __v14623 = (ln __v14624 ⇒ close(r1_v14612)) NULL
                       in
-                      let __v13810 = (ln __v13811 ⇒ close(r2_v13802)) NULL
+                      let __v14625 = (ln __v14626 ⇒ close(r2_v14617)) NULL
                       in
-                      (ln __v13812 ⇒ let __v13813 = c_v13805 in NULL) NULL
+                      (ln __v14627 ⇒ let __v14628 = c_v14620 in NULL) NULL
                   end) NULL
              end) NULL
         end
       end
     end
   else
-    ln __v13814 ⇒
-      let c_v13815 =
-        ((ln x_v13816 __v13817 ⇒ send(c_v13765, x_v13816))
-           msortL_i48(zs_v13764))
+    ln __v14629 ⇒
+      let c_v14630 =
+        ((ln x_v14631 __v14632 ⇒ send(c_v14580, x_v14631))
+           msortL_i49(zs_v14579))
           NULL
-      in (ln __v13818 ⇒ let __v13819 = c_v13815 in NULL) NULL
+      in (ln __v14633 ⇒ let __v14634 = c_v14630 in NULL) NULL
 
-val cmsort_workerLclo_i90 =
-  fn n_v13820 zs_v13821 ⇒
-    ln c_v13822 ⇒ cmsort_workerL_i52(n_v13820, zs_v13821, c_v13822)
+val cmsort_workerLclo_i91 =
+  fn n_v14635 zs_v14636 ⇒
+    ln c_v14637 ⇒ cmsort_workerL_i53(n_v14635, zs_v14636, c_v14637)
 
-fun cmsortU_i55(zs0_v13823) =
-  ln __v13824 ⇒
-    let c_v13825 =
-      (ln __v13826 ⇒
-         fork c_v13827 in (cmsort_workerU_i53(4, zs0_v13823, c_v13827)) NULL)
+fun cmsortU_i56(zs0_v14638) =
+  ln __v14639 ⇒
+    let c_v14640 =
+      (ln __v14641 ⇒
+         fork c_v14642 in (cmsort_workerU_i54(4, zs0_v14638, c_v14642)) NULL)
         NULL
     in
-    let __v13828 = (ln __v13829 ⇒ recv(c_v13825)) NULL in
-    (match __v13828 with
-     | (zs1_v13830, c_v13831) ⇒
-       ln __v13832 ⇒
-         let __v13833 = (ln __v13834 ⇒ close(c_v13831)) NULL in
-         (ln __v13835 ⇒ zs1_v13830) NULL
+    let __v14643 = (ln __v14644 ⇒ recv(c_v14640)) NULL in
+    (match __v14643 with
+     | (zs1_v14645, c_v14646) ⇒
+       ln __v14647 ⇒
+         let __v14648 = (ln __v14649 ⇒ close(c_v14646)) NULL in
+         (ln __v14650 ⇒ zs1_v14645) NULL
      end) NULL
 
-val cmsortUclo_i91 = fn zs0_v13836 ⇒ cmsortU_i55(zs0_v13836)
+val cmsortUclo_i92 = fn zs0_v14651 ⇒ cmsortU_i56(zs0_v14651)
 
-fun cmsortL_i54(zs0_v13837) =
-  ln __v13838 ⇒
-    let c_v13839 =
-      (ln __v13840 ⇒
-         fork c_v13841 in (cmsort_workerL_i52(4, zs0_v13837, c_v13841)) NULL)
+fun cmsortL_i55(zs0_v14652) =
+  ln __v14653 ⇒
+    let c_v14654 =
+      (ln __v14655 ⇒
+         fork c_v14656 in (cmsort_workerL_i53(4, zs0_v14652, c_v14656)) NULL)
         NULL
     in
-    let __v13842 = (ln __v13843 ⇒ recv(c_v13839)) NULL in
-    (match __v13842 with
-     | (zs1_v13844, c_v13845) ⇒
-       ln __v13846 ⇒
-         let __v13847 = (ln __v13848 ⇒ close(c_v13845)) NULL in
-         (ln __v13849 ⇒ zs1_v13844) NULL
+    let __v14657 = (ln __v14658 ⇒ recv(c_v14654)) NULL in
+    (match __v14657 with
+     | (zs1_v14659, c_v14660) ⇒
+       ln __v14661 ⇒
+         let __v14662 = (ln __v14663 ⇒ close(c_v14660)) NULL in
+         (ln __v14664 ⇒ zs1_v14659) NULL
      end) NULL
 
-val cmsortLclo_i92 = fn zs0_v13850 ⇒ cmsortL_i54(zs0_v13850)
+val cmsortLclo_i93 = fn zs0_v14665 ⇒ cmsortL_i55(zs0_v14665)
 
-fun mkListU_i57(n_v13851) =
-  let __v13852 = n_v13851 in
-  if __v13852 then
-    let n0_v13853 = __v13852.-1 in
-    (consUU_c13 n_v13851 mkListU_i57(n0_v13853))
+fun mkListU_i58(n_v14666) =
+  let __v14667 = n_v14666 in
+  if __v14667 then
+    let n0_v14668 = __v14667.-1 in
+    (consUU_c13 n_v14666 mkListU_i58(n0_v14668))
   else
     nilUU_c12
 
-val mkListUclo_i93 = fn n_v13854 ⇒ mkListU_i57(n_v13854)
+val mkListUclo_i94 = fn n_v14669 ⇒ mkListU_i58(n_v14669)
 
-fun mkListL_i56(n_v13855) =
-  let __v13856 = n_v13855 in
-  if __v13856 then
-    let n0_v13857 = __v13856.-1 in
-    (consUL_c11 n_v13855 mkListL_i56(n0_v13857))
+fun mkListL_i57(n_v14670) =
+  let __v14671 = n_v14670 in
+  if __v14671 then
+    let n0_v14672 = __v14671.-1 in
+    (consUL_c11 n_v14670 mkListL_i57(n0_v14672))
   else
     nilUL_c10
 
-val mkListLclo_i94 = fn n_v13858 ⇒ mkListL_i56(n_v13858)
+val mkListLclo_i95 = fn n_v14673 ⇒ mkListL_i57(n_v14673)
+
+fun free_i35(A_v14674, ls_v14675) =
+  match ls_v14675 with
+  | nilUL_c10  ⇒ NULL
+  | consUL_c11 __v14676 ls_v14677 ⇒ free_i35(NULL, ls_v14677)
+  end
+
+val freeclo_i96 = fn A_v14678 ls_v14679 ⇒ free_i35(A_v14678, ls_v14679)
 
 main =
-  (let test_v13859 = mkListU_i57(800000) in
-   ln __v13860 ⇒
-     let sorted_v13861 = (cmsortU_i55(test_v13859)) NULL in
-     (ln __v13862 ⇒ NULL) NULL)
-    NULL
+  (let test_v14680 = mkListL_i57(400000) in
+   let sorted_v14681 = msortL_i49(test_v14680) in
+   let __v14682 = free_i35(NULL, sorted_v14681) in ln __v14683 ⇒ NULL) 
+  NULL
 
 trans23 success--------------------------
 
-fun andb_i1(b1_v14704, b2_v14705) = if b1_v14704 then
-                                      b2_v14705
+fun andb_i1(b1_v15536, b2_v15537) = if b1_v15536 then
+                                      b2_v15537
                                     else
                                       0
 
-val andbclo_i58 = fn b1_v14706 b2_v14707 ⇒ andb_i1(b1_v14706, b2_v14707)
+val andbclo_i59 = fn b1_v15538 b2_v15539 ⇒ andb_i1(b1_v15538, b2_v15539)
 
-fun orb_i2(b1_v14708, b2_v14709) = if b1_v14708 then
+fun orb_i2(b1_v15540, b2_v15541) = if b1_v15540 then
                                      1
                                    else
-                                     b2_v14709
+                                     b2_v15541
 
-val orbclo_i59 = fn b1_v14710 b2_v14711 ⇒ orb_i2(b1_v14710, b2_v14711)
+val orbclo_i60 = fn b1_v15542 b2_v15543 ⇒ orb_i2(b1_v15542, b2_v15543)
 
-fun notb_i3(b_v14712) = if b_v14712 then
+fun notb_i3(b_v15544) = if b_v15544 then
                           0
                         else
                           1
 
-val notbclo_i60 = fn b_v14713 ⇒ notb_i3(b_v14713)
+val notbclo_i61 = fn b_v15545 ⇒ notb_i3(b_v15545)
 
-fun lten_i4(x_v14714, y_v14715) =
-  if x_v14714 then
-    if y_v14715 then
-      lten_i4(x_v14714.-1, y_v14715.-1)
+fun lten_i4(x_v15546, y_v15547) =
+  if x_v15546 then
+    if y_v15547 then
+      lten_i4(x_v15546.-1, y_v15547.-1)
     else
       0
   else
     1
 
-val ltenclo_i61 = fn x_v14716 y_v14717 ⇒ lten_i4(x_v14716, y_v14717)
+val ltenclo_i62 = fn x_v15548 y_v15549 ⇒ lten_i4(x_v15548, y_v15549)
 
-fun gten_i5(x_v14718, y_v14719) =
-  if x_v14718 then
-    if y_v14719 then
-      gten_i5(x_v14718.-1, y_v14719.-1)
+fun gten_i5(x_v15550, y_v15551) =
+  if x_v15550 then
+    if y_v15551 then
+      gten_i5(x_v15550.-1, y_v15551.-1)
     else
       1
   else
-    if y_v14719 then
+    if y_v15551 then
       0
     else
       1
 
-val gtenclo_i62 = fn x_v14720 y_v14721 ⇒ gten_i5(x_v14720, y_v14721)
+val gtenclo_i63 = fn x_v15552 y_v15553 ⇒ gten_i5(x_v15552, y_v15553)
 
-fun ltn_i6(x_v14722, y_v14723) =
-  if x_v14722 then
-    if y_v14723 then
-      ltn_i6(x_v14722.-1, y_v14723.-1)
+fun ltn_i6(x_v15554, y_v15555) =
+  if x_v15554 then
+    if y_v15555 then
+      ltn_i6(x_v15554.-1, y_v15555.-1)
     else
       0
   else
-    if y_v14723 then
+    if y_v15555 then
       1
     else
       0
 
-val ltnclo_i63 = fn x_v14724 y_v14725 ⇒ ltn_i6(x_v14724, y_v14725)
+val ltnclo_i64 = fn x_v15556 y_v15557 ⇒ ltn_i6(x_v15556, y_v15557)
 
-fun gtn_i7(x_v14726, y_v14727) =
-  if x_v14726 then
-    if y_v14727 then
-      gtn_i7(x_v14726.-1, y_v14727.-1)
+fun gtn_i7(x_v15558, y_v15559) =
+  if x_v15558 then
+    if y_v15559 then
+      gtn_i7(x_v15558.-1, y_v15559.-1)
     else
       1
   else
     0
 
-val gtnclo_i64 = fn x_v14728 y_v14729 ⇒ gtn_i7(x_v14728, y_v14729)
+val gtnclo_i65 = fn x_v15560 y_v15561 ⇒ gtn_i7(x_v15560, y_v15561)
 
-fun eqn_i8(x_v14730, y_v14731) =
-  if x_v14730 then
-    if y_v14731 then
-      eqn_i8(x_v14730.-1, y_v14731.-1)
+fun eqn_i8(x_v15562, y_v15563) =
+  if x_v15562 then
+    if y_v15563 then
+      eqn_i8(x_v15562.-1, y_v15563.-1)
     else
       0
   else
-    if y_v14731 then
+    if y_v15563 then
       0
     else
       1
 
-val eqnclo_i65 = fn x_v14732 y_v14733 ⇒ eqn_i8(x_v14732, y_v14733)
+val eqnclo_i66 = fn x_v15564 y_v15565 ⇒ eqn_i8(x_v15564, y_v15565)
 
-fun pred_i9(x_v14734) = if x_v14734 then
-                          x_v14734.-1
+fun pred_i9(x_v15566) = if x_v15566 then
+                          x_v15566.-1
                         else
                           0
 
-val predclo_i66 = fn x_v14735 ⇒ pred_i9(x_v14735)
+val predclo_i67 = fn x_v15567 ⇒ pred_i9(x_v15567)
 
-fun addn_i10(x_v14736, y_v14737) =
-  if x_v14736 then
-    addn_i10(x_v14736.-1, y_v14737).+1
+fun addn_i10(x_v15568, y_v15569) =
+  if x_v15568 then
+    addn_i10(x_v15568.-1, y_v15569).+1
   else
-    y_v14737
+    y_v15569
 
-val addnclo_i67 = fn x_v14738 y_v14739 ⇒ addn_i10(x_v14738, y_v14739)
+val addnclo_i68 = fn x_v15570 y_v15571 ⇒ addn_i10(x_v15570, y_v15571)
 
-fun subn_i11(x_v14740, y_v14741) =
-  if y_v14741 then
-    subn_i11(pred_i9(x_v14740), y_v14741.-1)
+fun subn_i11(x_v15572, y_v15573) =
+  if y_v15573 then
+    subn_i11(pred_i9(x_v15572), y_v15573.-1)
   else
-    x_v14740
+    x_v15572
 
-val subnclo_i68 = fn x_v14742 y_v14743 ⇒ subn_i11(x_v14742, y_v14743)
+val subnclo_i69 = fn x_v15574 y_v15575 ⇒ subn_i11(x_v15574, y_v15575)
 
-fun muln_i12(x_v14744, y_v14745) =
-  if x_v14744 then
-    addn_i10(y_v14745, muln_i12(x_v14744.-1, y_v14745))
+fun muln_i12(x_v15576, y_v15577) =
+  if x_v15576 then
+    addn_i10(y_v15577, muln_i12(x_v15576.-1, y_v15577))
   else
     0
 
-val mulnclo_i69 = fn x_v14746 y_v14747 ⇒ muln_i12(x_v14746, y_v14747)
+val mulnclo_i70 = fn x_v15578 y_v15579 ⇒ muln_i12(x_v15578, y_v15579)
 
-fun divn_i13(x_v14748, y_v14749) =
-  if ltn_i6(x_v14748, y_v14749) then
+fun divn_i13(x_v15580, y_v15581) =
+  if ltn_i6(x_v15580, y_v15581) then
     0
   else
-    divn_i13(subn_i11(x_v14748, y_v14749), y_v14749).+1
+    divn_i13(subn_i11(x_v15580, y_v15581), y_v15581).+1
 
-val divnclo_i70 = fn x_v14750 y_v14751 ⇒ divn_i13(x_v14750, y_v14751)
+val divnclo_i71 = fn x_v15582 y_v15583 ⇒ divn_i13(x_v15582, y_v15583)
 
-fun modn_i14(x_v14752, y_v14753) =
-  subn_i11(x_v14752, muln_i12(divn_i13(x_v14752, y_v14753), y_v14753))
+fun modn_i14(x_v15584, y_v15585) =
+  subn_i11(x_v15584, muln_i12(divn_i13(x_v15584, y_v15585), y_v15585))
 
-val modnclo_i71 = fn x_v14754 y_v14755 ⇒ modn_i14(x_v14754, y_v14755)
+val modnclo_i72 = fn x_v15586 y_v15587 ⇒ modn_i14(x_v15586, y_v15587)
 
-fun cats_i15(s1_v14756, s2_v14757) =
-  match s1_v14756 with
-  | EmptyString_c2  ⇒ s2_v14757
-  | String_c3 c_v14758 s1_v14759 ⇒
-    (String_c3 c_v14758 cats_i15(s1_v14759, s2_v14757))
+fun cats_i15(s1_v15588, s2_v15589) =
+  match s1_v15588 with
+  | EmptyString_c2  ⇒ s2_v15589
+  | String_c3 c_v15590 s1_v15591 ⇒
+    (String_c3 c_v15590 cats_i15(s1_v15591, s2_v15589))
   end
 
-val catsclo_i72 = fn s1_v14760 s2_v14761 ⇒ cats_i15(s1_v14760, s2_v14761)
+val catsclo_i73 = fn s1_v15592 s2_v15593 ⇒ cats_i15(s1_v15592, s2_v15593)
 
-fun strlen_i16(s_v14762) =
-  match s_v14762 with
+fun strlen_i16(s_v15594) =
+  match s_v15594 with
   | EmptyString_c2  ⇒ 0
-  | String_c3 __v14763 s_v14764 ⇒ strlen_i16(s_v14764).+1
+  | String_c3 __v15595 s_v15596 ⇒ strlen_i16(s_v15596).+1
   end
 
-val strlenclo_i73 = fn s_v14765 ⇒ strlen_i16(s_v14765)
+val strlenclo_i74 = fn s_v15597 ⇒ strlen_i16(s_v15597)
 
-fun lenUU_i39(A_v14766, xs_v14767) =
-  match xs_v14767 with
+fun lenUU_i40(A_v15598, xs_v15599) =
+  match xs_v15599 with
   | nilUU_c12  ⇒ (0, nilUU_c12)
-  | consUU_c13 x_v14768 xs_v14769 ⇒
-    match lenUU_i39(NULL, xs_v14769) with
-    | (n_v14770, xs_v14771) ⇒
-      (n_v14770.+1, (consUU_c13 x_v14768 xs_v14771))
+  | consUU_c13 x_v15600 xs_v15601 ⇒
+    match lenUU_i40(NULL, xs_v15601) with
+    | (n_v15602, xs_v15603) ⇒
+      (n_v15602.+1, (consUU_c13 x_v15600 xs_v15603))
     end
   end
 
-val lenUUclo_i74 = fn A_v14772 xs_v14773 ⇒ lenUU_i39(A_v14772, xs_v14773)
+val lenUUclo_i75 = fn A_v15604 xs_v15605 ⇒ lenUU_i40(A_v15604, xs_v15605)
 
-fun lenUL_i38(A_v14774, xs_v14775) =
-  match xs_v14775 with
+fun lenUL_i39(A_v15606, xs_v15607) =
+  match xs_v15607 with
   | nilUL_c10  ⇒ (0, nilUL_c10)
-  | consUL_c11 x_v14776 xs_v14777 ⇒
-    match lenUL_i38(NULL, xs_v14777) with
-    | (n_v14778, xs_v14779) ⇒
-      (n_v14778.+1, (consUL_c11 x_v14776 xs_v14779))
+  | consUL_c11 x_v15608 xs_v15609 ⇒
+    match lenUL_i39(NULL, xs_v15609) with
+    | (n_v15610, xs_v15611) ⇒
+      (n_v15610.+1, (consUL_c11 x_v15608 xs_v15611))
     end
   end
 
-val lenULclo_i75 = fn A_v14780 xs_v14781 ⇒ lenUL_i38(A_v14780, xs_v14781)
+val lenULclo_i76 = fn A_v15612 xs_v15613 ⇒ lenUL_i39(A_v15612, xs_v15613)
 
-fun lenLL_i36(A_v14782, xs_v14783) =
-  match xs_v14783 with
+fun lenLL_i37(A_v15614, xs_v15615) =
+  match xs_v15615 with
   | nilLL_c6  ⇒ (0, nilLL_c6)
-  | consLL_c7 x_v14784 xs_v14785 ⇒
-    match lenLL_i36(NULL, xs_v14785) with
-    | (n_v14786, xs_v14787) ⇒ (n_v14786.+1, (consLL_c7 x_v14784 xs_v14787))
+  | consLL_c7 x_v15616 xs_v15617 ⇒
+    match lenLL_i37(NULL, xs_v15617) with
+    | (n_v15618, xs_v15619) ⇒ (n_v15618.+1, (consLL_c7 x_v15616 xs_v15619))
     end
   end
 
-val lenLLclo_i76 = fn A_v14788 xs_v14789 ⇒ lenLL_i36(A_v14788, xs_v14789)
+val lenLLclo_i77 = fn A_v15620 xs_v15621 ⇒ lenLL_i37(A_v15620, xs_v15621)
 
-fun appendUU_i43(A_v14790, xs_v14791, ys_v14792) =
-  match xs_v14791 with
-  | nilUU_c12  ⇒ ys_v14792
-  | consUU_c13 x_v14793 xs_v14794 ⇒
-    (consUU_c13 x_v14793 appendUU_i43(NULL, xs_v14794, ys_v14792))
+fun appendUU_i44(A_v15622, xs_v15623, ys_v15624) =
+  match xs_v15623 with
+  | nilUU_c12  ⇒ ys_v15624
+  | consUU_c13 x_v15625 xs_v15626 ⇒
+    (consUU_c13 x_v15625 appendUU_i44(NULL, xs_v15626, ys_v15624))
   end
 
-val appendUUclo_i77 =
-  fn A_v14795 xs_v14796 ⇒
-    ln ys_v14797 ⇒ appendUU_i43(A_v14795, xs_v14796, ys_v14797)
+val appendUUclo_i78 =
+  fn A_v15627 xs_v15628 ⇒
+    ln ys_v15629 ⇒ appendUU_i44(A_v15627, xs_v15628, ys_v15629)
 
-fun appendUL_i42(A_v14798, xs_v14799, ys_v14800) =
-  match xs_v14799 with
-  | nilUL_c10  ⇒ ys_v14800
-  | consUL_c11 x_v14801 xs_v14802 ⇒
-    (consUL_c11 x_v14801 appendUL_i42(NULL, xs_v14802, ys_v14800))
+fun appendUL_i43(A_v15630, xs_v15631, ys_v15632) =
+  match xs_v15631 with
+  | nilUL_c10  ⇒ ys_v15632
+  | consUL_c11 x_v15633 xs_v15634 ⇒
+    (consUL_c11 x_v15633 appendUL_i43(NULL, xs_v15634, ys_v15632))
   end
 
-val appendULclo_i78 =
-  fn A_v14803 xs_v14804 ⇒
-    ln ys_v14805 ⇒ appendUL_i42(A_v14803, xs_v14804, ys_v14805)
+val appendULclo_i79 =
+  fn A_v15635 xs_v15636 ⇒
+    ln ys_v15637 ⇒ appendUL_i43(A_v15635, xs_v15636, ys_v15637)
 
-fun appendLL_i40(A_v14806, xs_v14807, ys_v14808) =
-  match xs_v14807 with
-  | nilLL_c6  ⇒ ys_v14808
-  | consLL_c7 x_v14809 xs_v14810 ⇒
-    (consLL_c7 x_v14809 appendLL_i40(NULL, xs_v14810, ys_v14808))
+fun appendLL_i41(A_v15638, xs_v15639, ys_v15640) =
+  match xs_v15639 with
+  | nilLL_c6  ⇒ ys_v15640
+  | consLL_c7 x_v15641 xs_v15642 ⇒
+    (consLL_c7 x_v15641 appendLL_i41(NULL, xs_v15642, ys_v15640))
   end
 
-val appendLLclo_i79 =
-  fn A_v14811 xs_v14812 ⇒
-    ln ys_v14813 ⇒ appendLL_i40(A_v14811, xs_v14812, ys_v14813)
+val appendLLclo_i80 =
+  fn A_v15643 xs_v15644 ⇒
+    ln ys_v15645 ⇒ appendLL_i41(A_v15643, xs_v15644, ys_v15645)
 
-fun readline_i25(__v14814) =
-  ln __v14815 ⇒
-    let ch_v14816 = open stdin in
-    let ch_v14817 = send(ch_v14816, 1) in
-    let __v14818 = recv(ch_v14817) in
-    match __v14818 with
-    | (s_v14819, ch_v14820) ⇒
-      let ch_v14821 = send(ch_v14820, 0) in s_v14819
+fun readline_i25(__v15646) =
+  ln __v15647 ⇒
+    let ch_v15648 = open stdin in
+    let ch_v15649 = send(ch_v15648, 1) in
+    let __v15650 = recv(ch_v15649) in
+    match __v15650 with
+    | (s_v15651, ch_v15652) ⇒
+      let ch_v15653 = send(ch_v15652, 0) in s_v15651
     end
 
-val readlineclo_i80 = fn __v14822 ⇒ readline_i25(__v14822)
+val readlineclo_i81 = fn __v15654 ⇒ readline_i25(__v15654)
 
-fun print_i26(s_v14823) =
-  ln __v14824 ⇒
-    let ch_v14825 = open stdout in
-    let ch_v14826 = send(ch_v14825, 1) in
-    let ch_v14827 = send(ch_v14826, s_v14823) in
-    let ch_v14828 = send(ch_v14827, 0) in NULL
+fun print_i26(s_v15655) =
+  ln __v15656 ⇒
+    let ch_v15657 = open stdout in
+    let ch_v15658 = send(ch_v15657, 1) in
+    let ch_v15659 = send(ch_v15658, s_v15655) in
+    let ch_v15660 = send(ch_v15659, 0) in NULL
 
-val printclo_i81 = fn s_v14829 ⇒ print_i26(s_v14829)
+val printclo_i82 = fn s_v15661 ⇒ print_i26(s_v15661)
 
-fun prerr_i27(s_v14830) =
-  ln __v14831 ⇒
-    let ch_v14832 = open stderr in
-    let ch_v14833 = send(ch_v14832, 1) in
-    let ch_v14834 = send(ch_v14833, s_v14830) in
-    let ch_v14835 = send(ch_v14834, 0) in NULL
+fun prerr_i27(s_v15662) =
+  ln __v15663 ⇒
+    let ch_v15664 = open stderr in
+    let ch_v15665 = send(ch_v15664, 1) in
+    let ch_v15666 = send(ch_v15665, s_v15662) in
+    let ch_v15667 = send(ch_v15666, 0) in NULL
 
-val prerrclo_i82 = fn s_v14836 ⇒ prerr_i27(s_v14836)
+val prerrclo_i83 = fn s_v15668 ⇒ prerr_i27(s_v15668)
 
-fun splitU_i45(zs_v14837) =
-  match zs_v14837 with
+fun splitU_i46(zs_v15669) =
+  match zs_v15669 with
   | nilUU_c12  ⇒ (nilUU_c12, nilUU_c12)
-  | consUU_c13 x_v14838 zs_v14839 ⇒
-    match zs_v14839 with
-    | nilUU_c12  ⇒ ((consUU_c13 x_v14838 nilUU_c12), nilUU_c12)
-    | consUU_c13 y_v14840 zs_v14841 ⇒
-      let __v14842 = splitU_i45(zs_v14841) in
-      match __v14842 with
-      | (xs_v14843, ys_v14844) ⇒
-        ((consUU_c13 x_v14838 xs_v14843), (consUU_c13 y_v14840 ys_v14844))
+  | consUU_c13 x_v15670 zs_v15671 ⇒
+    match zs_v15671 with
+    | nilUU_c12  ⇒ ((consUU_c13 x_v15670 nilUU_c12), nilUU_c12)
+    | consUU_c13 y_v15672 zs_v15673 ⇒
+      let __v15674 = splitU_i46(zs_v15673) in
+      match __v15674 with
+      | (xs_v15675, ys_v15676) ⇒
+        ((consUU_c13 x_v15670 xs_v15675), (consUU_c13 y_v15672 ys_v15676))
       end
     end
   end
 
-val splitUclo_i83 = fn zs_v14845 ⇒ splitU_i45(zs_v14845)
+val splitUclo_i84 = fn zs_v15677 ⇒ splitU_i46(zs_v15677)
 
-fun splitL_i44(zs_v14846) =
-  match zs_v14846 with
+fun splitL_i45(zs_v15678) =
+  match zs_v15678 with
   | nilUL_c10  ⇒ (nilUL_c10, nilUL_c10)
-  | consUL_c11 x_v14847 zs_v14848 ⇒
-    match zs_v14848 with
-    | nilUL_c10  ⇒ ((consUL_c11 x_v14847 nilUL_c10), nilUL_c10)
-    | consUL_c11 y_v14849 zs_v14850 ⇒
-      let __v14851 = splitL_i44(zs_v14850) in
-      match __v14851 with
-      | (xs_v14852, ys_v14853) ⇒
-        ((consUL_c11 x_v14847 xs_v14852), (consUL_c11 y_v14849 ys_v14853))
+  | consUL_c11 x_v15679 zs_v15680 ⇒
+    match zs_v15680 with
+    | nilUL_c10  ⇒ ((consUL_c11 x_v15679 nilUL_c10), nilUL_c10)
+    | consUL_c11 y_v15681 zs_v15682 ⇒
+      let __v15683 = splitL_i45(zs_v15682) in
+      match __v15683 with
+      | (xs_v15684, ys_v15685) ⇒
+        ((consUL_c11 x_v15679 xs_v15684), (consUL_c11 y_v15681 ys_v15685))
       end
     end
   end
 
-val splitLclo_i84 = fn zs_v14854 ⇒ splitL_i44(zs_v14854)
+val splitLclo_i85 = fn zs_v15686 ⇒ splitL_i45(zs_v15686)
 
-fun mergeU_i47(xs_v14855, ys_v14856) =
-  match xs_v14855 with
-  | nilUU_c12  ⇒ ys_v14856
-  | consUU_c13 x_v14857 xs0_v14858 ⇒
-    match ys_v14856 with
-    | nilUU_c12  ⇒ (consUU_c13 x_v14857 xs0_v14858)
-    | consUU_c13 y_v14859 ys0_v14860 ⇒
-      if lten_i4(x_v14857, y_v14859) then
+fun mergeU_i48(xs_v15687, ys_v15688) =
+  match xs_v15687 with
+  | nilUU_c12  ⇒ ys_v15688
+  | consUU_c13 x_v15689 xs0_v15690 ⇒
+    match ys_v15688 with
+    | nilUU_c12  ⇒ (consUU_c13 x_v15689 xs0_v15690)
+    | consUU_c13 y_v15691 ys0_v15692 ⇒
+      if lten_i4(x_v15689, y_v15691) then
         (consUU_c13
-          x_v14857 mergeU_i47(xs0_v14858, (consUU_c13 y_v14859 ys0_v14860)))
+          x_v15689 mergeU_i48(xs0_v15690, (consUU_c13 y_v15691 ys0_v15692)))
       else
         (consUU_c13
-          y_v14859 mergeU_i47((consUU_c13 x_v14857 xs0_v14858), ys0_v14860))
+          y_v15691 mergeU_i48((consUU_c13 x_v15689 xs0_v15690), ys0_v15692))
     end
   end
 
-val mergeUclo_i85 =
-  fn xs_v14861 ⇒ ln ys_v14862 ⇒ mergeU_i47(xs_v14861, ys_v14862)
+val mergeUclo_i86 =
+  fn xs_v15693 ⇒ ln ys_v15694 ⇒ mergeU_i48(xs_v15693, ys_v15694)
 
-fun mergeL_i46(xs_v14863, ys_v14864) =
-  match xs_v14863 with
-  | nilUL_c10  ⇒ ys_v14864
-  | consUL_c11 x_v14865 xs0_v14866 ⇒
-    match ys_v14864 with
-    | nilUL_c10  ⇒ (consUL_c11 x_v14865 xs0_v14866)
-    | consUL_c11 y_v14867 ys0_v14868 ⇒
-      if lten_i4(x_v14865, y_v14867) then
+fun mergeL_i47(xs_v15695, ys_v15696) =
+  match xs_v15695 with
+  | nilUL_c10  ⇒ ys_v15696
+  | consUL_c11 x_v15697 xs0_v15698 ⇒
+    match ys_v15696 with
+    | nilUL_c10  ⇒ (consUL_c11 x_v15697 xs0_v15698)
+    | consUL_c11 y_v15699 ys0_v15700 ⇒
+      if lten_i4(x_v15697, y_v15699) then
         (consUL_c11
-          x_v14865 mergeL_i46(xs0_v14866, (consUL_c11 y_v14867 ys0_v14868)))
+          x_v15697 mergeL_i47(xs0_v15698, (consUL_c11 y_v15699 ys0_v15700)))
       else
         (consUL_c11
-          y_v14867 mergeL_i46((consUL_c11 x_v14865 xs0_v14866), ys0_v14868))
+          y_v15699 mergeL_i47((consUL_c11 x_v15697 xs0_v15698), ys0_v15700))
     end
   end
 
-val mergeLclo_i86 =
-  fn xs_v14869 ⇒ ln ys_v14870 ⇒ mergeL_i46(xs_v14869, ys_v14870)
+val mergeLclo_i87 =
+  fn xs_v15701 ⇒ ln ys_v15702 ⇒ mergeL_i47(xs_v15701, ys_v15702)
 
-fun msortU_i49(zs_v14871) =
-  match zs_v14871 with
+fun msortU_i50(zs_v15703) =
+  match zs_v15703 with
   | nilUU_c12  ⇒ nilUU_c12
-  | consUU_c13 x_v14872 zs_v14873 ⇒
-    match zs_v14873 with
-    | nilUU_c12  ⇒ (consUU_c13 x_v14872 nilUU_c12)
-    | consUU_c13 y_v14874 zs_v14875 ⇒
-      let __v14876 =
-        splitU_i45((consUU_c13 x_v14872 (consUU_c13 y_v14874 zs_v14875)))
+  | consUU_c13 x_v15704 zs_v15705 ⇒
+    match zs_v15705 with
+    | nilUU_c12  ⇒ (consUU_c13 x_v15704 nilUU_c12)
+    | consUU_c13 y_v15706 zs_v15707 ⇒
+      let __v15708 =
+        splitU_i46((consUU_c13 x_v15704 (consUU_c13 y_v15706 zs_v15707)))
       in
-      match __v14876 with
-      | (xs_v14877, ys_v14878) ⇒
-        mergeU_i47(msortU_i49(xs_v14877), msortU_i49(ys_v14878))
+      match __v15708 with
+      | (xs_v15709, ys_v15710) ⇒
+        mergeU_i48(msortU_i50(xs_v15709), msortU_i50(ys_v15710))
       end
     end
   end
 
-val msortUclo_i87 = fn zs_v14879 ⇒ msortU_i49(zs_v14879)
+val msortUclo_i88 = fn zs_v15711 ⇒ msortU_i50(zs_v15711)
 
-fun msortL_i48(zs_v14880) =
-  match zs_v14880 with
+fun msortL_i49(zs_v15712) =
+  match zs_v15712 with
   | nilUL_c10  ⇒ nilUL_c10
-  | consUL_c11 x_v14881 zs_v14882 ⇒
-    match zs_v14882 with
-    | nilUL_c10  ⇒ (consUL_c11 x_v14881 nilUL_c10)
-    | consUL_c11 y_v14883 zs_v14884 ⇒
-      let __v14885 =
-        splitL_i44((consUL_c11 x_v14881 (consUL_c11 y_v14883 zs_v14884)))
+  | consUL_c11 x_v15713 zs_v15714 ⇒
+    match zs_v15714 with
+    | nilUL_c10  ⇒ (consUL_c11 x_v15713 nilUL_c10)
+    | consUL_c11 y_v15715 zs_v15716 ⇒
+      let __v15717 =
+        splitL_i45((consUL_c11 x_v15713 (consUL_c11 y_v15715 zs_v15716)))
       in
-      match __v14885 with
-      | (xs_v14886, ys_v14887) ⇒
-        mergeL_i46(msortL_i48(xs_v14886), msortL_i48(ys_v14887))
+      match __v15717 with
+      | (xs_v15718, ys_v15719) ⇒
+        mergeL_i47(msortL_i49(xs_v15718), msortL_i49(ys_v15719))
       end
     end
   end
 
-val msortLclo_i88 = fn zs_v14888 ⇒ msortL_i48(zs_v14888)
+val msortLclo_i89 = fn zs_v15720 ⇒ msortL_i49(zs_v15720)
 
-fun cmsort_workerU_i53(n_v14889, zs_v14890, c_v14891) =
-  if n_v14889 then
-    match zs_v14890 with
+fun cmsort_workerU_i54(n_v15721, zs_v15722, c_v15723) =
+  if n_v15721 then
+    match zs_v15722 with
     | nilUU_c12  ⇒
-      ln __v14892 ⇒ let c_v14893 = send(c_v14891, nilUU_c12) in NULL
-    | consUU_c13 z0_v14894 zs0_v14895 ⇒
-      match zs0_v14895 with
+      ln __v15724 ⇒ let c_v15725 = send(c_v15723, nilUU_c12) in NULL
+    | consUU_c13 z0_v15726 zs0_v15727 ⇒
+      match zs0_v15727 with
       | nilUU_c12  ⇒
-        ln __v14896 ⇒ let c_v14897 = send(c_v14891, nilUU_c12) in NULL
-      | consUU_c13 z1_v14898 zs1_v14899 ⇒
-        let __v14900 =
-          splitU_i45((consUU_c13 z0_v14894 (consUU_c13 z1_v14898 zs1_v14899)))
+        ln __v15728 ⇒ let c_v15729 = send(c_v15723, nilUU_c12) in NULL
+      | consUU_c13 z1_v15730 zs1_v15731 ⇒
+        let __v15732 =
+          splitU_i46((consUU_c13 z0_v15726 (consUU_c13 z1_v15730 zs1_v15731)))
         in
-        match __v14900 with
-        | (xs0_v14901, ys0_v14902) ⇒
-          ln __v14903 ⇒
-            let r1_v14904 =
-              fork r1_v14905 in
-                (cmsort_workerU_i53(n_v14889.-1, xs0_v14901, r1_v14905)) NULL
+        match __v15732 with
+        | (xs0_v15733, ys0_v15734) ⇒
+          ln __v15735 ⇒
+            let r1_v15736 =
+              fork r1_v15737 in
+                (cmsort_workerU_i54(n_v15721.-1, xs0_v15733, r1_v15737)) NULL
             in
-            let r2_v14906 =
-              fork r2_v14907 in
-                (cmsort_workerU_i53(n_v14889.-1, ys0_v14902, r2_v14907)) NULL
+            let r2_v15738 =
+              fork r2_v15739 in
+                (cmsort_workerU_i54(n_v15721.-1, ys0_v15734, r2_v15739)) NULL
             in
-            let __v14908 = recv(r1_v14904) in
-            match __v14908 with
-            | (xs1_v14909, r1_v14910) ⇒
-              let __v14911 = recv(r2_v14906) in
-              match __v14911 with
-              | (ys1_v14912, r2_v14913) ⇒
-                let zs_v14914 = mergeU_i47(xs1_v14909, ys1_v14912) in
-                let c_v14915 = send(c_v14891, zs_v14914) in
-                let __v14916 = close(r1_v14910) in
-                let __v14917 = close(r2_v14913) in NULL
+            let __v15740 = recv(r1_v15736) in
+            match __v15740 with
+            | (xs1_v15741, r1_v15742) ⇒
+              let __v15743 = recv(r2_v15738) in
+              match __v15743 with
+              | (ys1_v15744, r2_v15745) ⇒
+                let zs_v15746 = mergeU_i48(xs1_v15741, ys1_v15744) in
+                let c_v15747 = send(c_v15723, zs_v15746) in
+                let __v15748 = close(r1_v15742) in
+                let __v15749 = close(r2_v15745) in NULL
               end
             end
         end
       end
     end
   else
-    ln __v14918 ⇒
-      let c_v14919 =
-        ((fn x_v14920 ⇒ ln __v14921 ⇒ send(c_v14891, x_v14920))
-           msortU_i49(zs_v14890))
+    ln __v15750 ⇒
+      let c_v15751 =
+        ((fn x_v15752 ⇒ ln __v15753 ⇒ send(c_v15723, x_v15752))
+           msortU_i50(zs_v15722))
           NULL
       in NULL
 
-val cmsort_workerUclo_i89 =
-  fn n_v14922 zs_v14923 ⇒
-    ln c_v14924 ⇒ cmsort_workerU_i53(n_v14922, zs_v14923, c_v14924)
+val cmsort_workerUclo_i90 =
+  fn n_v15754 zs_v15755 ⇒
+    ln c_v15756 ⇒ cmsort_workerU_i54(n_v15754, zs_v15755, c_v15756)
 
-fun cmsort_workerL_i52(n_v14925, zs_v14926, c_v14927) =
-  if n_v14925 then
-    match zs_v14926 with
+fun cmsort_workerL_i53(n_v15757, zs_v15758, c_v15759) =
+  if n_v15757 then
+    match zs_v15758 with
     | nilUL_c10  ⇒
-      ln __v14928 ⇒ let c_v14929 = send(c_v14927, nilUL_c10) in NULL
-    | consUL_c11 z0_v14930 zs0_v14931 ⇒
-      match zs0_v14931 with
+      ln __v15760 ⇒ let c_v15761 = send(c_v15759, nilUL_c10) in NULL
+    | consUL_c11 z0_v15762 zs0_v15763 ⇒
+      match zs0_v15763 with
       | nilUL_c10  ⇒
-        ln __v14932 ⇒ let c_v14933 = send(c_v14927, nilUL_c10) in NULL
-      | consUL_c11 z1_v14934 zs1_v14935 ⇒
-        let __v14936 =
-          splitL_i44((consUL_c11 z0_v14930 (consUL_c11 z1_v14934 zs1_v14935)))
+        ln __v15764 ⇒ let c_v15765 = send(c_v15759, nilUL_c10) in NULL
+      | consUL_c11 z1_v15766 zs1_v15767 ⇒
+        let __v15768 =
+          splitL_i45((consUL_c11 z0_v15762 (consUL_c11 z1_v15766 zs1_v15767)))
         in
-        match __v14936 with
-        | (xs0_v14937, ys0_v14938) ⇒
-          ln __v14939 ⇒
-            let r1_v14940 =
-              fork r1_v14941 in
-                (cmsort_workerL_i52(n_v14925.-1, xs0_v14937, r1_v14941)) NULL
+        match __v15768 with
+        | (xs0_v15769, ys0_v15770) ⇒
+          ln __v15771 ⇒
+            let r1_v15772 =
+              fork r1_v15773 in
+                (cmsort_workerL_i53(n_v15757.-1, xs0_v15769, r1_v15773)) NULL
             in
-            let r2_v14942 =
-              fork r2_v14943 in
-                (cmsort_workerL_i52(n_v14925.-1, ys0_v14938, r2_v14943)) NULL
+            let r2_v15774 =
+              fork r2_v15775 in
+                (cmsort_workerL_i53(n_v15757.-1, ys0_v15770, r2_v15775)) NULL
             in
-            let __v14944 = recv(r1_v14940) in
-            match __v14944 with
-            | (xs1_v14945, r1_v14946) ⇒
-              let __v14947 = recv(r2_v14942) in
-              match __v14947 with
-              | (ys1_v14948, r2_v14949) ⇒
-                let zs_v14950 = mergeL_i46(xs1_v14945, ys1_v14948) in
-                let c_v14951 = send(c_v14927, zs_v14950) in
-                let __v14952 = close(r1_v14946) in
-                let __v14953 = close(r2_v14949) in NULL
+            let __v15776 = recv(r1_v15772) in
+            match __v15776 with
+            | (xs1_v15777, r1_v15778) ⇒
+              let __v15779 = recv(r2_v15774) in
+              match __v15779 with
+              | (ys1_v15780, r2_v15781) ⇒
+                let zs_v15782 = mergeL_i47(xs1_v15777, ys1_v15780) in
+                let c_v15783 = send(c_v15759, zs_v15782) in
+                let __v15784 = close(r1_v15778) in
+                let __v15785 = close(r2_v15781) in NULL
               end
             end
         end
       end
     end
   else
-    ln __v14954 ⇒
-      let c_v14955 =
-        ((ln x_v14956 __v14957 ⇒ send(c_v14927, x_v14956))
-           msortL_i48(zs_v14926))
+    ln __v15786 ⇒
+      let c_v15787 =
+        ((ln x_v15788 __v15789 ⇒ send(c_v15759, x_v15788))
+           msortL_i49(zs_v15758))
           NULL
       in NULL
 
-val cmsort_workerLclo_i90 =
-  fn n_v14958 zs_v14959 ⇒
-    ln c_v14960 ⇒ cmsort_workerL_i52(n_v14958, zs_v14959, c_v14960)
+val cmsort_workerLclo_i91 =
+  fn n_v15790 zs_v15791 ⇒
+    ln c_v15792 ⇒ cmsort_workerL_i53(n_v15790, zs_v15791, c_v15792)
 
-fun cmsortU_i55(zs0_v14961) =
-  ln __v14962 ⇒
-    let c_v14963 =
-      fork c_v14964 in (cmsort_workerU_i53(4, zs0_v14961, c_v14964)) NULL
+fun cmsortU_i56(zs0_v15793) =
+  ln __v15794 ⇒
+    let c_v15795 =
+      fork c_v15796 in (cmsort_workerU_i54(4, zs0_v15793, c_v15796)) NULL
     in
-    let __v14965 = recv(c_v14963) in
-    match __v14965 with
-    | (zs1_v14966, c_v14967) ⇒ let __v14968 = close(c_v14967) in zs1_v14966
+    let __v15797 = recv(c_v15795) in
+    match __v15797 with
+    | (zs1_v15798, c_v15799) ⇒ let __v15800 = close(c_v15799) in zs1_v15798
     end
 
-val cmsortUclo_i91 = fn zs0_v14969 ⇒ cmsortU_i55(zs0_v14969)
+val cmsortUclo_i92 = fn zs0_v15801 ⇒ cmsortU_i56(zs0_v15801)
 
-fun cmsortL_i54(zs0_v14970) =
-  ln __v14971 ⇒
-    let c_v14972 =
-      fork c_v14973 in (cmsort_workerL_i52(4, zs0_v14970, c_v14973)) NULL
+fun cmsortL_i55(zs0_v15802) =
+  ln __v15803 ⇒
+    let c_v15804 =
+      fork c_v15805 in (cmsort_workerL_i53(4, zs0_v15802, c_v15805)) NULL
     in
-    let __v14974 = recv(c_v14972) in
-    match __v14974 with
-    | (zs1_v14975, c_v14976) ⇒ let __v14977 = close(c_v14976) in zs1_v14975
+    let __v15806 = recv(c_v15804) in
+    match __v15806 with
+    | (zs1_v15807, c_v15808) ⇒ let __v15809 = close(c_v15808) in zs1_v15807
     end
 
-val cmsortLclo_i92 = fn zs0_v14978 ⇒ cmsortL_i54(zs0_v14978)
+val cmsortLclo_i93 = fn zs0_v15810 ⇒ cmsortL_i55(zs0_v15810)
 
-fun mkListU_i57(n_v14979) =
-  if n_v14979 then
-    (consUU_c13 n_v14979 mkListU_i57(n_v14979.-1))
+fun mkListU_i58(n_v15811) =
+  if n_v15811 then
+    (consUU_c13 n_v15811 mkListU_i58(n_v15811.-1))
   else
     nilUU_c12
 
-val mkListUclo_i93 = fn n_v14980 ⇒ mkListU_i57(n_v14980)
+val mkListUclo_i94 = fn n_v15812 ⇒ mkListU_i58(n_v15812)
 
-fun mkListL_i56(n_v14981) =
-  if n_v14981 then
-    (consUL_c11 n_v14981 mkListL_i56(n_v14981.-1))
+fun mkListL_i57(n_v15813) =
+  if n_v15813 then
+    (consUL_c11 n_v15813 mkListL_i57(n_v15813.-1))
   else
     nilUL_c10
 
-val mkListLclo_i94 = fn n_v14982 ⇒ mkListL_i56(n_v14982)
+val mkListLclo_i95 = fn n_v15814 ⇒ mkListL_i57(n_v15814)
+
+fun free_i35(A_v15815, ls_v15816) =
+  match ls_v15816 with
+  | nilUL_c10  ⇒ NULL
+  | consUL_c11 __v15817 ls_v15818 ⇒ free_i35(NULL, ls_v15818)
+  end
+
+val freeclo_i96 = fn A_v15819 ls_v15820 ⇒ free_i35(A_v15819, ls_v15820)
 
 main =
-  let test_v14983 = mkListU_i57(800000) in
-  let sorted_v14984 = (cmsortU_i55(test_v14983)) NULL in NULL
+  let test_v15821 = mkListL_i57(400000) in
+  let sorted_v15822 = msortL_i49(test_v15821) in
+  let __v15823 = free_i35(NULL, sorted_v15822) in NULL
 
 trans3e success--------------------------
 

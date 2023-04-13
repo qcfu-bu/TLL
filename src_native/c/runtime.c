@@ -1,7 +1,4 @@
-// #define GC_THREADS
-
 #include "chan.h"
-// #include "gc.h"
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -12,7 +9,6 @@
 #include "prelude.h"
 #include "runtime.h"
 
-#define INIT() // GC_INIT()
 #define MALLOC malloc
 #define FREE free
 
@@ -23,7 +19,6 @@ struct rlimit rlim;
 
 void instr_init()
 {
-  INIT()
   getrlimit(RLIMIT_STACK, &rlim);
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, (size_t)rlim.rlim_cur);

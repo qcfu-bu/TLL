@@ -1,7 +1,7 @@
 CC=gcc
 RMF=rm -rf
-# CFLAGS=-g -lgc -lpthread
-CFLAGS=-g -O2 -lgc -lpthread
+# CFLAGS=-g -lpthread
+CFLAGS=-g -O2 -lpthread
 SRC = main.c runtime.c chan.c queue.c
 
 all: main.out
