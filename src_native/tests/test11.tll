@@ -41,7 +41,6 @@ logical cmsort_ch‹t› : L = ch⟨ ⇑(list‹_,t› nat) → • ⟩
 
 program cmsort_worker‹t› (n : nat) (zs : list‹_,t› nat) : cmsort_ch‹t› ⊸ IO unit =
 ln c ⇒
-  -- let c ⇐ send c (msort zs) in close c
   match n with
   | O ⇒ let c ⇐ send c (msort zs) in close c
   | S n ⇒
@@ -52,12 +51,13 @@ ln c ⇒
       | nil ⇒ let c ⇐ send c nil in close c
       | z1 :: zs1 ⇒ 
         let ⟨xs0, ys0⟩ = split (z0 :: z1 :: zs1) in
-        let r ⇐ fork (r : cmsort_ch) in cmsort_worker n xs0 r in
-        let ys1 = msort ys0 in
-        let ⟨xs1, r⟩ ⇐ recv r in
+        let r1 ⇐ fork (r1 : cmsort_ch) in cmsort_worker n xs0 r1 in
+        let r2 ⇐ fork (r2 : cmsort_ch) in cmsort_worker n ys0 r2 in
+        let ⟨xs1, r1⟩ ⇐ recv r1 in
+        let ⟨ys1, r2⟩ ⇐ recv r2 in
         let zs = merge xs1 ys1 in
         let c ⇐ send c zs in
-        close r; close c
+        close r1; close r2; close c
       end
     end
   end
@@ -75,12 +75,12 @@ program mkList‹t› (n : nat) : list‹_,t› nat =
   end
 
 -- program main : IO unit =
---   let test = mkList‹U› 100000 in
+--   let test = mkList‹U› 800000 in
 --   let sorted = msort test in
 --   return ()
   
 program main : IO unit =
-  let test = mkList‹U› 6000 in
+  let test = mkList‹U› 800000 in
   let sorted ⇐ cmsort test in
   return ()
   
