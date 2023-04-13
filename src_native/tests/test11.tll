@@ -41,30 +41,29 @@ logical cmsort_ch‹t› : L = ch⟨ ⇑(list‹_,t› nat) → • ⟩
 
 program cmsort_worker‹t› (n : nat) (zs : list‹_,t› nat) : cmsort_ch‹t› ⊸ IO unit =
 ln c ⇒
-  let c ⇐ send c (msort zs) in close c
-  -- match n with
-  -- | O ⇒ let c ⇐ send c (msort zs) in close c
-  -- | S n ⇒
-  --   match zs with
-  --   | nil ⇒ let c ⇐ send c nil in close c
-  --   | z0 :: zs0 ⇒
-  --     match zs0 with
-  --     | nil ⇒ let c ⇐ send c nil in close c
-  --     | z1 :: zs1 ⇒ 
-  --       let ⟨xs0, ys0⟩ = split (z0 :: z1 :: zs1) in
-  --       let r1 ⇐ fork (r : cmsort_ch) in cmsort_worker n xs0 r in
-  --       let r2 ⇐ fork (r : cmsort_ch) in cmsort_worker n ys0 r in
-  --       let ⟨xs1, r1⟩ ⇐ recv r1 in
-  --       let ⟨ys1, r2⟩ ⇐ recv r2 in
-  --       let zs = merge xs1 ys1 in
-  --       let c ⇐ send c zs in
-  --       close r1; close r2; close c
-  --     end
-  --   end
-  -- end
+  -- let c ⇐ send c (msort zs) in close c
+  match n with
+  | O ⇒ let c ⇐ send c (msort zs) in close c
+  | S n ⇒
+    match zs with
+    | nil ⇒ let c ⇐ send c nil in close c
+    | z0 :: zs0 ⇒
+      match zs0 with
+      | nil ⇒ let c ⇐ send c nil in close c
+      | z1 :: zs1 ⇒ 
+        let ⟨xs0, ys0⟩ = split (z0 :: z1 :: zs1) in
+        let r ⇐ fork (r : cmsort_ch) in cmsort_worker n xs0 r in
+        let ys1 = msort ys0 in
+        let ⟨xs1, r⟩ ⇐ recv r in
+        let zs = merge xs1 ys1 in
+        let c ⇐ send c zs in
+        close r; close c
+      end
+    end
+  end
 
 program cmsort‹t› (zs0 : list‹_,t› nat) : IO (list‹_,t› nat) =
-  let c ⇐ fork (c : cmsort_ch) in cmsort_worker 0 zs0 c in
+  let c ⇐ fork (c : cmsort_ch) in cmsort_worker 4 zs0 c in
   let ⟨zs1, c⟩ ⇐ recv c in
   close c;
   return zs1
@@ -81,7 +80,7 @@ program mkList‹t› (n : nat) : list‹_,t› nat =
 --   return ()
   
 program main : IO unit =
-  let test = mkList‹U› 10000 in
+  let test = mkList‹U› 6000 in
   let sorted ⇐ cmsort test in
   return ()
   
