@@ -53,7 +53,7 @@ tll_ptr to_string(char *s)
   return (tll_ptr)x;
 }
 
-unsigned long from_ascii(tll_ptr x)
+unsigned long from_char(tll_ptr x)
 {
   unsigned long c = (unsigned long)((tll_node)x)->data[0];
   return (c % 256);
@@ -73,7 +73,7 @@ char *from_string(tll_ptr x)
   tmp = (tll_node)x;
   for (int i = 0; i < len; i++)
   {
-    str[i] = from_ascii(tmp->data[0]);
+    str[i] = from_char(tmp->data[0]);
     tmp = (tll_node)(tmp->data[1]);
   }
   return str;
