@@ -125,13 +125,13 @@ tll_ptr lam_fun_t15(tll_ptr b_v5606, tll_env env) {
 }
 
 tll_ptr lten_i4(tll_ptr x_v5607, tll_ptr y_v5608) {
-  tll_ptr call_ret_t17; tll_ptr ifte_ret_t20; tll_ptr ifte_ret_t21;
-  tll_ptr sub_ret_t18; tll_ptr sub_ret_t19;
+  tll_ptr add_ret_t18; tll_ptr add_ret_t19; tll_ptr call_ret_t17;
+  tll_ptr ifte_ret_t20; tll_ptr ifte_ret_t21;
   if (x_v5607) {
     if (y_v5608) {
-      sub_ret_t18 = x_v5607 - 1;
-      sub_ret_t19 = y_v5608 - 1;
-      call_ret_t17 = lten_i4(sub_ret_t18, sub_ret_t19);
+      add_ret_t18 = x_v5607 - 1;
+      add_ret_t19 = y_v5608 - 1;
+      call_ret_t17 = lten_i4(add_ret_t18, add_ret_t19);
       ifte_ret_t20 = call_ret_t17;
     }
     else {
@@ -158,13 +158,13 @@ tll_ptr lam_fun_t25(tll_ptr x_v5609, tll_env env) {
 }
 
 tll_ptr gten_i5(tll_ptr x_v5612, tll_ptr y_v5613) {
-  tll_ptr call_ret_t27; tll_ptr ifte_ret_t30; tll_ptr ifte_ret_t31;
-  tll_ptr ifte_ret_t32; tll_ptr sub_ret_t28; tll_ptr sub_ret_t29;
+  tll_ptr add_ret_t28; tll_ptr add_ret_t29; tll_ptr call_ret_t27;
+  tll_ptr ifte_ret_t30; tll_ptr ifte_ret_t31; tll_ptr ifte_ret_t32;
   if (x_v5612) {
     if (y_v5613) {
-      sub_ret_t28 = x_v5612 - 1;
-      sub_ret_t29 = y_v5613 - 1;
-      call_ret_t27 = gten_i5(sub_ret_t28, sub_ret_t29);
+      add_ret_t28 = x_v5612 - 1;
+      add_ret_t29 = y_v5613 - 1;
+      call_ret_t27 = gten_i5(add_ret_t28, add_ret_t29);
       ifte_ret_t30 = call_ret_t27;
     }
     else {
@@ -197,13 +197,13 @@ tll_ptr lam_fun_t36(tll_ptr x_v5614, tll_env env) {
 }
 
 tll_ptr ltn_i6(tll_ptr x_v5617, tll_ptr y_v5618) {
-  tll_ptr call_ret_t38; tll_ptr ifte_ret_t41; tll_ptr ifte_ret_t42;
-  tll_ptr ifte_ret_t43; tll_ptr sub_ret_t39; tll_ptr sub_ret_t40;
+  tll_ptr add_ret_t39; tll_ptr add_ret_t40; tll_ptr call_ret_t38;
+  tll_ptr ifte_ret_t41; tll_ptr ifte_ret_t42; tll_ptr ifte_ret_t43;
   if (x_v5617) {
     if (y_v5618) {
-      sub_ret_t39 = x_v5617 - 1;
-      sub_ret_t40 = y_v5618 - 1;
-      call_ret_t38 = ltn_i6(sub_ret_t39, sub_ret_t40);
+      add_ret_t39 = x_v5617 - 1;
+      add_ret_t40 = y_v5618 - 1;
+      call_ret_t38 = ltn_i6(add_ret_t39, add_ret_t40);
       ifte_ret_t41 = call_ret_t38;
     }
     else {
@@ -236,13 +236,13 @@ tll_ptr lam_fun_t47(tll_ptr x_v5619, tll_env env) {
 }
 
 tll_ptr gtn_i7(tll_ptr x_v5622, tll_ptr y_v5623) {
-  tll_ptr call_ret_t49; tll_ptr ifte_ret_t52; tll_ptr ifte_ret_t53;
-  tll_ptr sub_ret_t50; tll_ptr sub_ret_t51;
+  tll_ptr add_ret_t50; tll_ptr add_ret_t51; tll_ptr call_ret_t49;
+  tll_ptr ifte_ret_t52; tll_ptr ifte_ret_t53;
   if (x_v5622) {
     if (y_v5623) {
-      sub_ret_t50 = x_v5622 - 1;
-      sub_ret_t51 = y_v5623 - 1;
-      call_ret_t49 = gtn_i7(sub_ret_t50, sub_ret_t51);
+      add_ret_t50 = x_v5622 - 1;
+      add_ret_t51 = y_v5623 - 1;
+      call_ret_t49 = gtn_i7(add_ret_t50, add_ret_t51);
       ifte_ret_t52 = call_ret_t49;
     }
     else {
@@ -269,13 +269,13 @@ tll_ptr lam_fun_t57(tll_ptr x_v5624, tll_env env) {
 }
 
 tll_ptr eqn_i8(tll_ptr x_v5627, tll_ptr y_v5628) {
-  tll_ptr call_ret_t59; tll_ptr ifte_ret_t62; tll_ptr ifte_ret_t63;
-  tll_ptr ifte_ret_t64; tll_ptr sub_ret_t60; tll_ptr sub_ret_t61;
+  tll_ptr add_ret_t60; tll_ptr add_ret_t61; tll_ptr call_ret_t59;
+  tll_ptr ifte_ret_t62; tll_ptr ifte_ret_t63; tll_ptr ifte_ret_t64;
   if (x_v5627) {
     if (y_v5628) {
-      sub_ret_t60 = x_v5627 - 1;
-      sub_ret_t61 = y_v5628 - 1;
-      call_ret_t59 = eqn_i8(sub_ret_t60, sub_ret_t61);
+      add_ret_t60 = x_v5627 - 1;
+      add_ret_t61 = y_v5628 - 1;
+      call_ret_t59 = eqn_i8(add_ret_t60, add_ret_t61);
       ifte_ret_t62 = call_ret_t59;
     }
     else {
@@ -308,10 +308,10 @@ tll_ptr lam_fun_t68(tll_ptr x_v5629, tll_env env) {
 }
 
 tll_ptr pred_i9(tll_ptr x_v5632) {
-  tll_ptr ifte_ret_t71; tll_ptr sub_ret_t70;
+  tll_ptr add_ret_t70; tll_ptr ifte_ret_t71;
   if (x_v5632) {
-    sub_ret_t70 = x_v5632 - 1;
-    ifte_ret_t71 = sub_ret_t70;
+    add_ret_t70 = x_v5632 - 1;
+    ifte_ret_t71 = add_ret_t70;
   }
   else {
     ifte_ret_t71 = (tll_ptr)0;
@@ -326,11 +326,11 @@ tll_ptr lam_fun_t73(tll_ptr x_v5633, tll_env env) {
 }
 
 tll_ptr addn_i10(tll_ptr x_v5634, tll_ptr y_v5635) {
-  tll_ptr add_ret_t77; tll_ptr call_ret_t75; tll_ptr ifte_ret_t78;
-  tll_ptr sub_ret_t76;
+  tll_ptr add_ret_t76; tll_ptr add_ret_t77; tll_ptr call_ret_t75;
+  tll_ptr ifte_ret_t78;
   if (x_v5634) {
-    sub_ret_t76 = x_v5634 - 1;
-    call_ret_t75 = addn_i10(sub_ret_t76, y_v5635);
+    add_ret_t76 = x_v5634 - 1;
+    call_ret_t75 = addn_i10(add_ret_t76, y_v5635);
     add_ret_t77 = call_ret_t75 + 1;
     ifte_ret_t78 = add_ret_t77;
   }
@@ -353,12 +353,12 @@ tll_ptr lam_fun_t82(tll_ptr x_v5636, tll_env env) {
 }
 
 tll_ptr subn_i11(tll_ptr x_v5639, tll_ptr y_v5640) {
-  tll_ptr call_ret_t84; tll_ptr call_ret_t85; tll_ptr ifte_ret_t87;
-  tll_ptr sub_ret_t86;
+  tll_ptr add_ret_t86; tll_ptr call_ret_t84; tll_ptr call_ret_t85;
+  tll_ptr ifte_ret_t87;
   if (y_v5640) {
     call_ret_t85 = pred_i9(x_v5639);
-    sub_ret_t86 = y_v5640 - 1;
-    call_ret_t84 = subn_i11(call_ret_t85, sub_ret_t86);
+    add_ret_t86 = y_v5640 - 1;
+    call_ret_t84 = subn_i11(call_ret_t85, add_ret_t86);
     ifte_ret_t87 = call_ret_t84;
   }
   else {
@@ -380,11 +380,11 @@ tll_ptr lam_fun_t91(tll_ptr x_v5641, tll_env env) {
 }
 
 tll_ptr muln_i12(tll_ptr x_v5644, tll_ptr y_v5645) {
-  tll_ptr call_ret_t93; tll_ptr call_ret_t94; tll_ptr ifte_ret_t96;
-  tll_ptr sub_ret_t95;
+  tll_ptr add_ret_t95; tll_ptr call_ret_t93; tll_ptr call_ret_t94;
+  tll_ptr ifte_ret_t96;
   if (x_v5644) {
-    sub_ret_t95 = x_v5644 - 1;
-    call_ret_t94 = muln_i12(sub_ret_t95, y_v5645);
+    add_ret_t95 = x_v5644 - 1;
+    call_ret_t94 = muln_i12(add_ret_t95, y_v5645);
     call_ret_t93 = addn_i10(y_v5645, call_ret_t94);
     ifte_ret_t96 = call_ret_t93;
   }
@@ -847,8 +847,8 @@ tll_ptr lam_fun_t229(tll_ptr s_v5766, tll_env env) {
 }
 
 tll_ptr get_at_i29(tll_ptr A_v5767, tll_ptr n_v5768, tll_ptr xs_v5769, tll_ptr a_v5770) {
-  tll_ptr __v5771; tll_ptr __v5774; tll_ptr call_ret_t273;
-  tll_ptr ifte_ret_t276; tll_ptr sub_ret_t274; tll_ptr switch_ret_t272;
+  tll_ptr __v5771; tll_ptr __v5774; tll_ptr add_ret_t274;
+  tll_ptr call_ret_t273; tll_ptr ifte_ret_t276; tll_ptr switch_ret_t272;
   tll_ptr switch_ret_t275; tll_ptr x_v5773; tll_ptr xs_v5772;
   if (n_v5768) {
     switch(((tll_node)xs_v5769)->tag) {
@@ -858,8 +858,8 @@ tll_ptr get_at_i29(tll_ptr A_v5767, tll_ptr n_v5768, tll_ptr xs_v5769, tll_ptr a
       case 13:
         __v5771 = ((tll_node)xs_v5769)->data[0];
         xs_v5772 = ((tll_node)xs_v5769)->data[1];
-        sub_ret_t274 = n_v5768 - 1;
-        call_ret_t273 = get_at_i29(0, sub_ret_t274, xs_v5772, a_v5770);
+        add_ret_t274 = n_v5768 - 1;
+        call_ret_t273 = get_at_i29(0, add_ret_t274, xs_v5772, a_v5770);
         switch_ret_t272 = call_ret_t273;
         break;
     }

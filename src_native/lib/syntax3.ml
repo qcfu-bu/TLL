@@ -21,8 +21,7 @@ type tm =
   | Let of tm * (tm, tm) binder
   (* native *)
   | Int of int
-  | Succ of int * tm
-  | Pred of int * tm
+  | Add of int * tm
   | Ifte of tm * tm * tm
   (* data *)
   | Pair of tm * tm
@@ -80,8 +79,7 @@ let _Let = box_apply2 (fun m bnd -> Let (m, bnd))
 
 (* native *)
 let _Int i = box (Int i)
-let _Succ i = box_apply (fun m -> Succ (i, m))
-let _Pred i = box_apply (fun m -> Pred (i, m))
+let _Add i = box_apply (fun m -> Add (i, m))
 let _Ifte = box_apply3 (fun m n1 n2 -> Ifte (m, n1, n2))
 
 (* data *)
@@ -120,8 +118,7 @@ let rec lift_tm = function
   | Let (m, bnd) -> _Let (lift_tm m) (box_binder lift_tm bnd)
   (* native *)
   | Int i -> _Int i
-  | Succ (i, m) -> _Succ i (lift_tm m)
-  | Pred (i, m) -> _Pred i (lift_tm m)
+  | Add (i, m) -> _Add i (lift_tm m)
   | Ifte (m, n1, n2) -> _Ifte (lift_tm m) (lift_tm n1) (lift_tm n2)
   (* data *)
   | Pair (m, n) -> _Pair (lift_tm m) (lift_tm n)

@@ -5,17 +5,23 @@ open Names
 open Syntax3
 open Prelude1
 
-let rec nat_of m =
-  match m with
-  | Int i -> Some i
-  | Succ (i, m) -> Option.map (fun j -> i + j) (nat_of m)
-  | Pred (i, m) -> Option.map (fun j -> j - i) (nat_of m)
-  | _ -> None
+let rec nat_of = function
+  | Int i -> Int i
+  | Add (0, m) -> nat_of m
+  | Add (i, m) -> (
+    match nat_of m with
+    | Int j -> Int (i + j)
+    | Add (j, m) when i + j = 0 -> m
+    | Add (j, m) -> Add (i + j, m)
+    | m -> Add (i, m))
+  | m -> m
 
 let char_of m =
   match m with
-  | Cons (c, [ m ]) when C.equal c char_c ->
-    Option.map (fun i -> Char.chr (i mod 256)) (nat_of m)
+  | Cons (c, [ m ]) when C.equal c char_c -> (
+    match nat_of m with
+    | Int i -> Some (Char.chr (i mod 256))
+    | _ -> None)
   | _ -> None
 
 let rec string_of = function
@@ -67,14 +73,12 @@ and pp_tm fmt = function
     pf fmt "@[@[let %a =@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" V.pp x pp_tm m pp_tm n
   (* native *)
   | Int i -> pf fmt "%d" i
-  | Succ (i, m) as m0 -> (
-    match nat_of m0 with
-    | Some n -> pf fmt "%d" n
-    | None -> pf fmt "%a.+%d" pp_tm m i)
-  | Pred (i, m) as m0 -> (
-    match nat_of m0 with
-    | Some n -> pf fmt "%d" n
-    | None -> pf fmt "%a.-%d" pp_tm m i)
+  | Add _ as m -> (
+    match nat_of m with
+    | Int n -> pf fmt "%d" n
+    | Add (i, m) when 0 <= i -> pf fmt "%a.+%d" pp_tm m (abs i)
+    | Add (i, m) when i < 0 -> pf fmt "%a.-%d" pp_tm m (abs i)
+    | m -> pf fmt "%a" pp_tm m)
   | Ifte (m, n1, n2) ->
     pf fmt "@[<v 0>@[if @[%a@] then@]@;<1 2>@[%a@]@;<1 0>else@;<1 2>@[%a@]@]"
       pp_tm m pp_tm n1 pp_tm n2

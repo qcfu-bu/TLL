@@ -28,7 +28,6 @@ let rec gather_var ctx instrs =
   | Init _ :: instrs -> gather_var ctx instrs
   | Mov instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | Add instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
-  | Sub instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | Clo instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | Call instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | App instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
@@ -105,8 +104,11 @@ and pp_procs fmt = function
 and pp_instr fmt = function
   | Init { lhs; rhs } -> pf fmt "%s = %a;" lhs pp_value rhs
   | Mov { lhs; rhs } -> pf fmt "%s = %a;" lhs pp_value rhs
-  | Add { lhs; i; rhs } -> pf fmt "%s = %a + %d;" lhs pp_value rhs i
-  | Sub { lhs; i; rhs } -> pf fmt "%s = %a - %d;" lhs pp_value rhs i
+  | Add { lhs; i; rhs } ->
+    if 0 <= i then
+      pf fmt "%s = %a + %d;" lhs pp_value rhs (abs i)
+    else
+      pf fmt "%s = %a - %d;" lhs pp_value rhs (abs i)
   | Clo { lhs; fname; env = [] } ->
     pf fmt "instr_clo(&%s, &%s, %d);" lhs fname 0
   | Clo { lhs; fname; env } ->

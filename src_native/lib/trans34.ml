@@ -37,10 +37,9 @@ let fv ctx m =
       let fv1 = aux ctx m in
       let fv2 = aux (VSet.add x ctx) n in
       VSet.union fv1 fv2
-    (* native *)
+      (* native *)
     | Int _ -> VSet.empty
-    | Succ (_, m) -> aux ctx m
-    | Pred (_, m) -> aux ctx m
+    | Add (_, m) -> aux ctx m
     | Ifte (m, n1, n2) ->
       let fv0 = aux ctx m in
       let fv1 = aux ctx n1 in
@@ -133,14 +132,10 @@ let rec trans_tm procs (vtbl : vtbl) m =
     (procs, m_instr @ [ Mov { lhs = xid; rhs = m_ret } ] @ n_instr, n_ret)
   (* native *)
   | Int i -> (procs, [], Int i)
-  | Succ (i, m) ->
+  | Add (i, m) ->
     let procs, instr, ret = trans_tm procs vtbl m in
     let lhs = T.mk "add_ret" in
     (procs, instr @ [ Add { lhs; i; rhs = ret } ], Reg lhs)
-  | Pred (i, m) ->
-    let procs, instr, ret = trans_tm procs vtbl m in
-    let lhs = T.mk "sub_ret" in
-    (procs, instr @ [ Sub { lhs; i; rhs = ret } ], Reg lhs)
   | Ifte (m, n1, n2) ->
     let procs, m_instr, m_ret = trans_tm procs vtbl m in
     let procs, n1_instr, n1_ret = trans_tm procs vtbl n1 in

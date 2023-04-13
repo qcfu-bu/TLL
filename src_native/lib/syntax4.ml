@@ -44,11 +44,6 @@ and instr =
       ; i : int
       ; rhs : value
       }
-  | Sub of
-      { lhs : string
-      ; i : int
-      ; rhs : value
-      }
   | Clo of
       { lhs : string
       ; fname : string

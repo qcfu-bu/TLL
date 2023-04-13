@@ -110,7 +110,7 @@ let rec trans_tm = function
   | NZero -> return Syntax3.(_Int 0)
   | NSucc (i, m) ->
     let* m = trans_tm m in
-    return Syntax3.(_Succ i m)
+    return Syntax3.(_Add i m)
   (* data *)
   | Pair (m, n) ->
     let* m = trans_tm m in
@@ -140,7 +140,7 @@ let rec trans_tm = function
       Syntax3.(
         bind_var arg
           (_Ifte (_Var arg)
-             (_Let (_Pred 1 (_Var arg)) (bind_var (trans_var x) n2))
+             (_Let (_Add (-1) (_Var arg)) (bind_var (trans_var x) n2))
              n1))
     in
     return Syntax3.(_Let m bnd)

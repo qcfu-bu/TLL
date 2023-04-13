@@ -7,18 +7,11 @@ let rec simpl_arg = function
   | Var _ -> true
   | Const _ -> true
   | Int _ -> true
-  | Succ (_, m) -> simpl_arg m
-  | Pred (_, m) -> simpl_arg m
+  | Add (_, m) -> simpl_arg m
   | Pair _ -> true
   | Cons _ -> true
   | NULL -> true
   | _ -> false
-
-let rec simpl_int = function
-  | Int i -> Some i
-  | Succ (i, m) -> Option.map (fun j -> i + j) (simpl_int m)
-  | Pred (i, m) -> Option.map (fun i -> i - 1) (simpl_int m)
-  | _ -> None
 
 let rec trans_tm m0 =
   match m0 with
@@ -64,22 +57,7 @@ let rec trans_tm m0 =
     else
       _Let (lift_tm m) (box_binder lift_tm bnd)
   (* native *)
-  | Succ (i, m0) as m -> (
-    match simpl_int m with
-    | Some i -> _Int i
-    | None -> (
-      let m0 = unbox (trans_tm m0) in
-      match m0 with
-      | Succ (j, m0) -> _Succ (i + j) (lift_tm m0)
-      | _ -> _Succ i (lift_tm m0)))
-  | Pred (i, m0) as m -> (
-    match simpl_int m with
-    | Some i -> _Int i
-    | None -> (
-      let m0 = unbox (trans_tm m0) in
-      match m0 with
-      | Pred (j, m0) -> _Pred (i + j) (lift_tm m0)
-      | _ -> _Pred i (lift_tm m0)))
+  | Add _ as m -> trans_int m
   | Ifte (m, n1, n2) ->
     let m = trans_tm m in
     let n1 = trans_tm n1 in
@@ -118,6 +96,17 @@ let rec trans_tm m0 =
   | Send (m, n) -> _Send (trans_tm m) (trans_tm n)
   | Close m -> _Close (trans_tm m)
   | _ -> lift_tm m0
+
+and trans_int = function
+  | Int i -> _Int i
+  | Add (0, m) -> trans_int m
+  | Add (i, m) -> (
+    match unbox (trans_tm m) with
+    | Int j -> _Int (i + j)
+    | Add (j, m) when i + j = 0 -> lift_tm m
+    | Add (j, m) -> _Add (i + j) (lift_tm m)
+    | m -> _Add i (lift_tm m))
+  | m -> lift_tm m
 
 let trans_dcls dcls =
   let rec aux = function
