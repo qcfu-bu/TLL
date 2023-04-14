@@ -48,7 +48,7 @@ ln c ⇒
   match n with
   | O ⇒ let c ⇐ send c (Uniq (msort zs) refl) in close c
   | S n0 ⇒
-    match zs as _zs_ in cmsort_ch _zs_ ⊸  IO unit with
+    match zs as _zs_ in cmsort_ch _zs_ ⊸ IO unit with
     | nil ⇒ ln c ⇒ let c ⇐ send c (Uniq nil refl) in close c
     | z0 :: zs0 ⇒ ln c ⇒
       match zs0 as _zs0_ in cmsort_ch (z0 :: _zs0_) ⊸ IO unit with
