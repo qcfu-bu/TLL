@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/resource.h>
 
 #include "prelude.h"
 #include "runtime.h"
@@ -15,12 +14,10 @@
 /*-------------------------------------------------------*/
 
 pthread_attr_t attr;
-struct rlimit rlim;
 
 void instr_init() {
-  getrlimit(RLIMIT_STACK, &rlim);
   pthread_attr_init(&attr);
-  pthread_attr_setstacksize(&attr, (size_t)rlim.rlim_cur);
+  pthread_attr_setstacksize(&attr, 0xf000000);
 }
 
 /*-------------------------------------------------------*/

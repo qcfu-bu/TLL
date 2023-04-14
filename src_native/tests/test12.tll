@@ -95,14 +95,16 @@ program free {A : U} (ls : list‹_,L› A) : unit =
   | _ :: ls ⇒ free _ ls
   end
 
+-- 14.17s user 0.09s system 99% cpu 14.274 total
 -- program main : IO unit =
---   let test = mkList‹L› 400000 in
+--   let test = mkList‹L› 2000000 in
 --   let sorted = msort test in
 --   let _ = free _ sorted in
 --   return ()
   
+-- 15.96s user 0.25s system 694% cpu 2.335 total
 program main : IO unit =
-  let test = mkList‹L› 400000 in
+  let test = mkList‹L› 2000000 in
   let msg ⇐ cmsort test in
   match msg with Uniq sorted _ ⇒
     let _ = free _ sorted in
