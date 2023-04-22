@@ -4,10 +4,18 @@ program id (n : nat) (acc : nat) : nat =
   | S n0 ⇒ id n0 (S acc)
   end
 
+program idM0 (n : nat) (acc : nat) : IO nat =
+  match n with
+  | O ⇒ return acc
+  | S n0 ⇒ idM0 n0 (S acc)
+  end
+
 program idM (n : nat) (acc : nat) : IO nat =
   match n with
   | O ⇒ return acc
-  | S n0 ⇒ idM n0 (S acc)
+  | S n0 ⇒
+    let n0 ⇐ idM0 n0 0 in
+    idM n0 (S acc)
   end
 
 program digits : list‹_,U› _ =
