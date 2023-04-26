@@ -10,6 +10,7 @@ let rec simpl_arg = function
   | Add (_, m) -> simpl_arg m
   | Pair _ -> true
   | Cons _ -> true
+  | Call _ -> true
   | NULL -> true
   | _ -> false
 
