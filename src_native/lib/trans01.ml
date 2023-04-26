@@ -365,6 +365,9 @@ let rec trans_tm nspc = function
   | Close m ->
     let m, iset = trans_tm nspc m in
     Syntax1.(_Close m, iset)
+  | Sleep m ->
+    let m, iset = trans_tm nspc m in
+    Syntax1.(_Sleep m, iset)
 
 and trans_cl nspc = function
   | Binder (PIt, m) ->

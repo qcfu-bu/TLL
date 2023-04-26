@@ -73,6 +73,7 @@ let fv ctx m =
     | Recv m -> aux ctx m
     | Send (m, n) -> VSet.union (aux ctx m) (aux ctx n)
     | Close m -> aux ctx m
+    | Sleep m -> aux ctx m
     | NULL -> VSet.empty
   in
   VSet.elements (aux ctx m)
@@ -220,6 +221,10 @@ let rec trans_tm procs (vtbl : vtbl) m =
     let lhs = T.mk "close_tmp" in
     let procs, instr, ret = trans_tm procs vtbl m in
     (procs, instr @ [ Close { lhs; ch = ret } ], Reg lhs)
+  | Sleep m ->
+    let lhs = T.mk "sleep_tmp" in
+    let procs, instr, ret = trans_tm procs vtbl m in
+    (procs, instr @ [ Sleep { lhs; rhs = ret } ], Reg lhs)
   (* erausre *)
   | NULL -> (procs, [], NULL)
 

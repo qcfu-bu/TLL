@@ -139,6 +139,7 @@
 %token TM_RECV     // recv
 %token TM_SEND     // send
 %token TM_CLOSE    // close
+%token TM_SLEEP    // sleep
 
 // dcl
 %token DCL_PROGRAM   // program
@@ -417,6 +418,9 @@ let tm_send :=
 let tm_close :=
   | TM_CLOSE; m = tm0; { Close m }
 
+let tm_sleep :=
+  | TM_SLEEP; m = tm0; { Sleep m }
+
 let tm0 :=
   | ~ = tm_inst; <>
   | ~ = tm_id; <>
@@ -439,6 +443,7 @@ let tm0 :=
   | ~ = tm_send; <>
   | ~ = tm_recv; <>
   | ~ = tm_close; <>
+  | ~ = tm_sleep; <>
   | LPAREN; ~ = tm; RPAREN; <>
 
 let tm1 :=

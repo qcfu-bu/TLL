@@ -45,6 +45,7 @@ type tm =
   | Recv of rel * tm
   | Send of rel * sort * tm
   | Close of role * tm
+  | Sleep of tm
   (* erasure *)
   | NULL
 
@@ -115,6 +116,7 @@ let _Fork = box_apply (fun bnd -> Fork bnd)
 let _Recv rel = box_apply (fun m -> Recv (rel, m))
 let _Send rel s = box_apply (fun m -> Send (rel, s, m))
 let _Close rol = box_apply (fun m -> Close (rol, m))
+let _Sleep = box_apply (fun m -> Sleep m)
 
 (* erasure *)
 let _NULL = box NULL
@@ -177,6 +179,7 @@ let rec lift_tm = function
   | Recv (rel, m) -> _Recv rel (lift_tm m)
   | Send (rel, s, m) -> _Send rel s (lift_tm m)
   | Close (rol, m) -> _Close rol (lift_tm m)
+  | Sleep m -> _Sleep (lift_tm m)
   (* erasure *)
   | NULL -> _NULL
 

@@ -49,6 +49,7 @@ let rec gather_var ctx instrs =
   | Recv instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | Send instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | Close instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
+  | Sleep instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | FreeClo _ :: instrs -> gather_var ctx instrs
   | FreeStruct _ :: instrs -> gather_var ctx instrs
   | FreeThread :: instrs -> gather_var ctx instrs
@@ -149,6 +150,7 @@ and pp_instr fmt = function
     pf fmt "instr_send(&%s, %a, %a);" lhs pp_value ch pp_value msg
   | Recv { lhs; ch } -> pf fmt "instr_recv(&%s, %a);" lhs pp_value ch
   | Close { lhs; ch } -> pf fmt "instr_close(&%s, %a);" lhs pp_value ch
+  | Sleep { lhs; rhs } -> pf fmt "instr_sleep(&%s, %a);" lhs pp_value rhs
   | FreeClo v -> pf fmt "instr_free_clo(%a);" pp_value v
   | FreeStruct v -> pf fmt "instr_free_struct(%a);" pp_value v
   | FreeThread -> pf fmt "instr_free_thread(env);"

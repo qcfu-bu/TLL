@@ -114,6 +114,7 @@ let rec pp_tm fmt = function
   | Recv m -> pf fmt "recv %a" pp_tm m
   | Send m -> pf fmt "send %a" pp_tm m
   | Close m -> pf fmt "close %a" pp_tm m
+  | Sleep m -> pf fmt "sleep %a" pp_tm m
 
 and pp_p fmt = function
   | PIt -> pf fmt "()"

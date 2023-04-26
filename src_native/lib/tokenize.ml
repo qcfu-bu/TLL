@@ -130,6 +130,7 @@ let tm_refl = [%sedlex.regexp? "refl"]
 let tm_rew = [%sedlex.regexp? "rew"]
 let tm_io = [%sedlex.regexp? "IO"]
 let tm_return = [%sedlex.regexp? "return"]
+let tm_sleep = [%sedlex.regexp? "sleep"]
 let tm_proto = [%sedlex.regexp? "proto"]
 let tm_end = [%sedlex.regexp? "end"]
 let tm_ch = [%sedlex.regexp? "ch"]
@@ -280,6 +281,7 @@ let rec tokenize buf =
   | tm_recv -> TM_RECV
   | tm_send -> TM_SEND
   | tm_close -> TM_CLOSE
+  | tm_sleep -> TM_SLEEP
   (* dcl *)
   | dcl_program -> DCL_PROGRAM
   | dcl_logical -> DCL_LOGICAL

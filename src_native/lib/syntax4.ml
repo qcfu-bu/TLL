@@ -97,6 +97,10 @@ and instr =
       { lhs : string
       ; ch : value
       }
+  | Sleep of
+      { lhs : string
+      ; rhs : value
+      }
   | FreeClo of value
   | FreeStruct of value
   | FreeThread

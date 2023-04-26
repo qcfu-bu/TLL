@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "prelude.h"
 #include "runtime.h"
@@ -228,6 +229,13 @@ void instr_recv(tll_ptr *x, tll_ptr ch) {
 
 void instr_close(tll_ptr *x, tll_ptr ch) {
   chan_dispose((chan_t *)ch);
+  *x = 0;
+}
+
+/*-------------------------------------------------------*/
+
+void instr_sleep(tll_ptr *x, tll_ptr v) {
+  sleep((unsigned long)v);
   *x = 0;
 }
 

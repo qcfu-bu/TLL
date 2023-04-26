@@ -436,6 +436,9 @@ module Logical = struct
       match whnf env ty_m with
       | Ch (_, End) -> IO Unit
       | _ -> failwith "Logical.infer_Close")
+    | Sleep m ->
+      let _ = check_tm res ctx env m Nat in
+      IO Unit
 
   and infer_unit res ctx env mot cls =
     match cls with
@@ -846,6 +849,9 @@ module Program = struct
         let ty = IO Unit in
         Syntax2.(ty, _Close (trans_role rol) m_elab, usg)
       | _ -> failwith "Program.infer_Close")
+    | Sleep m ->
+      let m_elab, usg = check_tm res ctx env m Nat in
+      Syntax2.(IO Unit, _Sleep m_elab, usg)
 
   and infer_unit res ctx env mot cls =
     match cls with

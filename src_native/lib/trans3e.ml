@@ -96,6 +96,7 @@ let rec trans_tm m0 =
   | Recv m -> _Recv (trans_tm m)
   | Send (m, n) -> _Send (trans_tm m) (trans_tm n)
   | Close m -> _Close (trans_tm m)
+  | Sleep m -> _Sleep (trans_tm m)
   | _ -> lift_tm m0
 
 and trans_int = function

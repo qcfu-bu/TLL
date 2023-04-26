@@ -5,14 +5,12 @@ typedef void *tll_ptr;
 
 typedef tll_ptr *tll_env;
 
-typedef struct
-{
+typedef struct {
   tll_ptr (*f)(tll_ptr, tll_env);
   tll_env env;
 } _tll_clo;
 
-typedef struct
-{
+typedef struct {
   int tag;
   tll_ptr *data;
 } _tll_node;
@@ -37,6 +35,7 @@ void instr_fork(tll_ptr *x, tll_ptr (*f)(tll_env), int size, ...);
 void instr_recv(tll_ptr *x, tll_ptr ch);
 void instr_send(tll_ptr *x, tll_ptr ch, tll_ptr msg);
 void instr_close(tll_ptr *x, tll_ptr ch);
+void instr_sleep(tll_ptr *x, tll_ptr v);
 void instr_free_clo(tll_ptr *x);
 void instr_free_struct(tll_ptr *x);
 void instr_free_thread(tll_env env);

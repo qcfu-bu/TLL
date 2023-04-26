@@ -108,6 +108,7 @@ and pp_tm fmt = function
   | Recv (N, m) -> pf fmt "{recv} %a" pp_tm m
   | Send (N, _, m) -> pf fmt "{send} %a" pp_tm m
   | Close (rol, m) -> pf fmt "close%a %a" pp_role rol pp_tm m
+  | Sleep m -> pf fmt "sleep %a" pp_tm m
   | NULL -> pf fmt "NULL"
 
 and pp_cl fmt = function

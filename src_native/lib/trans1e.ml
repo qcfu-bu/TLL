@@ -332,6 +332,9 @@ and infer_tm ctx env m0 : tm trans1e =
     match whnf env ty_m with
     | Ch (_, End) -> return (IO Unit)
     | ty -> failwith "trans1e.infer_Close(%a)" pp_tm ty)
+  | Sleep m ->
+    let* _ = check_tm ctx env m Nat in
+    return (IO Unit)
 
 and infer_unit ctx env mot cls =
   match cls with

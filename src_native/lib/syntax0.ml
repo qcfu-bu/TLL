@@ -78,6 +78,7 @@ type tm =
   | Recv of tm
   | Send of tm
   | Close of tm
+  | Sleep of tm
 
 and tms = tm list
 and cl = (p, tm) binder
