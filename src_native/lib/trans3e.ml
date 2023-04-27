@@ -14,6 +14,47 @@ let rec simpl_arg = function
   | NULL -> true
   | _ -> false
 
+let simpl_bnd bnd =
+  let rec occurs_tm x = function
+    (* core *)
+    | Var y when eq_vars x y -> 1
+    | Lam (_, bnd) ->
+      let _, m = unbind bnd in
+      occurs_tm x m
+    | Call (_, ms) -> List.fold_left (fun acc m -> acc + occurs_tm x m) 0 ms
+    | App (_, m, n) -> occurs_tm x m + occurs_tm x n
+    | Let (m, bnd) ->
+      let _, n = unbind bnd in
+      occurs_tm x m + occurs_tm x n
+    (* native *)
+    | Add (_, m) -> occurs_tm x m
+    | Ifte (m, n1, n2) -> occurs_tm x m + occurs_tm x n1 + occurs_tm x n2
+    (* data *)
+    | Pair (m, n) -> occurs_tm x m + occurs_tm x n
+    | Cons (_, ms) -> List.fold_left (fun acc m -> acc + occurs_tm x m) 0 ms
+    | Match (_, m, cls) ->
+      List.fold_left
+        (fun acc -> function
+          | PPair bnd ->
+            let _, rhs = unmbind bnd in
+            acc + occurs_tm x rhs
+          | PCons (_, bnd) ->
+            let _, rhs = unmbind bnd in
+            acc + occurs_tm x rhs)
+        (occurs_tm x m) cls
+      (* effect *)
+    | Fork bnd ->
+      let _, m = unbind bnd in
+      occurs_tm x m
+    | Recv m -> occurs_tm x m
+    | Send (m, n) -> occurs_tm x m + occurs_tm x n
+    | Close m -> occurs_tm x m
+    | Sleep m -> occurs_tm x m
+    | _ -> 0
+  in
+  let x, m = unbind bnd in
+  occurs_tm x m <= 1
+
 let rec trans_tm m0 =
   match m0 with
   (* core *)
@@ -28,7 +69,7 @@ let rec trans_tm m0 =
     let m = unbox (trans_tm m) in
     let n = unbox (trans_tm n) in
     match m with
-    | Lam (_, bnd) when simpl_arg n -> lift_tm (subst bnd n)
+    | Lam (_, bnd) when simpl_arg n && simpl_bnd bnd -> lift_tm (subst bnd n)
     | Match (s, m, cls) when simpl_arg n ->
       let cls =
         List.map
@@ -53,7 +94,7 @@ let rec trans_tm m0 =
     let x, n = unbind bnd in
     let m = unbox (trans_tm m) in
     let bnd = unbox (bind_var x (trans_tm n)) in
-    if simpl_arg m then
+    if simpl_arg m && simpl_bnd bnd then
       lift_tm (subst bnd m)
     else
       _Let (lift_tm m) (box_binder lift_tm bnd)

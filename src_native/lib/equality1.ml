@@ -176,6 +176,7 @@ let rec aeq tm1 tm2 =
     | Recv m1, Recv m2 -> aeq m1 m2
     | Send m1, Send m2 -> aeq m1 m2
     | Close m1, Close m2 -> aeq m1 m2
+    | Sleep m1, Sleep m2 -> aeq m1 m2
     (* other *)
     | _ -> false
 
@@ -261,6 +262,7 @@ let eq_tm ?(expand_const = true) env m1 m2 =
       | Recv m1, Recv m2 -> equal m1 m2
       | Send m1, Send m2 -> equal m1 m2
       | Close m1, Close m2 -> equal m1 m2
+      | Sleep m1, Sleep m2 -> equal m1 m2
       (* other *)
       | _ -> false
   in

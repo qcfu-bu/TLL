@@ -212,6 +212,7 @@ let rec fv ctx = function
   | Recv m -> fv ctx m
   | Send m -> fv ctx m
   | Close m -> fv ctx m
+  | Sleep m -> fv ctx m
 
 (* meta variable occurences *)
 let rec occurs_sort x = function
@@ -284,6 +285,7 @@ let rec occurs_tm x = function
   | Recv m -> occurs_tm x m
   | Send m -> occurs_tm x m
   | Close m -> occurs_tm x m
+  | Sleep m -> occurs_tm x m
   (* other *)
   | _ -> false
 
@@ -472,6 +474,7 @@ let rec simpl ?(expand_const = false) eqn =
     | Recv m1, Recv m2 -> simpl (Eqn1 (env, m1, m2))
     | Send m1, Send m2 -> simpl (Eqn1 (env, m1, m2))
     | Close m1, Close m2 -> simpl (Eqn1 (env, m1, m2))
+    | Sleep m1, Sleep m2 -> simpl (Eqn1 (env, m1, m2))
     (* other *)
     | _ -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2)
 
@@ -649,6 +652,7 @@ let resolve_tm ((map0, map1) : map0 * map1) m =
     | Recv m -> Recv (resolve m)
     | Send m -> Send (resolve m)
     | Close m -> Close (resolve m)
+    | Sleep m -> Sleep (resolve m)
     (* other *)
     | m -> m
   in
