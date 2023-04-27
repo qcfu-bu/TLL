@@ -28,6 +28,7 @@ let rec trans_tm m0 =
     let n = unbox (trans_tm n) in
     match m with
     | Lam (_, bnd) when simpl_arg n -> lift_tm (subst bnd n)
+    | Lam (_, bnd) -> _Let (lift_tm n) (box_binder lift_tm bnd)
     | Match (s, m, cls) when simpl_arg n ->
       let cls =
         List.map
