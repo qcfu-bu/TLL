@@ -49,7 +49,7 @@ let simpl_bnd bnd =
     | _ -> 0
   in
   let x, m = unbind bnd in
-  occurs_tm x m <= 1
+  occurs_tm x m = 1
 
 let rec trans_tm m0 =
   match m0 with
