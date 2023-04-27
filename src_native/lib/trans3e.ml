@@ -7,10 +7,6 @@ let rec simpl_arg = function
   | Var _ -> true
   | Const _ -> true
   | Int _ -> true
-  | Add (_, m) -> simpl_arg m
-  | Pair _ -> true
-  | Cons _ -> true
-  | Call _ -> true
   | NULL -> true
   | _ -> false
 
@@ -69,8 +65,8 @@ let rec trans_tm m0 =
     let m = unbox (trans_tm m) in
     let n = unbox (trans_tm n) in
     match m with
-    | Lam (_, bnd) when simpl_arg n && simpl_bnd bnd -> lift_tm (subst bnd n)
-    | Match (s, m, cls) when simpl_arg n ->
+    | Lam (_, bnd) when simpl_arg n || simpl_bnd bnd -> lift_tm (subst bnd n)
+    | Match (s, m, cls) ->
       let cls =
         List.map
           (function
@@ -85,7 +81,7 @@ let rec trans_tm m0 =
           cls
       in
       _Match s (lift_tm m) (box_list cls)
-    | Let (m, bnd) when simpl_arg n ->
+    | Let (m, bnd) ->
       let x, rhs = unbind bnd in
       let rhs = _App s (lift_tm rhs) (lift_tm n) in
       _Let (lift_tm m) (bind_var x (trans_tm (unbox rhs)))
@@ -94,7 +90,7 @@ let rec trans_tm m0 =
     let x, n = unbind bnd in
     let m = unbox (trans_tm m) in
     let bnd = unbox (bind_var x (trans_tm n)) in
-    if simpl_arg m && simpl_bnd bnd then
+    if simpl_arg m || simpl_bnd bnd then
       lift_tm (subst bnd m)
     else
       _Let (lift_tm m) (box_binder lift_tm bnd)
