@@ -181,7 +181,7 @@ let rec aeq tm1 tm2 =
     | _ -> false
 
 (* Beta/Delta/Iota equaltiy *)
-let eq_tm ?(expand_const = true) env m1 m2 =
+let rec eq_tm ?(expand_const = false) env m1 m2 =
   let rec equal m1 m2 =
     if aeq m1 m2 then
       true
@@ -266,4 +266,9 @@ let eq_tm ?(expand_const = true) env m1 m2 =
       (* other *)
       | _ -> false
   in
-  equal m1 m2
+  if equal m1 m2 then
+    true
+  else if expand_const then
+    false
+  else
+    eq_tm ~expand_const:true env m1 m2

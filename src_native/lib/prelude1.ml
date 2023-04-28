@@ -37,7 +37,10 @@ let notb_i = prelude_i "notb"
 
 (* nat *)
 let addn_i = prelude_i "addn"
+let subn_i = prelude_i "subn"
 let muln_i = prelude_i "muln"
+let divn_i = prelude_i "divn"
+let modn_i = prelude_i "modn"
 let eqn_i = prelude_i "eqn"
 let lten_i = prelude_i "lten"
 let gten_i = prelude_i "gten"
