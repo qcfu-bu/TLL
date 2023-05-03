@@ -54,9 +54,9 @@ program client‹› (ch : RSA_hc) : IO unit = let P0 = O.+123 in let ⟨{x}, ch
 (((powm) (P0) (e) (n)))) in let ch ⇐ ((send ch)
 (refl)) in close ch
 
-program server‹› (ch : RSA_ch) : IO unit = let x = O.+7 in let y = O.+19 in let n = (
+program server‹› (ch : RSA_ch) : IO unit = let x = O.+61 in let y = O.+53 in let n = (
 (muln) (x) (y)) in let tot = ((muln) (((subn) (x) (O.+1)))
-(((subn) (y) (O.+1)))) in let e = O.+5 in let d = O.+65 in let ch ⇐ (
+(((subn) (y) (O.+1)))) in let e = O.+17 in let d = O.+2753 in let ch ⇐ (
 (send ch) (x)) in let ch ⇐ ((send ch) (y)) in let ch ⇐ ((send ch)
 (n)) in let ch ⇐ ((send ch) (refl)) in let ch ⇐ ((send ch)
 (tot)) in let ch ⇐ ((send ch) (refl)) in let ch ⇐ ((send ch)
@@ -446,12 +446,12 @@ program client_i38 : RSA_hc_i37 → IO unit =
 
 program server_i39 : RSA_ch_i36 → IO unit =
   fn (ch_v530 : RSA_ch_i36) ⇒
-    let x_v531 = 7 in
-    let y_v532 = 19 in
+    let x_v531 = 61 in
+    let y_v532 = 53 in
     let n_v533 = (muln_i12 x_v531 y_v532) in
     let tot_v534 = (muln_i12 (subn_i11 x_v531 1) (subn_i11 y_v532 1)) in
-    let e_v535 = 5 in
-    let d_v536 = 65 in
+    let e_v535 = 17 in
+    let d_v536 = 2753 in
     let ch_v537 ⇐ (send ch_v530 x_v531) in
     let ch_v538 ⇐ (send ch_v537 y_v532) in
     let ch_v539 ⇐ (send ch_v538 n_v533) in
@@ -881,27 +881,27 @@ program client_i38 : RSA_hc_i37 → IO unit =
 
 program server_i39 : RSA_ch_i36 → IO unit =
   fn (ch_v19930 : RSA_ch_i36) ⇒
-    let x_v19931 = 7 in
-    let y_v19932 = 19 in
+    let x_v19931 = 61 in
+    let y_v19932 = 53 in
     let n_v19933 = (muln_i12 x_v19931 y_v19932) in
     let tot_v19934 = (muln_i12 (subn_i11 x_v19931 1) (subn_i11 y_v19932 1))
     in
-    let e_v19935 = 5 in
-    let d_v19936 = 65 in
+    let e_v19935 = 17 in
+    let d_v19936 = 2753 in
     let ch_v19937 ⇐ (send ch_v19930 x_v19931) in
     let ch_v19938 ⇐ (send ch_v19937 y_v19932) in
     let ch_v19939 ⇐ (send ch_v19938 n_v19933) in
-    let ch_v19940 ⇐ (send ch_v19939 refl (muln_i12 7 19)) in
+    let ch_v19940 ⇐ (send ch_v19939 refl (muln_i12 61 53)) in
     let ch_v19941 ⇐ (send ch_v19940 tot_v19934) in
     let ch_v19942 ⇐
-      (send ch_v19941 refl (muln_i12 (subn_i11 7 1) (subn_i11 19 1)))
+      (send ch_v19941 refl (muln_i12 (subn_i11 61 1) (subn_i11 53 1)))
     in
     let ch_v19943 ⇐ (send ch_v19942 e_v19935) in
-    let ch_v19944 ⇐ (send ch_v19943 refl (gcd_i32 5 108)) in
-    let ch_v19945 ⇐ (send ch_v19944 refl (ltn_i6 1 5)) in
+    let ch_v19944 ⇐ (send ch_v19943 refl (gcd_i32 17 3120)) in
+    let ch_v19945 ⇐ (send ch_v19944 refl (ltn_i6 1 17)) in
     let ch_v19946 ⇐
       (send ch_v19945
-        refl (ltn_i6 5 (muln_i12 (subn_i11 7 1) (subn_i11 19 1))))
+        refl (ltn_i6 17 (muln_i12 (subn_i11 61 1) (subn_i11 53 1))))
     in
     let __v19947 ⇐ recv ch_v19946 in
     match __v19947 as __v19948 in IO unit with
@@ -1269,14 +1269,14 @@ def client_i38 =
 
 def server_i39 =
   fn ch_v21011 ⇒
-    let x_v21012 = 7 in
-    let y_v21013 = 19 in
+    let x_v21012 = 61 in
+    let y_v21013 = 53 in
     let n_v21014 = ((muln_i12 x_v21012) y_v21013) in
     let tot_v21015 =
       ((muln_i12 ((subn_i11 x_v21012) 1)) ((subn_i11 y_v21013) 1))
     in
-    let e_v21016 = 5 in
-    let d_v21017 = 65 in
+    let e_v21016 = 17 in
+    let d_v21017 = 2753 in
     let ch_v21018 ⇐ ({send} ch_v21011 NULL) in
     let ch_v21019 ⇐ ({send} ch_v21018 NULL) in
     let ch_v21020 ⇐ (send ch_v21019 n_v21014) in
@@ -1771,12 +1771,12 @@ fun client_i38(ch_v21578) =
 val clientclo_i78 = fn ch_v21641 ⇒ client_i38(ch_v21641)
 
 fun server_i39(ch_v21642) =
-  let x_v21643 = 7 in
-  let y_v21644 = 19 in
+  let x_v21643 = 61 in
+  let y_v21644 = 53 in
   let n_v21645 = muln_i12(x_v21643, y_v21644) in
   let tot_v21646 = muln_i12(subn_i11(x_v21643, 1), subn_i11(y_v21644, 1)) in
-  let e_v21647 = 5 in
-  let d_v21648 = 65 in
+  let e_v21647 = 17 in
+  let d_v21648 = 2753 in
   ln __v21649 ⇒
     let ch_v21650 = ((fn x_v21651 ⇒ ln __v21652 ⇒ ch_v21642) NULL) NULL
     in
@@ -2199,11 +2199,11 @@ fun client_i38(ch_v23152) =
 val clientclo_i78 = fn ch_v23178 ⇒ client_i38(ch_v23178)
 
 fun server_i39(ch_v23179) =
-  let n_v23180 = muln_i12(7, 19) in
-  let tot_v23181 = muln_i12(subn_i11(7, 1), subn_i11(19, 1)) in
+  let n_v23180 = muln_i12(61, 53) in
+  let tot_v23181 = muln_i12(subn_i11(61, 1), subn_i11(53, 1)) in
   ln __v23182 ⇒
     let ch_v23183 = send(ch_v23179, n_v23180) in
-    let ch_v23184 = send(ch_v23183, 5) in
+    let ch_v23184 = send(ch_v23183, 17) in
     match (NULL, ch_v23184) with
     | (P0_v23185, ch_v23186) ⇒
       let __v23187 = recv(ch_v23186) in
@@ -2211,7 +2211,7 @@ fun server_i39(ch_v23179) =
       | (C_v23188, ch_v23189) ⇒
         match (NULL, ch_v23189) with
         | (pf_v23190, ch_v23191) ⇒
-          let P1_v23192 = powm_i33(C_v23188, 65, n_v23180) in
+          let P1_v23192 = powm_i33(C_v23188, 2753, n_v23180) in
           (print_i26(cats_i15(string_of_nat_i31(P1_v23192), "\n"))) NULL
         end
       end

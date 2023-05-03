@@ -28,6 +28,16 @@ let rec gather_var ctx instrs =
   | Init _ :: instrs -> gather_var ctx instrs
   | Mov instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | Add instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
+  | LteN instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
+  | GteN instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
+  | LtN instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
+  | GtN instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
+  | EqN instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
+  | AddN instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
+  | SubN instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
+  | MulN instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
+  | DivN instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
+  | ModN instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | Clo instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | Call instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
   | App instr :: instrs -> gather_var (SSet.add instr.lhs ctx) instrs
@@ -110,6 +120,26 @@ and pp_instr fmt = function
       pf fmt "%s = %a + %d;" lhs pp_value rhs (abs i)
     else
       pf fmt "%s = %a - %d;" lhs pp_value rhs (abs i)
+  | LteN { lhs; x; y } ->
+    pf fmt "instr_lten(&%s, %a, %a);" lhs pp_value x pp_value y
+  | GteN { lhs; x; y } ->
+    pf fmt "instr_gten(&%s, %a, %a);" lhs pp_value x pp_value y
+  | LtN { lhs; x; y } ->
+    pf fmt "instr_ltn(&%s, %a, %a);" lhs pp_value x pp_value y
+  | GtN { lhs; x; y } ->
+    pf fmt "instr_gtn(&%s, %a, %a);" lhs pp_value x pp_value y
+  | EqN { lhs; x; y } ->
+    pf fmt "instr_eqn(&%s, %a, %a);" lhs pp_value x pp_value y
+  | AddN { lhs; x; y } ->
+    pf fmt "instr_addn(&%s, %a, %a);" lhs pp_value x pp_value y
+  | SubN { lhs; x; y } ->
+    pf fmt "instr_subn(&%s, %a, %a);" lhs pp_value x pp_value y
+  | MulN { lhs; x; y } ->
+    pf fmt "instr_muln(&%s, %a, %a);" lhs pp_value x pp_value y
+  | DivN { lhs; x; y } ->
+    pf fmt "instr_divn(&%s, %a, %a);" lhs pp_value x pp_value y
+  | ModN { lhs; x; y } ->
+    pf fmt "instr_modn(&%s, %a, %a);" lhs pp_value x pp_value y
   | Clo { lhs; fname; env = [] } ->
     pf fmt "instr_clo(&%s, &%s, %d);" lhs fname 0
   | Clo { lhs; fname; env } ->

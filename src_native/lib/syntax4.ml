@@ -44,6 +44,56 @@ and instr =
       ; i : int
       ; rhs : value
       }
+  | LteN of
+      { lhs : string
+      ; x : value
+      ; y : value
+      }
+  | GteN of
+      { lhs : string
+      ; x : value
+      ; y : value
+      }
+  | LtN of
+      { lhs : string
+      ; x : value
+      ; y : value
+      }
+  | GtN of
+      { lhs : string
+      ; x : value
+      ; y : value
+      }
+  | EqN of
+      { lhs : string
+      ; x : value
+      ; y : value
+      }
+  | AddN of
+      { lhs : string
+      ; x : value
+      ; y : value
+      }
+  | SubN of
+      { lhs : string
+      ; x : value
+      ; y : value
+      }
+  | MulN of
+      { lhs : string
+      ; x : value
+      ; y : value
+      }
+  | DivN of
+      { lhs : string
+      ; x : value
+      ; y : value
+      }
+  | ModN of
+      { lhs : string
+      ; x : value
+      ; y : value
+      }
   | Clo of
       { lhs : string
       ; fname : string

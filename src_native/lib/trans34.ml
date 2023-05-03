@@ -272,6 +272,150 @@ and trans_cl procs vtbl ret m_ret cl s =
 let trans_dcls dcls =
   let rec aux procs = function
     | [] -> (procs, [], NULL)
+    | DFun (x, bnd) :: dcls when I.equal x Prelude1.lten_i ->
+      let xs, _ = unmbind bnd in
+      let xid = I.to_string x in
+      let arg1 = V.to_string xs.(0) in
+      let arg2 = V.to_string xs.(1) in
+      let ret = T.mk "lten_ret" in
+      let instr = [ LteN { lhs = ret; x = Reg arg1; y = Reg arg2 } ] in
+      let proc =
+        GFun
+          { fname = xid
+          ; param = [ arg1; arg2 ]
+          ; body = instr
+          ; return = Reg ret
+          }
+      in
+      aux (proc :: procs) dcls
+    | DFun (x, bnd) :: dcls when I.equal x Prelude1.gten_i ->
+      let xs, _ = unmbind bnd in
+      let xid = I.to_string x in
+      let arg1 = V.to_string xs.(0) in
+      let arg2 = V.to_string xs.(1) in
+      let ret = T.mk "gten_ret" in
+      let instr = [ GteN { lhs = ret; x = Reg arg1; y = Reg arg2 } ] in
+      let proc =
+        GFun
+          { fname = xid
+          ; param = [ arg1; arg2 ]
+          ; body = instr
+          ; return = Reg ret
+          }
+      in
+      aux (proc :: procs) dcls
+    | DFun (x, bnd) :: dcls when I.equal x Prelude1.ltn_i ->
+      let xs, _ = unmbind bnd in
+      let xid = I.to_string x in
+      let arg1 = V.to_string xs.(0) in
+      let arg2 = V.to_string xs.(1) in
+      let ret = T.mk "ltn_ret" in
+      let instr = [ LtN { lhs = ret; x = Reg arg1; y = Reg arg2 } ] in
+      let proc =
+        GFun
+          { fname = xid
+          ; param = [ arg1; arg2 ]
+          ; body = instr
+          ; return = Reg ret
+          }
+      in
+      aux (proc :: procs) dcls
+    | DFun (x, bnd) :: dcls when I.equal x Prelude1.gtn_i ->
+      let xs, _ = unmbind bnd in
+      let xid = I.to_string x in
+      let arg1 = V.to_string xs.(0) in
+      let arg2 = V.to_string xs.(1) in
+      let ret = T.mk "gtn_ret" in
+      let instr = [ GtN { lhs = ret; x = Reg arg1; y = Reg arg2 } ] in
+      let proc =
+        GFun
+          { fname = xid
+          ; param = [ arg1; arg2 ]
+          ; body = instr
+          ; return = Reg ret
+          }
+      in
+      aux (proc :: procs) dcls
+    | DFun (x, bnd) :: dcls when I.equal x Prelude1.eqn_i ->
+      let xs, _ = unmbind bnd in
+      let xid = I.to_string x in
+      let arg1 = V.to_string xs.(0) in
+      let arg2 = V.to_string xs.(1) in
+      let ret = T.mk "eqn_ret" in
+      let instr = [ EqN { lhs = ret; x = Reg arg1; y = Reg arg2 } ] in
+      let proc =
+        GFun
+          { fname = xid
+          ; param = [ arg1; arg2 ]
+          ; body = instr
+          ; return = Reg ret
+          }
+      in
+      aux (proc :: procs) dcls
+    | DFun (x, bnd) :: dcls when I.equal x Prelude1.addn_i ->
+      let xs, _ = unmbind bnd in
+      let xid = I.to_string x in
+      let arg1 = V.to_string xs.(0) in
+      let arg2 = V.to_string xs.(1) in
+      let ret = T.mk "addn_ret" in
+      let instr = [ AddN { lhs = ret; x = Reg arg1; y = Reg arg2 } ] in
+      let proc =
+        GFun
+          { fname = xid
+          ; param = [ arg1; arg2 ]
+          ; body = instr
+          ; return = Reg ret
+          }
+      in
+      aux (proc :: procs) dcls
+    | DFun (x, bnd) :: dcls when I.equal x Prelude1.muln_i ->
+      let xs, _ = unmbind bnd in
+      let xid = I.to_string x in
+      let arg1 = V.to_string xs.(0) in
+      let arg2 = V.to_string xs.(1) in
+      let ret = T.mk "muln_ret" in
+      let instr = [ MulN { lhs = ret; x = Reg arg1; y = Reg arg2 } ] in
+      let proc =
+        GFun
+          { fname = xid
+          ; param = [ arg1; arg2 ]
+          ; body = instr
+          ; return = Reg ret
+          }
+      in
+      aux (proc :: procs) dcls
+    | DFun (x, bnd) :: dcls when I.equal x Prelude1.divn_i ->
+      let xs, _ = unmbind bnd in
+      let xid = I.to_string x in
+      let arg1 = V.to_string xs.(0) in
+      let arg2 = V.to_string xs.(1) in
+      let ret = T.mk "divn_ret" in
+      let instr = [ DivN { lhs = ret; x = Reg arg1; y = Reg arg2 } ] in
+      let proc =
+        GFun
+          { fname = xid
+          ; param = [ arg1; arg2 ]
+          ; body = instr
+          ; return = Reg ret
+          }
+      in
+      aux (proc :: procs) dcls
+    | DFun (x, bnd) :: dcls when I.equal x Prelude1.modn_i ->
+      let xs, _ = unmbind bnd in
+      let xid = I.to_string x in
+      let arg1 = V.to_string xs.(0) in
+      let arg2 = V.to_string xs.(1) in
+      let ret = T.mk "modn_ret" in
+      let instr = [ ModN { lhs = ret; x = Reg arg1; y = Reg arg2 } ] in
+      let proc =
+        GFun
+          { fname = xid
+          ; param = [ arg1; arg2 ]
+          ; body = instr
+          ; return = Reg ret
+          }
+      in
+      aux (proc :: procs) dcls
     | DFun (x, bnd) :: dcls ->
       let xs, m = unmbind bnd in
       let xs = Array.to_list xs in

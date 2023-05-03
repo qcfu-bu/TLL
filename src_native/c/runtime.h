@@ -27,6 +27,16 @@ tll_ptr proc_stdin(tll_ptr ch);
 tll_ptr proc_stderr(tll_ptr ch);
 
 void instr_init();
+void instr_lten(tll_ptr *x, tll_ptr v1, tll_ptr v2);
+void instr_gten(tll_ptr *x, tll_ptr v1, tll_ptr v2);
+void instr_ltn(tll_ptr *x, tll_ptr v1, tll_ptr v2);
+void instr_gtn(tll_ptr *x, tll_ptr v1, tll_ptr v2);
+void instr_eqn(tll_ptr *x, tll_ptr v1, tll_ptr v2);
+void instr_addn(tll_ptr *x, tll_ptr v1, tll_ptr v2);
+void instr_subn(tll_ptr *x, tll_ptr v1, tll_ptr v2);
+void instr_muln(tll_ptr *x, tll_ptr v1, tll_ptr v2);
+void instr_divn(tll_ptr *x, tll_ptr v1, tll_ptr v2);
+void instr_modn(tll_ptr *x, tll_ptr v1, tll_ptr v2);
 void instr_clo(tll_ptr *x, tll_ptr (*f)(tll_ptr, tll_env), int size, ...);
 void instr_app(tll_ptr *x, tll_ptr clo, tll_ptr v);
 void instr_struct(tll_ptr *x, int tag, int size, ...);

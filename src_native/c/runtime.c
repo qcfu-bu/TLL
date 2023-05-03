@@ -141,6 +141,76 @@ tll_ptr proc_stderr(tll_ptr ch) {
 
 /*-------------------------------------------------------*/
 
+void instr_lten(tll_ptr *x, tll_ptr v1, tll_ptr v2) {
+  unsigned long res = (unsigned long)(v1 <= v2);
+  *x = (tll_ptr)res;
+}
+
+/*-------------------------------------------------------*/
+
+void instr_gten(tll_ptr *x, tll_ptr v1, tll_ptr v2) {
+  unsigned long res = (unsigned long)(v1 >= v2);
+  *x = (tll_ptr)res;
+}
+
+/*-------------------------------------------------------*/
+
+void instr_ltn(tll_ptr *x, tll_ptr v1, tll_ptr v2) {
+  unsigned long res = (unsigned long)(v1 < v2);
+  *x = (tll_ptr)res;
+}
+
+/*-------------------------------------------------------*/
+
+void instr_gtn(tll_ptr *x, tll_ptr v1, tll_ptr v2) {
+  unsigned long res = (unsigned long)(v1 > v2);
+  *x = (tll_ptr)res;
+}
+
+/*-------------------------------------------------------*/
+
+void instr_eqn(tll_ptr *x, tll_ptr v1, tll_ptr v2) {
+  unsigned long res = (unsigned long)(v1 == v2);
+  *x = (tll_ptr)res;
+}
+
+/*-------------------------------------------------------*/
+
+void instr_addn(tll_ptr *x, tll_ptr v1, tll_ptr v2) {
+  unsigned long res = ((unsigned long)v1 + (unsigned long)v2);
+  *x = (tll_ptr)res;
+}
+
+/*-------------------------------------------------------*/
+
+void instr_subn(tll_ptr *x, tll_ptr v1, tll_ptr v2) {
+  unsigned long res = ((unsigned long)v1 - (unsigned long)v2);
+  *x = (tll_ptr)res;
+}
+
+/*-------------------------------------------------------*/
+
+void instr_muln(tll_ptr *x, tll_ptr v1, tll_ptr v2) {
+  unsigned long res = ((unsigned long)v1 * (unsigned long)v2);
+  *x = (tll_ptr)res;
+}
+
+/*-------------------------------------------------------*/
+
+void instr_divn(tll_ptr *x, tll_ptr v1, tll_ptr v2) {
+  unsigned long res = ((unsigned long)v1 / (unsigned long)v2);
+  *x = (tll_ptr)res;
+}
+
+/*-------------------------------------------------------*/
+
+void instr_modn(tll_ptr *x, tll_ptr v1, tll_ptr v2) {
+  unsigned long res = ((unsigned long)v1 % (unsigned long)v2);
+  *x = (tll_ptr)res;
+}
+
+/*-------------------------------------------------------*/
+
 void instr_clo(tll_ptr *x, tll_ptr (*f)(tll_ptr, tll_env), int size, ...) {
   va_list ap;
   tll_clo tmp = (tll_clo)MALLOC(tll_clo_size);
