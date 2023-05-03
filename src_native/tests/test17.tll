@@ -47,9 +47,7 @@ logical RSA : proto =
   ⇑(n : nat) → ⇑{n ≡ x * y} →
   ⇑{tot : nat} → ⇑{tot ≡ (x - 1) * (y - 1)} →
   ⇑(e : nat) → ⇑{coprime e tot} → ⇑{1 < e ≡ true} → ⇑{e < tot ≡ true} →
-  ⇑{d : nat} → ⇑{(e * d) % tot ≡ 1} →
-  ⇓{P0 : nat} → ⇓(C : nat) → ⇓{C ≡ powm P0 e n} →
-  ⇑{P1 : nat} → ⇑{P1 ≡ powm C d n} → •
+  ⇓{P0 : nat} → ⇓(C : nat) → ⇓{C ≡ powm P0 e n} → •
 
 logical RSA_ch : L = ch⟨ RSA ⟩
 logical RSA_hc : L = hc⟨ RSA ⟩
@@ -66,13 +64,9 @@ program client (ch : RSA_hc) : IO unit =
   let ⟨{pf3}, ch⟩ ⇐ recv ch in
   let ⟨{pf4}, ch⟩ ⇐ recv ch in
   let ⟨{pf5}, ch⟩ ⇐ recv ch in
-  let ⟨{d}, ch⟩ ⇐ recv ch in
-  let ⟨{pf6}, ch⟩ ⇐ recv ch in
   let ch ⇐ send ch P0 in
   let ch ⇐ send ch (powm P0 e n) in
   let ch ⇐ send ch refl in
-  let ⟨{P1}, ch⟩ ⇐ recv ch in
-  let ⟨{pf7}, ch⟩ ⇐ recv ch in
   close ch
 
 program server (ch : RSA_ch) : IO unit =
@@ -92,14 +86,10 @@ program server (ch : RSA_ch) : IO unit =
   let ch ⇐ send ch refl in
   let ch ⇐ send ch refl in
   let ch ⇐ send ch refl in
-  let ch ⇐ send ch d in
-  let ch ⇐ send ch refl in
   let ⟨{P0}, ch⟩ ⇐ recv ch in
   let ⟨C, ch⟩ ⇐ recv ch in
   let ⟨{pf}, ch⟩ ⇐ recv ch in
   let P1 = powm C d n in
-  let ch ⇐ send ch P1 in
-  let ch ⇐ send ch refl in
   close ch; print (string_of_nat P1 ^ "\n")
 
 program main : IO unit =
