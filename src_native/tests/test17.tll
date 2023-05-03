@@ -25,11 +25,13 @@ program string_of_nat (n : nat) : string =
     string_of_nat n ^ s
   else s
 
-logical gcd (a b : nat) : nat =
+program gcd (a b : nat) : nat =
   match b with
   | O ⇒ a
   | S _ ⇒ gcd b (a % b)
   end
+
+program lcm (a b : nat) : nat = (a * b) / gcd a b
 
 program powm (a b m : nat) : nat =
   match b with
@@ -45,12 +47,35 @@ logical coprime (a b : nat) : U = gcd a b ≡ 1
 logical RSA : proto =
   ⇑{x : nat} → ⇑{y : nat} →
   ⇑(n : nat) → ⇑{n ≡ x * y} →
-  ⇑{tot : nat} → ⇑{tot ≡ (x - 1) * (y - 1)} →
+  ⇑{tot : nat} → ⇑{tot ≡ lcm (x - 1) (y - 1)} →
   ⇑(e : nat) → ⇑{coprime e tot} → ⇑{1 < e ≡ true} → ⇑{e < tot ≡ true} →
   ⇓{P0 : nat} → ⇓(C : nat) → ⇓{C ≡ powm P0 e n} → •
 
 logical RSA_ch : L = ch⟨ RSA ⟩
 logical RSA_hc : L = hc⟨ RSA ⟩
+
+program server (ch : RSA_ch) : IO unit =
+  let x = 61 in
+  let y = 53 in
+  let n = x * y in
+  let tot = lcm (x - 1) (y - 1) in
+  let e = 17 in
+  let d = 413 in
+  let ch ⇐ send ch x in
+  let ch ⇐ send ch y in
+  let ch ⇐ send ch n in
+  let ch ⇐ send ch refl in
+  let ch ⇐ send ch tot in
+  let ch ⇐ send ch refl in
+  let ch ⇐ send ch e in
+  let ch ⇐ send ch refl in
+  let ch ⇐ send ch refl in
+  let ch ⇐ send ch refl in
+  let ⟨{P0}, ch⟩ ⇐ recv ch in
+  let ⟨C, ch⟩ ⇐ recv ch in
+  let ⟨{pf}, ch⟩ ⇐ recv ch in
+  let P1 = powm C d n in
+  close ch; print (string_of_nat P1 ^ "\n")
 
 program client (ch : RSA_hc) : IO unit =
   let P0 = 123 in
@@ -68,29 +93,6 @@ program client (ch : RSA_hc) : IO unit =
   let ch ⇐ send ch (powm P0 e n) in
   let ch ⇐ send ch refl in
   close ch
-
-program server (ch : RSA_ch) : IO unit =
-  let x = 61 in
-  let y = 53 in
-  let n = x * y in
-  let tot = (x - 1) * (y - 1) in
-  let e = 17 in
-  let d = 2753 in
-  let ch ⇐ send ch x in
-  let ch ⇐ send ch y in
-  let ch ⇐ send ch n in
-  let ch ⇐ send ch refl in
-  let ch ⇐ send ch tot in
-  let ch ⇐ send ch refl in
-  let ch ⇐ send ch e in
-  let ch ⇐ send ch refl in
-  let ch ⇐ send ch refl in
-  let ch ⇐ send ch refl in
-  let ⟨{P0}, ch⟩ ⇐ recv ch in
-  let ⟨C, ch⟩ ⇐ recv ch in
-  let ⟨{pf}, ch⟩ ⇐ recv ch in
-  let P1 = powm C d n in
-  close ch; print (string_of_nat P1 ^ "\n")
 
 program main : IO unit =
   let c ⇐
