@@ -1,11 +1,8 @@
 logical snd‹s,r› {A : Type‹s›} {B : Type‹r›} (m : A ⊗ B) : B =
   let ⟨_, b⟩ = m in b
 
-logical len_id‹s,t› {A : Type‹s›} (ls : list‹_,t› A) :
-  ls ≡ snd _ _ (len _ ls) =
-  match ls as ls0 in
-    ls0 ≡ snd _ _ (len _ ls0)
-  with
+logical len_id‹s,t› {A : Type‹s›} (ls : list‹_,t› A) : ls ≡ snd _ _ (len _ ls) =
+  match ls as ls0 in ls0 ≡ snd _ _ (len _ ls0) with
   | nil ⇒ refl
   | cons x xs ⇒
     match len _ xs as p in
