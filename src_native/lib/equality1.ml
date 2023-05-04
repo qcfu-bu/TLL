@@ -20,6 +20,26 @@ module Env = struct
   let add_const x entry env = { env with const = IMap.add x entry env.const }
 end
 
+let rec is_nat = function
+  | NZero -> true
+  | NSucc (_, m) -> is_nat m
+  | _ -> false
+
+let rec get_nat = function
+  | NZero -> 0
+  | NSucc (i, m) -> i + get_nat m
+  | _ -> failwith "get_nat"
+
+let tm_of_bool = function
+  | true -> BTrue
+  | false -> BFalse
+
+let tm_of_int i =
+  if i <= 0 then
+    NZero
+  else
+    NSucc (i, NZero)
+
 let rec whnf ?(expand_const = true) (env : Env.t) = function
   (* inference *)
   | Ann (m, a) -> whnf ~expand_const env m
@@ -40,6 +60,56 @@ let rec whnf ?(expand_const = true) (env : Env.t) = function
     match (hd, sp) with
     | Lam (_, _, _, bnd), n :: sp ->
       whnf ~expand_const env (mkApps (subst bnd n) sp)
+    | Const (x, []), [ m; n ]
+      when I.equal x Prelude1.lten_i && is_nat m && is_nat n ->
+      let m = get_nat m in
+      let n = get_nat n in
+      tm_of_bool (m <= n)
+    | Const (x, []), [ m; n ]
+      when I.equal x Prelude1.gten_i && is_nat m && is_nat n ->
+      let m = get_nat m in
+      let n = get_nat n in
+      tm_of_bool (m >= n)
+    | Const (x, []), [ m; n ]
+      when I.equal x Prelude1.ltn_i && is_nat m && is_nat n ->
+      let m = get_nat m in
+      let n = get_nat n in
+      tm_of_bool (m < n)
+    | Const (x, []), [ m; n ]
+      when I.equal x Prelude1.gtn_i && is_nat m && is_nat n ->
+      let m = get_nat m in
+      let n = get_nat n in
+      tm_of_bool (m > n)
+    | Const (x, []), [ m; n ]
+      when I.equal x Prelude1.eqn_i && is_nat m && is_nat n ->
+      let m = get_nat m in
+      let n = get_nat n in
+      tm_of_bool (m = n)
+    | Const (x, []), [ m; n ]
+      when I.equal x Prelude1.addn_i && is_nat m && is_nat n ->
+      let m = get_nat m in
+      let n = get_nat n in
+      tm_of_int (m + n)
+    | Const (x, []), [ m; n ]
+      when I.equal x Prelude1.subn_i && is_nat m && is_nat n ->
+      let m = get_nat m in
+      let n = get_nat n in
+      tm_of_int (m - n)
+    | Const (x, []), [ m; n ]
+      when I.equal x Prelude1.muln_i && is_nat m && is_nat n ->
+      let m = get_nat m in
+      let n = get_nat n in
+      tm_of_int (m * n)
+    | Const (x, []), [ m; n ]
+      when I.equal x Prelude1.divn_i && is_nat m && is_nat n ->
+      let m = get_nat m in
+      let n = get_nat n in
+      tm_of_int (m / n)
+    | Const (x, []), [ m; n ]
+      when I.equal x Prelude1.modn_i && is_nat m && is_nat n ->
+      let m = get_nat m in
+      let n = get_nat n in
+      tm_of_int (m mod n)
     | Const (x, ss), _ when expand_const -> (
       match Env.find_const x env with
       | Some entry -> whnf ~expand_const env (mkApps (entry.scheme ss) sp)
