@@ -55,9 +55,7 @@
   (set-syntax-table tll-mode-syntax-table)
   (setq-local comment-start "--")
   (setq-local comment-start-skip "--+[\t ]*")
-  (setq-local comment-end "")
-  (company-mode 1)
-  (add-to-list 'company-backends 'company-math-symbols-unicode))
+  (setq-local comment-end ""))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.tll" . tll-mode))
