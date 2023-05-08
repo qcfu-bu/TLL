@@ -10,7 +10,7 @@ Definition mltt_ctx := seq term.
 
 Inductive mltt_has :
   mltt_ctx -> var -> term -> Prop :=
-| sta_has_O Γ A :
+| mltt_has_O Γ A :
   mltt_has (A :: Γ) 0 A.[ren (+1)]
 | mltt_has_S Γ A B x :
   mltt_has Γ x A ->
