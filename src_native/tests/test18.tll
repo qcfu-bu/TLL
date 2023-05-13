@@ -11,7 +11,7 @@
 -- guess is the input of the player
 logical game_loop (ans : nat) (repeat : nat) : proto =
   match repeat with
-  | O ⇒ •
+  | O ⇒ ⇑(n : nat) → ⇑{n ≡ ans} → •
   | S repeat ⇒
     ⇓(guess : nat) →
     ⇑(ord : order) → ⇑{ord ≡ comparen ans guess} →
@@ -22,9 +22,6 @@ logical game_loop (ans : nat) (repeat : nat) : proto =
     end
   end
 
-logical loop_ch (ans repeat : nat) : L = ch⟨ game_loop ans repeat ⟩
-logical loop_hc (ans repeat : nat) : L = hc⟨ game_loop ans repeat ⟩
-
 -- the game protocol enforces that the server choose a single answer and
 -- give truthful feedback to the player
 logical game : proto =
@@ -33,6 +30,9 @@ logical game : proto =
   ⇑{ans : nat} → ⇑{lower <= ans ≡ true} → ⇑{ans <= upper ≡ true} →
   ⇑(repeat : nat) →
   game_loop ans repeat
+
+logical loop_ch (ans repeat : nat) : L = ch⟨ game_loop ans repeat ⟩
+logical loop_hc (ans repeat : nat) : L = hc⟨ game_loop ans repeat ⟩
 
 logical game_ch : L = ch⟨ game ⟩
 logical game_hc : L = hc⟨ game ⟩
@@ -47,7 +47,10 @@ program read_nat (_ : unit) : IO nat =
 program player_loop {ans : nat} (repeat : nat) (c : loop_hc ans repeat) : IO unit =
   match repeat as repeat0 in loop_hc ans repeat0 → IO unit with 
   | O ⇒ fn c ⇒
-    print "You Lose!\n"; close c
+    let ⟨ans, c⟩ ⇐ recv c in
+    let ⟨{pf}, c⟩ ⇐ recv c in
+    print ("You Lose! The answer is " ^ string_of_nat ans ^ ".\n");
+    close c
   | S repeat ⇒ fn c ⇒
     let guess ⇐ read_nat () in
     let c ⇐ send c guess in 
@@ -88,7 +91,10 @@ program player (c : game_hc) : IO unit =
 
 program server_loop (ans repeat : nat) (c : loop_ch ans repeat) : IO unit =
   match repeat as repeat0 in loop_ch ans repeat0 → IO unit with
-  | O ⇒ fn c ⇒ close c
+  | O ⇒ fn c ⇒
+    let c ⇐ send c ans in
+    let c ⇐ send c refl in
+    close c
   | S repeat ⇒ fn c ⇒
     let ⟨n, c⟩ ⇐ recv c in
     let ord = comparen ans n in
@@ -110,15 +116,17 @@ program server_loop (ans repeat : nat) (c : loop_ch ans repeat) : IO unit =
 program server (c : game_ch) : IO unit =
   let lower = 1 in
   let upper = 128 in
-  let ans = 71 in
+  let res ⇐ rand lower upper in
+  match res with Between ans pf1 pf2 ⇒
   let repeat = 7 in
   let c ⇐ send c lower in
   let c ⇐ send c upper in
   let c ⇐ send c ans in
-  let c ⇐ send c refl in
-  let c ⇐ send c refl in
+  let c ⇐ send c pf1 in
+  let c ⇐ send c pf2 in
   let c ⇐ send c repeat in
   server_loop ans repeat c
+  end
 
 program main : IO unit =
   let c ⇐
