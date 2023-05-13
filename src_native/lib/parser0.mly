@@ -423,7 +423,7 @@ let tm_sleep :=
   | TM_SLEEP; m = tm0; { Sleep m }
 
 let tm_rand :=
-  | TM_RAND; m = tm0; n = tm0; h = tm0; { Rand (m, n, h) }
+  | TM_RAND; m = tm0; n = tm0; { Rand (m, n) }
 
 let tm0 :=
   | ~ = tm_inst; <>

@@ -115,7 +115,7 @@ let rec pp_tm fmt = function
   | Send m -> pf fmt "send %a" pp_tm m
   | Close m -> pf fmt "close %a" pp_tm m
   | Sleep m -> pf fmt "sleep %a" pp_tm m
-  | Rand (m, n, h) -> pf fmt "rand %a %a %a" pp_tm m pp_tm n pp_tm h
+  | Rand (m, n) -> pf fmt "rand %a %a" pp_tm m pp_tm n
 
 and pp_p fmt = function
   | PIt -> pf fmt "()"

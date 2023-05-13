@@ -252,7 +252,7 @@ and pp_tm fmt = function
   | Close m -> pf fmt "close %a" pp_tm m
   (* effects *)
   | Sleep m -> pf fmt "sleep %a" pp_tm m
-  | Rand (m, n, h) -> pf fmt "rand %a %a %a" pp_tm m pp_tm n pp_tm h
+  | Rand (m, n) -> pf fmt "rand %a %a" pp_tm m pp_tm n
 
 and pp_cl fmt = function
   | PIt m -> pf fmt "| @[() ⇒@;<1 0>%a@]" pp_tm m

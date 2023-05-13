@@ -79,7 +79,7 @@ type tm =
   | Send of tm
   | Close of tm
   | Sleep of tm
-  | Rand of tm * tm * tm
+  | Rand of tm * tm
 
 and tms = tm list
 and cl = (p, tm) binder

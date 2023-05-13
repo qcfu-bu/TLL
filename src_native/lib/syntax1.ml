@@ -71,7 +71,7 @@ type tm =
   | Close of tm
   (* effects *)
   | Sleep of tm
-  | Rand of tm * tm * tm
+  | Rand of tm * tm
 
 and tms = tm list
 
@@ -208,7 +208,7 @@ let _Close = box_apply (fun m -> Close m)
 
 (* effects *)
 let _Sleep = box_apply (fun m -> Sleep m)
-let _Rand = box_apply3 (fun m n h -> Rand (m, n, h))
+let _Rand = box_apply2 (fun m n -> Rand (m, n))
 
 (* cl *)
 let _PIt = box_apply (fun m -> PIt m)
@@ -319,7 +319,7 @@ let rec lift_tm = function
   | Close m -> _Close (lift_tm m)
   (* effects *)
   | Sleep m -> _Sleep (lift_tm m)
-  | Rand (m, n, h) -> _Rand (lift_tm m) (lift_tm n) (lift_tm h)
+  | Rand (m, n) -> _Rand (lift_tm m) (lift_tm n)
 
 let rec lift_param lift = function
   | PBase a -> _PBase (lift a)

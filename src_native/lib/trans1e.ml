@@ -183,7 +183,7 @@ and infer_tm ctx env m0 : tm trans1e =
     | Pi (_, _, a, bnd) ->
       let* _ = check_tm ctx env n a in
       return (subst bnd n)
-    | _ -> failwith "trans1e.infer_App")
+    | _ -> failwith "trans1e.infer_App(%a)" pp_tm m0)
   | Let (rel, m, bnd) ->
     let x, n = unbind bnd in
     let* a = infer_tm ctx env m in
@@ -336,13 +336,10 @@ and infer_tm ctx env m0 : tm trans1e =
   | Sleep m ->
     let* _ = check_tm ctx env m Nat in
     return (IO Unit)
-  | Rand (m, n, h) ->
+  | Rand (m, n) ->
     let* _ = check_tm ctx env m Nat in
     let* _ = check_tm ctx env n Nat in
-    let* _ =
-      check_tm ctx env h
-        (Eq (Bool, mkApps (Const (Prelude1.lten_i, [])) [ m; n ], BTrue))
-    in
+    let n = mkApps (Const (Prelude1.addn_i, [])) [ m; n ] in
     return (IO (Data (Prelude1.between_d, [], [ m; n ])))
 
 and infer_unit ctx env mot cls =

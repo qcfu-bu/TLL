@@ -315,8 +315,8 @@ void instr_sleep(tll_ptr *x, tll_ptr v) {
 
 void instr_rand(tll_ptr *x, tll_ptr v1, tll_ptr v2) {
   unsigned long lower = (unsigned long)v1;
-  unsigned long upper = (unsigned long)v2;
-  unsigned long num = (rand() % (upper - lower + 1)) + lower;
+  unsigned long offset = (unsigned long)v2;
+  unsigned long num = (rand() % (offset + 1)) + lower;
   instr_struct(x, Between_c, 3, num, 0, 0);
 }
 

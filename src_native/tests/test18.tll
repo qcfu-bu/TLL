@@ -114,13 +114,13 @@ program server_loop (ans repeat : nat) (c : loop_ch ans repeat) : IO unit =
   end c
 
 program server (c : game_ch) : IO unit =
-  let lower = 1 in
-  let upper = 128 in
-  let res ⇐ rand lower upper refl in
+  let lower = 0 in
+  let offset = 128 in
+  let res ⇐ rand lower offset in
   match res with Between ans pf1 pf2 ⇒
   let repeat = 6 in
   let c ⇐ send c lower in
-  let c ⇐ send c upper in
+  let c ⇐ send c (lower + offset) in
   let c ⇐ send c ans in
   let c ⇐ send c pf1 in
   let c ⇐ send c pf2 in
