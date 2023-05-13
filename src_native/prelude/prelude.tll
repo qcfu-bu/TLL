@@ -230,6 +230,14 @@ inductive option‹s,t› (A : Type‹s›) : Type‹t› =
 | None
 | Some of (x : A)
 
+program and_then‹s,r,t›
+  {A : Type‹s›} {B : Type‹r›} (opt : option‹_,t› A) : (A → option‹_,t› B) ⊸ option‹_,t› B =
+ln f ⇒
+  match opt with
+  | None ⇒ None
+  | Some x ⇒ f x
+  end
+
 
 -- ———————————————————————————————————————————————
 -- lists (linear + none-linear)
