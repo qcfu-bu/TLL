@@ -336,9 +336,13 @@ and infer_tm ctx env m0 : tm trans1e =
   | Sleep m ->
     let* _ = check_tm ctx env m Nat in
     return (IO Unit)
-  | Rand (m, n) ->
+  | Rand (m, n, h) ->
     let* _ = check_tm ctx env m Nat in
     let* _ = check_tm ctx env n Nat in
+    let* _ =
+      check_tm ctx env h
+        (Eq (Bool, mkApps (Const (Prelude1.lten_i, [])) [ m; n ], BTrue))
+    in
     return (IO (Data (Prelude1.between_d, [], [ m; n ])))
 
 and infer_unit ctx env mot cls =

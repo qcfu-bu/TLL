@@ -247,7 +247,8 @@ let rec aeq tm1 tm2 =
     | Send m1, Send m2 -> aeq m1 m2
     | Close m1, Close m2 -> aeq m1 m2
     | Sleep m1, Sleep m2 -> aeq m1 m2
-    | Rand (m1, n1), Rand (m2, n2) -> aeq m1 m2 && aeq n1 n2
+    | Rand (m1, n1, h1), Rand (m2, n2, h2) ->
+      aeq m1 m2 && aeq n1 n2 && aeq h1 h2
     (* other *)
     | _ -> false
 
@@ -334,7 +335,8 @@ let rec eq_tm ?(expand_const = false) env m1 m2 =
       | Send m1, Send m2 -> equal m1 m2
       | Close m1, Close m2 -> equal m1 m2
       | Sleep m1, Sleep m2 -> equal m1 m2
-      | Rand (m1, n1), Rand (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Rand (m1, n1, h1), Rand (m2, n2, h2) ->
+        equal m1 m2 && equal n1 n2 && equal h1 h2
       (* other *)
       | _ -> false
   in

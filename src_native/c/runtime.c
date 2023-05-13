@@ -313,17 +313,9 @@ void instr_sleep(tll_ptr *x, tll_ptr v) {
 
 /*-------------------------------------------------------*/
 
-unsigned long min(tll_ptr a, tll_ptr b) {
-  return (unsigned long)((a <= b) ? a : b);
-}
-
-unsigned long max(tll_ptr a, tll_ptr b) {
-  return (unsigned long)((a <= b) ? b : a);
-}
-
 void instr_rand(tll_ptr *x, tll_ptr v1, tll_ptr v2) {
-  unsigned long lower = min(v1, v2);
-  unsigned long upper = max(v1, v2);
+  unsigned long lower = (unsigned long)v1;
+  unsigned long upper = (unsigned long)v2;
   unsigned long num = (rand() % (upper - lower + 1)) + lower;
   instr_struct(x, Between_c, 3, num, 0, 0);
 }

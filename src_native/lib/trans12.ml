@@ -440,9 +440,13 @@ module Logical = struct
     | Sleep m ->
       let _ = check_tm res ctx env m Nat in
       IO Unit
-    | Rand (m, n) ->
+    | Rand (m, n, h) ->
       let _ = check_tm res ctx env m Nat in
       let _ = check_tm res ctx env n Nat in
+      let _ =
+        check_tm res ctx env h
+          (Eq (Bool, mkApps (Const (Prelude1.lten_i, [])) [ m; n ], BTrue))
+      in
       IO (Data (Prelude1.between_d, [], [ m; n ]))
 
   and infer_unit res ctx env mot cls =
@@ -858,9 +862,13 @@ module Program = struct
     | Sleep m ->
       let m_elab, usg = check_tm res ctx env m Nat in
       Syntax2.(IO Unit, _Sleep m_elab, usg)
-    | Rand (m, n) ->
+    | Rand (m, n, h) ->
       let m_elab, usg1 = check_tm res ctx env m Nat in
       let n_elab, usg2 = check_tm res ctx env n Nat in
+      let _ =
+        Logical.check_tm res ctx env h
+          (Eq (Bool, mkApps (Const (Prelude1.lten_i, [])) [ m; n ], BTrue))
+      in
       Syntax2.
         ( IO (Data (Prelude1.between_d, [], [ m; n ]))
         , _Rand m_elab n_elab
