@@ -2579,6 +2579,7 @@ tll_ptr lam_fun_t1030(tll_ptr __v39029, tll_env env) {
       ans_v39038 = ((tll_node)res_v39037)->data[0];
       pf1_v39039 = ((tll_node)res_v39037)->data[1];
       pf2_v39040 = ((tll_node)res_v39037)->data[2];
+      instr_free_struct(res_v39037);
       instr_send(&send_ch_t1025, env[0], (tll_ptr)1);
       c_v39041 = send_ch_t1025;
       instr_send(&send_ch_t1026, c_v39041, (tll_ptr)128);
