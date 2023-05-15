@@ -333,7 +333,7 @@ program server_loop‹› (ans : nat) (repeat : nat) (c : ((loop_ch)
 program server‹› (c : game_ch) : IO unit = let lower = O.+0 in let offset = O.+128 in let res ⇐ rand lower offset in match res as _ in _ with Between ans
 pf1 pf2 ⇒ let repeat = O.+6 in let c ⇐ ((send c)
 (lower)) in let c ⇐ ((send c)
-(((addn) (offset) (lower)))) in let c ⇐ ((send c)
+(((addn) (lower) (offset)))) in let c ⇐ ((send c)
 (ans)) in let c ⇐ ((send c) (pf1)) in let c ⇐ ((send c)
 (pf2)) in let c ⇐ ((send c) (repeat)) in ((server_loop) (ans) (repeat)
 (c))
@@ -1011,7 +1011,7 @@ program server_i52 : game_ch_i46 → IO unit =
     | Between_c4 ans_v824 pf1_v825 pf2_v826 ⇒
       let repeat_v827 = 6 in
       let c_v828 ⇐ (send c_v819 lower_v820) in
-      let c_v829 ⇐ (send c_v828 (addn_i12 offset_v821 lower_v820)) in
+      let c_v829 ⇐ (send c_v828 (addn_i12 lower_v820 offset_v821)) in
       let c_v830 ⇐ (send c_v829 ans_v824) in
       let c_v831 ⇐ (send c_v830 pf1_v825) in
       let c_v832 ⇐ (send c_v831 pf2_v826) in
@@ -1733,7 +1733,7 @@ program server_i52 : game_ch_i46 → IO unit =
     | Between_c4 ans_v35285 pf1_v35286 pf2_v35287 ⇒
       let repeat_v35288 = 6 in
       let c_v35289 ⇐ (send c_v35280 lower_v35281) in
-      let c_v35290 ⇐ (send c_v35289 (addn_i12 offset_v35282 lower_v35281))
+      let c_v35290 ⇐ (send c_v35289 (addn_i12 lower_v35281 offset_v35282))
       in
       let c_v35291 ⇐ (send c_v35290 ans_v35285) in
       let c_v35292 ⇐ (send c_v35291 pf1_v35286) in
@@ -2383,7 +2383,7 @@ def server_i52 =
       let repeat_v36371 = 6 in
       let c_v36372 ⇐ (send c_v36364 lower_v36365) in
       let c_v36373 ⇐
-        (send c_v36372 ((addn_i12 offset_v36366) lower_v36365))
+        (send c_v36372 ((addn_i12 lower_v36365) offset_v36366))
       in
       let c_v36374 ⇐ ({send} c_v36373 NULL) in
       let c_v36375 ⇐ ({send} c_v36374 NULL) in
@@ -3166,7 +3166,7 @@ fun server_i52(c_v37248) =
          in
          let c_v37262 =
            ((fn x_v37263 ⇒ ln __v37264 ⇒ send(c_v37259, x_v37263))
-              addn_i12(offset_v37250, lower_v37249))
+              addn_i12(lower_v37249, offset_v37250))
              NULL
          in
          let c_v37265 =
@@ -3851,7 +3851,7 @@ fun server_i52(c_v38787) =
     | Between_c4 ans_v38790 pf1_v38791 pf2_v38792 ⇒
       let c_v38793 = send(c_v38787, 0) in
       let c_v38794 =
-        let x_v38795 = addn_i12(128, 0) in send(c_v38793, x_v38795)
+        let x_v38795 = addn_i12(0, 128) in send(c_v38793, x_v38795)
       in
       let c_v38796 = send(c_v38794, 6) in
       (server_loop_i51(ans_v38790, 6, c_v38796)) NULL

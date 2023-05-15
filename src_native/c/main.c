@@ -2583,7 +2583,7 @@ tll_ptr lam_fun_t1031(tll_ptr __v39298, tll_env env) {
       instr_free_struct(res_v39307);
       instr_send(&send_ch_t1025, env[0], (tll_ptr)0);
       c_v39311 = send_ch_t1025;
-      call_ret_t1026 = addn_i12((tll_ptr)128, (tll_ptr)0);
+      call_ret_t1026 = addn_i12((tll_ptr)0, (tll_ptr)128);
       x_v39313 = call_ret_t1026;
       instr_send(&send_ch_t1027, c_v39311, x_v39313);
       c_v39312 = send_ch_t1027;
