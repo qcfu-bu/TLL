@@ -19,6 +19,7 @@ logical nat_absurd (n : nat) (e : S n ≡ O) : ⊥ =
 logical nat_inv (n1 n2 : nat) (e : S n1 ≡ S n2) : n1 ≡ n2 =
   f_equal _ _ pred _ _ e
 
+-- reflect boolean equality for nat into propositional equality
 logical eqn_reflect (m n : nat) : eqn m n ≡ true → m ≡ n =
   match m as m0 in eqn m0 n ≡ true → m0 ≡ n with
   | O ⇒
@@ -33,9 +34,13 @@ logical eqn_reflect (m n : nat) : eqn m n ≡ true → m ≡ n =
     end
   end
 
+-- A word is a string of length 5.
 inductive word : U =
 | Word of (s : string) {pf : strlen s ≡ 5}
 
+-- The difference of two strings (of equal length).
+-- Equal positions result in "Y" and non-equal positions result in "N".
+-- Suppose s1 = "ABCDE" and s2 = "AACDF", then their diff is "YNYYN".
 program string_diff (s1 s2 : string) : string =
   match s1 with
   | EmptyString ⇒ EmptyString
@@ -88,6 +93,7 @@ logical string_diff_len (n : nat) (s1 s2 : string) :
     end
   end
 
+-- Restricting the string_diff programs to words.
 program word_diff (w1 w2 : word) : word =
   match w1 with Word s1 pf1 ⇒
   match w2 with Word s2 pf2 ⇒
@@ -97,12 +103,24 @@ program word_diff (w1 w2 : word) : word =
     Word (string_diff s1 s2) (eq_sym _ _ _ pf)
   end end
 
+-- Boolean equaltiy for words.
 program eqw (w1 w2 : word) : bool =
   match w1 with Word s1 _ ⇒
   match w2 with Word s2 _ ⇒
     eqs s1 s2
   end end
 
+
+-- ———————————————————————————————————————————————
+-- Wordle Game
+
+-- The server picks a secret string and the player must guess it in 5 tries.
+-- If the player guesses the correct word, the player wins.
+-- If the player guesses the wrong word, the server gives the play truthful feedback.
+-- ———————————————————————————————————————————————
+
+-- ans is the secret answer held by the server
+-- guess is the input of the player
 logical wordle_loop (ans : word) (repeat : nat) : proto =
   match repeat with
   | O ⇒ ⇑(w : word) → ⇑{w ≡ ans} → •
@@ -113,6 +131,8 @@ logical wordle_loop (ans : word) (repeat : nat) : proto =
     else ⇑(w : word) → ⇑{w ≡ word_diff ans guess} → wordle_loop ans repeat
   end
 
+-- the wordle protocol enfore that the server choocse a single answer and
+-- give truthful feedback to the player
 logical wordle : proto = ⇑{ans : word} → ⇑(repeat : nat) → wordle_loop ans repeat
 
 logical loop_ch (ans : word) (repeat : nat) : L = ch⟨ wordle_loop ans repeat ⟩
@@ -121,6 +141,7 @@ logical loop_hc (ans : word) (repeat : nat) : L = hc⟨ wordle_loop ans repeat �
 logical wordle_ch : L = ch⟨ wordle ⟩
 logical wordle_hc : L = hc⟨ wordle ⟩
 
+-- query the user until they input a word
 program read_word (_ : unit) : IO word =
   let s ⇐ readline () in
   match eqn (strlen s) 5 as b0 in {eqn (strlen s) 5 ≡ b0} → IO word with
