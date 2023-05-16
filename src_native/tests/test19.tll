@@ -1,0 +1,11 @@
+logical f_equal‹s,t› (A : Type‹s›) (B : Type‹t›) (f : A → B) (x y : A) : x ≡ y → f x ≡ f y =
+  fn e ⇒ rew [y,p ⇒ f x ≡ f y] e in refl
+
+logical nat_inv (n1 n2 : nat) (e : S n1 ≡ S n2) : n1 ≡ n2 =
+  f_equal _ _ pred _ _ e
+
+-- logical nat_absurd (n : nat) (e : O ≡ S n) : ⊥ =
+--   rew [x,p ⇒ match x with
+--              | O ⇒ unit
+--              | S _ ⇒ ⊥
+--              end] e in ()
