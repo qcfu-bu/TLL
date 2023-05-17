@@ -209,6 +209,66 @@ program player (c : wordle_hc) : IO unit =
   print ("You have " ^ string_of_nat repeat ^ " tries.\n");
   player_loop ans repeat c
 
+-- ———————————————————————————————————————————————
+
+inductive subset‹s,r,t› (A : Type‹s›) (P : A → Type‹r›) : Type‹t› =
+| SPair of (m : A) {pf : P m}
+
+inductive at (A : U) (x : A) (n : nat) (xs : list‹_,U› A) : U =
+| at_O of (xs0 : list A) {pf1 : n ≡ 0} {pf2 : xs ≡ (x :: xs0)}
+| at_S of (n0 : nat) (x0 : A) (xs0 : list A) (h : at A x n0 xs0) {pf1 : n ≡ S n0} {pf2 : xs ≡ x0 :: xs0}
+
+logical ltn_inv (m n : nat) : (S m) < (S n) ≡ true → m < n ≡ true =
+  fn h ⇒ h
+
+program get_at {A : U} (n : nat) (xs : list A) :
+  {n < llen _ xs ≡ true} → subset‹_,_,U› _ (fn x ⇒ at _ x n xs)
+= match xs as xs0 in {n < llen _ xs0 ≡ true} → subset _ (fn x ⇒ at _ x n xs0) with
+  | nil ⇒ fn {e} ⇒
+    rew [b, _ ⇒ match b with
+                | true ⇒ subset _ (fn x ⇒ at _ x n nil)
+                | false ⇒ unit
+                end] e in ()
+  | x :: xs ⇒
+    match n as n0 in {n0 < S (llen _ xs) ≡ true} → subset _ (fn x0 ⇒ at _ x0 n0 (x :: xs)) with
+    | O ⇒ fn {e} ⇒ SPair x (at_O xs refl refl)
+    | S n ⇒ fn {e} ⇒
+      match get_at _ n xs (ltn_inv _ _ e) with SPair x0 pf ⇒
+      SPair x0 (at_S _ _ _ pf refl refl)
+      end
+    end
+  end
+
+program rand_word (_ : unit) : IO word =
+  let words : list‹_,U› _ =
+    Word "route" refl ::
+    Word "crash" refl ::
+    Word "clown" refl ::
+    Word "shaky" refl ::
+    Word "vegan" refl ::
+    Word "power" refl ::
+    Word "trust" refl ::
+    Word "enjoy" refl ::
+    Word "brain" refl ::
+    Word "adopt" refl ::
+    Word "tower" refl ::
+    Word "shade" refl ::
+    Word "delay" refl ::
+    Word "twist" refl ::
+    Word "alert" refl ::
+    Word "choke" refl ::
+    Word "split" refl ::
+    Word "rhyme" refl ::
+    Word "muddy" refl ::
+    Word "plant" refl ::
+    nil
+  in
+  let r ⇐ rand 0 19 in
+  match r with Between n _ pf ⇒
+  match get_at _ n words pf with SPair w _ ⇒
+    return w
+  end end
+
 program server_loop (ans : word) (repeat : nat) (c : loop_ch ans repeat) : IO unit =
   match repeat as repeat0 in loop_ch ans repeat0 → IO unit with
   | O ⇒ fn c ⇒
@@ -235,7 +295,7 @@ program server_loop (ans : word) (repeat : nat) (c : loop_ch ans repeat) : IO un
     
 program server (c : wordle_ch) : IO unit =
   let repeat = 6 in
-  let ans = Word "world" refl in
+  let ans ⇐ rand_word () in
   let c ⇐ send c ans in
   let c ⇐ send c repeat in
   server_loop ans repeat c
