@@ -62,28 +62,28 @@ inductive subset‹s,r,t› (A : Type‹s›) (P : A → Type‹r›) : Type‹t
 
 inductive diff (ans : string) (a b df : string) : U =
 | diff_EmptyString of
-  (pf1 : a ≡ EmptyString)
-  (pf2 : b ≡ EmptyString)
-  (pf3 : df ≡ EmptyString)
+  (_ : a ≡ EmptyString)
+  (_ : b ≡ EmptyString)
+  (_ : df ≡ EmptyString)
 | diff_StringY of (c : char) (s1 s2 s3 : string)
-  (h : diff ans s1 s2 s3)
-  (pf1 : a ≡ String c s1)
-  (pf2 : b ≡ String c s2)
-  (pf3 : df ≡ "Y" ^ s3)
+  (_ : diff ans s1 s2 s3)
+  (_ : a ≡ String c s1)
+  (_ : b ≡ String c s2)
+  (_ : df ≡ "Y" ^ s3)
 | diff_StringI of (c1 c2 : char) (s1 s2 s3 : string)
-  (h1 : eqc c1 c2 ≡ false)
-  (h2 : contains c2 ans ≡ true)
-  (h3 : diff ans s1 s2 s3)
-  (pf1 : a ≡ String c1 s1)
-  (pf2 : b ≡ String c2 s2)
-  (pf3 : df ≡ "I" ^ s3)
+  (_ : eqc c1 c2 ≡ false)
+  (_ : contains c2 ans ≡ true)
+  (_ : diff ans s1 s2 s3)
+  (_ : a ≡ String c1 s1)
+  (_ : b ≡ String c2 s2)
+  (_ : df ≡ "I" ^ s3)
 | diff_StringN of (c1 c2 : char) (s1 s2 s3 : string)
-  (h1 : eqc c1 c2 ≡ false)
-  (h2 : contains c2 ans ≡ false)
-  (h3 : diff ans s1 s2 s3)
-  (pf1 : a ≡ String c1 s1)
-  (pf2 : b ≡ String c2 s2)
-  (pf3 : df ≡ "N" ^ s3)
+  (_ : eqc c1 c2 ≡ false)
+  (_ : contains c2 ans ≡ false)
+  (_ : diff ans s1 s2 s3)
+  (_ : a ≡ String c1 s1)
+  (_ : b ≡ String c2 s2)
+  (_ : df ≡ "N" ^ s3)
 
 program string_diff (ans s1 s2 : string) :
   {strlen s1 ≡ strlen s2} → subset‹_,_,L› string (fn df ⇒ diff ans s1 s2 df)
@@ -173,10 +173,10 @@ inductive wdiff (ans guess df : word) : U =
  (pf1 : strlen s1 ≡ 5)
  (pf2 : strlen s2 ≡ 5)
  (pf3 : strlen s3 ≡ 5)
- (pf4 : ans ≡ Word s1 pf1)
- (pf5 : guess ≡ Word s2 pf2)
- (pf6 : df ≡ Word s3 pf3)
- (pf7 : diff s1 s1 s2 s3)
+ (_ : ans ≡ Word s1 pf1)
+ (_ : guess ≡ Word s2 pf2)
+ (_ : df ≡ Word s3 pf3)
+ (_ : diff s1 s1 s2 s3)
   
 program word_diff (ans guess : word) : subset‹_,_,L› word (fn df ⇒ wdiff ans guess df) =
   match ans as ans0 in
@@ -283,11 +283,11 @@ program player (c : wordle_hc) : IO unit =
 
 inductive at (A : U) (x : A) (n : nat) (xs : list‹_,U› A) : U =
 | at_O of (xs0 : list A)
-  (pf1 : n ≡ 0)
-  (pf2 : xs ≡ (x :: xs0))
+  (_ : n ≡ 0)
+  (_ : xs ≡ (x :: xs0))
 | at_S of (n0 : nat) (x0 : A) (xs0 : list A) (h : at A x n0 xs0)
-  (pf1 : n ≡ S n0)
-  (pf2 : xs ≡ x0 :: xs0)
+  (_ : n ≡ S n0)
+  (_ : xs ≡ x0 :: xs0)
 
 logical ltn_inv (m n : nat) : (S m) < (S n) ≡ true → m < n ≡ true =
   fn h ⇒ h
