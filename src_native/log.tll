@@ -72,7 +72,7 @@ inductive diff‹› (ans : string) (a : string) (b : string) (df : string) : U 
 (df))
 
 program string_diff‹› (ans : string) (s1 : string) (s2 : string) : (∀ {_ : (
-(strlen) (s1)) ≡ ((strlen) (s2))} → ((subset‹_, _, U›) (string)
+(strlen) (s1)) ≡ ((strlen) (s2))} → ((subset‹_, _, L›) (string)
 ((fn (df : _) ⇒ ((diff) (ans) (s1) (s2) (df)))))) = match s1 as s0 in (∀ {_ : (
 (strlen) (s0)) ≡ ((strlen) (s2))} → ((subset) (string)
 ((fn (df : _) ⇒ ((diff) (ans) (s0) (s2) (df)))))) with EmptyString  ⇒ match s2 as s0 in (∀ {_ : O.+0 ≡ (
@@ -82,12 +82,12 @@ program string_diff‹› (ans : string) (s1 : string) (s2 : string) : (∀ {_ :
 (((diff_EmptyString) (refl) (refl) (refl))))) | String c2
 s2 ⇒ (fn {e : _} ⇒ rew [x, _ ⇒ match x as _ in _ with O ⇒ unit‹s› | S _ ⇒ (
 (subset) (string)
-((fn (df : _) ⇒ ((diff) (ans) (EmptyString) (((String) (c2) (s2))) (df)))))] e in ()) | String c1
+((fn (df : _) ⇒ ((diff) (ans) (EmptyString) (((String) (c2) (s2))) (df)))))] e in ⟨⟩) | String c1
 s1 ⇒ match s2 as s0 in (∀ {_ : ((strlen) (s1)).+1 ≡ ((strlen)
 (s0))} → ((subset) (string)
 ((fn (df : _) ⇒ ((diff) (ans) (((String) (c1) (s1))) (s0) (df)))))) with EmptyString  ⇒ (fn {e : _} ⇒ rew [x, _ ⇒ match x as _ in _ with O ⇒ (
 (subset) (string)
-((fn (df : _) ⇒ ((diff) (ans) (((String) (c1) (s1))) (EmptyString) (df))))) | S _ ⇒ unit‹s›] e in ()) | String c2
+((fn (df : _) ⇒ ((diff) (ans) (((String) (c1) (s1))) (EmptyString) (df))))) | S _ ⇒ unit‹s›] e in ⟨⟩) | String c2
 s2 ⇒ (fn {e : _} ⇒ let {e} = ((nat_inv) (_) (_)
 (e)) in match ((string_diff) (ans) (s1) (s2) (e)) as _ in _ with SPair df
 pf ⇒ ((match ((eqc) (c1) (c2)) as b0 in (∀ {_ : ((eqc) (c1)
@@ -148,7 +148,7 @@ inductive wdiff‹› (ans : word) (guess : word) (df : word) : U = diff_Word of
 (s1) (s1) (s2) (s3))) → ((wdiff‹›) (ans) (guess)
 (df))
 
-program word_diff‹› (ans : word) (guess : word) : ((subset‹_, _, U›)
+program word_diff‹› (ans : word) (guess : word) : ((subset‹_, _, L›)
 (word)
 ((fn (df : _) ⇒ ((wdiff) (ans) (guess) (df))))) = ((match ans as ans0 in (∀ {_ : ans ≡ ans0} → (
                                                       (subset) (word)
@@ -1316,7 +1316,7 @@ program string_diff_i52 :
     ∀ (s1_v1219 : string_d4) →
       ∀ (s2_v1220 : string_d4) →
         ∀ {__v1221 : (strlen_i20 s1_v1219) ≡ (strlen_i20 s2_v1220)} →
-          (subset_d7‹??265, ??266, U›
+          (subset_d7‹??265, ??266, L›
             string_d4
             fn (df_v1222 : ??267) ⇒
               (diff_d8 ans_v1218 s1_v1219 s2_v1220 df_v1222))
@@ -1344,7 +1344,7 @@ program string_diff_i52 :
         fn {e_v1235 : ??362} ⇒
           rew [x_v1236, __v1237 ⇒
             match x_v1236 as __v1238 in ??363 with
-            | O ⇒ unit‹U›
+            | O ⇒ unit‹L›
             | S __v1239 ⇒
               (subset_d7‹??367, ??366, ??365›
                 string_d4
@@ -1353,7 +1353,7 @@ program string_diff_i52 :
                     ans_v1223 EmptyString_c6‹›
                     (String_c7‹› c2_v1233 s2_v1234) df_v1240))
             end] e_v1235 in
-          ()
+          ⟨⟩
       end
     | String_c7 c1_v1241 s1_v1242 ⇒
       match s2_v1225 as s0_v1243 in
@@ -1376,9 +1376,9 @@ program string_diff_i52 :
                   (diff_d8
                     ans_v1223 (String_c7‹› c1_v1241 s1_v1242)
                     EmptyString_c6‹› df_v1250))
-            | S __v1251 ⇒ unit‹U›
+            | S __v1251 ⇒ unit‹L›
             end] e_v1246 in
-          ()
+          ⟨⟩
       | String_c7 c2_v1252 s2_v1253 ⇒
         fn {e_v1254 : ??278} ⇒
           let {e_v1255} = (nat_inv_i48 ??280 ??279 e_v1254) in
@@ -1521,7 +1521,7 @@ inductive wdiff_d10
 program word_diff_i54 :
   ∀ (ans_v1365 : word_d9) →
     ∀ (guess_v1366 : word_d9) →
-      (subset_d7‹??449, ??450, U›
+      (subset_d7‹??449, ??450, L›
         word_d9
         fn (df_v1367 : ??451) ⇒ (wdiff_d10 ans_v1365 guess_v1366 df_v1367))
 =
@@ -2607,7 +2607,7 @@ program string_diff_i52 :
     ∀ (s1_v899828 : string_d4) →
       ∀ (s2_v899829 : string_d4) →
         {(strlen_i20 s1_v899828) ≡ (strlen_i20 s2_v899829)} →
-          (subset_d7‹U, U, U›
+          (subset_d7‹U, U, L›
             string_d4
             fn (df_v899831 : string_d4) ⇒
               (diff_d8 ans_v899827 s1_v899828 s2_v899829 df_v899831))
@@ -2616,21 +2616,21 @@ program string_diff_i52 :
      (s2_v899834 : string_d4) ⇒
     match s1_v899833 as s0_v899835 in
       {(strlen_i20 s0_v899835) ≡ (strlen_i20 s2_v899834)} →
-        (subset_d7‹U, U, U›
+        (subset_d7‹U, U, L›
           string_d4
           fn (df_v899837 : string_d4) ⇒
             (diff_d8 ans_v899832 s0_v899835 s2_v899834 df_v899837)) with
     | EmptyString_c6  ⇒
       match s2_v899834 as s0_v899838 in
         {0 ≡ (strlen_i20 s0_v899838)} →
-          (subset_d7‹U, U, U›
+          (subset_d7‹U, U, L›
             string_d4
             fn (df_v899840 : string_d4) ⇒
               (diff_d8
                 ans_v899832 EmptyString_c6‹› s0_v899838 df_v899840)) with
       | EmptyString_c6  ⇒
         fn {e_v899841 : 0 ≡ (strlen_i20 EmptyString_c6‹›)} ⇒
-          (SPair_c12‹U, U, U›
+          (SPair_c12‹U, U, L›
             EmptyString_c6‹›
             (diff_EmptyString_c13‹›
               refl EmptyString_c6‹› refl EmptyString_c6‹›
@@ -2640,22 +2640,22 @@ program string_diff_i52 :
                           (strlen_i20
                             (String_c7‹› c2_v899842 s2_v899843))} ⇒
           rew [x_v899845, __v899846 ⇒
-            match x_v899845 as __v899847 in U with
-            | O ⇒ unit‹U›
+            match x_v899845 as __v899847 in L with
+            | O ⇒ unit‹L›
             | S __v899848 ⇒
-              (subset_d7‹U, U, U›
+              (subset_d7‹U, U, L›
                 string_d4
                 fn (df_v899849 : string_d4) ⇒
                   (diff_d8
                     ans_v899832 EmptyString_c6‹›
                     (String_c7‹› c2_v899842 s2_v899843) df_v899849))
             end] e_v899844 in
-          ()
+          ⟨⟩
       end
     | String_c7 c1_v899850 s1_v899851 ⇒
       match s2_v899834 as s0_v899852 in
         {(strlen_i20 s1_v899851).+1 ≡ (strlen_i20 s0_v899852)} →
-          (subset_d7‹U, U, U›
+          (subset_d7‹U, U, L›
             string_d4
             fn (df_v899854 : string_d4) ⇒
               (diff_d8
@@ -2665,17 +2665,17 @@ program string_diff_i52 :
         fn {e_v899855 : (strlen_i20 s1_v899851).+1 ≡
                           (strlen_i20 EmptyString_c6‹›)} ⇒
           rew [x_v899856, __v899857 ⇒
-            match x_v899856 as __v899858 in U with
+            match x_v899856 as __v899858 in L with
             | O ⇒
-              (subset_d7‹U, U, U›
+              (subset_d7‹U, U, L›
                 string_d4
                 fn (df_v899859 : string_d4) ⇒
                   (diff_d8
                     ans_v899832 (String_c7‹› c1_v899850 s1_v899851)
                     EmptyString_c6‹› df_v899859))
-            | S __v899860 ⇒ unit‹U›
+            | S __v899860 ⇒ unit‹L›
             end] e_v899855 in
-          ()
+          ⟨⟩
       | String_c7 c2_v899861 s2_v899862 ⇒
         fn {e_v899863 : (strlen_i20 s1_v899851).+1 ≡
                           (strlen_i20
@@ -2689,7 +2689,7 @@ program string_diff_i52 :
               end e_v899863)
           in
           match (string_diff_i52 ans_v899832 s1_v899851 s2_v899862 e_v899864) as __v899868 in
-            (subset_d7‹U, U, U›
+            (subset_d7‹U, U, L›
               string_d4
               fn (df_v899869 : string_d4) ⇒
                 (diff_d8
@@ -2698,7 +2698,7 @@ program string_diff_i52 :
           | SPair_c12 df_v899870 pf_v899871 ⇒
             (match (eqc_i17 c1_v899850 c2_v899861) as b0_v899872 in
                {(eqc_i17 c1_v899850 c2_v899861) ≡ b0_v899872} →
-                 (subset_d7‹U, U, U›
+                 (subset_d7‹U, U, L›
                    string_d4
                    fn (df_v899874 : string_d4) ⇒
                      (diff_d8
@@ -2716,7 +2716,7 @@ program string_diff_i52 :
                      e1_v899876 in
                    refl (String_c7‹› c1_v899850 s2_v899862)
                  in
-                 (SPair_c12‹U, U, U›
+                 (SPair_c12‹U, U, L›
                    (cats_i19 "Y" df_v899870)
                    (diff_StringY_c14‹›
                      c1_v899850 s1_v899851 s2_v899862 df_v899870 pf_v899871
@@ -2727,7 +2727,7 @@ program string_diff_i52 :
                fn {e1_v899880 : (eqc_i17 c1_v899850 c2_v899861) ≡ false} ⇒
                  (match (contains_i51 c2_v899861 ans_v899832) as b0_v899881 in
                     {(contains_i51 c2_v899861 ans_v899832) ≡ b0_v899881} →
-                      (subset_d7‹U, U, U›
+                      (subset_d7‹U, U, L›
                         string_d4
                         fn (df_v899883 : string_d4) ⇒
                           (diff_d8
@@ -2738,7 +2738,7 @@ program string_diff_i52 :
                   | true ⇒
                     fn {e2_v899884 : (contains_i51 c2_v899861 ans_v899832) ≡
                                        true} ⇒
-                      (SPair_c12‹U, U, U›
+                      (SPair_c12‹U, U, L›
                         (cats_i19 "I" df_v899870)
                         (diff_StringI_c15‹›
                           c1_v899850 c2_v899861 s1_v899851 s2_v899862
@@ -2751,7 +2751,7 @@ program string_diff_i52 :
                   | false ⇒
                     fn {e2_v899885 : (contains_i51 c2_v899861 ans_v899832) ≡
                                        false} ⇒
-                      (SPair_c12‹U, U, U›
+                      (SPair_c12‹U, U, L›
                         (cats_i19 "N" df_v899870)
                         (diff_StringN_c16‹›
                           c1_v899850 c2_v899861 s1_v899851 s2_v899862
@@ -2885,7 +2885,7 @@ inductive wdiff_d10
 program word_diff_i54 :
   ∀ (ans_v899978 : word_d9) →
     ∀ (guess_v899979 : word_d9) →
-      (subset_d7‹U, U, U›
+      (subset_d7‹U, U, L›
         word_d9
         fn (df_v899980 : word_d9) ⇒
           (wdiff_d10 ans_v899978 guess_v899979 df_v899980))
@@ -2893,7 +2893,7 @@ program word_diff_i54 :
   fn (ans_v899981 : word_d9) (guess_v899982 : word_d9) ⇒
     (match ans_v899981 as ans0_v899983 in
        {ans_v899981 ≡ ans0_v899983} →
-         (subset_d7‹U, U, U›
+         (subset_d7‹U, U, L›
            word_d9
            fn (df_v899985 : word_d9) ⇒
              (wdiff_d10 ans_v899981 guess_v899982 df_v899985)) with
@@ -2902,7 +2902,7 @@ program word_diff_i54 :
                           (Word_c17‹› s1_v899986 pf1_v899987)} ⇒
          (match guess_v899982 as guess0_v899989 in
             {guess_v899982 ≡ guess0_v899989} →
-              (subset_d7‹U, U, U›
+              (subset_d7‹U, U, L›
                 word_d9
                 fn (df_v899991 : word_d9) ⇒
                   (wdiff_d10 ans_v899981 guess_v899982 df_v899991)) with
@@ -2918,7 +2918,7 @@ program word_diff_i54 :
               in
               match (string_diff_i52
                       s1_v899986 s1_v899986 s2_v899992 e_v899995) as __v899996 in
-                (subset_d7‹U, U, U›
+                (subset_d7‹U, U, L›
                   word_d9
                   fn (df_v899997 : word_d9) ⇒
                     (wdiff_d10 ans_v899981 guess_v899982 df_v899997)) with
@@ -2932,7 +2932,7 @@ program word_diff_i54 :
                     nat (strlen_i20 s3_v899998) (strlen_i20 s1_v899986) 5
                     e_v900000 pf1_v899987)
                 in
-                (SPair_c12‹U, U, U›
+                (SPair_c12‹U, U, L›
                   (Word_c17‹› s3_v899998 pf_v900001)
                   (diff_Word_c18‹›
                     s1_v899986 s2_v899992 s3_v899998 pf1_v899987 pf2_v899993
@@ -3857,7 +3857,7 @@ def string_diff_i52 =
     | EmptyString_c6  ⇒
       match s2_v901855 with
       | EmptyString_c6  ⇒
-        fn e_v901856 ⇒ (SPairUUU_c44 EmptyString_c6 NULL)
+        fn e_v901856 ⇒ (SPairUUL_c43 EmptyString_c6 NULL)
       | String_c7 c2_v901857 s2_v901858 ⇒ fn e_v901859 ⇒ ()
       end
     | String_c7 c1_v901860 s1_v901861 ⇒
@@ -3868,22 +3868,22 @@ def string_diff_i52 =
           let e_v901866 = NULL in
           match ((((string_diff_i52 ans_v901853) s1_v901861) s2_v901864)
                   NULL) with
-          | SPairUUU_c44 df_v901867 pf_v901868 ⇒
+          | SPairUUL_c43 df_v901867 pf_v901868 ⇒
             (match ((eqc_i17 c1_v901860) c2_v901863) with
              | true ⇒
                fn e1_v901869 ⇒
                  let e1_v901870 = NULL in
                  let h_v901871 = NULL in
-                 (SPairUUU_c44 ((cats_i19 "Y") df_v901867) NULL)
+                 (SPairUUL_c43 ((cats_i19 "Y") df_v901867) NULL)
              | false ⇒
                fn e1_v901872 ⇒
                  (match ((contains_i51 c2_v901863) ans_v901853) with
                   | true ⇒
                     fn e2_v901873 ⇒
-                      (SPairUUU_c44 ((cats_i19 "I") df_v901867) NULL)
+                      (SPairUUL_c43 ((cats_i19 "I") df_v901867) NULL)
                   | false ⇒
                     fn e2_v901874 ⇒
-                      (SPairUUU_c44 ((cats_i19 "N") df_v901867) NULL)
+                      (SPairUUL_c43 ((cats_i19 "N") df_v901867) NULL)
                   end NULL)
              end NULL)
           end
@@ -3907,10 +3907,10 @@ def word_diff_i54 =
               let e_v901883 = NULL in
               match ((((string_diff_i52 s1_v901877) s1_v901877) s2_v901880)
                       NULL) with
-              | SPairUUU_c44 s3_v901884 h_v901885 ⇒
+              | SPairUUL_c43 s3_v901884 h_v901885 ⇒
                 let e_v901886 = NULL in
                 let pf_v901887 = NULL in
-                (SPairUUU_c44 (Word_c17 s3_v901884 NULL) NULL)
+                (SPairUUL_c43 (Word_c17 s3_v901884 NULL) NULL)
               end
           end NULL)
      end NULL)
@@ -4114,7 +4114,7 @@ def server_loop_i68 =
             | false ⇒
               ln c_v901978 ⇒
                 match ((word_diff_i54 ans_v901963) guess_v901972) with
-                | SPairUUU_c44 df_v901979 pf_v901980 ⇒
+                | SPairUUL_c43 df_v901979 pf_v901980 ⇒
                   let c_v901981 ⇐ (send c_v901978 df_v901979) in
                   let c_v901982 ⇐ ({send} c_v901981 NULL) in
                   (((server_loop_i68 ans_v901963) repeat_v901969) c_v901982)
@@ -4697,7 +4697,7 @@ fun string_diff_i52(ans_v902755, s1_v902756, s2_v902757) =
   match s1_v902756 with
   | EmptyString_c6  ⇒
     match s2_v902757 with
-    | EmptyString_c6  ⇒ fn e_v902758 ⇒ (SPairUUU_c44 EmptyString_c6 NULL)
+    | EmptyString_c6  ⇒ fn e_v902758 ⇒ (SPairUUL_c43 EmptyString_c6 NULL)
     | String_c7 c2_v902759 s2_v902760 ⇒ fn e_v902761 ⇒ NULL
     end
   | String_c7 c1_v902762 s1_v902763 ⇒
@@ -4708,20 +4708,20 @@ fun string_diff_i52(ans_v902755, s1_v902756, s2_v902757) =
         let e_v902768 = NULL in
         match ((((string_diffclo_i143) ans_v902755) s1_v902763) s2_v902766)
                 NULL with
-        | SPairUUU_c44 df_v902769 pf_v902770 ⇒
+        | SPairUUL_c43 df_v902769 pf_v902770 ⇒
           (if eqc_i17(c1_v902762, c2_v902765) then
              fn e1_v902771 ⇒
                let e1_v902772 = NULL in
                let h_v902773 = NULL in
-               (SPairUUU_c44 cats_i19("Y", df_v902769) NULL)
+               (SPairUUL_c43 cats_i19("Y", df_v902769) NULL)
            else
              fn e1_v902774 ⇒
                (if contains_i51(c2_v902765, ans_v902755) then
                   fn e2_v902775 ⇒
-                    (SPairUUU_c44 cats_i19("I", df_v902769) NULL)
+                    (SPairUUL_c43 cats_i19("I", df_v902769) NULL)
                 else
                   fn e2_v902776 ⇒
-                    (SPairUUU_c44 cats_i19("N", df_v902769) NULL))
+                    (SPairUUL_c43 cats_i19("N", df_v902769) NULL))
                  NULL)
             NULL
         end
@@ -4742,10 +4742,10 @@ fun word_diff_i54(ans_v902780, guess_v902781) =
             let e_v902788 = NULL in
             match ((((string_diffclo_i143) s1_v902782) s1_v902782) s2_v902785)
                     NULL with
-            | SPairUUU_c44 s3_v902789 h_v902790 ⇒
+            | SPairUUL_c43 s3_v902789 h_v902790 ⇒
               let e_v902791 = NULL in
               let pf_v902792 = NULL in
-              (SPairUUU_c44 (Word_c17 s3_v902789 NULL) NULL)
+              (SPairUUL_c43 (Word_c17 s3_v902789 NULL) NULL)
             end
         end) NULL
    end) NULL
@@ -4991,7 +4991,7 @@ fun server_loop_i68(ans_v902913, repeat_v902914, c_v902915) =
                 else
                   ln c_v902935 ⇒
                     match word_diff_i54(ans_v902913, guess_v902922) with
-                    | SPairUUU_c44 df_v902936 pf_v902937 ⇒
+                    | SPairUUL_c43 df_v902936 pf_v902937 ⇒
                       ln __v902938 ⇒
                         let c_v902939 =
                           ((fn x_v902940 ⇒
@@ -5577,7 +5577,7 @@ fun string_diff_i52(ans_v904495, s1_v904496, s2_v904497) =
   match s1_v904496 with
   | EmptyString_c6  ⇒
     match s2_v904497 with
-    | EmptyString_c6  ⇒ fn e_v904498 ⇒ (SPairUUU_c44 EmptyString_c6 NULL)
+    | EmptyString_c6  ⇒ fn e_v904498 ⇒ (SPairUUL_c43 EmptyString_c6 NULL)
     | String_c7 c2_v904499 s2_v904500 ⇒ fn e_v904501 ⇒ NULL
     end
   | String_c7 c1_v904502 s1_v904503 ⇒
@@ -5587,17 +5587,17 @@ fun string_diff_i52(ans_v904495, s1_v904496, s2_v904497) =
       fn e_v904507 ⇒
         match ((((string_diffclo_i143) ans_v904495) s1_v904503) s2_v904506)
                 NULL with
-        | SPairUUU_c44 df_v904508 pf_v904509 ⇒
+        | SPairUUL_c43 df_v904508 pf_v904509 ⇒
           (if eqc_i17(c1_v904502, c2_v904505) then
-             fn e1_v904510 ⇒ (SPairUUU_c44 cats_i19("Y", df_v904508) NULL)
+             fn e1_v904510 ⇒ (SPairUUL_c43 cats_i19("Y", df_v904508) NULL)
            else
              fn e1_v904511 ⇒
                (if contains_i51(c2_v904505, ans_v904495) then
                   fn e2_v904512 ⇒
-                    (SPairUUU_c44 cats_i19("I", df_v904508) NULL)
+                    (SPairUUL_c43 cats_i19("I", df_v904508) NULL)
                 else
                   fn e2_v904513 ⇒
-                    (SPairUUU_c44 cats_i19("N", df_v904508) NULL))
+                    (SPairUUL_c43 cats_i19("N", df_v904508) NULL))
                  NULL)
             NULL
         end
@@ -5614,8 +5614,8 @@ fun word_diff_i54(ans_v904517, guess_v904518) =
     match guess_v904518 with
     | Word_c17 s2_v904521 pf2_v904522 ⇒
       match ((((string_diffclo_i143) s1_v904519) s1_v904519) s2_v904521) NULL with
-      | SPairUUU_c44 s3_v904523 h_v904524 ⇒
-        (SPairUUU_c44 (Word_c17 s3_v904523 NULL) NULL)
+      | SPairUUL_c43 s3_v904523 h_v904524 ⇒
+        (SPairUUL_c43 (Word_c17 s3_v904523 NULL) NULL)
       end
     end
   end
@@ -5827,7 +5827,7 @@ fun server_loop_i68(ans_v904615, repeat_v904616, c_v904617) =
              else
                ln c_v904627 ⇒
                  match word_diff_i54(ans_v904615, guess_v904621) with
-                 | SPairUUU_c44 df_v904628 pf_v904629 ⇒
+                 | SPairUUL_c43 df_v904628 pf_v904629 ⇒
                    ln __v904630 ⇒
                      let c_v904631 = send(c_v904627, df_v904628) in
                      (server_loop_i68(ans_v904615, repeat_v904616.-1,

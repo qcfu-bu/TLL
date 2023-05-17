@@ -86,7 +86,7 @@ inductive diff (ans : string) (a b df : string) : U =
   (pf3 : df ≡ "N" ^ s3)
 
 program string_diff (ans s1 s2 : string) :
-  {strlen s1 ≡ strlen s2} → subset‹_,_,U› string (fn df ⇒ diff ans s1 s2 df)
+  {strlen s1 ≡ strlen s2} → subset‹_,_,L› string (fn df ⇒ diff ans s1 s2 df)
 = match s1 as s0 in
     {strlen s0 ≡ strlen s2} → subset string (fn df ⇒ diff ans s0 s2 df)
   with
@@ -97,9 +97,9 @@ program string_diff (ans s1 s2 : string) :
     | EmptyString ⇒ fn {e} ⇒ SPair EmptyString (diff_EmptyString refl refl refl)
     | String c2 s2 ⇒ fn {e} ⇒
       rew [x, _ ⇒ match x with
-                  | O ⇒ unit
+                  | O ⇒ unit‹L›
                   | S _ ⇒ subset string (fn df ⇒ diff ans EmptyString (String c2 s2) df)
-                  end] e in ()
+                  end] e in ⟨⟩
     end
   | String c1 s1 ⇒
     match s2 as s0 in
@@ -108,8 +108,8 @@ program string_diff (ans s1 s2 : string) :
     | EmptyString ⇒ fn {e} ⇒
       rew [x, _ ⇒ match x with
                   | O ⇒ subset string (fn df ⇒ diff ans (String c1 s1) EmptyString df)
-                  | S _ ⇒ unit
-                  end] e in ()
+                  | S _ ⇒ unit‹L›
+                  end] e in ⟨⟩
     | String c2 s2 ⇒ fn {e} ⇒
       let {e} = nat_inv _ _ e in
       match string_diff ans s1 s2 e with SPair df pf ⇒ 
@@ -178,7 +178,7 @@ inductive wdiff (ans guess df : word) : U =
  (pf6 : df ≡ Word s3 pf3)
  (pf7 : diff s1 s1 s2 s3)
   
-program word_diff (ans guess : word) : subset‹_,_,U› word (fn df ⇒ wdiff ans guess df) =
+program word_diff (ans guess : word) : subset‹_,_,L› word (fn df ⇒ wdiff ans guess df) =
   match ans as ans0 in
     {ans ≡ ans0} → subset word (fn df ⇒ wdiff ans guess df)
   with Word s1 pf1 ⇒ fn {e1} ⇒
