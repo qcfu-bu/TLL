@@ -298,8 +298,8 @@ module Logical = struct
       let s = infer_sort res ctx env a in
       infer_tm res (Context.add_var x a s ctx) (Env.add_var x m env) n
     (* native *)
-    | Unit -> Type U
-    | UIt -> Unit
+    | Unit s -> Type s
+    | UIt s -> Unit s
     | Bool -> Type U
     | BTrue -> Bool
     | BFalse -> Bool
@@ -335,8 +335,8 @@ module Logical = struct
     | Match (m, mot, cls) -> (
       let ty_m = infer_tm res ctx env m in
       match whnf env ty_m with
-      | Unit ->
-        let _ = infer_unit res ctx env mot cls in
+      | Unit s ->
+        let _ = infer_unit res ctx env mot cls s in
         subst mot m
       | Bool ->
         let _ = infer_bool res ctx env mot cls in
@@ -417,7 +417,7 @@ module Logical = struct
       let s = infer_sort res ctx env a0 in
       match whnf env a0 with
       | Ch (Pos, a) ->
-        let ty = IO Unit in
+        let ty = IO (Unit U) in
         let _ = check_tm res (Context.add_var x a0 s ctx) env m ty in
         IO (Ch (Neg, a))
       | _ -> failwith "Logical.infer_Fork")
@@ -440,22 +440,22 @@ module Logical = struct
     | Close m -> (
       let ty_m = infer_tm res ctx env m in
       match whnf env ty_m with
-      | Ch (_, End) -> IO Unit
+      | Ch (_, End) -> IO (Unit U)
       | _ -> failwith "Logical.infer_Close")
     (* effects *)
     | Sleep m ->
       let _ = check_tm res ctx env m Nat in
-      IO Unit
+      IO (Unit U)
     | Rand (m, n) ->
       let _ = check_tm res ctx env m Nat in
       let _ = check_tm res ctx env n Nat in
       let n = mkApps (Const (Prelude1.addn_i, [])) [ m; n ] in
       IO (Data (Prelude1.between_d, [], [ m; n ]))
 
-  and infer_unit res ctx env mot cls =
+  and infer_unit res ctx env mot cls s0 =
     match cls with
-    | [ PIt rhs ] ->
-      let mot = subst mot UIt in
+    | [ PIt (s, rhs) ] when eq_sort s s0 ->
+      let mot = subst mot (UIt s0) in
       let _ = infer_sort res ctx env mot in
       check_tm res ctx env rhs mot
     | _ -> failwith "Logical.infer_unit"
@@ -711,8 +711,8 @@ module Program = struct
       let usg = Usage.(merge usg1 (remove_var x usg2 R s)) in
       Syntax2.(b, _Let m_elab (bind_var (trans_var x) n_elab), usg)
     (* native *)
-    | Unit -> failwith "Program.infer_Unit"
-    | UIt -> Syntax2.(Unit, _UIt, Usage.empty)
+    | Unit _ -> failwith "Program.infer_Unit"
+    | UIt s -> Syntax2.(Unit s, _UIt, Usage.empty)
     | Bool -> failwith "Program.infer_Bool"
     | BTrue -> Syntax2.(Bool, _BTrue, Usage.empty)
     | BFalse -> Syntax2.(Bool, _BFalse, Usage.empty)
@@ -749,8 +749,8 @@ module Program = struct
       let ty_m, m_elab, usg1 = infer_tm res ctx env m in
       let s = Logical.infer_sort res ctx env ty_m in
       match whnf env ty_m with
-      | Unit ->
-        let cls_elab, usg2 = infer_unit res ctx env mot cls in
+      | Unit s ->
+        let cls_elab, usg2 = infer_unit res ctx env mot cls s in
         let usg = Usage.merge usg1 usg2 in
         Syntax2.
           (subst mot m, _Match (trans_sort s) m_elab (box_list cls_elab), usg)
@@ -837,7 +837,7 @@ module Program = struct
       let s = Logical.infer_sort res ctx env a0 in
       match whnf env a0 with
       | Ch (Pos, a) ->
-        let ty = IO Unit in
+        let ty = IO (Unit U) in
         let m_elab, usg = check_tm res (Context.add_var x a0 s ctx) env m ty in
         let usg = Usage.(remove_var x usg R L) in
         Syntax2.(IO (Ch (Neg, a)), _Fork (bind_var (trans_var x) m_elab), usg)
@@ -864,13 +864,13 @@ module Program = struct
       let ty_m, m_elab, usg = infer_tm res ctx env m in
       match whnf env ty_m with
       | Ch (rol, End) ->
-        let ty = IO Unit in
+        let ty = IO (Unit U) in
         Syntax2.(ty, _Close (trans_role rol) m_elab, usg)
       | _ -> failwith "Program.infer_Close")
     (* effects *)
     | Sleep m ->
       let m_elab, usg = check_tm res ctx env m Nat in
-      Syntax2.(IO Unit, _Sleep m_elab, usg)
+      Syntax2.(IO (Unit U), _Sleep m_elab, usg)
     | Rand (m, n) ->
       let m_elab, usg1 = check_tm res ctx env m Nat in
       let n_elab, usg2 = check_tm res ctx env n Nat in
@@ -880,10 +880,10 @@ module Program = struct
         , _Rand m_elab n_elab
         , Usage.merge usg1 usg2 )
 
-  and infer_unit res ctx env mot cls =
+  and infer_unit res ctx env mot cls s0 =
     match cls with
-    | [ PIt rhs ] ->
-      let mot = subst mot UIt in
+    | [ PIt (s, rhs) ] when eq_sort s s0 ->
+      let mot = subst mot (UIt s0) in
       let _ = Logical.infer_sort res ctx env mot in
       let rhs_elab, usg = check_tm res ctx env rhs mot in
       Syntax2.([ _PIt rhs_elab ], usg)
@@ -1114,8 +1114,8 @@ module Program = struct
       let _ = Logical.assert_equal env a0 a1 in
       let s = Logical.infer_sort res ctx env ty_m in
       match whnf env ty_m with
-      | Unit ->
-        let cls_elab, usg2 = infer_unit res ctx env mot cls in
+      | Unit s ->
+        let cls_elab, usg2 = infer_unit res ctx env mot cls s in
         let usg = Usage.merge usg1 usg2 in
         Syntax2.(_Match (trans_sort s) m_elab (box_list cls_elab), usg)
       | Bool ->
@@ -1183,7 +1183,7 @@ let rec check_dcls res ctx env = function
     let sargs, (a, m) = unmbind sch in
     match sargs with
     | [||] ->
-      let ty = IO Unit in
+      let ty = IO (Unit U) in
       let _ = Logical.assert_equal env a ty in
       let m_elab, usg = Program.check_tm res ctx env m a in
       Syntax2.([ _DMain m_elab ], res, usg)

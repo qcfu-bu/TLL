@@ -138,8 +138,10 @@ and pp_tm fmt = function
     pf fmt "@[@[let {%a} =@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" V.pp x pp_tm m pp_tm
       n
   (* native *)
-  | Unit -> pf fmt "unit"
-  | UIt -> pf fmt "()"
+  | Unit s -> pf fmt "unit‹%a›" pp_sort s
+  | UIt U -> pf fmt "()"
+  | UIt L -> pf fmt "⟨⟩"
+  | UIt s -> pf fmt "()‹%a›" pp_sort s
   | Bool -> pf fmt "bool"
   | BTrue -> pf fmt "true"
   | BFalse -> pf fmt "false"
@@ -258,7 +260,9 @@ and pp_tm fmt = function
   | Rand (m, n) -> pf fmt "rand %a %a" pp_tm m pp_tm n
 
 and pp_cl fmt = function
-  | PIt m -> pf fmt "| @[() ⇒@;<1 0>%a@]" pp_tm m
+  | PIt (U, m) -> pf fmt "| @[() ⇒@;<1 0>%a@]" pp_tm m
+  | PIt (L, m) -> pf fmt "| @[⟨⟩ ⇒@;<1 0>%a@]" pp_tm m
+  | PIt (s, m) -> pf fmt "| @[()‹%a› ⇒@;<1 0>%a@]" pp_sort s pp_tm m
   | PTrue m -> pf fmt "| @[true ⇒@;<1 0>%a@]" pp_tm m
   | PFalse m -> pf fmt "| @[false ⇒@;<1 0>%a@]" pp_tm m
   | PZero m -> pf fmt "| @[O ⇒@;<1 0>%a@]" pp_tm m

@@ -210,8 +210,8 @@ and infer_tm ctx env m0 : tm trans1e =
     let* a = unify >> resolve_tm a in
     infer_tm (add_var x a ctx) (Env.add_var x m env) n
   (* native *)
-  | Unit -> return (Type U)
-  | UIt -> return Unit
+  | Unit s -> return (Type s)
+  | UIt s -> return (Unit s)
   | Bool -> return (Type U)
   | BTrue -> return Bool
   | BFalse -> return Bool
@@ -244,8 +244,8 @@ and infer_tm ctx env m0 : tm trans1e =
     let* ty_m = infer_tm ctx env m in
     let* ty_m = unify >> resolve_tm ty_m in
     match whnf env ty_m with
-    | Unit ->
-      let* _ = infer_unit ctx env mot cls in
+    | Unit s ->
+      let* _ = infer_unit ctx env mot cls s in
       return (subst mot m)
     | Bool ->
       let* _ = infer_bool ctx env mot cls in
@@ -330,7 +330,7 @@ and infer_tm ctx env m0 : tm trans1e =
     let* a0 = unify >> resolve_tm a0 in
     match whnf env a0 with
     | Ch (Pos, a) ->
-      let ty = IO Unit in
+      let ty = IO (Unit U) in
       let* _ = check_tm (add_var x a0 ctx) env m ty in
       return (IO (Ch (Neg, a)))
     | _ -> failwith "trans1e.infer_Fork")
@@ -356,22 +356,22 @@ and infer_tm ctx env m0 : tm trans1e =
     let* ty_m = infer_tm ctx env m in
     let* ty_m = unify >> resolve_tm ty_m in
     match whnf env ty_m with
-    | Ch (_, End) -> return (IO Unit)
+    | Ch (_, End) -> return (IO (Unit U))
     | ty -> failwith "trans1e.infer_Close(%a)" pp_tm ty)
   (* effects *)
   | Sleep m ->
     let* _ = check_tm ctx env m Nat in
-    return (IO Unit)
+    return (IO (Unit U))
   | Rand (m, n) ->
     let* _ = check_tm ctx env m Nat in
     let* _ = check_tm ctx env n Nat in
     let n = mkApps (Const (Prelude1.addn_i, [])) [ m; n ] in
     return (IO (Data (Prelude1.between_d, [], [ m; n ])))
 
-and infer_unit ctx env mot cls =
+and infer_unit ctx env mot cls s0 =
   match cls with
-  | [ PIt rhs ] ->
-    let mot = subst mot UIt in
+  | [ PIt (s, rhs) ] when eq_sort s s0 ->
+    let mot = subst mot (UIt s0) in
     let* _ = infer_sort ctx env mot in
     check_tm ctx env rhs mot
   | _ -> failwith "trans1e.infer_unit"
@@ -547,7 +547,7 @@ and check_tm ctx env m0 a0 : unit trans1e =
     let* _ = assert_equal ctx env (a0, s0) (a1, s1) in
     let* ty_m = unify >> resolve_tm ty_m in
     match whnf env ty_m with
-    | Unit -> infer_unit ctx env mot cls
+    | Unit s -> infer_unit ctx env mot cls s
     | Bool -> infer_bool ctx env mot cls
     | Nat -> infer_nat ctx env mot cls
     | Sigma (rel, srt, a, bnd) -> infer_pair ctx env rel srt a bnd mot cls

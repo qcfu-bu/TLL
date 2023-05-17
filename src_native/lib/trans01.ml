@@ -266,8 +266,8 @@ let rec trans_tm nspc = function
       let n = Syntax1.(_Match (_Var x) mot (box_list [ cl ])) in
       (Syntax1.(_Let (trans_rel rel) m (bind_var x n)), ISet.union iset1 iset2))
   (* native *)
-  | Unit -> Syntax1.(_Unit, ISet.empty)
-  | UIt -> Syntax1.(_UIt, ISet.empty)
+  | Unit s -> Syntax1.(_Unit (trans_sort nspc s), ISet.empty)
+  | UIt s -> Syntax1.(_UIt (trans_sort nspc s), ISet.empty)
   | Bool -> Syntax1.(_Bool, ISet.empty)
   | BTrue -> Syntax1.(_BTrue, ISet.empty)
   | BFalse -> Syntax1.(_BFalse, ISet.empty)
@@ -379,9 +379,9 @@ let rec trans_tm nspc = function
     Syntax1.(_Rand m n, ISet.union iset1 iset2)
 
 and trans_cl nspc = function
-  | Binder (PIt, m) ->
+  | Binder (PIt s, m) ->
     let m, iset = trans_tm nspc m in
-    Syntax1.(_PIt m, iset)
+    Syntax1.(_PIt (trans_sort nspc s) m, iset)
   | Binder (PTrue, m) ->
     let m, iset = trans_tm nspc m in
     Syntax1.(_PTrue m, iset)

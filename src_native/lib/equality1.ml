@@ -155,14 +155,14 @@ and match_cls cls m =
         ~some:(fun _ -> acc)
         ~none:
           (match (cl, m) with
-          | PIt rhs, UIt -> Some rhs
+          | PIt (s1, rhs), UIt s2 when eq_sort s1 s2 -> Some rhs
           | PTrue rhs, BTrue -> Some rhs
           | PFalse rhs, BFalse -> Some rhs
           | PZero rhs, NZero -> Some rhs
           | PSucc bnd, NSucc (1, m) -> Some (subst bnd m)
           | PSucc bnd, NSucc (i, m) -> Some (subst bnd (NSucc (i - 1, m)))
           | PPair (rel1, s1, bnd), Pair (rel2, s2, m1, m2)
-            when rel1 = rel2 && s1 = s2 ->
+            when rel1 = rel2 && eq_sort s1 s2 ->
             Some (msubst bnd [| m1; m2 |])
           | PCons (c1, bnd), Cons (c2, _, _, ms) when C.equal c1 c2 ->
             Some (msubst bnd (Array.of_list ms))
@@ -192,8 +192,8 @@ let rec aeq tm1 tm2 =
     | Let (rel1, m1, bnd1), Let (rel2, m2, bnd2) ->
       rel1 = rel2 && aeq m1 m2 && eq_binder aeq bnd1 bnd2
     (* native *)
-    | Unit, Unit -> true
-    | UIt, UIt -> true
+    | Unit s1, Unit s2 -> eq_sort s1 s2
+    | UIt s1, UIt s2 -> eq_sort s1 s2
     | Bool, Bool -> true
     | BTrue, BTrue -> true
     | BFalse, BFalse -> true
@@ -215,7 +215,7 @@ let rec aeq tm1 tm2 =
       && List.equal
            (fun cl1 cl2 ->
              match (cl1, cl2) with
-             | PIt rhs1, PIt rhs2 -> aeq rhs1 rhs2
+             | PIt (s1, rhs1), PIt (s2, rhs2) -> eq_sort s1 s2 && aeq rhs1 rhs2
              | PTrue rhs1, PTrue rhs2 -> aeq rhs1 rhs2
              | PFalse rhs1, PFalse rhs2 -> aeq rhs1 rhs2
              | PZero rhs1, PZero rhs2 -> aeq rhs1 rhs2
@@ -279,8 +279,8 @@ let rec eq_tm ?(expand_const = false) env m1 m2 =
       | Let (rel1, m1, bnd1), Let (rel2, m2, bnd2) ->
         rel1 = rel2 && equal m1 m2 && eq_binder equal bnd1 bnd2
       (* native *)
-      | Unit, Unit -> true
-      | UIt, UIt -> true
+      | Unit s1, Unit s2 -> eq_sort s1 s2
+      | UIt s1, UIt s2 -> eq_sort s1 s2
       | Bool, Bool -> true
       | BTrue, BTrue -> true
       | BFalse, BFalse -> true
@@ -302,7 +302,8 @@ let rec eq_tm ?(expand_const = false) env m1 m2 =
         && List.equal
              (fun cl1 cl2 ->
                match (cl1, cl2) with
-               | PIt rhs1, PIt rhs2 -> equal rhs1 rhs2
+               | PIt (s1, rhs1), PIt (s2, rhs2) ->
+                 eq_sort s1 s2 && equal rhs1 rhs2
                | PTrue rhs1, PTrue rhs2 -> equal rhs1 rhs2
                | PFalse rhs1, PFalse rhs2 -> equal rhs1 rhs2
                | PZero rhs1, PZero rhs2 -> equal rhs1 rhs2

@@ -26,7 +26,7 @@ type prim =
   | Stderr
 
 type p =
-  | PIt
+  | PIt of sort
   | PTrue
   | PFalse
   | PZero
@@ -48,8 +48,8 @@ type tm =
   | App of tms
   | Let of rel * tm * ((id, p) either, tm) binder
   (* native *)
-  | Unit
-  | UIt
+  | Unit of sort
+  | UIt of sort
   | Bool
   | BTrue
   | BFalse

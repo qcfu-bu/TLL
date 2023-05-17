@@ -57,10 +57,11 @@ let rec pp_tm fmt = function
   | Let (N, m, Binder (Left id, n)) ->
     pf fmt "let {%s} = %a in %a" id pp_tm m pp_tm n
   | Let (_, m, Binder (Right p, n)) ->
-    pf fmt "let %a = %a in %a" pp_p p pp_tm m pp_tm n
-  (* native *)
-  | Unit -> pf fmt "unit"
-  | UIt -> pf fmt "()"
+    pf fmt "let %a = %a in %a" pp_p p pp_tm m pp_tm n (* native *)
+  | Unit s -> pf fmt "unit‹s›"
+  | UIt U -> pf fmt "()"
+  | UIt L -> pf fmt "⟨⟩"
+  | UIt s -> pf fmt "()‹s›"
   | Bool -> pf fmt "bool"
   | BTrue -> pf fmt "true"
   | BFalse -> pf fmt "false"
@@ -121,7 +122,9 @@ let rec pp_tm fmt = function
   | Rand (m, n) -> pf fmt "rand %a %a" pp_tm m pp_tm n
 
 and pp_p fmt = function
-  | PIt -> pf fmt "()"
+  | PIt U -> pf fmt "()"
+  | PIt L -> pf fmt "⟨⟩"
+  | PIt s -> pf fmt "()‹%a›" pp_sort s
   | PTrue -> pf fmt "true"
   | PFalse -> pf fmt "false"
   | PZero -> pf fmt "O"

@@ -178,8 +178,11 @@ let tm_inst :=
     { Inst (id, ss) }
 
 let tm_unit :=
-  | UNIT_TYPE; { Unit }
-  | LPAREN; RPAREN; { UIt }
+  | UNIT_TYPE; FLQ; s = sort; FRQ; { Unit s }
+  | UNIT_TYPE; { Unit U }
+  | LPAREN; RPAREN; FLQ; s = sort; FRQ; { UIt s }
+  | LPAREN; RPAREN; { UIt U }
+  | LANGLE; RANGLE; { UIt L }
 
 let tm_bool :=
   | BOOL_TYPE; { Bool }
@@ -267,7 +270,9 @@ let tm_lam :=
         Lam (rel, s, a, Binder (id, m))) args m }
 
 let tm_p0 :=
-  | LPAREN; RPAREN; { PIt }
+  | LPAREN; RPAREN; FLQ; s = sort; FRQ; { PIt s }
+  | LPAREN; RPAREN; { PIt U }
+  | LANGLE; RANGLE; { PIt L }
   | LPAREN; LBRACE;
       id1 = identifier; RBRACE; COMMA; id2 = identifier;
     RPAREN;

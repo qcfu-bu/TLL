@@ -101,8 +101,8 @@ let rec fv ctx = function
     let fsv2, fv2 = fv (VSet.add x ctx) n in
     (SVSet.union fsv1 fsv2, VSet.union fv1 fv2)
   (* native *)
-  | Unit -> (SVSet.empty, VSet.empty)
-  | UIt -> (SVSet.empty, VSet.empty)
+  | Unit s -> (fsv s, VSet.empty)
+  | UIt s -> (fsv s, VSet.empty)
   | Bool -> (SVSet.empty, VSet.empty)
   | BTrue -> (SVSet.empty, VSet.empty)
   | BFalse -> (SVSet.empty, VSet.empty)
@@ -142,9 +142,10 @@ let rec fv ctx = function
     let fsv3, fv3 =
       List.fold_left
         (fun (acc0, acc1) -> function
-          | PIt rhs ->
-            let fsv, fv = fv ctx m in
-            (SVSet.union fsv acc0, VSet.union fv acc1)
+          | PIt (s, rhs) ->
+            let fsv1 = fsv s in
+            let fsv2, fv = fv ctx m in
+            (SVSet.union (SVSet.union fsv1 fsv2) acc0, VSet.union fv acc1)
           | PTrue rhs ->
             let fsv, fv = fv ctx m in
             (SVSet.union fsv acc0, VSet.union fv acc1)
@@ -258,7 +259,7 @@ let rec occurs_tm x = function
     occurs_tm x m || occurs_tm x a
     || List.exists
          (function
-           | PIt rhs -> occurs_tm x rhs
+           | PIt (_, rhs) -> occurs_tm x rhs
            | PTrue rhs -> occurs_tm x rhs
            | PFalse rhs -> occurs_tm x rhs
            | PZero rhs -> occurs_tm x rhs
@@ -377,8 +378,8 @@ let rec simpl ?(expand_const = false) eqn =
       let eqns2 = simpl (Eqn1 (env, n1, n2)) in
       eqns1 @ eqns2
     (* native *)
-    | Unit, Unit -> []
-    | UIt, UIt -> []
+    | Unit s1, Unit s2 -> simpl (Eqn0 (s1, s2))
+    | UIt s1, UIt s2 -> simpl (Eqn0 (s1, s2))
     | Bool, Bool -> []
     | BTrue, BTrue -> []
     | BFalse, BFalse -> []
@@ -429,13 +430,14 @@ let rec simpl ?(expand_const = false) eqn =
         List.fold_right2
           (fun cl1 cl2 acc ->
             match (cl1, cl2) with
-            | PIt rhs1, PIt rhs2 -> simpl (Eqn1 (env, rhs1, rhs2))
-            | PTrue rhs1, PTrue rhs2 -> simpl (Eqn1 (env, rhs1, rhs2))
-            | PFalse rhs1, PFalse rhs2 -> simpl (Eqn1 (env, rhs1, rhs2))
-            | PZero rhs1, PZero rhs2 -> simpl (Eqn1 (env, rhs1, rhs2))
+            | PIt (s1, rhs1), PIt (s2, rhs2) ->
+              simpl (Eqn0 (s1, s2)) @ simpl (Eqn1 (env, rhs1, rhs2)) @ acc
+            | PTrue rhs1, PTrue rhs2 -> simpl (Eqn1 (env, rhs1, rhs2)) @ acc
+            | PFalse rhs1, PFalse rhs2 -> simpl (Eqn1 (env, rhs1, rhs2)) @ acc
+            | PZero rhs1, PZero rhs2 -> simpl (Eqn1 (env, rhs1, rhs2)) @ acc
             | PSucc bnd1, PSucc bnd2 ->
               let _, m1, m2 = unbind2 bnd1 bnd2 in
-              simpl (Eqn1 (env, m1, m2))
+              simpl (Eqn1 (env, m1, m2)) @ acc
             | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2) when rel1 = rel2 ->
               let _, m1, m2 = unmbind2 bnd1 bnd2 in
               simpl (Eqn0 (s1, s2)) @ simpl (Eqn1 (env, m1, m2)) @ acc
@@ -626,7 +628,7 @@ let resolve_tm ((map0, map1) : map0 * map1) m =
       let cls =
         List.map
           (function
-            | PIt rhs -> PIt (resolve rhs)
+            | PIt (s, rhs) -> PIt (resolve_sort map0 s, resolve rhs)
             | PTrue rhs -> PTrue (resolve rhs)
             | PFalse rhs -> PFalse (resolve rhs)
             | PZero rhs -> PZero (resolve rhs)

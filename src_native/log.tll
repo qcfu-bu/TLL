@@ -8,9 +8,9 @@ t› (A : Type‹s›) (B : Type‹t›) (f : (∀ (_ : A) → B)) (x : A) (y : 
 (f)
 (y))] e in refl)
 
-logical bool_absurd‹› (e : true ≡ false) : ⊥ = rew [x, _ ⇒ match x as _ in _ with true ⇒ unit | false ⇒ ⊥] e in ()
+logical bool_absurd‹› (e : true ≡ false) : ⊥ = rew [x, _ ⇒ match x as _ in _ with true ⇒ unit‹s› | false ⇒ ⊥] e in ()
 
-logical nat_absurd‹› (n : nat) (e : n.+1 ≡ O) : ⊥ = rew [x, _ ⇒ match x as _ in _ with O ⇒ ⊥ | S _ ⇒ unit] e in ()
+logical nat_absurd‹› (n : nat) (e : n.+1 ≡ O) : ⊥ = rew [x, _ ⇒ match x as _ in _ with O ⇒ ⊥ | S _ ⇒ unit‹s›] e in ()
 
 logical nat_inv‹› (n1 : nat) (n2 : nat) (e : n1.+1 ≡ n2.+1) : n1 ≡ n2 = (
 (f_equal) (_) (_) (pred) (_) (_)
@@ -80,14 +80,14 @@ program string_diff‹› (ans : string) (s1 : string) (s2 : string) : (∀ {_ :
 ((fn (df : _) ⇒ ((diff) (ans) (EmptyString) (s0) (df)))))) with EmptyString  ⇒ (fn {e : _} ⇒ (
 (SPair) (EmptyString)
 (((diff_EmptyString) (refl) (refl) (refl))))) | String c2
-s2 ⇒ (fn {e : _} ⇒ rew [x, _ ⇒ match x as _ in _ with O ⇒ unit | S _ ⇒ (
+s2 ⇒ (fn {e : _} ⇒ rew [x, _ ⇒ match x as _ in _ with O ⇒ unit‹s› | S _ ⇒ (
 (subset) (string)
 ((fn (df : _) ⇒ ((diff) (ans) (EmptyString) (((String) (c2) (s2))) (df)))))] e in ()) | String c1
 s1 ⇒ match s2 as s0 in (∀ {_ : ((strlen) (s1)).+1 ≡ ((strlen)
 (s0))} → ((subset) (string)
 ((fn (df : _) ⇒ ((diff) (ans) (((String) (c1) (s1))) (s0) (df)))))) with EmptyString  ⇒ (fn {e : _} ⇒ rew [x, _ ⇒ match x as _ in _ with O ⇒ (
 (subset) (string)
-((fn (df : _) ⇒ ((diff) (ans) (((String) (c1) (s1))) (EmptyString) (df))))) | S _ ⇒ unit] e in ()) | String c2
+((fn (df : _) ⇒ ((diff) (ans) (((String) (c1) (s1))) (EmptyString) (df))))) | S _ ⇒ unit‹s›] e in ()) | String c2
 s2 ⇒ (fn {e : _} ⇒ let {e} = ((nat_inv) (_) (_)
 (e)) in match ((string_diff) (ans) (s1) (s2) (e)) as _ in _ with SPair df
 pf ⇒ ((match ((eqc) (c1) (c2)) as b0 in (∀ {_ : ((eqc) (c1)
@@ -211,7 +211,7 @@ logical wordle_ch‹› : L = ch‹wordle›
 
 logical wordle_hc‹› : L = hc‹wordle›
 
-program read_word‹› (_ : unit) : IO word = let s ⇐ ((readline)
+program read_word‹› (_ : unit‹s›) : IO word = let s ⇐ ((readline)
 (())) in ((match ((eqn) (((strlen) (s))) (O.+5)) as b0 in (∀ {_ : (
            (eqn) (((strlen) (s)))
            (O.+5)) ≡ b0} → IO word) with true ⇒ (fn {e : _} ⇒ return (
@@ -261,116 +261,129 @@ program read_word‹› (_ : unit) : IO word = let s ⇐ ((readline)
 
 program player_loop‹› {ans : word} (repeat : nat) (c : ((loop_hc) 
 (ans)
-(repeat))) : IO unit = ((match repeat as repeat0 in (∀ (_ : ((loop_hc)
-                         (ans)
-                         (repeat0))) → IO unit) with O ⇒ (fn (c : _) ⇒ let ⟨ans, c⟩ ⇐ recv c in let ⟨{pf}, c⟩ ⇐ recv c in match ans as _ in _ with Word s
-                         _ ⇒ let _ ⇐ ((print)
-                         (((cats)
-                          (((cats)
-                           (((String) (((Char) (O.+89)))
-                            (((String) (((Char) (O.+111)))
-                             (((String) (((Char) (O.+117)))
-                              (((String) (((Char) (O.+32)))
-                               (((String) (((Char) (O.+76)))
-                                (((String) (((Char) (O.+111)))
-                                 (((String) (((Char) (O.+115)))
-                                  (((String) (((Char) (O.+101)))
-                                   (((String) (((Char) (O.+33)))
+(repeat))) : IO unit‹s› = ((match repeat as repeat0 in (∀ (_ : (
+                                (loop_hc) (ans)
+                                (repeat0))) → IO unit‹s›) with O ⇒ (fn (c : _) ⇒ let ⟨ans, c⟩ ⇐ recv c in let ⟨{pf}, c⟩ ⇐ recv c in match ans as _ in _ with Word s
+                                _ ⇒ let _ ⇐ ((print)
+                                (((cats)
+                                 (((cats)
+                                  (((String) (((Char) (O.+89)))
+                                   (((String) (((Char) (O.+111)))
+                                    (((String) (((Char) (O.+117)))
+                                     (((String) (((Char) (O.+32)))
+                                      (((String) (((Char) (O.+76)))
+                                       (((String) (((Char) (O.+111)))
+                                        (((String) (((Char) (O.+115)))
+                                         (((String) (((Char) (O.+101)))
+                                          (((String) (((Char) (O.+33)))
+                                           (((String) (((Char) (O.+32)))
+                                            (((String) (((Char) (O.+84)))
+                                             (((String) (((Char) (O.+104)))
+                                              (((String) (((Char) (O.+101)))
+                                               (((String) (((Char) (O.+32)))
+                                                (((String) (((Char) (O.+97)))
+                                                 (((String)
+                                                  (((Char) (O.+110)))
+                                                  (((String)
+                                                   (((Char) (O.+115)))
+                                                   (((String)
+                                                    (((Char) (O.+119)))
+                                                    (((String)
+                                                     (((Char) (O.+101)))
+                                                     (((String)
+                                                      (((Char) (O.+114)))
+                                                      (((String)
+                                                       (((Char) (O.+32)))
+                                                       (((String)
+                                                        (((Char) (O.+105)))
+                                                        (((String)
+                                                         (((Char) (O.+115)))
+                                                         (((String)
+                                                          (((Char) (O.+32)))
+                                                          (EmptyString)))))))))))))))))))))))))))))))))))))))))))))))))
+                                  (s)))
+                                 (((String) (((Char) (O.+46)))
+                                  (((String) (((Char) (O.+10)))
+                                   (EmptyString)))))))) in close c) | S repeat ⇒ (fn (c : _) ⇒ let guess ⇐ (
+                                (read_word) (())) in let c ⇐ ((send c)
+                                (guess)) in let ⟨b, c⟩ ⇐ recv c in let ⟨{pf}, c⟩ ⇐ recv c in (
+                                (match b as b0 in (∀ (_ : hc‹match b0 as _ in _ with true ⇒ end | false ⇒ !(df : word) → !{_ : (
+                                 (wdiff) (ans) (guess)
+                                 (df))} → ((wordle_loop) (ans)
+                                 (repeat))›) ⊸ IO unit‹s›) with true ⇒ (ln (c : _) ⇒ let _ ⇐ (
+                                 (print)
+                                 (((String) (((Char) (O.+89)))
+                                  (((String) (((Char) (O.+111)))
+                                   (((String) (((Char) (O.+117)))
                                     (((String) (((Char) (O.+32)))
-                                     (((String) (((Char) (O.+84)))
-                                      (((String) (((Char) (O.+104)))
-                                       (((String) (((Char) (O.+101)))
-                                        (((String) (((Char) (O.+32)))
-                                         (((String) (((Char) (O.+97)))
-                                          (((String) (((Char) (O.+110)))
-                                           (((String) (((Char) (O.+115)))
-                                            (((String) (((Char) (O.+119)))
-                                             (((String) (((Char) (O.+101)))
-                                              (((String) (((Char) (O.+114)))
+                                     (((String) (((Char) (O.+87)))
+                                      (((String) (((Char) (O.+105)))
+                                       (((String) (((Char) (O.+110)))
+                                        (((String) (((Char) (O.+33)))
+                                         (((String) (((Char) (O.+10)))
+                                          (EmptyString)))))))))))))))))))) in close c) | false ⇒ (ln (c : _) ⇒ let ⟨diff, c⟩ ⇐ recv c in let ⟨{pf}, c⟩ ⇐ recv c in match diff as _ in _ with Word s
+                                 _ ⇒ let _ ⇐ ((print)
+                                 (((cats)
+                                  (((cats)
+                                   (((cats)
+                                    (((cats)
+                                     (((String) (((Char) (O.+73)))
+                                      (((String) (((Char) (O.+110)))
+                                       (((String) (((Char) (O.+99)))
+                                        (((String) (((Char) (O.+111)))
+                                         (((String) (((Char) (O.+114)))
+                                          (((String) (((Char) (O.+114)))
+                                           (((String) (((Char) (O.+101)))
+                                            (((String) (((Char) (O.+99)))
+                                             (((String) (((Char) (O.+116)))
+                                              (((String) (((Char) (O.+44)))
                                                (((String) (((Char) (O.+32)))
                                                 (((String)
-                                                 (((Char) (O.+105)))
+                                                 (((Char) (O.+104)))
                                                  (((String)
-                                                  (((Char) (O.+115)))
+                                                  (((Char) (O.+105)))
                                                   (((String)
-                                                   (((Char) (O.+32)))
-                                                   (EmptyString)))))))))))))))))))))))))))))))))))))))))))))))))
-                           (s)))
-                          (((String) (((Char) (O.+46)))
-                           (((String) (((Char) (O.+10))) (EmptyString)))))))) in close c) | S repeat ⇒ (fn (c : _) ⇒ let guess ⇐ (
-                         (read_word) (())) in let c ⇐ ((send c)
-                         (guess)) in let ⟨b, c⟩ ⇐ recv c in let ⟨{pf}, c⟩ ⇐ recv c in (
-                         (match b as b0 in (∀ (_ : hc‹match b0 as _ in _ with true ⇒ end | false ⇒ !(df : word) → !{_ : (
-                          (wdiff) (ans) (guess) (df))} → ((wordle_loop)
-                          (ans)
-                          (repeat))›) ⊸ IO unit) with true ⇒ (ln (c : _) ⇒ let _ ⇐ (
-                          (print)
-                          (((String) (((Char) (O.+89)))
-                           (((String) (((Char) (O.+111)))
-                            (((String) (((Char) (O.+117)))
-                             (((String) (((Char) (O.+32)))
-                              (((String) (((Char) (O.+87)))
-                               (((String) (((Char) (O.+105)))
-                                (((String) (((Char) (O.+110)))
-                                 (((String) (((Char) (O.+33)))
-                                  (((String) (((Char) (O.+10)))
-                                   (EmptyString)))))))))))))))))))) in close c) | false ⇒ (ln (c : _) ⇒ let ⟨diff, c⟩ ⇐ recv c in let ⟨{pf}, c⟩ ⇐ recv c in match diff as _ in _ with Word s
-                          _ ⇒ let _ ⇐ ((print)
-                          (((cats)
-                           (((cats)
-                            (((cats)
-                             (((cats)
-                              (((String) (((Char) (O.+73)))
-                               (((String) (((Char) (O.+110)))
-                                (((String) (((Char) (O.+99)))
-                                 (((String) (((Char) (O.+111)))
-                                  (((String) (((Char) (O.+114)))
-                                   (((String) (((Char) (O.+114)))
-                                    (((String) (((Char) (O.+101)))
-                                     (((String) (((Char) (O.+99)))
-                                      (((String) (((Char) (O.+116)))
-                                       (((String) (((Char) (O.+44)))
-                                        (((String) (((Char) (O.+32)))
-                                         (((String) (((Char) (O.+104)))
-                                          (((String) (((Char) (O.+105)))
-                                           (((String) (((Char) (O.+110)))
-                                            (((String) (((Char) (O.+116)))
-                                             (((String) (((Char) (O.+58)))
+                                                   (((Char) (O.+110)))
+                                                   (((String)
+                                                    (((Char) (O.+116)))
+                                                    (((String)
+                                                     (((Char) (O.+58)))
+                                                     (((String)
+                                                      (((Char) (O.+32)))
+                                                      (EmptyString)))))))))))))))))))))))))))))))))))
+                                     (s)))
+                                    (((String) (((Char) (O.+46)))
+                                     (((String) (((Char) (O.+32)))
+                                      (((String) (((Char) (O.+89)))
+                                       (((String) (((Char) (O.+111)))
+                                        (((String) (((Char) (O.+117)))
+                                         (((String) (((Char) (O.+32)))
+                                          (((String) (((Char) (O.+104)))
+                                           (((String) (((Char) (O.+97)))
+                                            (((String) (((Char) (O.+118)))
+                                             (((String) (((Char) (O.+101)))
                                               (((String) (((Char) (O.+32)))
-                                               (EmptyString)))))))))))))))))))))))))))))))))))
-                              (s)))
-                             (((String) (((Char) (O.+46)))
-                              (((String) (((Char) (O.+32)))
-                               (((String) (((Char) (O.+89)))
-                                (((String) (((Char) (O.+111)))
-                                 (((String) (((Char) (O.+117)))
+                                               (EmptyString)))))))))))))))))))))))))
+                                   (((string_of_nat) (repeat)))))
                                   (((String) (((Char) (O.+32)))
-                                   (((String) (((Char) (O.+104)))
-                                    (((String) (((Char) (O.+97)))
-                                     (((String) (((Char) (O.+118)))
+                                   (((String) (((Char) (O.+109)))
+                                    (((String) (((Char) (O.+111)))
+                                     (((String) (((Char) (O.+114)))
                                       (((String) (((Char) (O.+101)))
                                        (((String) (((Char) (O.+32)))
-                                        (EmptyString)))))))))))))))))))))))))
-                            (((string_of_nat) (repeat)))))
-                           (((String) (((Char) (O.+32)))
-                            (((String) (((Char) (O.+109)))
-                             (((String) (((Char) (O.+111)))
-                              (((String) (((Char) (O.+114)))
-                               (((String) (((Char) (O.+101)))
-                                (((String) (((Char) (O.+32)))
-                                 (((String) (((Char) (O.+116)))
-                                  (((String) (((Char) (O.+114)))
-                                   (((String) (((Char) (O.+105)))
-                                    (((String) (((Char) (O.+101)))
-                                     (((String) (((Char) (O.+115)))
-                                      (((String) (((Char) (O.+46)))
-                                       (((String) (((Char) (O.+10)))
-                                        (EmptyString)))))))))))))))))))))))))))))) in (
-                          (player_loop) (ans) (repeat) (c))))
-                         (c))))
+                                        (((String) (((Char) (O.+116)))
+                                         (((String) (((Char) (O.+114)))
+                                          (((String) (((Char) (O.+105)))
+                                           (((String) (((Char) (O.+101)))
+                                            (((String) (((Char) (O.+115)))
+                                             (((String) (((Char) (O.+46)))
+                                              (((String) (((Char) (O.+10)))
+                                               (EmptyString)))))))))))))))))))))))))))))) in (
+                                 (player_loop) (ans) (repeat) (c))))
+                                (c))))
 (c))
 
-program player‹› (c : wordle_hc) : IO unit = let ⟨{ans}, c⟩ ⇐ recv c in let ⟨repeat, c⟩ ⇐ recv c in let _ ⇐ (
+program player‹› (c : wordle_hc) : IO unit‹s› = let ⟨{ans}, c⟩ ⇐ recv c in let ⟨repeat, c⟩ ⇐ recv c in let _ ⇐ (
 (print)
 (((String) (((Char) (O.+87)))
  (((String) (((Char) (O.+111)))
@@ -462,7 +475,7 @@ program get_at‹› {A : U} (n : nat) (xs : ((list) (A))) : (∀ {_ : (
 (ltn) (n) (((llen) (_) (xs0)))) ≡ true} → ((subset) (_)
 ((fn (x : _) ⇒ ((at) (_) (x) (n) (xs0)))))) with nil  ⇒ (fn {e : _} ⇒ rew [b, _ ⇒ match b as _ in _ with true ⇒ (
 (subset) (_)
-((fn (x : _) ⇒ ((at) (_) (x) (n) (nil))))) | false ⇒ unit] e in ()) | cons x
+((fn (x : _) ⇒ ((at) (_) (x) (n) (nil))))) | false ⇒ unit‹s›] e in ()) | cons x
 xs ⇒ match n as n0 in (∀ {_ : ((ltn) (n0)
 (((llen) (_) (xs)).+1)) ≡ true} → ((subset) (_)
 ((fn (x0 : _) ⇒ ((at) (_) (x0) (n0) (((cons) (x) (xs)))))))) with O ⇒ (fn {e : _} ⇒ (
@@ -472,7 +485,7 @@ xs ⇒ match n as n0 in (∀ {_ : ((ltn) (n0)
 pf ⇒ ((SPair) (x0)
 (((at_S) (_) (_) (_) (pf) (refl) (refl)))))
 
-program rand_word‹› (_ : unit) : IO word = let words = (((cons)
+program rand_word‹› (_ : unit‹s›) : IO word = let words = (((cons)
 (((Word)
  (((String) (((Char) (O.+114)))
   (((String) (((Char) (O.+111)))
@@ -640,33 +653,35 @@ _ ⇒ return w
 
 program server_loop‹› (ans : word) (repeat : nat) (c : ((loop_ch) 
 (ans)
-(repeat))) : IO unit = ((match repeat as repeat0 in (∀ (_ : ((loop_ch)
-                         (ans)
-                         (repeat0))) → IO unit) with O ⇒ (fn (c : _) ⇒ let c ⇐ (
-                         (send c) (ans)) in let c ⇐ ((send c)
-                         (refl)) in close c) | S repeat ⇒ (fn (c : _) ⇒ let ⟨guess, c⟩ ⇐ recv c in let b = (
-                         (eqw) (ans) (guess)) in let c ⇐ ((send c)
-                         (b)) in let c ⇐ ((send c)
-                         (refl)) in ((match b as b0 in (∀ (_ : ch‹match b0 as _ in _ with true ⇒ end | false ⇒ !(df : word) → !{_ : (
-                                      (wdiff) (ans) (guess)
-                                      (df))} → ((wordle_loop) (ans)
-                                      (repeat))›) ⊸ IO unit) with true ⇒ (ln (c : _) ⇒ close c) | false ⇒ (ln (c : _) ⇒ match (
-                                      (word_diff) (ans)
-                                      (guess)) as _ in _ with SPair df
-                                      pf ⇒ let c ⇐ ((send c)
-                                      (df)) in let c ⇐ ((send c)
-                                      (pf)) in ((server_loop) (ans) (repeat)
-                                      (c))))
-                         (c))))
+(repeat))) : IO unit‹s› = ((match repeat as repeat0 in (∀ (_ : (
+                                (loop_ch) (ans)
+                                (repeat0))) → IO unit‹s›) with O ⇒ (fn (c : _) ⇒ let c ⇐ (
+                                (send c) (ans)) in let c ⇐ ((send c)
+                                (refl)) in close c) | S repeat ⇒ (fn (c : _) ⇒ let ⟨guess, c⟩ ⇐ recv c in let b = (
+                                (eqw) (ans) (guess)) in let c ⇐ ((send c)
+                                (b)) in let c ⇐ ((send c)
+                                (refl)) in ((match b as b0 in (∀ (_ : ch‹match b0 as _ in _ with true ⇒ end | false ⇒ !(df : word) → !{_ : (
+                                             (wdiff) (ans) (guess)
+                                             (df))} → ((wordle_loop) 
+                                             (ans)
+                                             (repeat))›) ⊸ IO unit‹s›) with true ⇒ (ln (c : _) ⇒ close c) | false ⇒ (ln (c : _) ⇒ match (
+                                             (word_diff) (ans)
+                                             (guess)) as _ in _ with SPair df
+                                             pf ⇒ let c ⇐ ((send c)
+                                             (df)) in let c ⇐ ((send c)
+                                             (pf)) in ((server_loop) 
+                                             (ans) (repeat) (c))))
+                                (c))))
 (c))
 
-program server‹› (c : wordle_ch) : IO unit = let repeat = O.+6 in let ans ⇐ (
+program server‹› (c : wordle_ch) : IO unit‹s› = let repeat = O.+6 in let ans ⇐ (
 (rand_word) (())) in let c ⇐ ((send c) (ans)) in let c ⇐ ((send c)
 (repeat)) in ((server_loop) (ans) (repeat)
 (c))
 
-program main‹› : IO unit = let c ⇐ fork (c : wordle_ch) in ((server)
-(c)) in let c0 ⇐ fork (c0 : ch‹?(_ : wordle_hc) → !(_ : unit) → end›) in let ⟨c, c0⟩ ⇐ recv c0 in let _ ⇐ (
+program main‹› : IO unit‹s› = let c ⇐ fork (c : wordle_ch) in (
+(server)
+(c)) in let c0 ⇐ fork (c0 : ch‹?(_ : wordle_hc) → !(_ : unit‹s›) → end›) in let ⟨c, c0⟩ ⇐ recv c0 in let _ ⇐ (
 (player) (c)) in let c0 ⇐ ((send c0)
 (())) in close c0 in let c0 ⇐ ((send c0)
 (c)) in let ⟨_, c0⟩ ⇐ recv c0 in close c0
@@ -945,24 +960,24 @@ program append_i26 ‹s_s953, t_s954› :
           x_v962 (append_i26‹??68, ??67› ??66 xs_v963 ys_v960))
       end
 
-logical stdin_rec_i27 : unit → proto =
-  fn (__v965 : unit) ⇒
+logical stdin_rec_i27 : unit‹U› → proto =
+  fn (__v965 : unit‹U›) ⇒
     ⇑(b_v966 : bool) ⇒
       match b_v966 as __v967 in ??72 with
       | true ⇒ ⇓(__v968 : string_d4) ⇒ (stdin_rec_i27 ())
       | false ⇒ end
       end
 
-logical stdout_rec_i28 : unit → proto =
-  fn (__v970 : unit) ⇒
+logical stdout_rec_i28 : unit‹U› → proto =
+  fn (__v970 : unit‹U›) ⇒
     ⇑(b_v971 : bool) ⇒
       match b_v971 as __v972 in ??73 with
       | true ⇒ ⇑(__v973 : string_d4) ⇒ (stdout_rec_i28 ())
       | false ⇒ end
       end
 
-logical stderr_rec_i29 : unit → proto =
-  fn (__v975 : unit) ⇒
+logical stderr_rec_i29 : unit‹U› → proto =
+  fn (__v975 : unit‹U›) ⇒
     ⇑(b_v976 : bool) ⇒
       match b_v976 as __v977 in ??74 with
       | true ⇒ ⇑(__v978 : string_d4) ⇒ (stderr_rec_i29 ())
@@ -975,8 +990,8 @@ logical stdout_t_i31 : proto = (stdout_rec_i28 ())
 
 logical stderr_t_i32 : proto = (stderr_rec_i29 ())
 
-program readline_i33 : unit → IO string_d4 =
-  fn (__v980 : unit) ⇒
+program readline_i33 : unit‹U› → IO string_d4 =
+  fn (__v980 : unit‹U›) ⇒
     let ch_v981 ⇐ open stdin in
     let ch_v982 ⇐ (send ch_v981 true) in
     let __v983 ⇐ recv ch_v982 in
@@ -986,14 +1001,14 @@ program readline_i33 : unit → IO string_d4 =
       let __v988 ⇐ close ch_v987 in return s_v985
     end
 
-program print_i34 : string_d4 → IO unit =
+program print_i34 : string_d4 → IO unit‹U› =
   fn (s_v990 : string_d4) ⇒
     let ch_v991 ⇐ open stdout in
     let ch_v992 ⇐ (send ch_v991 true) in
     let ch_v993 ⇐ (send ch_v992 s_v990) in
     let ch_v994 ⇐ (send ch_v993 false) in close ch_v994
 
-program prerr_i35 : string_d4 → IO unit =
+program prerr_i35 : string_d4 → IO unit‹U› =
   fn (s_v996 : string_d4) ⇒
     let ch_v997 ⇐ open stderr in
     let ch_v998 ⇐ (send ch_v997 true) in
@@ -1156,7 +1171,7 @@ logical bool_absurd_i46 : true ≡ false → ⊥ =
   fn (e_v1092 : true ≡ false) ⇒
     rew [x_v1093, __v1094 ⇒
       match x_v1093 as __v1095 in ??189 with
-      | true ⇒ unit | false ⇒ ⊥
+      | true ⇒ unit‹U› | false ⇒ ⊥
       end] e_v1092 in
     ()
 
@@ -1164,7 +1179,7 @@ logical nat_absurd_i47 : ∀ (n_v1096 : nat) → n_v1096.+1 ≡ 0 → ⊥ =
   fn (n_v1098 : nat) (e_v1099 : n_v1098.+1 ≡ 0) ⇒
     rew [x_v1100, __v1101 ⇒
       match x_v1100 as __v1102 in ??191 with
-      | O ⇒ ⊥ | S __v1103 ⇒ unit
+      | O ⇒ ⊥ | S __v1103 ⇒ unit‹U›
       end] e_v1099 in
     ()
 
@@ -1329,7 +1344,7 @@ program string_diff_i52 :
         fn {e_v1235 : ??362} ⇒
           rew [x_v1236, __v1237 ⇒
             match x_v1236 as __v1238 in ??363 with
-            | O ⇒ unit
+            | O ⇒ unit‹U›
             | S __v1239 ⇒
               (subset_d7‹??367, ??366, ??365›
                 string_d4
@@ -1361,7 +1376,7 @@ program string_diff_i52 :
                   (diff_d8
                     ans_v1223 (String_c7‹› c1_v1241 s1_v1242)
                     EmptyString_c6‹› df_v1250))
-            | S __v1251 ⇒ unit
+            | S __v1251 ⇒ unit‹U›
             end] e_v1246 in
           ()
       | String_c7 c2_v1252 s2_v1253 ⇒
@@ -1594,8 +1609,8 @@ logical wordle_ch_i60 : L = ch⟨wordle_i57⟩
 
 logical wordle_hc_i61 : L = hc⟨wordle_i57⟩
 
-program read_word_i62 : unit → IO word_d9 =
-  fn (__v1423 : unit) ⇒
+program read_word_i62 : unit‹U› → IO word_d9 =
+  fn (__v1423 : unit‹U›) ⇒
     let s_v1424 ⇐ (readline_i33 ()) in
     (match (eqn_i9 (strlen_i20 s_v1424) 5) as b0_v1425 in
        {(eqn_i9 (strlen_i20 s_v1424) 5) ≡ b0_v1425} → IO word_d9 with
@@ -1612,12 +1627,12 @@ program read_word_i62 : unit → IO word_d9 =
 program player_loop_i63 :
   ∀ {ans_v1430 : word_d9} →
     ∀ (repeat_v1431 : nat) →
-      (loop_hc_i59 ans_v1430 repeat_v1431) → IO unit
+      (loop_hc_i59 ans_v1430 repeat_v1431) → IO unit‹U›
 =
   fn {ans_v1433 : word_d9} (repeat_v1434 : nat)
      (c_v1435 : (loop_hc_i59 ans_v1433 repeat_v1434)) ⇒
     (match repeat_v1434 as repeat0_v1436 in
-       (loop_hc_i59 ans_v1433 repeat0_v1436) → IO unit with
+       (loop_hc_i59 ans_v1433 repeat0_v1436) → IO unit‹U› with
      | O ⇒
        fn (c_v1438 : ??515) ⇒
          let __v1439 ⇐ recv c_v1438 in
@@ -1655,7 +1670,7 @@ program player_loop_i63 :
                            (wdiff_d10 ans_v1433 guess_v1453 df_v1466)} ⇒
                            (wordle_loop_i56 ans_v1433 repeat_v1451)
                      end⟩ ⊸
-                  IO unit with
+                  IO unit‹U› with
               | true ⇒
                 ln (c_v1468 : ??512) ⇒
                   let __v1469 ⇐ (print_i34 "You Win!\n") in close c_v1468
@@ -1687,7 +1702,7 @@ program player_loop_i63 :
          end
      end c_v1435)
 
-program player_i64 : wordle_hc_i61 → IO unit =
+program player_i64 : wordle_hc_i61 → IO unit‹U› =
   fn (c_v1484 : wordle_hc_i61) ⇒
     let __v1485 ⇐ recv c_v1484 in
     match __v1485 as __v1486 in ??520 with
@@ -1763,7 +1778,7 @@ program get_at_i66 :
               ??613
               fn (x_v1538 : ??608) ⇒
                 (at_d11 ??612 x_v1538 n_v1529 nil_c10‹??611, ??610›))
-          | false ⇒ unit
+          | false ⇒ unit‹U›
           end] e_v1534 in
         ()
     | cons_c11 x_v1539 xs_v1540 ⇒
@@ -1795,8 +1810,8 @@ program get_at_i66 :
       end
     end
 
-program rand_word_i67 : unit → IO word_d9 =
-  fn (__v1551 : unit) ⇒
+program rand_word_i67 : unit‹U› → IO word_d9 =
+  fn (__v1551 : unit‹U›) ⇒
     let words_v1552 =
       ((cons_c11‹??699, ??698›
          (Word_c17‹› "route" refl ??696)
@@ -1856,12 +1871,12 @@ program rand_word_i67 : unit → IO word_d9 =
 program server_loop_i68 :
   ∀ (ans_v1561 : word_d9) →
     ∀ (repeat_v1562 : nat) →
-      (loop_ch_i58 ans_v1561 repeat_v1562) → IO unit
+      (loop_ch_i58 ans_v1561 repeat_v1562) → IO unit‹U›
 =
   fn (ans_v1564 : word_d9) (repeat_v1565 : nat)
      (c_v1566 : (loop_ch_i58 ans_v1564 repeat_v1565)) ⇒
     (match repeat_v1565 as repeat0_v1567 in
-       (loop_ch_i58 ans_v1564 repeat0_v1567) → IO unit with
+       (loop_ch_i58 ans_v1564 repeat0_v1567) → IO unit‹U› with
      | O ⇒
        fn (c_v1569 : ??712) ⇒
          let c_v1570 ⇐ (send c_v1569 ans_v1564) in
@@ -1883,7 +1898,7 @@ program server_loop_i68 :
                          (wdiff_d10 ans_v1564 guess_v1576 df_v1584)} ⇒
                          (wordle_loop_i56 ans_v1564 repeat_v1572)
                    end⟩ ⊸
-                IO unit with
+                IO unit‹U› with
             | true ⇒ ln (c_v1586 : ??710) ⇒ close c_v1586
             | false ⇒
               ln (c_v1587 : ??708) ⇒
@@ -1898,7 +1913,7 @@ program server_loop_i68 :
          end
      end c_v1566)
 
-program server_i69 : wordle_ch_i60 → IO unit =
+program server_i69 : wordle_ch_i60 → IO unit‹U› =
   fn (c_v1594 : wordle_ch_i60) ⇒
     let repeat_v1595 = 6 in
     let ans_v1596 ⇐ (rand_word_i67 ()) in
@@ -1906,11 +1921,12 @@ program server_i69 : wordle_ch_i60 → IO unit =
     let c_v1598 ⇐ (send c_v1597 repeat_v1595) in
     (server_loop_i68 ans_v1596 repeat_v1595 c_v1598)
 
-program main_i70 : IO unit =
+program main_i70 : IO unit‹U› =
   let c_v1599 ⇐ fork (c_v1600 : wordle_ch_i60) in (server_i69 c_v1600) in
   let c0_v1601 ⇐
     fork (c0_v1602 :
-      ch⟨⇓(__v1603 : wordle_hc_i61) ⇒ ⇑(__v1604 : unit) ⇒ end⟩)
+      ch⟨⇓(__v1603 : wordle_hc_i61) ⇒
+             ⇑(__v1604 : unit‹U›) ⇒ end⟩)
     in
       let __v1605 ⇐ recv c0_v1602 in
       match __v1605 as __v1606 in ??714 with
@@ -2216,24 +2232,24 @@ program append_i26 ‹s_s899562, t_s899563› :
             A_v899567 xs_v899572 ys_v899569))
       end
 
-logical stdin_rec_i27 : unit → proto =
-  fn (__v899574 : unit) ⇒
+logical stdin_rec_i27 : unit‹U› → proto =
+  fn (__v899574 : unit‹U›) ⇒
     ⇑(b_v899575 : bool) ⇒
       match b_v899575 as __v899576 in proto with
       | true ⇒ ⇓(__v899577 : string_d4) ⇒ (stdin_rec_i27 ())
       | false ⇒ end
       end
 
-logical stdout_rec_i28 : unit → proto =
-  fn (__v899579 : unit) ⇒
+logical stdout_rec_i28 : unit‹U› → proto =
+  fn (__v899579 : unit‹U›) ⇒
     ⇑(b_v899580 : bool) ⇒
       match b_v899580 as __v899581 in proto with
       | true ⇒ ⇑(__v899582 : string_d4) ⇒ (stdout_rec_i28 ())
       | false ⇒ end
       end
 
-logical stderr_rec_i29 : unit → proto =
-  fn (__v899584 : unit) ⇒
+logical stderr_rec_i29 : unit‹U› → proto =
+  fn (__v899584 : unit‹U›) ⇒
     ⇑(b_v899585 : bool) ⇒
       match b_v899585 as __v899586 in proto with
       | true ⇒ ⇑(__v899587 : string_d4) ⇒ (stderr_rec_i29 ())
@@ -2246,8 +2262,8 @@ logical stdout_t_i31 : proto = (stdout_rec_i28 ())
 
 logical stderr_t_i32 : proto = (stderr_rec_i29 ())
 
-program readline_i33 : unit → IO string_d4 =
-  fn (__v899589 : unit) ⇒
+program readline_i33 : unit‹U› → IO string_d4 =
+  fn (__v899589 : unit‹U›) ⇒
     let ch_v899590 ⇐ open stdin in
     let ch_v899591 ⇐ (send ch_v899590 true) in
     let __v899592 ⇐ recv ch_v899591 in
@@ -2257,14 +2273,14 @@ program readline_i33 : unit → IO string_d4 =
       let __v899597 ⇐ close ch_v899596 in return s_v899594
     end
 
-program print_i34 : string_d4 → IO unit =
+program print_i34 : string_d4 → IO unit‹U› =
   fn (s_v899599 : string_d4) ⇒
     let ch_v899600 ⇐ open stdout in
     let ch_v899601 ⇐ (send ch_v899600 true) in
     let ch_v899602 ⇐ (send ch_v899601 s_v899599) in
     let ch_v899603 ⇐ (send ch_v899602 false) in close ch_v899603
 
-program prerr_i35 : string_d4 → IO unit =
+program prerr_i35 : string_d4 → IO unit‹U› =
   fn (s_v899605 : string_d4) ⇒
     let ch_v899606 ⇐ open stderr in
     let ch_v899607 ⇐ (send ch_v899606 true) in
@@ -2441,7 +2457,7 @@ logical bool_absurd_i46 : true ≡ false → ⊥ =
   fn (e_v899701 : true ≡ false) ⇒
     rew [x_v899702, __v899703 ⇒
       match x_v899702 as __v899704 in U with
-      | true ⇒ unit | false ⇒ ⊥
+      | true ⇒ unit‹U› | false ⇒ ⊥
       end] e_v899701 in
     ()
 
@@ -2450,7 +2466,7 @@ logical nat_absurd_i47 : ∀ (n_v899705 : nat) → n_v899705.+1 ≡ 0 → ⊥
   fn (n_v899707 : nat) (e_v899708 : n_v899707.+1 ≡ 0) ⇒
     rew [x_v899709, __v899710 ⇒
       match x_v899709 as __v899711 in U with
-      | O ⇒ ⊥ | S __v899712 ⇒ unit
+      | O ⇒ ⊥ | S __v899712 ⇒ unit‹U›
       end] e_v899708 in
     ()
 
@@ -2625,7 +2641,7 @@ program string_diff_i52 :
                             (String_c7‹› c2_v899842 s2_v899843))} ⇒
           rew [x_v899845, __v899846 ⇒
             match x_v899845 as __v899847 in U with
-            | O ⇒ unit
+            | O ⇒ unit‹U›
             | S __v899848 ⇒
               (subset_d7‹U, U, U›
                 string_d4
@@ -2657,7 +2673,7 @@ program string_diff_i52 :
                   (diff_d8
                     ans_v899832 (String_c7‹› c1_v899850 s1_v899851)
                     EmptyString_c6‹› df_v899859))
-            | S __v899860 ⇒ unit
+            | S __v899860 ⇒ unit‹U›
             end] e_v899855 in
           ()
       | String_c7 c2_v899861 s2_v899862 ⇒
@@ -2973,8 +2989,8 @@ logical wordle_ch_i60 : L = ch⟨wordle_i57⟩
 
 logical wordle_hc_i61 : L = hc⟨wordle_i57⟩
 
-program read_word_i62 : unit → IO word_d9 =
-  fn (__v900037 : unit) ⇒
+program read_word_i62 : unit‹U› → IO word_d9 =
+  fn (__v900037 : unit‹U›) ⇒
     let s_v900038 ⇐ (readline_i33 ()) in
     (match (eqn_i9 (strlen_i20 s_v900038) 5) as b0_v900039 in
        {(eqn_i9 (strlen_i20 s_v900038) 5) ≡ b0_v900039} → IO word_d9 with
@@ -2993,21 +3009,21 @@ program read_word_i62 : unit → IO word_d9 =
 program player_loop_i63 :
   ∀ {ans_v900044 : word_d9} →
     ∀ (repeat_v900045 : nat) →
-      (loop_hc_i59 ans_v900044 repeat_v900045) → IO unit
+      (loop_hc_i59 ans_v900044 repeat_v900045) → IO unit‹U›
 =
   fn {ans_v900047 : word_d9} (repeat_v900048 : nat)
      (c_v900049 : (loop_hc_i59 ans_v900047 repeat_v900048)) ⇒
     (match repeat_v900048 as repeat0_v900050 in
-       (loop_hc_i59 ans_v900047 repeat0_v900050) → IO unit with
+       (loop_hc_i59 ans_v900047 repeat0_v900050) → IO unit‹U› with
      | O ⇒
        fn (c_v900052 : (loop_hc_i59 ans_v900047 0)) ⇒
          let __v900053 ⇐ recv c_v900052 in
-         match __v900053 as __v900054 in IO unit with
+         match __v900053 as __v900054 in IO unit‹U› with
          | ⟨ans_v900055, c_v900056⟩ ⇒
            let __v900057 ⇐ recv c_v900056 in
-           match __v900057 as __v900058 in IO unit with
+           match __v900057 as __v900058 in IO unit‹U› with
            | ⟨{pf_v900059}, c_v900060⟩ ⇒
-             match ans_v900055 as __v900061 in IO unit with
+             match ans_v900055 as __v900061 in IO unit‹U› with
              | Word_c17 s_v900062 __v900063 ⇒
                let __v900064 ⇐
                  (print_i34
@@ -3022,10 +3038,10 @@ program player_loop_i63 :
          let guess_v900067 ⇐ (read_word_i62 ()) in
          let c_v900068 ⇐ (send c_v900066 guess_v900067) in
          let __v900069 ⇐ recv c_v900068 in
-         match __v900069 as __v900070 in IO unit with
+         match __v900069 as __v900070 in IO unit‹U› with
          | ⟨b_v900071, c_v900072⟩ ⇒
            let __v900073 ⇐ recv c_v900072 in
-           match __v900073 as __v900074 in IO unit with
+           match __v900073 as __v900074 in IO unit‹U› with
            | ⟨{pf_v900075}, c_v900076⟩ ⇒
              (match b_v900071 as b0_v900077 in
                 hc⟨match b0_v900077 as __v900079 in proto with
@@ -3036,7 +3052,7 @@ program player_loop_i63 :
                            (wdiff_d10 ans_v900047 guess_v900067 df_v900080)} ⇒
                            (wordle_loop_i56 ans_v900047 repeat_v900065)
                      end⟩ ⊸
-                  IO unit with
+                  IO unit‹U› with
               | true ⇒
                 ln (c_v900082 : hc⟨end⟩) ⇒
                   let __v900083 ⇐ (print_i34 "You Win!\n") in
@@ -3050,12 +3066,12 @@ program player_loop_i63 :
                                          (wordle_loop_i56
                                            ans_v900047 repeat_v900065)⟩) ⇒
                   let __v900087 ⇐ recv c_v900084 in
-                  match __v900087 as __v900088 in IO unit with
+                  match __v900087 as __v900088 in IO unit‹U› with
                   | ⟨diff_v900089, c_v900090⟩ ⇒
                     let __v900091 ⇐ recv c_v900090 in
-                    match __v900091 as __v900092 in IO unit with
+                    match __v900091 as __v900092 in IO unit‹U› with
                     | ⟨{pf_v900093}, c_v900094⟩ ⇒
-                      match diff_v900089 as __v900095 in IO unit with
+                      match diff_v900089 as __v900095 in IO unit‹U› with
                       | Word_c17 s_v900096 __v900097 ⇒
                         let __v900098 ⇐
                           (print_i34
@@ -3077,13 +3093,13 @@ program player_loop_i63 :
          end
      end c_v900049)
 
-program player_i64 : wordle_hc_i61 → IO unit =
+program player_i64 : wordle_hc_i61 → IO unit‹U› =
   fn (c_v900100 : wordle_hc_i61) ⇒
     let __v900101 ⇐ recv c_v900100 in
-    match __v900101 as __v900102 in IO unit with
+    match __v900101 as __v900102 in IO unit‹U› with
     | ⟨{ans_v900103}, c_v900104⟩ ⇒
       let __v900105 ⇐ recv c_v900104 in
-      match __v900105 as __v900106 in IO unit with
+      match __v900105 as __v900106 in IO unit‹U› with
       | ⟨repeat_v900107, c_v900108⟩ ⇒
         let __v900109 ⇐ (print_i34 "Wordle Game\n") in
         let __v900110 ⇐ (print_i34 "Please guess a word of length 5.\n") in
@@ -3156,7 +3172,7 @@ program get_at_i66 :
               A_v900144
               fn (x_v900154 : A_v900144) ⇒
                 (at_d11 A_v900144 x_v900154 n_v900145 nil_c10‹U, U›))
-          | false ⇒ unit
+          | false ⇒ unit‹U›
           end] e_v900150 in
         ()
     | cons_c11 x_v900155 xs_v900156 ⇒
@@ -3204,8 +3220,8 @@ program get_at_i66 :
       end
     end
 
-program rand_word_i67 : unit → IO word_d9 =
-  fn (__v900168 : unit) ⇒
+program rand_word_i67 : unit‹U› → IO word_d9 =
+  fn (__v900168 : unit‹U›) ⇒
     let words_v900169 =
       ((cons_c11‹U, U›
          (Word_c17‹› "route" refl (strlen_i20 "route"))
@@ -3275,12 +3291,12 @@ program rand_word_i67 : unit → IO word_d9 =
 program server_loop_i68 :
   ∀ (ans_v900178 : word_d9) →
     ∀ (repeat_v900179 : nat) →
-      (loop_ch_i58 ans_v900178 repeat_v900179) → IO unit
+      (loop_ch_i58 ans_v900178 repeat_v900179) → IO unit‹U›
 =
   fn (ans_v900181 : word_d9) (repeat_v900182 : nat)
      (c_v900183 : (loop_ch_i58 ans_v900181 repeat_v900182)) ⇒
     (match repeat_v900182 as repeat0_v900184 in
-       (loop_ch_i58 ans_v900181 repeat0_v900184) → IO unit with
+       (loop_ch_i58 ans_v900181 repeat0_v900184) → IO unit‹U› with
      | O ⇒
        fn (c_v900186 : (loop_ch_i58 ans_v900181 0)) ⇒
          let c_v900187 ⇐ (send c_v900186 ans_v900181) in
@@ -3289,7 +3305,7 @@ program server_loop_i68 :
      | S repeat_v900189 ⇒
        fn (c_v900190 : (loop_ch_i58 ans_v900181 repeat_v900189.+1)) ⇒
          let __v900191 ⇐ recv c_v900190 in
-         match __v900191 as __v900192 in IO unit with
+         match __v900191 as __v900192 in IO unit‹U› with
          | ⟨guess_v900193, c_v900194⟩ ⇒
            let b_v900195 = (eqw_i55 ans_v900181 guess_v900193) in
            let c_v900196 ⇐ (send c_v900194 b_v900195) in
@@ -3305,7 +3321,7 @@ program server_loop_i68 :
                          (wdiff_d10 ans_v900181 guess_v900193 df_v900201)} ⇒
                          (wordle_loop_i56 ans_v900181 repeat_v900189)
                    end⟩ ⊸
-                IO unit with
+                IO unit‹U› with
             | true ⇒ ln (c_v900203 : ch⟨end⟩) ⇒ close c_v900203
             | false ⇒
               ln (c_v900204 : ch⟨⇑(df_v900205 : word_d9) ⇒
@@ -3315,7 +3331,7 @@ program server_loop_i68 :
                                        (wordle_loop_i56
                                          ans_v900181 repeat_v900189)⟩) ⇒
                 match (word_diff_i54 ans_v900181 guess_v900193) as __v900207 in
-                  IO unit with
+                  IO unit‹U› with
                 | SPair_c12 df_v900208 pf_v900209 ⇒
                   let c_v900210 ⇐ (send c_v900204 df_v900208) in
                   let c_v900211 ⇐ (send c_v900210 pf_v900209) in
@@ -3325,7 +3341,7 @@ program server_loop_i68 :
          end
      end c_v900183)
 
-program server_i69 : wordle_ch_i60 → IO unit =
+program server_i69 : wordle_ch_i60 → IO unit‹U› =
   fn (c_v900213 : wordle_ch_i60) ⇒
     let repeat_v900214 = 6 in
     let ans_v900215 ⇐ (rand_word_i67 ()) in
@@ -3333,16 +3349,17 @@ program server_i69 : wordle_ch_i60 → IO unit =
     let c_v900217 ⇐ (send c_v900216 repeat_v900214) in
     (server_loop_i68 ans_v900215 repeat_v900214 c_v900217)
 
-program main_i70 : IO unit =
+program main_i70 : IO unit‹U› =
   let c_v900218 ⇐
     fork (c_v900219 : wordle_ch_i60) in (server_i69 c_v900219)
   in
   let c0_v900220 ⇐
     fork (c0_v900221 :
-      ch⟨⇓(__v900222 : wordle_hc_i61) ⇒ ⇑(__v900223 : unit) ⇒ end⟩)
+      ch⟨⇓(__v900222 : wordle_hc_i61) ⇒
+             ⇑(__v900223 : unit‹U›) ⇒ end⟩)
     in
       let __v900224 ⇐ recv c0_v900221 in
-      match __v900224 as __v900225 in IO unit with
+      match __v900224 as __v900225 in IO unit‹U› with
       | ⟨c_v900226, c0_v900227⟩ ⇒
         let __v900228 ⇐ (player_i64 c_v900226) in
         let c0_v900229 ⇐ (send c0_v900227 ()) in close c0_v900229
@@ -3350,7 +3367,7 @@ program main_i70 : IO unit =
   in
   let c0_v900230 ⇐ (send c0_v900220 c_v900218) in
   let __v900231 ⇐ recv c0_v900230 in
-  match __v900231 as __v900232 in IO unit with
+  match __v900231 as __v900232 in IO unit‹U› with
   | ⟨__v900233, c0_v900234⟩ ⇒ close c0_v900234
   end
 
