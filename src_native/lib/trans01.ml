@@ -303,6 +303,11 @@ let rec trans_tm nspc = function
     Syntax1.
       ( _Match m (bind_var x a) (box_list cls)
       , ISet.union (ISet.union iset1 iset2) iset3 )
+  (* absurd *)
+  | Bot -> Syntax1.(_Bot, ISet.empty)
+  | Absurd m ->
+    let m, iset = trans_tm nspc m in
+    Syntax1.(_Absurd (mk_meta nspc) m, iset)
   (* equality *)
   | Eq (m, n) ->
     let m, iset1 = trans_tm nspc m in

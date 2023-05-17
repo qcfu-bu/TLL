@@ -88,6 +88,9 @@ let rec pp_tm fmt = function
   | Pair (N, SId sid, m, n) -> pf fmt "tup‹%s›({%a}, %a)" sid pp_tm m pp_tm n
   | Match (m, Binder (id, a), cls) ->
     pf fmt "match %a as %s in %a with %a" pp_tm m id pp_tm a pp_cls cls
+  (* absurd *)
+  | Bot -> pf fmt "⊥"
+  | Absurd m -> pf fmt "absurd %a" pp_tm m
   (* equality *)
   | Eq (m, n) -> pf fmt "%a ≡ %a" pp_tm m pp_tm n
   | Refl -> pf fmt "refl"

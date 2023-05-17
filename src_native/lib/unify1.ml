@@ -171,6 +171,12 @@ let rec fv ctx = function
     in
     ( SVSet.union (SVSet.union fsv1 fsv2) fsv3
     , VSet.union (VSet.union fv1 fv2) fv3 )
+  (* absurd *)
+  | Bot -> (SVSet.empty, VSet.empty)
+  | Absurd (a, m) ->
+    let fsv1, fv1 = fv ctx a in
+    let fsv2, fv2 = fv ctx m in
+    (SVSet.union fsv1 fsv2, VSet.union fv1 fv2)
   (* equality *)
   | Eq (a, m, n) ->
     let fsv1, fv1 = fv ctx a in
@@ -266,6 +272,8 @@ let rec occurs_tm x = function
              let _, m = unmbind bnd in
              occurs_tm x m)
          cls
+  (* absurd *)
+  | Absurd (a, m) -> occurs_tm x a || occurs_tm x m
   (* equality *)
   | Eq (a, m, n) -> occurs_tm x a || occurs_tm x m || occurs_tm x n
   | Refl m -> occurs_tm x m
@@ -438,6 +446,11 @@ let rec simpl ?(expand_const = false) eqn =
           cls1 cls2 []
       in
       eqns1 @ eqns2 @ eqns3
+    | Bot, Bot -> []
+    | Absurd (a1, m1), Absurd (a2, m2) ->
+      let eqns1 = simpl (Eqn1 (env, a1, a2)) in
+      let eqns2 = simpl (Eqn1 (env, m1, m2)) in
+      eqns1 @ eqns2
     (* equality *)
     | Eq (a1, m1, n1), Eq (a2, m2, n2) ->
       let eqns1 = simpl (Eqn1 (env, a1, a2)) in
@@ -485,7 +498,11 @@ let rec simpl ?(expand_const = false) eqn =
       let eqns2 = simpl (Eqn1 (env, n1, n2)) in
       eqns1 @ eqns2
     (* other *)
-    | _ -> failwith "simpl(%a, %a)" pp_tm m1 pp_tm m2)
+    | _ ->
+      if expand_const then
+        failwith "simpl(@[%a,@;<1 0>%a@])" pp_tm m1 pp_tm m2
+      else
+        simpl ~expand_const:true (Eqn1 (env, m1, m2)))
 
 let solve ((map0, map1) : map0 * map1) eqn =
   let meta_sspine sp =
@@ -629,6 +646,8 @@ let resolve_tm ((map0, map1) : map0 * map1) m =
           cls
       in
       Match (m, unbox (bind_var x mot), cls)
+    (* absurd *)
+    | Absurd (a, m) -> Absurd (resolve a, resolve m)
     (* equality *)
     | Eq (a, m, n) -> Eq (resolve a, resolve m, resolve n)
     | Refl m -> Refl (resolve m)

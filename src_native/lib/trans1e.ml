@@ -261,6 +261,12 @@ and infer_tm ctx env m0 : tm trans1e =
       let* _ = infer_cls ctx env cs ss ms mot cls in
       return (subst mot m)
     | _ -> failwith "trans1e.infer_Match(%a, %a)" pp_tm m0 pp_tm ty_m)
+  (* absurd *)
+  | Bot -> return (Type U)
+  | Absurd (a, m) ->
+    let* _ = infer_sort ctx env a in
+    let* _ = check_tm ctx env m Bot in
+    return a
   (* equality *)
   | Eq (a, m, n) ->
     let* _ = infer_sort ctx env a in

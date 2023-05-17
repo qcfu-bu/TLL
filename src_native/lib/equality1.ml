@@ -226,6 +226,9 @@ let rec aeq tm1 tm2 =
                C.equal c1 c2 && eq_mbinder aeq bnd1 bnd2
              | _ -> false)
            cls1 cls2
+    (* absurd *)
+    | Bot, Bot -> true
+    | Absurd (a1, m1), Absurd (a2, m2) -> aeq a1 a2 && aeq m1 m2
     (* equality *)
     | Eq (a1, m1, n1), Eq (a2, m2, n2) -> aeq a1 a2 && aeq m1 m2 && aeq n1 n2
     | Refl m1, Refl m2 -> aeq m1 m2
@@ -310,6 +313,9 @@ let rec eq_tm ?(expand_const = false) env m1 m2 =
                  C.equal c1 c2 && eq_mbinder equal bnd1 bnd2
                | _ -> false)
              cls1 cls2
+      (* absurd *)
+      | Bot, Bot -> true
+      | Absurd (a1, m1), Absurd (a2, m2) -> equal a1 a2 && equal m1 m2
       (* equality *)
       | Eq (a1, m1, n1), Eq (a2, m2, n2) ->
         equal a1 a2 && equal m1 m2 && equal n1 n2

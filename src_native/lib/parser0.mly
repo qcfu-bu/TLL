@@ -33,9 +33,6 @@
 %right TIMES
 %right OTIMES
 
-// absurd
-%token ABSURD_TYPE // ⊥
-
 // unit
 %token UNIT_TYPE // unit
 
@@ -85,6 +82,9 @@
 %token LIST_CONS // ::
 %right LIST_CONS
 
+// bottom
+%token BOT // ⊥
+
 // equality
 %token EQUAL  // =
 %token EQUIV  // ≡
@@ -130,6 +130,7 @@
 %token TM_THEN     // then
 %token TM_ELSE     // else
 %token TM_REFL     // refl
+%token TM_ABSURD   // absurd
 %token TM_REW      // rew
 %token TM_IO       // IO
 %token TM_RETURN   // return
@@ -175,9 +176,6 @@ let tm_id :=
 let tm_inst :=
   | id = identifier; FLQ; ss = separated_list(COMMA, sort); FRQ;
     { Inst (id, ss) }
-
-let tm_absurd :=
-  | ABSURD_TYPE; { Id "absurd" }
 
 let tm_unit :=
   | UNIT_TYPE; { Unit }
@@ -366,6 +364,12 @@ let tm_cls :=
   | cl0 = tm_cl0; cls = tm_cl1*; { cl0 :: cls }
   | ~ = tm_cl1*; <>
 
+let tm_bot :=
+  | BOT; { Bot }
+
+let tm_absurd :=
+  | TM_ABSURD; m = tm0; { Absurd m }
+
 let tm_refl :=
   | TM_REFL; { Refl }
 
@@ -434,7 +438,6 @@ let tm_rand :=
 let tm0 :=
   | ~ = tm_inst; <>
   | ~ = tm_id; <>
-  | ~ = tm_absurd; <>
   | ~ = tm_unit; <>
   | ~ = tm_bool; <>
   | ~ = tm_nat; <>
@@ -444,6 +447,8 @@ let tm0 :=
   | ~ = tm_type; <>
   | ~ = tm_pair; <>
   | ~ = tm_match; <>
+  | ~ = tm_bot; <>
+  | ~ = tm_absurd; <>
   | ~ = tm_refl; <>
   | ~ = tm_io; <>
   | ~ = tm_return; <>

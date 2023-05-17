@@ -353,6 +353,12 @@ module Logical = struct
         let _ = infer_cls res ctx env cs ss ms mot cls in
         subst mot m
       | _ -> failwith "Logical.infer_Match")
+    (* absurd *)
+    | Bot -> Type U
+    | Absurd (a, m) ->
+      let _ = infer_sort res ctx env a in
+      let _ = check_tm res ctx env m Bot in
+      a
     (* equality *)
     | Eq (a, m, n) ->
       let _ = infer_sort res ctx env a in
@@ -771,6 +777,12 @@ module Program = struct
         Syntax2.
           (subst mot m, _Match (trans_sort s) m_elab (box_list cls_elab), usg)
       | _ -> failwith "Program.infer_Match")
+    (* absurd *)
+    | Bot -> failwith "Program.infer_Bot"
+    | Absurd (a, m) ->
+      let _ = Logical.infer_sort res ctx env a in
+      let _ = Logical.check_tm res ctx env m Bot in
+      Syntax2.(a, _NULL, Usage.of_ctx ctx)
     (* equality *)
     | Eq _ -> failwith "Program.infer_Eq"
     | Refl _ -> failwith "Program.infer_Refl"

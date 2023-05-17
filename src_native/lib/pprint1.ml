@@ -216,6 +216,9 @@ and pp_tm fmt = function
     let x, a = unbind bnd in
     pf fmt "@[<v 0>@[match %a as %a in@;<1 2>%a with@]@;<1 0>@[%a@]@;<1 0>end@]"
       pp_tm m V.pp x pp_tm a pp_cls cls
+  (* absurd *)
+  | Bot -> pf fmt "⊥"
+  | Absurd (_, m) -> pf fmt "absurd %a" pp_tm m
   (* equality *)
   | Eq (_, m, n) -> pf fmt "@[%a ≡@;<1 2>%a@]" pp_tm m pp_tm n
   | Refl m -> pf fmt "refl %a" pp_tm m

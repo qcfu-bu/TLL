@@ -51,6 +51,9 @@ type tm =
   | Data of D.t * sorts * tms
   | Cons of C.t * sorts * tms * tms
   | Match of tm * (tm, tm) binder * cls
+  (* absurd *)
+  | Bot
+  | Absurd of tm * tm
   (* equality *)
   | Eq of tm * tm * tm
   | Refl of tm
@@ -185,6 +188,10 @@ let _Data d = box_apply2 (fun ss ms -> Data (d, ss, ms))
 let _Cons c = box_apply3 (fun ss ms ns -> Cons (c, ss, ms, ns))
 let _Match = box_apply3 (fun m bnd cls -> Match (m, bnd, cls))
 
+(* absurd *)
+let _Bot = box Bot
+let _Absurd = box_apply2 (fun a m -> Absurd (a, m))
+
 (* equality *)
 let _Eq = box_apply3 (fun a m n -> Eq (a, m, n))
 let _Refl = box_apply (fun m -> Refl m)
@@ -299,6 +306,9 @@ let rec lift_tm = function
         cls
     in
     _Match (lift_tm m) (box_binder lift_tm bnd) (box_list cls)
+  (* absurd *)
+  | Bot -> _Bot
+  | Absurd (a, m) -> _Absurd (lift_tm a) (lift_tm m)
   (* equality *)
   | Eq (a, m, n) -> _Eq (lift_tm a) (lift_tm m) (lift_tm n)
   | Refl m -> _Refl (lift_tm m)

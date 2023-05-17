@@ -60,6 +60,9 @@ type tm =
   | Sigma of rel * sort * tm * (id, tm) binder
   | Pair of rel * sort * tm * tm
   | Match of tm * (id, tm) binder * cls
+  (* absurd *)
+  | Bot
+  | Absurd of tm
   (* equality *)
   | Eq of tm * tm
   | Refl
