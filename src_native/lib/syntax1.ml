@@ -46,8 +46,8 @@ type tm =
   | NZero
   | NSucc of int * tm
   (* data *)
-  | Sigma of rel * sort * tm * (tm, tm) binder
-  | Pair of rel * sort * tm * tm
+  | Sigma of rel * rel * sort * tm * (tm, tm) binder
+  | Pair of rel * rel * sort * tm * tm
   | Data of D.t * sorts * tms
   | Cons of C.t * sorts * tms * tms
   | Match of tm * (tm, tm) binder * cls
@@ -84,7 +84,7 @@ and cl =
   | PFalse of tm
   | PZero of tm
   | PSucc of (tm, tm) binder
-  | PPair of rel * sort * (tm, tm) mbinder
+  | PPair of rel * rel * sort * (tm, tm) mbinder
   | PCons of C.t * (tm, tm) mbinder
 
 and cls = cl list
@@ -182,8 +182,8 @@ let _NZero = box NZero
 let _NSucc i = box_apply (fun m -> NSucc (i, m))
 
 (* data *)
-let _Sigma rel = box_apply3 (fun s a bnd -> Sigma (rel, s, a, bnd))
-let _Pair rel = box_apply3 (fun s m n -> Pair (rel, s, m, n))
+let _Sigma rel1 rel2 = box_apply3 (fun s a bnd -> Sigma (rel1, rel2, s, a, bnd))
+let _Pair rel1 rel2 = box_apply3 (fun s m n -> Pair (rel1, rel2, s, m, n))
 let _Data d = box_apply2 (fun ss ms -> Data (d, ss, ms))
 let _Cons c = box_apply3 (fun ss ms ns -> Cons (c, ss, ms, ns))
 let _Match = box_apply3 (fun m bnd cls -> Match (m, bnd, cls))
@@ -223,7 +223,7 @@ let _PTrue = box_apply (fun m -> PTrue m)
 let _PFalse = box_apply (fun m -> PFalse m)
 let _PZero = box_apply (fun m -> PZero m)
 let _PSucc = box_apply (fun m -> PSucc m)
-let _PPair rel = box_apply2 (fun s bnd -> PPair (rel, s, bnd))
+let _PPair rel1 rel2 = box_apply2 (fun s bnd -> PPair (rel1, rel2, s, bnd))
 let _PCons c = box_apply (fun bnd -> PCons (c, bnd))
 
 (* dcl *)
@@ -279,9 +279,10 @@ let rec lift_tm = function
   | NZero -> _NZero
   | NSucc (i, m) -> _NSucc i (lift_tm m)
   (* data *)
-  | Sigma (rel, s, a, bnd) ->
-    _Sigma rel (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
-  | Pair (rel, s, m, n) -> _Pair rel (lift_sort s) (lift_tm m) (lift_tm n)
+  | Sigma (rel1, rel2, s, a, bnd) ->
+    _Sigma rel1 rel2 (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
+  | Pair (rel1, rel2, s, m, n) ->
+    _Pair rel1 rel2 (lift_sort s) (lift_tm m) (lift_tm n)
   | Data (d, ss, ms) ->
     let ss = List.map lift_sort ss in
     let ms = List.map lift_tm ms in
@@ -300,8 +301,8 @@ let rec lift_tm = function
           | PFalse m -> _PFalse (lift_tm m)
           | PZero m -> _PZero (lift_tm m)
           | PSucc bnd -> _PSucc (box_binder lift_tm bnd)
-          | PPair (rel, s, bnd) ->
-            _PPair rel (lift_sort s) (box_mbinder lift_tm bnd)
+          | PPair (rel1, rel2, s, bnd) ->
+            _PPair rel1 rel2 (lift_sort s) (box_mbinder lift_tm bnd)
           | PCons (c, bnd) -> _PCons c (box_mbinder lift_tm bnd))
         cls
     in

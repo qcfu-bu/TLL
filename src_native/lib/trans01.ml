@@ -277,18 +277,20 @@ let rec trans_tm nspc = function
     let m, iset = trans_tm nspc m in
     Syntax1.(_NSucc i m, iset)
   (* data *)
-  | Sigma (rel, s, a, Binder (id, b)) ->
+  | Sigma (rel1, rel2, s, a, Binder (id, b)) ->
     let a, iset1 = trans_tm nspc a in
     let x = Syntax1.(V.mk id) in
     let b, iset2 = trans_tm ((id, EVar x) :: nspc) b in
     Syntax1.
-      ( _Sigma (trans_rel rel) (trans_sort nspc s) a (bind_var x b)
+      ( _Sigma (trans_rel rel1) (trans_rel rel2) (trans_sort nspc s) a
+          (bind_var x b)
       , ISet.union iset1 iset2 )
-  | Pair (rel, s, m, n) ->
+  | Pair (rel1, rel2, s, m, n) ->
     let m, iset1 = trans_tm nspc m in
     let n, iset2 = trans_tm nspc n in
     Syntax1.
-      (_Pair (trans_rel rel) (trans_sort nspc s) m n, ISet.union iset1 iset2)
+      ( _Pair (trans_rel rel1) (trans_rel rel2) (trans_sort nspc s) m n
+      , ISet.union iset1 iset2 )
   | Match (m, Binder (id, a), cls) ->
     let m, iset1 = trans_tm nspc m in
     let x = Syntax1.(V.mk id) in
@@ -396,11 +398,12 @@ and trans_cl nspc = function
     let m, iset = trans_tm ((id, EVar x) :: nspc) m in
     let bnd = bind_var x m in
     Syntax1.(_PSucc bnd, iset)
-  | Binder (PPair (rel, s, id1, id2), m) ->
+  | Binder (PPair (rel1, rel2, s, id1, id2), m) ->
     let nspc, xs = trans_xs nspc [ id1; id2 ] in
     let m, iset = trans_tm nspc m in
     let bnd = bind_mvar (Array.of_list xs) m in
-    Syntax1.(_PPair (trans_rel rel) (trans_sort nspc s) bnd, iset)
+    Syntax1.
+      (_PPair (trans_rel rel1) (trans_rel rel2) (trans_sort nspc s) bnd, iset)
   | Binder (PCons (id, ids), m) -> (
     match find_cons id nspc with
     | Some (c, _, _) ->

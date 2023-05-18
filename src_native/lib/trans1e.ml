@@ -221,17 +221,17 @@ and infer_tm ctx env m0 : tm trans1e =
     let* _ = check_tm ctx env m Nat in
     return Nat
   (* data *)
-  | Sigma (rel, s, a, bnd) ->
+  | Sigma (_, _, s, a, bnd) ->
     let x, b = unbind bnd in
     let* _ = infer_sort ctx env a in
     let* _ = infer_sort (add_var x a ctx) env b in
     return (Type s)
-  | Pair (rel, s, m, n) ->
+  | Pair (rel1, rel2, s, m, n) ->
     let* a = infer_tm ctx env m in
     let* b = infer_tm ctx env n in
     let x = V.mk "_" in
     let bnd = bind_var x (lift_tm b) in
-    return (Sigma (rel, s, a, unbox bnd))
+    return (Sigma (rel1, rel2, s, a, unbox bnd))
   | Data (d, ss, ms) ->
     let sch, _ = find_data d ctx in
     let ptm = msubst sch (Array.of_list ss) in
@@ -253,8 +253,8 @@ and infer_tm ctx env m0 : tm trans1e =
     | Nat ->
       let* _ = infer_nat ctx env mot cls in
       return (subst mot m)
-    | Sigma (rel, s, a, bnd) ->
-      let* _ = infer_pair ctx env rel s a bnd mot cls in
+    | Sigma (rel1, rel2, s, a, bnd) ->
+      let* _ = infer_pair ctx env rel1 rel2 s a bnd mot cls in
       return (subst mot m)
     | Data (d, ss, ms) ->
       let _, cs = find_data d ctx in
@@ -341,7 +341,7 @@ and infer_tm ctx env m0 : tm trans1e =
     | Ch (rol1, Act (rel, rol2, a, bnd)) when rol1 <> rol2 = true ->
       let x, b = unbind bnd in
       let bnd = unbox (bind_var x (lift_tm (Ch (rol1, b)))) in
-      return (IO (Sigma (rel, L, a, bnd)))
+      return (IO (Sigma (rel, R, L, a, bnd)))
     | ty -> failwith "trans1e.infer_Recv(%a)" pp_tm ty)
   | Send m -> (
     let* ty_m = infer_tm ctx env m in
@@ -420,22 +420,24 @@ and infer_nat ctx1 env mot cls =
     return ()
   | _ -> failwith "trans1e.infer_nat"
 
-and infer_pair ctx env rel s a b mot cls =
+and infer_pair ctx env rel1 rel2 s a b mot cls =
   match cls with
-  | [ PPair (rel0, s0, bnd) ] when rel = rel0 -> (
+  | [ PPair (r1, r2, s0, bnd) ] when r1 = rel1 && r2 = rel2 -> (
     let* _ = assert_equal0 s s0 in
     let xs, rhs = unmbind bnd in
     match xs with
     | [| x; y |] ->
       let ctx = add_var x a ctx in
       let ctx = add_var y (subst b (Var x)) ctx in
-      let tm = Pair (rel, s, Var x, Var y) in
-      let ty = Sigma (rel, s, a, b) in
+      let tm = Pair (rel1, rel2, s, Var x, Var y) in
+      let ty = Sigma (rel1, rel2, s, a, b) in
       let mot = subst mot (Ann (tm, ty)) in
       let* _ = infer_sort ctx env mot in
       check_tm ctx env rhs mot
     | _ -> failwith "trans1e.infer_pair0")
-  | _ -> failwith "trans1e.infer_pair1(%a, %a)" pp_cls cls pp_rel rel
+  | _ ->
+    failwith "trans1e.infer_pair1(%a, %a, %a)" pp_cls cls pp_rel rel1 pp_rel
+      rel2
 
 and infer_cls ctx env cs ss ms mot cls =
   match cls with
@@ -531,7 +533,8 @@ and check_tm ctx env m0 a0 : unit trans1e =
     let* m = unify >> resolve_tm m in
     check_tm (add_var x a ctx) (Env.add_var x m env) n a0
   (* data *)
-  | Pair (rel0, s0, m, n), Sigma (rel1, s1, a, bnd) when rel0 = rel1 ->
+  | Pair (rel11, rel12, s0, m, n), Sigma (rel21, rel22, s1, a, bnd)
+    when rel11 = rel21 && rel12 = rel22 ->
     let* _ = assert_equal0 s0 s1 in
     let* _ = check_tm ctx env m a in
     check_tm ctx env n (subst bnd (Ann (m, a)))
@@ -550,7 +553,8 @@ and check_tm ctx env m0 a0 : unit trans1e =
     | Unit s -> infer_unit ctx env mot cls s
     | Bool -> infer_bool ctx env mot cls
     | Nat -> infer_nat ctx env mot cls
-    | Sigma (rel, srt, a, bnd) -> infer_pair ctx env rel srt a bnd mot cls
+    | Sigma (rel1, rel2, srt, a, bnd) ->
+      infer_pair ctx env rel1 rel2 srt a bnd mot cls
     | Data (d, ss, ms) ->
       let _, cs = find_data d ctx in
       infer_cls ctx env cs ss ms mot cls

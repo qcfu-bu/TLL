@@ -152,44 +152,53 @@ and pp_tm fmt = function
     | Some n -> pf fmt "%d" n
     | None -> pf fmt "%a.+%d" pp_tm m i)
   (* data *)
-  | Sigma (R, U, a, bnd) ->
+  | Sigma (R, R, U, a, bnd) ->
     let x, b = unbind bnd in
     if binder_occur bnd then
       pf fmt "@[@[∃ (%a :@;<1 2>%a) ×@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
     else
       pf fmt "@[%a ×@;<1 2>%a@]" pp_tm a pp_tm b
-  | Sigma (N, U, a, bnd) ->
+  | Sigma (R, N, U, a, bnd) ->
     let x, b = unbind bnd in
-    if binder_occur bnd then
-      pf fmt "@[@[∃ {%a :@;<1 2>%a} ×@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
-    else
-      pf fmt "@[{%a} ×@;<1 2>%a@]" pp_tm a pp_tm b
-  | Sigma (R, L, a, bnd) ->
+    pf fmt "@[@[∃ (%a :@;<1 2>%a) ×@]@;<1 2>{%a}@]" V.pp x pp_tm a pp_tm b
+  | Sigma (N, R, U, a, bnd) ->
+    let x, b = unbind bnd in
+    pf fmt "@[@[∃ {%a :@;<1 2>%a} ×@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
+  | Sigma (R, R, L, a, bnd) ->
     let x, b = unbind bnd in
     if binder_occur bnd then
       pf fmt "@[@[∃ (%a :@;<1 2>%a) ⊗@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
     else
       pf fmt "@[%a ⊗@;<1 2>%a@]" pp_tm a pp_tm b
-  | Sigma (N, L, a, bnd) ->
+  | Sigma (R, N, L, a, bnd) ->
     let x, b = unbind bnd in
-    if binder_occur bnd then
-      pf fmt "@[@[∃ {%a :@;<1 2>%a} ⊗@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
-    else
-      pf fmt "@[{%a} ⊗@;<1 2>%a@]" pp_tm a pp_tm b
-  | Sigma (R, s, a, bnd) ->
+    pf fmt "@[@[∃ (%a :@;<1 2>%a) ⊗@]@;<1 2>{%a}@]" V.pp x pp_tm a pp_tm b
+  | Sigma (N, R, L, a, bnd) ->
+    let x, b = unbind bnd in
+    pf fmt "@[@[∃ {%a :@;<1 2>%a} ⊗@]@;<1 2>%a@]" V.pp x pp_tm a pp_tm b
+  | Sigma (R, R, s, a, bnd) ->
     let x, b = unbind bnd in
     pf fmt "@[@[exists‹%a›(%a :@;<1 2>%a),@]@;<1 2>%a@]" pp_sort s V.pp x pp_tm
       a pp_tm b
-  | Sigma (N, s, a, bnd) ->
+  | Sigma (R, N, s, a, bnd) ->
+    let x, b = unbind bnd in
+    pf fmt "@[@[exists‹%a›(%a :@;<1 2>%a),@]@;<1 2>{%a}@]" pp_sort s V.pp x
+      pp_tm a pp_tm b
+  | Sigma (N, R, s, a, bnd) ->
     let x, b = unbind bnd in
     pf fmt "@[@[exists‹%a›{%a :@;<1 2>%a},@]@;<1 2>%a@]" pp_sort s V.pp x pp_tm
       a pp_tm b
-  | Pair (R, U, m, n) -> pf fmt "(%a, %a)" pp_tm m pp_tm n
-  | Pair (N, U, m, n) -> pf fmt "({%a}, %a)" pp_tm m pp_tm n
-  | Pair (R, L, m, n) -> pf fmt "⟨%a, %a⟩" pp_tm m pp_tm n
-  | Pair (N, L, m, n) -> pf fmt "⟨{%a}, %a⟩" pp_tm m pp_tm n
-  | Pair (R, s, m, n) -> pf fmt "tup‹%a›(%a, %a)" pp_sort s pp_tm m pp_tm n
-  | Pair (N, s, m, n) -> pf fmt "tup‹%a›({%a}, %a)" pp_sort s pp_tm m pp_tm n
+  | Sigma (N, N, _, _, _) -> failwith "pprint1.pp_tm"
+  | Pair (R, R, U, m, n) -> pf fmt "(%a, %a)" pp_tm m pp_tm n
+  | Pair (R, N, U, m, n) -> pf fmt "(%a, {%a})" pp_tm m pp_tm n
+  | Pair (N, R, U, m, n) -> pf fmt "({%a}, %a)" pp_tm m pp_tm n
+  | Pair (R, R, L, m, n) -> pf fmt "⟨%a, %a⟩" pp_tm m pp_tm n
+  | Pair (R, N, L, m, n) -> pf fmt "⟨%a, {%a}⟩" pp_tm m pp_tm n
+  | Pair (N, R, L, m, n) -> pf fmt "⟨{%a}, %a⟩" pp_tm m pp_tm n
+  | Pair (R, R, s, m, n) -> pf fmt "tup‹%a›(%a, %a)" pp_sort s pp_tm m pp_tm n
+  | Pair (R, N, s, m, n) -> pf fmt "tup‹%a›(%a, {%a})" pp_sort s pp_tm m pp_tm n
+  | Pair (N, R, s, m, n) -> pf fmt "tup‹%a›({%a}, %a)" pp_sort s pp_tm m pp_tm n
+  | Pair (N, N, _, _, _) -> failwith "pprint1.pp_tm"
   | Data (d, [], []) -> pf fmt "%a" D.pp d
   | Data (d, [], ms) ->
     pf fmt "@[(%a@;<1 2>@[%a@])@]" D.pp d (list ~sep:sp pp_tm) ms
@@ -269,26 +278,37 @@ and pp_cl fmt = function
   | PSucc bnd ->
     let x, m = unbind bnd in
     pf fmt "| @[S %a ⇒@;<1 0>%a@]" V.pp x pp_tm m
-  | PPair (R, U, bnd) ->
+  | PPair (R, R, U, bnd) ->
     let xs, m = unmbind bnd in
     pf fmt "| @[(%a, %a) ⇒@;<1 0>%a@]" V.pp xs.(0) V.pp xs.(1) pp_tm m
-  | PPair (N, U, bnd) ->
+  | PPair (R, N, U, bnd) ->
+    let xs, m = unmbind bnd in
+    pf fmt "| @[(%a, {%a}) ⇒@;<1 0>%a@]" V.pp xs.(0) V.pp xs.(1) pp_tm m
+  | PPair (N, R, U, bnd) ->
     let xs, m = unmbind bnd in
     pf fmt "| @[({%a}, %a) ⇒@;<1 0>%a@]" V.pp xs.(0) V.pp xs.(1) pp_tm m
-  | PPair (R, L, bnd) ->
+  | PPair (R, R, L, bnd) ->
     let xs, m = unmbind bnd in
     pf fmt "| @[⟨%a, %a⟩ ⇒@;<1 0>%a@]" V.pp xs.(0) V.pp xs.(1) pp_tm m
-  | PPair (N, L, bnd) ->
+  | PPair (R, N, L, bnd) ->
+    let xs, m = unmbind bnd in
+    pf fmt "| @[⟨%a, {%a}⟩ ⇒@;<1 0>%a@]" V.pp xs.(0) V.pp xs.(1) pp_tm m
+  | PPair (N, R, L, bnd) ->
     let xs, m = unmbind bnd in
     pf fmt "| @[⟨{%a}, %a⟩ ⇒@;<1 0>%a@]" V.pp xs.(0) V.pp xs.(1) pp_tm m
-  | PPair (R, s, bnd) ->
+  | PPair (R, R, s, bnd) ->
     let xs, m = unmbind bnd in
     pf fmt "| @[tup‹%a›(%a, %a) ⇒@;<1 0>%a@]" pp_sort s V.pp xs.(0) V.pp xs.(1)
       pp_tm m
-  | PPair (N, s, bnd) ->
+  | PPair (R, N, s, bnd) ->
+    let xs, m = unmbind bnd in
+    pf fmt "| @[tup‹%a›(%a, {%a}) ⇒@;<1 0>%a@]" pp_sort s V.pp xs.(0) V.pp
+      xs.(1) pp_tm m
+  | PPair (N, R, s, bnd) ->
     let xs, m = unmbind bnd in
     pf fmt "| @[tup‹%a›({%a}, %a) ⇒@;<1 0>%a@]" pp_sort s V.pp xs.(0) V.pp
       xs.(1) pp_tm m
+  | PPair (N, N, _, _) -> failwith "pprint1.pp_cl"
   | PCons (c, bnd) ->
     let xs, m = unmbind bnd in
     pf fmt "| @[%a %a ⇒@;<1 0>%a@]" C.pp c (array ~sep:sp V.pp) xs pp_tm m

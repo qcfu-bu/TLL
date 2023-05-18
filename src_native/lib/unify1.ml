@@ -110,13 +110,13 @@ let rec fv ctx = function
   | NZero -> (SVSet.empty, VSet.empty)
   | NSucc (i, m) -> fv ctx m
   (* data *)
-  | Sigma (_, s, a, bnd) ->
+  | Sigma (_, _, s, a, bnd) ->
     let x, b = unbind bnd in
     let fsv0 = fsv s in
     let fsv1, fv1 = fv ctx a in
     let fsv2, fv2 = fv (VSet.add x ctx) b in
     (SVSet.union (SVSet.union fsv0 fsv1) fsv2, VSet.union fv1 fv2)
-  | Pair (_, s, m, n) ->
+  | Pair (_, _, s, m, n) ->
     let fsv0 = fsv s in
     let fsv1, fv1 = fv ctx m in
     let fsv2, fv2 = fv ctx m in
@@ -159,7 +159,7 @@ let rec fv ctx = function
             let x, m = unbind bnd in
             let fsv, fv = fv (VSet.add x ctx) m in
             (SVSet.union fsv acc0, VSet.union fv acc1)
-          | PPair (_, s, bnd) ->
+          | PPair (_, _, s, bnd) ->
             let xs, m = unmbind bnd in
             let fsv1 = fsv s in
             let fsv2, fv = fv (Array.fold_right VSet.add xs ctx) m in
@@ -248,10 +248,10 @@ let rec occurs_tm x = function
   (* native *)
   | NSucc (_, m) -> occurs_tm x m
   (* data *)
-  | Sigma (_, _, a, bnd) ->
+  | Sigma (_, _, _, a, bnd) ->
     let _, b = unbind bnd in
     occurs_tm x a || occurs_tm x b
-  | Pair (_, _, m, n) -> occurs_tm x m || occurs_tm x n
+  | Pair (_, _, _, m, n) -> occurs_tm x m || occurs_tm x n
   | Data (_, _, ms) -> List.exists (occurs_tm x) ms
   | Cons (_, _, ms, ns) -> List.exists (occurs_tm x) (ms @ ns)
   | Match (m, bnd, cls) ->
@@ -266,7 +266,7 @@ let rec occurs_tm x = function
            | PSucc bnd ->
              let _, m = unbind bnd in
              occurs_tm x m
-           | PPair (_, _, bnd) ->
+           | PPair (_, _, _, bnd) ->
              let _, m = unmbind bnd in
              occurs_tm x m
            | PCons (_, bnd) ->
@@ -387,13 +387,15 @@ let rec simpl ?(expand_const = false) eqn =
     | NZero, NZero -> []
     | NSucc (i1, m1), NSucc (i2, m2) when i1 = i2 -> simpl (Eqn1 (env, m1, m2))
     (* data *)
-    | Sigma (rel1, s1, a1, bnd1), Sigma (rel2, s2, a2, bnd2) when rel1 = rel2 ->
+    | Sigma (rel11, rel12, s1, a1, bnd1), Sigma (rel21, rel22, s2, a2, bnd2)
+      when rel11 = rel21 && rel12 = rel22 ->
       let _, b1, b2 = unbind2 bnd1 bnd2 in
       let eqns0 = simpl (Eqn0 (s1, s2)) in
       let eqns1 = simpl (Eqn1 (env, a1, a2)) in
       let eqns2 = simpl (Eqn1 (env, b1, b2)) in
       eqns0 @ eqns1 @ eqns2
-    | Pair (rel1, s1, m1, n1), Pair (rel2, s2, m2, n2) when rel1 = rel2 ->
+    | Pair (rel11, rel12, s1, m1, n1), Pair (rel21, rel22, s2, m2, n2)
+      when rel11 = rel21 && rel12 = rel22 ->
       let eqns0 = simpl (Eqn0 (s1, s2)) in
       let eqns1 = simpl (Eqn1 (env, m1, m2)) in
       let eqns2 = simpl (Eqn1 (env, n1, n2)) in
@@ -438,7 +440,8 @@ let rec simpl ?(expand_const = false) eqn =
             | PSucc bnd1, PSucc bnd2 ->
               let _, m1, m2 = unbind2 bnd1 bnd2 in
               simpl (Eqn1 (env, m1, m2)) @ acc
-            | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2) when rel1 = rel2 ->
+            | PPair (rel11, rel12, s1, bnd1), PPair (rel21, rel22, s2, bnd2)
+              when rel11 = rel21 && rel12 = rel22 ->
               let _, m1, m2 = unmbind2 bnd1 bnd2 in
               simpl (Eqn0 (s1, s2)) @ simpl (Eqn1 (env, m1, m2)) @ acc
             | PCons (c1, bnd1), PCons (c2, bnd2) when C.equal c1 c2 ->
@@ -601,17 +604,17 @@ let resolve_tm ((map0, map1) : map0 * map1) m =
     (* native *)
     | NSucc (i, m) -> NSucc (i, resolve m)
     (* data *)
-    | Sigma (rel, s, a, bnd) ->
+    | Sigma (rel1, rel2, s, a, bnd) ->
       let x, b = unbind bnd in
       let s = resolve_sort map0 s in
       let a = resolve a in
       let b = lift_tm (resolve b) in
-      Sigma (rel, s, a, unbox (bind_var x b))
-    | Pair (rel, s, m, n) ->
+      Sigma (rel1, rel2, s, a, unbox (bind_var x b))
+    | Pair (rel1, rel2, s, m, n) ->
       let s = resolve_sort map0 s in
       let m = resolve m in
       let n = resolve n in
-      Pair (rel, s, m, n)
+      Pair (rel1, rel2, s, m, n)
     | Data (d, ss, ms) ->
       let ss = List.map (resolve_sort map0) ss in
       let ms = List.map resolve ms in
@@ -636,11 +639,11 @@ let resolve_tm ((map0, map1) : map0 * map1) m =
               let x, rhs = unbind bnd in
               let rhs = lift_tm (resolve rhs) in
               PSucc (unbox (bind_var x rhs))
-            | PPair (rel, s, bnd) ->
+            | PPair (rel1, rel2, s, bnd) ->
               let xs, n = unmbind bnd in
               let s = resolve_sort map0 s in
               let n = lift_tm (resolve n) in
-              PPair (rel, s, unbox (bind_mvar xs n))
+              PPair (rel1, rel2, s, unbox (bind_mvar xs n))
             | PCons (c, bnd) ->
               let xs, n = unmbind bnd in
               let n = lift_tm (resolve n) in

@@ -309,19 +309,19 @@ module Logical = struct
       let _ = check_tm res ctx env m Nat in
       Nat
     (* data *)
-    | Sigma (_, s, a, bnd) ->
+    | Sigma (_, _, s, a, bnd) ->
       let _ = assert_sort s in
       let x, b = unbind bnd in
       let r = infer_sort res ctx env a in
       let _ = infer_sort res (Context.add_var x a r ctx) env b in
       Type s
-    | Pair (rel, s, m, n) ->
+    | Pair (rel1, rel2, s, m, n) ->
       let _ = assert_sort s in
       let a = infer_tm res ctx env m in
       let b = infer_tm res ctx env n in
       let x = V.mk "_" in
       let bnd = bind_var x (lift_tm b) in
-      Sigma (rel, s, a, unbox bnd)
+      Sigma (rel1, rel2, s, a, unbox bnd)
     | Data (d0, ss, ms) ->
       let _ = List.iter assert_sort ss in
       let d1 = Resolver.find_data d0 ss res in
@@ -344,8 +344,8 @@ module Logical = struct
       | Nat ->
         let _ = infer_nat res ctx env mot cls in
         subst mot m
-      | Sigma (rel, s, a, bnd) ->
-        let _ = infer_pair res ctx env rel s a bnd mot cls in
+      | Sigma (rel1, rel2, s, a, bnd) ->
+        let _ = infer_pair res ctx env rel1 rel2 s a bnd mot cls in
         subst mot m
       | Data (d0, ss, ms) ->
         let d1 = Resolver.find_data d0 ss res in
@@ -427,7 +427,7 @@ module Logical = struct
       | Ch (rol1, Act (rel, rol2, a, bnd)) when rol1 <> rol2 = true ->
         let x, b = unbind bnd in
         let bnd = unbox (bind_var x (lift_tm (Ch (rol1, b)))) in
-        IO (Sigma (rel, L, a, bnd))
+        IO (Sigma (rel, R, L, a, bnd))
       | _ -> failwith "Logical.infer_Recv")
     | Send m -> (
       let ty_m = infer_tm res ctx env m in
@@ -504,9 +504,10 @@ module Logical = struct
       ()
     | _ -> failwith "trans1e.infer_nat"
 
-  and infer_pair res ctx env rel s a bnd mot cls =
+  and infer_pair res ctx env rel1 rel2 s a bnd mot cls =
     match cls with
-    | [ PPair (rel0, s0, bnd0) ] when rel = rel0 && eq_sort s s0 -> (
+    | [ PPair (r1, r2, s0, bnd0) ] when r1 = rel1 && r2 = rel2 && eq_sort s s0
+      -> (
       let xs, rhs = unmbind bnd0 in
       match xs with
       | [| x; y |] ->
@@ -515,8 +516,8 @@ module Logical = struct
         let ctx = Context.add_var x a r ctx in
         let t = infer_sort res ctx env b in
         let ctx = Context.add_var y b t ctx in
-        let tm = Pair (rel, s, Var x, Var y) in
-        let ty = Sigma (rel, s, a, bnd) in
+        let tm = Pair (rel1, rel2, s, Var x, Var y) in
+        let ty = Sigma (rel1, rel2, s, a, bnd) in
         let mot = subst mot (Ann (tm, ty)) in
         let _ = infer_sort res ctx env mot in
         check_tm res ctx env rhs mot
@@ -607,8 +608,8 @@ module Logical = struct
       let s = infer_sort res ctx env a in
       check_tm res (Context.add_var x a s ctx) (Env.add_var x m env) n a0
     (* data *)
-    | Pair (rel0, s0, m, n), Sigma (rel1, s1, a, bnd)
-      when rel0 = rel1 && eq_sort s0 s1 ->
+    | Pair (rel11, rel12, s0, m, n), Sigma (rel21, rel22, s1, a, bnd)
+      when rel11 = rel21 && rel12 = rel22 && eq_sort s0 s1 ->
       let _ = assert_sort s0 in
       let _ = check_tm res ctx env m a in
       check_tm res ctx env n (subst bnd (Ann (m, a)))
@@ -618,7 +619,8 @@ module Logical = struct
       let _ = infer_sort res ctx env a1 in
       let _ = assert_equal env a0 a1 in
       match whnf env ty_m with
-      | Sigma (rel, srt, a, bnd) -> infer_pair res ctx env rel srt a bnd mot cls
+      | Sigma (rel1, rel2, srt, a, bnd) ->
+        infer_pair res ctx env rel1 rel2 srt a bnd mot cls
       | Data (d0, ss, ms) ->
         let d1 = Resolver.find_data d0 ss res in
         let _, cs = Context.find_data d1 ctx in
@@ -723,21 +725,31 @@ module Program = struct
       Syntax2.(Nat, _NSucc i m_elab, usg)
     (* data *)
     | Sigma _ -> failwith "Program.infer_Sigma"
-    | Pair (N, s, m, n) ->
+    | Pair (R, N, s, m, n) ->
+      let _ = Logical.assert_sort s in
+      let a, m_elab, usg = infer_tm res ctx env m in
+      let b = Logical.infer_tm res ctx env n in
+      let x = V.mk "_" in
+      let bnd = bind_var x (lift_tm b) in
+      Syntax2.(Sigma (R, N, s, a, unbox bnd), _Pair m_elab _NULL, usg)
+    | Pair (N, R, s, m, n) ->
       let _ = Logical.assert_sort s in
       let a = Logical.infer_tm res ctx env m in
       let b, n_elab, usg = infer_tm res ctx env n in
       let x = V.mk "_" in
       let bnd = bind_var x (lift_tm b) in
-      Syntax2.(Sigma (N, s, a, unbox bnd), _Pair _NULL n_elab, usg)
-    | Pair (R, s, m, n) ->
+      Syntax2.(Sigma (N, R, s, a, unbox bnd), _Pair _NULL n_elab, usg)
+    | Pair (R, R, s, m, n) ->
       let _ = Logical.assert_sort s in
       let a, m_elab, usg1 = infer_tm res ctx env m in
       let b, n_elab, usg2 = infer_tm res ctx env n in
       let x = V.mk "_" in
       let bnd = bind_var x (lift_tm b) in
       Syntax2.
-        (Sigma (R, s, a, unbox bnd), _Pair m_elab n_elab, Usage.merge usg1 usg2)
+        ( Sigma (R, R, s, a, unbox bnd)
+        , _Pair m_elab n_elab
+        , Usage.merge usg1 usg2 )
+    | Pair (N, N, _, _, _) -> failwith "Program.infer_PairNN"
     | Data _ -> failwith "Program.infer_Data"
     | Cons (c0, ss, ms, ns) ->
       let _ = List.iter Logical.assert_sort ss in
@@ -764,8 +776,8 @@ module Program = struct
         let usg = Usage.merge usg1 usg2 in
         Syntax2.
           (subst mot m, _Match (trans_sort s) m_elab (box_list cls_elab), usg)
-      | Sigma (rel, _, a, bnd) ->
-        let cls_elab, usg2 = infer_pair res ctx env rel s a bnd mot cls in
+      | Sigma (rel1, rel2, _, a, bnd) ->
+        let cls_elab, usg2 = infer_pair res ctx env rel1 rel2 s a bnd mot cls in
         let usg = Usage.merge usg1 usg2 in
         Syntax2.
           (subst mot m, _Match (trans_sort s) m_elab (box_list cls_elab), usg)
@@ -848,7 +860,8 @@ module Program = struct
       | Ch (rol1, Act (rel, rol2, a, bnd)) when rol1 <> rol2 = true ->
         let x, b = unbind bnd in
         let bnd = unbox (bind_var x (lift_tm (Ch (rol1, b)))) in
-        Syntax2.(IO (Sigma (rel, L, a, bnd)), _Recv (trans_rel rel) m_elab, usg)
+        Syntax2.
+          (IO (Sigma (rel, R, L, a, bnd)), _Recv (trans_rel rel) m_elab, usg)
       | _ -> failwith "Program.infer_Recv")
     | Send m -> (
       let ty_m, m_elab, usg = infer_tm res ctx env m in
@@ -943,9 +956,9 @@ module Program = struct
         , Usage.refine_usage usg1 usg2 )
     | _ -> failwith "Program.infer_nat"
 
-  and infer_pair res ctx env rel s a bnd mot cls =
-    match (rel, cls) with
-    | N, [ PPair (N, s0, bnd0) ] when eq_sort s s0 -> (
+  and infer_pair res ctx env rel1 rel2 s a bnd mot cls =
+    match (rel1, rel2, cls) with
+    | R, N, [ PPair (R, N, s0, bnd0) ] when eq_sort s s0 -> (
       let xs, rhs = unmbind bnd0 in
       match xs with
       | [| x; y |] ->
@@ -954,8 +967,28 @@ module Program = struct
         let ctx = Context.add_var x a r ctx in
         let t = Logical.infer_sort res ctx env b in
         let ctx = Context.add_var y b t ctx in
-        let tm = Pair (N, s, Var x, Var y) in
-        let ty = Sigma (N, s, a, bnd) in
+        let tm = Pair (R, N, s, Var x, Var y) in
+        let ty = Sigma (R, N, s, a, bnd) in
+        let mot = subst mot (Ann (tm, ty)) in
+        let _ = Logical.infer_sort res ctx env mot in
+        let rhs_elab, usg = check_tm res ctx env rhs mot in
+        let usg = Usage.remove_var x usg R r in
+        let usg = Usage.remove_var y usg N t in
+        let x = trans_var x in
+        let y = trans_var y in
+        Syntax2.([ _PPair (bind_mvar [| x; y |] rhs_elab) ], usg)
+      | _ -> failwith "Program.infer_pair")
+    | N, R, [ PPair (N, R, s0, bnd0) ] when eq_sort s s0 -> (
+      let xs, rhs = unmbind bnd0 in
+      match xs with
+      | [| x; y |] ->
+        let b = subst bnd (Var x) in
+        let r = Logical.infer_sort res ctx env a in
+        let ctx = Context.add_var x a r ctx in
+        let t = Logical.infer_sort res ctx env b in
+        let ctx = Context.add_var y b t ctx in
+        let tm = Pair (N, R, s, Var x, Var y) in
+        let ty = Sigma (N, R, s, a, bnd) in
         let mot = subst mot (Ann (tm, ty)) in
         let _ = Logical.infer_sort res ctx env mot in
         let rhs_elab, usg = check_tm res ctx env rhs mot in
@@ -965,7 +998,7 @@ module Program = struct
         let y = trans_var y in
         Syntax2.([ _PPair (bind_mvar [| x; y |] rhs_elab) ], usg)
       | _ -> failwith "Program.infer_pair")
-    | R, [ PPair (R, s0, bnd0) ] when eq_sort s s0 -> (
+    | R, R, [ PPair (R, R, s0, bnd0) ] when eq_sort s s0 -> (
       let xs, rhs = unmbind bnd0 in
       match xs with
       | [| x; y |] ->
@@ -974,8 +1007,8 @@ module Program = struct
         let ctx = Context.add_var x a r ctx in
         let t = Logical.infer_sort res ctx env b in
         let ctx = Context.add_var y b t ctx in
-        let tm = Pair (R, s, Var x, Var y) in
-        let ty = Sigma (R, s, a, bnd) in
+        let tm = Pair (R, R, s, Var x, Var y) in
+        let ty = Sigma (R, R, s, a, bnd) in
         let mot = subst mot (Ann (tm, ty)) in
         let _ = Logical.infer_sort res ctx env mot in
         let rhs_elab, usg = check_tm res ctx env rhs mot in
@@ -1097,12 +1130,17 @@ module Program = struct
       let usg = Usage.(merge usg1 (remove_var x usg2 R s)) in
       Syntax2.(_Let m_elab (bind_var (trans_var x) n_elab), usg)
     (* data *)
-    | Pair (N, s0, m, n), Sigma (N, s1, a, bnd) when eq_sort s0 s1 ->
+    | Pair (R, N, s0, m, n), Sigma (R, N, s1, a, bnd) when eq_sort s0 s1 ->
+      let _ = Logical.assert_sort s0 in
+      let m_elab, usg = check_tm res ctx env m a in
+      let _ = Logical.check_tm res ctx env n (subst bnd (Ann (m, a))) in
+      Syntax2.(_Pair m_elab _NULL, usg)
+    | Pair (N, R, s0, m, n), Sigma (N, R, s1, a, bnd) when eq_sort s0 s1 ->
       let _ = Logical.assert_sort s0 in
       let _ = Logical.check_tm res ctx env m a in
       let n_elab, usg = check_tm res ctx env n (subst bnd (Ann (m, a))) in
       Syntax2.(_Pair _NULL n_elab, usg)
-    | Pair (R, s0, m, n), Sigma (R, s1, a, bnd) when eq_sort s0 s1 ->
+    | Pair (R, R, s0, m, n), Sigma (R, R, s1, a, bnd) when eq_sort s0 s1 ->
       let _ = Logical.assert_sort s0 in
       let m_elab, usg1 = check_tm res ctx env m a in
       let n_elab, usg2 = check_tm res ctx env n (subst bnd (Ann (m, a))) in
@@ -1126,8 +1164,8 @@ module Program = struct
         let cls_elab, usg2 = infer_nat res ctx env mot cls in
         let usg = Usage.merge usg1 usg2 in
         Syntax2.(_Match (trans_sort s) m_elab (box_list cls_elab), usg)
-      | Sigma (rel, _, a, bnd) ->
-        let cls_elab, usg2 = infer_pair res ctx env rel s a bnd mot cls in
+      | Sigma (rel1, rel2, _, a, bnd) ->
+        let cls_elab, usg2 = infer_pair res ctx env rel1 rel2 s a bnd mot cls in
         let usg = Usage.merge usg1 usg2 in
         Syntax2.(_Match (trans_sort s) m_elab (box_list cls_elab), usg)
       | Data (d0, ss, ms) ->

@@ -31,7 +31,7 @@ type p =
   | PFalse
   | PZero
   | PSucc of id
-  | PPair of rel * sort * id * id
+  | PPair of rel * rel * sort * id * id
   | PCons of id * ids
 
 type ('a, 'b) binder = Binder of 'a * 'b
@@ -57,8 +57,8 @@ type tm =
   | NZero
   | NSucc of int * tm
   (* data *)
-  | Sigma of rel * sort * tm * (id, tm) binder
-  | Pair of rel * sort * tm * tm
+  | Sigma of rel * rel * sort * tm * (id, tm) binder
+  | Pair of rel * rel * sort * tm * tm
   | Match of tm * (id, tm) binder * cls
   (* absurd *)
   | Bot

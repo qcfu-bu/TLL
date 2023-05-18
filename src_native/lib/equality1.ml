@@ -161,8 +161,8 @@ and match_cls cls m =
           | PZero rhs, NZero -> Some rhs
           | PSucc bnd, NSucc (1, m) -> Some (subst bnd m)
           | PSucc bnd, NSucc (i, m) -> Some (subst bnd (NSucc (i - 1, m)))
-          | PPair (rel1, s1, bnd), Pair (rel2, s2, m1, m2)
-            when rel1 = rel2 && eq_sort s1 s2 ->
+          | PPair (rel11, rel12, s1, bnd), Pair (rel21, rel22, s2, m1, m2)
+            when rel11 = rel21 && rel12 = rel22 && eq_sort s1 s2 ->
             Some (msubst bnd [| m1; m2 |])
           | PCons (c1, bnd), Cons (c2, _, _, ms) when C.equal c1 c2 ->
             Some (msubst bnd (Array.of_list ms))
@@ -201,10 +201,11 @@ let rec aeq tm1 tm2 =
     | NZero, NZero -> true
     | NSucc (i1, m1), NSucc (i2, m2) -> i1 = i2 && aeq m1 m2
     (* data *)
-    | Sigma (rel1, s1, a1, bnd1), Sigma (rel2, s2, a2, bnd2) ->
-      rel1 = rel2 && eq_sort s1 s2 && aeq a1 a2 && eq_binder aeq bnd1 bnd2
-    | Pair (rel1, s1, m1, n1), Pair (rel2, s2, m2, n2) ->
-      rel1 = rel2 && s1 = s2 && aeq m1 m2 && aeq n1 n2
+    | Sigma (rel11, rel12, s1, a1, bnd1), Sigma (rel21, rel22, s2, a2, bnd2) ->
+      rel11 = rel21 && rel12 = rel22 && eq_sort s1 s2 && aeq a1 a2
+      && eq_binder aeq bnd1 bnd2
+    | Pair (rel11, rel12, s1, m1, n1), Pair (rel21, rel22, s2, m2, n2) ->
+      rel11 = rel21 && rel12 = rel22 && s1 = s2 && aeq m1 m2 && aeq n1 n2
     | Data (d1, ss1, ms1), Data (d2, ss2, ms2) ->
       D.equal d1 d2 && List.equal eq_sort ss1 ss2 && List.equal aeq ms1 ms2
     | Cons (c1, ss1, ms1, ns1), Cons (c2, ss2, ms2, ns2) ->
@@ -220,8 +221,9 @@ let rec aeq tm1 tm2 =
              | PFalse rhs1, PFalse rhs2 -> aeq rhs1 rhs2
              | PZero rhs1, PZero rhs2 -> aeq rhs1 rhs2
              | PSucc bnd1, PSucc bnd2 -> eq_binder aeq bnd1 bnd2
-             | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2) ->
-               rel1 = rel2 && eq_sort s1 s2 && eq_mbinder aeq bnd1 bnd2
+             | PPair (rel11, rel12, s1, bnd1), PPair (rel21, rel22, s2, bnd2) ->
+               rel11 = rel21 && rel12 = rel22 && eq_sort s1 s2
+               && eq_mbinder aeq bnd1 bnd2
              | PCons (c1, bnd1), PCons (c2, bnd2) ->
                C.equal c1 c2 && eq_mbinder aeq bnd1 bnd2
              | _ -> false)
@@ -288,10 +290,13 @@ let rec eq_tm ?(expand_const = false) env m1 m2 =
       | NZero, NZero -> true
       | NSucc (i1, m1), NSucc (i2, m2) -> i1 = i2 && equal m1 m2
       (* data *)
-      | Sigma (rel1, s1, a1, bnd1), Sigma (rel2, s2, a2, bnd2) ->
-        rel1 = rel2 && eq_sort s1 s2 && equal a1 a2 && eq_binder equal bnd1 bnd2
-      | Pair (rel1, s1, m1, n1), Pair (rel2, s2, m2, n2) ->
-        rel1 = rel2 && eq_sort s1 s2 && equal m1 m2 && equal n1 n2
+      | Sigma (rel11, rel12, s1, a1, bnd1), Sigma (rel21, rel22, s2, a2, bnd2)
+        ->
+        rel11 = rel21 && rel12 = rel22 && eq_sort s1 s2 && equal a1 a2
+        && eq_binder equal bnd1 bnd2
+      | Pair (rel11, rel12, s1, m1, n1), Pair (rel21, rel22, s2, m2, n2) ->
+        rel11 = rel21 && rel12 = rel22 && eq_sort s1 s2 && equal m1 m2
+        && equal n1 n2
       | Data (d1, ss1, ms1), Data (d2, ss2, ms2) ->
         D.equal d1 d2 && List.equal eq_sort ss1 ss2 && List.equal equal ms1 ms2
       | Cons (c1, ss1, ms1, ns1), Cons (c2, ss2, ms2, ns2) ->
@@ -308,8 +313,10 @@ let rec eq_tm ?(expand_const = false) env m1 m2 =
                | PFalse rhs1, PFalse rhs2 -> equal rhs1 rhs2
                | PZero rhs1, PZero rhs2 -> equal rhs1 rhs2
                | PSucc bnd1, PSucc bnd2 -> eq_binder equal bnd1 bnd2
-               | PPair (rel1, s1, bnd1), PPair (rel2, s2, bnd2) ->
-                 rel1 = rel2 && eq_sort s1 s2 && eq_mbinder equal bnd1 bnd2
+               | PPair (rel11, rel12, s1, bnd1), PPair (rel21, rel22, s2, bnd2)
+                 ->
+                 rel11 = rel21 && rel12 = rel22 && eq_sort s1 s2
+                 && eq_mbinder equal bnd1 bnd2
                | PCons (c1, bnd1), PCons (c2, bnd2) ->
                  C.equal c1 c2 && eq_mbinder equal bnd1 bnd2
                | _ -> false)

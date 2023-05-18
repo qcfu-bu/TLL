@@ -57,9 +57,6 @@ program contains (c : char) (s : string) : bool =
     else contains c s
   end
 
-inductive subset‹s,r,t› (A : Type‹s›) (P : A → Type‹r›) : Type‹t› =
-| SPair of (m : A) {pf : P m}
-
 inductive diff (ans : string) (a b df : string) : U =
 | diff_EmptyString of
   (_ : a ≡ EmptyString)
@@ -86,50 +83,49 @@ inductive diff (ans : string) (a b df : string) : U =
   (_ : df ≡ "N" ^ s3)
 
 program string_diff (ans s1 s2 : string) :
-  {strlen s1 ≡ strlen s2} → subset‹_,_,L› string (fn df ⇒ diff ans s1 s2 df)
+  {strlen s1 ≡ strlen s2} → ∃ (df : string) ⊗ {diff ans s1 s2 df}
 = match s1 as s0 in
-    {strlen s0 ≡ strlen s2} → subset string (fn df ⇒ diff ans s0 s2 df)
+    {strlen s0 ≡ strlen s2} → ∃ (df : string) ⊗ {diff ans s0 s2 df}
   with
   | EmptyString ⇒
     match s2 as s0 in
-      {0 ≡ strlen s0} → subset string (fn df ⇒ diff ans EmptyString s0 df)
+      {0 ≡ strlen s0} → ∃ (df : string) ⊗ {diff ans EmptyString s0 df}
     with
-    | EmptyString ⇒ fn {e} ⇒ SPair EmptyString (diff_EmptyString refl refl refl)
+    | EmptyString ⇒ fn {e} ⇒ ⟨EmptyString, {diff_EmptyString refl refl refl}⟩
     | String c2 s2 ⇒ fn {e} ⇒
       rew [x, _ ⇒ match x with
                   | O ⇒ unit‹L›
-                  | S _ ⇒ subset string (fn df ⇒ diff ans EmptyString (String c2 s2) df)
+                  | S _ ⇒ ∃ (df : string) ⊗ {diff ans EmptyString (String c2 s2) df}
                   end] e in ⟨⟩
     end
   | String c1 s1 ⇒
     match s2 as s0 in
-      {S (strlen s1) ≡ strlen s0} → subset string (fn df ⇒ diff ans (String c1 s1) s0 df)
+      {S (strlen s1) ≡ strlen s0} → ∃ (df : string) ⊗ {diff ans (String c1 s1) s0 df}
     with
     | EmptyString ⇒ fn {e} ⇒
       rew [x, _ ⇒ match x with
-                  | O ⇒ subset string (fn df ⇒ diff ans (String c1 s1) EmptyString df)
+                  | O ⇒ ∃ (df : string) ⊗ {diff ans (String c1 s1) EmptyString df}
                   | S _ ⇒ unit‹L›
                   end] e in ⟨⟩
     | String c2 s2 ⇒ fn {e} ⇒
       let {e} = nat_inv _ _ e in
-      match string_diff ans s1 s2 e with SPair df pf ⇒ 
-        match eqc c1 c2 as b0 in
-          {eqc c1 c2 ≡ b0} → subset string (fn df ⇒ diff ans (String c1 s1) (String c2 s2) df)
+      let ⟨df, {pf}⟩ = string_diff ans s1 s2 e in
+      match eqc c1 c2 as b0 in
+        {eqc c1 c2 ≡ b0} → ∃ (df : string) ⊗ {diff ans (String c1 s1) (String c2 s2) df}
+      with
+      | true ⇒ fn {e1} ⇒
+        let {e1} = eqc_reflect _ _ e1 in
+        let {h} = rew [c, _ ⇒ String c s2 ≡ String c1 s2] e1 in refl in
+        ⟨"Y" ^ df, {diff_StringY _ _ _ _ pf refl h refl}⟩
+      | false ⇒ fn {e1} ⇒
+        match contains c2 ans as b0 in
+          {contains c2 ans ≡ b0} →
+          ∃ (df : string) ⊗ {diff ans (String c1 s1) (String c2 s2) df}
         with
-        | true ⇒ fn {e1} ⇒
-          let {e1} = eqc_reflect _ _ e1 in
-          let {h} = rew [c, _ ⇒ String c s2 ≡ String c1 s2] e1 in refl in
-          SPair ("Y" ^ df) (diff_StringY _ _ _ _ pf refl h refl)
-        | false ⇒ fn {e1} ⇒
-          match contains c2 ans as b0 in
-            {contains c2 ans ≡ b0} →
-            subset string (fn df ⇒ diff ans (String c1 s1) (String c2 s2) df)
-          with
-          | true ⇒ fn {e2} ⇒ SPair ("I" ^ df) (diff_StringI _ _ _ _ _ e1 e2 pf refl refl refl)
-          | false ⇒ fn {e2} ⇒ SPair ("N" ^ df) (diff_StringN _ _ _ _ _ e1 e2 pf refl refl refl)
-          end refl
+        | true ⇒ fn {e2} ⇒ ⟨"I" ^ df, {diff_StringI _ _ _ _ _ e1 e2 pf refl refl refl}⟩
+        | false ⇒ fn {e2} ⇒ ⟨"N" ^ df, {diff_StringN _ _ _ _ _ e1 e2 pf refl refl refl}⟩
         end refl
-      end
+      end refl
     end
   end
 
@@ -178,19 +174,18 @@ inductive wdiff (ans guess df : word) : U =
  (_ : df ≡ Word s3 pf3)
  (_ : diff s1 s1 s2 s3)
   
-program word_diff (ans guess : word) : subset‹_,_,L› word (fn df ⇒ wdiff ans guess df) =
+program word_diff (ans guess : word) : ∃ (df : word) ⊗ {wdiff ans guess df} =
   match ans as ans0 in
-    {ans ≡ ans0} → subset word (fn df ⇒ wdiff ans guess df)
+    {ans ≡ ans0} → ∃ (df : word) ⊗ {wdiff ans guess df}
   with Word s1 pf1 ⇒ fn {e1} ⇒
     match guess as guess0 in
-      {guess ≡ guess0} → subset word (fn df ⇒ wdiff ans guess df)
+      {guess ≡ guess0} → ∃ (df : word) ⊗ {wdiff ans guess df}
     with Word s2 pf2 ⇒ fn {e2} ⇒
       let {e} = eq_trans _ _ _ _ pf1 (eq_sym _ _ _ pf2) in
-      match string_diff s1 s1 s2 e with SPair s3 h ⇒
+      let ⟨s3, {h}⟩ = string_diff s1 s1 s2 e in
       let {e} = diff_len _ _ _ _ h in
       let {pf} = eq_trans _ _ _ _ e pf1 in
-      SPair (Word s3 pf) (diff_Word s1 s2 s3 pf1 pf2 pf e1 e2 refl h)
-      end
+      ⟨Word s3 pf, {diff_Word s1 s2 s3 pf1 pf2 pf e1 e2 refl h}⟩
     end refl
   end refl
 
@@ -222,7 +217,7 @@ logical wordle_loop (ans : word) (repeat : nat) : proto =
     else ⇑(df : word) → ⇑{wdiff ans guess df} → wordle_loop ans repeat
   end
 
--- the wordle protocol enfore that the server choocse a single answer and
+-- The wordle protocol enforces that the server choocse a single answer and
 -- give truthful feedback to the player
 logical wordle : proto = ⇑{ans : word} → ⇑(repeat : nat) → wordle_loop ans repeat
 
@@ -232,7 +227,7 @@ logical loop_hc (ans : word) (repeat : nat) : L = hc⟨ wordle_loop ans repeat �
 logical wordle_ch : L = ch⟨ wordle ⟩
 logical wordle_hc : L = hc⟨ wordle ⟩
 
--- query the user until they input a word
+-- Query the user until they input a word.
 program read_word (_ : unit) : IO word =
   let s ⇐ readline () in
   match eqn (strlen s) 5 as b0 in {eqn (strlen s) 5 ≡ b0} → IO word with
@@ -293,20 +288,19 @@ logical ltn_inv (m n : nat) : (S m) < (S n) ≡ true → m < n ≡ true =
   fn h ⇒ h
 
 program get_at {A : U} (n : nat) (xs : list A) :
-  {n < llen _ xs ≡ true} → subset‹_,_,U› _ (fn x ⇒ at _ x n xs)
-= match xs as xs0 in {n < llen _ xs0 ≡ true} → subset _ (fn x ⇒ at _ x n xs0) with
+  {n < llen _ xs ≡ true} → ∃ (x : A) ⊗ {at _ x n xs}
+= match xs as xs0 in {n < llen _ xs0 ≡ true} → ∃ (x : A) ⊗ {at _ x n xs0} with
   | nil ⇒ fn {e} ⇒
     rew [b, _ ⇒ match b with
-                | true ⇒ subset _ (fn x ⇒ at _ x n nil)
-                | false ⇒ unit
-                end] e in ()
+                | true ⇒ ∃ (x : A) ⊗ {at _ x n nil}
+                | false ⇒ unit‹L›
+                end] e in ⟨⟩
   | x :: xs ⇒
-    match n as n0 in {n0 < S (llen _ xs) ≡ true} → subset _ (fn x0 ⇒ at _ x0 n0 (x :: xs)) with
-    | O ⇒ fn {e} ⇒ SPair x (at_O xs refl refl)
+    match n as n0 in {n0 < S (llen _ xs) ≡ true} → ∃ (x0 : A) ⊗ {at _ x0 n0 (x :: xs)} with
+    | O ⇒ fn {e} ⇒ ⟨x, {at_O xs refl refl}⟩
     | S n ⇒ fn {e} ⇒
-      match get_at _ n xs (ltn_inv _ _ e) with SPair x0 pf ⇒
-      SPair x0 (at_S _ _ _ pf refl refl)
-      end
+      let ⟨x0, {pf}⟩ = get_at _ n xs (ltn_inv _ _ e) in
+      ⟨x0, {at_S _ _ _ pf refl refl}⟩
     end
   end
 
@@ -336,9 +330,9 @@ program rand_word (_ : unit) : IO word =
   in
   let r ⇐ rand 0 19 in
   match r with Between n _ pf ⇒
-  match get_at _ n words pf with SPair w _ ⇒
+    let ⟨w, {_}⟩ = get_at _ n words pf in
     return w
-  end end
+  end
 
 program server_loop (ans : word) (repeat : nat) (c : loop_ch ans repeat) : IO unit =
   match repeat as repeat0 in loop_ch ans repeat0 → IO unit with
@@ -358,11 +352,10 @@ program server_loop (ans : word) (repeat : nat) (c : loop_ch ans repeat) : IO un
     with
     | true ⇒ ln c ⇒ close c
     | false ⇒ ln c ⇒
-      match word_diff ans guess with SPair df pf ⇒
+      let ⟨df, {pf}⟩ = word_diff ans guess in
       let c ⇐ send c df in
       let c ⇐ send c pf in
       server_loop ans repeat c 
-      end
     end c
   end c
     
