@@ -34,6 +34,7 @@
 %right OTIMES
 
 // unit
+%token TOP
 %token UNIT_TYPE // unit
 
 // bool
@@ -180,6 +181,7 @@ let tm_inst :=
 let tm_unit :=
   | UNIT_TYPE; FLQ; s = sort; FRQ; { Unit s }
   | UNIT_TYPE; { Unit U }
+  | TOP; { Unit U }
   | LPAREN; RPAREN; FLQ; s = sort; FRQ; { UIt s }
   | LPAREN; RPAREN; { UIt U }
   | LANGLE; RANGLE; { UIt L }

@@ -144,20 +144,6 @@ let rec trans_tm = function
              n1))
     in
     return Syntax3.(_Let m bnd)
-  | Match (N, _, _, []) -> return Syntax3._NULL
-  | Match (N, _, _, [ PIt rhs ]) ->
-    let* rhs = trans_tm rhs in
-    return rhs
-  | Match (N, _, _, [ PPair bnd ])
-  | Match (N, _, _, [ PCons (_, bnd) ]) ->
-    let xs, rhs = unmbind bnd in
-    let* rhs = trans_tm rhs in
-    let xs = trans_mvar xs in
-    return
-      (Array.fold_right
-         (fun x acc -> Syntax3.(_Let _NULL (bind_var x acc)))
-         xs rhs)
-  | Match (N, _, _, _) -> failwith "trans23.trans_tm.Match"
   | Match (R, s, m, cls) ->
     let s = trans_sort s in
     let* m = trans_tm m in
@@ -178,6 +164,20 @@ let rec trans_tm = function
         cls
     in
     return Syntax3.(_Match s m (box_list cls))
+  | Match (N, _, _, []) -> return Syntax3._NULL
+  | Match (N, _, _, [ PIt rhs ]) ->
+    let* rhs = trans_tm rhs in
+    return rhs
+  | Match (N, _, _, [ PPair bnd ])
+  | Match (N, _, _, [ PCons (_, bnd) ]) ->
+    let xs, rhs = unmbind bnd in
+    let* rhs = trans_tm rhs in
+    let xs = trans_mvar xs in
+    return
+      (Array.fold_right
+         (fun x acc -> Syntax3.(_Let _NULL (bind_var x acc)))
+         xs rhs)
+  | Match (N, _, _, _) -> failwith "trans23.trans_tm.Match"
   (* monadic *)
   | Return m ->
     let arg = Syntax3.(V.mk "_") in

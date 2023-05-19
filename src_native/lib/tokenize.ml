@@ -84,7 +84,8 @@ let str_cat = [%sedlex.regexp? '^']
 (* list *)
 let list_cons = [%sedlex.regexp? "::"]
 
-(* absurd *)
+(* truth *)
+let top = [%sedlex.regexp? 8868] (* ⊤ *)
 let bot = [%sedlex.regexp? 8869] (* ⊥ *)
 
 (* equality *)
@@ -239,7 +240,8 @@ let rec tokenize buf =
   | str_cat -> STR_CAT
   (* list *)
   | list_cons -> LIST_CONS
-  (* bottom *)
+  (* truth *)
+  | top -> TOP
   | bot -> BOT
   (* equality *)
   | equal -> EQUAL
