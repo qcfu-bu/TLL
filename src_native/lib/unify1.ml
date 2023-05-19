@@ -135,7 +135,7 @@ let rec fv ctx = function
         let fsv, fv = fv ctx m in
         (SVSet.union fsv acc0, VSet.union fv acc1))
       (fsv, VSet.empty) (ms @ ns)
-  | Match (m, bnd, cls) ->
+  | Match (_, m, bnd, cls) ->
     let x, mot = unbind bnd in
     let fsv1, fv1 = fv ctx m in
     let fsv2, fv2 = fv (VSet.add x ctx) mot in
@@ -254,7 +254,7 @@ let rec occurs_tm x = function
   | Pair (_, _, _, m, n) -> occurs_tm x m || occurs_tm x n
   | Data (_, _, ms) -> List.exists (occurs_tm x) ms
   | Cons (_, _, ms, ns) -> List.exists (occurs_tm x) (ms @ ns)
-  | Match (m, bnd, cls) ->
+  | Match (_, m, bnd, cls) ->
     let _, a = unbind bnd in
     occurs_tm x m || occurs_tm x a
     || List.exists
@@ -424,7 +424,8 @@ let rec simpl ?(expand_const = false) eqn =
           (ms1 @ ns1) (ms2 @ ns2) []
       in
       eqns1 @ eqns2
-    | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
+    | Match (rel1, m1, bnd1, cls1), Match (rel2, m2, bnd2, cls2)
+      when rel1 = rel2 ->
       let _, mot1, mot2 = unbind2 bnd1 bnd2 in
       let eqns1 = simpl (Eqn1 (env, m1, m2)) in
       let eqns2 = simpl (Eqn1 (env, mot1, mot2)) in
@@ -624,7 +625,7 @@ let resolve_tm ((map0, map1) : map0 * map1) m =
       let ms = List.map resolve ms in
       let ns = List.map resolve ns in
       Cons (c, ss, ms, ns)
-    | Match (m, bnd, cls) ->
+    | Match (rel, m, bnd, cls) ->
       let x, mot = unbind bnd in
       let m = resolve m in
       let mot = lift_tm (resolve mot) in
@@ -650,7 +651,7 @@ let resolve_tm ((map0, map1) : map0 * map1) m =
               PCons (c, unbox (bind_mvar xs n)))
           cls
       in
-      Match (m, unbox (bind_var x mot), cls)
+      Match (rel, m, unbox (bind_var x mot), cls)
     (* absurd *)
     | Absurd (a, m) -> Absurd (resolve a, resolve m)
     (* equality *)

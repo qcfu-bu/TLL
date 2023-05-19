@@ -50,7 +50,7 @@ type tm =
   | Pair of rel * rel * sort * tm * tm
   | Data of D.t * sorts * tms
   | Cons of C.t * sorts * tms * tms
-  | Match of tm * (tm, tm) binder * cls
+  | Match of rel * tm * (tm, tm) binder * cls
   (* absurd *)
   | Bot
   | Absurd of tm * tm
@@ -186,7 +186,7 @@ let _Sigma rel1 rel2 = box_apply3 (fun s a bnd -> Sigma (rel1, rel2, s, a, bnd))
 let _Pair rel1 rel2 = box_apply3 (fun s m n -> Pair (rel1, rel2, s, m, n))
 let _Data d = box_apply2 (fun ss ms -> Data (d, ss, ms))
 let _Cons c = box_apply3 (fun ss ms ns -> Cons (c, ss, ms, ns))
-let _Match = box_apply3 (fun m bnd cls -> Match (m, bnd, cls))
+let _Match rel = box_apply3 (fun m bnd cls -> Match (rel, m, bnd, cls))
 
 (* absurd *)
 let _Bot = box Bot
@@ -292,7 +292,7 @@ let rec lift_tm = function
     let ms = List.map lift_tm ms in
     let ns = List.map lift_tm ns in
     _Cons c (box_list ss) (box_list ms) (box_list ns)
-  | Match (m, bnd, cls) ->
+  | Match (rel, m, bnd, cls) ->
     let cls =
       List.map
         (function
@@ -306,7 +306,7 @@ let rec lift_tm = function
           | PCons (c, bnd) -> _PCons c (box_mbinder lift_tm bnd))
         cls
     in
-    _Match (lift_tm m) (box_binder lift_tm bnd) (box_list cls)
+    _Match rel (lift_tm m) (box_binder lift_tm bnd) (box_list cls)
   (* absurd *)
   | Bot -> _Bot
   | Absurd (a, m) -> _Absurd (lift_tm a) (lift_tm m)

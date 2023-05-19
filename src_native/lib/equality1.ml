@@ -126,11 +126,11 @@ let rec whnf ?(expand_const = true) (env : Env.t) = function
     | NSucc (j, m) -> NSucc (i + j, m)
     | _ -> NSucc (i, m))
   (* data *)
-  | Match (m, mot, cls) -> (
+  | Match (rel, m, mot, cls) -> (
     let m = whnf ~expand_const env m in
     match match_cls cls m with
     | Some m -> whnf ~expand_const env m
-    | _ -> Match (m, mot, cls))
+    | _ -> Match (rel, m, mot, cls))
   (* equality *)
   | Rew (bnd, pf, m) -> (
     let pf = whnf ~expand_const env pf in
@@ -211,8 +211,8 @@ let rec aeq tm1 tm2 =
     | Cons (c1, ss1, ms1, ns1), Cons (c2, ss2, ms2, ns2) ->
       C.equal c1 c2 && List.equal eq_sort ss1 ss2 && List.equal aeq ms1 ms2
       && List.equal aeq ns1 ns2
-    | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
-      aeq m1 m2 && eq_binder aeq bnd1 bnd2
+    | Match (rel1, m1, bnd1, cls1), Match (rel2, m2, bnd2, cls2) ->
+      rel1 = rel2 && aeq m1 m2 && eq_binder aeq bnd1 bnd2
       && List.equal
            (fun cl1 cl2 ->
              match (cl1, cl2) with
@@ -302,8 +302,8 @@ let rec eq_tm ?(expand_const = false) env m1 m2 =
       | Cons (c1, ss1, ms1, ns1), Cons (c2, ss2, ms2, ns2) ->
         C.equal c1 c2 && List.equal eq_sort ss1 ss2 && List.equal equal ms1 ms2
         && List.equal equal ns1 ns2
-      | Match (m1, bnd1, cls1), Match (m2, bnd2, cls2) ->
-        equal m1 m2 && eq_binder equal bnd1 bnd2
+      | Match (rel1, m1, bnd1, cls1), Match (rel2, m2, bnd2, cls2) ->
+        rel1 = rel2 && equal m1 m2 && eq_binder equal bnd1 bnd2
         && List.equal
              (fun cl1 cl2 ->
                match (cl1, cl2) with

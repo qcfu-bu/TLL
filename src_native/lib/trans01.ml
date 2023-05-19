@@ -263,7 +263,7 @@ let rec trans_tm nspc = function
       let x = Syntax1.(V.mk "_") in
       let cl, iset2 = trans_cl nspc (Binder (p, n)) in
       let mot = bind_var x (mk_meta nspc) in
-      let n = Syntax1.(_Match (_Var x) mot (box_list [ cl ])) in
+      let n = Syntax1.(_Match R (_Var x) mot (box_list [ cl ])) in
       (Syntax1.(_Let (trans_rel rel) m (bind_var x n)), ISet.union iset1 iset2))
   (* native *)
   | Unit s -> Syntax1.(_Unit (trans_sort nspc s), ISet.empty)
@@ -291,7 +291,7 @@ let rec trans_tm nspc = function
     Syntax1.
       ( _Pair (trans_rel rel1) (trans_rel rel2) (trans_sort nspc s) m n
       , ISet.union iset1 iset2 )
-  | Match (m, Binder (id, a), cls) ->
+  | Match (rel, m, Binder (id, a), cls) ->
     let m, iset1 = trans_tm nspc m in
     let x = Syntax1.(V.mk id) in
     let a, iset2 = trans_tm ((id, EVar x) :: nspc) a in
@@ -303,7 +303,7 @@ let rec trans_tm nspc = function
         cls ([], ISet.empty)
     in
     Syntax1.
-      ( _Match m (bind_var x a) (box_list cls)
+      ( _Match (trans_rel rel) m (bind_var x a) (box_list cls)
       , ISet.union (ISet.union iset1 iset2) iset3 )
   (* absurd *)
   | Bot -> Syntax1.(_Bot, ISet.empty)
@@ -342,7 +342,7 @@ let rec trans_tm nspc = function
       let x = Syntax1.(V.mk "_") in
       let cl, iset2 = trans_cl nspc (Binder (p, n)) in
       let mot = bind_var x (mk_meta nspc) in
-      let n = Syntax1.(_Match (_Var x) mot (box_list [ cl ])) in
+      let n = Syntax1.(_Match R (_Var x) mot (box_list [ cl ])) in
       (Syntax1.(_MLet m (bind_var x n)), ISet.union iset1 iset2))
   (* session *)
   | Proto -> Syntax1.(_Proto, ISet.empty)

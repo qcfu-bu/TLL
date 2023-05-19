@@ -59,7 +59,7 @@ type tm =
   (* data *)
   | Sigma of rel * rel * sort * tm * (id, tm) binder
   | Pair of rel * rel * sort * tm * tm
-  | Match of tm * (id, tm) binder * cls
+  | Match of rel * tm * (id, tm) binder * cls
   (* absurd *)
   | Bot
   | Absurd of tm

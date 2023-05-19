@@ -372,15 +372,21 @@ let tm_pair :=
 
 let tm_match :=
   | TM_MATCH; m = tm; TM_WITH; cls = tm_cls; TM_END;
-    { Match (m, Binder ("_", Id "_"), cls) }
+    { Match (R, m, Binder ("_", Id "_"), cls) }
+  | TM_MATCH; LBRACE; m = tm; RBRACE; TM_WITH; cls = tm_cls; TM_END;
+    { Match (N, m, Binder ("_", Id "_"), cls) }
   | TM_MATCH; m = tm;
       TM_AS ; id = identifier; TM_IN; a = tm;
     TM_WITH; cls = tm_cls; TM_END;
-    { Match (m, Binder (id, a), cls) }
+    { Match (R, m, Binder (id, a), cls) }
+  | TM_MATCH; LBRACE; m = tm; RBRACE;
+      TM_AS ; id = identifier; TM_IN; a = tm;
+    TM_WITH; cls = tm_cls; TM_END;
+    { Match (N, m, Binder (id, a), cls) }
 
 let tm_ifte :=
   | TM_IF; m = tm; TM_THEN; n1 = tm; TM_ELSE; n2 = tm;
-    { Match (m, Binder ("_", Id "_"), [Binder (PTrue, n1); Binder (PFalse, n2)]) }
+    { Match (R, m, Binder ("_", Id "_"), [Binder (PTrue, n1); Binder (PFalse, n2)]) }
 
 let tm_p :=
   | ~ = tm_p0; <>

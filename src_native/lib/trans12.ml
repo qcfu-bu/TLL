@@ -12,7 +12,7 @@ module Context = struct
     ; (* types and sorts for constants *)
       const : (tm * sort) IMap.t
     ; (* parameters for data *)
-      data : (rel * tm param * CSet.t) DMap.t
+      data : (tm param * CSet.t) DMap.t
     ; (* parameterized telescopes for constructors *)
       cons : (rel * tele param) CMap.t
     }
@@ -28,7 +28,7 @@ module Context = struct
   let add_const x a s ctx = { ctx with const = IMap.add x (a, s) ctx.const }
 
   let add_data d rel ptm cs ctx =
-    { ctx with data = DMap.add d (rel, ptm, cs) ctx.data }
+    { ctx with data = DMap.add d (ptm, cs) ctx.data }
 
   let add_cons c ptl ctx = { ctx with cons = CMap.add c ptl ctx.cons }
 
@@ -328,14 +328,14 @@ module Logical = struct
     | Data (d0, ss, ms) ->
       let _ = List.iter assert_sort ss in
       let d1 = Resolver.find_data d0 ss res in
-      let _, ptm, _ = Context.find_data d1 ctx in
+      let ptm, _ = Context.find_data d1 ctx in
       infer_ptm res ctx env ms ptm
     | Cons (c0, ss, ms, ns) ->
       let _ = List.iter assert_sort ss in
       let c1 = Resolver.find_cons c0 ss res in
       let _, ptl = Context.find_cons c1 ctx in
       infer_ptl res ctx env ms ns ptl
-    | Match (m, mot, cls) -> (
+    | Match (_, m, mot, cls) -> (
       let ty_m = infer_tm res ctx env m in
       match whnf env ty_m with
       | Unit s ->
@@ -352,7 +352,7 @@ module Logical = struct
         subst mot m
       | Data (d0, ss, ms) ->
         let d1 = Resolver.find_data d0 ss res in
-        let _, _, cs = Context.find_data d1 ctx in
+        let _, cs = Context.find_data d1 ctx in
         let _ = infer_cls res ctx env cs ss ms mot cls in
         subst mot m
       | _ -> failwith "Logical.infer_Match")
@@ -616,7 +616,7 @@ module Logical = struct
       let _ = assert_sort s0 in
       let _ = check_tm res ctx env m a in
       check_tm res ctx env n (subst bnd (Ann (m, a)))
-    | Match (m, mot, cls), a0 -> (
+    | Match (_, m, mot, cls), a0 -> (
       let ty_m = infer_tm res ctx env m in
       let a1 = subst mot m in
       let _ = infer_sort res ctx env a1 in
@@ -626,7 +626,7 @@ module Logical = struct
         infer_pair res ctx env rel1 rel2 srt a bnd mot cls
       | Data (d0, ss, ms) ->
         let d1 = Resolver.find_data d0 ss res in
-        let _, _, cs = Context.find_data d1 ctx in
+        let _, cs = Context.find_data d1 ctx in
         infer_cls res ctx env cs ss ms mot cls
       | _ ->
         let a1 = infer_tm res ctx env m0 in
@@ -762,51 +762,61 @@ module Program = struct
       match rel with
       | R -> Syntax2.(a, _Cons c1 (box_list ns_elab), usg)
       | N -> failwith "Program.infer_Cons")
-    | Match (m, mot, cls) -> (
-      let ty_m = Logical.infer_tm res ctx env m in
+    | Match (R, m, mot, cls) -> (
+      let ty_m, m_elab, usg1 = infer_tm res ctx env m in
       let s = Logical.infer_sort res ctx env ty_m in
       match whnf env ty_m with
       | Unit s ->
-        let _, m_elab, usg1 = infer_tm res ctx env m in
         let cls_elab, usg2 = infer_unit res ctx env mot cls s in
         let usg = Usage.merge usg1 usg2 in
         Syntax2.
           (subst mot m, _Match R (trans_sort s) m_elab (box_list cls_elab), usg)
       | Bool ->
-        let _, m_elab, usg1 = infer_tm res ctx env m in
         let cls_elab, usg2 = infer_bool res ctx env mot cls in
         let usg = Usage.merge usg1 usg2 in
         Syntax2.
           (subst mot m, _Match R (trans_sort s) m_elab (box_list cls_elab), usg)
       | Nat ->
-        let _, m_elab, usg1 = infer_tm res ctx env m in
         let cls_elab, usg2 = infer_nat res ctx env mot cls in
         let usg = Usage.merge usg1 usg2 in
         Syntax2.
           (subst mot m, _Match R (trans_sort s) m_elab (box_list cls_elab), usg)
       | Sigma (rel1, rel2, _, a, bnd) ->
-        let _, m_elab, usg1 = infer_tm res ctx env m in
-        let cls_elab, usg2 = infer_pair res ctx env rel1 rel2 s a bnd mot cls in
+        let cls_elab, usg2 =
+          infer_pair res ctx env R rel1 rel2 s a bnd mot cls
+        in
         let usg = Usage.merge usg1 usg2 in
         Syntax2.
           (subst mot m, _Match R (trans_sort s) m_elab (box_list cls_elab), usg)
-      | Data (d0, ss, ms) -> (
+      | Data (d0, ss, ms) ->
         let d1 = Resolver.find_data d0 ss res in
-        let rel, _, cs = Context.find_data d1 ctx in
-        let cls_elab, usg2 = infer_cls res ctx env rel cs ss ms mot cls in
-        match rel with
-        | R ->
-          let _, m_elab, usg1 = infer_tm res ctx env m in
-          Syntax2.
-            ( subst mot m
-            , _Match R (trans_sort s) m_elab (box_list cls_elab)
-            , Usage.merge usg1 usg2 )
-        | N ->
-          Syntax2.
-            ( subst mot m
-            , _Match N (trans_sort s) _NULL (box_list cls_elab)
-            , usg2 ))
-      | _ -> failwith "Program.infer_Match")
+        let _, cs = Context.find_data d1 ctx in
+        let cls_elab, usg2 = infer_cls res ctx env R cs ss ms mot cls in
+        let usg = Usage.merge usg1 usg2 in
+        Syntax2.
+          (subst mot m, _Match R (trans_sort s) m_elab (box_list cls_elab), usg)
+      | _ -> failwith "Program.infer_MatchR")
+    | Match (N, m, mot, cls) -> (
+      let ty_m = Logical.infer_tm res ctx env m in
+      let s = Logical.infer_sort res ctx env ty_m in
+      match whnf env ty_m with
+      | Unit s ->
+        let cls_elab, usg = infer_unit res ctx env mot cls s in
+        Syntax2.
+          (subst mot m, _Match N (trans_sort s) _NULL (box_list cls_elab), usg)
+      | Sigma (rel1, rel2, _, a, bnd) ->
+        let cls_elab, usg =
+          infer_pair res ctx env N rel1 rel2 s a bnd mot cls
+        in
+        Syntax2.
+          (subst mot m, _Match N (trans_sort s) _NULL (box_list cls_elab), usg)
+      | Data (d0, ss, ms) ->
+        let d1 = Resolver.find_data d0 ss res in
+        let _, cs = Context.find_data d1 ctx in
+        let cls_elab, usg = infer_cls res ctx env N cs ss ms mot cls in
+        Syntax2.
+          (subst mot m, _Match N (trans_sort s) _NULL (box_list cls_elab), usg)
+      | _ -> failwith "Program.infer_MatchN")
     (* absurd *)
     | Bot -> failwith "Program.infer_Bot"
     | Absurd (a, m) ->
@@ -974,9 +984,30 @@ module Program = struct
         , Usage.refine_usage usg1 usg2 )
     | _ -> failwith "Program.infer_nat"
 
-  and infer_pair res ctx env rel1 rel2 s a bnd mot cls =
-    match (rel1, rel2, cls) with
-    | R, N, [ PPair (R, N, s0, bnd0) ] when eq_sort s s0 -> (
+  and infer_pair res ctx env rel0 rel1 rel2 s a bnd mot cls =
+    match (rel0, rel1, rel2, cls) with
+    | N, _, _, [ PPair (r1, r2, s0, bnd0) ]
+      when r1 = rel1 && r2 = rel2 && eq_sort s s0 -> (
+      let xs, rhs = unmbind bnd0 in
+      match xs with
+      | [| x; y |] ->
+        let b = subst bnd (Var x) in
+        let r = Logical.infer_sort res ctx env a in
+        let ctx = Context.add_var x a r ctx in
+        let t = Logical.infer_sort res ctx env b in
+        let ctx = Context.add_var y b t ctx in
+        let tm = Pair (r1, r2, s, Var x, Var y) in
+        let ty = Sigma (r1, r2, s, a, bnd) in
+        let mot = subst mot (Ann (tm, ty)) in
+        let _ = Logical.infer_sort res ctx env mot in
+        let rhs_elab, usg = check_tm res ctx env rhs mot in
+        let usg = Usage.remove_var x usg N r in
+        let usg = Usage.remove_var y usg N t in
+        let x = trans_var x in
+        let y = trans_var y in
+        Syntax2.([ _PPair (bind_mvar [| x; y |] rhs_elab) ], usg)
+      | _ -> failwith "Program.infer_pair")
+    | R, R, N, [ PPair (R, N, s0, bnd0) ] when eq_sort s s0 -> (
       let xs, rhs = unmbind bnd0 in
       match xs with
       | [| x; y |] ->
@@ -996,7 +1027,7 @@ module Program = struct
         let y = trans_var y in
         Syntax2.([ _PPair (bind_mvar [| x; y |] rhs_elab) ], usg)
       | _ -> failwith "Program.infer_pair")
-    | N, R, [ PPair (N, R, s0, bnd0) ] when eq_sort s s0 -> (
+    | R, N, R, [ PPair (N, R, s0, bnd0) ] when eq_sort s s0 -> (
       let xs, rhs = unmbind bnd0 in
       match xs with
       | [| x; y |] ->
@@ -1016,7 +1047,7 @@ module Program = struct
         let y = trans_var y in
         Syntax2.([ _PPair (bind_mvar [| x; y |] rhs_elab) ], usg)
       | _ -> failwith "Program.infer_pair")
-    | R, R, [ PPair (R, R, s0, bnd0) ] when eq_sort s s0 -> (
+    | R, R, R, [ PPair (R, R, s0, bnd0) ] when eq_sort s s0 -> (
       let xs, rhs = unmbind bnd0 in
       match xs with
       | [| x; y |] ->
@@ -1176,7 +1207,40 @@ module Program = struct
       let m_elab, usg1 = check_tm res ctx env m a in
       let n_elab, usg2 = check_tm res ctx env n (subst bnd (Ann (m, a))) in
       Syntax2.(_Pair m_elab n_elab, Usage.merge usg1 usg2)
-    | Match (m, mot, cls), a0 -> (
+    | Match (R, m, mot, cls), a0 -> (
+      let ty_m, m_elab, usg1 = infer_tm res ctx env m in
+      let a1 = subst mot m in
+      let _ = Logical.infer_sort res ctx env a1 in
+      let _ = Logical.assert_equal env a0 a1 in
+      let s = Logical.infer_sort res ctx env ty_m in
+      match whnf env ty_m with
+      | Unit s ->
+        let cls_elab, usg2 = infer_unit res ctx env mot cls s in
+        let usg = Usage.merge usg1 usg2 in
+        Syntax2.(_Match R (trans_sort s) m_elab (box_list cls_elab), usg)
+      | Bool ->
+        let cls_elab, usg2 = infer_bool res ctx env mot cls in
+        let usg = Usage.merge usg1 usg2 in
+        Syntax2.(_Match R (trans_sort s) m_elab (box_list cls_elab), usg)
+      | Nat ->
+        let cls_elab, usg2 = infer_nat res ctx env mot cls in
+        let usg = Usage.merge usg1 usg2 in
+        Syntax2.(_Match R (trans_sort s) m_elab (box_list cls_elab), usg)
+      | Sigma (rel1, rel2, _, a, bnd) ->
+        let cls_elab, usg2 =
+          infer_pair res ctx env R rel1 rel2 s a bnd mot cls
+        in
+        let usg = Usage.merge usg1 usg2 in
+        Syntax2.(_Match R (trans_sort s) m_elab (box_list cls_elab), usg)
+      | Data (d0, ss, ms) ->
+        let d1 = Resolver.find_data d0 ss res in
+        let _, cs = Context.find_data d1 ctx in
+        let cls_elab, usg2 = infer_cls res ctx env R cs ss ms mot cls in
+        Syntax2.
+          ( _Match R (trans_sort s) m_elab (box_list cls_elab)
+          , Usage.merge usg1 usg2 )
+      | _ -> failwith "Program.check_Match")
+    | Match (N, m, mot, cls), a0 -> (
       let ty_m = Logical.infer_tm res ctx env m in
       let a1 = subst mot m in
       let _ = Logical.infer_sort res ctx env a1 in
@@ -1184,39 +1248,18 @@ module Program = struct
       let s = Logical.infer_sort res ctx env ty_m in
       match whnf env ty_m with
       | Unit s ->
-        let _, m_elab, usg1 = infer_tm res ctx env m in
-        let cls_elab, usg2 = infer_unit res ctx env mot cls s in
-        let usg = Usage.merge usg1 usg2 in
-        Syntax2.(_Match R (trans_sort s) m_elab (box_list cls_elab), usg)
-      | Bool ->
-        let _, m_elab, usg1 = infer_tm res ctx env m in
-        let cls_elab, usg2 = infer_bool res ctx env mot cls in
-        let usg = Usage.merge usg1 usg2 in
-        Syntax2.(_Match R (trans_sort s) m_elab (box_list cls_elab), usg)
-      | Nat ->
-        let _, m_elab, usg1 = infer_tm res ctx env m in
-        let cls_elab, usg2 = infer_nat res ctx env mot cls in
-        let usg = Usage.merge usg1 usg2 in
-        Syntax2.(_Match R (trans_sort s) m_elab (box_list cls_elab), usg)
+        let cls_elab, usg = infer_unit res ctx env mot cls s in
+        Syntax2.(_Match N (trans_sort s) _NULL (box_list cls_elab), usg)
       | Sigma (rel1, rel2, _, a, bnd) ->
-        let _, m_elab, usg1 = infer_tm res ctx env m in
-        let cls_elab, usg2 = infer_pair res ctx env rel1 rel2 s a bnd mot cls in
-        let usg = Usage.merge usg1 usg2 in
-        Syntax2.(_Match R (trans_sort s) m_elab (box_list cls_elab), usg)
-      | Data (d0, ss, ms) -> (
+        let cls_elab, usg =
+          infer_pair res ctx env N rel1 rel2 s a bnd mot cls
+        in
+        Syntax2.(_Match N (trans_sort s) _NULL (box_list cls_elab), usg)
+      | Data (d0, ss, ms) ->
         let d1 = Resolver.find_data d0 ss res in
-        let rel, _, cs = Context.find_data d1 ctx in
-        let cls_elab, usg2 = infer_cls res ctx env rel cs ss ms mot cls in
-        match rel with
-        | R ->
-          let _, m_elab, usg1 = infer_tm res ctx env m in
-          Syntax2.
-            ( _Match (trans_rel rel) (trans_sort s) m_elab (box_list cls_elab)
-            , Usage.merge usg1 usg2 )
-        | N ->
-          Syntax2.
-            ( _Match (trans_rel rel) (trans_sort s) _NULL (box_list cls_elab)
-            , usg2 ))
+        let _, cs = Context.find_data d1 ctx in
+        let cls_elab, usg = infer_cls res ctx env N cs ss ms mot cls in
+        Syntax2.(_Match N (trans_sort s) _NULL (box_list cls_elab), usg)
       | _ -> failwith "Program.check_Match")
     (* core *)
     | m0, a0 ->

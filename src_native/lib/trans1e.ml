@@ -240,7 +240,7 @@ and infer_tm ctx env m0 : tm trans1e =
     let sch = find_cons c ctx in
     let ptl = msubst sch (Array.of_list ss) in
     infer_ptl ctx env ms ns ptl
-  | Match (m, mot, cls) -> (
+  | Match (_, m, mot, cls) -> (
     let* ty_m = infer_tm ctx env m in
     let* ty_m = unify >> resolve_tm ty_m in
     match whnf env ty_m with
@@ -542,7 +542,7 @@ and check_tm ctx env m0 a0 : unit trans1e =
     let sch = find_cons c ctx in
     let ptl = msubst sch (Array.of_list ss0) in
     check_ptl ctx env ms0 ns ptl ms1 a0
-  | Match (m, mot, cls), a0 -> (
+  | Match (_, m, mot, cls), a0 -> (
     let* ty_m = infer_tm ctx env m in
     let a1 = subst mot m in
     let* s0 = infer_sort ctx env a0 in
