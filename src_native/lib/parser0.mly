@@ -637,7 +637,7 @@ let dcl_dconss :=
   | ~ = dcl_dcons1*; <>
 
 let dcl_ddata :=
-  | DCL_INDUCTIVE; id = identifier; sids = dcl_sargs; ptm = dcl_ptm; EQUAL;
+  | opt = DCL_LOGICAL?; DCL_INDUCTIVE; id = identifier; sids = dcl_sargs; ptm = dcl_ptm; EQUAL;
       dconss = dcl_dconss;
     { let pargs, b = ptm in
       let ptm = 
@@ -661,7 +661,12 @@ let dcl_ddata :=
           in
           DCons (id, Binder (sids, ptl))) dconss
       in
-      DData (id, Binder (sids, ptm), dconss) }
+      let rel =
+        match opt with
+        | None -> R
+        | Some _ -> N
+      in
+      DData (rel, id, Binder (sids, ptm), dconss) }
 
 let dcl :=
   | ~ = dcl_dtm; <>

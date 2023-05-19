@@ -364,8 +364,11 @@ let rec pp_dcl fmt = function
       (pp_scheme (fun fmt (a, m) ->
            pf fmt ":@;<1 2>%a@;<1 0>=@;<1 2>%a" pp_tm a pp_tm m))
       sch
-  | DData (d, sch, dconss) ->
+  | DData (R, d, sch, dconss) ->
     pf fmt "@[<v 0>@[inductive %a@;<1 2>%a@;<1 0>=@]@;<1 0>@[%a@]@]" D.pp d
       (pp_scheme pp_ptm) sch pp_dconss dconss
+  | DData (N, d, sch, dconss) ->
+    pf fmt "@[<v 0>@[logical inductive %a@;<1 2>%a@;<1 0>=@]@;<1 0>@[%a@]@]"
+      D.pp d (pp_scheme pp_ptm) sch pp_dconss dconss
 
 let pp_dcls fmt dcls = pf fmt "%a" (list ~sep:break pp_dcl) dcls

@@ -487,7 +487,7 @@ let rec trans_dcl nspc = function
     let nspc = (id, EConst (x, i)) :: nspc in
     let guard = ISet.mem x iset in
     (nspc, Syntax1.(_DTm (trans_rel rel) x guard sch))
-  | DData (id, sch, dconss) ->
+  | DData (rel, id, sch, dconss) ->
     let d = D.mk id in
     let sch, i =
       trans_scheme nspc
@@ -500,7 +500,7 @@ let rec trans_dcl nspc = function
     in
     let nspc = (id, EData (d, i)) :: nspc in
     let nspc, dconss = trans_dconss nspc dconss in
-    (nspc, Syntax1._DData d sch (box_list dconss))
+    (nspc, Syntax1._DData (trans_rel rel) d sch (box_list dconss))
 
 let trans_dcls nspc dcls =
   let rec aux nspc dcls =

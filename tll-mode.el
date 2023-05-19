@@ -18,7 +18,7 @@
 (setq tll-assert-regexp "\\(?:assert_equal\\)")
 
 (setq tll-font-lock-keywords
-      `(("\\(\\<inductive\\>\\|\\<program\\>\\|\\<logical\\>\\|\\<data\\>\\|\\<def\\>\\)\s*\\([[:graph:]]*\\)"
+      `(("\\(\\<inductive\\>\\|\\<program\\>\\|\\<logical\s*inductive\\>\\|\\<logical\\>\\)\s*\\([[:graph:]]*\\)"
          (1 font-lock-keyword-face)
          (2 font-lock-variable-name-face))
         (,tll-pragma-start-regexp . font-lock-keyword-face)

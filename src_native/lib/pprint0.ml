@@ -183,8 +183,11 @@ let pp_dcons fmt (DCons (id, sch)) = pf fmt "%s of %a" id (pp_scheme pp_ptl) sch
 let pp_dcl fmt = function
   | DTm (R, id, sch) -> pf fmt "program %s%a" id (pp_scheme pp_args) sch
   | DTm (N, id, sch) -> pf fmt "logical %s%a" id (pp_scheme pp_args) sch
-  | DData (id, sch, dconss) ->
+  | DData (R, id, sch, dconss) ->
     pf fmt "inductive %s%a = %a" id (pp_scheme pp_ptm) sch
+      (list ~sep:pipe pp_dcons) dconss
+  | DData (N, id, sch, dconss) ->
+    pf fmt "logical inductive %s%a = %a" id (pp_scheme pp_ptm) sch
       (list ~sep:pipe pp_dcons) dconss
 
 let pp_dcls fmt dcls = pf fmt "%a" (list ~sep:break pp_dcl) dcls

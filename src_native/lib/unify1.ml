@@ -719,12 +719,12 @@ let resolve_dcl map = function
     let a = lift_tm (resolve_tm map a) in
     let m = lift_tm (resolve_tm map m) in
     DTm (rel, x, guard, unbox (bind_mvar xs (box_pair a m)))
-  | DData (d, sch, dconss) ->
+  | DData (rel, d, sch, dconss) ->
     let xs, ptm = unmbind sch in
     let ptm = resolve_param lift_tm resolve_tm map ptm in
     let sch = bind_mvar xs (lift_param lift_tm ptm) in
     let dconss = List.map (resolve_dcons map) dconss in
-    DData (d, unbox sch, dconss)
+    DData (rel, d, unbox sch, dconss)
 
 let resolve_dcls map dcls = List.map (resolve_dcl map) dcls
 

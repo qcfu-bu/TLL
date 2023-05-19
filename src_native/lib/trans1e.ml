@@ -622,7 +622,7 @@ let rec check_dcls ctx env dcls =
         env
     in
     check_dcls ctx env dcls
-  | DData (d, sch, dconss) :: dcls ->
+  | DData (rel, d, sch, dconss) :: dcls ->
     let xs, ptm = unmbind sch in
     let ctx' = add_svar xs ctx in
     let* _ = check_ptm ctx' env ptm in

@@ -91,7 +91,7 @@ and cls = cl list
 
 type dcl =
   | DTm of rel * I.t * bool * (tm * tm) scheme
-  | DData of D.t * tm param scheme * dconss
+  | DData of rel * D.t * tm param scheme * dconss
 
 and 'a scheme = (sort, 'a) mbinder
 and dcls = dcl list
@@ -228,7 +228,7 @@ let _PCons c = box_apply (fun bnd -> PCons (c, bnd))
 
 (* dcl *)
 let _DTm rel x guard = box_apply (fun sch -> DTm (rel, x, guard, sch))
-let _DData d = box_apply2 (fun sch dconss -> DData (d, sch, dconss))
+let _DData rel d = box_apply2 (fun sch dconss -> DData (rel, d, sch, dconss))
 
 (* dcons *)
 let _DCons c = box_apply (fun sch -> DCons (c, sch))
@@ -349,8 +349,8 @@ let lift_dcl = function
   | DTm (rel, x, guard, sch) ->
     _DTm rel x guard
       (box_mbinder (fun (a, m) -> box_pair (lift_tm a) (lift_tm m)) sch)
-  | DData (d, sch, dconss) ->
-    _DData d (box_mbinder (lift_param lift_tm) sch) (lift_dconss dconss)
+  | DData (rel, d, sch, dconss) ->
+    _DData rel d (box_mbinder (lift_param lift_tm) sch) (lift_dconss dconss)
 
 let lift_dcls dcls = box_list (List.map lift_dcl dcls)
 

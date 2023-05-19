@@ -90,7 +90,7 @@ and cls = cl list
 
 type dcl =
   | DTm of rel * id * args scheme
-  | DData of id * tm param scheme * dconss
+  | DData of rel * id * tm param scheme * dconss
 
 and dcls = dcl list
 and dcons = DCons of id * tele param scheme

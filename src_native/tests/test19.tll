@@ -52,7 +52,7 @@ program contains (c : char) (s : string) : bool =
   end
 
 -- Relation that the "string-difference" of a and b is df.
-inductive diff (ans : string) (a b df : string) : U =
+logical inductive diff (ans : string) (a b df : string) : U =
 | diff_EmptyString of
   (_ : a ≡ EmptyString)
   (_ : b ≡ EmptyString)
@@ -161,7 +161,7 @@ inductive word : U =
 | Word of (s : string) {pf : strlen s ≡ 5}
 
 -- Relation that the "wordle-difference"" of ans and guess is df.
-inductive wdiff (ans guess df : word) : U =
+logical inductive wdiff (ans guess df : word) : U =
 | diff_Word of (s1 s2 s3 : string)
  (pf1 : strlen s1 ≡ 5)
  (pf2 : strlen s2 ≡ 5)
@@ -275,7 +275,7 @@ program player (c : wordle_hc) : IO unit =
 -- ———————————————————————————————————————————————
 
 -- Relation that element x is at position n in list xs.
-inductive at (A : U) (x : A) (n : nat) (xs : list‹_,U› A) : U =
+logical inductive at (A : U) (x : A) (n : nat) (xs : list‹_,U› A) : U =
 | at_O of (xs0 : list A)
   (_ : n ≡ 0)
   (_ : xs ≡ (x :: xs0))
