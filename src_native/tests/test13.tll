@@ -1,23 +1,11 @@
-program id (n : nat) (acc : nat) : nat =
-  match n with
-  | O ⇒ acc
-  | S n0 ⇒ id n0 (S acc)
-  end
+logical inductive uniq‹s› (A : Type‹s›) (m : A) : U =
+| Uniq of (x : A) {_ : m ≡ x}
 
-program idM0 (n : nat) (acc : nat) : IO nat =
-  match n with
-  | O ⇒ return acc
-  | S n0 ⇒ idM0 n0 (S acc)
-  end
-
-program idM (n : nat) (acc : nat) : IO nat =
-  match n with
-  | O ⇒ return acc
-  | S n0 ⇒
-    let n0 ⇐ idM0 n0 0 in
-    idM n0 (S acc)
+program ex {e : uniq _ 1} : string =
+  match e with
+  | Uniq x _ ⇒ "hello"
   end
 
 program main : IO unit =
-  let x ⇐ idM 8000000 0 in
-  return ()
+  let s = ex (Uniq 1 refl) in
+  print s
