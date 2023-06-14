@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/resource.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -17,10 +18,17 @@
 
 pthread_attr_t attr;
 
-void instr_init() {
+void instr_init(void) {
+  const rlim_t stacksize = 0xf000000;
+  struct rlimit rl;
+  getrlimit(RLIMIT_STACK, &rl);
+  if (rl.rlim_cur < stacksize) {
+    rl.rlim_cur = stacksize;
+    setrlimit(RLIMIT_STACK, &rl);
+  }
   srand(time(0));
   pthread_attr_init(&attr);
-  pthread_attr_setstacksize(&attr, 0xf000000);
+  pthread_attr_setstacksize(&attr, stacksize);
 }
 
 /*-------------------------------------------------------*/
@@ -62,7 +70,8 @@ char *from_string(tll_ptr x) {
     tmp = (tll_node)(tmp->data[1]);
     len++;
   }
-  str = (char *)MALLOC(len + 1);
+  str = (char *)MALLOC(sizeof(char) * (len + 1));
+  str[len] = 0;
   tmp = (tll_node)x;
   for (int i = 0; i < len; i++) {
     str[i] = from_char(tmp->data[0]);
