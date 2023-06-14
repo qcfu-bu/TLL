@@ -20,3 +20,6 @@ main.out: $(SRC)
 clean:: ; $(RMF) *.dSYM
 clean:: ; $(RMF) *.gch
 clean:: ; $(RMF) *.out
+
+cleanall: clean
+	$(RMF) main.c
