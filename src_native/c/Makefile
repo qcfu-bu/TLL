@@ -1,4 +1,4 @@
-CC=clang
+CC=gcc-13
 RMF=rm -rf
 CFLAGS=-g -O2
 SRC=main.c runtime.c chan.c queue.c
@@ -13,6 +13,8 @@ endif
 
 
 all: main.out
+
+fresh: clean main.out
 
 main.out: $(SRC) 
 	$(CC) $(CFLAGS) $^ -o $@
