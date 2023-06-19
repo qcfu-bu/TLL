@@ -15,7 +15,10 @@ Inductive nth A : nat -> list A -> A -> Prop :=
 
 Inductive Forall1 A (P : A -> Prop) : list A -> Prop :=
 | Forall1_nil : Forall1 P nil
-| Froall1_cons m ls : P m -> Forall1 P ls -> Forall1 P (m :: ls).
+| Forall1_cons m ls : P m -> Forall1 P ls -> Forall1 P (m :: ls).
+
+Notation "'{' '∀' x '∈' xs ',' P }" :=
+  (Forall1 (fun x => P) xs) (x name, at level 200).
 
 Inductive Exists1 A (P : A -> Prop) : list A -> Prop :=
 | Exists1_exist m ls : 
@@ -25,6 +28,9 @@ Inductive Exists1 A (P : A -> Prop) : list A -> Prop :=
   Exists1 P ls ->
   Exists1 P (m :: ls).
 
+Notation "'{' '∃' x '∈' xs ',' P }" :=
+  (Exists1 (fun x => P) xs).
+
 Inductive Forall2 A (R : A -> A -> Prop) : list A -> list A -> Prop :=
 | Forall2_nil :
   Forall2 R nil nil
@@ -32,6 +38,9 @@ Inductive Forall2 A (R : A -> A -> Prop) : list A -> list A -> Prop :=
   R m m' ->
   Forall2 R ls ls' ->
   Forall2 R (m :: ls) (m' :: ls').
+
+Notation "'{' '∀' x y '∈' xs & ys ',' R }" :=
+  (Forall2 (fun x y => R) xs ys) (x name, y name, at level 200).
 
 Inductive Exists2 A (R : A -> A -> Prop) : list A -> list A -> Prop :=
 | Exists2_exist m m' ls :
@@ -41,6 +50,9 @@ Inductive Exists2 A (R : A -> A -> Prop) : list A -> list A -> Prop :=
   Exists2 R ls ls' ->
   Exists2 R (m :: ls) (m :: ls').
 
+Notation "'{' '∃' x y '∈' xs & ys ',' R }" :=
+  (Exists2 (fun x y => R) xs ys) (x name, y name, at level 200).
+
 Inductive Forall2i' A (R : nat -> A -> A -> Prop) : nat -> list A -> list A -> Prop :=
 | Forall2i'_nil i :
   Forall2i' R i nil nil
@@ -49,11 +61,17 @@ Inductive Forall2i' A (R : nat -> A -> A -> Prop) : nat -> list A -> list A -> P
   Forall2i' R i.+1 ls ls' ->
   Forall2i' R i (m :: ls) (m' :: ls').
 
+Notation "'{' '∀' '(' n \≤ i ')' x y '∈' xs & ys ',' R }" :=
+  (Forall2i' (fun i x y => R) n xs ys) (i name, x name, y name, at level 200).
+
 Definition Forall2i A R ls ls' :=
   @Forall2i' A R 0 ls ls'.
 
+Notation "'{' '∀' i x y '∈' xs & ys ',' R }" :=
+  (Forall2i (fun i x y => R) xs ys) (i name, x name, y name, at level 200).
+
 Lemma nth_Forall2 A (R : A -> A -> Prop) xs ys x n :
-  Forall2 R xs ys -> nth n xs x -> exists y, nth n ys y /\ R x y.
+ { ∀ x y ∈ xs & ys, R x y } -> nth n xs x -> exists y, nth n ys y /\ R x y.
 Proof with eauto using nth.
   move=>h. elim: h x n=>{xs ys}.
   move=>x n h. inv h.
@@ -63,7 +81,7 @@ Proof with eauto using nth.
 Qed.
 
 Lemma nth_Forall2i' A (R : nat -> A -> A -> Prop) xs ys x i n :
-  Forall2i' R i xs ys -> nth n xs x -> exists y, nth n ys y /\ R (i + n) x y.
+  { ∀ (i \≤ j) x y ∈ xs & ys, R j x y } -> nth n xs x -> exists y, nth n ys y /\ R (i + n) x y.
 Proof with eauto using nth.
   move=>h. elim: h x n=>{xs ys i}.
   move=>i x n h. inv h.
@@ -74,7 +92,7 @@ Proof with eauto using nth.
 Qed.
 
 Lemma nth_Forall2i A (R : nat -> A -> A -> Prop) xs ys x n :
-  Forall2i R xs ys -> nth n xs x -> exists y, nth n ys y /\ R n x y.
+  {∀ i x y ∈ xs & ys, R i x y} -> nth n xs x -> exists y, nth n ys y /\ R n x y.
 Proof with eauto using nth.
   move=>h1 h2. unfold Forall2i in h1.
   have[y[h3 h4]]:=nth_Forall2i' h1 h2.

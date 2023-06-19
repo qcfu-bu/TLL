@@ -6,37 +6,67 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Fixpoint mkApps (h : term) (ls : list (bool * term)%type) : term :=
+Fixpoint mkApps (h : term) (ls : list (term * relv)%type) : term :=
   match ls with
   | nil => h
-  | (false, m) :: ls => mkApps (App0 h m) ls
-  | (true,  m) :: ls => mkApps (App1 h m) ls
+  | (m, r) :: ls => mkApps (App h m r) ls
   end.
 
 Reserved Notation "m ~> n" (at level 50).
 Inductive sta_step : term -> term -> Prop :=
-| sta_step_pi0L A A' B s :
+| sta_step_piL A A' B s r :
   A ~> A' ->
-  Pi0 A B s ~> Pi0 A' B s
-| sta_step_pi1L A A' B s :
-  A ~> A' ->
-  Pi1 A B s ~> Pi1 A' B s
-| sta_step_pi0R A B B' s :
+  Pi A B s r ~> Pi A' B s r
+
+| sta_step_piR A B B' s r :
   B ~> B' ->
-  Pi0 A B s ~> Pi0 A B' s
-| sta_step_pi1R A B B' s :
-  B ~> B' ->
-  Pi1 A B s ~> Pi1 A B' s
-| sta_step_lam0L A A' m s :
+  Pi A B s r ~> Pi A B' s r
+
+| sta_step_lamL A A' m s r :
   A ~> A' ->
-  Lam0 A m s ~> Lam0 A' m s
-| sta_step_lam1L A A' m s :
+  Lam A m s r ~> Lam A' m s r
+
+| sta_step_lamR A m m' s r :
+  m ~> m' ->
+  Lam A m s r ~> Lam A m' s r
+
+| sta_step_appL m m' n r :
+  m ~> m' ->
+  App m n r ~> App m' n r
+
+| sta_step_appR m n n' r :
+  n ~> n' ->
+  App m n r ~> App m n' r
+
+| sta_step_beta A m n s r :
+  App (Lam A m s r) n r ~> m.[n/]
+
+| sta_step_indA A A' Cs s r :
   A ~> A' ->
-  Lam1 A m s ~> Lam1 A' m s
-| sta_step_lam0R A m m' s :
+  Ind A Cs s r ~> Ind A' Cs s r
+
+| sta_step_indCs A Cs Cs' s r :
+  {∃ C C' ∈ Cs & Cs', C ~> C'} ->
+  Ind A Cs s r ~> Ind A Cs' s r
+
+| sta_step_cons i I I' s r :
+  I ~> I' ->
+  Cons i I s r ~> Cons i I' s r
+
+| sta_step_caseM m m' Q Fs r :
   m ~> m' ->
-  Lam0 A m s ~> Lam0 A m' s
-| sta_step_lam1R A m m' s :
-  m ~> m' ->
-  Lam1 A m s ~> Lam1 A m' s
+  Case m Q Fs r ~> Case m' Q Fs r
+
+| sta_step_caseQ m Q Q' Fs r :
+  Q ~> Q' ->
+  Case m Q Fs r ~> Case m Q' Fs r
+
+| sta_step_caseFs m Q Fs Fs' r :
+  {∃ F F' ∈ Fs & Fs, F ~> F'} ->
+  Case m Q Fs r ~> Case m Q Fs' r
+
+| sta_step_iota i I ms Q Fs F s r :
+  nth i Fs F ->
+  Case (mkApps (Cons i I s r) ms) Q Fs r ~> mkApps F ms
+
 where "m ~> n" := (sta_step m n).
