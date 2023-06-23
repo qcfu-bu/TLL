@@ -1,0 +1,130 @@
+\ProvidesPackage{header}
+
+\usepackage{trimclip}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{tikz-cd}
+\usetikzlibrary{shapes.geometric,arrows}
+\usepackage{mathpartir}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{DejaVuSansMono}
+\usepackage[T1]{fontenc}  
+\usepackage[mathletters]{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage[page,header]{appendix}
+\usepackage{titletoc}
+\usepackage{cleveref}
+
+\tikzstyle{startstop} = [rectangle, minimum width=0.6cm, minimum height=0.8cm, text centered, draw=black]
+\tikzstyle{process}   = [rectangle, minimum width=0.6cm, minimum height=0.8cm, text centered, text width=2.2cm, draw=black]
+\tikzstyle{arrow}     = [thick,->,>=stealth]
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{eminence}{RGB}{108,48,130}
+
+\lstdefinelanguage{tll}{
+  emph={program, logical, inductive, of},
+  morekeywords={let, in, match, as, with, end, fork, rew, ln, fn},
+  morecomment=[l]{--},
+  emphstyle={\color{blue}},
+  keywordstyle=\color{eminence},
+  commentstyle=\color{codegreen},
+}
+
+\lstnewenvironment{tllisting}{
+\lstset{
+  language=tll,
+  basicstyle=\ttfamily,
+  extendedchars=true,
+  mathescape=true,
+}}{}
+
+\newcommand{\prog}[1]{{\footnotesize\texttt{#1}}}
+\newcommand{\progscript}[1]{{\scriptsize\texttt{#1}}}
+\newcommand{\progtiny}[1]{{\tiny\texttt{#1}}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+
+\newcommand{\leadstoP}{\leadsto_{p}}
+\newcommand{\conv}[2]{{#1}\simeq{#2}}
+\newcommand{\Un}{\text{U}}
+\newcommand{\Ln}{\text{L}}
+\newcommand{\ty}[1]{:_{#1}}
+\newcommand{\tL}{:_{\text{L}}}
+\newcommand{\tU}{:_{\text{U}}}
+\newcommand{\PiR}[3]{\Pi_{#1}({#2}).{#3}}
+\newcommand{\PiI}[3]{\Pi_{#1}\{{#2}\}.{#3}}
+\newcommand{\lamR}[3]{\lambda_{#1}({#2}).{#3}}
+\newcommand{\lamI}[3]{\lambda_{#1}\{{#2}\}.{#3}}
+\newcommand{\appR}[2]{{#1}~{#2}}
+\newcommand{\appI}[2]{{#1}~\{{#2}\}}
+\newcommand{\SigR}[3]{\Sigma_{#1}({#2}.{#3})}
+\newcommand{\SigI}[3]{\Sigma_{#1}\{{#2}.{#3}\}}
+\newcommand{\pairR}[3]{\langle{{#1},{#2}}\rangle_{#3}}
+\newcommand{\pairI}[3]{\{{#1},{#2}\}_{#3}}
+\newcommand{\SigElim}[3]{\text{R}_{#1}^{\Sigma}({#2},{#3})}
+\newcommand{\with}[3]{{{#1}\;\&_{#3}{#2}}}
+\newcommand{\apair}[3]{({#1}, {#2})_{#3}}
+\newcommand{\projL}[1]{\pi_{1}\,{#1}}
+\newcommand{\projR}[1]{\pi_{2}\,{#1}}
+\newcommand{\iden}[3]{{#2}=_{#1}{#3}}
+\newcommand{\refl}[1]{{\text{refl}\;{#1}}}
+\newcommand{\idenElim}[3]{\text{R}_{#1}^{=}({#2},{#3})}
+\newcommand{\dotcup}{\ensuremath{\mathbin{\mathaccent\cdot\cup}}}
+\newcommand{\val}{\textit{value}}
+\newcommand{\model}[1]{\llbracket{#1}\rrbracket}
+\newcommand{\lookup}[4]{\textit{lookup}({#1},{#2},{#3},{#4})}
+\newcommand{\wrheap}{\textit{wr-heap}}
+\newcommand{\FV}[1]{\textit{FV}({#1})}
+\newcommand{\nat}{\text{nat}}
+\newcommand{\PiType}[1]{\Pi{#1}}
+\newcommand{\lamProg}[1]{\lambda{#1}}
+\newcommand{\SigType}[1]{\Sigma{#1}}
+\newcommand{\ActP}{\Uparrow}
+\newcommand{\ActN}{\Downarrow}
+\newcommand{\ActR}[3]{{#1}({#2})\rightarrow{#3}}
+\newcommand{\ActI}[3]{{#1}\{{#2}\}\rightarrow{#3}}
+
+\newcommand{\globalCtx}[1]{{#1}\vdash\textit{global}}
+\newcommand{\globalDef}[3]{{#1} := {#2} : {#3}}
+\newcommand{\localCtx}[1]{{#1}\vdash\textit{local}}
+\newcommand{\arity}[3]{\textit{arity}({#1}, {#2}, {#3})}
+\newcommand{\constr}[4]{\textit{constr}({#1}, {#2}, {#3}, {#4})}
+\newcommand{\indDefR}[3]{\text{ind}~({#1} : {#2})~[{#3}]}
+\newcommand{\indDefI}[3]{\text{ind}~\{{#1} : {#2}\}~[{#3}]}
+\newcommand{\indR}[2]{\text{ind}~({#1}, {#2})}
+\newcommand{\indI}[2]{\text{ind}~\{{#1}, {#2}\}}
+\newcommand{\constrR}[2]{\text{constr}~({#1}, {#2})}
+\newcommand{\constrI}[2]{\text{constr}~\{{#1}, {#2}\}}
+\newcommand{\spine}[3]{\textit{spine}({#1}, {#2}, {#3})}
+\newcommand{\positive}[2]{\textit{positive}({#1}, {#2})}
+\newcommand{\vecline}[2]{\overline{#1}^{#2}}
+\newcommand{\caseI}[3]{\text{case}~\{{#1}, {#2}\}~[#3]}
+\newcommand{\caseR}[3]{\text{case}~({#1}, {#2})~[#3]}
+
+\newcommand{\LogicalAgreeRen}[3]{\textit{logical-agree-ren}({#1},{#2},{#3})}
+\newcommand{\LogicalAgreeSubst}[3]{{{#1} \vdash {#2} \dashv {#3}}}
+\newcommand{\HeadSim}[2]{\textit{head-sim}({#1},{#2})}
+\newcommand{\Sim}[2]{\textit{sim}({#1},{#2})}
+\newcommand{\LogicalVal}{\textit{logical-val}}
+\newcommand{\ProgramAgreeRen}[5]{\textit{program-agree-ren}({#1},{#2},{#3},{#4},{#5})}
+\newcommand{\ProgramAgreeSubst}[5]{{{#1} ; {#2} \vdash {#3} \dashv {#4} ; {#5}}}
+\newcommand{\ErasureAgreeSubst}[6]{{{#1} ; {#2} \vdash {#3} \sim {#4} \dashv {#5} ; {#6}}}
+\newcommand{\resolved}{\textit{resolved}}
+\newcommand{\AgreeResolve}[5]{\textit{agree-resolve}({#1},{#2},{#3},{#4},{#5})}
+\newcommand{\Vars}[1]{\textit{Vars}({#1})}
+
+\makeatletter
+\newcommand*{\Leadsto}{\leadsto\joinrel\mathrel{\mathpalette\@Leadsto\relax}}
+\newcommand*{\@Leadsto}[2]{%
+   \clipbox{{.68\width} 0pt 0pt {-.2\height}}{$\m@th#1\leadsto$}%
+}
+
+\makeatletter
+\def\subsubsection{\@startsection{subsubsection}{3}%
+  \z@{.5\linespacing\@plus.7\linespacing}{.1\linespacing}%
+  {\normalfont\itshape}}
+\makeatother

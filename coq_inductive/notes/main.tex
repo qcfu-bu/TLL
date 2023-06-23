@@ -1,0 +1,228 @@
+\documentclass[acmsmall,nonacm,screen]{acmart}
+\settopmatter{printfolios=true,printccs=false,printacmref=false}
+%% For double-blind review submission, w/ CCS and ACM Reference
+%\documentclass[acmsmall,review,anonymous]{acmart}\settopmatter{printfolios=true}
+%% For single-blind review submission, w/o CCS and ACM Reference (max submission space)
+%\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+%% For single-blind review submission, w/ CCS and ACM Reference
+%\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true}
+%% For final camera-ready submission, w/ required CCS and ACM Reference
+%\documentclass[acmsmall]{acmart}\settopmatter{}
+
+%% Journal information
+%% Supplied to authors by publisher for camera-ready submission;
+%% use defaults for review submission.
+\acmJournal{PACMPL}
+% \acmVolume{1}
+\acmNumber{CONF} % CONF = POPL or ICFP or OOPSLA
+% \acmArticle{1}
+\acmYear{2023}
+\acmMonth{1}
+\acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
+\startPage{1}
+
+%% Copyright information
+%% Supplied to authors (based on authors' rights management selection;
+%% see authors.acm.org) by publisher for camera-ready submission;
+%% use 'none' for review submission.
+\setcopyright{none}
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
+%\copyrightyear{2018}           %% If different from \acmYear
+
+%% Bibliography style
+\bibliographystyle{ACM-Reference-Format}
+%% Citation style
+%% Note: author/year citations are required for papers published as an
+%% issue of PACMPL.
+\citestyle{acmauthoryear} 
+
+\usepackage{header}
+
+\begin{document}
+
+\title{A Two-Level Linear Inductive Dependent Type Theory}
+
+\author{Qiancheng Fu}
+\affiliation{
+  \institution{Boston University}
+  \city{Boston}
+  \state{MA}
+  \country{USA}
+}
+\email{qcfu@bu.edu}
+
+\author{Hongwei Xi}
+\affiliation{
+  \institution{Boston University}
+  \city{Boston}
+  \state{MA}
+  \country{USA}
+}
+\email{hwxi@bu.edu}
+
+\section{Logical Typing}
+
+\subsection{Global Context}
+\begin{figure}[H]
+  \small
+  \begin{mathpar}
+    \inferrule
+    { }
+    { \globalCtx{\epsilon} }
+    \textsc{global-empty}
+
+    \inferrule
+    { \globalCtx{\Gamma} \\
+      \Gamma \vdash m : A }
+    { \globalCtx{\Gamma, \globalDef{x}{m}{A}} }
+    \textsc{global-def}
+
+    (\forall i)
+    \mprset{flushleft}
+    \inferrule
+    { \globalCtx{\Gamma} \\
+      \Gamma, \Theta \vdash s : \Un \\\\
+      \Gamma, \indDefI{d}{\Theta.s}{}, \Theta_i \vdash \indI{d}{\vecline{m_{ij}}{j}} : s \\
+      \positive{d}{\Theta_i} \\
+      d \notin \FV{\vecline{m_{ij}}{j}} }
+    { \globalCtx{\Gamma, \indDefI{d}{\Theta.s}{\vecline{c_i : \Theta_i.{\indI{d}{\vecline{m_{ij}}{j}}}}{i}}} }
+    \textsc{global-ind$_{0}$}
+
+    (\forall i)
+    \mprset{flushleft}
+    \inferrule
+    { \globalCtx{\Gamma} \\
+      \Gamma, \Theta  \vdash s : \Un \\\\
+      \Gamma, \indDefR{d}{\Theta.s}{}, \Theta_i \vdash \indR{d}{\vecline{m_{ij}}{j}} : s \\
+      \positive{d}{\Theta_i} \\
+      d \notin \FV{\vecline{m_{ij}}{j}} }
+    { \globalCtx{\Gamma, \indDefR{d}{\Theta.s}{\vecline{c_i : \Theta_i.{\indR{d}{\vecline{m_{ij}}{j}}}}{i}}} }
+    \textsc{global-ind$_{1}$}
+  \end{mathpar}
+\end{figure}
+
+\subsection{Local Context}
+\begin{figure}[H]
+  \small
+  \begin{mathpar}
+    \inferrule
+    { \globalCtx{\Gamma} }
+    { \localCtx{\Gamma} }
+    \textsc{local-empty}
+
+    \inferrule
+    { \localCtx{\Gamma} \\
+      \Gamma \vdash A : s }
+    { \localCtx{\Gamma, x : A} }
+    \textsc{local-var}
+  \end{mathpar}
+\end{figure}
+
+\newpage
+
+\subsection{Typing}
+\begin{figure}[H]
+  \small
+  \begin{mathpar}
+    \inferrule
+    { \localCtx{\Gamma} }
+    { \Gamma \vdash s : \Un }
+    \textsc{logic-sort}
+
+    \inferrule
+    { \localCtx{\Gamma} \\
+      {x := m : A} \in \Gamma }
+    { \Gamma \vdash x : A }
+    \textsc{logic-def}
+
+    \inferrule
+    { \localCtx{\Gamma} \\
+      {x : A} \in \Gamma }
+    { \Gamma \vdash x : A }
+    \textsc{logic-var}
+
+    \inferrule
+    { \Gamma \vdash A : s \\
+      \Gamma, x : A \vdash B : r }
+    { \Gamma \vdash \PiI{t}{x : A}{B} : t }
+    \textsc{logic-$\Pi_{0}$}
+
+    \inferrule
+    { \Gamma \vdash A : s \\
+      \Gamma, x : A \vdash B : r }
+    { \Gamma \vdash \PiR{t}{x : A}{B} : t }
+    \textsc{logic-$\Pi_{1}$}
+
+    \inferrule
+    { \Gamma, x : A \vdash m : B }
+    { \Gamma \vdash \lamI{t}{x : A}{B} : \PiI{t}{x : A}{B} }
+    \textsc{logic-$\lambda_{0}$}
+
+    \inferrule
+    { \Gamma, x : A \vdash m : B }
+    { \Gamma \vdash \lamR{t}{x : A}{B} : \PiR{t}{x : A}{B} }
+    \textsc{logic-$\lambda_{1}$}
+
+    \inferrule
+    { \Gamma \vdash m : \PiI{t}{x : A}{B} \\
+      \Gamma \vdash n : A }
+    { \Gamma \vdash \appI{m}{n} : B[n/x] }
+    \textsc{logic-app$_{0}$}
+
+    \inferrule
+    { \Gamma \vdash m : \PiR{t}{x : A}{B} \\
+      \Gamma \vdash n : A }
+    { \Gamma \vdash \appR{m}{n} : B[n/x] }
+    \textsc{logic-app$_{1}$}
+
+    \inferrule
+    { \indDefI{d}{\Theta.s}{\vecline{c_i : \Theta_i.\indI{d}{\vecline{m_{ij}}{j}}}{i}} \in \Gamma \\
+      \Gamma \vdash \vecline{n_k}{k} : \Theta }
+    { \Gamma \vdash \indI{d}{\vecline{n_k}{k}} : s }
+    \textsc{logic-ind$_{0}$}
+
+    \inferrule
+    { \indDefR{d}{\Theta.s}{\vecline{c_i : \Theta_i.\indR{d}{\vecline{m_{ij}}{j}}}{i}} \in \Gamma \\
+      \Gamma \vdash \vecline{n_k}{k} : \Theta }
+    { \Gamma \vdash \indR{d}{\vecline{n_k}{k}} : s }
+    \textsc{logic-ind$_{1}$}
+
+    \inferrule
+    { \indDefI{d}{\Theta.s}{\vecline{c_i : \Theta_i.\indI{d}{\vecline{m_{ij}}{j}}}{i}} \in \Gamma \\
+      \Gamma \vdash \vecline{n_k}{k} : \Theta_i }
+    { \Gamma \vdash \constrI{c_i}{\vecline{n_k}{k}} : \indI{d}{\vecline{m_{ij}}{j}}[\vecline{n_k}{k}/\Theta_i] }
+    \textsc{local-constr$_{0}$}
+
+    \inferrule
+    { \indDefR{d}{\Theta.s}{\vecline{c_i : \Theta_i.\indR{d}{\vecline{m_{ij}}{j}}}{i}} \in \Gamma \\
+      \Gamma \vdash \vecline{n_k}{k} : \Theta_i }
+    { \Gamma \vdash \constrR{c_i}{\vecline{n_k}{k}} : \indR{d}{\vecline{m_{ij}}{j}}[\vecline{n_k}{k}/\Theta_i] }
+    \textsc{local-constr$_{1}$}
+
+    \mprset{flushleft}
+    \inferrule
+    { \indDefI{d}{\Theta.s}{\vecline{c_i : \Theta_i.\indI{d}{\vecline{m_{ij}}{j}}}{i}} \in \Gamma \\\\
+      \Gamma \vdash m : \indI{d}{\vecline{n_k}{k}} \\
+      \Gamma, \Theta, x : \indI{d}{\Theta} \vdash A : s \\
+      \Gamma, \Theta_i \vdash n_i : A[\vecline{m_{ij}}{j}/\Theta,\indI{d}{\vecline{m_{ij}}{j}}/x] }
+    { \Gamma \vdash \caseI{m}{\Theta(x : \indI{d}{\Theta}).A}{\vecline{\Theta_i.n_i}{i}} : A[\vecline{n_k}{k}/\Theta,m/x] }
+
+    \mprset{flushleft}
+    \inferrule
+    { \indDefR{d}{\Theta.s}{\vecline{c_i : \Theta_i.\indI{d}{\vecline{m_{ij}}{j}}}{i}} \in \Gamma \\\\
+      \Gamma \vdash m : \indR{d}{\vecline{n_k}{k}} \\
+      \Gamma, \Theta, x : \indR{d}{\Theta} \vdash A : s \\
+      \Gamma, \Theta_i \vdash n_i : A[\vecline{m_{ij}}{j}/\Theta,\indI{d}{\vecline{m_{ij}}{j}}/x] }
+    { \Gamma \vdash \caseR{m}{\Theta(x : \indR{d}{\Theta}).A}{\vecline{\Theta_i.n_i}{i}} : A[\vecline{n_k}{k}/\Theta,m/x] }
+  \end{mathpar}
+\end{figure}
+
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
