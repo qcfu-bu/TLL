@@ -6,7 +6,7 @@ type sort =
   | U
   | L
   | SVar of sort var
-  | SMeta of Meta.t * sorts
+  | SMeta of SMeta.t * sorts
 
 and sorts = sort array
 
@@ -19,15 +19,15 @@ type rel =
 type tm =
   (* inference *)
   | Ann of tm * tm
-  | IMeta of Meta.t * sorts * tms (* implict inference *)
-  | TMeta of Meta.t * sorts * tms (* trait inference *)
-  | PMeta of Meta.t (* pattern inference *)
+  | IMeta of IMeta.t * sorts * tms (* implict inference *)
+  | PMeta of PMeta.t (* pattern inference *)
   (* core *)
   | Type of sort
   | Var of tm var
+  | Const of Const.t * sorts
   | Pi of rel * sort * tm * (tm, tm) binder
   | Lam of rel * sort * tm * (tm, tm) binder
-  | Fix of tm * (tm, tm) binder
+  | Fix of int * tm * (tm, tm) binder
   | App of tm * tm
   | Let of rel * tm * (tm, tm) binder
   (* inductive *)
@@ -40,6 +40,7 @@ type tm =
   | Struct of sort * tm Proj.Map.t
   | Proj of Proj.t * tm
 
+and consts = Const.t array
 and tms = tm array
 
 (* unbound pattern *)
@@ -62,7 +63,7 @@ and cls = cl array
 
 (* declarations *)
 type dcl =
-  | DTm of rel * tm var * (tm * tm) scheme
+  | DTm of rel * Const.t * (tm * tm) scheme
   | DInd of rel * Ind.t * (tm * constrs) scheme
 
 (* constructor *)

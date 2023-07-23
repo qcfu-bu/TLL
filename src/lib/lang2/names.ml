@@ -34,8 +34,11 @@ end = struct
   end
 end
 
-module Meta = Name.Make ()
-module Ind = Name.Make ()
-module Constr = Name.Make ()
-module Proj = Name.Make ()
-module Method = Name.Make ()
+module SMeta = Name.Make () (* sort *)
+module IMeta = Name.Make () (* implicit *)
+module TMeta = Name.Make () (* trait *)
+module PMeta = Name.Make () (* pattern  *)
+module Const = Name.Make () (* constant *)
+module Ind = Name.Make () (* inductive *)
+module Constr = Name.Make () (* constructor *)
+module Proj = Name.Make () (* projection *)

@@ -1,6 +1,6 @@
 open Bindlib
 open Names
-open Syntax2
+open Syntax
 
 module SVar = struct
   module Inner = struct
@@ -24,7 +24,7 @@ module Var = struct
 
     type t = tm var
 
-    let mk = new_var (fun x -> SVar x)
+    let mk = new_var (fun x -> Var x)
     let compare = compare_vars
     let pp fmt x = pf fmt "%s_s%d" (name_of x) (uid_of x)
   end
@@ -60,15 +60,15 @@ let _R = box R
 (* inference *)
 let _Ann = box_apply2 (fun m a -> Ann (m, a))
 let _IMeta x = box_apply2 (fun ss ms -> IMeta (x, ss, ms))
-let _TMeta x = box_apply2 (fun ss ms -> TMeta (x, ss, ms))
 let _PMeta x = box (PMeta x)
 
 (* core *)
 let _Type = box_apply (fun s -> Type s)
 let _Var = box_var
+let _Const x = box_apply (fun ss -> Const (x, ss))
 let _Pi rel = box_apply3 (fun s a b -> Pi (rel, s, a, b))
 let _Lam rel = box_apply3 (fun s a m -> Lam (rel, s, a, m))
-let _Fix = box_apply2 (fun a m -> Fix (a, m))
+let _Fix i = box_apply2 (fun a m -> Fix (i, a, m))
 let _App = box_apply2 (fun m n -> App (m, n))
 let _Let rel = box_apply2 (fun m n -> Let (rel, m, n))
 
@@ -121,19 +121,18 @@ let rec lift_tm = function
     let ss = Array.map lift_sort ss in
     let ms = Array.map lift_tm ms in
     _IMeta x (box_array ss) (box_array ms)
-  | TMeta (x, ss, ms) ->
-    let ss = Array.map lift_sort ss in
-    let ms = Array.map lift_tm ms in
-    _TMeta x (box_array ss) (box_array ms)
   | PMeta x -> _PMeta x
   (* core *)
   | Type s -> _Type (lift_sort s)
   | Var x -> _Var x
+  | Const (x, ss) ->
+    let ss = Array.map lift_sort ss in
+    _Const x (box_array ss)
   | Pi (rel, s, a, bnd) ->
     _Pi rel (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
   | Lam (rel, s, a, bnd) ->
     _Lam rel (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
-  | Fix (a, bnd) -> _Fix (lift_tm a) (box_binder lift_tm bnd)
+  | Fix (i, a, bnd) -> _Fix i (lift_tm a) (box_binder lift_tm bnd)
   | App (m, n) -> _App (lift_tm m) (lift_tm n)
   | Let (rel, m, bnd) -> _Let rel (lift_tm m) (box_binder lift_tm bnd)
   (* inductive *)
@@ -163,17 +162,17 @@ let rec lift_tm = function
   | Proj (proj, m) -> _Proj proj (lift_tm m)
 
 (* pattern equality *)
-let rec equal_p0 p1 p2 =
+let rec eq_p0 p1 p2 =
   match (p1, p2) with
   | P0Rel, P0Rel -> true
   | P0Constr (constr1, p0s1), P0Constr (constr2, p0s2) ->
-    Constr.equal constr1 constr1 && equal_p0s p0s1 p0s2
+    Constr.equal constr1 constr1 && eq_p0s p0s1 p0s2
   | _ -> false
 
-and equal_p0s ps1 ps2 = Array.for_all2 equal_p0 ps1 ps2
+and eq_p0s ps1 ps2 = Array.for_all2 eq_p0 ps1 ps2
 
-and equal_pbinder eq (p0s1, bnd1) (p0s2, bnd2) =
-  equal_p0s p0s1 p0s2 && eq_mbinder eq bnd1 bnd2
+and eq_pbinder eq (p0s1, bnd1) (p0s2, bnd2) =
+  eq_p0s p0s1 p0s2 && eq_mbinder eq bnd1 bnd2
 
 (* pattern binding *)
 let rec mvar_of_p p =
@@ -194,7 +193,7 @@ let rec p_of_mvar mvar p0 =
   match p0 with
   | P0Rel ->
     let x = mvar.(0) in
-    let mvar = Array.sub mvar 1 (Array.length mvar - 1) in
+    let mvar = Array.(sub mvar 1 (length mvar - 1)) in
     (mvar, PVar x)
   | P0Constr (constr, p0s) ->
     let mvar, p0s = ps_of_mvar mvar p0s in
@@ -213,7 +212,7 @@ let unbind_ps (p0s, bnd) =
   (ps, m)
 
 let unbind_ps2 (p0s1, bnd1) (p0s2, bnd2) =
-  assert (equal_p0s p0s1 p0s2);
+  assert (eq_p0s p0s1 p0s2);
   let xs, m1, m2 = unmbind2 bnd1 bnd2 in
   let _, ps = ps_of_mvar xs p0s1 in
   (ps, m1, m2)
