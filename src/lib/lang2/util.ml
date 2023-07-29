@@ -53,10 +53,9 @@ let _L = box L
 let _SVar = box_var
 let _SMeta x = box_apply (fun ss -> SMeta (x, ss))
 
-(* rel *)
+(* relv *)
 let _N = box N
 let _R = box R
-let _RMeta x = box (RMeta x)
 
 (* inference *)
 let _Ann = box_apply2 (fun m a -> Ann (m, a))
@@ -68,11 +67,11 @@ let _PMeta x = box (PMeta x)
 let _Type = box_apply (fun s -> Type s)
 let _Var = box_var
 let _Const x = box_apply (fun ss -> Const (x, ss))
-let _Pi rel = box_apply3 (fun s a b -> Pi (rel, s, a, b))
-let _Lam rel = box_apply3 (fun s a m -> Lam (rel, s, a, m))
+let _Pi relv = box_apply3 (fun s a b -> Pi (relv, s, a, b))
+let _Lam relv = box_apply3 (fun s a m -> Lam (relv, s, a, m))
 let _Fix i = box_apply2 (fun a m -> Fix (i, a, m))
 let _App = box_apply2 (fun m n -> App (m, n))
-let _Let rel = box_apply2 (fun m n -> Let (rel, m, n))
+let _Let relv = box_apply2 (fun m n -> Let (relv, m, n))
 
 (* inductive *)
 let _Ind ind = box_apply (fun ss -> Ind (ind, ss))
@@ -81,26 +80,21 @@ let _Absurd = box Absurd
 let _Match = box_apply3 (fun ms a cls -> Match (ms, a, cls))
 
 (* record *)
-let _Record = box_apply2 (fun s mp -> Record (s, mp))
-let _Struct = box_apply2 (fun s mp -> Struct (s, mp))
-let _Proj prj = box_apply2 (fun a m -> Proj (prj, a, m))
+let _Record record = box_apply (fun ss -> Record (record, ss))
+let _Struct = box_apply2 (fun s fields -> Struct (s, fields))
+let _Proj field = box_apply (fun m -> Proj (field, m))
+
+(* magic *)
+let _Magic = box Magic
 
 (* bound pattern *)
 let _P0Rel = box P0Rel
 let _P0Constr constr = box_apply (fun ps -> P0Constr (constr, ps))
 
 (* box *)
-let box_proj_map lift map =
-  Proj.Map.fold
-    (fun proj a map_box ->
-      let a_box = lift a in
-      box_apply2 (fun a map -> Proj.Map.add proj a map) a_box map_box)
-    map (box Proj.Map.empty)
-
-let box_rel = function
+let box_relv = function
   | N -> _N
   | R -> _R
-  | RMeta x -> _RMeta x
 
 let rec box_p0 = function
   | P0Rel -> _P0Rel
@@ -135,13 +129,13 @@ let rec lift_tm = function
   | Const (x, ss) ->
     let ss = Array.map lift_sort ss in
     _Const x (box_array ss)
-  | Pi (rel, s, a, bnd) ->
-    _Pi rel (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
-  | Lam (rel, s, a, bnd) ->
-    _Lam rel (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
+  | Pi (relv, s, a, bnd) ->
+    _Pi relv (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
+  | Lam (relv, s, a, bnd) ->
+    _Lam relv (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
   | Fix (i, a, bnd) -> _Fix i (lift_tm a) (box_binder lift_tm bnd)
   | App (m, n) -> _App (lift_tm m) (lift_tm n)
-  | Let (rel, m, bnd) -> _Let rel (lift_tm m) (box_binder lift_tm bnd)
+  | Let (relv, m, bnd) -> _Let relv (lift_tm m) (box_binder lift_tm bnd)
   (* inductive *)
   | Ind (ind, ss) ->
     let ss = Array.map lift_sort ss in
@@ -151,7 +145,7 @@ let rec lift_tm = function
     _Constr constr (box_array ss)
   | Match (ms, a, cls) ->
     let ms =
-      Array.map (fun (m, rel) -> box_pair (lift_tm m) (box_rel rel)) ms
+      Array.map (fun (m, relv) -> box_pair (lift_tm m) (box_relv relv)) ms
     in
     let cls =
       Array.map
@@ -164,9 +158,20 @@ let rec lift_tm = function
     _Match (box_array ms) (lift_tm a) (box_array cls)
   | Absurd -> _Absurd
   (* record *)
-  | Record (s, map) -> _Record (lift_sort s) (box_proj_map lift_tm map)
-  | Struct (s, map) -> _Record (lift_sort s) (box_proj_map lift_tm map)
-  | Proj (proj, a, m) -> _Proj proj (lift_tm a) (lift_tm m)
+  | Record (record, ss) ->
+    let ss = Array.map lift_sort ss in
+    _Record record (box_array ss)
+  | Struct (s, fields) ->
+    let fields =
+      Array.map
+        (fun (relv, field, m) ->
+          box_triple (box_relv relv) (box field) (lift_tm m))
+        fields
+    in
+    _Struct (lift_sort s) (box_array fields)
+  | Proj (field, m) -> _Proj field (lift_tm m)
+  (* magic *)
+  | Magic -> _Magic
 
 (* pattern equality *)
 let rec eq_p0 p1 p2 =

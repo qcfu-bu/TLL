@@ -100,32 +100,21 @@ let rec fv ctx = function
     , Var.Set.(union (union fv1 fv2) fv3) )
   | Absurd -> (SVar.Set.empty, Var.Set.empty)
   (* record *)
-  | Record (s, mp) ->
+  | Record (_, ss) -> (fsvs ss, Var.Set.empty)
+  | Struct (s, fields) ->
     let fsv1 = fsv s in
     let fsv2, fv =
-      Proj.Map.fold
-        (fun _ a (acc0, acc1) ->
-          let fsv, fv = fv ctx a in
-          (SVar.Set.union acc0 fsv, Var.Set.union acc1 fv))
-        mp
-        (SVar.Set.empty, Var.Set.empty)
-    in
-    (SVar.Set.union fsv1 fsv2, fv)
-  | Struct (s, mp) ->
-    let fsv1 = fsv s in
-    let fsv2, fv =
-      Proj.Map.fold
-        (fun _ m (acc0, acc1) ->
+      Array.fold_left
+        (fun (acc0, acc1) (_, _, m) ->
           let fsv, fv = fv ctx m in
           (SVar.Set.union acc0 fsv, Var.Set.union acc1 fv))
-        mp
         (SVar.Set.empty, Var.Set.empty)
+        fields
     in
     (SVar.Set.union fsv1 fsv2, fv)
-  | Proj (_, a, m) ->
-    let fsv1, fv1 = fv ctx m in
-    let fsv2, fv2 = fv ctx a in
-    (SVar.Set.union fsv1 fsv2, Var.Set.union fv1 fv2)
+  | Proj (x, m) -> fv ctx m
+  (* magic *)
+  | Magic -> (SVar.Set.empty, Var.Set.empty)
 
 and fvs ctx ms =
   Array.fold_left
@@ -221,32 +210,21 @@ let rec meta_of_tm = function
     , IMeta.Set.(union (union imeta1 imeta2) imeta3) )
   | Absurd -> (SMeta.Set.empty, IMeta.Set.empty)
   (* record *)
-  | Record (s, mp) ->
+  | Record (record, ss) -> (meta_of_sorts ss, IMeta.Set.empty)
+  | Struct (s, fields) ->
     let smeta1 = meta_of_sort s in
     let smeta2, imeta =
-      Proj.Map.fold
-        (fun _ a (acc0, acc1) ->
-          let smeta, imeta = meta_of_tm a in
-          (SMeta.Set.union acc0 smeta, IMeta.Set.union acc1 imeta))
-        mp
-        (SMeta.Set.empty, IMeta.Set.empty)
-    in
-    (SMeta.Set.union smeta1 smeta2, imeta)
-  | Struct (s, mp) ->
-    let smeta1 = meta_of_sort s in
-    let smeta2, imeta =
-      Proj.Map.fold
-        (fun _ m (acc0, acc1) ->
+      Array.fold_left
+        (fun (acc0, acc1) (_, _, m) ->
           let smeta, imeta = meta_of_tm m in
           (SMeta.Set.union acc0 smeta, IMeta.Set.union acc1 imeta))
-        mp
         (SMeta.Set.empty, IMeta.Set.empty)
+        fields
     in
     (SMeta.Set.union smeta1 smeta2, imeta)
-  | Proj (_, a, m) ->
-    let smeta1, imeta1 = meta_of_tm a in
-    let smeta2, imeta2 = meta_of_tm m in
-    (SMeta.Set.union smeta1 smeta2, IMeta.Set.union imeta1 imeta2)
+  | Proj (_, m) -> meta_of_tm m
+  (* magic *)
+  | Magic -> (SMeta.Set.empty, IMeta.Set.empty)
 
 and meta_of_tms ms =
   Array.fold_left
@@ -255,15 +233,3 @@ and meta_of_tms ms =
       (SMeta.Set.union acc0 smeta, IMeta.Set.union acc1 imeta))
     (SMeta.Set.empty, IMeta.Set.empty)
     ms
-
-(* constraint simplification *)
-(* let rec simpl ?(expand = false) check_tm mctx eqn = *)
-(*   match eqn with *)
-(*   | EqSort (s1, s2) -> _ *)
-(*   | EqTm (env, m1, m2) -> _ *)
-(*   | CheckTm (ctx, env, x, a) -> *)
-(*     let smeta, imeta = meta_of_tm a in *)
-(*     if SMeta.Set.is_empty smeta && IMeta.Set.is_empty imeta then *)
-(*       _ *)
-(*     else *)
-(*       _ *)

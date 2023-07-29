@@ -11,39 +11,43 @@ type sort =
 and sorts = sort array
 
 (* relevancy *)
-type rel =
+type relv =
   | N
   | R
-  | RMeta of RMeta.t
 
 (* terms *)
 type tm =
   (* inference *)
   | Ann of tm * tm
   | IMeta of IMeta.t * sorts * tms (* implict inference *)
-  | TMeta of TMeta.t * sorts * tms (* template inference *)
+  | TMeta of TMeta.t * sorts * tms (* trait inference *)
   | PMeta of PMeta.t (* pattern inference *)
   (* core *)
   | Type of sort
   | Var of tm var
   | Const of Const.t * sorts
-  | Pi of rel * sort * tm * (tm, tm) binder
-  | Lam of rel * sort * tm * (tm, tm) binder
+  | Pi of relv * sort * tm * (tm, tm) binder
+  | Lam of relv * sort * tm * (tm, tm) binder
   | Fix of int * tm * (tm, tm) binder
   | App of tm * tm
-  | Let of rel * tm * (tm, tm) binder
+  | Let of relv * tm * (tm, tm) binder
   (* inductive *)
   | Ind of Ind.t * sorts
   | Constr of Constr.t * sorts
-  | Match of (tm * rel) array * tm * cls
+  | Match of (tm * relv) array * tm * cls
   | Absurd
   (* record *)
   | Record of Record.t * sorts
-  | Struct of sort * (Field.t * tm) array
-  | Proj of Record.t * Field.t * sorts
+  | Struct of sort * fields
+  | Proj of Field.t * tm
+  (* magic *)
+  | Magic
 
-and consts = Const.t array
 and tms = tm array
+
+(* record fields *)
+and field = relv * Field.t * tm
+and fields = field array
 
 (* unbound pattern *)
 and p =
@@ -65,8 +69,25 @@ and cls = cl array
 
 (* declarations *)
 type dcl =
-  | DTm of rel * Const.t * (tm * tm) scheme
-  | DInd of rel * Ind.t * (tm * constrs) scheme
+  | DTm of
+      { name : Const.t
+      ; relv : relv
+      ; body : (tm * tm) param scheme
+      }
+  | DInd of
+      { name : Ind.t
+      ; relv : relv
+      ; body : (tm * constrs) param scheme
+      }
+  | DRec of
+      { name : Record.t
+      ; relv : relv
+      ; body : (sort * fields) param scheme
+      }
+
+and 'a param =
+  | PBase of 'a
+  | PBind of tm * (tm, 'a param) binder
 
 (* constructor *)
 and constr = Constr.t * tm

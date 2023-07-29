@@ -30,17 +30,12 @@ let smeta_mk : sort tc =
   let ss = ctx.svar |> SVar.Set.elements |> List.map (fun x -> SVar x) in
   (SMeta (x, Array.of_list ss), mctx, [])
 
-let rmeta_mk : rel tc =
- fun (ctx, env, mctx) ->
-  let x = RMeta.mk "" in
-  (RMeta x, mctx, [])
-
 let imeta_mk : tm tc =
  fun (ctx, env, mctx) ->
   let x = IMeta.mk "" in
   let ss = ctx.svar |> SVar.Set.elements |> List.map (fun x -> SVar x) in
   let xs = ctx.var |> Var.Map.bindings |> List.map (fun x -> Var (fst x)) in
-  (IMeta (x, Array.of_list ss, Array.of_list xs), mctx, [])
+  Array.(IMeta (x, of_list ss, of_list xs), mctx, [])
 
 let add_var x a (m : 'a tc) : 'a tc =
  fun (ctx, env, mctx) -> m (Ctx.add_var x a ctx, env, mctx)
@@ -53,6 +48,42 @@ let add_imeta x a : unit tc =
 
 let add_tmeta x a : unit tc =
  fun (_, _, mctx) -> ((), MCtx.add_tmeta x a mctx, [])
+
+let find_var x : tm tc = fun (ctx, env, mctx) -> (Ctx.find_var x ctx, mctx, [])
+
+let find_const x : tm scheme tc =
+ fun (ctx, env, mctx) -> (Ctx.find_const x ctx, mctx, [])
+
+let find_ind x : (tm scheme * 'a) tc =
+ fun (ctx, env, mctx) -> (Ctx.find_ind x ctx, mctx, [])
+
+let find_constr x : tm scheme tc =
+ fun (ctx, env, mctx) -> (Ctx.find_constr x ctx, mctx, [])
+
+let find_record x : 'a tc =
+ fun (ctx, env, mctx) -> (Ctx.find_record x ctx, mctx, [])
+
+let find_imeta x m : tm tc =
+ fun (ctx, env, mctx) ->
+  match MCtx.find_imeta x mctx with
+  | Some a -> (a, mctx, [])
+  | _ ->
+    let y = IMeta.mk "" in
+    let ss = ctx.svar |> SVar.Set.elements |> List.map (fun x -> SVar x) in
+    let xs = ctx.var |> Var.Map.bindings |> List.map (fun x -> Var (fst x)) in
+    let a = Array.(IMeta (y, of_list ss, of_list xs)) in
+    (a, MCtx.add_imeta x a mctx, [ Check (ctx, env, m, a) ])
+
+let find_tmeta x m : tm tc =
+ fun (ctx, env, mctx) ->
+  match MCtx.find_tmeta x mctx with
+  | Some a -> (a, mctx, [])
+  | _ ->
+    let y = IMeta.mk "" in
+    let ss = ctx.svar |> SVar.Set.elements |> List.map (fun x -> SVar x) in
+    let xs = ctx.var |> Var.Map.bindings |> List.map (fun x -> Var (fst x)) in
+    let a = Array.(IMeta (y, of_list ss, of_list xs)) in
+    (a, MCtx.add_tmeta x a mctx, [ Search (ctx, env, m, a) ])
 
 let assert_equal0 s1 s2 : unit tc =
  fun (_, _, mctx) ->
@@ -82,9 +113,9 @@ and infer_tm m : tm tc =
     let* _ = assert_type a in
     let* _ = check_tm m a in
     return a
-  | IMeta (x, _, _) -> _
-  | TMeta (x, _, _) -> _
-  | PMeta x -> _
+  | IMeta (x, _, _) -> find_imeta x m
+  | TMeta (x, _, _) -> find_tmeta x m
+  | PMeta x -> failwith "unimplemented"
   (* core *)
   | Type _ -> return (Type U)
   | Var x -> find_var x
@@ -114,57 +145,52 @@ and infer_tm m : tm tc =
       let* _ = check_tm n a in
       return (subst bnd n)
     | _ ->
-      let x = Var.mk "" in
-      let* s = smeta_mk in
-      let* rel = rmeta_mk in
-      let* a = imeta_mk in
-      let* b = add_var x a imeta_mk in
-      let bnd = unbox (bind_var x (lift_tm b)) in
-      let ty_m2 = Pi (rel, s, a, bnd) in
-      let* _ = assert_equal1 ty_m1 ty_m2 in
-      let* _ = check_tm n a in
-      return (subst bnd n))
+      let* b = imeta_mk in
+      let* _ = assert_check (App (m, n)) b in
+      return b)
   | Let (_, m, bnd) ->
     let x, n = unbind bnd in
     let* a = infer_tm m in
     let* b = add_var x a (infer_tm n) in
     return b
   (* inductive *)
-  | Ind (ind, ss) -> _
-  | Constr (constr, ss) -> _
-  | Match (ms, a, cls) -> _
+  | Ind (ind, ss) ->
+    let* sch, _ = find_ind ind in
+    let a = msubst sch ss in
+    return a
+  | Constr (constr, ss) ->
+    let* sch = find_constr constr in
+    let a = msubst sch ss in
+    return a
+  | Match (ms, a, cls) -> failwith "unimplemented"
   | Absurd -> return Absurd
   (* record *)
-  | Record (s, mp) -> _
-  | Struct (s, mp) -> _
-  | Proj (proj, a, m) -> (
-    let* ty_m = infer_tm m in
-    let* _ = assert_equal1 ty_m a in
-    match ty_m with
-    | Record (_, mp) -> return (Proj.Map.find proj mp)
-    | _ ->
-      let* b = imeta_mk in
-      let* _ = assert_check (Proj (proj, a, m)) b in
-      return b)
+  | Record (record, ss) ->
+    let* sch = find_record record in
+    let a, _ = msubst sch ss in
+    return a
+  | Struct (s, fields) -> infer_struct s fields
+  | Proj (field, m) -> infer_proj field m
+  (* magic *)
+  | Magic -> imeta_mk
 
 and check_tm m a : unit tc =
   match (m, a) with
   (* inference *)
   | IMeta (x, _, _), _ ->
-    let* _ = assert_check m a in
     let* _ = add_imeta x a in
+    let* _ = assert_check m a in
     return ()
   (* core *)
-  | Lam (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) ->
+  | Lam (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) when rel1 = rel2 ->
     let x, m, b = unbind2 bnd1 bnd2 in
-    let* _ = assert_equal0 rel1 rel2 in
-    let* _ = assert_equal1 s1 s2 in
     let* _ = assert_type a1 in
-    let* _ = assert_equal2 a1 a2 in
+    let* _ = assert_equal0 s1 s2 in
+    let* _ = assert_equal1 a1 a2 in
     let* _ = add_var x a1 (check_tm m a) in
     return ()
   (* *)
   | _ ->
     let* ty_m = infer_tm m in
-    let* _ = assert_equal2 ty_m a in
+    let* _ = assert_equal1 ty_m a in
     return ()
