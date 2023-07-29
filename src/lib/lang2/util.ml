@@ -56,10 +56,12 @@ let _SMeta x = box_apply (fun ss -> SMeta (x, ss))
 (* rel *)
 let _N = box N
 let _R = box R
+let _RMeta x = box (RMeta x)
 
 (* inference *)
 let _Ann = box_apply2 (fun m a -> Ann (m, a))
 let _IMeta x = box_apply2 (fun ss ms -> IMeta (x, ss, ms))
+let _TMeta x = box_apply2 (fun ss ms -> TMeta (x, ss, ms))
 let _PMeta x = box (PMeta x)
 
 (* core *)
@@ -81,7 +83,7 @@ let _Match = box_apply3 (fun ms a cls -> Match (ms, a, cls))
 (* record *)
 let _Record = box_apply2 (fun s mp -> Record (s, mp))
 let _Struct = box_apply2 (fun s mp -> Struct (s, mp))
-let _Proj prj = box_apply (fun m -> Proj (prj, m))
+let _Proj prj = box_apply2 (fun a m -> Proj (prj, a, m))
 
 (* bound pattern *)
 let _P0Rel = box P0Rel
@@ -98,6 +100,7 @@ let box_proj_map lift map =
 let box_rel = function
   | N -> _N
   | R -> _R
+  | RMeta x -> _RMeta x
 
 let rec box_p0 = function
   | P0Rel -> _P0Rel
@@ -121,6 +124,10 @@ let rec lift_tm = function
     let ss = Array.map lift_sort ss in
     let ms = Array.map lift_tm ms in
     _IMeta x (box_array ss) (box_array ms)
+  | TMeta (x, ss, ms) ->
+    let ss = Array.map lift_sort ss in
+    let ms = Array.map lift_tm ms in
+    _TMeta x (box_array ss) (box_array ms)
   | PMeta x -> _PMeta x
   (* core *)
   | Type s -> _Type (lift_sort s)
@@ -159,7 +166,7 @@ let rec lift_tm = function
   (* record *)
   | Record (s, map) -> _Record (lift_sort s) (box_proj_map lift_tm map)
   | Struct (s, map) -> _Record (lift_sort s) (box_proj_map lift_tm map)
-  | Proj (proj, m) -> _Proj proj (lift_tm m)
+  | Proj (proj, a, m) -> _Proj proj (lift_tm a) (lift_tm m)
 
 (* pattern equality *)
 let rec eq_p0 p1 p2 =

@@ -14,12 +14,14 @@ and sorts = sort array
 type rel =
   | N
   | R
+  | RMeta of RMeta.t
 
 (* terms *)
 type tm =
   (* inference *)
   | Ann of tm * tm
   | IMeta of IMeta.t * sorts * tms (* implict inference *)
+  | TMeta of TMeta.t * sorts * tms (* template inference *)
   | PMeta of PMeta.t (* pattern inference *)
   (* core *)
   | Type of sort
@@ -36,9 +38,9 @@ type tm =
   | Match of (tm * rel) array * tm * cls
   | Absurd
   (* record *)
-  | Record of sort * tm Proj.Map.t
-  | Struct of sort * tm Proj.Map.t
-  | Proj of Proj.t * tm
+  | Record of Record.t * sorts
+  | Struct of sort * (Field.t * tm) array
+  | Proj of Record.t * Field.t * sorts
 
 and consts = Const.t array
 and tms = tm array

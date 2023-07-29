@@ -35,10 +35,12 @@ end = struct
 end
 
 module SMeta = Name.Make () (* sort *)
+module RMeta = Name.Make () (* relevancy *)
 module IMeta = Name.Make () (* implicit *)
 module TMeta = Name.Make () (* trait *)
 module PMeta = Name.Make () (* pattern  *)
 module Const = Name.Make () (* constant *)
 module Ind = Name.Make () (* inductive *)
 module Constr = Name.Make () (* constructor *)
-module Proj = Name.Make () (* projection *)
+module Record = Name.Make () (* record *)
+module Field = Name.Make () (* field *)

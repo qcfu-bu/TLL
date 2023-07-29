@@ -8,10 +8,10 @@ open Context
 type eqn =
   | EqSort of sort * sort
   | EqTm of Env.t * tm * tm
-  | CheckTm of Ctx.t * Env.t * tm * tm
+  | Check of Ctx.t * Env.t * tm * tm
+  | Search of Ctx.t * Env.t * tm * tm
 
 type eqns = eqn list
-type mctx = tm IMeta.Map.t
 type map0 = (sort, sort) mbinder SMeta.Map.t
 type map1 = (sort, (tm, tm) mbinder) mbinder IMeta.Map.t
 
@@ -32,6 +32,10 @@ let rec fv ctx = function
     let fsv2, fv2 = fv ctx a in
     (SVar.Set.union fsv1 fsv2, Var.Set.union fv1 fv2)
   | IMeta (_, ss, ms) ->
+    let fsv1 = fsvs ss in
+    let fsv2, fv = fvs ctx ms in
+    (SVar.Set.union fsv1 fsv2, fv)
+  | TMeta (_, ss, ms) ->
     let fsv1 = fsvs ss in
     let fsv2, fv = fvs ctx ms in
     (SVar.Set.union fsv1 fsv2, fv)
@@ -118,7 +122,10 @@ let rec fv ctx = function
         (SVar.Set.empty, Var.Set.empty)
     in
     (SVar.Set.union fsv1 fsv2, fv)
-  | Proj (_, m) -> fv ctx m
+  | Proj (_, a, m) ->
+    let fsv1, fv1 = fv ctx m in
+    let fsv2, fv2 = fv ctx a in
+    (SVar.Set.union fsv1 fsv2, Var.Set.union fv1 fv2)
 
 and fvs ctx ms =
   Array.fold_left
@@ -151,6 +158,10 @@ let rec meta_of_tm = function
     let smeta1 = meta_of_sorts ss in
     let smeta2, imeta = meta_of_tms ms in
     (SMeta.Set.union smeta1 smeta2, IMeta.Set.add x imeta)
+  | TMeta (_, ss, ms) ->
+    let smeta1 = meta_of_sorts ss in
+    let smeta2, imeta = meta_of_tms ms in
+    (SMeta.Set.union smeta1 smeta2, imeta)
   | PMeta _ -> (SMeta.Set.empty, IMeta.Set.empty)
   (* core *)
   | Type s -> (meta_of_sort s, IMeta.Set.empty)
@@ -232,7 +243,10 @@ let rec meta_of_tm = function
         (SMeta.Set.empty, IMeta.Set.empty)
     in
     (SMeta.Set.union smeta1 smeta2, imeta)
-  | Proj (_, m) -> meta_of_tm m
+  | Proj (_, a, m) ->
+    let smeta1, imeta1 = meta_of_tm a in
+    let smeta2, imeta2 = meta_of_tm m in
+    (SMeta.Set.union smeta1 smeta2, IMeta.Set.union imeta1 imeta2)
 
 and meta_of_tms ms =
   Array.fold_left
@@ -241,3 +255,15 @@ and meta_of_tms ms =
       (SMeta.Set.union acc0 smeta, IMeta.Set.union acc1 imeta))
     (SMeta.Set.empty, IMeta.Set.empty)
     ms
+
+(* constraint simplification *)
+(* let rec simpl ?(expand = false) check_tm mctx eqn = *)
+(*   match eqn with *)
+(*   | EqSort (s1, s2) -> _ *)
+(*   | EqTm (env, m1, m2) -> _ *)
+(*   | CheckTm (ctx, env, x, a) -> *)
+(*     let smeta, imeta = meta_of_tm a in *)
+(*     if SMeta.Set.is_empty smeta && IMeta.Set.is_empty imeta then *)
+(*       _ *)
+(*     else *)
+(*       _ *)

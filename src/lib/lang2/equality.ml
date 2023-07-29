@@ -75,11 +75,11 @@ let rec whnf ?(expand = true) (env : Env.t) = function
     | Some rhs -> whnf ~expand env rhs
     | _ -> Match (ms, a, cls))
   (* record *)
-  | Proj (proj, m) -> (
+  | Proj (proj, a, m) -> (
     let m = whnf ~expand env m in
     match m with
     | Struct (_, mp) -> whnf ~expand env (Proj.Map.find proj mp)
-    | _ -> Proj (proj, m))
+    | _ -> Proj (proj, a, m))
   (* other *)
   | m -> m
 
@@ -131,8 +131,8 @@ let rec aeq_tm m1 m2 =
       eq_sort s1 s2 && Proj.Map.equal aeq_tm mp1 mp2
     | Struct (s1, mp1), Struct (s2, mp2) ->
       eq_sort s1 s2 && Proj.Map.equal aeq_tm mp1 mp2
-    | Proj (proj1, m1), Proj (proj2, m2) ->
-      Proj.equal proj1 proj2 && aeq_tm m1 m2
+    | Proj (proj1, a1, m1), Proj (proj2, a2, m2) ->
+      Proj.equal proj1 proj2 && aeq_tm a1 a2 && aeq_tm m1 m2
     (* other *)
     | _ -> false
 
@@ -180,8 +180,8 @@ let rec eq_tm ?(expand = false) env m1 m2 =
         eq_sort s1 s2 && Proj.Map.equal equal mp1 mp2
       | Struct (s1, mp1), Struct (s2, mp2) ->
         eq_sort s1 s2 && Proj.Map.equal equal mp1 mp2
-      | Proj (proj1, m1), Proj (proj2, m2) ->
-        Proj.equal proj1 proj2 && equal m1 m2
+      | Proj (proj1, a1, m1), Proj (proj2, a2, m2) ->
+        Proj.equal proj1 proj2 && equal a1 a2 && equal m1 m2
       (* other *)
       | _ -> false
   in
