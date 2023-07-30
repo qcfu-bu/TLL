@@ -61,15 +61,13 @@ let _R = box R
 let _Ann = box_apply2 (fun m a -> Ann (m, a))
 let _IMeta x = box_apply2 (fun ss ms -> IMeta (x, ss, ms))
 let _TMeta x = box_apply2 (fun ss ms -> TMeta (x, ss, ms))
-let _PMeta x = box (PMeta x)
 
 (* core *)
 let _Type = box_apply (fun s -> Type s)
 let _Var = box_var
 let _Const x = box_apply (fun ss -> Const (x, ss))
 let _Pi relv = box_apply3 (fun s a b -> Pi (relv, s, a, b))
-let _Lam relv = box_apply3 (fun s a m -> Lam (relv, s, a, m))
-let _Fix i = box_apply2 (fun a m -> Fix (i, a, m))
+let _Fun = box_apply2 (fun a bnd -> Fun (a, bnd))
 let _App = box_apply2 (fun m n -> App (m, n))
 let _Let relv = box_apply2 (fun m n -> Let (relv, m, n))
 
@@ -122,7 +120,6 @@ let rec lift_tm = function
     let ss = Array.map lift_sort ss in
     let ms = Array.map lift_tm ms in
     _TMeta x (box_array ss) (box_array ms)
-  | PMeta x -> _PMeta x
   (* core *)
   | Type s -> _Type (lift_sort s)
   | Var x -> _Var x
@@ -131,9 +128,9 @@ let rec lift_tm = function
     _Const x (box_array ss)
   | Pi (relv, s, a, bnd) ->
     _Pi relv (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
-  | Lam (relv, s, a, bnd) ->
-    _Lam relv (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
-  | Fix (i, a, bnd) -> _Fix i (lift_tm a) (box_binder lift_tm bnd)
+  | Fun (a, bnd) ->
+    let bnd = box_binder (fun cls -> lift_cls cls) bnd in
+    _Fun (lift_tm a) bnd
   | App (m, n) -> _App (lift_tm m) (lift_tm n)
   | Let (relv, m, bnd) -> _Let relv (lift_tm m) (box_binder lift_tm bnd)
   (* inductive *)
@@ -144,34 +141,35 @@ let rec lift_tm = function
     let ss = Array.map lift_sort ss in
     _Constr constr (box_array ss)
   | Match (ms, a, cls) ->
-    let ms =
-      Array.map (fun (m, relv) -> box_pair (lift_tm m) (box_relv relv)) ms
-    in
-    let cls =
-      Array.map
-        (fun (p0s, mbnd) ->
-          let p0s = Array.map box_p0 p0s in
-          let mbnd = box_mbinder lift_tm mbnd in
-          box_pair (box_array p0s) mbnd)
-        cls
-    in
-    _Match (box_array ms) (lift_tm a) (box_array cls)
+    let ms = Array.map lift_tm ms in
+    _Match (box_array ms) (lift_tm a) (lift_cls cls)
   | Absurd -> _Absurd
   (* record *)
   | Record (record, ss) ->
     let ss = Array.map lift_sort ss in
     _Record record (box_array ss)
-  | Struct (s, fields) ->
+  | Struct (a, fields) ->
     let fields =
       Array.map
-        (fun (relv, field, m) ->
-          box_triple (box_relv relv) (box field) (lift_tm m))
+        (fun (field, relv, m) ->
+          box_triple (box field) (box_relv relv) (lift_tm m))
         fields
     in
-    _Struct (lift_sort s) (box_array fields)
+    _Struct (lift_tm a) (box_array fields)
   | Proj (field, m) -> _Proj field (lift_tm m)
   (* magic *)
   | Magic -> _Magic
+
+and lift_cls cls =
+  let cls =
+    Array.map
+      (fun (p0s, mbnd) ->
+        let p0s = Array.map box_p0 p0s in
+        let mbnd = box_mbinder lift_tm mbnd in
+        box_pair (box_array p0s) mbnd)
+      cls
+  in
+  box_array cls
 
 (* pattern equality *)
 let rec eq_p0 p1 p2 =
@@ -243,5 +241,12 @@ let psubst (p0s, bnd) ms =
       (fun acc (p0, m) -> Array.append acc (match_p0 p0 m))
       [||] (Array.combine p0s ms)
   in
-  let ms = match_p0s p0s ms in
-  msubst bnd ms
+  let sz_p0s = Array.length p0s in
+  let sz_ms = Array.length ms in
+  if sz_p0s <= sz_ms then
+    let ns = Array.sub ms 0 sz_p0s in
+    let ms = Array.sub ms sz_p0s (sz_ms - sz_p0s) in
+    let ns = match_p0s p0s ns in
+    (msubst bnd ns, ms)
+  else
+    failwith "match_psubst"

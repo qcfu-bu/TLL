@@ -10,7 +10,7 @@ module Ctx = struct
     ; const : tm scheme Const.Map.t
     ; ind : (tm scheme * Constr.Set.t) Ind.Map.t
     ; constr : tm scheme Constr.Map.t
-    ; record : (tm * (tm, fields) mbinder) scheme Record.Map.t
+    ; record : (tm * (tm, fdef) mbinder) scheme Record.Map.t
     }
 
   let add_var x a (ctx : t) = { ctx with var = Var.Map.add x a ctx.var }

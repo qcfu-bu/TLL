@@ -25,6 +25,28 @@ let ( >> ) (m : 'a tc) (n : 'b tc) : 'b tc =
 
 let ( let* ) = ( >>= )
 
+let map_array (f : 'a -> 'b tc) (ms : 'a array) : 'b array tc =
+ fun (ctx, env, mctx) ->
+  let (mctx, eqns), ns =
+    Array.fold_left_map
+      (fun (mctx, eqns0) m ->
+        let n, mctx, eqns1 = f m (ctx, env, mctx) in
+        ((mctx, eqns0 @ eqns1), n))
+      (mctx, []) ms
+  in
+  (ns, mctx, eqns)
+
+let fold_array (f : 'a -> 'b -> 'a tc) (acc : 'a) (ms : 'b array) : 'a tc =
+ fun (ctx, env, mctx) ->
+  let mctx, eqns, acc =
+    Array.fold_left
+      (fun (mctx, eqns0, acc) m ->
+        let acc, mctx, eqns1 = f acc m (ctx, env, mctx) in
+        (mctx, eqns0 @ eqns1, acc))
+      (mctx, [], acc) ms
+  in
+  (acc, mctx, eqns)
+
 let smeta_mk : sort tc =
  fun (ctx, env, mctx) ->
   let x = SMeta.mk "" in
@@ -37,6 +59,8 @@ let imeta_mk : tm tc =
   let ss = ctx.svar |> SVar.Set.elements |> List.map (fun x -> SVar x) in
   let xs = ctx.var |> Var.Map.bindings |> List.map (fun x -> Var (fst x)) in
   Array.(IMeta (x, of_list ss, of_list xs), mctx, [])
+
+let whnf m : tm tc = fun (ctx, env, mctx) -> (whnf env m, mctx, [])
 
 let add_var x a (m : 'a tc) : 'a tc =
  fun (ctx, env, mctx) -> m (Ctx.add_var x a ctx, env, mctx)
@@ -103,6 +127,9 @@ let assert_equal1 m n : unit tc =
 let assert_check m a : unit tc =
  fun (ctx, env, mctx) -> ((), mctx, [ Check (ctx, env, m, a) ])
 
+let assert_search m a : unit tc =
+ fun (ctx, env, mctx) -> ((), mctx, [ Search (ctx, env, m, a) ])
+
 let rec assert_type a : unit tc =
   let* s = smeta_mk in
   check_tm a (Type s)
@@ -116,7 +143,6 @@ and infer_tm m : tm tc =
     return a
   | IMeta (x, _, _) -> find_imeta x m
   | TMeta (x, _, _) -> find_tmeta x m
-  | PMeta x -> failwith "unimplemented"
   (* core *)
   | Type _ -> return (Type U)
   | Var x -> find_var x
@@ -128,19 +154,14 @@ and infer_tm m : tm tc =
     let* _ = assert_type a in
     let* _ = add_var x a (assert_type b) in
     return (Type s)
-  | Lam (rel, s, a, bnd) ->
-    let x, m = unbind bnd in
+  | Fun (a, bnd) ->
+    let x, cls = unbind bnd in
     let* _ = assert_type a in
-    let* b = add_var x a (infer_tm m) in
-    let bnd = bind_var x (lift_tm b) in
-    return (Pi (rel, s, a, unbox bnd))
-  | Fix (_, a, bnd) ->
-    let x, m = unbind bnd in
-    let* _ = assert_type a in
-    let* _ = add_var x a (check_tm m a) in
+    let* _ = add_var x a (check_cls cls a) in
     return a
   | App (m, n) -> (
     let* ty_m1 = infer_tm m in
+    let* ty_m1 = whnf ty_m1 in
     match ty_m1 with
     | Pi (_, _, a, bnd) ->
       let* _ = check_tm n a in
@@ -170,31 +191,75 @@ and infer_tm m : tm tc =
     let* sch = find_record record in
     let a, _ = msubst sch ss in
     return a
-  | Struct (s, fields) -> infer_struct s fields
-  | Proj (field, m) -> infer_proj field m
+  | Struct (a, fields) ->
+    let* _ = assert_type a in
+    let* _ = check_tm (Struct (a, fields)) a in
+    return a
+  | Proj (field, m) -> (
+    let* ty_m = infer_tm m in
+    let* ty_m = whnf ty_m in
+    match unApps ty_m with
+    | Record (record, ss), ms -> infer_proj record ss ms field m
+    | _ ->
+      let* b = imeta_mk in
+      let* _ = assert_check (Proj (field, m)) b in
+      return b)
   (* magic *)
   | Magic -> imeta_mk
 
-and infer_struct s fields = failwith "unimplemented"
-and infer_proj field m = failwith "unimplemented"
+and infer_proj record ss ms x m =
+  let rec fdef_proj fdef =
+    match fdef with
+    | Empty -> failwith "infer_proj"
+    | Field (y, _, a, bnd) when Field.equal x y -> return a
+    | Field (y, _, a, bnd) -> fdef_proj (subst bnd (Proj (y, m)))
+  in
+  let* sch = find_record record in
+  let _, bnd = msubst sch ss in
+  let fdef = msubst bnd ms in
+  fdef_proj fdef
 
 and check_tm m a : unit tc =
-  match (m, a) with
+  let* a = whnf a in
+  match m with
   (* inference *)
-  | IMeta (x, _, _), _ ->
+  | IMeta (x, _, _) ->
     let* _ = add_imeta x a in
     let* _ = assert_check m a in
     return ()
-  (* core *)
-  | Lam (rel1, s1, a1, bnd1), Pi (rel2, s2, a2, bnd2) when rel1 = rel2 ->
-    let x, m, b = unbind2 bnd1 bnd2 in
-    let* _ = assert_type a1 in
-    let* _ = assert_equal0 s1 s2 in
-    let* _ = assert_equal1 a1 a2 in
-    let* _ = add_var x a1 (check_tm m a) in
+  | TMeta (x, _, _) ->
+    let* _ = add_tmeta x a in
+    let* _ = assert_search m a in
     return ()
-  (* *)
+  (* record *)
+  | Struct (b, fields) -> (
+    let* _ = assert_equal1 a b in
+    match unApps a with
+    | Record (record, ss), ms ->
+      let* sch = find_record record in
+      let _, bnd = msubst sch ss in
+      let fdef = msubst bnd ms in
+      check_fields fields fdef
+    | _ -> assert_check m a)
+  (* other *)
   | _ ->
     let* ty_m = infer_tm m in
     let* _ = assert_equal1 ty_m a in
     return ()
+
+and check_fields fields fdef =
+  let* fdef =
+    fold_array
+      (fun fdef (x1, relv1, m) ->
+        match fdef with
+        | Field (x2, relv2, a, bnd) when Field.equal x1 x2 && relv1 = relv2 ->
+          let* _ = check_tm m a in
+          return (subst bnd m)
+        | _ -> failwith "check_fields")
+      fdef fields
+  in
+  match fdef with
+  | Empty -> return ()
+  | _ -> failwith "check_fields"
+
+and check_cls cls a = failwith "unimplemented"

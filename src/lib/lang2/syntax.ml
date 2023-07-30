@@ -21,33 +21,27 @@ type tm =
   | Ann of tm * tm
   | IMeta of IMeta.t * sorts * tms (* implict inference *)
   | TMeta of TMeta.t * sorts * tms (* trait inference *)
-  | PMeta of PMeta.t (* pattern inference *)
   (* core *)
   | Type of sort
   | Var of tm var
   | Const of Const.t * sorts
   | Pi of relv * sort * tm * (tm, tm) binder
-  | Lam of relv * sort * tm * (tm, tm) binder
-  | Fix of int * tm * (tm, tm) binder
+  | Fun of tm * (tm, cls) binder
   | App of tm * tm
   | Let of relv * tm * (tm, tm) binder
   (* inductive *)
   | Ind of Ind.t * sorts
   | Constr of Constr.t * sorts
-  | Match of (tm * relv) array * tm * cls
+  | Match of tms * tm * cls
   | Absurd
   (* record *)
   | Record of Record.t * sorts
-  | Struct of sort * fields
+  | Struct of tm * (Field.t * relv * tm) array
   | Proj of Field.t * tm
   (* magic *)
   | Magic
 
 and tms = tm array
-
-(* record fields *)
-and field = relv * Field.t * tm
-and fields = field array
 
 (* unbound pattern *)
 and p =
@@ -82,12 +76,16 @@ type dcl =
   | DRec of
       { name : Record.t
       ; relv : relv
-      ; body : (sort * fields) param scheme
+      ; body : (sort * fdef) param scheme
       }
 
 and 'a param =
   | PBase of 'a
   | PBind of tm * (tm, 'a param) binder
+
+and fdef =
+  | Empty
+  | Field of Field.t * relv * tm * (tm, fdef) binder
 
 (* constructor *)
 and constr = Constr.t * tm
