@@ -3,10 +3,11 @@ open Names
 open Syntax
 open Util
 open Context
+open Environment
 open Equality
-open Unifier
+open Constraint
 
-type 'a tc = Ctx.t * Env.t * MCtx.t -> 'a * MCtx.t * eqns
+type 'a tc = Ctx.t * Env.t * MCtx.t -> 'a * MCtx.t * IConstraint.t
 
 let return (a : 'a) : 'a tc = fun (_, _, mctx) -> (a, mctx, [])
 
@@ -173,6 +174,9 @@ and infer_tm m : tm tc =
   | Proj (field, m) -> infer_proj field m
   (* magic *)
   | Magic -> imeta_mk
+
+and infer_struct s fields = failwith "unimplemented"
+and infer_proj field m = failwith "unimplemented"
 
 and check_tm m a : unit tc =
   match (m, a) with

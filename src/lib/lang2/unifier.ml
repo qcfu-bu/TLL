@@ -4,14 +4,10 @@ open Syntax
 open Util
 open Equality
 open Context
+open Environment
+open Constraint
+open Typecheck
 
-type eqn =
-  | EqSort of sort * sort
-  | EqTm of Env.t * tm * tm
-  | Check of Ctx.t * Env.t * tm * tm
-  | Search of Ctx.t * Env.t * tm * tm
-
-type eqns = eqn list
 type map0 = (sort, sort) mbinder SMeta.Map.t
 type map1 = (sort, (tm, tm) mbinder) mbinder IMeta.Map.t
 
