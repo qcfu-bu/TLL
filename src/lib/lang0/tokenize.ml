@@ -39,9 +39,9 @@ let exists = [%sedlex.regexp? 8707] (* ∃ *)
 (* arrows *)
 let leftarrow0 = [%sedlex.regexp? 8592] (* ← *)
 let leftarrow1 = [%sedlex.regexp? 8656] (* ⇐ *)
-let rightarrow0 = [%sedlex.regexp? 8594] (* → *)
-let rightarrow1 = [%sedlex.regexp? 8658] (* ⇒ *)
-let multimap = [%sedlex.regexp? 8888] (* ⊸ *)
+let rightarrow0 = [%sedlex.regexp? "->" | 8594] (* → *)
+let rightarrow1 = [%sedlex.regexp? "=>" | 8658] (* ⇒ *)
+let multimap = [%sedlex.regexp? "-o" | 8888] (* ⊸ *)
 let uparrow1 = [%sedlex.regexp? 8657] (* ⇑ *)
 let downarrow1 = [%sedlex.regexp? 8659] (* ⇓ *)
 
@@ -89,6 +89,7 @@ let bot = [%sedlex.regexp? 8869] (* ⊥ *)
 
 (* equality *)
 let equal = [%sedlex.regexp? '=']
+let assign = [%sedlex.regexp? ":=" | 8788]
 let equiv = [%sedlex.regexp? 8801] (* ≡ *)
 let negate = [%sedlex.regexp? 172] (* ¬ *)
 

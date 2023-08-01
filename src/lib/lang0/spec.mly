@@ -88,6 +88,7 @@
 
 // equality
 %token EQUAL  // =
+%token ASSIGN // :=
 %token EQUIV  // ≡
 %token NEGATE // ¬
 %left EQUIV
@@ -161,9 +162,257 @@
 
 %{ open Syntax %}
 
-%start <dcls> main
+%start <tm> main
 
 %%
 
+let iden ==
+  | ~ = IDENTIFIER; <>
+
+let sort :=
+  | SORT_U; { U }
+  | SORT_L; { L }
+  | sid = iden; { SId id }
+
+let tm_id :=
+  | id = iden; { Id id }
+
+// instance
+let tm_inst :=
+  | id = iden; FLQ; ss = separated_list(COMMA, sort); FRQ;
+    { Inst (id, ss) }
+
+// annotation
+let tm_ann :=
+  | LPAREN; m = tm; COLON; a = tm; RPAREN; { Ann (m, a) }
+
+// sorts
+let tm_type :=
+  | SORT_U; { Type U }
+  | SORT_L; { Type L }
+  | TM_TYPE; FLQ; id = iden; FRQ; { Type (SId id) }
+
+// pi types
+/*
+∀ (x y z : A) -> B
+∀ {x y z : A} -> B
+∀ (x y z : A) -o B
+∀ {x y z : A} -o B
+forall<s>(x y z : A), B
+forall<s>{x y z : A}, B
+*/
+let tm_pi_arg :=
+  | LPAREN; ids = iden+; COLON; a = tm; RPAREN;
+    { List.map (fun id -> (R, id, a)) ids }
+  | LBRACE; ids = iden+; COLON; a = tm; RBRACE;
+    { List.map (fun id -> (N, id, a)) ids }
+
+let tm_pi_args :=
+  | args = tm_pi_arg+; { List.concat args }
+
+let tm_pi_closed :=
+  | FORALL; args = tm_pi_args; RIGHTARROW0; b = tm_closed;
+    { List.fold_right (fun (rel, id, a) b ->
+        Pi (rel, U, a, Binder (id, b))) args b }
+  | FORALL; args = tm_pi_args; MULTIMAP; b = tm_closed; 
+    { List.fold_right (fun (rel, id, a) b ->
+        Pi (rel, L, a, Binder (id, b))) args b }
+  | TM_FORALL;
+    FLQ; s = sort; FRQ; args = tm_pi_args; COMMA; b = tm_closed;
+    { List.fold_right (fun (rel, id, a) b ->
+        Pi (rel, s, a, Binder (id, b))) args b }
+
+let tm_pi :=
+  | FORALL; args = tm_pi_args; RIGHTARROW0; b = tm;
+    { List.fold_right (fun (rel, id, a) b ->
+        Pi (rel, U, a, Binder (id, b))) args b }
+  | FORALL; args = tm_pi_args; MULTIMAP; b = tm; 
+    { List.fold_right (fun (rel, id, a) b ->
+        Pi (rel, L, a, Binder (id, b))) args b }
+  | TM_FORALL;
+    FLQ; s = sort; FRQ; args = tm_pi_args; COMMA; b = tm;
+    { List.fold_right (fun (rel, id, a) b ->
+        Pi (rel, s, a, Binder (id, b))) args b }
+
+// lambda function
+/*
+fn x y z => m
+fn (x y z : A) => m
+fn {x y z : A} => m
+
+ln x y z => m
+ln (x y z : A) => m
+ln {x y z : A} => m
+*/
+let tm_lam_arg :=
+  | id = iden; { [ (R, id, Id "_") ] }
+  | LPAREN; ids = iden+; RPAREN;
+    { List.map (fun id -> (R, id, Id "_")) ids }
+  | LBRACE; ids = iden+; RBRACE;
+    { List.map (fun id -> (N, id, Id "_")) ids }
+  | LPAREN; ids = iden+; COLON; a = tm; RPAREN;
+    { List.map (fun id -> (R, id, a)) ids }
+  | LBRACE; ids = iden+; COLON; a = tm; RBRACE;
+    { List.map (fun id -> (N, id, a)) ids }
+
+let tm_lam_args :=
+  | args = tm_lam_arg+; { List.concat args }
+
+let tm_lam_closed :=
+  | TM_FN; args = tm_lam_args; RIGHTARROW1; m = tm_closed;
+    { List.fold_right (fun (rel, id, a) m ->
+        Lam (rel, U, a, Binder (id, m))) args m }
+  | TM_LN; args = tm_lam_args; RIGHTARROW1; m = tm_closed;
+    { List.fold_right (fun (rel, id, a) m ->
+        Lam (rel, L, a, Binder (id, m))) args m }
+
+let tm_lam :=
+  | TM_FN; args = tm_lam_args; RIGHTARROW1; m = tm;
+    { List.fold_right (fun (rel, id, a) m ->
+        Lam (rel, U, a, Binder (id, m))) args m }
+  | TM_LN; args = tm_lam_args; RIGHTARROW1; m = tm;
+    { List.fold_right (fun (rel, id, a) m ->
+        Lam (rel, L, a, Binder (id, m))) args m }
+
+// pattern function
+/*
+function 
+| P => m
+
+function f
+| P => m
+
+function : A -> B
+| P => m
+
+function f : A -> B
+| P => m
+*/
+let tm_fun_p :=
+  | id = iden; { PId id }
+  | LPAREN; id = iden; args = tm_fun_ps; RPAREN;
+    { PMul (id, args) }
+  | LPAREN; id = iden; DOT; i = INTEGER;  args = tm_fun_ps; RPAREN;
+    { PAdd (id, i, args) }
+
+let tm_fun_ps :=
+  | ~ = tm_fun_p+; <>
+
+let tm_fun_closed :=
+  | PIPE; ps = tm_fun_ps; RIGHTARROW1; rhs = tm_closed; { (ps, rhs) }
+
+let tm_fun_open :=
+  | PIPE; ps = tm_fun_ps; RIGHTARROW1; rhs = tm; { (ps, rhs) }
+
+let tm_fun_cls :=
+  | cl = tm_fun_open; { [cl] }
+  | cl = tm_fun_closed; cls = tm_fun_cls; { cl :: cls }
+
+let tm_fun :=
+  | TM_FUNCTION; cls = tm_fun_cls;
+    { Fun (None, Binder (None, cls)) }
+  | TM_FUNCTION; id = iden; cls = tm_fun_cls;
+    { Fun (None, Binder (Some id, cls)) }
+  | TM_FUNCTION; COLON; a = tm_closed; cls = tm_fun_cls;
+    { Fun (Some a, Binder (None, cls)) }
+  | TM_FUNCTION; id = iden; COLON; a = tm_closed; cls = tm_fun_cls;
+    { Fun (Some a, Binder (Some id, cls)) }
+
+// let expression
+/*
+let x := m in n
+let x : A := m in n
+let {x} := m in n
+let {x} : A := m in n
+*/
+let tm_let_closed :=
+  | TM_LET; id = iden; ASSIGN; m = tm; TM_IN; n = tm_closed;
+    { Let (R, m, Binder (id, n)) }
+  | TM_LET; id = iden; COLON; a = tm; ASSIGN; m = tm; TM_IN; n = tm_closed;
+    { Let (R, Ann (m, a), Binder (id, n)) }
+  | TM_LET; LBRACE; id = iden; RBRACE; ASSIGN; m = tm; TM_IN; n = tm_closed;
+    { Let (N, m, Binder (id, n)) }
+  | TM_LET; LBRACE; id = iden; COLON; a = tm; RBRACE; ASSIGN; m = tm; TM_IN; n = tm_closed;
+    { Let (N, Ann (m, a), Binder (id, n)) }
+
+let tm_let :=
+  | TM_LET; id = iden; ASSIGN; m = tm; TM_IN; n = tm;
+    { Let (R, m, Binder (id, n)) }
+  | TM_LET; id = iden; COLON; a = tm; ASSIGN; m = tm; TM_IN; n = tm;
+    { Let (R, Ann (m, a), Binder (id, n)) }
+  | TM_LET; LBRACE; id = iden; RBRACE; ASSIGN; m = tm; TM_IN; n = tm;
+    { Let (N, m, Binder (id, n)) }
+  | TM_LET; LBRACE; id = iden; RBRACE; COLON; a = tm; ASSIGN; m = tm; TM_IN; n = tm;
+    { Let (N, Ann (m, a), Binder (id, n)) }
+
+// match expression
+/*
+match m, n with
+| P1, P2 => rhs
+
+match (m as x), (n as y) in A x y with
+| P1, P2 => rhs
+
+match (m as x : A), (n as y : B x) in A x y with
+| P1, P2 => rhs
+
+match {m as x : A}, {n as y : B x} in A x y with
+| P1, P2 => rhs
+*/
+let tm_match_arg :=
+  | m = tm; { (R, m, None) }
+  | m = tm; TM_AS; id = iden; { (R, m, Some (id, Id "_")) }
+  | m = tm; TM_AS; id = iden; COLON; a = tm; { (R, m, Some (id, a)) }
+  | LBRACE; m = tm; RBRACE; { (N, m, None) }
+  | LBRACE; m = tm; RBRACE; TM_AS; id = iden; { (N, m, Some (id, Id "_")) }
+  | LBRACE; m = tm; RBRACE; TM_AS; id = iden; COLON; a = tm; { (N, m, Some (id, a)) }
+
+let tm_match_args :=
+  | ~ = tm_match_arg+; <>
+
+let tm_match_p0 :=
+  | id = iden; { PId id }
+  | LPAREN; id = iden; args = tm_match_p0s; RPAREN;
+    { PMul (id, args) }
+  | LPAREN; id = iden; DOT; i = INTEGER;  args = tm_match_p0s; RPAREN;
+    { PAdd (id, i, args) }
+
+let tm_match_p0s :=
+  | ~ = tm_fun_p+; <>
+
+let tm_match_p :=
+  | id = iden; { PId id }
+  | id = iden; ps = tm_match_p0s; { PMul (id, ps) }
+  | id = iden; DOT; i = INTEGER; ps = tm_match_p0s; { PAdd (id, i, ps) }
+
+let tm_match_closed :=
+  | PIPE; ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm_closed; { (ps, rhs) }
+
+let tm_match_open :=
+  | PIPE; ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm; { (ps, rhs) }
+
+let tm_match_cls :=
+  | cl = tm_match_open; { [cl] }
+  | cl = tm_match_closed; cls = tm_match_cls; { cl :: cls }
+
+let tm_match :=
+  | TM_MATCH; args = tm_match_args; TM_WITH; cls = tm_match_cls;
+    { Match (args, None, cls) }
+  | TM_MATCH; args = tm_match_args; TM_IN; a = tm; TM_WITH; cls = tm_match_cls;
+    { Match (args, Some a, cls) }
+
+// terms
+let tm_closed :=
+  | ~ = tm_type; <>
+  | ~ = tm_lam_closed; <>
+  | ~ = tm_let_closed; <>
+
+let tm :=
+  | ~ = tm_type; <>
+  | ~ = tm_lam; <>
+  | ~ = tm_fun; <>
+  | ~ = tm_let; <>
+  | ~ = tm_match; <>
+
 let main :=
-  | EOF; { [] }
+  | ~ = tm; EOF; <>

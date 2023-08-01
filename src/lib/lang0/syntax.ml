@@ -22,11 +22,12 @@ type tm =
   | Id of id
   | Inst of id * sorts
   | Pi of relv * sort * tm * (id, tm) binder
+  | Lam of relv * sort * tm * (id, tm) binder
   | Fun of tm option * (id option, cls) binder
   | App of tms
-  | Let of relv * tm * ((id, p) Either.t, tm) binder
+  | Let of relv * tm * (id, tm) binder
   (* inductive *)
-  | Match of (tm * (id * tm) option) list * tm option * cls
+  | Match of (relv * tm * (id * tm) option) list * tm option * cls
   | Absurd
   (* magic *)
   | Magic
@@ -34,8 +35,9 @@ type tm =
 and tms = tm list
 
 and p =
-  | PVar of id
-  | PConstr of id * ps
+  | PId of id
+  | PMul of id * ps
+  | PAdd of id * int * ps
 
 and ps = p list
 and cl = ps * tm
