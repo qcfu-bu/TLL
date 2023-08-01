@@ -35,7 +35,6 @@ let rec fv ctx = function
     let fsv1 = fsvs ss in
     let fsv2, fv = fvs ctx ms in
     (SVar.Set.union fsv1 fsv2, fv)
-  | PMeta _ -> (SVar.Set.empty, Var.Set.empty)
   (* core *)
   | Type s -> (fsv s, Var.Set.empty)
   | Var x -> (
@@ -49,16 +48,20 @@ let rec fv ctx = function
     let fsv1, fv1 = fv ctx a in
     let fsv2, fv2 = fv (Var.Set.add x ctx) b in
     (SVar.Set.(union (union fsv0 fsv1) fsv2), Var.Set.union fv1 fv2)
-  | Lam (_, s, a, bnd) ->
-    let x, m = unbind bnd in
-    let fsv0 = fsv s in
+  | Fun (a, bnd) ->
+    let x, cls = unbind bnd in
     let fsv1, fv1 = fv ctx a in
-    let fsv2, fv2 = fv (Var.Set.add x ctx) m in
-    (SVar.Set.(union (union fsv0 fsv1) fsv2), Var.Set.union fv1 fv2)
-  | Fix (_, a, bnd) ->
-    let x, m = unbind bnd in
-    let fsv1, fv1 = fv ctx a in
-    let fsv2, fv2 = fv (Var.Set.add x ctx) m in
+    let ctx = Var.Set.add x ctx in
+    let fsv2, fv2 =
+      Array.fold_left
+        (fun (acc0, acc1) (_, bnd) ->
+          let xs, rhs = unmbind bnd in
+          let ctx = Array.fold_left (fun ctx x -> Var.Set.add x ctx) ctx xs in
+          let fsv, fv = fv ctx rhs in
+          (SVar.Set.union acc0 fsv, Var.Set.union acc1 fv))
+        (SVar.Set.empty, Var.Set.empty)
+        cls
+    in
     (SVar.Set.union fsv1 fsv2, Var.Set.union fv1 fv2)
   | App (m, n) ->
     let fsv1, fv1 = fv ctx m in
@@ -75,7 +78,7 @@ let rec fv ctx = function
   | Match (ms, a, cls) ->
     let fsv1, fv1 =
       Array.fold_left
-        (fun (acc0, acc1) (m, _) ->
+        (fun (acc0, acc1) m ->
           let fsv, fv = fv ctx m in
           (SVar.Set.union acc0 fsv, Var.Set.union acc1 fv))
         (SVar.Set.empty, Var.Set.empty)
@@ -97,9 +100,9 @@ let rec fv ctx = function
   | Absurd -> (SVar.Set.empty, Var.Set.empty)
   (* record *)
   | Record (_, ss) -> (fsvs ss, Var.Set.empty)
-  | Struct (s, fields) ->
-    let fsv1 = fsv s in
-    let fsv2, fv =
+  | Struct (a, fields) ->
+    let fsv1, fv1 = fv ctx a in
+    let fsv2, fv2 =
       Array.fold_left
         (fun (acc0, acc1) (_, _, m) ->
           let fsv, fv = fv ctx m in
@@ -107,7 +110,7 @@ let rec fv ctx = function
         (SVar.Set.empty, Var.Set.empty)
         fields
     in
-    (SVar.Set.union fsv1 fsv2, fv)
+    (SVar.Set.union fsv1 fsv2, Var.Set.union fv1 fv2)
   | Proj (x, m) -> fv ctx m
   (* magic *)
   | Magic -> (SVar.Set.empty, Var.Set.empty)
@@ -147,7 +150,6 @@ let rec meta_of_tm = function
     let smeta1 = meta_of_sorts ss in
     let smeta2, imeta = meta_of_tms ms in
     (SMeta.Set.union smeta1 smeta2, imeta)
-  | PMeta _ -> (SMeta.Set.empty, IMeta.Set.empty)
   (* core *)
   | Type s -> (meta_of_sort s, IMeta.Set.empty)
   | Var _ -> (SMeta.Set.empty, IMeta.Set.empty)
@@ -159,17 +161,18 @@ let rec meta_of_tm = function
     let smeta2, imeta2 = meta_of_tm b in
     ( SMeta.Set.(union (union smeta0 smeta1) smeta2)
     , IMeta.Set.union imeta1 imeta2 )
-  | Lam (_, s, a, bnd) ->
-    let x, m = unbind bnd in
-    let smeta0 = meta_of_sort s in
+  | Fun (a, bnd) ->
+    let x, cls = unbind bnd in
     let smeta1, imeta1 = meta_of_tm a in
-    let smeta2, imeta2 = meta_of_tm m in
-    ( SMeta.Set.(union (union smeta0 smeta1) smeta2)
-    , IMeta.Set.union imeta1 imeta2 )
-  | Fix (_, a, bnd) ->
-    let x, m = unbind bnd in
-    let smeta1, imeta1 = meta_of_tm a in
-    let smeta2, imeta2 = meta_of_tm m in
+    let smeta2, imeta2 =
+      Array.fold_left
+        (fun (acc0, acc1) (_, bnd) ->
+          let xs, rhs = unmbind bnd in
+          let smeta, imeta = meta_of_tm rhs in
+          (SMeta.Set.union acc0 smeta, IMeta.Set.union acc1 imeta))
+        (SMeta.Set.empty, IMeta.Set.empty)
+        cls
+    in
     (SMeta.Set.union smeta1 smeta2, IMeta.Set.union imeta1 imeta2)
   | App (m, n) ->
     let smeta1, imeta1 = meta_of_tm m in
@@ -186,7 +189,7 @@ let rec meta_of_tm = function
   | Match (ms, a, cls) ->
     let smeta1, imeta1 =
       Array.fold_left
-        (fun (acc0, acc1) (m, _) ->
+        (fun (acc0, acc1) m ->
           let smeta, imeta = meta_of_tm m in
           (SMeta.Set.union acc0 smeta, IMeta.Set.union acc1 imeta))
         (SMeta.Set.empty, IMeta.Set.empty)
@@ -207,9 +210,9 @@ let rec meta_of_tm = function
   | Absurd -> (SMeta.Set.empty, IMeta.Set.empty)
   (* record *)
   | Record (record, ss) -> (meta_of_sorts ss, IMeta.Set.empty)
-  | Struct (s, fields) ->
-    let smeta1 = meta_of_sort s in
-    let smeta2, imeta =
+  | Struct (a, fields) ->
+    let smeta1, imeta1 = meta_of_tm a in
+    let smeta2, imeta2 =
       Array.fold_left
         (fun (acc0, acc1) (_, _, m) ->
           let smeta, imeta = meta_of_tm m in
@@ -217,7 +220,7 @@ let rec meta_of_tm = function
         (SMeta.Set.empty, IMeta.Set.empty)
         fields
     in
-    (SMeta.Set.union smeta1 smeta2, imeta)
+    (SMeta.Set.union smeta1 smeta2, IMeta.Set.union imeta1 imeta2)
   | Proj (_, m) -> meta_of_tm m
   (* magic *)
   | Magic -> (SMeta.Set.empty, IMeta.Set.empty)
