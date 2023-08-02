@@ -1,13 +1,14 @@
-let x := add x y in
-let function foo : A
-  | P x ⇒ x
-  | (P x) ⇒ x
-in
-match
-  {{A} -> B} as x : A,
-  m as y : B x
-in C x y with
-| P.1 x ⇒
-  let* x := m in
-  let* x := m in
-  return #magic[absurd]
+#[logical]
+inductive vec‹s,r› (A : Type‹s›) : nat -> Type‹r› where
+| vnil : vec‹s,r›A zero
+| #[multiplicative]
+  vcons {n : nat} (hd : A) (tl : vec‹s,r›A n) : vec‹s,r›A (succ n)
+
+def fact (x : nat): nat :=
+  match x with
+  | zero => one
+  | succ x0 => mul x (fact x0)
+
+def fact (x : nat): nat -> nat
+  | Absurd => one
+  | succ x0 => mul x (fact x0)

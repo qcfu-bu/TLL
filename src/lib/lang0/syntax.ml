@@ -44,6 +44,7 @@ and tms = tm list
 
 and p =
   | PId of id
+  | PAbsurd
   | PMul of id * ps
   | PAdd of id * int * ps
 [@@deriving show { with_path = false }]
@@ -53,23 +54,22 @@ and cl = ps * tm
 and cls = cl list
 
 type dcl =
-  | DTm of
+  | Definition of
       { name : id
       ; relv : relv
       ; body : (tm * tm) scheme
       }
-  | DInd of
+  | Inductive of
       { name : id
       ; relv : relv
-      ; body : (tm * dconstrs) param scheme
+      ; body : (tele * dconstrs) param scheme
       }
+[@@deriving show { with_path = false }]
 
 and dcls = dcl list
 
 and dconstr =
-  (* multiplicative constructor *)
   | DMul of id * tele
-  (* additive constructor *)
   | DAdd of id * tele
 
 and dconstrs = dconstr list

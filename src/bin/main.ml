@@ -13,7 +13,7 @@ let _ =
       let src_name = Sys.argv.(1) in
       let src_ch = open_in src_name in
       let m = parse (Utf8.from_channel src_ch) in
-      pr "%a" pp_tm m
+      pr "%a" pp_dcls m
   with
   | Failure s ->
     let _ = pr "error -----------------------------------@.@." in

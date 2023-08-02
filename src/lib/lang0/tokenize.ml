@@ -49,20 +49,11 @@ let downarrow1 = [%sedlex.regexp? 8659] (* ⇓ *)
 let times = [%sedlex.regexp? 215] (* × *)
 let otimes = [%sedlex.regexp? 8855] (* ⊗ *)
 
-(* unit *)
-let unit_type = [%sedlex.regexp? "unit"]
-
 (* bool *)
-let bool_type = [%sedlex.regexp? "bool"]
-let bool_true = [%sedlex.regexp? "true"]
-let bool_false = [%sedlex.regexp? "false"]
 let bool_and = [%sedlex.regexp? "&&"]
 let bool_or = [%sedlex.regexp? "||"]
 
 (* nat *)
-let nat_type = [%sedlex.regexp? "nat"]
-let nat_zero = [%sedlex.regexp? 'O']
-let nat_succ = [%sedlex.regexp? 'S']
 let nat_add = [%sedlex.regexp? '+']
 let nat_sub = [%sedlex.regexp? '-']
 let nat_mul = [%sedlex.regexp? '*']
@@ -217,18 +208,10 @@ let rec tokenize buf =
   (* products *)
   | times -> TIMES
   | otimes -> OTIMES
-  (* unit *)
-  | unit_type -> UNIT_TYPE
   (* bool *)
-  | bool_type -> BOOL_TYPE
-  | bool_true -> BOOL_TRUE
-  | bool_false -> BOOL_FALSE
   | bool_and -> BOOL_AND
   | bool_or -> BOOL_OR
   (* nat *)
-  | nat_type -> NAT_TYPE
-  | nat_zero -> NAT_ZERO
-  | nat_succ -> NAT_SUCC
   | nat_add -> NAT_ADD
   | nat_sub -> NAT_SUB
   | nat_mul -> NAT_MUL
