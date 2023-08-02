@@ -37,7 +37,7 @@ let forall = [%sedlex.regexp? 8704] (* ∀ *)
 let exists = [%sedlex.regexp? 8707] (* ∃ *)
 
 (* arrows *)
-let leftarrow0 = [%sedlex.regexp? 8592] (* ← *)
+let leftarrow0 = [%sedlex.regexp? "<-" | 8592] (* ← *)
 let leftarrow1 = [%sedlex.regexp? 8656] (* ⇐ *)
 let rightarrow0 = [%sedlex.regexp? "->" | 8594] (* → *)
 let rightarrow1 = [%sedlex.regexp? "=>" | 8658] (* ⇒ *)
@@ -130,12 +130,13 @@ let tm_with = [%sedlex.regexp? "with"]
 let tm_if = [%sedlex.regexp? "if"]
 let tm_then = [%sedlex.regexp? "then"]
 let tm_else = [%sedlex.regexp? "else"]
-let tm_absurd = [%sedlex.regexp? "#absurd"]
+let tm_absurd = [%sedlex.regexp? "absurd"]
 let tm_magic = [%sedlex.regexp? "#magic"]
 let tm_refl = [%sedlex.regexp? "refl"]
 let tm_rew = [%sedlex.regexp? "rew"]
 let tm_io = [%sedlex.regexp? "IO"]
 let tm_return = [%sedlex.regexp? "return"]
+let tm_mlet = [%sedlex.regexp? "let*"]
 let tm_sleep = [%sedlex.regexp? "sleep"]
 let tm_rand = [%sedlex.regexp? "rand"]
 let tm_proto = [%sedlex.regexp? "proto"]
@@ -289,6 +290,7 @@ let rec tokenize buf =
   | tm_rew -> TM_REW
   | tm_io -> TM_IO
   | tm_return -> TM_RETURN
+  | tm_mlet -> TM_MLET
   | tm_proto -> TM_PROTO
   | tm_end -> TM_END
   | tm_ch, langle -> TM_CH

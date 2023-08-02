@@ -132,11 +132,12 @@
 %token TM_THEN     // then
 %token TM_ELSE     // else
 %token TM_REFL     // refl
-%token TM_ABSURD   // #absurd
+%token TM_ABSURD   // absurd
 %token TM_MAGIC    // #magic
 %token TM_REW      // rew
 %token TM_IO       // IO
 %token TM_RETURN   // return
+%token TM_MLET     // let*
 %token TM_PROTO    // proto
 %token TM_END      // end
 %token TM_CH       // ch⟨
@@ -458,6 +459,30 @@ let tm_match :=
   | TM_MATCH; args = tm_match_args; TM_IN; a = tm; TM_WITH; cls = tm_match_cls;
     { Match (args, Some a, cls) }
 
+// io
+/* IO A */
+let tm_io :=
+  | TM_IO; a = tm0; { IO a }
+
+// return
+/* return m */
+let tm_return :=
+  | TM_RETURN; m = tm0; { Return m }
+
+// mlet
+/* let x <- m in n */
+let tm_mlet_closed :=
+  | TM_MLET; id = iden; ASSIGN; m = tm; TM_IN; n = tm_closed;
+    { MLet (m, Binder (id, n)) }
+  | TM_MLET; id = iden; COLON; a = tm; ASSIGN; m = tm; TM_IN; n = tm_closed;
+    { MLet (Ann (m, a), Binder (id, n)) }
+
+let tm_mlet :=
+  | TM_MLET; id = iden; ASSIGN; m = tm; TM_IN; n = tm;
+    { MLet (m, Binder (id, n)) }
+  | TM_MLET; id = iden; COLON; a = tm; ASSIGN; m = tm; TM_IN; n = tm;
+    { MLet (Ann (m, a), Binder (id, n)) }
+
 // absurd
 /* #absurd */
 let tm_absurd :=
@@ -479,6 +504,8 @@ let tm0 :=
   | ~ = tm_id; <>
   | ~ = tm_type; <>
   | ~ = tm_absurd; <>
+  | ~ = tm_io; <>
+  | ~ = tm_return; <>
   | ~ = tm_magic; <>
   | LPAREN; ~ = tm; RPAREN; <>
 
@@ -502,6 +529,8 @@ let tm3_closed :=
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_letfun_closed;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0*; m = tm_mlet_closed;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ~ = tm2; <>
 
 let tm3 :=
@@ -518,6 +547,8 @@ let tm3 :=
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   (* end-clause *)
   | ms = tm0*; m = tm_match;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0*; m = tm_mlet;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ~ = tm2; <>
 

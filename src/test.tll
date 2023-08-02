@@ -1,6 +1,13 @@
 let x := add x y in
 let function foo : A
-  | P x => x
+  | P x ⇒ x
+  | (P x) ⇒ x
 in
-match {m} as x : A with
-| P x => #magic[#absurd]
+match
+  {{A} -> B} as x : A,
+  m as y : B x
+in C x y with
+| P.1 x ⇒
+  let* x := m in
+  let* x := m in
+  return #magic[absurd]

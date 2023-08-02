@@ -1,9 +1,9 @@
 
-** Conflict (shift/reduce) in state 56.
-** Token involved: RBRACE
+** Conflict (shift/reduce) in state 228.
+** Token involved: SEMI
 ** This state is reached from main after reading:
 
-list(tm0) TM_MATCH LBRACE tm2
+list(tm0) TM_FUNCTION COLON list(tm0) TM_DO tm_do_arg0 tm_do_arg
 
 ** The derivations that appear below have the following common factor:
 ** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
@@ -11,25 +11,60 @@ list(tm0) TM_MATCH LBRACE tm2
 main 
 tm EOF 
 tm3 
-list(tm0) tm_match 
-          TM_MATCH tm_match_args TM_WITH tm_match_cls 
-                   loption(separated_nonempty_list(COMMA,tm_match_arg)) 
-                   separated_nonempty_list(COMMA,tm_match_arg) 
-                   tm_match_arg 
-                   (?)
+list(tm0) tm_fun 
+          TM_FUNCTION COLON tm_closed tm_fun_cls 
+                            tm3_closed 
+                            list(tm0) tm_do_closed 
+                                      (?)
 
-** In state 56, looking ahead at RBRACE, shifting is permitted
-** because of the following sub-derivation:
-
-tm 
-tm3 
-tm2 
-LBRACE tm2 . RBRACE RIGHTARROW0 tm2 
-
-** In state 56, looking ahead at RBRACE, reducing production
-** tm3 -> tm2
+** In state 228, looking ahead at SEMI, reducing production
+** list(tm_do_arg) ->
 ** is permitted because of the following sub-derivation:
 
-LBRACE tm RBRACE // lookahead token appears
-       tm3 // lookahead token is inherited
-       tm2 . 
+TM_DO tm_do_args SEMI tm0 // lookahead token appears
+      tm_do_arg0 list(tm_do_arg) // lookahead token is inherited
+                 tm_do_arg list(tm_do_arg) // lookahead token is inherited
+                           . 
+
+** In state 228, looking ahead at SEMI, shifting is permitted
+** because of the following sub-derivation:
+
+TM_DO tm_do_args SEMI tm0 
+      tm_do_arg0 list(tm_do_arg) 
+                 tm_do_arg list(tm_do_arg) 
+                           tm_do_arg list(tm_do_arg) 
+                           . SEMI IDENTIFIER ASSIGN tm 
+
+** Conflict (shift/reduce) in state 222.
+** Token involved: SEMI
+** This state is reached from main after reading:
+
+list(tm0) TM_FUNCTION COLON list(tm0) TM_DO tm_do_arg0
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+main 
+tm EOF 
+tm3 
+list(tm0) tm_fun 
+          TM_FUNCTION COLON tm_closed tm_fun_cls 
+                            tm3_closed 
+                            list(tm0) tm_do_closed 
+                                      (?)
+
+** In state 222, looking ahead at SEMI, reducing production
+** list(tm_do_arg) ->
+** is permitted because of the following sub-derivation:
+
+TM_DO tm_do_args SEMI tm0 // lookahead token appears
+      tm_do_arg0 list(tm_do_arg) // lookahead token is inherited
+                 . 
+
+** In state 222, looking ahead at SEMI, shifting is permitted
+** because of the following sub-derivation:
+
+TM_DO tm_do_args SEMI tm0 
+      tm_do_arg0 list(tm_do_arg) 
+                 tm_do_arg list(tm_do_arg) 
+                 . SEMI IDENTIFIER ASSIGN tm 

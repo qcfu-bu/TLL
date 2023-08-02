@@ -32,6 +32,10 @@ type tm =
   (* inductive *)
   | Match of (relv * tm * (id * tm) option) list * tm option * cls
   | Absurd
+  (* monad *)
+  | IO of tm
+  | Return of tm
+  | MLet of tm * (id, tm) binder
   (* magic *)
   | Magic of tm
 [@@deriving show { with_path = false }]
