@@ -125,7 +125,7 @@
 %token TM_THEN     // then
 %token TM_ELSE     // else
 %token TM_REFL     // refl
-%token TM_ABSURD   // absurd
+%token TM_ABSURD   // #absurd
 %token TM_MAGIC    // #magic
 %token TM_REW      // rew
 %token TM_IO       // IO
@@ -480,7 +480,7 @@ let tm_mlet :=
     { MLet (Ann (m, a), Binder (id, n)) }
 
 // absurd
-/* absurd */
+/* #absurd */
 let tm_absurd :=
   | TM_ABSURD; { Absurd }
 

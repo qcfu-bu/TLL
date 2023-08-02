@@ -9,6 +9,10 @@ def fact (x : nat): nat :=
   | zero => one
   | succ x0 => mul x (fact x0)
 
-def fact (x : nat): nat -> nat
-  | Absurd => one
-  | succ x0 => mul x (fact x0)
+def bot_elim‹s› {A : Type‹s›} : {bot} -> A
+  | #absurd => #absurd
+
+def hd‹s,r› {A : Type‹s›} {n : nat} : vec‹s,r›A (succ n) -> A
+  | vnil => #absurd
+  | vcons _ hd _ => hd
+

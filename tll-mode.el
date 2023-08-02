@@ -2,7 +2,7 @@
 (setq tll-keywords '("of" "size"))
 (setq tll-lambda '("fn" "ln" "fun" "function" "val" "main" "where"))
 (setq tll-builtin '("let" "let*" "in" "rew" "match" "as" "with" "end"
-                    "absurd" "if" "then" "else" "fork" "return"
+                    "if" "then" "else" "fork" "return"
                     "open" "send" "recv" "close"))
 
 (setq tll-pragma-start-regexp "\\(?:#\\)")
@@ -13,6 +13,7 @@
 (setq tll-builtin-regexp (regexp-opt tll-builtin 'symbols))
 (setq tll-quantifier-regexp "\\(?:∀\\|∃\\|⇑\\|⇓\\|•\\)")
 (setq tll-magic-regexp "\\(?:#magic\\)")
+(setq tll-absurd-regexp "\\(?:#absurd\\)")
 (setq tll-infer-regexp "\\(?:infer_tm\\)")
 (setq tll-check-regexp "\\(?:check_tm\\)")
 (setq tll-assert-regexp "\\(?:assert_equal\\)")
@@ -22,6 +23,7 @@
          (1 font-lock-keyword-face)
          (2 font-lock-variable-name-face))
         (,tll-magic-regexp . font-lock-warning-face)
+        (,tll-absurd-regexp . font-lock-builtin-face)
         (,tll-pragma-start-regexp . font-lock-keyword-face)
         (,tll-pragma-regexp . font-lock-keyword-face)
         (,tll-sorts-regexp . font-lock-constant-face)
