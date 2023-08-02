@@ -347,18 +347,57 @@ let tm_let :=
   | TM_LET; LBRACE; id = iden; RBRACE; COLON; a = tm; ASSIGN; m = tm; TM_IN; n = tm;
     { Let (N, Ann (m, a), Binder (id, n)) }
 
+// let function
+/*
+let function f
+  | P => m
+in n
+
+let function f : A -> B
+  | P => m
+in n
+
+let function {f}
+  | P => m
+in n
+
+let function {f} : A -> B
+  | P => m
+in n
+*/
+let tm_letfun_closed :=
+  | TM_LET; TM_FUNCTION; id = iden; cls = tm_fun_cls; TM_IN; m = tm_closed;
+    { Let (R, Fun (None, Binder (Some id, cls)), Binder (id, m)) }
+  | TM_LET; TM_FUNCTION; id = iden; COLON; a = tm_closed; cls = tm_fun_cls; TM_IN; m = tm_closed;
+    { Let (R, Fun (Some a, Binder (Some id, cls)), Binder (id, m)) }
+  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; cls = tm_fun_cls; TM_IN; m = tm_closed;
+    { Let (N, Fun (None, Binder (Some id, cls)), Binder (id, m)) }
+  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; COLON; a = tm_closed; cls = tm_fun_cls; TM_IN; m = tm_closed;
+    { Let (N, Fun (Some a, Binder (Some id, cls)), Binder (id, m)) }
+
+let tm_letfun :=
+  | TM_LET; TM_FUNCTION; id = iden; cls = tm_fun_cls; TM_IN; m = tm;
+    { Let (R, Fun (None, Binder (Some id, cls)), Binder (id, m)) }
+  | TM_LET; TM_FUNCTION; id = iden; COLON; a = tm_closed; cls = tm_fun_cls; TM_IN; m = tm;
+    { Let (R, Fun (Some a, Binder (Some id, cls)), Binder (id, m)) }
+  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; cls = tm_fun_cls; TM_IN; m = tm;
+    { Let (N, Fun (None, Binder (Some id, cls)), Binder (id, m)) }
+  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; COLON; a = tm_closed; cls = tm_fun_cls; TM_IN; m = tm;
+    { Let (N, Fun (Some a, Binder (Some id, cls)), Binder (id, m)) }
+
+
 // match expression
 /*
 match m, n with
 | P1, P2 => rhs
 
-match (m as x), (n as y) in A x y with
+match m as x, n as y in A x y with
 | P1, P2 => rhs
 
-match (m as x : A), (n as y : B x) in A x y with
+match m as x : A, n as y : B x in A x y with
 | P1, P2 => rhs
 
-match {m as x : A}, {n as y : B x} in A x y with
+match {m} as x : A, {n} as y : B x in A x y with
 | P1, P2 => rhs
 */
 let tm_match_arg :=
@@ -434,15 +473,6 @@ let tm_magic :=
   | TM_MAGIC; LBRACK; a = tm; RBRACK; { Magic a }
 
 // terms
-let tm0_closed :=
-  | ~ = tm_ann; <>
-  | ~ = tm_inst; <>
-  | ~ = tm_id; <>
-  | ~ = tm_type; <>
-  | ~ = tm_absurd; <>
-  | ~ = tm_magic; <>
-  | LPAREN; ~ = tm; RPAREN; <>
-
 let tm0 :=
   | ~ = tm_ann; <>
   | ~ = tm_inst; <>
@@ -450,40 +480,52 @@ let tm0 :=
   | ~ = tm_type; <>
   | ~ = tm_absurd; <>
   | ~ = tm_magic; <>
-  | ~ = tm_fun; <>     // clause
-  | ~ = tm_match; <>   // clause
   | LPAREN; ~ = tm; RPAREN; <>
 
-let tm1_closed :=
-  | m = tm0_closed; ms = tm0_closed*; { App (m :: ms) }
-
 let tm1 :=
-  | m = tm0; { m }
-  | m = tm0_closed; n = tm1; { App [m; n] }
-
-let tm2_closed :=
-  | ms = tm0_closed*; m = tm_pi_closed;
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = tm0_closed*; m = tm_lam_closed;
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = tm0_closed*; m = tm_let_closed;
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ~ = tm1_closed; <>
+  | m = tm0; ms = tm0*;
+    { match ms with [] -> m | _ -> App (m :: ms) }
 
 let tm2 :=
-  | ms = tm0_closed*; m = tm_pi;
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = tm0_closed*; m = tm_lam;
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = tm0_closed*; m = tm_let;
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | a = tm2; RIGHTARROW0; b = tm2; { Pi (R, U, a, Binder ("_", b)) }
+  | a = tm2; MULTIMAP; b = tm2; { Pi (R, L, a, Binder ("_", b)) }
+  | LBRACE; a = tm2; RBRACE; RIGHTARROW0; b = tm2; { Pi (N, U, a, Binder ("_", b)) }
+  | LBRACE; a = tm2; RBRACE; MULTIMAP; b = tm2; { Pi (N, L, a, Binder ("_", b)) }
   | ~ = tm1; <>
 
+let tm3_closed :=
+  | ms = tm0*; m = tm_pi_closed;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0*; m = tm_lam_closed;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0*; m = tm_let_closed;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0*; m = tm_letfun_closed;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ~ = tm2; <>
+
+let tm3 :=
+  | ms = tm0*; m = tm_pi;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0*; m = tm_lam;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  (* end-clause *)
+  | ms = tm0*; m = tm_fun;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0*; m = tm_let;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0*; m = tm_letfun;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  (* end-clause *)
+  | ms = tm0*; m = tm_match;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ~ = tm2; <>
+
 let tm_closed :=
-  | ~ = tm2_closed; <>
+  | ~ = tm3_closed; <>
 
 let tm :=
-  | ~ = tm2; <>
+  | ~ = tm3; <>
 
 let main :=
   | ~ = tm; EOF; <>

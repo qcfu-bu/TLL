@@ -250,6 +250,7 @@ let rec tokenize buf =
   | bot -> BOT
   (* equality *)
   | equal -> EQUAL
+  | assign -> ASSIGN
   | equiv -> EQUIV
   | negate -> NEGATE
   (* separator *)
