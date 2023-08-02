@@ -132,7 +132,8 @@
 %token TM_THEN     // then
 %token TM_ELSE     // else
 %token TM_REFL     // refl
-%token TM_ABSURD   // absurd
+%token TM_ABSURD   // #absurd
+%token TM_MAGIC    // #magic
 %token TM_REW      // rew
 %token TM_IO       // IO
 %token TM_RETURN   // return
@@ -172,7 +173,7 @@ let iden ==
 let sort :=
   | SORT_U; { U }
   | SORT_L; { L }
-  | sid = iden; { SId id }
+  | id = iden; { SId id }
 
 let tm_id :=
   | id = iden; { Id id }
@@ -294,6 +295,7 @@ let tm_fun_p :=
     { PMul (id, args) }
   | LPAREN; id = iden; DOT; i = INTEGER;  args = tm_fun_ps; RPAREN;
     { PAdd (id, i, args) }
+  | LPAREN; ~ = tm_fun_p; RPAREN; <>
 
 let tm_fun_ps :=
   | ~ = tm_fun_p+; <>
@@ -368,7 +370,7 @@ let tm_match_arg :=
   | LBRACE; m = tm; RBRACE; TM_AS; id = iden; COLON; a = tm; { (N, m, Some (id, a)) }
 
 let tm_match_args :=
-  | ~ = tm_match_arg+; <>
+  | ~ = separated_list(COMMA, tm_match_arg); <>
 
 let tm_match_p0 :=
   | id = iden; { PId id }
@@ -376,6 +378,7 @@ let tm_match_p0 :=
     { PMul (id, args) }
   | LPAREN; id = iden; DOT; i = INTEGER;  args = tm_match_p0s; RPAREN;
     { PAdd (id, i, args) }
+  | LPAREN; ~ = tm_match_p0; RPAREN; <>
 
 let tm_match_p0s :=
   | ~ = tm_fun_p+; <>
@@ -384,6 +387,7 @@ let tm_match_p :=
   | id = iden; { PId id }
   | id = iden; ps = tm_match_p0s; { PMul (id, ps) }
   | id = iden; DOT; i = INTEGER; ps = tm_match_p0s; { PAdd (id, i, ps) }
+  | LPAREN; ~ = tm_match_p; RPAREN; <>
 
 let tm_match_closed :=
   | PIPE; ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm_closed; { (ps, rhs) }
@@ -391,9 +395,23 @@ let tm_match_closed :=
 let tm_match_open :=
   | PIPE; ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm; { (ps, rhs) }
 
-let tm_match_cls :=
+let tm_match_cl0 :=
+  | ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm; { (ps, rhs) }
+
+let tm_match_cl0_closed :=
+  | ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm_closed; { (ps, rhs) }
+
+let tm_match_cls0 :=
   | cl = tm_match_open; { [cl] }
-  | cl = tm_match_closed; cls = tm_match_cls; { cl :: cls }
+  | cl = tm_match_closed; cls = tm_match_cls0; { cl :: cls }
+
+let tm_match_cls :=
+  | cl = tm_match_cl0; { [cl] }
+  | cl = tm_match_cl0_closed; cls = tm_match_cls0; { cl :: cls }
+  | opt = option(tm_match_cls0);
+    { match opt with
+      | Some cls -> cls
+      | None -> [] }
 
 let tm_match :=
   | TM_MATCH; args = tm_match_args; TM_WITH; cls = tm_match_cls;
@@ -401,18 +419,71 @@ let tm_match :=
   | TM_MATCH; args = tm_match_args; TM_IN; a = tm; TM_WITH; cls = tm_match_cls;
     { Match (args, Some a, cls) }
 
+// absurd
+/* #absurd */
+let tm_absurd :=
+  | TM_ABSURD; { Absurd }
+
+// magic
+/*
+#magic
+#magic[A]
+*/
+let tm_magic :=
+  | TM_MAGIC; { Magic (Id "_") }
+  | TM_MAGIC; LBRACK; a = tm; RBRACK; { Magic a }
+
 // terms
-let tm_closed :=
+let tm0_closed :=
+  | ~ = tm_ann; <>
+  | ~ = tm_inst; <>
+  | ~ = tm_id; <>
   | ~ = tm_type; <>
-  | ~ = tm_lam_closed; <>
-  | ~ = tm_let_closed; <>
+  | ~ = tm_absurd; <>
+  | ~ = tm_magic; <>
+  | LPAREN; ~ = tm; RPAREN; <>
+
+let tm0 :=
+  | ~ = tm_ann; <>
+  | ~ = tm_inst; <>
+  | ~ = tm_id; <>
+  | ~ = tm_type; <>
+  | ~ = tm_absurd; <>
+  | ~ = tm_magic; <>
+  | ~ = tm_fun; <>     // clause
+  | ~ = tm_match; <>   // clause
+  | LPAREN; ~ = tm; RPAREN; <>
+
+let tm1_closed :=
+  | m = tm0_closed; ms = tm0_closed*; { App (m :: ms) }
+
+let tm1 :=
+  | m = tm0; { m }
+  | m = tm0_closed; n = tm1; { App [m; n] }
+
+let tm2_closed :=
+  | ms = tm0_closed*; m = tm_pi_closed;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0_closed*; m = tm_lam_closed;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0_closed*; m = tm_let_closed;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ~ = tm1_closed; <>
+
+let tm2 :=
+  | ms = tm0_closed*; m = tm_pi;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0_closed*; m = tm_lam;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm0_closed*; m = tm_let;
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ~ = tm1; <>
+
+let tm_closed :=
+  | ~ = tm2_closed; <>
 
 let tm :=
-  | ~ = tm_type; <>
-  | ~ = tm_lam; <>
-  | ~ = tm_fun; <>
-  | ~ = tm_let; <>
-  | ~ = tm_match; <>
+  | ~ = tm2; <>
 
 let main :=
   | ~ = tm; EOF; <>
