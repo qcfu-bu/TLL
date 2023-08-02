@@ -489,8 +489,8 @@ let tm1 :=
 let tm2 :=
   | a = tm2; RIGHTARROW0; b = tm2; { Pi (R, U, a, Binder ("_", b)) }
   | a = tm2; MULTIMAP; b = tm2; { Pi (R, L, a, Binder ("_", b)) }
-  | LBRACE; a = tm2; RBRACE; RIGHTARROW0; b = tm2; { Pi (N, U, a, Binder ("_", b)) }
-  | LBRACE; a = tm2; RBRACE; MULTIMAP; b = tm2; { Pi (N, L, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm2; { Pi (N, U, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm2; { Pi (N, L, a, Binder ("_", b)) }
   | ~ = tm1; <>
 
 let tm3_closed :=
