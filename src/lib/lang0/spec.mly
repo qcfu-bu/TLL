@@ -261,10 +261,24 @@ let tm_lam_closed :=
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       Fun (a, Binder (None, [(ps, m)])) }
+  | TM_FN; args = tm_lam_args; COLON; b = tm_closed; RIGHTARROW1; m = tm_closed;
+    { let a = 
+        List.fold_right (fun (relv, id, a) acc ->
+          Pi (relv, U, a, Binder (id, acc))) args b
+      in
+      let ps = List.map (fun (_, id, _) -> PId id) args in
+      Fun (a, Binder (None, [(ps, m)])) }
   | TM_LN; args = tm_lam_args; RIGHTARROW1; m = tm_closed;
     { let a = 
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, L, a, Binder (id, acc))) args (Id "_")
+      in
+      let ps = List.map (fun (_, id, _) -> PId id) args in
+      Fun (a, Binder (None, [(ps, m)])) }
+  | TM_LN; args = tm_lam_args; COLON; b = tm_closed; RIGHTARROW1; m = tm_closed;
+    { let a = 
+        List.fold_right (fun (relv, id, a) acc ->
+          Pi (relv, L, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       Fun (a, Binder (None, [(ps, m)])) }
@@ -277,10 +291,24 @@ let tm_lam :=
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       Fun (a, Binder (None, [(ps, m)])) }
+  | TM_FN; args = tm_lam_args; COLON; b = tm_closed; RIGHTARROW1; m = tm;
+    { let a = 
+        List.fold_right (fun (relv, id, a) acc ->
+          Pi (relv, U, a, Binder (id, acc))) args b
+      in
+      let ps = List.map (fun (_, id, _) -> PId id) args in
+      Fun (a, Binder (None, [(ps, m)])) }
   | TM_LN; args = tm_lam_args; RIGHTARROW1; m = tm;
     { let a = 
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, L, a, Binder (id, acc))) args (Id "_")
+      in
+      let ps = List.map (fun (_, id, _) -> PId id) args in
+      Fun (a, Binder (None, [(ps, m)])) }
+  | TM_LN; args = tm_lam_args; COLON; b = tm_closed; RIGHTARROW1; m = tm;
+    { let a = 
+        List.fold_right (fun (relv, id, a) acc ->
+          Pi (relv, L, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       Fun (a, Binder (None, [(ps, m)])) }
