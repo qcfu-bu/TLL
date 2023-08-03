@@ -125,7 +125,7 @@
 %token TM_THEN     // then
 %token TM_ELSE     // else
 %token TM_REFL     // refl
-%token TM_ABSURD   // #absurd
+%token TM_ABSURD   // !!
 %token TM_MAGIC    // #magic
 %token TM_REW      // rew
 %token TM_IO       // IO
@@ -261,10 +261,6 @@ let tm_lam_arg :=
 let tm_lam_args :=
   | args = tm_lam_arg+; { List.concat args }
 
-let tm_lam_ann :=
-  | COLON; b = tm_closed; { Some b }
-  | { None }
-
 let tm_lam_closed :=
   | TM_FN; args = tm_lam_args; opt = tm_ann_closed; RIGHTARROW1; m = tm_closed;
     { let b =
@@ -277,7 +273,7 @@ let tm_lam_closed :=
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
-      Fun (a, Binder (None, [(ps, m)])) }
+      Fun (a, Binder (None, [(ps, Some m)])) }
   | TM_LN; args = tm_lam_args; opt = tm_ann_closed; RIGHTARROW1; m = tm_closed;
     { let b =
         match opt with
@@ -289,7 +285,7 @@ let tm_lam_closed :=
           Pi (relv, L, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
-      Fun (a, Binder (None, [(ps, m)])) }
+      Fun (a, Binder (None, [(ps, Some m)])) }
 
 let tm_lam :=
   | TM_FN; args = tm_lam_args; opt = tm_ann_closed; RIGHTARROW1; m = tm;
@@ -303,7 +299,7 @@ let tm_lam :=
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
-      Fun (a, Binder (None, [(ps, m)])) }
+      Fun (a, Binder (None, [(ps, Some m)])) }
   | TM_LN; args = tm_lam_args; opt = tm_ann_closed; RIGHTARROW1; m = tm;
     { let b =
         match opt with
@@ -312,10 +308,10 @@ let tm_lam :=
       in
       let a = 
         List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, L, a, Binder (id, acc))) args (Id "_")
+          Pi (relv, L, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
-      Fun (a, Binder (None, [(ps, m)])) }
+      Fun (a, Binder (None, [(ps, Some m)])) }
 
 // pattern function
 /*
@@ -340,9 +336,6 @@ let tm_fun_arg :=
 let tm_fun_args :=
   | args = tm_fun_arg*; { List.concat args }
 
-let tm_fun_args1 :=
-  | args = tm_fun_arg+; { List.concat args }
-
 let tm_fun_p :=
   | id = iden; { PId id }
   | TM_ABSURD; { PAbsurd }
@@ -356,10 +349,10 @@ let tm_fun_ps :=
   | ~ = tm_fun_p+; <>
 
 let tm_fun_closed :=
-  | PIPE; ps = tm_fun_ps; RIGHTARROW1; rhs = tm_closed; { (ps, rhs) }
+  | PIPE; ps = tm_fun_ps; RIGHTARROW1; rhs = tm_closed?; { (ps, rhs) }
 
 let tm_fun_open :=
-  | PIPE; ps = tm_fun_ps; RIGHTARROW1; rhs = tm; { (ps, rhs) }
+  | PIPE; ps = tm_fun_ps; RIGHTARROW1; rhs = tm?; { (ps, rhs) }
 
 let tm_fun_cls :=
   | cl = tm_fun_open; { [cl] }
@@ -537,7 +530,7 @@ let tm_letfun_closed :=
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
-      Let (R, Fun (a, Binder (Some id, [(ps, m)])), Binder (id, n)) }
+      Let (R, Fun (a, Binder (Some id, [(ps, Some m)])), Binder (id, n)) }
   | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_open;
     ASSIGN; m = tm; TM_IN; n = tm_closed;
     { let b =
@@ -550,7 +543,7 @@ let tm_letfun_closed :=
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
-      Let (N, Fun (a, Binder (Some id, [(ps, m)])), Binder (id, n)) }
+      Let (N, Fun (a, Binder (Some id, [(ps, Some m)])), Binder (id, n)) }
 
 let tm_letfun :=
   | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args; opt = tm_ann_open;
@@ -565,7 +558,7 @@ let tm_letfun :=
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
-      Let (R, Fun (a, Binder (Some id, [(ps, m)])), Binder (id, n)) }
+      Let (R, Fun (a, Binder (Some id, [(ps, Some m)])), Binder (id, n)) }
   | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_open;
     ASSIGN; m = tm; TM_IN; n = tm;
     { let b =
@@ -578,7 +571,7 @@ let tm_letfun :=
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
-      Let (N, Fun (a, Binder (Some id, [(ps, m)])), Binder (id, n)) }
+      Let (N, Fun (a, Binder (Some id, [(ps, Some m)])), Binder (id, n)) }
 
 // match expression
 /*
@@ -615,7 +608,7 @@ let tm_match_p0 :=
   | LPAREN; ~ = tm_match_p0; RPAREN; <>
 
 let tm_match_p0s :=
-  | ~ = tm_fun_p+; <>
+  | ~ = tm_match_p0+; <>
 
 let tm_match_p :=
   | id = iden; { PId id }
@@ -625,16 +618,16 @@ let tm_match_p :=
   | LPAREN; ~ = tm_match_p; RPAREN; <>
 
 let tm_match_closed :=
-  | PIPE; ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm_closed; { (ps, rhs) }
+  | PIPE; ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm_closed?; { (ps, rhs) }
 
 let tm_match_open :=
-  | PIPE; ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm; { (ps, rhs) }
+  | PIPE; ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm?; { (ps, rhs) }
 
 let tm_match_cl0 :=
-  | ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm; { (ps, rhs) }
+  | ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm?; { (ps, rhs) }
 
 let tm_match_cl0_closed :=
-  | ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm_closed; { (ps, rhs) }
+  | ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = tm_closed?; { (ps, rhs) }
 
 let tm_match_cls0 :=
   | cl = tm_match_open; { [cl] }
@@ -684,11 +677,6 @@ let tm_mlet :=
       in
       MLet (m, Binder (id, n)) }
 
-// absurd
-/* #absurd */
-let tm_absurd :=
-  | TM_ABSURD; { Absurd }
-
 // magic
 /*
 #magic
@@ -704,7 +692,6 @@ let tm0 :=
   | ~ = tm_inst; <>
   | ~ = tm_id; <>
   | ~ = tm_type; <>
-  | ~ = tm_absurd; <>
   | ~ = tm_io; <>
   | ~ = tm_return; <>
   | ~ = tm_magic; <>
@@ -805,10 +792,10 @@ let dcl_def_ps :=
   | ~ = dcl_def_p+; <>
 
 let dcl_def_closed :=
-  | PIPE; ps = dcl_def_ps; RIGHTARROW1; rhs = tm_closed; { (ps, rhs) }
+  | PIPE; ps = dcl_def_ps; RIGHTARROW1; rhs = tm_closed?; { (ps, rhs) }
 
 let dcl_def_open :=
-  | PIPE; ps = dcl_def_ps; RIGHTARROW1; rhs = tm; { (ps, rhs) }
+  | PIPE; ps = dcl_def_ps; RIGHTARROW1; rhs = tm?; { (ps, rhs) }
 
 let dcl_def_cls :=
   | cl = dcl_def_open; { [cl] }
@@ -839,7 +826,7 @@ let dcl_def :=
         | [] -> m
         | _ ->
           let ps = List.map (fun (_, id, _) -> PId id) args in
-          Fun (a, Binder (Some id, [(ps, m)]))
+          Fun (a, Binder (Some id, [(ps, Some m)]))
       in
       let sch = Binder (sids, (m, a)) in
       Definition { name = id; relv = relv; body = sch } }

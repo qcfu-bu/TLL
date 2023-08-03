@@ -1,0 +1,117 @@
+[Inductive {name = "vec"; relv = N;
+   body =
+   (Binder (["s"; "r"],
+      (PBind ((Type (SId "s")),
+         (Binder ("A",
+            (PBase
+               ((TBind (R, (Id "nat"),
+                   (Binder ("_", (TBase (Type (SId "r"))))))),
+                [(DMul ("vnil",
+                    (TBase
+                       (App
+                          [(Inst ("vec", [(SId "s"); (SId "r")])); (Id "A");
+                            (Id "zero")]))
+                    ));
+                  (DMul ("vcons",
+                     (TBind (N, (Id "nat"),
+                        (Binder ("n",
+                           (TBind (R, (Id "A"),
+                              (Binder ("hd",
+                                 (TBind (R,
+                                    (App
+                                       [(Inst ("vec", [(SId "s"); (SId "r")]
+                                           ));
+                                         (Id "A"); (Id "n")]),
+                                    (Binder ("tl",
+                                       (TBase
+                                          (App
+                                             [(Inst ("vec",
+                                                 [(SId "s"); (SId "r")]));
+                                               (Id "A");
+                                               (App [(Id "succ"); (Id "n")])]))
+                                       ))
+                                    ))
+                                 ))
+                              ))
+                           ))
+                        ))
+                     ))
+                  ]))
+            ))
+         ))
+      ))};
+  Definition {name = "fact"; relv = R;
+    body =
+    (Binder ([],
+       ((Fun ((Pi (R, U, (Id "nat"), (Binder ("x", (Id "nat"))))),
+           (Binder ((Some "fact"),
+              [([(PId "x")],
+                (Some (Match ([(R, (Id "x"), None)], None,
+                         [([(PId "zero")], (Some (Id "one")));
+                           ([(PMul ("succ", [(PId "x0")]))],
+                            (Some (App
+                                     [(Id "mul"); (Id "x");
+                                       (App [(Id "fact"); (Id "x0")])])))
+                           ]
+                         ))))
+                ]
+              ))
+           )),
+        (Pi (R, U, (Id "nat"), (Binder ("x", (Id "nat"))))))
+       ))};
+  Definition {name = "bot_elim"; relv = R;
+    body =
+    (Binder (["s"],
+       ((Fun (
+           (Pi (N, U, (Type (SId "s")),
+              (Binder ("A", (Pi (N, U, (Id "bot"), (Binder ("_", (Id "A")))))
+                 ))
+              )),
+           (Binder ((Some "bot_elim"),
+              [([(PId "A"); PAbsurd], None); ([(PId "A"); PAbsurd], None);
+                ([(PId "A"); PAbsurd], None)]
+              ))
+           )),
+        (Pi (N, U, (Type (SId "s")),
+           (Binder ("A", (Pi (N, U, (Id "bot"), (Binder ("_", (Id "A")))))))
+           )))
+       ))};
+  Definition {name = "foo"; relv = R;
+    body =
+    (Binder ([],
+       ((Let (R,
+           (Fun ((Id "_"),
+              (Binder ((Some "foo"), [([(PId "x")], (Some (Id "m")))])))),
+           (Binder ("foo",
+              (Let (R,
+                 (Fun ((Pi (R, U, (Id "unit"), (Binder ("_", (Id "A"))))),
+                    (Binder ((Some "foo"),
+                       [([(PId "_")],
+                         (Some (Match ([(R, (Id "x"), None)], None,
+                                  [([(PMul ("P", [(PId "x")]));
+                                      (PAdd ("Q", 1, [(PId "y")]))],
+                                    (Some (Id "x")))]
+                                  ))))
+                         ]
+                       ))
+                    )),
+                 (Binder ("foo",
+                    (Let (R,
+                       (Fun (
+                          (Pi (R, U, (Id "A"),
+                             (Binder ("x",
+                                (Pi (R, U, (Id "A"), (Binder ("y", (Id "B")))
+                                   ))
+                                ))
+                             )),
+                          (Binder (None,
+                             [([(PId "x"); (PId "y")], (Some (Id "m")))]))
+                          )),
+                       (Binder ("foo", (Id "n")))))
+                    ))
+                 ))
+              ))
+           )),
+        (Id "nat"))
+       ))}
+  ]

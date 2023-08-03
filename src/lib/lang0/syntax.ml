@@ -30,7 +30,6 @@ type tm =
   | Let of relv * tm * (id, tm) binder
   (* inductive *)
   | Match of (relv * tm * (id * tm) option) list * tm option * cls
-  | Absurd
   (* monad *)
   | IO of tm
   | Return of tm
@@ -49,7 +48,7 @@ and p =
 [@@deriving show { with_path = false }]
 
 and ps = p list
-and cl = ps * tm
+and cl = ps * tm option
 and cls = cl list
 
 type dcl =
