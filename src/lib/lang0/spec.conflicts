@@ -1,9 +1,9 @@
 
-** Conflict (shift/reduce) in state 123.
-** Token involved: COMMA
+** Conflict (shift/reduce) in state 301.
+** Token involved: PIPE
 ** This state is reached from main after reading:
 
-dcl_modifier DCL_INDUCTIVE IDENTIFIER dcl_sargs dcl_ind_params COLON list(tm0) TM_MATCH list(tm0) TM_MATCH tm_match_args TM_WITH PIPE tm_match_p
+dcl_modifier DCL_DEF IDENTIFIER dcl_sargs dcl_def_args COLON list(tm0) TM_LET TM_FUNCTION IDENTIFIER
 
 ** The derivations that appear below have the following common factor:
 ** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
@@ -11,41 +11,26 @@ dcl_modifier DCL_INDUCTIVE IDENTIFIER dcl_sargs dcl_ind_params COLON list(tm0) T
 main 
 list(dcl) EOF 
 dcl list(dcl) 
-dcl_inductive 
-dcl_modifier DCL_INDUCTIVE IDENTIFIER dcl_sargs dcl_ind_params COLON dcl_ind_tele DCL_WHERE dcl_dconstrs 
-                                                                     tm 
-                                                                     tm3 
-                                                                     list(tm0) tm_match 
-                                                                               TM_MATCH tm_match_args TM_WITH tm_match_cls 
-                                                                                        loption(separated_nonempty_list(COMMA,tm_match_arg)) 
-                                                                                        separated_nonempty_list(COMMA,tm_match_arg) 
-                                                                                        (?)
+dcl_def 
+(?)
 
-** In state 123, looking ahead at COMMA, reducing production
-** separated_nonempty_list(COMMA,tm_match_p) -> tm_match_p
+** In state 301, looking ahead at PIPE, reducing production
+** list(tm_fun_arg) ->
 ** is permitted because of the following sub-derivation:
 
-tm_match_arg COMMA separated_nonempty_list(COMMA,tm_match_arg) // lookahead token appears
-tm // lookahead token is inherited
-tm3 // lookahead token is inherited
-list(tm0) tm_match // lookahead token is inherited
-          TM_MATCH tm_match_args TM_WITH tm_match_cls // lookahead token is inherited
-                                         option(tm_match_cls0) // lookahead token is inherited
-                                         tm_match_cls0 // lookahead token is inherited
-                                         tm_match_open // lookahead token is inherited
-                                         PIPE separated_nonempty_list(COMMA,tm_match_p) // lookahead token is inherited
-                                              tm_match_p . 
+dcl_modifier DCL_DEF IDENTIFIER dcl_sargs dcl_def_args COLON tm_closed dcl_def_cls 
+                                                             tm3_closed 
+                                                             list(tm0) tm_letfun_closed 
+                                                                       TM_LET TM_FUNCTION IDENTIFIER tm_fun_args tm_fun_cls TM_IN tm_closed // lookahead token appears because tm_fun_cls can begin with PIPE
+                                                                                                     list(tm_fun_arg) // lookahead token is inherited
+                                                                                                     . 
 
-** In state 123, looking ahead at COMMA, shifting is permitted
+** In state 301, looking ahead at PIPE, shifting is permitted
 ** because of the following sub-derivation:
 
-tm_match_arg 
-tm 
-tm3 
-list(tm0) tm_match 
-          TM_MATCH tm_match_args TM_WITH tm_match_cls 
-                                         option(tm_match_cls0) 
-                                         tm_match_cls0 
-                                         tm_match_open 
-                                         PIPE separated_nonempty_list(COMMA,tm_match_p) RIGHTARROW1 tm 
-                                              tm_match_p . COMMA separated_nonempty_list(COMMA,tm_match_p) 
+dcl_modifier DCL_DEF IDENTIFIER dcl_sargs dcl_def_args COLON tm ASSIGN tm 
+                                                             tm3 
+                                                             list(tm0) tm_letfun 
+                                                                       TM_LET TM_FUNCTION IDENTIFIER tm_fun_cls TM_IN tm 
+                                                                                                     tm_fun_closed tm_fun_cls 
+                                                                                                     . PIPE tm_fun_ps RIGHTARROW1 tm_closed 

@@ -25,8 +25,7 @@ type tm =
   | Id of id
   | Inst of id * sorts
   | Pi of relv * sort * tm * (id, tm) binder
-  | Lam of relv * sort * tm * (id, tm) binder
-  | Fun of tm option * (id option, cls) binder
+  | Fun of tm * (id option, cls) binder
   | App of tms
   | Let of relv * tm * (id, tm) binder
   (* inductive *)
