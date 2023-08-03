@@ -155,7 +155,7 @@
 %token DCL_INDUCTIVE      // inductive
 %token DCL_WHERE          // where
 
-%{ open Syntax %}
+%{ open Syntax0 %}
 
 %start <dcl list> main
 

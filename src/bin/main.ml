@@ -1,9 +1,8 @@
 open Fmt
 open TLL
 open Sedlexing
-open Lang0
-open Syntax
 open Parser
+open Syntax0
 
 let _ =
   try
