@@ -181,6 +181,14 @@ let tm_inst :=
 let tm_ann :=
   | LPAREN; m = tm; COLON; a = tm; RPAREN; { Ann (m, a) }
 
+let tm_ann_closed :=
+  | COLON; a = tm_closed; { Some a }
+  | { None }
+
+let tm_ann_open :=
+  | COLON; a = tm; { Some a }
+  | { None }
+
 // sorts
 let tm_type :=
   | SORT_U; { Type U }
@@ -253,30 +261,30 @@ let tm_lam_arg :=
 let tm_lam_args :=
   | args = tm_lam_arg+; { List.concat args }
 
+let tm_lam_ann :=
+  | COLON; b = tm_closed; { Some b }
+  | { None }
+
 let tm_lam_closed :=
-  | TM_FN; args = tm_lam_args; RIGHTARROW1; m = tm_closed;
-    { let a = 
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args (Id "_")
+  | TM_FN; args = tm_lam_args; opt = tm_ann_closed; RIGHTARROW1; m = tm_closed;
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
       in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      Fun (a, Binder (None, [(ps, m)])) }
-  | TM_FN; args = tm_lam_args; COLON; b = tm_closed; RIGHTARROW1; m = tm_closed;
-    { let a = 
+      let a = 
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       Fun (a, Binder (None, [(ps, m)])) }
-  | TM_LN; args = tm_lam_args; RIGHTARROW1; m = tm_closed;
-    { let a = 
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, L, a, Binder (id, acc))) args (Id "_")
+  | TM_LN; args = tm_lam_args; opt = tm_ann_closed; RIGHTARROW1; m = tm_closed;
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
       in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      Fun (a, Binder (None, [(ps, m)])) }
-  | TM_LN; args = tm_lam_args; COLON; b = tm_closed; RIGHTARROW1; m = tm_closed;
-    { let a = 
+      let a = 
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, L, a, Binder (id, acc))) args b
       in
@@ -284,31 +292,27 @@ let tm_lam_closed :=
       Fun (a, Binder (None, [(ps, m)])) }
 
 let tm_lam :=
-  | TM_FN; args = tm_lam_args; RIGHTARROW1; m = tm;
-    { let a = 
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args (Id "_")
+  | TM_FN; args = tm_lam_args; opt = tm_ann_closed; RIGHTARROW1; m = tm;
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
       in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      Fun (a, Binder (None, [(ps, m)])) }
-  | TM_FN; args = tm_lam_args; COLON; b = tm_closed; RIGHTARROW1; m = tm;
-    { let a = 
+      let a = 
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       Fun (a, Binder (None, [(ps, m)])) }
-  | TM_LN; args = tm_lam_args; RIGHTARROW1; m = tm;
-    { let a = 
+  | TM_LN; args = tm_lam_args; opt = tm_ann_closed; RIGHTARROW1; m = tm;
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
+      in
+      let a = 
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, L, a, Binder (id, acc))) args (Id "_")
-      in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      Fun (a, Binder (None, [(ps, m)])) }
-  | TM_LN; args = tm_lam_args; COLON; b = tm_closed; RIGHTARROW1; m = tm;
-    { let a = 
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, L, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       Fun (a, Binder (None, [(ps, m)])) }
@@ -362,34 +366,28 @@ let tm_fun_cls :=
   | cl = tm_fun_closed; cls = tm_fun_cls; { cl :: cls }
 
 let tm_fun :=
-  | TM_FUNCTION; args = tm_fun_args; cls = tm_fun_cls;
-    { let a =
+  | TM_FUNCTION; args = tm_fun_args; opt = tm_ann_closed; cls = tm_fun_cls;
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
+      in
+      let a =
         List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args (Id "_")
+          Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
       Fun (a, Binder (None, cls)) }
-  | TM_FUNCTION; id = iden; args = tm_fun_args; cls = tm_fun_cls;
-    { let a =
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args (Id "_")
+  | TM_FUNCTION; id = iden; args = tm_fun_args; opt = tm_ann_closed; cls = tm_fun_cls;
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
       in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
-      Fun (a, Binder (Some id, cls)) }
-  | TM_FUNCTION; args = tm_fun_args; COLON; a = tm_closed; cls = tm_fun_cls;
-    { let a =
+      let a =
         List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args a
-      in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
-      Fun (a, Binder (None, cls)) }
-  | TM_FUNCTION; id = iden; args = tm_fun_args; COLON; a = tm_closed; cls = tm_fun_cls;
-    { let a =
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args a
+          Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
@@ -403,24 +401,36 @@ let {x} := m in n
 let {x} : A := m in n
 */
 let tm_let_closed :=
-  | TM_LET; id = iden; ASSIGN; m = tm; TM_IN; n = tm_closed;
-    { Let (R, m, Binder (id, n)) }
-  | TM_LET; id = iden; COLON; a = tm; ASSIGN; m = tm; TM_IN; n = tm_closed;
-    { Let (R, Ann (m, a), Binder (id, n)) }
-  | TM_LET; LBRACE; id = iden; RBRACE; ASSIGN; m = tm; TM_IN; n = tm_closed;
-    { Let (N, m, Binder (id, n)) }
-  | TM_LET; LBRACE; id = iden; COLON; a = tm; RBRACE; ASSIGN; m = tm; TM_IN; n = tm_closed;
-    { Let (N, Ann (m, a), Binder (id, n)) }
+  | TM_LET; id = iden; opt = tm_ann_open; ASSIGN; m = tm; TM_IN; n = tm_closed;
+    { let m =
+        match opt with
+        | None -> m
+        | Some a -> Ann (m, a)
+      in
+      Let (R, m, Binder (id, n)) }
+  | TM_LET; LBRACE; id = iden; RBRACE; opt = tm_ann_open; ASSIGN; m = tm; TM_IN; n = tm_closed;
+    { let m =
+        match opt with
+        | None -> m
+        | Some a -> Ann (m, a)
+      in
+      Let (N, m, Binder (id, n)) }
 
 let tm_let :=
-  | TM_LET; id = iden; ASSIGN; m = tm; TM_IN; n = tm;
-    { Let (R, m, Binder (id, n)) }
-  | TM_LET; id = iden; COLON; a = tm; ASSIGN; m = tm; TM_IN; n = tm;
-    { Let (R, Ann (m, a), Binder (id, n)) }
-  | TM_LET; LBRACE; id = iden; RBRACE; ASSIGN; m = tm; TM_IN; n = tm;
-    { Let (N, m, Binder (id, n)) }
-  | TM_LET; LBRACE; id = iden; RBRACE; COLON; a = tm; ASSIGN; m = tm; TM_IN; n = tm;
-    { Let (N, Ann (m, a), Binder (id, n)) }
+  | TM_LET; id = iden; opt = tm_ann_open; ASSIGN; m = tm; TM_IN; n = tm;
+    { let m =
+        match opt with
+        | None -> m
+        | Some a -> Ann (m, a)
+      in
+      Let (R, m, Binder (id, n)) }
+  | TM_LET; LBRACE; id = iden; RBRACE; opt = tm_ann_open; ASSIGN; m = tm; TM_IN; n = tm;
+    { let m =
+        match opt with
+        | None -> m
+        | Some a -> Ann (m, a)
+      in
+      Let (N, m, Binder (id, n)) }
 
 // let clauses
 /*
@@ -441,76 +451,60 @@ let function {f} (x : A) : A -> B
 in n
 */
 let tm_letcls_closed :=
-  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args;
+  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args; opt = tm_ann_closed;
     cls = tm_fun_cls; TM_IN; m = tm_closed;
-    { let a =
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
+      in
+      let a =
         List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args (Id "_")
+          Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
       Let (R, Fun (a, Binder (Some id, cls)), Binder (id, m)) }
-  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args; COLON; a = tm_closed;
+  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_closed;
     cls = tm_fun_cls; TM_IN; m = tm_closed;
-    { let a =
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args a
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
       in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
-      Let (R, Fun (a, Binder (Some id, cls)), Binder (id, m)) }
-  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args;
-    cls = tm_fun_cls; TM_IN; m = tm_closed;
-    { let a =
+      let a =
         List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args (Id "_")
-      in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
-      Let (N, Fun (a, Binder (Some id, cls)), Binder (id, m)) }
-  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; COLON; a = tm_closed;
-    cls = tm_fun_cls; TM_IN; m = tm_closed;
-    { let a =
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args a
+          Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
       Let (N, Fun (a, Binder (Some id, cls)), Binder (id, m)) }
 
 let tm_letcls :=
-  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args;
+  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args; opt = tm_ann_closed;
     cls = tm_fun_cls; TM_IN; m = tm;
-    { let a =
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
+      in
+      let a =
         List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args (Id "_")
+          Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
       Let (R, Fun (a, Binder (Some id, cls)), Binder (id, m)) }
-  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args; COLON; a = tm_closed;
+  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_closed;
     cls = tm_fun_cls; TM_IN; m = tm;
-    { let a =
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args a
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
       in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
-      Let (R, Fun (a, Binder (Some id, cls)), Binder (id, m)) }
-  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args;
-    cls = tm_fun_cls; TM_IN; m = tm;
-    { let a =
+      let a =
         List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args (Id "_")
-      in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
-      Let (N, Fun (a, Binder (Some id, cls)), Binder (id, m)) }
-  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; COLON; a = tm_closed;
-    cls = tm_fun_cls; TM_IN; m = tm;
-    { let a =
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args a
+          Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
@@ -531,33 +525,27 @@ let function {f} (x : A) : B := m
 in n
 */
 let tm_letfun_closed :=
-  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args;
+  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args; opt = tm_ann_open;
     ASSIGN; m = tm; TM_IN; n = tm_closed;
-    { let a =
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args (Id "_")
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
       in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      Let (R, Fun (a, Binder (Some id, [(ps, m)])), Binder (id, n)) }
-  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args; COLON; b = tm;
-    ASSIGN; m = tm; TM_IN; n = tm_closed;
-    { let a =
+      let a =
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       Let (R, Fun (a, Binder (Some id, [(ps, m)])), Binder (id, n)) }
-  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args;
+  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_open;
     ASSIGN; m = tm; TM_IN; n = tm_closed;
-    { let a =
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args (Id "_")
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
       in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      Let (N, Fun (a, Binder (Some id, [(ps, m)])), Binder (id, n)) }
-  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; COLON; b = tm;
-    ASSIGN; m = tm; TM_IN; n = tm_closed;
-    { let a =
+      let a =
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, U, a, Binder (id, acc))) args b
       in
@@ -565,33 +553,27 @@ let tm_letfun_closed :=
       Let (N, Fun (a, Binder (Some id, [(ps, m)])), Binder (id, n)) }
 
 let tm_letfun :=
-  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args;
+  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args; opt = tm_ann_open;
     ASSIGN; m = tm; TM_IN; n = tm;
-    { let a =
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args (Id "_")
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
       in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      Let (R, Fun (a, Binder (Some id, [(ps, m)])), Binder (id, n)) }
-  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args; COLON; b = tm;
-    ASSIGN; m = tm; TM_IN; n = tm;
-    { let a =
+      let a =
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       Let (R, Fun (a, Binder (Some id, [(ps, m)])), Binder (id, n)) }
-  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args;
+  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_open;
     ASSIGN; m = tm; TM_IN; n = tm;
-    { let a =
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args (Id "_")
+    { let b =
+        match opt with
+        | None -> Id "_"
+        | Some b -> b
       in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      Let (N, Fun (a, Binder (Some id, [(ps, m)])), Binder (id, n)) }
-  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; COLON; b = tm;
-    ASSIGN; m = tm; TM_IN; n = tm;
-    { let a =
+      let a =
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, U, a, Binder (id, acc))) args b
       in
@@ -685,16 +667,22 @@ let tm_return :=
 // mlet
 /* let x <- m in n */
 let tm_mlet_closed :=
-  | TM_MLET; id = iden; ASSIGN; m = tm; TM_IN; n = tm_closed;
-    { MLet (m, Binder (id, n)) }
-  | TM_MLET; id = iden; COLON; a = tm; ASSIGN; m = tm; TM_IN; n = tm_closed;
-    { MLet (Ann (m, a), Binder (id, n)) }
+  | TM_MLET; id = iden; opt = tm_ann_open; ASSIGN; m = tm; TM_IN; n = tm_closed;
+    { let m =
+        match opt with
+        | None -> m
+        | Some a -> Ann (m, a)
+      in
+      MLet (m, Binder (id, n)) }
 
 let tm_mlet :=
-  | TM_MLET; id = iden; ASSIGN; m = tm; TM_IN; n = tm;
-    { MLet (m, Binder (id, n)) }
-  | TM_MLET; id = iden; COLON; a = tm; ASSIGN; m = tm; TM_IN; n = tm;
-    { MLet (Ann (m, a), Binder (id, n)) }
+  | TM_MLET; id = iden; opt = tm_ann_open; ASSIGN; m = tm; TM_IN; n = tm;
+    { let m =
+        match opt with
+        | None -> m
+        | Some a -> Ann (m, a)
+      in
+      MLet (m, Binder (id, n)) }
 
 // absurd
 /* #absurd */
