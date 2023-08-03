@@ -730,8 +730,13 @@ let dcl_def :=
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, U, a, Binder (id, acc))) args b
       in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
-      let m = Fun (a, Binder (Some id, [(ps, m)])) in
+      let m =
+        match args with
+        | [] -> m
+        | _ ->
+          let ps = List.map (fun (_, id, _) -> PId id) args in
+          Fun (a, Binder (Some id, [(ps, m)]))
+      in
       let sch = Binder (sids, (m, a)) in
       Definition { name = id; relv = relv; body = sch } }
 
