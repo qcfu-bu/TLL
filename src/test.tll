@@ -1,3 +1,10 @@
+inductive bool : U where
+| true : bool
+| false : bool
+
+inductive unit : U where
+| tt : unit
+
 #[program]
 inductive nat : U where
 | zero : nat
@@ -17,10 +24,15 @@ def add (x : nat) : nat -> nat
 
 
 #[program]
-def add (m n : nat) : nat :=
-  match
-    {m} as x : nat,
-    n as y : vec nat x
-  in vec nat y with
-  | zero, n => n
-  | succ m, n => succ (add m n)
+def test (b : bool) :
+  match b with
+  | true => unit
+  | false => nat
+:=
+  match b as x : bool in
+    match x with
+    | true => unit
+    | false => nat
+  with
+  | true => tt
+  | false => zero

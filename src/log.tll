@@ -1,14 +1,27 @@
-[Inductive {name = "nat"; relv = R;
+[Inductive {name = "bool"; relv = R;
    body =
    (Binder ([],
       (PBase
          ((TBase (Type U)),
-          [(DMul ("zero", (TBase (Id "nat"))));
-            (DMul ("succ",
-               (TBind (R, (Id "nat"), (Binder ("pred", (TBase (Id "nat"))))))
-               ))
-            ]))
+          [(DMul ("true", (TBase (Id "bool"))));
+            (DMul ("false", (TBase (Id "bool"))))]))
       ))};
+  Inductive {name = "unit"; relv = R;
+    body =
+    (Binder ([],
+       (PBase ((TBase (Type U)), [(DMul ("tt", (TBase (Id "unit"))))]))))};
+  Inductive {name = "nat"; relv = R;
+    body =
+    (Binder ([],
+       (PBase
+          ((TBase (Type U)),
+           [(DMul ("zero", (TBase (Id "nat"))));
+             (DMul ("succ",
+                (TBind (R, (Id "nat"), (Binder ("pred", (TBase (Id "nat"))))
+                   ))
+                ))
+             ]))
+       ))};
   Inductive {name = "vec"; relv = R;
     body =
     (Binder (["s"; "r"],
@@ -74,70 +87,84 @@
               ))
            )))
        ))};
-  Definition {name = "add"; relv = R;
+  Definition {name = "test"; relv = R;
     body =
     (Binder ([],
        ((Fun (
-           (Pi (R, U, (Id "nat"),
-              (Binder ("m",
-                 (Pi (R, U, (Id "nat"), (Binder ("n", (Id "nat")))))))
+           (Pi (R, U, (Id "bool"),
+              (Binder ("b",
+                 (Match ([(R, (Id "b"), None)], None,
+                    [([(PId "true")], (Some (Id "unit")));
+                      ([(PId "false")], (Some (Id "nat")))]
+                    ))
+                 ))
               )),
-           (Binder ((Some "add"),
-              [([(PId "m"); (PId "n")],
-                (Some (Match (
-                         [(N, (Id "m"), (Some ("x", (Id "nat"))));
-                           (R, (Id "n"),
-                            (Some ("y",
-                                   (App [(Id "vec"); (Id "nat"); (Id "x")]))))
-                           ],
-                         (Some (App [(Id "vec"); (Id "nat"); (Id "y")])),
-                         [([(PId "zero"); (PId "n")], (Some (Id "n")));
-                           ([(PMul ("succ", [(PId "m")])); (PId "n")],
-                            (Some (App
-                                     [(Id "succ");
-                                       (App [(Id "add"); (Id "m"); (Id "n")])
-                                       ])))
-                           ]
+           (Binder ((Some "test"),
+              [([(PId "b")],
+                (Some (Match ([(R, (Id "b"), (Some ("x", (Id "bool"))))],
+                         (Some (Match ([(R, (Id "x"), None)], None,
+                                  [([(PId "true")], (Some (Id "unit")));
+                                    ([(PId "false")], (Some (Id "nat")))]
+                                  ))),
+                         [([(PId "true")], (Some (Id "tt")));
+                           ([(PId "false")], (Some (Id "zero")))]
                          ))))
                 ]
               ))
            )),
-        (Pi (R, U, (Id "nat"),
-           (Binder ("m", (Pi (R, U, (Id "nat"), (Binder ("n", (Id "nat")))))
+        (Pi (R, U, (Id "bool"),
+           (Binder ("b",
+              (Match ([(R, (Id "b"), None)], None,
+                 [([(PId "true")], (Some (Id "unit")));
+                   ([(PId "false")], (Some (Id "nat")))]
+                 ))
               ))
            )))
        ))}
   ]-----------------------------------------
 
 #[program]
-inductive nat_1‹› : U where
-| zero_1 : nat_1
-| succ_2 (pred_28 : nat_1) : nat_1
+inductive bool_1‹› : U where | true_1 : bool_1
+                                 | false_2 : bool_1
 
 #[program]
-inductive vec_2‹s_29,r_30› (A_31 : Type‹s_29›):
-  nat_1 -> Type‹r_30›
+inductive unit_2‹› : U where | tt_3 : unit_2
+
+#[program]
+inductive nat_3‹› : U where
+| zero_4 : nat_3
+| succ_5 (pred_24 : nat_3) : nat_3
+
+#[program]
+inductive vec_4‹s_25,r_26› (A_27 : Type‹s_25›):
+  nat_3 -> Type‹r_26›
 where
-| vnil_3 : (vec_2‹s_29,r_30› A_31 zero_1)
+| vnil_6 : (vec_4‹s_25,r_26› A_27 zero_4)
 | #[additive]
-  vcons_4
-    {n_33 : nat_1} (hd_34 : A_31) (tl_35 : (vec_2‹s_29,r_30› A_31 n_33))
-    : (vec_2‹s_29,r_30› A_31 (succ_2‹› n_33))
+  vcons_7
+    {n_29 : nat_3} (hd_30 : A_27) (tl_31 : (vec_4‹s_25,r_26› A_27 n_29))
+    : (vec_4‹s_25,r_26› A_27 (succ_5‹› n_29))
 
 #[logical]
-def add_1‹› : nat_1 -> nat_1 -> nat_1 :=
-  function add_38 : nat_1 -> nat_1 -> nat_1
-  | x_41 zero_1 => x_41
-  | x_42 succ_2 n_43 => (succ_2‹› (add_38 x_42 n_43))
+def add_1‹› : nat_3 -> nat_3 -> nat_3 :=
+  function add_34 : nat_3 -> nat_3 -> nat_3
+  | x_37 zero_4 => x_37
+  | x_38 succ_5 n_39 => (succ_5‹› (add_34 x_38 n_39))
 
 #[program]
-def add_2‹› : nat_1 -> nat_1 -> nat_1 :=
-  function add_46 : nat_1 -> nat_1 -> nat_1
-  | m_49 n_50 =>
-    match m_49, n_50 in
-      ∀ {x_51 : nat_1} -o
-        ∀ (y_52 : (vec_2‹?_1,?_2› nat_1 x_51)) -o
-          (vec_2‹?_3,?_4› nat_1 y_52)
+def test_2‹› :
+  ∀ (b_40 : bool_1) ->
+    match b_40 in ∀ (_41 : ?_5) -o ?_6 with
+    | true_1 => unit_2 | false_2 => nat_3
+:=
+  function test_42 :
+    ∀ (b_43 : bool_1) ->
+      match b_43 in ∀ (_44 : ?_1) -o ?_2 with
+      | true_1 => unit_2 | false_2 => nat_3
+  | b_45 =>
+    match b_45 in
+      ∀ (x_46 : bool_1) -o
+        match x_46 in ∀ (_47 : ?_3) -o ?_4 with
+        | true_1 => unit_2 | false_2 => nat_3
     with
-    | zero_1, n_53 => n_53
-    | (succ_2 m_54), n_55 => (succ_2‹› (add_46 m_54 n_55))
+    | true_1 => tt_3 | false_2 => zero_4
