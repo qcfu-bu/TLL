@@ -187,12 +187,12 @@ let rec pp_dconstrs fmt = function
     pf fmt "%a@;<1 0>%a" pp_dconstr dconstr pp_dconstrs dconstrs
 
 let pp_dcl fmt = function
-  | Definition { name = x; relv; body = sch } ->
+  | Definition { name = x; relv; scheme = sch } ->
     let xs, (m, a) = unmbind sch in
     pf fmt
       "@[@[<v 0>#[%a]@;<1 0>def@] %a‹%a› :@;<1 2>@[%a@]@;<1 0>:=@;<1 2>@[%a@]@]"
       pp_modifier relv Const.pp x pp_sargs (Array.to_list xs) pp_tm a pp_tm m
-  | Inductive { name = ind; relv; body = sch } ->
+  | Inductive { name = ind; relv; scheme = sch } ->
     let xs, param = unmbind sch in
     let args, tele, dconstrs = unpack_param param in
     pf fmt

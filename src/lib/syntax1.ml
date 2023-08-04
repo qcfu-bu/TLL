@@ -68,12 +68,12 @@ type dcl =
   | Definition of
       { name : Const.t
       ; relv : relv
-      ; body : (tm * tm) scheme
+      ; scheme : (tm * tm) scheme
       }
   | Inductive of
       { name : Ind.t
       ; relv : relv
-      ; body : (tele * dconstrs) param scheme
+      ; scheme : (tele * dconstrs) param scheme
       }
 
 and dcls = dcl list

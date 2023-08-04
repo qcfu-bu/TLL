@@ -304,7 +304,7 @@ let rec trans_dcl nspc = function
     let a = trans_tm local a in
     let sch = bind_mvar (Array.of_list xs) (box_pair m a) in
     Syntax1.
-      (nspc, Definition { name = x; relv = trans_relv relv; body = unbox sch })
+      (nspc, Definition { name = x; relv = trans_relv relv; scheme = unbox sch })
   | Inductive { name = id; relv; body = Binder (sids, param) } ->
     let ind = Ind.mk id in
     let (local, i), xs =
@@ -318,7 +318,7 @@ let rec trans_dcl nspc = function
     let sch = bind_mvar (Array.of_list xs) param in
     Syntax1.
       ( nspc_ext @ nspc
-      , Inductive { name = ind; relv = trans_relv relv; body = unbox sch } )
+      , Inductive { name = ind; relv = trans_relv relv; scheme = unbox sch } )
 
 and trans_dcls nspc = function
   | [] -> (nspc, [])
