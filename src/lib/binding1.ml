@@ -34,16 +34,6 @@ module Var = struct
   module Map = Map.Make (Inner)
 end
 
-(* spine forms *)
-let mkApps h ms = Array.fold_left (fun acc m -> App (acc, m)) h ms
-
-let rec unApps m =
-  match m with
-  | App (m, n) ->
-    let h, ms = unApps m in
-    (h, Array.append ms [| n |])
-  | _ -> (m, [||])
-
 (* smart constructors *)
 let var x = Var x
 
@@ -71,7 +61,7 @@ let _App = box_apply2 (fun m n -> App (m, n))
 let _Let relv = box_apply2 (fun m n -> Let (relv, m, n))
 
 (* inductive *)
-let _Ind ind = box_apply2 (fun ss ms -> Ind (ind, ss, ms))
+let _Ind ind = box_apply3 (fun ss ms ns -> Ind (ind, ss, ms, ns))
 let _Constr constr = box_apply3 (fun ss ms ns -> Constr (constr, ss, ms, ns))
 let _Match = box_apply3 (fun ms a cls -> Match (ms, a, cls))
 
@@ -81,13 +71,36 @@ let _Return = box_apply (fun m -> Return m)
 let _MLet = box_apply2 (fun m n -> MLet (m, n))
 
 (* magic *)
-let _Magic = box Magic
+let _Magic = box_apply (fun a -> Magic a)
 
 (* bound pattern *)
 let _P0Rel = box P0Rel
 let _P0Absurd = box P0Absurd
 let _P0Mul constr = box_apply (fun ps -> P0Mul (constr, ps))
 let _P0Add constr i = box_apply (fun ps -> P0Add (constr, i, ps))
+
+(* dconstr *)
+let _DMul constr = box_apply (fun tele -> DMul (constr, tele))
+let _DAdd constr = box_apply (fun tele -> DMul (constr, tele))
+
+(* param *)
+let _PBase a = box_apply (fun a -> PBase a) a
+let _PBind a b = box_apply2 (fun a b -> PBind (a, b)) a b
+
+(* tele *)
+let _TBase = box_apply (fun a -> TBase a)
+let _TBind relv = box_apply2 (fun a b -> TBind (relv, a, b))
+
+(* spine forms *)
+let mkApps hd ms = List.fold_left (fun acc m -> App (acc, m)) hd ms
+let _mkApps hd ms = List.fold_left _App hd ms
+
+let rec unApps m =
+  match m with
+  | App (m, n) ->
+    let h, ms = unApps m in
+    (h, Array.append ms [| n |])
+  | _ -> (m, [||])
 
 (* box *)
 let box_relv = function
@@ -134,10 +147,11 @@ let rec lift_tm = function
   | App (m, n) -> _App (lift_tm m) (lift_tm n)
   | Let (relv, m, bnd) -> _Let relv (lift_tm m) (box_binder lift_tm bnd)
   (* inductive *)
-  | Ind (ind, ss, ms) ->
+  | Ind (ind, ss, ms, ns) ->
     let ss = List.map lift_sort ss in
     let ms = List.map lift_tm ms in
-    _Ind ind (box_list ss) (box_list ms)
+    let ns = List.map lift_tm ns in
+    _Ind ind (box_list ss) (box_list ms) (box_list ns)
   | Constr (constr, ss, ms, ns) ->
     let ss = List.map lift_sort ss in
     let ms = List.map lift_tm ms in
@@ -151,14 +165,16 @@ let rec lift_tm = function
   | Return m -> _Return (lift_tm m)
   | MLet (m, bnd) -> _MLet (lift_tm m) (box_binder lift_tm bnd)
   (* magic *)
-  | Magic -> _Magic
+  | Magic a -> _Magic (lift_tm a)
 
 and lift_cls cls =
   let cls =
     List.map
       (fun (p0s, mbnd) ->
         let p0s = List.map box_p0 p0s in
-        let mbnd = box_mbinder lift_tm mbnd in
+        let mbnd =
+          box_mbinder (fun opt -> opt |> Option.map lift_tm |> box_opt) mbnd
+        in
         box_pair (box_list p0s) mbnd)
       cls
   in

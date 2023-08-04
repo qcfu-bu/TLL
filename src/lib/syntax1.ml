@@ -29,7 +29,7 @@ type tm =
   | App of tm * tm
   | Let of relv * tm * (tm, tm) binder
   (* inductive *)
-  | Ind of Ind.t * sorts * tms
+  | Ind of Ind.t * sorts * tms * tms
   | Constr of Constr.t * sorts * tms * tms
   | Match of tms * tm * cls
   (* monad *)
@@ -37,7 +37,7 @@ type tm =
   | Return of tm
   | MLet of tm * (tm, tm) binder
   (* magic *)
-  | Magic
+  | Magic of tm
 
 and tms = tm list
 
@@ -60,7 +60,7 @@ and p0 =
 and p0s = p0 list
 
 (* clause *)
-and cl = p0s * (tm, tm) mbinder
+and cl = p0s * (tm, tm option) mbinder
 and cls = cl list
 
 (* declarations *)
