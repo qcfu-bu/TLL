@@ -1,117 +1,143 @@
-[Inductive {name = "vec"; relv = N;
+[Inductive {name = "nat"; relv = R;
    body =
-   (Binder (["s"; "r"],
-      (PBind ((Type (SId "s")),
-         (Binder ("A",
-            (PBase
-               ((TBind (R, (Id "nat"),
-                   (Binder ("_", (TBase (Type (SId "r"))))))),
-                [(DMul ("vnil",
-                    (TBase
-                       (App
-                          [(Inst ("vec", [(SId "s"); (SId "r")])); (Id "A");
-                            (Id "zero")]))
-                    ));
-                  (DMul ("vcons",
-                     (TBind (N, (Id "nat"),
-                        (Binder ("n",
-                           (TBind (R, (Id "A"),
-                              (Binder ("hd",
-                                 (TBind (R,
-                                    (App
-                                       [(Inst ("vec", [(SId "s"); (SId "r")]
-                                           ));
-                                         (Id "A"); (Id "n")]),
-                                    (Binder ("tl",
-                                       (TBase
-                                          (App
-                                             [(Inst ("vec",
-                                                 [(SId "s"); (SId "r")]));
-                                               (Id "A");
-                                               (App [(Id "succ"); (Id "n")])]))
-                                       ))
-                                    ))
-                                 ))
-                              ))
-                           ))
-                        ))
-                     ))
-                  ]))
-            ))
-         ))
+   (Binder ([],
+      (PBase
+         ((TBase (Type U)),
+          [(DMul ("zero", (TBase (Id "nat"))));
+            (DMul ("succ",
+               (TBind (R, (Id "nat"), (Binder ("pred", (TBase (Id "nat"))))))
+               ))
+            ]))
       ))};
-  Definition {name = "fact"; relv = R;
+  Inductive {name = "vec"; relv = R;
+    body =
+    (Binder (["s"; "r"],
+       (PBind ((Type (SId "s")),
+          (Binder ("A",
+             (PBase
+                ((TBind (R, (Id "nat"),
+                    (Binder ("_", (TBase (Type (SId "r"))))))),
+                 [(DMul ("vnil",
+                     (TBase
+                        (App
+                           [(Inst ("vec", [(SId "s"); (SId "r")])); (
+                             Id "A"); (Id "zero")]))
+                     ));
+                   (DAdd ("vcons",
+                      (TBind (N, (Id "nat"),
+                         (Binder ("n",
+                            (TBind (R, (Id "A"),
+                               (Binder ("hd",
+                                  (TBind (R,
+                                     (App
+                                        [(Inst ("vec", [(SId "s"); (SId "r")]
+                                            ));
+                                          (Id "A"); (Id "n")]),
+                                     (Binder ("tl",
+                                        (TBase
+                                           (App
+                                              [(Inst ("vec",
+                                                  [(SId "s"); (SId "r")]));
+                                                (Id "A");
+                                                (App [(Id "succ"); (Id "n")])
+                                                ]))
+                                        ))
+                                     ))
+                                  ))
+                               ))
+                            ))
+                         ))
+                      ))
+                   ]))
+             ))
+          ))
+       ))};
+  Definition {name = "add"; relv = N;
     body =
     (Binder ([],
-       ((Fun ((Pi (R, U, (Id "nat"), (Binder ("x", (Id "nat"))))),
-           (Binder ((Some "fact"),
-              [([(PId "x")],
-                (Some (Match ([(R, (Id "x"), None)], None,
-                         [([(PId "zero")], (Some (Id "one")));
-                           ([(PMul ("succ", [(PId "x0")]))],
+       ((Fun (
+           (Pi (R, U, (Id "nat"),
+              (Binder ("x",
+                 (Pi (R, U, (Id "nat"), (Binder ("_", (Id "nat")))))))
+              )),
+           (Binder ((Some "add"),
+              [([(PId "x"); (PId "zero")], (Some (Id "x")));
+                ([(PId "x"); (PId "succ"); (PId "n")],
+                 (Some (App
+                          [(Id "succ");
+                            (App [(Id "add"); (Id "x"); (Id "n")])])))
+                ]
+              ))
+           )),
+        (Pi (R, U, (Id "nat"),
+           (Binder ("x", (Pi (R, U, (Id "nat"), (Binder ("_", (Id "nat")))))
+              ))
+           )))
+       ))};
+  Definition {name = "add"; relv = R;
+    body =
+    (Binder ([],
+       ((Fun (
+           (Pi (R, U, (Id "nat"),
+              (Binder ("m",
+                 (Pi (R, U, (Id "nat"), (Binder ("n", (Id "nat")))))))
+              )),
+           (Binder ((Some "add"),
+              [([(PId "m"); (PId "n")],
+                (Some (Match (
+                         [(N, (Id "m"), (Some ("x", (Id "nat"))));
+                           (R, (Id "n"),
+                            (Some ("y",
+                                   (App [(Id "vec"); (Id "nat"); (Id "x")]))))
+                           ],
+                         (Some (App [(Id "vec"); (Id "nat"); (Id "y")])),
+                         [([(PId "zero"); (PId "n")], (Some (Id "n")));
+                           ([(PMul ("succ", [(PId "m")])); (PId "n")],
                             (Some (App
-                                     [(Id "mul"); (Id "x");
-                                       (App [(Id "fact"); (Id "x0")])])))
+                                     [(Id "succ");
+                                       (App [(Id "add"); (Id "m"); (Id "n")])
+                                       ])))
                            ]
                          ))))
                 ]
               ))
            )),
-        (Pi (R, U, (Id "nat"), (Binder ("x", (Id "nat"))))))
-       ))};
-  Definition {name = "bot_elim"; relv = R;
-    body =
-    (Binder (["s"],
-       ((Fun (
-           (Pi (N, U, (Type (SId "s")),
-              (Binder ("A", (Pi (N, U, (Id "bot"), (Binder ("_", (Id "A")))))
-                 ))
-              )),
-           (Binder ((Some "bot_elim"),
-              [([(PId "A"); PAbsurd], None); ([(PId "A"); PAbsurd], None);
-                ([(PId "A"); PAbsurd], None)]
+        (Pi (R, U, (Id "nat"),
+           (Binder ("m", (Pi (R, U, (Id "nat"), (Binder ("n", (Id "nat")))))
               ))
-           )),
-        (Pi (N, U, (Type (SId "s")),
-           (Binder ("A", (Pi (N, U, (Id "bot"), (Binder ("_", (Id "A")))))))
            )))
-       ))};
-  Definition {name = "foo"; relv = R;
-    body =
-    (Binder ([],
-       ((Let (R,
-           (Fun ((Id "_"),
-              (Binder ((Some "foo"), [([(PId "x")], (Some (Id "m")))])))),
-           (Binder ("foo",
-              (Let (R,
-                 (Fun ((Pi (R, U, (Id "unit"), (Binder ("_", (Id "A"))))),
-                    (Binder ((Some "foo"),
-                       [([(PId "_")],
-                         (Some (Match ([(R, (Id "x"), None)], None,
-                                  [([(PMul ("P", [(PId "x")]));
-                                      (PAdd ("Q", 1, [(PId "y")]))],
-                                    (Some (Id "x")))]
-                                  ))))
-                         ]
-                       ))
-                    )),
-                 (Binder ("foo",
-                    (Let (R,
-                       (Fun (
-                          (Pi (R, U, (Id "A"),
-                             (Binder ("x",
-                                (Pi (R, U, (Id "A"), (Binder ("y", (Id "B")))
-                                   ))
-                                ))
-                             )),
-                          (Binder (None,
-                             [([(PId "x"); (PId "y")], (Some (Id "m")))]))
-                          )),
-                       (Binder ("foo", (Id "n")))))
-                    ))
-                 ))
-              ))
-           )),
-        (Id "nat"))
        ))}
-  ]
+  ]-----------------------------------------
+
+#[program]
+inductive nat_1‹› : U where
+| zero_1 : nat_1
+| succ_2 (pred_28 : nat_1) : nat_1
+
+#[program]
+inductive vec_2‹s_29,r_30› (A_31 : Type‹s_29›):
+  nat_1 -> Type‹r_30›
+where
+| vnil_3 : (vec_2‹s_29,r_30› A_31 zero_1)
+| #[additive]
+  vcons_4
+    {n_33 : nat_1} (hd_34 : A_31) (tl_35 : (vec_2‹s_29,r_30› A_31 n_33))
+    : (vec_2‹s_29,r_30› A_31 (succ_2‹› n_33))
+
+#[logical]
+def add_1‹› : nat_1 -> nat_1 -> nat_1 :=
+  function add_38 : nat_1 -> nat_1 -> nat_1
+  | x_41 zero_1 => x_41
+  | x_42 succ_2 n_43 => (succ_2‹› (add_38 x_42 n_43))
+
+#[program]
+def add_2‹› : nat_1 -> nat_1 -> nat_1 :=
+  function add_46 : nat_1 -> nat_1 -> nat_1
+  | m_49 n_50 =>
+    match m_49, n_50 in
+      ∀ {x_51 : nat_1} -o
+        ∀ (y_52 : (vec_2‹?_1,?_2› nat_1 x_51)) -o
+          (vec_2‹?_3,?_4› nat_1 y_52)
+    with
+    | zero_1, n_53 => n_53
+    | (succ_2 m_54), n_55 => (succ_2‹› (add_46 m_54 n_55))

@@ -310,7 +310,7 @@ let rec trans_dcl nspc = function
     let (local, i), xs =
       List.fold_left_map
         (fun (nspc, i) sid ->
-          let x = Binding1.SVar.mk id in
+          let x = Binding1.SVar.mk sid in
           (((sid, ESVar x) :: nspc, i + 1), x))
         (nspc, 0) sids
     in
@@ -365,4 +365,4 @@ and trans_dconstrs i j nspc = function
     let tele = trans_tele nspc tele in
     let nspc_ext, dconstrs = trans_dconstrs i j nspc dconstrs in
     Binding1.
-      ((id, EConstr (constr, i, j)) :: nspc_ext, _DMul constr tele :: dconstrs)
+      ((id, EConstr (constr, i, j)) :: nspc_ext, _DAdd constr tele :: dconstrs)

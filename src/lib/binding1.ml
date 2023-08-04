@@ -10,7 +10,7 @@ module SVar = struct
 
     let mk = new_var (fun x -> SVar x)
     let compare = compare_vars
-    let pp fmt x = pf fmt "%s_s%d" (name_of x) (uid_of x)
+    let pp fmt x = pf fmt "%s_%d" (name_of x) (uid_of x)
   end
 
   include Inner
@@ -26,7 +26,7 @@ module Var = struct
 
     let mk = new_var (fun x -> Var x)
     let compare = compare_vars
-    let pp fmt x = pf fmt "%s_s%d" (name_of x) (uid_of x)
+    let pp fmt x = pf fmt "%s_%d" (name_of x) (uid_of x)
   end
 
   include Inner
@@ -81,7 +81,7 @@ let _P0Add constr i = box_apply (fun ps -> P0Add (constr, i, ps))
 
 (* dconstr *)
 let _DMul constr = box_apply (fun tele -> DMul (constr, tele))
-let _DAdd constr = box_apply (fun tele -> DMul (constr, tele))
+let _DAdd constr = box_apply (fun tele -> DAdd (constr, tele))
 
 (* param *)
 let _PBase a = box_apply (fun a -> PBase a) a
@@ -95,12 +95,13 @@ let _TBind relv = box_apply2 (fun a b -> TBind (relv, a, b))
 let mkApps hd ms = List.fold_left (fun acc m -> App (acc, m)) hd ms
 let _mkApps hd ms = List.fold_left _App hd ms
 
-let rec unApps m =
-  match m with
-  | App (m, n) ->
-    let h, ms = unApps m in
-    (h, Array.append ms [| n |])
-  | _ -> (m, [||])
+let unApps m =
+  let rec aux m ns =
+    match m with
+    | App (m, n) -> aux m (n :: ns)
+    | _ -> (m, ns)
+  in
+  aux m []
 
 (* box *)
 let box_relv = function
