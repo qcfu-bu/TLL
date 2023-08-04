@@ -197,12 +197,12 @@ let pp_dcl fmt = function
     let xs, param = unmbind sch in
     let args, tele, dconstrs = unpack_param param in
     pf fmt
-      "@[@[<v 0>#[%a]@;\
+      "@[<v 0>@[@[<v 0>#[%a]@;\
        <1 0>inductive@] %a‹%a› %a:@;\
        <1 2>@[%a@]@;\
-       <1 0>where@;\
-       <1 0>@[<v 0>%a@]@]" pp_modifier relv Ind.pp ind pp_sargs
-      (Array.to_list xs) pp_args args pp_arity tele pp_dconstrs dconstrs
+       <1 0>where@]@;\
+       <1 0>%a@]" pp_modifier relv Ind.pp ind pp_sargs (Array.to_list xs)
+      pp_args args pp_arity tele pp_dconstrs dconstrs
 
 let pp_dcls fmt dcls =
   let break fmt _ = pf fmt "@.@." in
