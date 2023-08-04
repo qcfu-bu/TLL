@@ -2,7 +2,6 @@ open Fmt
 open Bindlib
 open Names
 open Syntax1
-open Binding1
 
 let rec pp_p fmt = function
   | PVar x -> Var.pp fmt x

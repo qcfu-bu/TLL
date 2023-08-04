@@ -75,10 +75,12 @@
               )),
            (Binder ((Some "add"),
               [([(PId "x"); (PId "zero")], (Some (Id "x")));
-                ([(PId "x"); (PId "succ"); (PId "n")],
+                ([(PId "x"); (PId "succ");
+                   (PMul ("succ", [(PId "m1"); (PId "n1")]));
+                   (PMul ("succ", [(PId "m2"); (PId "n2")]))],
                  (Some (App
                           [(Id "succ");
-                            (App [(Id "add"); (Id "x"); (Id "n")])])))
+                            (App [(Id "add"); (Id "x"); (Id "n2")])])))
                 ]
               ))
            )),
@@ -137,38 +139,39 @@ inductive unit_2‹› : U where
 #[program]
 inductive nat_3‹› : U where
 | zero_4 : nat_3
-| succ_5 (pred_24 : nat_3) : nat_3
+| succ_5 (pred_27 : nat_3) : nat_3
 
 #[program]
-inductive vec_4‹s_25,r_26› (A_27 : Type‹s_25›):
-  nat_3 -> Type‹r_26›
+inductive vec_4‹s_28,r_29› (A_30 : Type‹s_28›):
+  nat_3 -> Type‹r_29›
 where
-| vnil_6 : (vec_4‹s_25,r_26› A_27 zero_4)
+| vnil_6 : (vec_4‹s_28,r_29› A_30 zero_4)
 | #[additive]
   vcons_7
-    {n_29 : nat_3} (hd_30 : A_27) (tl_31 : (vec_4‹s_25,r_26› A_27 n_29))
-    : (vec_4‹s_25,r_26› A_27 (succ_5‹› n_29))
+    {n_32 : nat_3} (hd_33 : A_30) (tl_34 : (vec_4‹s_28,r_29› A_30 n_32))
+    : (vec_4‹s_28,r_29› A_30 (succ_5‹› n_32))
 
 #[logical]
 def add_1‹› : nat_3 -> nat_3 -> nat_3 :=
-  function add_34 : nat_3 -> nat_3 -> nat_3
-  | x_37 zero_4 => x_37
-  | x_38 succ_5 n_39 => (succ_5‹› (add_34 x_38 n_39))
+  function add_37 : nat_3 -> nat_3 -> nat_3
+  | x_40 zero_4 => x_40
+  | x_41 succ_5 (succ_5 m1_42 n1_43) (succ_5 m2_44 n2_45) =>
+    (succ_5‹› (add_37 x_41 n2_45))
 
 #[program]
 def test_2‹› :
-  ∀ (b_40 : bool_1) ->
-    match b_40 in ∀ (_41 : ?_5) -o ?_6 with
+  ∀ (b_46 : bool_1) ->
+    match b_46 in ∀ (_47 : ?_5) -o ?_6 with
     | true_1 => unit_2 | false_2 => nat_3
 :=
-  function test_42 :
-    ∀ (b_43 : bool_1) ->
-      match b_43 in ∀ (_44 : ?_1) -o ?_2 with
+  function test_48 :
+    ∀ (b_49 : bool_1) ->
+      match b_49 in ∀ (_50 : ?_1) -o ?_2 with
       | true_1 => unit_2 | false_2 => nat_3
-  | b_45 =>
-    match b_45 in
-      ∀ (x_46 : bool_1) -o
-        match x_46 in ∀ (_47 : ?_3) -o ?_4 with
+  | b_51 =>
+    match b_51 in
+      ∀ (x_52 : bool_1) -o
+        match x_52 in ∀ (_53 : ?_3) -o ?_4 with
         | true_1 => unit_2 | false_2 => nat_3
     with
     | true_1 => tt_3 | false_2 => zero_4
