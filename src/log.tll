@@ -1,27 +1,7 @@
-[Inductive {name = "bool"; relv = R;
+[Inductive {name = "unit"; relv = R;
    body =
    (Binder ([],
-      (PBase
-         ((TBase (Type U)),
-          [(DMul ("true", (TBase (Id "bool"))));
-            (DMul ("false", (TBase (Id "bool"))))]))
-      ))};
-  Inductive {name = "unit"; relv = R;
-    body =
-    (Binder ([],
-       (PBase ((TBase (Type U)), [(DMul ("tt", (TBase (Id "unit"))))]))))};
-  Inductive {name = "nat"; relv = R;
-    body =
-    (Binder ([],
-       (PBase
-          ((TBase (Type U)),
-           [(DMul ("zero", (TBase (Id "nat"))));
-             (DMul ("succ",
-                (TBind (R, (Id "nat"), (Binder ("pred", (TBase (Id "nat"))))
-                   ))
-                ))
-             ]))
-       ))};
+      (PBase ((TBase (Type U)), [(DMul ("tt", (TBase (Id "unit"))))]))))};
   Inductive {name = "prod"; relv = R;
     body =
     (Binder (["s"; "r"; "t"],
@@ -39,7 +19,7 @@
                                        (TBase
                                           (App
                                              [(Inst ("prod",
-                                                 [(SId "s"); (SId "r");
+                                                 [(SId "_"); (SId "_");
                                                    (SId "t")]
                                                  ));
                                                (Id "A"); (Id "B")]))
@@ -54,201 +34,94 @@
              ))
           ))
        ))};
-  Inductive {name = "vec"; relv = R;
+  Definition {name = "print"; relv = R;
     body =
-    (Binder (["s"; "r"],
-       (PBind ((Type (SId "s")),
-          (Binder ("A",
-             (PBase
-                ((TBind (R, (Id "nat"),
-                    (Binder ("_", (TBase (Type (SId "r"))))))),
-                 [(DMul ("vnil",
-                     (TBase
-                        (App
-                           [(Inst ("vec", [(SId "s"); (SId "r")])); (
-                             Id "A"); (Id "zero")]))
-                     ));
-                   (DAdd ("vcons",
-                      (TBind (N, (Id "nat"),
-                         (Binder ("n",
-                            (TBind (R, (Id "A"),
-                               (Binder ("hd",
-                                  (TBind (R,
-                                     (App
-                                        [(Inst ("vec", [(SId "s"); (SId "r")]
-                                            ));
-                                          (Id "A"); (Id "n")]),
-                                     (Binder ("tl",
-                                        (TBase
-                                           (App
-                                              [(Inst ("vec",
-                                                  [(SId "s"); (SId "r")]));
-                                                (Id "A");
-                                                (App [(Id "succ"); (Id "n")])
-                                                ]))
-                                        ))
-                                     ))
-                                  ))
-                               ))
-                            ))
-                         ))
-                      ))
-                   ]))
-             ))
-          ))
-       ))};
-  Definition {name = "max"; relv = R;
-    body =
-    (Binder ([],
+    (Binder (["s"],
        ((Fun (
-           (Pi (R, U, (Id "nat"),
-              (Binder ("x",
-                 (Pi (R, U, (Id "nat"), (Binder ("y", (Id "nat")))))))
+           (Pi (N, U, (Type (SId "s")),
+              (Binder ("A",
+                 (Pi (R, U, (Id "A"), (Binder ("x", (IO (Id "unit"))))))))
               )),
-           (Binder ((Some "max"),
-              [([(PId "x"); (PId "y")],
-                (Some (Match ([(R, (Id "x"), None); (R, (Id "y"), None)],
-                         None,
-                         [([(PId "zero"); (PId "j")], (Some (Id "j")));
-                           ([(PId "i"); (PId "zero")], (Some (Id "i")));
-                           ([(PMul ("succ", [(PId "i")]));
-                              (PMul ("succ", [(PId "j")]))],
-                            (Some (App
-                                     [(Id "succ");
-                                       (App [(Id "max"); (Id "i"); (Id "j")])
-                                       ])))
-                           ]
-                         ))))
-                ]
-              ))
+           (Binder ((Some "print"),
+              [([(PId "A"); (PId "x")], (Some (Magic (Id "_"))))]))
            )),
-        (Pi (R, U, (Id "nat"),
-           (Binder ("x", (Pi (R, U, (Id "nat"), (Binder ("y", (Id "nat")))))
-              ))
+        (Pi (N, U, (Type (SId "s")),
+           (Binder ("A",
+              (Pi (R, U, (Id "A"), (Binder ("x", (IO (Id "unit"))))))))
            )))
        ))};
-  Definition {name = "one"; relv = R;
-    body = (Binder ([], ((App [(Id "succ"); (Id "zero")]), (Id "nat"))))};
-  Definition {name = "two"; relv = R;
-    body = (Binder ([], ((App [(Id "succ"); (Id "one")]), (Id "nat"))))};
-  Definition {name = "three"; relv = R;
-    body = (Binder ([], ((App [(Id "succ"); (Id "two")]), (Id "nat"))))};
-  Definition {name = "test"; relv = R;
+  Definition {name = "_"; relv = R;
     body =
-    (Binder ([], ((App [(Id "max"); (Id "two"); (Id "three")]), (Id "nat"))))}
+    (Binder ([], ((App [(Id "print"); (Id "_"); (Id "tt")]), (Id "unit"))))};
+  Definition {name = "_"; relv = R;
+    body =
+    (Binder ([],
+       ((App
+           [(Id "print"); (Id "_");
+             (App
+                [(Inst ("pair", [(SId "_"); (SId "_"); L])); (Id "tt");
+                  (Id "tt")])
+             ]),
+        (Id "unit"))
+       ))}
   ]
 
 -----------------------------------------
 
 #[program]
-inductive bool_1‹› : U where
-| true_1 : bool_1
-| false_2 : bool_1
+inductive unit_1‹› : U where
+| tt_1 : unit_1
 
 #[program]
-inductive unit_2‹› : U where
-| tt_3 : unit_2
-
-#[program]
-inductive nat_3‹› : U where
-| zero_4 : nat_3
-| succ_5 (pred_39 : nat_3) : nat_3
-
-#[program]
-inductive prod_4‹s_40,r_41,t_42› (A_43 : Type‹s_40›) (B_44 : Type‹r_41›):
+inductive prod_2‹s_40,r_41,t_42› (A_43 : Type‹s_40›) (B_44 : Type‹r_41›):
   Type‹t_42›
 where
-| pair_6 (m_45 : A_43) (n_46 : B_44) : (prod_4‹s_40,r_41,t_42› A_43 B_44)
+| pair_2 (m_45 : A_43) (n_46 : B_44) : (prod_2‹??_1,??_2,t_42› A_43 B_44)
 
 #[program]
-inductive vec_5‹s_47,r_48› (A_49 : Type‹s_47›):
-  nat_3 -> Type‹r_48›
-where
-| vnil_7 : (vec_5‹s_47,r_48› A_49 zero_4)
-| #[additive]
-  vcons_8
-    {n_51 : nat_3} (hd_52 : A_49) (tl_53 : (vec_5‹s_47,r_48› A_49 n_51))
-    : (vec_5‹s_47,r_48› A_49 (succ_5‹› n_51))
+def print_1‹s_47› : ∀ {A_48 : Type‹s_47›} -> A_48 -> IO unit_1 :=
+  function print_50 : ∀ {A_51 : Type‹s_47›} -> A_51 -> IO unit_1
+  | A_53 x_54 => #magic[?_1]
 
 #[program]
-def max_1‹› : nat_3 -> nat_3 -> nat_3 :=
-  function max_56 : nat_3 -> nat_3 -> nat_3
-  | x_59 y_60 =>
-    match x_59, y_60 in ∀ (_61 : ?_1) -o ∀ (_62 : ?_2) -o ?_3 with
-    | zero_4, j_63 => j_63
-    | i_64, zero_4 => i_64
-    | (succ_5 i_65), (succ_5 j_66) => (succ_5‹› (max_56) i_65 j_66)
+def __2‹› : unit_1 := (print_1‹??_3›) ?_2 tt_1
 
 #[program]
-def one_2‹› : nat_3 := (succ_5‹› zero_4)
-
-#[program]
-def two_3‹› : nat_3 := (succ_5‹› one_2)
-
-#[program]
-def three_4‹› : nat_3 := (succ_5‹› two_3)
-
-#[program]
-def test_5‹› : nat_3 := (max_1) two_3 three_4
+def __3‹› : unit_1 :=
+  (print_1‹??_6›) ?_3 (pair_2‹??_4,??_5,L› tt_1 tt_1)
 
 -----------------------------------------
 
-#[program]
-inductive bool_1‹› : U where
-| true_1 : bool_1
-| false_2 : bool_1
+group0 {|
+  
+|}
 
-#[program]
-inductive unit_2‹› : U where
-| tt_3 : unit_2
+group1 {|
+  eq_tm? (Type‹??_2›, Type‹r_26›);
+  eq_tm? (Type‹??_1›, Type‹s_25›);
+  eq_sort? (r_26, ??_2);
+  eq_sort? (s_25, ??_1)
+|}
 
-#[program]
-inductive nat_3‹› : U where
-| zero_4 : nat_3
-| succ_5 (pred_67 : nat_3) : nat_3
+group2 {|
+  
+|}
 
-#[program]
-inductive prod_4‹s_68,r_69,t_70› (A_71 : Type‹s_68›) (B_72 : Type‹r_69›):
-  Type‹t_70›
-where
-| pair_6 (m_73 : A_71) (n_74 : B_72) : (prod_4‹s_68,r_69,t_70› A_71 B_72)
+group3 {|
+  eq_tm? (unit_1, IO unit_1);
+  eq_tm? (?_2, unit_1);
+  check? (?_2, Type‹??_3›)
+|}
 
-#[program]
-inductive vec_5‹s_75,r_76› (A_77 : Type‹s_75›):
-  nat_3 -> Type‹r_76›
-where
-| vnil_7 : (vec_5‹s_75,r_76› A_77 zero_4)
-| #[additive]
-  vcons_8
-    {n_79 : nat_3} (hd_80 : A_77) (tl_81 : (vec_5‹s_75,r_76› A_77 n_79))
-    : (vec_5‹s_75,r_76› A_77 (succ_5‹› n_79))
+group4 {|
+  eq_tm? (unit_1, IO unit_1);
+  eq_tm? (?_3, (prod_2‹??_1,??_2,L› ?_4 ?_5));
+  eq_tm? (?_5, unit_1);
+  eq_tm? (?_4, unit_1);
+  check? (?_5, Type‹??_5›);
+  check? (?_4, Type‹??_4›);
+  check? (?_3, Type‹??_6›)
+|}
 
-#[program]
-def max_1‹› : nat_3 -> nat_3 -> nat_3 :=
-  function max_84 : nat_3 -> nat_3 -> nat_3
-  | x_87 y_88 =>
-    match x_87, y_88 in ∀ (_89 : ?_1) -o ∀ (_90 : ?_2) -o ?_3 with
-    | zero_4, j_91 => j_91
-    | i_92, zero_4 => i_92
-    | (succ_5 i_93), (succ_5 j_94) => (succ_5‹› (max_84) i_93 j_94)
+-----------------------------------------
 
-#[program]
-def one_2‹› : nat_3 := (succ_5‹› zero_4)
-
-#[program]
-def two_3‹› : nat_3 := (succ_5‹› one_2)
-
-#[program]
-def three_4‹› : nat_3 := (succ_5‹› two_3)
-
-#[program]
-def test_5‹› : nat_3 :=
-  (succ_5‹›
-    (function max_95 : nat_3 -> nat_3 -> nat_3
-     | x_98 y_99 =>
-       match x_98, y_99 in ∀ (_100 : ?_1) -o ∀ (_101 : ?_2) -o ?_3 with
-       | zero_4, j_102 => j_102
-       | i_103, zero_4 => i_103
-       | (succ_5 i_104), (succ_5 j_105) =>
-         (succ_5‹› (max_95) i_104 j_105))
-      one_2 two_3)

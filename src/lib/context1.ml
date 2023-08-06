@@ -7,8 +7,8 @@ module Ctx = struct
     { var : tm Var.Map.t
     ; svar : SVar.Set.t
     ; const : (tm * tm) scheme Const.Map.t
-    ; ind : (tele * dconstrs) param scheme Ind.Map.t
-    ; constr : tele param scheme Constr.Map.t
+    ; ind : (tele param scheme * Constr.Set.t) Ind.Map.t
+    ; constr : (mode * tele param scheme) Constr.Map.t
     }
 
   let empty =

@@ -18,6 +18,20 @@ let rec normalize_dcls env dcls =
   | Inductive m :: dcls -> Inductive m :: normalize_dcls env dcls
   | [] -> []
 
+let pp_prbms fmt prbms =
+  let open Constraint1 in
+  let rec aux i fmt = function
+    | [] -> ()
+    | [ prbm ] ->
+      pf fmt "@[<v 0>group%d {|@;<1 2>@[<v 0>%a@]@;<1 0>|}@]" i IPrbm.pp prbm
+    | prbm :: prbms ->
+      pf fmt "@[<v 0>group%d {|@;<1 2>@[<v 0>%a@]@;<1 0>|}@]@.@.%a" i IPrbm.pp
+        prbm
+        (aux (i + 1))
+        prbms
+  in
+  aux 0 fmt prbms
+
 let _ =
   try
     if Array.length Sys.argv < 1 then
@@ -27,12 +41,17 @@ let _ =
       let src_ch = open_in src_name in
       let dcls0 = parse (Utf8.from_channel src_ch) in
       let _, dcls1 = Trans01.trans_dcls [] dcls0 in
-      let dcls1_norm = normalize_dcls Equality1.Env.empty dcls1 in
+      let prbms =
+        let open Context1 in
+        let open Equality1 in
+        Trans1e.check_dcls Ctx.empty Env.empty dcls1
+      in
       pr "%a" Syntax0.pp_dcls dcls0;
       pr "@.@.-----------------------------------------@.@.";
       pr "%a" Pprint1.pp_dcls dcls1;
       pr "@.@.-----------------------------------------@.@.";
-      pr "%a" Pprint1.pp_dcls dcls1_norm
+      pr "%a" pp_prbms prbms;
+      pr "@.@.-----------------------------------------@.@."
   with
   | Failure s ->
     let _ = pr "error -----------------------------------@.@." in

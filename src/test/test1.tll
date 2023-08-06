@@ -1,0 +1,11 @@
+inductive unit : U where
+| tt : unit
+
+inductive prod‹s,r,t› (A : Type‹s›) (B : Type‹r›) : Type‹t› where
+| pair (m : A) (n : B) : prod‹_,_,t› A B
+
+def print‹s› {A : Type‹s›} (x : A) : IO unit := #magic
+
+def _ : unit := print _ tt
+
+def _ : unit := print _ (pair‹_,_,L› tt tt)

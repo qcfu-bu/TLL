@@ -9,6 +9,7 @@ module IPrbm = struct
     | EqSort of sort * sort
     | EqTm of Env.t * tm * tm
     | Check of Ctx.t * Env.t * tm * tm
+    | AssertType of Env.t * tm
 
   type t = prbm list
 
@@ -19,11 +20,12 @@ module IPrbm = struct
       pf fmt "@[eq_tm?@;<1 2>(%a,@;<1 2>%a)@]" pp_tm m1 pp_tm m2
     | Check (_, _, m, a) ->
       pf fmt "@[check?@;<1 2>(%a,@;<1 2>%a)@]" pp_tm m pp_tm a
+    | AssertType (_, a) -> pf fmt "@[assert_type?@;<1 2>(%a)@]" pp_tm a
 
   let rec pp fmt = function
     | [] -> ()
     | [ prbm ] -> pp_prbm fmt prbm
-    | prbm :: prbms -> pf fmt "%a@.@.%a" pp_prbm prbm pp prbms
+    | prbm :: prbms -> pf fmt "%a;@;<1 0>%a" pp_prbm prbm pp prbms
 end
 
 module PPrbm = struct

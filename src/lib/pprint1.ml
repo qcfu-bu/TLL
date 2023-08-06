@@ -21,7 +21,7 @@ let pp_sort fmt = function
   | U -> pf fmt "U"
   | L -> pf fmt "L"
   | SVar x -> SVar.pp fmt x
-  | SMeta (x, _) -> pf fmt "?%a" SMeta.pp x
+  | SMeta (x, _) -> pf fmt "??%a" SMeta.pp x
 
 let rec pp_sorts fmt = function
   | [] -> ()
@@ -181,11 +181,11 @@ let pp_dconstr xs args fmt dconstr =
     | _ -> failwith "pp_dconstr.pack_param"
   in
   match dconstr with
-  | DMul (constr, sch) ->
+  | Multiplicative, constr, sch ->
     let param = msubst sch (Array.map (fun x -> SVar x) xs) in
     let tele = pack_param args param in
     pf fmt "| @[%a@;<1 2>@[%a@]@]" Constr.pp constr pp_tele tele
-  | DAdd (constr, sch) ->
+  | Additive, constr, sch ->
     let param = msubst sch (Array.map (fun x -> SVar x) xs) in
     let tele = pack_param args param in
     pf fmt "| @[<v 0>#[additive]@;<1 0>@[%a@;<1 2>@[%a@]@]@]" Constr.pp constr

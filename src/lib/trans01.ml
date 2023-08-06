@@ -295,7 +295,7 @@ let rec trans_dcl nspc = function
     let (local, i), xs =
       List.fold_left_map
         (fun (nspc, i) sid ->
-          let x = Syntax1.SVar.mk id in
+          let x = Syntax1.SVar.mk sid in
           (((sid, ESVar x) :: nspc, i + 1), x))
         (nspc, 0) sids
     in
@@ -315,10 +315,10 @@ let rec trans_dcl nspc = function
     let dconstrs = trans_dconstrs nspc sids args dconstrs in
     let (nspc, cset), dconstrs =
       List.fold_left_map
-        (fun (nspc, cset) (f, id, constr, sch) ->
+        (fun (nspc, cset) (mode, id, constr, sch) ->
           let nspc = (id, EConstr (constr, i, j)) :: nspc in
           let cset = Constr.Set.add constr cset in
-          let dconstr = f constr sch in
+          let dconstr = Syntax1._DConstr mode constr sch in
           ((nspc, cset), dconstr))
         (nspc, Constr.Set.empty) dconstrs
     in
@@ -371,11 +371,11 @@ and trans_dconstr nspc sids args = function
   | DMul (id, tele) ->
     let constr = Constr.mk id in
     let sch = trans_tele nspc sids args tele in
-    (Syntax1._DMul, id, constr, sch)
+    (Syntax1.Multiplicative, id, constr, sch)
   | DAdd (id, tele) ->
     let constr = Constr.mk id in
     let sch = trans_tele nspc sids args tele in
-    (Syntax1._DAdd, id, constr, sch)
+    (Syntax1.Additive, id, constr, sch)
 
 and trans_dconstrs nspc sids args dconstrs =
   List.map (trans_dconstr nspc sids args) dconstrs
