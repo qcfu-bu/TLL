@@ -13,8 +13,7 @@ let rec normalize_dcls env dcls =
     let m = whnf ~expand:true env m in
     let a = whnf ~expand:true env a in
     let sch = bind_mvar xs (box_pair (lift_tm m) (lift_tm a)) in
-    let sch_m = bind_mvar xs (lift_tm m) in
-    let env = Env.add_const x (unbox sch_m) env in
+    let env = Env.add_const x (unbox sch) env in
     Definition { name = x; relv; scheme = unbox sch } :: normalize_dcls env dcls
   | Inductive m :: dcls -> Inductive m :: normalize_dcls env dcls
   | [] -> []

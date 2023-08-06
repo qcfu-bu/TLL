@@ -73,14 +73,15 @@ type dcl =
   | Inductive of
       { name : Ind.t
       ; relv : relv
-      ; scheme : (tele * dconstrs) param scheme
+      ; arity : tele param scheme
+      ; dconstrs : dconstrs
       }
 
 and dcls = dcl list
 
 and dconstr =
-  | DMul of Constr.t * tele
-  | DAdd of Constr.t * tele
+  | DMul of Constr.t * tele param scheme
+  | DAdd of Constr.t * tele param scheme
 
 and dconstrs = dconstr list
 and 'a scheme = (sort, 'a) mbinder
@@ -173,8 +174,8 @@ let _P0Mul constr = box_apply (fun ps -> P0Mul (constr, ps))
 let _P0Add constr i = box_apply (fun ps -> P0Add (constr, i, ps))
 
 (* dconstr *)
-let _DMul constr = box_apply (fun tele -> DMul (constr, tele))
-let _DAdd constr = box_apply (fun tele -> DAdd (constr, tele))
+let _DMul constr = box_apply (fun sch -> DMul (constr, sch))
+let _DAdd constr = box_apply (fun sch -> DAdd (constr, sch))
 
 (* param *)
 let _PBase a = box_apply (fun a -> PBase a) a

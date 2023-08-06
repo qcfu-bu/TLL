@@ -5,7 +5,7 @@ open Syntax1
 module Env = struct
   type t =
     { var : tm Var.Map.t
-    ; const : tm scheme Const.Map.t
+    ; const : (tm * tm) scheme Const.Map.t
     }
 
   let empty = { var = Var.Map.empty; const = Const.Map.empty }
@@ -25,7 +25,9 @@ let rec whnf ?(expand = true) (env : Env.t) = function
     | _ -> Var x)
   | Const (x, ss) when expand -> (
     match Env.find_const x env with
-    | Some sch -> whnf ~expand env (msubst sch (Array.of_list ss))
+    | Some sch ->
+      let m, _ = msubst sch (Array.of_list ss) in
+      whnf ~expand env m
     | _ -> Const (x, ss))
   | App _ as m -> (
     let hd, ms = unApps m in
