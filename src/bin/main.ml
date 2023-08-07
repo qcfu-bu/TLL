@@ -4,18 +4,19 @@ open Bindlib
 open Sedlexing
 open Parser
 
-let rec normalize_dcls env dcls =
+let rec normalize_dcls ctx dcls =
   let open Syntax1 in
+  let open Context1 in
   let open Equality1 in
   match dcls with
   | Definition { name = x; relv; scheme = sch } :: dcls ->
     let xs, (m, a) = unmbind sch in
-    let m = whnf ~expand:true env m in
-    let a = whnf ~expand:true env a in
+    let m = whnf ~expand:true ctx m in
+    let a = whnf ~expand:true ctx a in
     let sch = bind_mvar xs (box_pair (lift_tm m) (lift_tm a)) in
-    let env = Env.add_const x (unbox sch) env in
+    let env = Ctx.add_const x (unbox sch) ctx in
     Definition { name = x; relv; scheme = unbox sch } :: normalize_dcls env dcls
-  | Inductive m :: dcls -> Inductive m :: normalize_dcls env dcls
+  | Inductive m :: dcls -> Inductive m :: normalize_dcls ctx dcls
   | [] -> []
 
 let pp_prbms fmt prbms =
@@ -44,7 +45,7 @@ let _ =
       let prbms =
         let open Context1 in
         let open Equality1 in
-        Trans1e.check_dcls Ctx.empty Env.empty dcls1
+        Trans1e.check_dcls Ctx.empty dcls1
       in
       pr "%a" Syntax0.pp_dcls dcls0;
       pr "@.@.-----------------------------------------@.@.";

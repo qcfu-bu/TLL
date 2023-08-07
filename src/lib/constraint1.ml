@@ -6,19 +6,19 @@ open Pprint1
 
 module IPrbm = struct
   type prbm =
-    | EqSort of sort * sort
-    | EqTm of Env.t * tm * tm
-    | Check of Ctx.t * Env.t * tm * tm
-    | AssertType of Env.t * tm
+    | EqualSort of sort * sort
+    | EqualTerm of Ctx.t * tm * tm
+    | CheckType of Ctx.t * tm * tm
+    | AssertType of Ctx.t * tm
 
   type t = prbm list
 
   let pp_prbm fmt = function
-    | EqSort (s1, s2) ->
-      pf fmt "@[eq_sort?@;<1 2>(%a,@;<1 2>%a)@]" pp_sort s1 pp_sort s2
-    | EqTm (_, m1, m2) ->
-      pf fmt "@[eq_tm?@;<1 2>(%a,@;<1 2>%a)@]" pp_tm m1 pp_tm m2
-    | Check (_, _, m, a) ->
+    | EqualSort (s1, s2) ->
+      pf fmt "@[equal_sort?@;<1 2>(%a,@;<1 2>%a)@]" pp_sort s1 pp_sort s2
+    | EqualTerm (_, m1, m2) ->
+      pf fmt "@[equal_tm?@;<1 2>(%a,@;<1 2>%a)@]" pp_tm m1 pp_tm m2
+    | CheckType (_, m, a) ->
       pf fmt "@[check?@;<1 2>(%a,@;<1 2>%a)@]" pp_tm m pp_tm a
     | AssertType (_, a) -> pf fmt "@[assert_type?@;<1 2>(%a)@]" pp_tm a
 
@@ -29,7 +29,7 @@ module IPrbm = struct
 end
 
 module PPrbm = struct
-  type prbm = EqTm of Env.t * tm * tm * tm
+  type prbm = EqTm of Ctx.t * tm * tm * tm
   and prbms = prbm list
 
   type t =

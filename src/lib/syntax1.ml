@@ -131,6 +131,7 @@ end
 
 (* smart constructors *)
 let var x = Var x
+let svar x = SVar x
 
 (* sort *)
 let _U = box U
