@@ -52,7 +52,8 @@
        ))};
   Definition {name = "_"; relv = R;
     body =
-    (Binder ([], ((App [(Id "print"); (Id "_"); (Id "tt")]), (Id "unit"))))};
+    (Binder ([],
+       ((App [(Id "print"); (Id "_"); (Id "tt")]), (IO (Id "unit")))))};
   Definition {name = "_"; relv = R;
     body =
     (Binder ([],
@@ -62,7 +63,7 @@
                 [(Inst ("pair", [(SId "_"); (SId "_"); L])); (Id "tt");
                   (Id "tt")])
              ]),
-        (Id "unit"))
+        (IO (Id "unit")))
        ))}
   ]
 
@@ -84,15 +85,16 @@ def print_1‹s_47› : ∀ {A_48 : Type‹s_47›} -> A_48 -> IO unit_1 :=
   | A_53 x_54 => #magic[?_1]
 
 #[program]
-def __2‹› : unit_1 := (print_1‹??_3›) ?_2 tt_1
+def __2‹› : IO unit_1 := (print_1‹??_3›) ?_2 tt_1
 
 #[program]
-def __3‹› : unit_1 :=
+def __3‹› : IO unit_1 :=
   (print_1‹??_6›) ?_3 (pair_2‹??_4,??_5,L› tt_1 tt_1)
 
 -----------------------------------------
 
 group0 {|
+  
   
 |}
 
@@ -101,26 +103,26 @@ group1 {|
   equal_tm? (Type‹??_1›, Type‹s_25›);
   equal_sort? (r_26, ??_2);
   equal_sort? (s_25, ??_1)
+  
 |}
 
 group2 {|
   
+  
 |}
 
 group3 {|
-  equal_tm? (unit_1, IO unit_1);
-  equal_tm? (?_2, unit_1);
-  check? (?_2, Type‹??_3›)
+  equal_tm? (?_2, unit_1)
+  ?_2 :? Type‹??_3›
 |}
 
 group4 {|
-  equal_tm? (unit_1, IO unit_1);
   equal_tm? (?_3, (prod_2‹??_1,??_2,L› ?_4 ?_5));
   equal_tm? (?_5, unit_1);
-  equal_tm? (?_4, unit_1);
-  check? (?_5, Type‹??_5›);
-  check? (?_4, Type‹??_4›);
-  check? (?_3, Type‹??_6›)
+  equal_tm? (?_4, unit_1)
+  ?_3 :? Type‹??_6›
+  ?_4 :? Type‹??_4›
+  ?_5 :? Type‹??_5›
 |}
 
 -----------------------------------------

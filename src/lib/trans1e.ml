@@ -2,32 +2,37 @@ open Fmt
 open Bindlib
 open Names
 open Syntax1
-open Equality1
 open Context1
 open Constraint1
+open Equality1
+open Unifier1
 
 module State : sig
-  val add_prbm : IPrbm.prbm -> unit
-  val add_imeta : IMeta.t -> tm -> unit
+  type t
+
+  val add_eqn : IPrbm.eqn -> unit
+  val add_imeta : Ctx.t -> IMeta.t -> tm -> unit
   val find_imeta : IMeta.t -> tm option
   val init : unit -> unit
-  val export : unit -> IPrbm.t
+  val export_eqns : unit -> IPrbm.eqns
+  val export_mctx : unit -> MCtx.t
 end = struct
   type t =
-    { mutable prbm : IPrbm.t
+    { mutable eqns : IPrbm.eqns
     ; mutable mctx : MCtx.t
     }
 
-  let state : t = { prbm = []; mctx = MCtx.empty }
-  let add_prbm prbm = state.prbm <- prbm :: state.prbm
-  let add_imeta x a = state.mctx <- MCtx.add_imeta x a state.mctx
+  let state : t = { eqns = []; mctx = MCtx.empty }
+  let add_eqn prbm = state.eqns <- prbm :: state.eqns
+  let add_imeta ctx x a = state.mctx <- MCtx.add_imeta ctx x a state.mctx
   let find_imeta x = MCtx.find_imeta x state.mctx
 
   let init () =
-    state.prbm <- [];
+    state.eqns <- [];
     state.mctx <- MCtx.empty
 
-  let export () = state.prbm
+  let export_eqns () = state.eqns
+  let export_mctx () = state.mctx
 end
 
 let smeta_of_ctx (ctx : Ctx.t) =
@@ -42,16 +47,17 @@ let imeta_of_ctx (ctx : Ctx.t) =
   IMeta (x, ss, xs)
 
 let assert_equal0 s1 s2 =
-  if not (eq_sort s1 s2) then State.add_prbm (EqualSort (s1, s2))
+  if not (eq_sort s1 s2) then State.add_eqn (EqualSort (s1, s2))
 
 let assert_equal1 ctx m1 m2 =
-  if not (eq_tm ctx m1 m2) then State.add_prbm (EqualTerm (ctx, m1, m2))
+  if not (eq_tm ctx m1 m2) then State.add_eqn (EqualTerm (ctx, m1, m2))
 
 let rec assert_type ctx a =
   let t = infer_tm ctx a in
+  let t = resolve_tm (State.export_eqns ()) t in
   match whnf ~expand:true ctx t with
   | Type _ -> ()
-  | _ -> State.add_prbm (AssertType (ctx, a))
+  | _ -> failwith "trans1e.assert_type"
 
 and infer_tm ctx m : tm =
   match m with
@@ -65,8 +71,7 @@ and infer_tm ctx m : tm =
     | Some a -> a
     | None ->
       let a = imeta_of_ctx ctx in
-      State.add_imeta x a;
-      State.add_prbm (CheckType (ctx, m, a));
+      State.add_imeta ctx x a;
       a)
   (* core *)
   | Type _ -> Type U
@@ -90,16 +95,12 @@ and infer_tm ctx m : tm =
     a
   | App (m, n) -> (
     let t = infer_tm ctx m in
+    let t = resolve_tm (State.export_eqns ()) t in
     match whnf ~expand:true ctx t with
     | Pi (_, _, a, bnd) ->
       check_tm ctx n a;
       subst bnd n
-    | _ ->
-      let s = smeta_of_ctx ctx in
-      let b = imeta_of_ctx ctx in
-      State.add_prbm (CheckType (ctx, b, Type s));
-      State.add_prbm (CheckType (ctx, App (m, n), b));
-      b)
+    | _ -> failwith "trans1e.App")
   | Let (_, m, bnd) ->
     let x, n = unbind bnd in
     let a = infer_tm ctx m in
@@ -128,24 +129,16 @@ and infer_tm ctx m : tm =
   | Return m -> IO (infer_tm ctx m)
   | MLet (m, bnd) -> (
     let t1 = infer_tm ctx m in
+    let t1 = resolve_tm (State.export_eqns ()) t1 in
     match whnf ~expand:true ctx t1 with
     | IO a -> (
       let x, n = unbind bnd in
       let t2 = infer_tm (Ctx.add_var0 x a ctx) n in
+      let t2 = resolve_tm (State.export_eqns ()) t2 in
       match whnf ~expand:true ctx t2 with
       | IO b -> IO b
-      | _ ->
-        let s = smeta_of_ctx ctx in
-        let b = imeta_of_ctx ctx in
-        State.add_prbm (CheckType (ctx, b, Type s));
-        assert_equal1 ctx t2 (IO b);
-        IO b)
-    | _ ->
-      let s = smeta_of_ctx ctx in
-      let b = imeta_of_ctx ctx in
-      State.add_prbm (CheckType (ctx, b, Type s));
-      State.add_prbm (CheckType (ctx, MLet (m, bnd), IO b));
-      IO b)
+      | _ -> failwith "trans1e.MLet")
+    | _ -> failwith "trans1e.MLet")
   | Magic a -> a
 
 and infer_ind ctx ms ns ptl =
@@ -195,9 +188,7 @@ and infer_motive ctx ms a =
 and check_tm ctx m a : unit =
   match m with
   (* inference *)
-  | IMeta (x, _, _) ->
-    State.add_imeta x a;
-    State.add_prbm (CheckType (ctx, m, a))
+  | IMeta (x, _, _) -> State.add_imeta ctx x a
   | _ ->
     let b = infer_tm ctx m in
     assert_equal1 ctx a b
@@ -211,7 +202,7 @@ let rec check_dcls ctx = function
     State.init ();
     assert_type ctx0 a;
     check_tm ctx0 m a;
-    let prbm = State.export () in
+    let prbm = State.(export_eqns (), export_mctx ()) in
     let prbms =
       let ctx = Ctx.add_const x sch ctx in
       check_dcls ctx dcls
@@ -222,7 +213,7 @@ let rec check_dcls ctx = function
     check_arity ctx arity;
     let ctx0 = Ctx.add_ind ind (arity, Constr.Set.empty) ctx in
     check_dconstrs ind ctx0 dconstrs;
-    let prbm = State.export () in
+    let prbm = State.(export_eqns (), export_mctx ()) in
     let prbms =
       let constrs, ctx =
         List.fold_left

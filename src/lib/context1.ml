@@ -1,3 +1,4 @@
+open Fmt
 open Bindlib
 open Names
 open Syntax1
@@ -75,12 +76,27 @@ module MCtx : sig
   type t
 
   val empty : t
-  val add_imeta : IMeta.t -> tm -> t -> t
+  val add_imeta : Ctx.t -> IMeta.t -> tm -> t -> t
   val find_imeta : IMeta.t -> t -> tm option
+  val pp : t Fmt.t
 end = struct
-  type t = tm IMeta.Map.t
+  type t = (Ctx.t * tm) IMeta.Map.t
 
   let empty = IMeta.Map.empty
-  let add_imeta x a (mctx : t) = IMeta.Map.add x a mctx
-  let find_imeta x (mctx : t) = IMeta.Map.find_opt x mctx
+  let add_imeta ctx x a (mctx : t) = IMeta.Map.add x (ctx, a) mctx
+
+  let find_imeta x (mctx : t) =
+    match IMeta.Map.find_opt x mctx with
+    | Some (_, a) -> Some a
+    | _ -> None
+
+  let pp fmt mctx =
+    let open Pprint1 in
+    let rec aux fmt = function
+      | [] -> ()
+      | [ (x, (_, a)) ] -> pf fmt "?%a :? %a" IMeta.pp x pp_tm a
+      | (x, (_, a)) :: ls ->
+        pf fmt "?%a :? %a@;<1 0>%a" IMeta.pp x pp_tm a aux ls
+    in
+    aux fmt (IMeta.Map.bindings mctx)
 end

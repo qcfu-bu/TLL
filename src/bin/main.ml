@@ -19,19 +19,21 @@ let rec normalize_dcls ctx dcls =
   | Inductive m :: dcls -> Inductive m :: normalize_dcls ctx dcls
   | [] -> []
 
-let pp_prbms fmt prbms =
+let pp_prbms fmt groups =
   let open Constraint1 in
+  let open Context1 in
   let rec aux i fmt = function
     | [] -> ()
-    | [ prbm ] ->
-      pf fmt "@[<v 0>group%d {|@;<1 2>@[<v 0>%a@]@;<1 0>|}@]" i IPrbm.pp prbm
-    | prbm :: prbms ->
-      pf fmt "@[<v 0>group%d {|@;<1 2>@[<v 0>%a@]@;<1 0>|}@]@.@.%a" i IPrbm.pp
-        prbm
+    | [ (eqns, mctx) ] ->
+      pf fmt "@[<v 0>group%d {|@;<1 2>@[<v 0>%a@;<1 0>%a@]@;<1 0>|}@]" i
+        IPrbm.pp_eqns eqns MCtx.pp mctx
+    | (eqns, mctx) :: prbms ->
+      pf fmt "@[<v 0>group%d {|@;<1 2>@[<v 0>%a@;<1 0>%a@]@;<1 0>|}@]@.@.%a" i
+        IPrbm.pp_eqns eqns MCtx.pp mctx
         (aux (i + 1))
         prbms
   in
-  aux 0 fmt prbms
+  aux 0 fmt groups
 
 let _ =
   try
