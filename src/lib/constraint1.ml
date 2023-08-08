@@ -24,7 +24,10 @@ module IPrbm = struct
 end
 
 module PPrbm = struct
-  type eqn = EqTm of Ctx.t * tm * tm * tm
+  type eqn =
+    | EqualTerm of Ctx.t * tm * tm * tm
+    | EqualAbsurd
+
   and eqns = eqn list
 
   type t =
@@ -32,10 +35,19 @@ module PPrbm = struct
     ; clause : (eqns * ps * tm option) list
     }
 
+  let rec of_cls (cls : cls) : t =
+    match cls with
+    | [] -> { global = []; clause = [] }
+    | cl :: cls ->
+      let ps, rhs = unbind_ps cl in
+      let prbm = of_cls cls in
+      { prbm with clause = ([], ps, rhs) :: prbm.clause }
+
   let pp_eqn fmt = function
-    | EqTm (_, m, n, a) ->
+    | EqualTerm (_, m, n, a) ->
       pf fmt "@[eq_tm?@;<1 2>(%a,@;<1 2>%a :@;<1 2>%a)@]" pp_tm m pp_tm n pp_tm
         a
+    | EqualAbsurd -> pf fmt "eq_absurd"
 
   let rec pp_eqns fmt = function
     | [] -> ()

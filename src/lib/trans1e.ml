@@ -193,7 +193,35 @@ and check_tm ctx m a : unit =
     let b = infer_tm ctx m in
     assert_equal1 ctx a b
 
-and check_cls ctx cls a : unit = ()
+and check_cls ctx cls a : unit =
+  let has_failed f =
+    try
+      f ();
+      false
+    with
+    | _ -> true
+  in
+  let rec is_absurd eqns rhs =
+    match (eqns, rhs) with
+    | PPrbm.EqualAbsurd :: _, None -> true
+    | PPrbm.EqualAbsurd :: _, Some _ -> failwith "trans1e.is_absurd"
+    | _ :: eqns, _ -> is_absurd eqns rhs
+    | [], _ -> false
+  in
+  let rec aux_prbm ctx (prbm : PPrbm.t) a =
+    match prbm.clause with
+    | [] -> (
+      if not (has_failed (fun () -> _)) then
+        let a = resolve_tm (State.export_eqns ()) a in
+        match whnf ~expand:true ctx a with
+        | Pi (_, _, a, _) -> _
+        | _ -> failwith "trans1e.check_cls(Empty)")
+    | (eqns, ps, rhs) :: _ when is_absurd eqns rhs -> _
+    | (eqns, ps, rhs) :: _ when can_split es -> _
+    | (eqns, ps, rhs) :: clause -> _
+  in
+  let prbm = PPrbm.of_cls cls in
+  aux_prbm ctx prbm a
 
 let rec check_dcls ctx = function
   | Definition { name = x; relv; scheme = sch } :: dcls ->
