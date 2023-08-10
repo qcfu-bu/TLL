@@ -32,6 +32,7 @@ type tm =
   | Ind of Ind.t * sorts * tms * tms
   | Constr of Constr.t * sorts * tms * tms
   | Match of tms * tm * cls
+  | Absurd
   (* monad *)
   | IO of tm
   | Return of tm
@@ -160,6 +161,7 @@ let _Let relv = box_apply2 (fun m n -> Let (relv, m, n))
 let _Ind ind = box_apply3 (fun ss ms ns -> Ind (ind, ss, ms, ns))
 let _Constr constr = box_apply3 (fun ss ms ns -> Constr (constr, ss, ms, ns))
 let _Match = box_apply3 (fun ms a cls -> Match (ms, a, cls))
+let _Absurd = box Absurd
 
 (* monad *)
 let _IO = box_apply (fun a -> IO a)
@@ -256,6 +258,7 @@ let rec lift_tm = function
   | Match (ms, a, cls) ->
     let ms = List.map lift_tm ms in
     _Match (box_list ms) (lift_tm a) (lift_cls cls)
+  | Absurd -> _Absurd
   (* monad *)
   | IO a -> _IO (lift_tm a)
   | Return m -> _Return (lift_tm m)
@@ -282,9 +285,9 @@ let rec eq_p0 p1 p2 =
   | P0Rel, P0Rel -> true
   | P0Absurd, P0Absurd -> true
   | P0Mul (constr1, p0s1), P0Mul (constr2, p0s2) ->
-    Constr.equal constr1 constr1 && eq_p0s p0s1 p0s2
+    Constr.equal constr1 constr2 && eq_p0s p0s1 p0s2
   | P0Add (constr1, i1, p0s1), P0Add (constr2, i2, p0s2) ->
-    Constr.equal constr1 constr1 && i1 = i2 && eq_p0s p0s1 p0s2
+    Constr.equal constr1 constr2 && i1 = i2 && eq_p0s p0s1 p0s2
   | _ -> false
 
 and eq_p0s ps1 ps2 = List.equal eq_p0 ps1 ps2
@@ -358,3 +361,14 @@ let psubst (p0s, bnd) ms =
   in
   let ms = match_p0s p0s ms in
   msubst bnd (Array.of_list ms)
+
+(* param instantiation *)
+let rec param_inst param ms =
+  match (param, ms) with
+  | PBase a, [] -> a
+  | PBind (_, bnd), m :: ms -> param_inst (subst bnd m) ms
+  | _ -> failwith "syntax1.param_inst"
+
+let rec unbind_tele = function
+  | TBase a -> a
+  | TBind (_, _, bnd) -> unbind_tele (snd (unbind bnd))

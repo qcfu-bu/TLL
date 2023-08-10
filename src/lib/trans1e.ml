@@ -35,6 +35,13 @@ end = struct
   let export_mctx () = state.mctx
 end
 
+let has_failed f =
+  try
+    f ();
+    false
+  with
+  | _ -> true
+
 let smeta_of_ctx (ctx : Ctx.t) =
   let x = SMeta.mk "" in
   let ss = Ctx.spine_svar ctx |> List.map svar in
@@ -75,14 +82,10 @@ and infer_tm ctx m : tm =
       a)
   (* core *)
   | Type _ -> Type U
-  | Var x -> (
-    match Ctx.find_var0 x ctx with
-    | Some a -> a
-    | None -> failwith "trans1e.infer_tm(Var %a)" Var.pp x)
-  | Const (x, ss) -> (
-    match Ctx.find_const x ctx with
-    | Some sch -> snd (msubst sch (Array.of_list ss))
-    | None -> failwith "trans1e.infer_tm(Const %a)" Const.pp x)
+  | Var x -> Ctx.find_var0 x ctx
+  | Const (x, ss) ->
+    let sch = Ctx.find_const x ctx in
+    snd (msubst sch (Array.of_list ss))
   | Pi (rel, s, a, bnd) ->
     let x, b = unbind bnd in
     assert_type ctx a;
@@ -106,22 +109,19 @@ and infer_tm ctx m : tm =
     let a = infer_tm ctx m in
     infer_tm (Ctx.add_var1 x m a ctx) n
   (* inductive *)
-  | Ind (ind, ss, ms, ns) -> (
-    match Ctx.find_ind ind ctx with
-    | Some (sch, _) ->
-      let ptl = msubst sch (Array.of_list ss) in
-      infer_ind ctx ms ns ptl
-    | _ -> failwith "trans1e.infer_tm(Ind %a)" Ind.pp ind)
-  | Constr (constr, ss, ms, ns) -> (
-    match Ctx.find_constr constr ctx with
-    | Some (_, sch) ->
-      let ptl = msubst sch (Array.of_list ss) in
-      infer_constr ctx ms ns ptl
-    | _ -> failwith "trans1e.infer_tm(Constr %a)" Constr.pp constr)
+  | Ind (ind, ss, ms, ns) ->
+    let sch, _ = Ctx.find_ind ind ctx in
+    let ptl = msubst sch (Array.of_list ss) in
+    infer_ind ctx ms ns ptl
+  | Constr (constr, ss, ms, ns) ->
+    let sch, _ = Ctx.find_constr constr ctx in
+    let ptl = msubst sch (Array.of_list ss) in
+    infer_constr ctx ms ns ptl
   | Match (ms, a, cls) ->
     assert_type ctx a;
     check_cls ctx cls a;
     infer_motive ctx ms a
+  | Absurd -> failwith "trans1e.inter_tm(Absurd)"
   (* monad *)
   | IO a ->
     assert_type ctx a;
@@ -139,6 +139,7 @@ and infer_tm ctx m : tm =
       | IO b -> IO b
       | _ -> failwith "trans1e.MLet")
     | _ -> failwith "trans1e.MLet")
+  (* magic *)
   | Magic a -> a
 
 and infer_ind ctx ms ns ptl =
@@ -194,29 +195,64 @@ and check_tm ctx m a : unit =
     assert_equal1 ctx a b
 
 and check_cls ctx cls a : unit =
-  let has_failed f =
-    try
-      f ();
-      false
-    with
-    | _ -> true
-  in
   let rec is_absurd eqns rhs =
     match (eqns, rhs) with
-    | PPrbm.EqualAbsurd :: _, None -> true
-    | PPrbm.EqualAbsurd :: _, Some _ -> failwith "trans1e.is_absurd"
+    | PPrbm.EqualTerm (_, Var _, Absurd, _) :: _, None -> true
+    | PPrbm.EqualTerm (_, Var _, Absurd, _) :: _, Some _ ->
+      failwith "trans1e.is_absurd"
     | _ :: eqns, _ -> is_absurd eqns rhs
     | [], _ -> false
+  in
+  let rec get_absurd = function
+    | PPrbm.EqualTerm (_, Var _, Absurd, a) :: _ -> a
+    | _ :: eqns -> get_absurd eqns
+    | [] -> failwith "trans1e.get_absurd"
+  in
+  let rec can_split = function
+    | PPrbm.EqualTerm (_, Var _, Constr _, _) :: _ -> true
+    | _ :: eqns -> can_split eqns
+    | [] -> false
+  in
+  let rec first_split = function
+    | PPrbm.EqualTerm (_, Var x, Constr _, a) :: _ -> (x, a)
+    | _ :: eqns -> first_split eqns
+    | [] -> failwith "trans1e.first_split"
+  in
+  let fail_on_ind global ctx ind ss ms a =
+    let rec aux_constrs = function
+      | [] -> ()
+      | constr :: constrs ->
+        let sch, _ = Ctx.find_constr constr ctx in
+        let param = msubst sch (Array.of_list ss) in
+        let tele = param_inst param ms in
+        let t = unbind_tele tele in
+        let global = PPrbm.EqualType (ctx, a, t) :: global in
+        if has_failed (fun () -> resolve_pprbm global) then
+          aux_constrs constrs
+        else
+          failwith "trans1e.fail_on_ind"
+    in
+    let _, constrs = Ctx.find_ind ind ctx in
+    aux_constrs (Constr.Set.elements constrs)
   in
   let rec aux_prbm ctx (prbm : PPrbm.t) a =
     match prbm.clause with
     | [] -> (
-      if not (has_failed (fun () -> _)) then
+      if not (has_failed (fun () -> resolve_pprbm prbm.global)) then
         let a = resolve_tm (State.export_eqns ()) a in
         match whnf ~expand:true ctx a with
-        | Pi (_, _, a, _) -> _
+        | Pi (_, _, a, _) -> (
+          match whnf ~expand:true ctx a with
+          | Ind (ind, ss, ms, ns) -> fail_on_ind prbm.global ctx ind ss ms a
+          | _ -> failwith "trans1e.check_cls(Empty)")
         | _ -> failwith "trans1e.check_cls(Empty)")
-    | (eqns, ps, rhs) :: _ when is_absurd eqns rhs -> _
+    | (eqns, ps, rhs) :: _ when is_absurd eqns rhs -> (
+      if not (has_failed (fun () -> resolve_pprbm prbm.global)) then
+        let a = get_absurd eqns in
+        let a = resolve_tm (State.export_eqns ()) a in
+        match whnf ~expand:true ctx a with
+        | Ind (d, ss, ms, ns) -> _
+        | _ -> failwith "trans1e.check_cls(Absurd)")
     | (eqns, ps, rhs) :: _ when can_split es -> _
     | (eqns, ps, rhs) :: clause -> _
   in
@@ -246,7 +282,7 @@ let rec check_dcls ctx = function
       let constrs, ctx =
         List.fold_left
           (fun (acc, ctx) (mode, constr, sch) ->
-            (Constr.Set.add constr acc, Ctx.add_constr constr (mode, sch) ctx))
+            (Constr.Set.add constr acc, Ctx.add_constr constr (sch, mode) ctx))
           (Constr.Set.empty, ctx) dconstrs
       in
       let ctx = Ctx.add_ind ind (arity, constrs) ctx in

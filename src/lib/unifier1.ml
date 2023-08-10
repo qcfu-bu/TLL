@@ -8,3 +8,4 @@ end = struct
 end
 
 let resolve_tm (eqns : IPrbm.eqns) (m : tm) : tm = m
+let resolve_pprbm (eqns : 'a) : unit = ()

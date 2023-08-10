@@ -26,7 +26,7 @@ end
 module PPrbm = struct
   type eqn =
     | EqualTerm of Ctx.t * tm * tm * tm
-    | EqualAbsurd
+    | EqualType of Ctx.t * tm * tm
 
   and eqns = eqn list
 
@@ -47,7 +47,8 @@ module PPrbm = struct
     | EqualTerm (_, m, n, a) ->
       pf fmt "@[eq_tm?@;<1 2>(%a,@;<1 2>%a :@;<1 2>%a)@]" pp_tm m pp_tm n pp_tm
         a
-    | EqualAbsurd -> pf fmt "eq_absurd"
+    | EqualType (_, a, b) ->
+      pf fmt "@[eq_tm?@;<1 2>(%a,@;<1 2>%a)@]" pp_tm a pp_tm b
 
   let rec pp_eqns fmt = function
     | [] -> ()

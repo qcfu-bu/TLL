@@ -12,13 +12,13 @@ module Ctx : sig
   val add_svar : SVar.t -> t -> t
   val add_const : Const.t -> (tm * tm) scheme -> t -> t
   val add_ind : Ind.t -> tele param scheme * Constr.Set.t -> t -> t
-  val add_constr : Constr.t -> mode * tele param scheme -> t -> t
-  val find_var0 : Var.t -> t -> tm option
+  val add_constr : Constr.t -> tele param scheme * mode -> t -> t
+  val find_var0 : Var.t -> t -> tm
   val find_var1 : Var.t -> t -> tm option
-  val find_svar : SVar.t -> t -> SVar.t option
-  val find_const : Const.t -> t -> (tm * tm) scheme option
-  val find_ind : Ind.t -> t -> (tele param scheme * Constr.Set.t) option
-  val find_constr : Constr.t -> t -> (mode * tele param scheme) option
+  val find_svar : SVar.t -> t -> SVar.t
+  val find_const : Const.t -> t -> (tm * tm) scheme
+  val find_ind : Ind.t -> t -> tele param scheme * Constr.Set.t
+  val find_constr : Constr.t -> t -> tele param scheme * mode
   val spine_var : t -> Var.t list
   val spine_svar : t -> SVar.t list
 end = struct
@@ -27,7 +27,7 @@ end = struct
     ; svar : SVar.Set.t
     ; const : (tm * tm) scheme Const.Map.t
     ; ind : (tele param scheme * Constr.Set.t) Ind.Map.t
-    ; constr : (mode * tele param scheme) Constr.Map.t
+    ; constr : (tele param scheme * mode) Constr.Map.t
     }
 
   let empty =
@@ -54,20 +54,12 @@ end = struct
   let add_constr x sch ctx =
     { ctx with constr = Constr.Map.add x sch ctx.constr }
 
-  let find_var0 x (ctx : t) =
-    match Var.Map.find_opt x ctx.var with
-    | Some (_, a) -> Some a
-    | _ -> None
-
-  let find_var1 x (ctx : t) : tm option =
-    match Var.Map.find_opt x ctx.var with
-    | Some (Some m, _) -> Some m
-    | _ -> None
-
-  let find_svar x (ctx : t) : SVar.t option = SVar.Set.find_opt x ctx.svar
-  let find_const x (ctx : t) = Const.Map.find_opt x ctx.const
-  let find_ind x (ctx : t) = Ind.Map.find_opt x ctx.ind
-  let find_constr x (ctx : t) = Constr.Map.find_opt x ctx.constr
+  let find_var0 x (ctx : t) = snd (Var.Map.find x ctx.var)
+  let find_var1 x (ctx : t) : tm option = fst (Var.Map.find x ctx.var)
+  let find_svar x (ctx : t) : SVar.t = SVar.Set.find x ctx.svar
+  let find_const x (ctx : t) = Const.Map.find x ctx.const
+  let find_ind x (ctx : t) = Ind.Map.find x ctx.ind
+  let find_constr x (ctx : t) = Constr.Map.find x ctx.constr
   let spine_var (ctx : t) = ctx.var |> Var.Map.bindings |> List.map fst
   let spine_svar (ctx : t) = ctx.svar |> SVar.Set.elements
 end

@@ -11,12 +11,10 @@ let rec whnf ?(expand = true) (ctx : Ctx.t) = function
     match Ctx.find_var1 x ctx with
     | Some m -> whnf ~expand ctx m
     | _ -> Var x)
-  | Const (x, ss) when expand -> (
-    match Ctx.find_const x ctx with
-    | Some sch ->
-      let m, _ = msubst sch (Array.of_list ss) in
-      whnf ~expand ctx m
-    | _ -> Const (x, ss))
+  | Const (x, ss) when expand ->
+    let sch = Ctx.find_const x ctx in
+    let m, _ = msubst sch (Array.of_list ss) in
+    whnf ~expand ctx m
   | App _ as m -> (
     let hd, ms = unApps m in
     let hd = whnf ~expand ctx hd in
@@ -114,6 +112,8 @@ let rec aeq_tm m1 m2 =
     | Return m1, Return m2 -> aeq_tm m1 m2
     | MLet (m1, bnd1), MLet (m2, bnd2) ->
       aeq_tm m1 m2 && eq_binder aeq_tm bnd1 bnd2
+    (* absurd *)
+    | Absurd, Absurd -> true
     (* magic *)
     | Magic _, _ -> true
     | _, Magic _ -> true
@@ -160,6 +160,7 @@ let rec eq_tm ?(expand = false) ctx m1 m2 =
       | Return m1, Return m2 -> equal m1 m2
       | MLet (m1, bnd1), MLet (m2, bnd2) ->
         equal m1 m2 && eq_binder equal bnd1 bnd2
+      | Absurd, Absurd -> true
       (* magic *)
       | Magic _, _ -> true
       | _, Magic _ -> true
