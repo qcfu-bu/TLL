@@ -140,18 +140,17 @@ let rec trans_tm nspc = function
       match List.assoc_opt id nspc with
       | Some (EVar x) -> _Var x
       | Some (EConst (x, i)) -> _Const x (mk_inst nspc i)
-      | Some (EInd (ind, i, _)) -> _Ind ind (mk_inst nspc i) (box []) (box [])
-      | Some (EConstr (constr, i, j)) ->
-        _Constr constr (mk_inst nspc i) (mk_param nspc j) (box [])
+      | Some (EInd (d, i, _)) -> _Ind d (mk_inst nspc i) (box []) (box [])
+      | Some (EConstr (c, i, j)) ->
+        _Constr c (mk_inst nspc i) (mk_param nspc j) (box [])
       | _ -> failwith "trans01.trans_tm.Id(%s)" id))
   | Inst (id, ss) -> (
     let ss = box_list (List.map (trans_sort nspc) ss) in
     Syntax1.(
       match List.assoc_opt id nspc with
       | Some (EConst (x, _)) -> _Const x ss
-      | Some (EInd (ind, _, _)) -> _Ind ind ss (box []) (box [])
-      | Some (EConstr (constr, _, j)) ->
-        _Constr constr ss (mk_param nspc j) (box [])
+      | Some (EInd (d, _, _)) -> _Ind d ss (box []) (box [])
+      | Some (EConstr (c, _, j)) -> _Constr c ss (mk_param nspc j) (box [])
       | _ -> failwith "trans01.trans_tm.Inst(%s)" id))
   | Pi (relv, s, a, Binder (id, b)) ->
     let a = trans_tm nspc a in
@@ -177,11 +176,11 @@ let rec trans_tm nspc = function
         match List.assoc_opt id nspc with
         | Some (EVar x) -> _mkApps (_Var x) ms
         | Some (EConst (x, i)) -> _mkApps (_Const x (mk_inst nspc i)) ms
-        | Some (EInd (ind, i, j)) ->
+        | Some (EInd (d, i, j)) ->
           let ms, ns = list_take j ms in
-          _Ind ind (mk_inst nspc i) (box_list ms) (box_list ns)
-        | Some (EConstr (constr, i, j)) ->
-          _Constr constr (mk_inst nspc i) (mk_param nspc j) (box_list ms)
+          _Ind d (mk_inst nspc i) (box_list ms) (box_list ns)
+        | Some (EConstr (c, i, j)) ->
+          _Constr c (mk_inst nspc i) (mk_param nspc j) (box_list ms)
         | _ -> failwith "trans01.trans_tm.App(%s)" id))
     | Inst (id, ss) :: ms -> (
       Syntax1.(
@@ -189,11 +188,11 @@ let rec trans_tm nspc = function
         let ms = List.map (trans_tm nspc) ms in
         match List.assoc_opt id nspc with
         | Some (EConst (x, _)) -> _mkApps (_Const x (box_list ss)) ms
-        | Some (EInd (ind, _, j)) ->
+        | Some (EInd (d, _, j)) ->
           let ms, ns = list_take j ms in
-          _Ind ind (box_list ss) (box_list ms) (box_list ns)
-        | Some (EConstr (constr, _, j)) ->
-          _Constr constr (box_list ss) (mk_param nspc j) (box_list ms)
+          _Ind d (box_list ss) (box_list ms) (box_list ns)
+        | Some (EConstr (c, _, j)) ->
+          _Constr c (box_list ss) (mk_param nspc j) (box_list ms)
         | _ -> failwith "trans01.trans_tm.Inst"))
     | m :: ms ->
       let m = trans_tm nspc m in
@@ -264,22 +263,22 @@ and trans_p nspc p =
   | PId id -> (
     Syntax1.(
       match find_constr id nspc with
-      | Some (constr, _, _) -> ([], _P0Mul constr (box []))
+      | Some (c, _, _) -> ([], _P0Mul c (box []))
       | _ -> ([ (id, Var.mk id) ], _P0Rel)))
   | PAbsurd -> Syntax1.([], _P0Absurd)
   | PMul (id, ps) -> (
     Syntax1.(
       match find_constr id nspc with
-      | Some (constr, _, _) ->
+      | Some (c, _, _) ->
         let xs, ps = trans_ps nspc ps in
-        (xs, _P0Mul constr (box_list ps))
+        (xs, _P0Mul c (box_list ps))
       | _ -> failwith "trans01.trans_p.PMul"))
   | PAdd (id, i, ps) -> (
     Syntax1.(
       match find_constr id nspc with
-      | Some (constr, _, _) ->
+      | Some (c, _, _) ->
         let xs, ps = trans_ps nspc ps in
-        (xs, _P0Add constr i (box_list ps))
+        (xs, _P0Add c i (box_list ps))
       | _ -> failwith "trans01.trans_p.PAdd"))
 
 and trans_ps nspc ps =
@@ -306,19 +305,19 @@ let rec trans_dcl nspc = function
     Syntax1.
       (nspc, Definition { name = x; relv = trans_relv relv; scheme = unbox sch })
   | Inductive { name = id; relv; body = Binder (sids, param) } ->
-    let ind = Ind.mk id in
+    let d = Ind.mk id in
     let args, tele, dconstrs = flatten_param param in
     let i = List.length sids in
     let j = List.length args in
     let arity = trans_tele nspc sids args tele in
-    let nspc = (id, EInd (ind, i, j)) :: nspc in
+    let nspc = (id, EInd (d, i, j)) :: nspc in
     let dconstrs = trans_dconstrs nspc sids args dconstrs in
     let (nspc, cset), dconstrs =
       List.fold_left_map
-        (fun (nspc, cset) (mode, id, constr, sch) ->
-          let nspc = (id, EConstr (constr, i, j)) :: nspc in
-          let cset = Constr.Set.add constr cset in
-          let dconstr = Syntax1._DConstr mode constr sch in
+        (fun (nspc, cset) (mode, id, c, sch) ->
+          let nspc = (id, EConstr (c, i, j)) :: nspc in
+          let cset = Constr.Set.add c cset in
+          let dconstr = Syntax1._DConstr mode c sch in
           ((nspc, cset), dconstr))
         (nspc, Constr.Set.empty) dconstrs
     in
@@ -326,7 +325,7 @@ let rec trans_dcl nspc = function
     Syntax1.
       ( nspc
       , Inductive
-          { name = ind
+          { name = d
           ; relv = trans_relv relv
           ; arity = unbox arity
           ; dconstrs = unbox dconstrs
@@ -369,13 +368,13 @@ and trans_tele nspc sids args tele =
 
 and trans_dconstr nspc sids args = function
   | DMul (id, tele) ->
-    let constr = Constr.mk id in
+    let c = Constr.mk id in
     let sch = trans_tele nspc sids args tele in
-    (Syntax1.Multiplicative, id, constr, sch)
+    (Syntax1.Multiplicative, id, c, sch)
   | DAdd (id, tele) ->
-    let constr = Constr.mk id in
+    let c = Constr.mk id in
     let sch = trans_tele nspc sids args tele in
-    (Syntax1.Additive, id, constr, sch)
+    (Syntax1.Additive, id, c, sch)
 
 and trans_dconstrs nspc sids args dconstrs =
   List.map (trans_dconstr nspc sids args) dconstrs

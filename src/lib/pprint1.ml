@@ -6,11 +6,10 @@ open Syntax1
 let rec pp_p fmt = function
   | PVar x -> Var.pp fmt x
   | PAbsurd -> pf fmt "!!"
-  | PMul (constr, []) -> pf fmt "%a" Constr.pp constr
-  | PMul (constr, ps) -> pf fmt "(%a %a)" Constr.pp constr (pp_ps " ") ps
-  | PAdd (constr, i, []) -> pf fmt "%a.%d" Constr.pp constr i
-  | PAdd (constr, i, ps) ->
-    pf fmt "(%a.%d %a)" Constr.pp constr i (pp_ps " ") ps
+  | PMul (c, []) -> pf fmt "%a" Constr.pp c
+  | PMul (c, ps) -> pf fmt "(%a %a)" Constr.pp c (pp_ps " ") ps
+  | PAdd (c, i, []) -> pf fmt "%a.%d" Constr.pp c i
+  | PAdd (c, i, ps) -> pf fmt "(%a.%d %a)" Constr.pp c i (pp_ps " ") ps
 
 and pp_ps sep fmt = function
   | [] -> ()
@@ -102,17 +101,17 @@ and pp_tm fmt = function
     pf fmt "@[@[let {%a} :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m
       pp_tm n
   (* inductive *)
-  | Ind (ind, [], [], []) -> pf fmt "%a" Ind.pp ind
-  | Ind (ind, [], ms, ns) ->
-    pf fmt "@[(%a@;<1 2>@[%a@])@]" Ind.pp ind (list ~sep:sp pp_tm) (ms @ ns)
-  | Ind (ind, ss, [], []) -> pf fmt "%a‹%a›" Ind.pp ind pp_sorts ss
-  | Ind (ind, ss, ms, ns) ->
-    pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Ind.pp ind pp_sorts ss
-      (list ~sep:sp pp_tm) (ms @ ns)
-  | Constr (constr, [], _, []) -> pf fmt "%a" Constr.pp constr
-  | Constr (constr, ss, _, []) -> pf fmt "%a‹%a›" Constr.pp constr pp_sorts ss
-  | Constr (constr, ss, _, ms) ->
-    pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Constr.pp constr pp_sorts ss
+  | Ind (d, [], [], []) -> pf fmt "%a" Ind.pp d
+  | Ind (d, [], ms, ns) ->
+    pf fmt "@[(%a@;<1 2>@[%a@])@]" Ind.pp d (list ~sep:sp pp_tm) (ms @ ns)
+  | Ind (d, ss, [], []) -> pf fmt "%a‹%a›" Ind.pp d pp_sorts ss
+  | Ind (d, ss, ms, ns) ->
+    pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Ind.pp d pp_sorts ss (list ~sep:sp pp_tm)
+      (ms @ ns)
+  | Constr (c, [], _, []) -> pf fmt "%a" Constr.pp c
+  | Constr (c, ss, _, []) -> pf fmt "%a‹%a›" Constr.pp c pp_sorts ss
+  | Constr (c, ss, _, ms) ->
+    pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Constr.pp c pp_sorts ss
       (list ~sep:sp pp_tm) ms
   | Match (ms, a, cls) ->
     pf fmt "@[<v 0>@[match %a in@;<1 2>%a@;<1 0>with@]@;<1 0>@[<v 0>%a@]@]"
@@ -182,14 +181,14 @@ let pp_dconstr xs args fmt dconstr =
     | _ -> failwith "pp_dconstr.pack_param"
   in
   match dconstr with
-  | Multiplicative, constr, sch ->
+  | Multiplicative, c, sch ->
     let param = msubst sch (Array.map (fun x -> SVar x) xs) in
     let tele = pack_param args param in
-    pf fmt "| @[%a@;<1 2>@[%a@]@]" Constr.pp constr pp_tele tele
-  | Additive, constr, sch ->
+    pf fmt "| @[%a@;<1 2>@[%a@]@]" Constr.pp c pp_tele tele
+  | Additive, c, sch ->
     let param = msubst sch (Array.map (fun x -> SVar x) xs) in
     let tele = pack_param args param in
-    pf fmt "| @[<v 0>#[additive]@;<1 0>@[%a@;<1 2>@[%a@]@]@]" Constr.pp constr
+    pf fmt "| @[<v 0>#[additive]@;<1 0>@[%a@;<1 2>@[%a@]@]@]" Constr.pp c
       pp_tele tele
 
 let rec pp_dconstrs xs args fmt = function
@@ -205,7 +204,7 @@ let pp_dcl fmt = function
     pf fmt
       "@[@[<v 0>#[%a]@;<1 0>def@] %a‹%a› :@;<1 2>@[%a@]@;<1 0>:=@;<1 2>@[%a@]@]"
       pp_modifier relv Const.pp x pp_sargs (Array.to_list xs) pp_tm a pp_tm m
-  | Inductive { name = ind; relv; arity; dconstrs } ->
+  | Inductive { name = d; relv; arity; dconstrs } ->
     let xs, param = unmbind arity in
     let args, tele = unpack_param param in
     pf fmt
@@ -213,8 +212,8 @@ let pp_dcl fmt = function
        <1 0>inductive@] %a‹%a› %a:@;\
        <1 2>@[%a@]@;\
        <1 0>where@]@;\
-       <1 0>%a@]" pp_modifier relv Ind.pp ind pp_sargs (Array.to_list xs)
-      pp_args args pp_arity tele (pp_dconstrs xs args) dconstrs
+       <1 0>%a@]" pp_modifier relv Ind.pp d pp_sargs (Array.to_list xs) pp_args
+      args pp_arity tele (pp_dconstrs xs args) dconstrs
 
 let pp_dcls fmt dcls =
   let break fmt _ = pf fmt "@.@." in

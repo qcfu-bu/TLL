@@ -109,12 +109,12 @@ and infer_tm ctx m : tm =
     let a = infer_tm ctx m in
     infer_tm (Ctx.add_var1 x m a ctx) n
   (* inductive *)
-  | Ind (ind, ss, ms, ns) ->
-    let sch, _ = Ctx.find_ind ind ctx in
+  | Ind (d, ss, ms, ns) ->
+    let sch, _ = Ctx.find_ind d ctx in
     let ptl = msubst sch (Array.of_list ss) in
     infer_ind ctx ms ns ptl
-  | Constr (constr, ss, ms, ns) ->
-    let sch, _ = Ctx.find_constr constr ctx in
+  | Constr (c, ss, ms, ns) ->
+    let sch, _ = Ctx.find_constr c ctx in
     let ptl = msubst sch (Array.of_list ss) in
     infer_constr ctx ms ns ptl
   | Match (ms, a, cls) ->
@@ -223,19 +223,19 @@ and check_cls ctx cls a : unit =
   let fail_on_ind global ctx ind ss ms a =
     let rec aux_constrs = function
       | [] -> ()
-      | constr :: constrs ->
-        let sch, _ = Ctx.find_constr constr ctx in
+      | c :: cs ->
+        let sch, _ = Ctx.find_constr c ctx in
         let param = msubst sch (Array.of_list ss) in
         let tele = param_inst param ms in
         let _, t = unbind_tele tele in
         let global = PPrbm.EqualType (ctx, a, t) :: global in
         if has_failed (fun () -> resolve_pprbm global) then
-          aux_constrs constrs
+          aux_constrs cs
         else
           failwith "trans1e.fail_on_ind"
     in
-    let _, constrs = Ctx.find_ind ind ctx in
-    aux_constrs constrs
+    let _, cs = Ctx.find_ind ind ctx in
+    aux_constrs cs
   in
   let rec aux_prbm ctx (prbm : PPrbm.t) a =
     match prbm.clause with
@@ -245,7 +245,7 @@ and check_cls ctx cls a : unit =
         match whnf ~expand:true ctx a with
         | Pi (_, _, a, _) -> (
           match whnf ~expand:true ctx a with
-          | Ind (ind, ss, ms, ns) -> fail_on_ind prbm.global ctx ind ss ms a
+          | Ind (d, ss, ms, ns) -> fail_on_ind prbm.global ctx d ss ms a
           | _ -> failwith "trans1e.check_cls(Empty)")
         | _ -> failwith "trans1e.check_cls(Empty)")
     (* case intro *)
@@ -263,17 +263,17 @@ and check_cls ctx cls a : unit =
       if not (has_failed (fun () -> resolve_pprbm prbm.global)) then
         let a = get_absurd eqns in
         match whnf ~expand:true ctx a with
-        | Ind (ind, ss, ms, ns) -> fail_on_ind prbm.global ctx ind ss ms a
+        | Ind (d, ss, ms, ns) -> fail_on_ind prbm.global ctx d ss ms a
         | _ -> failwith "trans1e.check_cls(Absurd)")
     (* case splitting *)
     | (eqns, [], rhs) :: _ when can_split eqns -> (
       let x, b = first_split eqns in
       match whnf ~expand:true ctx b with
-      | Ind (ind, ss, ms, _) ->
-        let _, constrs = Ctx.find_ind ind ctx in
+      | Ind (d, ss, ms, _) ->
+        let _, cs = Ctx.find_ind d ctx in
         List.iter
-          (fun constr ->
-            let sch, _ = Ctx.find_constr constr ctx in
+          (fun c ->
+            let sch, _ = Ctx.find_constr c ctx in
             let param = msubst sch (Array.of_list ss) in
             let tele = param_inst param ms in
             let args, t = unbind_tele tele in
@@ -283,7 +283,7 @@ and check_cls ctx cls a : unit =
                 ctx args
             in
             let m =
-              Constr (constr, ss, ms, List.map (fun (_, x, _) -> Var x) args)
+              Constr (c, ss, ms, List.map (fun (_, x, _) -> Var x) args)
             in
             let var_map = Var.Map.singleton x m in
             let a = subst_fvar var_map a in
@@ -293,7 +293,7 @@ and check_cls ctx cls a : unit =
               PPrbm.{ prbm with global = EqualType (ctx, b, t) :: prbm.global }
             in
             aux_prbm ctx prbm a)
-          constrs
+          cs
       | _ -> failwith "trans1e.check_cls(Split)"
       (* case coverage *))
     | (eqns, [], rhs) :: _ ->
@@ -430,13 +430,13 @@ let rec check_dcls ctx = function
     check_dconstrs ind ctx0 dconstrs;
     let prbm = State.(export_eqns (), export_mctx ()) in
     let prbms =
-      let constrs, ctx =
+      let cs, ctx =
         List.fold_right
-          (fun (mode, constr, sch) (acc, ctx) ->
-            (constr :: acc, Ctx.add_constr constr (sch, mode) ctx))
+          (fun (mode, c, sch) (acc, ctx) ->
+            (c :: acc, Ctx.add_constr c (sch, mode) ctx))
           dconstrs ([], ctx)
       in
-      let ctx = Ctx.add_ind ind (arity, constrs) ctx in
+      let ctx = Ctx.add_ind ind (arity, cs) ctx in
       check_dcls ctx dcls
     in
     prbm :: prbms

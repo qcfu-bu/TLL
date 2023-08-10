@@ -97,13 +97,12 @@ let rec aeq_tm m1 m2 =
     | Let (relv1, m1, bnd1), Let (relv2, m2, bnd2) ->
       relv1 = relv2 && aeq_tm m1 m2 && eq_binder aeq_tm bnd1 bnd2
     (* inductive *)
-    | Ind (ind1, ss1, ms1, ns1), Ind (ind2, ss2, ms2, ns2) ->
-      Ind.equal ind1 ind2 && List.equal eq_sort ss1 ss2
-      && List.equal aeq_tm ms1 ms2 && List.equal aeq_tm ns1 ns2
-    | Constr (constr1, ss1, ms1, ns1), Constr (constr2, ss2, ms2, ns2) ->
-      Constr.equal constr1 constr2
-      && List.equal eq_sort ss1 ss2 && List.equal aeq_tm ms1 ms2
+    | Ind (d1, ss1, ms1, ns1), Ind (d2, ss2, ms2, ns2) ->
+      Ind.equal d1 d2 && List.equal eq_sort ss1 ss2 && List.equal aeq_tm ms1 ms2
       && List.equal aeq_tm ns1 ns2
+    | Constr (c1, ss1, ms1, ns1), Constr (c2, ss2, ms2, ns2) ->
+      Constr.equal c1 c2 && List.equal eq_sort ss1 ss2
+      && List.equal aeq_tm ms1 ms2 && List.equal aeq_tm ns1 ns2
     | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
       List.equal aeq_tm ms1 ms2 && aeq_tm a1 a2
       && List.equal (eq_pbinder (Option.equal aeq_tm)) cls1 cls1
@@ -145,13 +144,12 @@ let rec eq_tm ?(expand = false) ctx m1 m2 =
       | Let (relv1, m1, bnd1), Let (relv2, m2, bnd2) ->
         relv1 = relv2 && equal m1 m2 && eq_binder equal bnd1 bnd2
       (* inductive *)
-      | Ind (ind1, ss1, ms1, ns1), Ind (ind2, ss2, ms2, ns2) ->
-        Ind.equal ind1 ind2 && List.equal eq_sort ss1 ss2
+      | Ind (d1, ss1, ms1, ns1), Ind (d2, ss2, ms2, ns2) ->
+        Ind.equal d1 d2 && List.equal eq_sort ss1 ss2
         && List.equal equal ms1 ms2 && List.equal equal ns1 ns2
-      | Constr (constr1, ss1, ms1, ns1), Constr (constr2, ss2, ms2, ns2) ->
-        Constr.equal constr1 constr2
-        && List.equal eq_sort ss1 ss2 && List.equal equal ms1 ms2
-        && List.equal equal ns1 ns2
+      | Constr (c1, ss1, ms1, ns1), Constr (c2, ss2, ms2, ns2) ->
+        Constr.equal c1 c2 && List.equal eq_sort ss1 ss2
+        && List.equal equal ms1 ms2 && List.equal equal ns1 ns2
       | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
         List.equal equal ms1 ms2 && equal a1 a2
         && List.equal (eq_pbinder (Option.equal equal)) cls1 cls2

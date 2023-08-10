@@ -158,8 +158,8 @@ let _App = box_apply2 (fun m n -> App (m, n))
 let _Let relv = box_apply2 (fun m n -> Let (relv, m, n))
 
 (* inductive *)
-let _Ind ind = box_apply3 (fun ss ms ns -> Ind (ind, ss, ms, ns))
-let _Constr constr = box_apply3 (fun ss ms ns -> Constr (constr, ss, ms, ns))
+let _Ind d = box_apply3 (fun ss ms ns -> Ind (d, ss, ms, ns))
+let _Constr c = box_apply3 (fun ss ms ns -> Constr (c, ss, ms, ns))
 let _Match = box_apply3 (fun ms a cls -> Match (ms, a, cls))
 let _Absurd = box Absurd
 
@@ -174,11 +174,11 @@ let _Magic = box_apply (fun a -> Magic a)
 (* bound pattern *)
 let _P0Rel = box P0Rel
 let _P0Absurd = box P0Absurd
-let _P0Mul constr = box_apply (fun ps -> P0Mul (constr, ps))
-let _P0Add constr i = box_apply (fun ps -> P0Add (constr, i, ps))
+let _P0Mul c = box_apply (fun ps -> P0Mul (c, ps))
+let _P0Add c i = box_apply (fun ps -> P0Add (c, i, ps))
 
 (* dconstr *)
-let _DConstr mode constr = box_apply (fun sch -> (mode, constr, sch))
+let _DConstr mode c = box_apply (fun sch -> (mode, c, sch))
 
 (* param *)
 let _PBase a = box_apply (fun a -> PBase a) a
@@ -208,12 +208,12 @@ let box_relv = function
 let rec box_p0 = function
   | P0Rel -> _P0Rel
   | P0Absurd -> _P0Absurd
-  | P0Mul (constr, ps) ->
+  | P0Mul (c, ps) ->
     let ps = List.map box_p0 ps in
-    _P0Mul constr (box_list ps)
-  | P0Add (constr, i, ps) ->
+    _P0Mul c (box_list ps)
+  | P0Add (c, i, ps) ->
     let ps = List.map box_p0 ps in
-    _P0Add constr i (box_list ps)
+    _P0Add c i (box_list ps)
 
 (* lifting *)
 let rec lift_sort = function
@@ -245,16 +245,16 @@ let rec lift_tm = function
   | App (m, n) -> _App (lift_tm m) (lift_tm n)
   | Let (relv, m, bnd) -> _Let relv (lift_tm m) (box_binder lift_tm bnd)
   (* inductive *)
-  | Ind (ind, ss, ms, ns) ->
+  | Ind (d, ss, ms, ns) ->
     let ss = List.map lift_sort ss in
     let ms = List.map lift_tm ms in
     let ns = List.map lift_tm ns in
-    _Ind ind (box_list ss) (box_list ms) (box_list ns)
-  | Constr (constr, ss, ms, ns) ->
+    _Ind d (box_list ss) (box_list ms) (box_list ns)
+  | Constr (c, ss, ms, ns) ->
     let ss = List.map lift_sort ss in
     let ms = List.map lift_tm ms in
     let ns = List.map lift_tm ns in
-    _Constr constr (box_list ss) (box_list ms) (box_list ns)
+    _Constr c (box_list ss) (box_list ms) (box_list ns)
   | Match (ms, a, cls) ->
     let ms = List.map lift_tm ms in
     _Match (box_list ms) (lift_tm a) (lift_cls cls)
@@ -291,10 +291,9 @@ let rec eq_p0 p1 p2 =
   match (p1, p2) with
   | P0Rel, P0Rel -> true
   | P0Absurd, P0Absurd -> true
-  | P0Mul (constr1, p0s1), P0Mul (constr2, p0s2) ->
-    Constr.equal constr1 constr2 && eq_p0s p0s1 p0s2
-  | P0Add (constr1, i1, p0s1), P0Add (constr2, i2, p0s2) ->
-    Constr.equal constr1 constr2 && i1 = i2 && eq_p0s p0s1 p0s2
+  | P0Mul (c1, p0s1), P0Mul (c2, p0s2) -> Constr.equal c1 c2 && eq_p0s p0s1 p0s2
+  | P0Add (c1, i1, p0s1), P0Add (c2, i2, p0s2) ->
+    Constr.equal c1 c2 && i1 = i2 && eq_p0s p0s1 p0s2
   | _ -> false
 
 and eq_p0s ps1 ps2 = List.equal eq_p0 ps1 ps2
@@ -307,12 +306,12 @@ let rec mvar_of_p p =
   match p with
   | PVar x -> ([ x ], P0Rel)
   | PAbsurd -> ([], P0Absurd)
-  | PMul (constr, ps) ->
+  | PMul (c, ps) ->
     let xs, p0s = mvar_of_ps ps in
-    (xs, P0Mul (constr, p0s))
-  | PAdd (constr, i, ps) ->
+    (xs, P0Mul (c, p0s))
+  | PAdd (c, i, ps) ->
     let xs, p0s = mvar_of_ps ps in
-    (xs, P0Add (constr, i, p0s))
+    (xs, P0Add (c, i, p0s))
 
 and mvar_of_ps ps =
   List.fold_left_map
@@ -326,12 +325,12 @@ let rec p_of_mvar mvar p0 =
   | [], P0Rel -> failwith "binding1.p_of_mvar"
   | x :: mvar, P0Rel -> (mvar, PVar x)
   | _, P0Absurd -> (mvar, PAbsurd)
-  | _, P0Mul (constr, p0s) ->
+  | _, P0Mul (c, p0s) ->
     let mvar, ps = ps_of_mvar mvar p0s in
-    (mvar, PMul (constr, ps))
-  | _, P0Add (constr, i, p0s) ->
+    (mvar, PMul (c, ps))
+  | _, P0Add (c, i, p0s) ->
     let mvar, ps = ps_of_mvar mvar p0s in
-    (mvar, PAdd (constr, i, ps))
+    (mvar, PAdd (c, i, ps))
 
 and ps_of_mvar mvar p0s = List.fold_left_map p_of_mvar mvar p0s
 
@@ -356,11 +355,9 @@ let psubst (p0s, bnd) ms =
   let rec match_p0 p0 m =
     match (p0, m) with
     | P0Rel, _ -> [ m ]
-    | P0Mul (constr1, p0s), Constr (constr2, _, _, ms)
-      when Constr.equal constr1 constr2 ->
+    | P0Mul (c1, p0s), Constr (c2, _, _, ms) when Constr.equal c1 c2 ->
       match_p0s p0s ms
-    | P0Add (constr1, _, p0s), Constr (constr2, _, _, ms)
-      when Constr.equal constr1 constr2 ->
+    | P0Add (c1, _, p0s), Constr (c2, _, _, ms) when Constr.equal c1 c2 ->
       match_p0s p0s ms
     | _ -> failwith "binding1.match_p0"
   and match_p0s p0s ms =
