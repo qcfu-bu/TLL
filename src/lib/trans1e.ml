@@ -61,7 +61,7 @@ let assert_equal1 ctx m1 m2 =
 
 let rec assert_type ctx a =
   let t = infer_tm ctx a in
-  let t = resolve_tm (State.export_eqns ()) t in
+  let t = resolve_iprbm (State.export_eqns ()) t in
   match whnf ~expand:true ctx t with
   | Type _ -> ()
   | _ -> failwith "trans1e.assert_type"
@@ -98,7 +98,7 @@ and infer_tm ctx m : tm =
     a
   | App (m, n) -> (
     let t = infer_tm ctx m in
-    let t = resolve_tm (State.export_eqns ()) t in
+    let t = resolve_iprbm (State.export_eqns ()) t in
     match whnf ~expand:true ctx t with
     | Pi (_, _, a, bnd) ->
       check_tm ctx n a;
@@ -129,12 +129,12 @@ and infer_tm ctx m : tm =
   | Return m -> IO (infer_tm ctx m)
   | MLet (m, bnd) -> (
     let t1 = infer_tm ctx m in
-    let t1 = resolve_tm (State.export_eqns ()) t1 in
+    let t1 = resolve_iprbm (State.export_eqns ()) t1 in
     match whnf ~expand:true ctx t1 with
     | IO a -> (
       let x, n = unbind bnd in
       let t2 = infer_tm (Ctx.add_var0 x a ctx) n in
-      let t2 = resolve_tm (State.export_eqns ()) t2 in
+      let t2 = resolve_iprbm (State.export_eqns ()) t2 in
       match whnf ~expand:true ctx t2 with
       | IO b -> IO b
       | _ -> failwith "trans1e.MLet")
@@ -197,24 +197,26 @@ and check_tm ctx m a : unit =
 and check_cls ctx cls a : unit =
   let rec is_absurd eqns rhs =
     match (eqns, rhs) with
-    | PPrbm.EqualTerm (_, Var _, Absurd, _) :: _, None -> true
-    | PPrbm.EqualTerm (_, Var _, Absurd, _) :: _, Some _ ->
+    | PPrbm.EqualTerm (_, Var _, PAbsurd, _) :: _, None -> true
+    | PPrbm.EqualTerm (_, Var _, PAbsurd, _) :: _, Some _ ->
       failwith "trans1e.is_absurd"
     | _ :: eqns, _ -> is_absurd eqns rhs
     | [], _ -> false
   in
   let rec get_absurd = function
-    | PPrbm.EqualTerm (_, Var _, Absurd, a) :: _ -> a
+    | PPrbm.EqualTerm (_, Var _, PAbsurd, a) :: _ -> a
     | _ :: eqns -> get_absurd eqns
     | [] -> failwith "trans1e.get_absurd"
   in
   let rec can_split = function
-    | PPrbm.EqualTerm (_, Var _, Constr _, _) :: _ -> true
+    | PPrbm.EqualTerm (_, Var _, PMul _, _) :: _ -> true
+    | PPrbm.EqualTerm (_, Var _, PAdd _, _) :: _ -> true
     | _ :: eqns -> can_split eqns
     | [] -> false
   in
   let rec first_split = function
-    | PPrbm.EqualTerm (_, Var x, Constr _, a) :: _ -> (x, a)
+    | PPrbm.EqualTerm (_, Var x, PMul _, a) :: _ -> (x, a)
+    | PPrbm.EqualTerm (_, Var x, PAdd _, a) :: _ -> (x, a)
     | _ :: eqns -> first_split eqns
     | [] -> failwith "trans1e.first_split"
   in
@@ -225,7 +227,7 @@ and check_cls ctx cls a : unit =
         let sch, _ = Ctx.find_constr constr ctx in
         let param = msubst sch (Array.of_list ss) in
         let tele = param_inst param ms in
-        let t = unbind_tele tele in
+        let _, t = unbind_tele tele in
         let global = PPrbm.EqualType (ctx, a, t) :: global in
         if has_failed (fun () -> resolve_pprbm global) then
           aux_constrs constrs
@@ -233,31 +235,180 @@ and check_cls ctx cls a : unit =
           failwith "trans1e.fail_on_ind"
     in
     let _, constrs = Ctx.find_ind ind ctx in
-    aux_constrs (Constr.Set.elements constrs)
+    aux_constrs constrs
   in
   let rec aux_prbm ctx (prbm : PPrbm.t) a =
     match prbm.clause with
+    (* empty *)
     | [] -> (
       if not (has_failed (fun () -> resolve_pprbm prbm.global)) then
-        let a = resolve_tm (State.export_eqns ()) a in
         match whnf ~expand:true ctx a with
         | Pi (_, _, a, _) -> (
           match whnf ~expand:true ctx a with
           | Ind (ind, ss, ms, ns) -> fail_on_ind prbm.global ctx ind ss ms a
           | _ -> failwith "trans1e.check_cls(Empty)")
         | _ -> failwith "trans1e.check_cls(Empty)")
-    | (eqns, ps, rhs) :: _ when is_absurd eqns rhs -> (
+    (* case intro *)
+    | (eqns, p :: ps, rhs) :: clause -> (
+      let a = resolve_iprbm (State.export_eqns ()) a in
+      match (whnf ~expand:true ctx a, ps) with
+      | Pi (_, _, a, bnd), p :: ps ->
+        let x, b = unbind bnd in
+        let ctx = Ctx.add_var0 x a ctx in
+        let prbm = prbm_add ctx prbm x a in
+        aux_prbm ctx prbm b
+      | _ -> failwith "trans1e.check_cls(Intro)")
+    (* absurd pattern *)
+    | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> (
       if not (has_failed (fun () -> resolve_pprbm prbm.global)) then
         let a = get_absurd eqns in
-        let a = resolve_tm (State.export_eqns ()) a in
         match whnf ~expand:true ctx a with
-        | Ind (d, ss, ms, ns) -> _
+        | Ind (ind, ss, ms, ns) -> fail_on_ind prbm.global ctx ind ss ms a
         | _ -> failwith "trans1e.check_cls(Absurd)")
-    | (eqns, ps, rhs) :: _ when can_split es -> _
-    | (eqns, ps, rhs) :: clause -> _
+    (* case splitting *)
+    | (eqns, [], rhs) :: _ when can_split eqns -> (
+      let x, b = first_split eqns in
+      match whnf ~expand:true ctx b with
+      | Ind (ind, ss, ms, _) ->
+        let _, constrs = Ctx.find_ind ind ctx in
+        List.iter
+          (fun constr ->
+            let sch, _ = Ctx.find_constr constr ctx in
+            let param = msubst sch (Array.of_list ss) in
+            let tele = param_inst param ms in
+            let args, t = unbind_tele tele in
+            let ctx =
+              List.fold_left
+                (fun acc (_, x, a) -> Ctx.add_var0 x a acc)
+                ctx args
+            in
+            let m =
+              Constr (constr, ss, ms, List.map (fun (_, x, _) -> Var x) args)
+            in
+            let var_map = Var.Map.singleton x m in
+            let a = subst_fvar var_map a in
+            let ctx = Ctx.subst_fvar var_map ctx in
+            let prbm = prbm_simpl ctx var_map prbm in
+            let prbm =
+              PPrbm.{ prbm with global = EqualType (ctx, b, t) :: prbm.global }
+            in
+            aux_prbm ctx prbm a)
+          constrs
+      | _ -> failwith "trans1e.check_cls(Split)"
+      (* case coverage *))
+    | (eqns, [], rhs) :: _ ->
+      let var_map = solve_pprbm (prbm.global @ eqns) in
+      let a = subst_fvar var_map a in
+      let ctx = Ctx.subst_fvar var_map ctx in
+      let rhs =
+        match rhs with
+        | Some m -> subst_fvar var_map m
+        | None -> failwith "trans1e.check_cls(Cover)"
+      in
+      check_tm ctx rhs a
   in
   let prbm = PPrbm.of_cls cls in
+  let a = resolve_iprbm (State.export_eqns ()) a in
   aux_prbm ctx prbm a
+
+and prbm_add ctx prbm x a =
+  match prbm.clause with
+  | [] -> prbm
+  | (eqns, p :: ps, rhs) :: clause ->
+    let prbm = prbm_add ctx { prbm with clause } x a in
+    let clause =
+      (eqns @ [ PPrbm.EqualTerm (ctx, Var x, p, a) ], ps, rhs) :: prbm.clause
+    in
+    { prbm with clause }
+  | _ -> failwith "trans1e.prbm_add"
+
+and prbm_simpl ctx var_map prbm =
+  let rec aux_global = function
+    | [] -> []
+    | PPrbm.EqualType (ctx, a, b) :: eqns ->
+      let eqns = aux_global eqns in
+      PPrbm.EqualType (ctx, subst_fvar var_map a, b) :: eqns
+    | PPrbm.EqualTerm _ :: _ -> failwith "trans1e.prbm_simpl(Global)"
+  in
+  let rec aux_clause = function
+    | [] -> []
+    | (eqns, ps, rhs) :: clause -> (
+      let clause = aux_clause clause in
+      let opt =
+        List.fold_left
+          (fun acc eqn ->
+            match (acc, eqn) with
+            | Some acc, PPrbm.EqualTerm (ctx, l, r, a) -> (
+              let l = subst_fvar var_map l in
+              let a = subst_fvar var_map a in
+              match p_simpl ctx l r a with
+              | Some eqns -> Some (acc @ eqns)
+              | None -> None)
+            | _ -> None)
+          (Some []) eqns
+      in
+      match opt with
+      | Some eqns -> (eqns, ps, rhs) :: clause
+      | None -> clause)
+  in
+  let global = aux_global prbm.global in
+  let clause = aux_clause prbm.clause in
+  { global; clause }
+
+and p_simpl ctx m p a =
+  let a = whnf ~expand:true ctx a in
+  match (m, p, a) with
+  | Constr (c1, _, _, ns1), PMul (c2, ps), Ind (d, ss, ms, ns2) ->
+    let _, cs = Ctx.find_ind d ctx in
+    if List.exists (fun c -> Constr.equal c c2) cs then
+      if Constr.equal c1 c2 then
+        let sch, _ = Ctx.find_constr c1 ctx in
+        let param = msubst sch (Array.of_list ss) in
+        let tele = param_inst param ms in
+        ps_simpl ctx ns1 ps tele
+      else
+        None
+    else
+      failwith "trans1e.p_simpl"
+  | Constr (c1, _, _, ns1), PAdd (c2, i, ps), Ind (d, ss, ms, ns2) ->
+    let _, cs = Ctx.find_ind d ctx in
+    if List.exists (fun c -> Constr.equal c c2) cs then
+      if Constr.equal c1 c2 then
+        let sch, _ = Ctx.find_constr c1 ctx in
+        let param = msubst sch (Array.of_list ss) in
+        let tele = param_inst param ms in
+        ps_simpl ctx ns1 ps tele
+      else
+        None
+    else
+      failwith "trans1e.p_simpl"
+  | Constr (c1, _, _, _), _, Ind (d, _, _, _) ->
+    Some [ PPrbm.EqualTerm (ctx, m, p, a) ]
+  | _, PMul (c2, _), Ind (d, _, _, _) ->
+    let _, cs = Ctx.find_ind d ctx in
+    if List.exists (fun c -> Constr.equal c c2) cs then
+      Some [ PPrbm.EqualTerm (ctx, m, p, a) ]
+    else
+      failwith "trans1e.p_simpl"
+  | _, PAdd (c2, _, _), Ind (d, _, _, _) ->
+    let _, cs = Ctx.find_ind d ctx in
+    if List.exists (fun c -> Constr.equal c c2) cs then
+      Some [ PPrbm.EqualTerm (ctx, m, p, a) ]
+    else
+      failwith "trans1e.p_simpl"
+  | m, p, a -> Some [ PPrbm.EqualTerm (ctx, m, p, a) ]
+
+and ps_simpl ctx ms ps tele =
+  match (ms, ps, tele) with
+  | m :: ms, p :: ps, TBind (_, a, bnd) -> (
+    let opt1 = p_simpl ctx m p a in
+    let tele = subst bnd m in
+    let opt2 = ps_simpl ctx ms ps tele in
+    match (opt1, opt2) with
+    | Some eqns1, Some eqns2 -> Some (eqns1 @ eqns2)
+    | _ -> None)
+  | [], [], TBase _ -> Some []
+  | _ -> None
 
 let rec check_dcls ctx = function
   | Definition { name = x; relv; scheme = sch } :: dcls ->
@@ -275,15 +426,15 @@ let rec check_dcls ctx = function
   | Inductive { name = ind; relv; arity; dconstrs } :: dcls ->
     State.init ();
     check_arity ctx arity;
-    let ctx0 = Ctx.add_ind ind (arity, Constr.Set.empty) ctx in
+    let ctx0 = Ctx.add_ind ind (arity, []) ctx in
     check_dconstrs ind ctx0 dconstrs;
     let prbm = State.(export_eqns (), export_mctx ()) in
     let prbms =
       let constrs, ctx =
-        List.fold_left
-          (fun (acc, ctx) (mode, constr, sch) ->
-            (Constr.Set.add constr acc, Ctx.add_constr constr (sch, mode) ctx))
-          (Constr.Set.empty, ctx) dconstrs
+        List.fold_right
+          (fun (mode, constr, sch) (acc, ctx) ->
+            (constr :: acc, Ctx.add_constr constr (sch, mode) ctx))
+          dconstrs ([], ctx)
       in
       let ctx = Ctx.add_ind ind (arity, constrs) ctx in
       check_dcls ctx dcls

@@ -279,6 +279,13 @@ and lift_cls cls =
   in
   box_list cls
 
+(* subst fvars *)
+let subst_fvar var_map m =
+  let xms = Var.Map.bindings var_map in
+  let xs, ms = List.split xms in
+  let bnd = bind_mvar (Array.of_list xs) (lift_tm m) in
+  msubst (unbox bnd) (Array.of_list ms)
+
 (* pattern equality *)
 let rec eq_p0 p1 p2 =
   match (p1, p2) with
@@ -370,5 +377,8 @@ let rec param_inst param ms =
   | _ -> failwith "syntax1.param_inst"
 
 let rec unbind_tele = function
-  | TBase a -> a
-  | TBind (_, _, bnd) -> unbind_tele (snd (unbind bnd))
+  | TBase a -> ([], a)
+  | TBind (relv, a, bnd) ->
+    let x, tele = unbind bnd in
+    let args, b = unbind_tele tele in
+    ((relv, x, a) :: args, b)
