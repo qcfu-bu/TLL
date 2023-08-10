@@ -43,16 +43,16 @@ let _ =
       let src_name = Sys.argv.(1) in
       let src_ch = open_in src_name in
       let dcls0 = parse (Utf8.from_channel src_ch) in
+      pr "%a" Syntax0.pp_dcls dcls0;
+      pr "@.@.-----------------------------------------@.@.";
       let _, dcls1 = Trans01.trans_dcls [] dcls0 in
+      pr "%a" Pprint1.pp_dcls dcls1;
+      pr "@.@.-----------------------------------------@.@.";
       let prbms =
         let open Context1 in
         let open Equality1 in
         Trans1e.check_dcls Ctx.empty dcls1
       in
-      pr "%a" Syntax0.pp_dcls dcls0;
-      pr "@.@.-----------------------------------------@.@.";
-      pr "%a" Pprint1.pp_dcls dcls1;
-      pr "@.@.-----------------------------------------@.@.";
       pr "%a" pp_prbms prbms;
       pr "@.@.-----------------------------------------@.@."
   with

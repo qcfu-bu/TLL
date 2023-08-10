@@ -49,21 +49,6 @@
            (Binder ("A",
               (Pi (R, U, (Id "A"), (Binder ("x", (IO (Id "unit"))))))))
            )))
-       ))};
-  Definition {name = "_"; relv = R;
-    body =
-    (Binder ([],
-       ((App [(Id "print"); (Id "_"); (Id "tt")]), (IO (Id "unit")))))};
-  Definition {name = "_"; relv = R;
-    body =
-    (Binder ([],
-       ((App
-           [(Id "print"); (Id "_");
-             (App
-                [(Inst ("pair", [(SId "_"); (SId "_"); L])); (Id "tt");
-                  (Id "tt")])
-             ]),
-        (IO (Id "unit")))
        ))}
   ]
 
@@ -74,56 +59,18 @@ inductive unit_1‹› : U where
 | tt_1 : unit_1
 
 #[program]
-inductive prod_2‹s_40,r_41,t_42› (A_43 : Type‹s_40›) (B_44 : Type‹r_41›):
-  Type‹t_42›
+inductive prod_2‹s_20,r_21,t_22› (A_23 : Type‹s_20›) (B_24 : Type‹r_21›):
+  Type‹t_22›
 where
-| pair_2 (m_45 : A_43) (n_46 : B_44) : (prod_2‹??_1,??_2,t_42› A_43 B_44)
+| pair_2 (m_25 : A_23) (n_26 : B_24) : (prod_2‹??_1,??_2,t_22› A_23 B_24)
 
 #[program]
-def print_1‹s_47› : ∀ {A_48 : Type‹s_47›} -> A_48 -> IO unit_1 :=
-  function print_50 : ∀ {A_51 : Type‹s_47›} -> A_51 -> IO unit_1
-  | A_53 x_54 => #magic[?_1]
-
-#[program]
-def __2‹› : IO unit_1 := (print_1‹??_3›) ?_2 tt_1
-
-#[program]
-def __3‹› : IO unit_1 :=
-  (print_1‹??_6›) ?_3 (pair_2‹??_4,??_5,L› tt_1 tt_1)
+def print_1‹s_27› : ∀ {A_28 : Type‹s_27›} -> A_28 -> IO unit_1 :=
+  function print_30 : ∀ {A_31 : Type‹s_27›} -> A_31 -> IO unit_1
+  | A_33 x_34 => #magic[?_1]
 
 -----------------------------------------
 
-group0 {|
-  
-  
-|}
+error -----------------------------------
 
-group1 {|
-  equal_tm? (Type‹??_2›, Type‹r_26›);
-  equal_tm? (Type‹??_1›, Type‹s_25›);
-  equal_sort? (r_26, ??_2);
-  equal_sort? (s_25, ??_1)
-  
-|}
-
-group2 {|
-  
-  
-|}
-
-group3 {|
-  equal_tm? (?_2, unit_1)
-  ?_2 :? Type‹??_3›
-|}
-
-group4 {|
-  equal_tm? (?_3, (prod_2‹??_1,??_2,L› ?_4 ?_5));
-  equal_tm? (?_5, unit_1);
-  equal_tm? (?_4, unit_1)
-  ?_3 :? Type‹??_6›
-  ?_4 :? Type‹??_4›
-  ?_5 :? Type‹??_5›
-|}
-
------------------------------------------
-
+unimplemented

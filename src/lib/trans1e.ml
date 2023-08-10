@@ -251,13 +251,15 @@ and check_cls ctx cls a : unit =
     (* case intro *)
     | (eqns, p :: ps, rhs) :: clause -> (
       let a = resolve_iprbm (State.export_eqns ()) a in
-      match (whnf ~expand:true ctx a, ps) with
-      | Pi (_, _, a, bnd), p :: ps ->
+      match whnf ~expand:true ctx a with
+      | Pi (_, _, a, bnd) ->
         let x, b = unbind bnd in
         let ctx = Ctx.add_var0 x a ctx in
         let prbm = prbm_add ctx prbm x a in
         aux_prbm ctx prbm b
-      | _ -> failwith "trans1e.check_cls(Intro)")
+      | a ->
+        failwith "trans1e.check_cls(Intro, %a, %a)" Pprint1.pp_tm a
+          (Pprint1.pp_ps " ") ps)
     (* absurd pattern *)
     | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> (
       if not (has_failed (fun () -> resolve_pprbm prbm.global)) then
