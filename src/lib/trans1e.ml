@@ -16,8 +16,8 @@ module State : sig
   val add_imeta : Ctx.t -> IMeta.t -> sorts -> tms -> tm -> unit
   val find_imeta : IMeta.t -> tm option
   val resolve : tm -> tm
-  val export_mctx : unit -> (Ctx.t * tm * tm) list
-  val export_meta : unit -> meta_map
+  val get_delayed : unit -> (Ctx.t * tm * tm) list
+  val solve_all : unit -> meta_map
 end = struct
   type t =
     { mutable eqns : IPrbm.eqns
@@ -44,12 +44,12 @@ end = struct
     state.eqns <- eqns;
     resolve_tm meta_map m
 
-  let export_mctx () =
+  let get_delayed () =
     let mctx = state.mctx in
     state.mctx <- MCtx.empty;
     MCtx.entries mctx
 
-  let rec export_meta () =
+  let rec solve_all () =
     let meta_map, eqns = unify_iprbm state.meta_map state.eqns in
     match eqns with
     | [] ->
@@ -59,7 +59,7 @@ end = struct
     | _ ->
       state.meta_map <- meta_map;
       state.eqns <- eqns;
-      export_meta ()
+      solve_all ()
 end
 
 let has_failed f =
@@ -442,18 +442,16 @@ and ps_simpl ctx ms ps tele =
 let rec check_dcls ctx dcls =
   let rec solve_delayed entries =
     match entries with
-    | [] -> State.export_meta ()
+    | [] -> State.solve_all ()
     | (ctx, m, a) :: entries ->
-      let meta_map = State.export_meta () in
-      Debug.exec (fun () -> pr "loop_check(%a %a)@." pp_tm m pp_tm a);
+      let meta_map = State.solve_all () in
       let ctx = resolve_ctx meta_map ctx in
-      Debug.exec (fun () -> pr "loop_check(%a %a)@." pp_tm m pp_tm a);
       let m = resolve_tm meta_map m in
       let a = resolve_tm meta_map a in
       Debug.exec (fun () -> pr "loop_check(%a %a)@." pp_tm m pp_tm a);
       assert_type ctx a;
       check_tm ctx m a;
-      let entries0 = State.export_mctx () in
+      let entries0 = State.get_delayed () in
       solve_delayed (entries0 @ entries)
   in
   match dcls with
@@ -461,10 +459,10 @@ let rec check_dcls ctx dcls =
     let ss, (m, a) = unmbind sch in
     let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
     assert_type ctx0 a;
-    let meta_map = solve_delayed (State.export_mctx ()) in
+    let meta_map = solve_delayed (State.get_delayed ()) in
     let a = resolve_tm meta_map a in
     check_tm ctx0 m a;
-    let meta_map = solve_delayed (State.export_mctx ()) in
+    let meta_map = solve_delayed (State.get_delayed ()) in
     let sch =
       resolve_scheme
         (fun (m, a) -> box_pair (lift_tm m) (lift_tm a))
@@ -475,7 +473,7 @@ let rec check_dcls ctx dcls =
     check_dcls ctx dcls
   | Inductive { name = ind; relv; arity; dconstrs } :: dcls ->
     check_arity ctx arity;
-    let meta_map = solve_delayed (State.export_mctx ()) in
+    let meta_map = solve_delayed (State.get_delayed ()) in
     let arity =
       resolve_scheme (lift_param lift_tele)
         (resolve_param lift_tele resolve_tele)
@@ -483,7 +481,7 @@ let rec check_dcls ctx dcls =
     in
     let ctx0 = Ctx.add_ind ind (arity, []) ctx in
     check_dconstrs ind ctx0 dconstrs;
-    let meta_map = solve_delayed (State.export_mctx ()) in
+    let meta_map = solve_delayed (State.get_delayed ()) in
     let dconstrs = resolve_dconstrs meta_map dconstrs in
     let cs, ctx =
       List.fold_right
@@ -493,7 +491,7 @@ let rec check_dcls ctx dcls =
     in
     let ctx = Ctx.add_ind ind (arity, cs) ctx in
     check_dcls ctx dcls
-  | [] -> State.export_meta ()
+  | [] -> State.solve_all ()
 
 and check_arity ctx arity =
   let rec aux_param ctx = function
