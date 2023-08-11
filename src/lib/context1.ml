@@ -21,6 +21,13 @@ module Ctx : sig
   val find_constr : Constr.t -> t -> tele param scheme * mode
   val spine_var : t -> Var.t list
   val spine_svar : t -> SVar.t list
+
+  val subst_imeta :
+       (sort, sort) mbinder SMeta.Map.t
+       * (sort, (tm, tm) mbinder) mbinder IMeta.Map.t
+    -> t
+    -> t
+
   val subst_pmeta : tm Var.Map.t -> t -> t
 end = struct
   type t =
@@ -64,6 +71,17 @@ end = struct
   let spine_var (ctx : t) = ctx.var |> Var.Map.bindings |> List.map fst
   let spine_svar (ctx : t) = ctx.svar |> SVar.Set.elements
 
+  let subst_imeta meta_map (ctx : t) =
+    let var =
+      Var.Map.map
+        (fun (m_opt, a) ->
+          let m_opt = Option.map (subst_imeta meta_map) m_opt in
+          let a = subst_imeta meta_map a in
+          (m_opt, a))
+        ctx.var
+    in
+    { ctx with var }
+
   let subst_pmeta var_map (ctx : t) =
     let var =
       Var.Map.map
@@ -80,26 +98,32 @@ module MCtx : sig
   type t
 
   val empty : t
-  val add_imeta : Ctx.t -> IMeta.t -> tm -> t -> t
+  val add_imeta : Ctx.t -> IMeta.t -> sorts -> tms -> tm -> t -> t
   val find_imeta : IMeta.t -> t -> tm option
+  val entries : t -> (Ctx.t * tm * tm) list
   val pp : t Fmt.t
 end = struct
-  type t = (Ctx.t * tm) IMeta.Map.t
+  type t = (Ctx.t * sorts * tms * tm) IMeta.Map.t
 
   let empty = IMeta.Map.empty
-  let add_imeta ctx x a (mctx : t) = IMeta.Map.add x (ctx, a) mctx
+  let add_imeta ctx x ss xs a (mctx : t) = IMeta.Map.add x (ctx, ss, xs, a) mctx
 
   let find_imeta x (mctx : t) =
     match IMeta.Map.find_opt x mctx with
-    | Some (_, a) -> Some a
+    | Some (_, _, _, a) -> Some a
     | _ -> None
 
-  let pp fmt mctx =
+  let entries (mctx : t) =
+    List.map
+      (fun (x, (ctx, ss, xs, a)) -> (ctx, IMeta (x, ss, xs), a))
+      (IMeta.Map.bindings mctx)
+
+  let pp fmt (mctx : t) =
     let open Pprint1 in
     let rec aux fmt = function
       | [] -> ()
-      | [ (x, (_, a)) ] -> pf fmt "?%a :? %a" IMeta.pp x pp_tm a
-      | (x, (_, a)) :: ls ->
+      | [ (x, (_, _, _, a)) ] -> pf fmt "?%a :? %a" IMeta.pp x pp_tm a
+      | (x, (_, _, _, a)) :: ls ->
         pf fmt "?%a :? %a@;<1 0>%a" IMeta.pp x pp_tm a aux ls
     in
     aux fmt (IMeta.Map.bindings mctx)

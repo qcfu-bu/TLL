@@ -359,6 +359,69 @@ let psubst (p0s, bnd) ms =
   let ms = match_p0s p0s ms in
   msubst bnd (Array.of_list ms)
 
+(* subst meta-variables *)
+let rec subst_smeta smeta_map = function
+  | SMeta (x, ss) as s -> (
+    match SMeta.Map.find_opt x smeta_map with
+    | Some bnd -> subst_smeta smeta_map (msubst bnd (Array.of_list ss))
+    | None -> s)
+  | s -> s
+
+let subst_imeta meta_map m =
+  let smeta_map, imeta_map = meta_map in
+  let aux_sort = subst_smeta smeta_map in
+  let rec aux_tm = function
+    (* inference *)
+    | Ann (m, a) -> Ann (aux_tm m, aux_tm a)
+    | IMeta (x, ss, xs) as m -> (
+      match IMeta.Map.find_opt x imeta_map with
+      | Some bnd ->
+        let bnd = msubst bnd (Array.of_list ss) in
+        let m = msubst bnd (Array.of_list xs) in
+        aux_tm m
+      | None -> m)
+    | PMeta x -> PMeta x
+    (* core *)
+    | Type s -> Type (aux_sort s)
+    | Var x -> Var x
+    | Const (x, ss) -> Const (x, List.map aux_sort ss)
+    | Pi (relv, s, a, bnd) ->
+      let s = aux_sort s in
+      let a = aux_tm a in
+      let bnd = binder_compose bnd aux_tm in
+      Pi (relv, s, a, bnd)
+    | Fun (a, bnd) ->
+      let a = aux_tm a in
+      let bnd =
+        binder_compose bnd
+          (List.map (fun (p0s, bnd) ->
+               (p0s, mbinder_compose bnd (Option.map aux_tm))))
+      in
+      Fun (a, bnd)
+    | App (m, n) -> App (aux_tm m, aux_tm n)
+    | Let (relv, m, bnd) -> Let (relv, aux_tm m, binder_compose bnd aux_tm)
+    (* inductive *)
+    | Ind (d, ss, ms, ns) -> Ind (d, ss, List.map aux_tm ms, List.map aux_tm ns)
+    | Constr (c, ss, ms, ns) ->
+      Constr (c, ss, List.map aux_tm ms, List.map aux_tm ns)
+    | Match (ms, a, cls) ->
+      let ms = List.map aux_tm ms in
+      let a = aux_tm a in
+      let cls =
+        List.map
+          (fun (p0s, bnd) -> (p0s, mbinder_compose bnd (Option.map aux_tm)))
+          cls
+      in
+      Match (ms, a, cls)
+    (* monad *)
+    | IO a -> IO (aux_tm a)
+    | Return m -> Return (aux_tm m)
+    | MLet (m, bnd) -> MLet (aux_tm m, binder_compose bnd aux_tm)
+    (* magic *)
+    | Magic a -> Magic (aux_tm a)
+  in
+  aux_tm m
+
 (* subst pattern variables *)
 let unbind_pmeta bnd =
   let s = binder_name bnd in
@@ -388,10 +451,9 @@ let subst_pmeta var_map m =
     | Fun (a, bnd) ->
       let a = aux a in
       let bnd =
-        binder_compose bnd (fun cls ->
-            List.map
-              (fun (p0s, bnd) -> (p0s, mbinder_compose bnd (Option.map aux)))
-              cls)
+        binder_compose bnd
+          (List.map (fun (p0s, bnd) ->
+               (p0s, mbinder_compose bnd (Option.map aux))))
       in
       Fun (a, bnd)
     | App (m, n) -> App (aux m, aux n)

@@ -12,7 +12,7 @@ module State : sig
   type t
 
   val add_eqn : IPrbm.eqn -> unit
-  val add_imeta : Ctx.t -> IMeta.t -> tm -> unit
+  val add_imeta : Ctx.t -> IMeta.t -> sorts -> tms -> tm -> unit
   val find_imeta : IMeta.t -> tm option
   val init : unit -> unit
   val export_eqns : unit -> IPrbm.eqns
@@ -25,7 +25,10 @@ end = struct
 
   let state : t = { eqns = []; mctx = MCtx.empty }
   let add_eqn prbm = state.eqns <- prbm :: state.eqns
-  let add_imeta ctx x a = state.mctx <- MCtx.add_imeta ctx x a state.mctx
+
+  let add_imeta ctx x ss xs a =
+    state.mctx <- MCtx.add_imeta ctx x ss xs a state.mctx
+
   let find_imeta x = MCtx.find_imeta x state.mctx
 
   let init () =
@@ -74,12 +77,12 @@ and infer_tm ctx m : tm =
     assert_type ctx a;
     check_tm ctx m a;
     a
-  | IMeta (x, _, _) -> (
+  | IMeta (x, ss, xs) -> (
     match State.find_imeta x with
     | Some a -> a
     | None ->
       let a = imeta_of_ctx ctx in
-      State.add_imeta ctx x a;
+      State.add_imeta ctx x ss xs a;
       a)
   | PMeta x -> Ctx.find_var0 x ctx
   (* core *)
@@ -190,7 +193,7 @@ and infer_motive ctx ms a =
 and check_tm ctx m a : unit =
   match m with
   (* inference *)
-  | IMeta (x, _, _) -> State.add_imeta ctx x a
+  | IMeta (x, ss, xs) -> State.add_imeta ctx x ss xs a
   | _ ->
     let b = infer_tm ctx m in
     assert_equal1 ctx a b
@@ -261,6 +264,7 @@ and check_cls ctx cls a : unit =
         match whnf ~expand:true ctx a with
         | Ind (d, ss, ms, ns) -> fail_on_ind prbm.global ctx d ss ms a
         | _ -> failwith "trans1e.check_cls(Absurd)")
+    (* case splitting *)
     | (eqns, [], rhs) :: _ when can_split eqns -> (
       let x, b = first_split eqns in
       match whnf ~expand:true ctx b with
@@ -289,8 +293,8 @@ and check_cls ctx cls a : unit =
             in
             aux_prbm ctx prbm a)
           cs
-      | _ -> failwith "trans1e.check_cls(Split)"
-      (* case coverage *))
+      | _ -> failwith "trans1e.check_cls(Split)")
+    (* case coverage *)
     | (eqns, [], rhs) :: _ ->
       let var_map = solve_pprbm (prbm.global @ eqns) in
       let a = subst_pmeta var_map a in
@@ -407,14 +411,30 @@ and ps_simpl ctx ms ps tele =
   | [], [], TBase _ -> Some []
   | _ -> None
 
-let rec check_dcls ctx = function
+let rec check_dcls ctx dcls =
+  let rec loop meta_map entries =
+    match entries with
+    | [] -> _
+    | (ctx, m, a) :: mctx ->
+      let ctx = Ctx.subst_imeta meta_map ctx in
+      let m = subst_imeta meta_map m in
+      let a = subst_imeta meta_map a in
+      State.init ();
+      check_tm ctx m a;
+      let eqns = State.export_eqns in
+      let mctx = State.export_mctx in
+      _
+  in
+  match dcls with
   | Definition { name = x; relv; scheme = sch } :: dcls ->
     let ss, (m, a) = unmbind sch in
     let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
     State.init ();
     assert_type ctx0 a;
     check_tm ctx0 m a;
-    let prbm = State.(export_eqns (), export_mctx ()) in
+    let eqns = State.export_eqns () in
+    let mctx = State.export_mctx () in
+    let mctx = MCtx.entries mctx in
     let prbms =
       let ctx = Ctx.add_const x sch ctx in
       check_dcls ctx dcls
