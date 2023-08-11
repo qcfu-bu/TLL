@@ -48,21 +48,22 @@ module PPrbm = struct
 
   let pp_eqn fmt = function
     | EqualPat (_, m, p, a) ->
-      pf fmt "@[eq_pat?@;<1 2>(%a,@;<1 2>%a :@;<1 2>%a)@]" pp_tm m pp_p p pp_tm
+      pf fmt "@[eq_pat?(@;<1 2>%a,@;<1 2>%a :@;<1 2>%a)@]" pp_tm m pp_p p pp_tm
         a
     | EqualTerm (_, a, b) ->
-      pf fmt "@[eq_term?@;<1 2>(%a,@;<1 2>%a)@]" pp_tm a pp_tm b
+      pf fmt "@[eq_term?(@;<1 2>%a,@;<1 2>%a)@]" pp_tm a pp_tm b
 
   let rec pp_eqns fmt = function
     | [] -> ()
     | [ prbm ] -> pp_eqn fmt prbm
-    | prbm :: prbms -> pf fmt "%a@;<1 0>%a" pp_eqn prbm pp_eqns prbms
+    | prbm :: prbms -> pf fmt "@[%a@]@;<1 0>@[%a@]" pp_eqn prbm pp_eqns prbms
 
   let pp_clause fmt (prbms, ps, opt) =
     match opt with
     | Some rhs ->
-      pf fmt "(%a) ::: (%a) =>? %a" pp_eqns prbms (pp_ps ", ") ps pp_tm rhs
-    | None -> pf fmt "(%a) ::: (%a) =>? !!" pp_eqns prbms (pp_ps ", ") ps
+      pf fmt "@[{| @[%a ::: [%a] =>?@;<1 2>%a@]@;<1 0>|}@]" pp_eqns prbms
+        (pp_ps ", ") ps pp_tm rhs
+    | None -> pf fmt "(%a) ::: [%a] =>? !!" pp_eqns prbms (pp_ps ", ") ps
 
   let rec pp_clauses fmt = function
     | [] -> ()
@@ -72,5 +73,6 @@ module PPrbm = struct
 
   let pp fmt = function
     | { global; clause } ->
-      pf fmt "prblm {| %a; %a |}" pp_eqns global pp_clauses clause
+      pf fmt "@[prblm {|@;<1 2>@[%a@];@;<1 2>@[%a@]@;<1 0>|}@]" pp_eqns global
+        pp_clauses clause
 end

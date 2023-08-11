@@ -321,6 +321,8 @@ and check_cls ctx cls a : unit =
       | _ -> failwith "trans1e.check_cls(Split)")
     (* case coverage *)
     | (eqns, [], rhs) :: _ ->
+      Debug.exec (fun () ->
+          pr "@[<v 0>case_coverage{|@;<1 2>%a@;<1 0>|}@]@." PPrbm.pp prbm);
       let var_map = solve_pprbm (prbm.global @ eqns) in
       let a = presolve_tm var_map a in
       let ctx = presolve_ctx var_map ctx in
@@ -329,6 +331,7 @@ and check_cls ctx cls a : unit =
         | Some m -> presolve_tm var_map m
         | None -> failwith "trans1e.check_cls(Cover)"
       in
+      Debug.exec (fun () -> pr "case_coverage_ok(%a, %a)@." pp_tm rhs pp_tm a);
       check_tm ctx rhs a
   in
   let prbm = PPrbm.of_cls cls in
@@ -437,42 +440,50 @@ and ps_simpl ctx ms ps tele =
   | _ -> None
 
 let rec check_dcls ctx dcls =
-  let rec loop entries =
+  let rec solve_delayed entries =
     match entries with
     | [] -> State.export_meta ()
     | (ctx, m, a) :: entries ->
       let meta_map = State.export_meta () in
+      Debug.exec (fun () -> pr "loop_check(%a %a)@." pp_tm m pp_tm a);
       let ctx = resolve_ctx meta_map ctx in
+      Debug.exec (fun () -> pr "loop_check(%a %a)@." pp_tm m pp_tm a);
       let m = resolve_tm meta_map m in
       let a = resolve_tm meta_map a in
+      Debug.exec (fun () -> pr "loop_check(%a %a)@." pp_tm m pp_tm a);
       assert_type ctx a;
       check_tm ctx m a;
       let entries0 = State.export_mctx () in
-      loop (entries0 @ entries)
+      solve_delayed (entries0 @ entries)
   in
   match dcls with
   | Definition { name = x; relv; scheme = sch } :: dcls ->
     let ss, (m, a) = unmbind sch in
     let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
     assert_type ctx0 a;
+    let meta_map = solve_delayed (State.export_mctx ()) in
+    let a = resolve_tm meta_map a in
     check_tm ctx0 m a;
-    let entries = State.export_mctx () in
-    let meta_map = loop entries in
+    let meta_map = solve_delayed (State.export_mctx ()) in
     let sch =
-      mbinder_compose sch (fun (m, a) ->
-          (resolve_tm meta_map m, resolve_tm meta_map a))
+      resolve_scheme
+        (fun (m, a) -> box_pair (lift_tm m) (lift_tm a))
+        (fun meta_map (m, a) -> (resolve_tm meta_map m, resolve_tm meta_map a))
+        meta_map sch
     in
     let ctx = Ctx.add_const x sch ctx in
     check_dcls ctx dcls
   | Inductive { name = ind; relv; arity; dconstrs } :: dcls ->
     check_arity ctx arity;
-    let entries = State.export_mctx () in
-    let meta_map = loop entries in
-    let arity = mbinder_compose arity (resolve_param resolve_tele meta_map) in
+    let meta_map = solve_delayed (State.export_mctx ()) in
+    let arity =
+      resolve_scheme (lift_param lift_tele)
+        (resolve_param lift_tele resolve_tele)
+        meta_map arity
+    in
     let ctx0 = Ctx.add_ind ind (arity, []) ctx in
     check_dconstrs ind ctx0 dconstrs;
-    let entries = State.export_mctx () in
-    let meta_map = loop entries in
+    let meta_map = solve_delayed (State.export_mctx ()) in
     let dconstrs = resolve_dconstrs meta_map dconstrs in
     let cs, ctx =
       List.fold_right

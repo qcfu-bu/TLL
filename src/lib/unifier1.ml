@@ -64,20 +64,32 @@ let resolve_tm (meta_map : meta_map) m =
     | Var x -> Var x
     | Const (x, ss) -> Const (x, List.map aux_sort ss)
     | Pi (relv, s, a, bnd) ->
+      let x, b = unbind bnd in
       let s = aux_sort s in
       let a = aux_tm a in
-      let bnd = binder_compose bnd aux_tm in
-      Pi (relv, s, a, bnd)
+      let b = lift_tm (aux_tm b) in
+      Pi (relv, s, a, unbox (bind_var x b))
     | Fun (a, bnd) ->
+      let x, cls = unbind bnd in
       let a = aux_tm a in
-      let bnd =
-        binder_compose bnd
-          (List.map (fun (p0s, bnd) ->
-               (p0s, mbinder_compose bnd (Option.map aux_tm))))
+      let cls =
+        List.map
+          (fun cl ->
+            let ps, rhs_opt = unbind_ps cl in
+            let rhs_opt =
+              Option.map (fun rhs -> lift_tm (aux_tm rhs)) rhs_opt
+            in
+            bind_ps ps (box_opt rhs_opt))
+          cls
       in
-      Fun (a, bnd)
+      let cls = box_list cls in
+      Fun (a, unbox (bind_var x cls))
     | App (m, n) -> App (aux_tm m, aux_tm n)
-    | Let (relv, m, bnd) -> Let (relv, aux_tm m, binder_compose bnd aux_tm)
+    | Let (relv, m, bnd) ->
+      let x, n = unbind bnd in
+      let m = aux_tm m in
+      let n = lift_tm (aux_tm n) in
+      Let (relv, m, unbox (bind_var x n))
     (* inductive *)
     | Ind (d, ss, ms, ns) ->
       Ind (d, List.map aux_sort ss, List.map aux_tm ms, List.map aux_tm ns)
@@ -88,26 +100,42 @@ let resolve_tm (meta_map : meta_map) m =
       let a = aux_tm a in
       let cls =
         List.map
-          (fun (p0s, bnd) -> (p0s, mbinder_compose bnd (Option.map aux_tm)))
+          (fun cl ->
+            let ps, rhs_opt = unbind_ps cl in
+            let rhs_opt =
+              Option.map (fun rhs -> lift_tm (aux_tm rhs)) rhs_opt
+            in
+            bind_ps ps (box_opt rhs_opt))
           cls
       in
-      Match (ms, a, cls)
+      let cls = box_list cls in
+      Match (ms, a, unbox cls)
     (* monad *)
     | IO a -> IO (aux_tm a)
     | Return m -> Return (aux_tm m)
-    | MLet (m, bnd) -> MLet (aux_tm m, binder_compose bnd aux_tm)
+    | MLet (m, bnd) ->
+      let x, n = unbind bnd in
+      let m = aux_tm m in
+      let n = lift_tm (aux_tm n) in
+      MLet (m, unbox (bind_var x n))
     (* magic *)
     | Magic a -> Magic (aux_tm a)
   in
   aux_tm m
 
-let resolve_param resolve (meta_map : meta_map) param =
+let resolve_scheme lift resolve (meta_map : meta_map) sch =
+  let xs, body = unmbind sch in
+  let body = lift (resolve meta_map body) in
+  unbox (bind_mvar xs body)
+
+let resolve_param lift resolve (meta_map : meta_map) param =
   let rec aux = function
     | PBase a -> PBase (resolve meta_map a)
     | PBind (a, bnd) ->
+      let x, b = unbind bnd in
       let a = resolve_tm meta_map a in
-      let bnd = binder_compose bnd aux in
-      PBind (a, bnd)
+      let b = lift_param lift (aux b) in
+      PBind (a, unbox (bind_var x b))
   in
   aux param
 
@@ -115,14 +143,19 @@ let resolve_tele (meta_map : meta_map) tele =
   let rec aux = function
     | TBase a -> TBase (resolve_tm meta_map a)
     | TBind (relv, a, bnd) ->
+      let x, b = unbind bnd in
       let a = resolve_tm meta_map a in
-      let bnd = binder_compose bnd aux in
-      TBind (relv, a, bnd)
+      let b = lift_tele (aux b) in
+      TBind (relv, a, unbox (bind_var x b))
   in
   aux tele
 
 let resolve_dconstr (meta_map : meta_map) (mode, c, sch) =
-  let sch = mbinder_compose sch (resolve_param resolve_tele meta_map) in
+  let sch =
+    resolve_scheme (lift_param lift_tele)
+      (resolve_param lift_tele resolve_tele)
+      meta_map sch
+  in
   (mode, c, sch)
 
 let resolve_dconstrs (meta_map : meta_map) dconstrs =
@@ -131,12 +164,18 @@ let resolve_dconstrs (meta_map : meta_map) dconstrs =
 let resolve_dcl (meta_map : meta_map) = function
   | Definition { name; relv; scheme = sch } ->
     let sch =
-      mbinder_compose sch (fun (m, a) ->
-          (resolve_tm meta_map m, resolve_tm meta_map a))
+      resolve_scheme
+        (fun (m, a) -> box_pair (lift_tm m) (lift_tm a))
+        (fun meta_map (m, a) -> (resolve_tm meta_map m, resolve_tm meta_map a))
+        meta_map sch
     in
     Definition { name; relv; scheme = sch }
   | Inductive { name; relv; arity; dconstrs } ->
-    let arity = mbinder_compose arity (resolve_param resolve_tele meta_map) in
+    let arity =
+      resolve_scheme (lift_param lift_tele)
+        (resolve_param lift_tele resolve_tele)
+        meta_map arity
+    in
     let dconstrs = resolve_dconstrs meta_map dconstrs in
     Inductive { name; relv; arity; dconstrs }
 
@@ -155,17 +194,30 @@ let presolve_tm var_map m =
     | Type s -> Type s
     | Var x -> Var x
     | Const (x, ss) -> Const (x, ss)
-    | Pi (relv, s, a, bnd) -> Pi (relv, s, aux a, binder_compose bnd aux)
-    | Fun (a, bnd) ->
+    | Pi (relv, s, a, bnd) ->
+      let x, b = unbind bnd in
       let a = aux a in
-      let bnd =
-        binder_compose bnd
-          (List.map (fun (p0s, bnd) ->
-               (p0s, mbinder_compose bnd (Option.map aux))))
+      let b = lift_tm (aux b) in
+      Pi (relv, s, a, unbox (bind_var x b))
+    | Fun (a, bnd) ->
+      let x, cls = unbind bnd in
+      let a = aux a in
+      let cls =
+        List.map
+          (fun cl ->
+            let ps, rhs_opt = unbind_ps cl in
+            let rhs_opt = Option.map (fun rhs -> lift_tm (aux rhs)) rhs_opt in
+            bind_ps ps (box_opt rhs_opt))
+          cls
       in
-      Fun (a, bnd)
+      let cls = box_list cls in
+      Fun (a, unbox (bind_var x cls))
     | App (m, n) -> App (aux m, aux n)
-    | Let (relv, m, bnd) -> Let (relv, aux m, binder_compose bnd aux)
+    | Let (relv, m, bnd) ->
+      let x, n = unbind bnd in
+      let m = aux m in
+      let n = lift_tm (aux n) in
+      Let (relv, m, unbox (bind_var x n))
     (* inductive *)
     | Ind (d, ss, ms, ns) -> Ind (d, ss, List.map aux ms, List.map aux ns)
     | Constr (c, ss, ms, ns) -> Constr (c, ss, List.map aux ms, List.map aux ns)
@@ -174,14 +226,22 @@ let presolve_tm var_map m =
       let a = aux a in
       let cls =
         List.map
-          (fun (p0s, bnd) -> (p0s, mbinder_compose bnd (Option.map aux)))
+          (fun cl ->
+            let ps, rhs_opt = unbind_ps cl in
+            let rhs_opt = Option.map (fun rhs -> lift_tm (aux rhs)) rhs_opt in
+            bind_ps ps (box_opt rhs_opt))
           cls
       in
-      Match (ms, a, cls)
+      let cls = box_list cls in
+      Match (ms, a, unbox cls)
     (* monad *)
     | IO a -> IO (aux a)
     | Return m -> Return (aux m)
-    | MLet (m, bnd) -> MLet (aux m, binder_compose bnd aux)
+    | MLet (m, bnd) ->
+      let x, n = unbind bnd in
+      let m = aux m in
+      let n = lift_tm (aux n) in
+      MLet (m, unbox (bind_var x n))
     (* magic *)
     | Magic a -> Magic (aux a)
   in
@@ -317,7 +377,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
             | Some rhs1, Some rhs2 ->
               simpl_iprbm ~expand (EqualTerm (ctx, rhs1, rhs2))
             | None, None -> []
-            | _ -> failwith "unifier.simpl_pprbm(Fun)")
+            | _ -> failwith "unifier.simpl_iprbm(Fun)")
           cls1 cls2
       in
       eqns1 @ List.concat eqns2
@@ -345,8 +405,12 @@ let rec simpl_iprbm ?(expand = false) eqn =
       let eqns2 = simpl_iprbm ~expand (EqualTerm (ctx, n1, n2)) in
       eqns1 @ eqns2
     (* inductive *)
-    | Ind (d1, ss1, ms1, ns1), Ind (d2, ss2, ms2, ns2)
-      when Ind.equal d1 d2 && List.equal eq_sort ss1 ss2 ->
+    | Ind (d1, ss1, ms1, ns1), Ind (d2, ss2, ms2, ns2) when Ind.equal d1 d2 ->
+      let eqns0 =
+        List.map2
+          (fun s1 s2 -> simpl_iprbm ~expand (EqualSort (s1, s2)))
+          ss1 ss2
+      in
       let eqns1 =
         List.map2
           (fun m1 m2 -> simpl_iprbm ~expand (EqualTerm (ctx, m1, m2)))
@@ -357,9 +421,14 @@ let rec simpl_iprbm ?(expand = false) eqn =
           (fun n1 n2 -> simpl_iprbm ~expand (EqualTerm (ctx, n1, n2)))
           ns1 ns2
       in
-      List.concat eqns1 @ List.concat eqns2
+      List.concat eqns0 @ List.concat eqns1 @ List.concat eqns2
     | Constr (c1, ss1, ms1, ns1), Constr (c2, ss2, ms2, ns2)
-      when Constr.equal c1 c2 && List.equal eq_sort ss1 ss2 ->
+      when Constr.equal c1 c2 ->
+      let eqns0 =
+        List.map2
+          (fun s1 s2 -> simpl_iprbm ~expand (EqualSort (s1, s2)))
+          ss1 ss2
+      in
       let eqns1 =
         List.map2
           (fun m1 m2 -> simpl_iprbm ~expand (EqualTerm (ctx, m1, m2)))
@@ -370,7 +439,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
           (fun n1 n2 -> simpl_iprbm ~expand (EqualTerm (ctx, n1, n2)))
           ns1 ns2
       in
-      List.concat eqns1 @ List.concat eqns2
+      List.concat eqns0 @ List.concat eqns1 @ List.concat eqns2
     | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
       let eqns1 =
         List.map2
@@ -386,7 +455,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
             | Some rhs1, Some rhs2 ->
               simpl_iprbm ~expand (EqualTerm (ctx, rhs1, rhs2))
             | None, None -> []
-            | _ -> failwith "unifier.simpl_pprbm(Match)")
+            | _ -> failwith "unifier.simpl_iprbm(Match)")
           cls1 cls2
       in
       List.concat eqns1 @ eqns2 @ List.concat eqns3
@@ -403,7 +472,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
     | _, Magic _ -> []
     | _ ->
       if expand then
-        failwith "unifier1.simpl_pprm(%a, %a)" pp_tm m1 pp_tm m2
+        failwith "unifier1.simpl_iprm(%a, %a)" pp_tm m1 pp_tm m2
       else
         simpl_iprbm ~expand:true (EqualTerm (ctx, m1, m2)))
 
@@ -591,12 +660,14 @@ let rec simpl_pprbm ?(expand = false) eqn =
     | _, Magic _ -> []
     | _ ->
       if expand then
-        failwith "unifier1.simpl_pprm(%a, %a)" pp_tm m1 pp_tm m2
+        failwith "unifier1.simpl_pprbm(%a, %a)" pp_tm m1 pp_tm m2
       else
         simpl_pprbm ~expand:true (EqualTerm (ctx, m1, m2)))
 
 let solve_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
   let open PPrbm in
+  Debug.exec (fun () ->
+      pr "@[solve_pprm(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns eqns);
   let solve map = function
     | EqualTerm (_, m, PMeta x) ->
       if occur x (lift_tm m) then

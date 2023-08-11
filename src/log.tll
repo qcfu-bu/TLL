@@ -112,31 +112,37 @@ infer_tm(unit_1)
 infer_tm(nat_2)
 infer_tm(nat_2)
 infer_tm(nat_2)
-infer_tm(Type‹s_34›)
-infer_tm(A_35)
-infer_tm(Type‹s_37›)
-infer_tm(A_38)
-infer_tm((sing_3‹??_1› ?_1 m_39))
-check_tm(?_1, Type‹??_1›)
-check_tm(m_39, ?_1)
-infer_tm(m_39)
-infer_tm(Type‹s_37›)
-check_tm(A_38, Type‹s_37›)
-infer_tm(A_38)
-infer_tm(Type‹s_40›)
-infer_tm(A_41)
-infer_tm(A_41)
+infer_tm(Type‹s_35›)
+infer_tm(A_36)
 infer_tm(Type‹s_44›)
 infer_tm(A_45)
-infer_tm((eq_4‹??_2› ?_2 m_46 m_46))
-check_tm(?_2, Type‹??_2›)
-check_tm(m_46, ?_2)
+infer_tm((sing_3‹??_1› ?_1 m_46))
+check_tm(?_1, Type‹??_1›)
+check_tm(m_46, ?_1)
 infer_tm(m_46)
-check_tm(m_46, ?_2)
-infer_tm(m_46)
+loop_check(?_1 Type‹??_1›)
+loop_check(?_1 Type‹??_1›)
+loop_check(A_45 Type‹s_44›)
 infer_tm(Type‹s_44›)
 check_tm(A_45, Type‹s_44›)
 infer_tm(A_45)
+infer_tm(Type‹s_53›)
+infer_tm(A_54)
+infer_tm(A_54)
+infer_tm(Type‹s_62›)
+infer_tm(A_63)
+infer_tm((eq_4‹??_2› ?_2 m_64 m_64))
+check_tm(?_2, Type‹??_2›)
+check_tm(m_64, ?_2)
+infer_tm(m_64)
+check_tm(m_64, ?_2)
+infer_tm(m_64)
+loop_check(?_2 Type‹??_2›)
+loop_check(?_2 Type‹??_2›)
+loop_check(A_63 Type‹s_62›)
+infer_tm(Type‹s_62›)
+check_tm(A_63, Type‹s_62›)
+infer_tm(A_63)
 infer_tm((sing_3‹??_6› nat_2 (succ_3‹› zero_2)) -> unit_1)
 infer_tm((sing_3‹??_6› nat_2 (succ_3‹› zero_2)))
 check_tm(nat_2, Type‹??_6›)
@@ -146,19 +152,19 @@ infer_tm((succ_3‹› zero_2))
 check_tm(zero_2, nat_2)
 infer_tm(zero_2)
 infer_tm(unit_1)
-check_tm(function test_49 :
+check_tm(function test_74 :
            (sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1
-         | (just_4 x_51) =>
-           let pf_52 :=
+         | (just_4 x_76) =>
+           let pf_77 :=
              (eq_refl_5‹??_4›
-               : (eq_4‹??_5› ?_5 x_51 (succ_3‹› zero_2)))
-           in tt_1, (sing_3‹??_6› nat_2 (succ_3‹› zero_2)) -> unit_1)
-infer_tm(function test_54 :
+               : (eq_4‹??_5› ?_5 x_76 (succ_3‹› zero_2)))
+           in tt_1, (sing_3‹U› nat_2 (succ_3‹› zero_2)) -> unit_1)
+infer_tm(function test_79 :
            (sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1
-         | (just_4 x_56) =>
-           let pf_57 :=
+         | (just_4 x_81) =>
+           let pf_82 :=
              (eq_refl_5‹??_4›
-               : (eq_4‹??_5› ?_5 x_56 (succ_3‹› zero_2)))
+               : (eq_4‹??_5› ?_5 x_81 (succ_3‹› zero_2)))
            in tt_1)
 infer_tm((sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1)
 infer_tm((sing_3‹??_3› nat_2 (succ_3‹› zero_2)))
@@ -169,12 +175,34 @@ infer_tm((succ_3‹› zero_2))
 check_tm(zero_2, nat_2)
 infer_tm(zero_2)
 infer_tm(unit_1)
-check_tm(let pf_64 :=
+case_coverage{|
+  prblm {|
+    eq_term?( (sing_3‹U› nat_2 (succ_3‹› zero_2)),
+      (sing_3‹U› nat_2 #m_89));
+    {| eq_pat?( #m_89, x_86 : nat_2) ::: [] =>?
+         let pf_91 :=
+           (eq_refl_5‹??_4›
+             : (eq_4‹??_5› ?_5 #x_86 (succ_3‹› zero_2)))
+         in tt_1
+    |}
+  |}
+|}
+solve_pprm(
+  eq_term?( (sing_3‹U› nat_2 (succ_3‹› zero_2)),
+    (sing_3‹U› nat_2 #m_89))
+  eq_pat?( #m_89, x_86 : nat_2)
+)
+case_coverage_ok(let pf_94 :=
+                   (eq_refl_5‹??_4›
+                     : (eq_4‹??_5›
+                         ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
+                 in tt_1, unit_1)
+check_tm(let pf_95 :=
            (eq_refl_5‹??_4›
              : (eq_4‹??_5›
                  ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
          in tt_1, unit_1)
-infer_tm(let pf_65 :=
+infer_tm(let pf_96 :=
            (eq_refl_5‹??_4›
              : (eq_4‹??_5›
                  ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
@@ -198,8 +226,72 @@ infer_tm(eq_refl_5‹??_4›)
 check_tm(?_3, Type‹??_4›)
 check_tm(?_4, ?_3)
 infer_tm(tt_1)
-error -----------------------------------
+loop_check(?_3 Type‹??_4›)
+loop_check(?_3 Type‹??_4›)
+loop_check(nat_2 Type‹??_4›)
+infer_tm(Type‹??_4›)
+check_tm(nat_2, Type‹??_4›)
+infer_tm(nat_2)
+loop_check(?_4 ?_3)
+loop_check(?_4 ?_3)
+loop_check((succ_3‹› zero_2) nat_2)
+infer_tm(nat_2)
+check_tm((succ_3‹› zero_2), nat_2)
+infer_tm((succ_3‹› zero_2))
+check_tm(zero_2, nat_2)
+infer_tm(zero_2)
+loop_check(?_5 Type‹??_5›)
+loop_check(?_5 Type‹??_5›)
+loop_check(nat_2 U)
+infer_tm(U)
+check_tm(nat_2, U)
+infer_tm(nat_2)
+smeta_meta {|
+  ??_1 <= s_114
+  ??_2 <= s_115
+  ??_3 <= U
+  ??_4 <= U
+  ??_5 <= ??_4
+  ??_6 <= U
+  
+|}
+imeta_meta {|
+  ?_1 <= A_118
+  ?_2 <= A_121
+  ?_3 <= nat_2
+  ?_4 <= (succ_3‹› zero_2)
+  ?_5 <= nat_2
+  
+|}
 
-unifier1.simpl_pprm((eq_4‹??_5›
-                      nat_2 (succ_3‹› zero_2) (succ_3‹› zero_2)), 
-(eq_4‹??_4› ?_3 ?_4 ?_4))
+#[program]
+inductive unit_1‹› : U where
+| tt_1 : unit_1
+
+#[program]
+inductive nat_2‹› : U where
+| zero_2 : nat_2
+| succ_3 (n_157 : nat_2) : nat_2
+
+#[program]
+inductive sing_3‹s_158› (A_159 : Type‹s_158›):
+  A_159 -> Type‹s_158›
+where
+| just_4 (m_161 : A_159) : (sing_3‹s_158› A_159 m_161)
+
+#[logical]
+inductive eq_4‹s_162› (A_163 : Type‹s_162›) (m_164 : A_163):
+  A_163 -> U
+where
+| eq_refl_5 : (eq_4‹s_162› A_163 m_164 m_164)
+
+#[program]
+def test_1‹› : (sing_3‹U› nat_2 (succ_3‹› zero_2)) -> unit_1 :=
+  function test_167 : (sing_3‹U› nat_2 (succ_3‹› zero_2)) -> unit_1
+  | (just_4 x_169) =>
+    let pf_170 :=
+      (eq_refl_5‹U› : (eq_4‹U› nat_2 x_169 (succ_3‹› zero_2)))
+    in tt_1
+
+-----------------------------------------
+
