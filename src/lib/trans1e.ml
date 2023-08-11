@@ -463,8 +463,6 @@ let rec check_dcls ctx dcls =
     let ss, (m, a) = unmbind sch in
     let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
     assert_type ctx0 a;
-    let meta_map = solve_delayed (State.get_delayed ()) in
-    let a = resolve_tm meta_map a in
     check_tm ctx0 m a;
     let meta_map = solve_delayed (State.get_delayed ()) in
     let sch =
@@ -477,15 +475,14 @@ let rec check_dcls ctx dcls =
     check_dcls ctx dcls
   | Inductive { name = ind; relv; arity; dconstrs } :: dcls ->
     check_arity ctx arity;
+    let ctx0 = Ctx.add_ind ind (arity, []) ctx in
+    check_dconstrs ind ctx0 dconstrs;
     let meta_map = solve_delayed (State.get_delayed ()) in
     let arity =
       resolve_scheme (lift_param lift_tele)
         (resolve_param lift_tele resolve_tele)
         meta_map arity
     in
-    let ctx0 = Ctx.add_ind ind (arity, []) ctx in
-    check_dconstrs ind ctx0 dconstrs;
-    let meta_map = solve_delayed (State.get_delayed ()) in
     let dconstrs = resolve_dconstrs meta_map dconstrs in
     let cs, ctx =
       List.fold_right
