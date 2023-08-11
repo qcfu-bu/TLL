@@ -3,6 +3,7 @@ open TLL
 open Bindlib
 open Sedlexing
 open Parser
+open Debug
 
 let rec normalize_dcls ctx dcls =
   let open Syntax1 in
@@ -40,6 +41,7 @@ let _ =
     if Array.length Sys.argv < 1 then
       epr "input file expected@."
     else
+      let _ = Debug.enable () in
       let src_name = Sys.argv.(1) in
       let src_ch = open_in src_name in
       let dcls0 = parse (Utf8.from_channel src_ch) in
@@ -48,12 +50,8 @@ let _ =
       let _, dcls1 = Trans01.trans_dcls [] dcls0 in
       pr "%a" Pprint1.pp_dcls dcls1;
       pr "@.@.-----------------------------------------@.@.";
-      let prbms =
-        let open Context1 in
-        let open Equality1 in
-        Trans1e.check_dcls Ctx.empty dcls1
-      in
-      pr "%a" pp_prbms prbms;
+      let dcls1e = Trans1e.trans_dcls dcls1 in
+      pr "%a" Pprint1.pp_dcls dcls1e;
       pr "@.@.-----------------------------------------@.@."
   with
   | Failure s ->

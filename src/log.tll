@@ -23,11 +23,7 @@
                  [(DMul ("just",
                      (TBind (R, (Id "A"),
                         (Binder ("m",
-                           (TBase
-                              (App
-                                 [(Inst ("sing", [(SId "s")])); (Id "A");
-                                   (Id "m")]))
-                           ))
+                           (TBase (App [(Id "sing"); (Id "_"); (Id "m")]))))
                         ))
                      ))
                    ]))
@@ -94,61 +90,116 @@ inductive nat_2‹› : U where
 #[program]
 inductive sing_3‹s_20› (A_21 : Type‹s_20›): A_21 -> Type‹s_20›
 where
-| just_4 (m_23 : A_21) : (sing_3‹s_20› A_21 m_23)
+| just_4 (m_23 : A_21) : (sing_3‹??_1› ?_1 m_23)
 
 #[logical]
 inductive eq_4‹s_24› (A_25 : Type‹s_24›) (m_26 : A_25): A_25 -> U
 where
-| eq_refl_5 : (eq_4‹??_1› ?_1 m_26 m_26)
+| eq_refl_5 : (eq_4‹??_2› ?_2 m_26 m_26)
 
 #[program]
-def test_1‹› : (sing_3‹??_5› nat_2 (succ_3‹› zero_2)) -> unit_1
+def test_1‹› : (sing_3‹??_6› nat_2 (succ_3‹› zero_2)) -> unit_1
 :=
-  function test_29 : (sing_3‹??_2› nat_2 (succ_3‹› zero_2)) -> unit_1
+  function test_29 : (sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1
   | (just_4 x_31) =>
     let pf_32 :=
-      (eq_refl_5‹??_3› : (eq_4‹??_4› ?_4 x_31 (succ_3‹› zero_2)))
+      (eq_refl_5‹??_4› : (eq_4‹??_5› ?_5 x_31 (succ_3‹› zero_2)))
     in tt_1
 
 -----------------------------------------
 
-group0 {|
-  
-  
-|}
+infer_tm(unit_1)
+infer_tm(nat_2)
+infer_tm(nat_2)
+infer_tm(nat_2)
+infer_tm(Type‹s_34›)
+infer_tm(A_35)
+infer_tm(Type‹s_37›)
+infer_tm(A_38)
+infer_tm((sing_3‹??_1› ?_1 m_39))
+check_tm(?_1, Type‹??_1›)
+check_tm(m_39, ?_1)
+infer_tm(m_39)
+infer_tm(Type‹s_37›)
+check_tm(A_38, Type‹s_37›)
+infer_tm(A_38)
+infer_tm(Type‹s_40›)
+infer_tm(A_41)
+infer_tm(A_41)
+infer_tm(Type‹s_44›)
+infer_tm(A_45)
+infer_tm((eq_4‹??_2› ?_2 m_46 m_46))
+check_tm(?_2, Type‹??_2›)
+check_tm(m_46, ?_2)
+infer_tm(m_46)
+check_tm(m_46, ?_2)
+infer_tm(m_46)
+infer_tm(Type‹s_44›)
+check_tm(A_45, Type‹s_44›)
+infer_tm(A_45)
+infer_tm((sing_3‹??_6› nat_2 (succ_3‹› zero_2)) -> unit_1)
+infer_tm((sing_3‹??_6› nat_2 (succ_3‹› zero_2)))
+check_tm(nat_2, Type‹??_6›)
+infer_tm(nat_2)
+check_tm((succ_3‹› zero_2), nat_2)
+infer_tm((succ_3‹› zero_2))
+check_tm(zero_2, nat_2)
+infer_tm(zero_2)
+infer_tm(unit_1)
+check_tm(function test_49 :
+           (sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1
+         | (just_4 x_51) =>
+           let pf_52 :=
+             (eq_refl_5‹??_4›
+               : (eq_4‹??_5› ?_5 x_51 (succ_3‹› zero_2)))
+           in tt_1, (sing_3‹??_6› nat_2 (succ_3‹› zero_2)) -> unit_1)
+infer_tm(function test_54 :
+           (sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1
+         | (just_4 x_56) =>
+           let pf_57 :=
+             (eq_refl_5‹??_4›
+               : (eq_4‹??_5› ?_5 x_56 (succ_3‹› zero_2)))
+           in tt_1)
+infer_tm((sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1)
+infer_tm((sing_3‹??_3› nat_2 (succ_3‹› zero_2)))
+check_tm(nat_2, Type‹??_3›)
+infer_tm(nat_2)
+check_tm((succ_3‹› zero_2), nat_2)
+infer_tm((succ_3‹› zero_2))
+check_tm(zero_2, nat_2)
+infer_tm(zero_2)
+infer_tm(unit_1)
+check_tm(let pf_64 :=
+           (eq_refl_5‹??_4›
+             : (eq_4‹??_5›
+                 ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
+         in tt_1, unit_1)
+infer_tm(let pf_65 :=
+           (eq_refl_5‹??_4›
+             : (eq_4‹??_5›
+                 ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
+         in tt_1)
+infer_tm((eq_refl_5‹??_4›
+           : (eq_4‹??_5› ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2))))
+infer_tm((eq_4‹??_5› ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
+check_tm(?_5, Type‹??_5›)
+check_tm((succ_3‹› zero_2), ?_5)
+infer_tm((succ_3‹› zero_2))
+check_tm(zero_2, nat_2)
+infer_tm(zero_2)
+check_tm((succ_3‹› zero_2), ?_5)
+infer_tm((succ_3‹› zero_2))
+check_tm(zero_2, nat_2)
+infer_tm(zero_2)
+check_tm(eq_refl_5‹??_4›, (eq_4‹??_5›
+                                ?_5 (succ_3‹› zero_2)
+                                (succ_3‹› zero_2)))
+infer_tm(eq_refl_5‹??_4›)
+check_tm(?_3, Type‹??_4›)
+check_tm(?_4, ?_3)
+infer_tm(tt_1)
+error -----------------------------------
 
-group1 {|
-  
-  
-|}
-
-group2 {|
-  
-  
-|}
-
-group3 {|
-  equal_tm? (?_1, A_45);
-  equal_tm? (?_1, A_45);
-  equal_tm? (A_45, ?_1);
-  equal_sort? (s_44, ??_1)
-  ?_1 :? Type‹??_1›
-|}
-
-group4 {|
-  equal_tm? ((sing_3‹??_5› nat_2 (succ_3‹› zero_2)) -> unit_1,
-    (sing_3‹??_2› nat_2 (succ_3‹› zero_2)) -> unit_1);
-  equal_tm?
-    ((eq_4‹??_4› ?_4 (succ_3‹› zero_2) (succ_3‹› zero_2)),
-    (eq_4‹??_1› ?_1 ?_3 ?_3));
-  equal_tm? (?_4, nat_2);
-  equal_tm? (?_4, nat_2);
-  equal_tm? (Type‹??_2›, U);
-  equal_tm? (Type‹??_5›, U)
-  ?_2 :? Type‹??_3›
-  ?_3 :? ?_2
-  ?_4 :? Type‹??_4›
-|}
-
------------------------------------------
-
+unifier1.simpl_pprm((eq_4‹??_5›
+                      nat_2 (succ_3‹› zero_2) (succ_3‹› zero_2)), 
+(eq_4‹??_4› ?_3 ?_4 ?_4))

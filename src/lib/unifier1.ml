@@ -2,10 +2,214 @@ open Fmt
 open Bindlib
 open Names
 open Syntax1
+open Context1
 open Equality1
 open Constraint1
 open Pprint1
+open Debug
 
+(* subst meta-variables *)
+type smeta_map = (sort, sort) mbinder SMeta.Map.t
+type imeta_map = (sort, (tm, tm) mbinder) mbinder IMeta.Map.t
+type meta_map = smeta_map * imeta_map
+
+let pp_smeta fmt (smeta_map : smeta_map) =
+  let aux fmt smeta_map =
+    SMeta.Map.iter
+      (fun x bnd ->
+        let _, s = unmbind bnd in
+        pf fmt "??%a <= %a@;<1 0>" SMeta.pp x pp_sort s)
+      smeta_map
+  in
+  pf fmt "@[<v 0>smeta_meta {|@;<1 2>@[<v 0>%a@]@;<1 0>|}@]" aux smeta_map
+
+let pp_imeta fmt (imeta_map : imeta_map) =
+  let aux fmt imeta_map =
+    IMeta.Map.iter
+      (fun x bnd ->
+        let _, bnd = unmbind bnd in
+        let _, m = unmbind bnd in
+        pf fmt "?%a <= %a@;<1 0>" IMeta.pp x pp_tm m)
+      imeta_map
+  in
+  pf fmt "@[<v 0>imeta_meta {|@;<1 2>@[<v 0>%a@]@;<1 0>|}@]" aux imeta_map
+
+let pp_meta fmt (meta_map : meta_map) =
+  let smeta_map, imeta_map = meta_map in
+  pf fmt "%a@.%a@." pp_smeta smeta_map pp_imeta imeta_map
+
+let rec resolve_sort (smeta_map : smeta_map) = function
+  | SMeta (x, ss) as s -> (
+    match SMeta.Map.find_opt x smeta_map with
+    | Some bnd -> resolve_sort smeta_map (msubst bnd (Array.of_list ss))
+    | None -> s)
+  | s -> s
+
+let resolve_tm (meta_map : meta_map) m =
+  let smeta_map, imeta_map = meta_map in
+  let aux_sort = resolve_sort smeta_map in
+  let rec aux_tm = function
+    (* inference *)
+    | Ann (m, a) -> Ann (aux_tm m, aux_tm a)
+    | IMeta (x, ss, xs) as m -> (
+      match IMeta.Map.find_opt x imeta_map with
+      | Some bnd ->
+        let bnd = msubst bnd (Array.of_list ss) in
+        let m = msubst bnd (Array.of_list xs) in
+        aux_tm m
+      | None -> m)
+    | PMeta x -> PMeta x
+    (* core *)
+    | Type s -> Type (aux_sort s)
+    | Var x -> Var x
+    | Const (x, ss) -> Const (x, List.map aux_sort ss)
+    | Pi (relv, s, a, bnd) ->
+      let s = aux_sort s in
+      let a = aux_tm a in
+      let bnd = binder_compose bnd aux_tm in
+      Pi (relv, s, a, bnd)
+    | Fun (a, bnd) ->
+      let a = aux_tm a in
+      let bnd =
+        binder_compose bnd
+          (List.map (fun (p0s, bnd) ->
+               (p0s, mbinder_compose bnd (Option.map aux_tm))))
+      in
+      Fun (a, bnd)
+    | App (m, n) -> App (aux_tm m, aux_tm n)
+    | Let (relv, m, bnd) -> Let (relv, aux_tm m, binder_compose bnd aux_tm)
+    (* inductive *)
+    | Ind (d, ss, ms, ns) ->
+      Ind (d, List.map aux_sort ss, List.map aux_tm ms, List.map aux_tm ns)
+    | Constr (c, ss, ms, ns) ->
+      Constr (c, List.map aux_sort ss, List.map aux_tm ms, List.map aux_tm ns)
+    | Match (ms, a, cls) ->
+      let ms = List.map aux_tm ms in
+      let a = aux_tm a in
+      let cls =
+        List.map
+          (fun (p0s, bnd) -> (p0s, mbinder_compose bnd (Option.map aux_tm)))
+          cls
+      in
+      Match (ms, a, cls)
+    (* monad *)
+    | IO a -> IO (aux_tm a)
+    | Return m -> Return (aux_tm m)
+    | MLet (m, bnd) -> MLet (aux_tm m, binder_compose bnd aux_tm)
+    (* magic *)
+    | Magic a -> Magic (aux_tm a)
+  in
+  aux_tm m
+
+let resolve_param resolve (meta_map : meta_map) param =
+  let rec aux = function
+    | PBase a -> PBase (resolve meta_map a)
+    | PBind (a, bnd) ->
+      let a = resolve_tm meta_map a in
+      let bnd = binder_compose bnd aux in
+      PBind (a, bnd)
+  in
+  aux param
+
+let resolve_tele (meta_map : meta_map) tele =
+  let rec aux = function
+    | TBase a -> TBase (resolve_tm meta_map a)
+    | TBind (relv, a, bnd) ->
+      let a = resolve_tm meta_map a in
+      let bnd = binder_compose bnd aux in
+      TBind (relv, a, bnd)
+  in
+  aux tele
+
+let resolve_dconstr (meta_map : meta_map) (mode, c, sch) =
+  let sch = mbinder_compose sch (resolve_param resolve_tele meta_map) in
+  (mode, c, sch)
+
+let resolve_dconstrs (meta_map : meta_map) dconstrs =
+  List.map (resolve_dconstr meta_map) dconstrs
+
+let resolve_dcl (meta_map : meta_map) = function
+  | Definition { name; relv; scheme = sch } ->
+    let sch =
+      mbinder_compose sch (fun (m, a) ->
+          (resolve_tm meta_map m, resolve_tm meta_map a))
+    in
+    Definition { name; relv; scheme = sch }
+  | Inductive { name; relv; arity; dconstrs } ->
+    let arity = mbinder_compose arity (resolve_param resolve_tele meta_map) in
+    let dconstrs = resolve_dconstrs meta_map dconstrs in
+    Inductive { name; relv; arity; dconstrs }
+
+let resolve_dcls meta_map dcls = List.map (resolve_dcl meta_map) dcls
+
+let presolve_tm var_map m =
+  let rec aux = function
+    (* inference *)
+    | Ann (m, a) -> Ann (aux m, aux a)
+    | IMeta (x, ss, ms) -> IMeta (x, ss, List.map aux ms)
+    | PMeta x -> (
+      match Var.Map.find_opt x var_map with
+      | Some m -> aux m
+      | _ -> PMeta x)
+    (* core *)
+    | Type s -> Type s
+    | Var x -> Var x
+    | Const (x, ss) -> Const (x, ss)
+    | Pi (relv, s, a, bnd) -> Pi (relv, s, aux a, binder_compose bnd aux)
+    | Fun (a, bnd) ->
+      let a = aux a in
+      let bnd =
+        binder_compose bnd
+          (List.map (fun (p0s, bnd) ->
+               (p0s, mbinder_compose bnd (Option.map aux))))
+      in
+      Fun (a, bnd)
+    | App (m, n) -> App (aux m, aux n)
+    | Let (relv, m, bnd) -> Let (relv, aux m, binder_compose bnd aux)
+    (* inductive *)
+    | Ind (d, ss, ms, ns) -> Ind (d, ss, List.map aux ms, List.map aux ns)
+    | Constr (c, ss, ms, ns) -> Constr (c, ss, List.map aux ms, List.map aux ns)
+    | Match (ms, a, cls) ->
+      let ms = List.map aux ms in
+      let a = aux a in
+      let cls =
+        List.map
+          (fun (p0s, bnd) -> (p0s, mbinder_compose bnd (Option.map aux)))
+          cls
+      in
+      Match (ms, a, cls)
+    (* monad *)
+    | IO a -> IO (aux a)
+    | Return m -> Return (aux m)
+    | MLet (m, bnd) -> MLet (aux m, binder_compose bnd aux)
+    (* magic *)
+    | Magic a -> Magic (aux a)
+  in
+  aux m
+
+let resolve_ctx meta_map (ctx : Ctx.t) =
+  let var =
+    Var.Map.map
+      (fun (m_opt, a) ->
+        let m_opt = Option.map (resolve_tm meta_map) m_opt in
+        let a = resolve_tm meta_map a in
+        (m_opt, a))
+      ctx.var
+  in
+  { ctx with var }
+
+let presolve_ctx var_map (ctx : Ctx.t) =
+  let var =
+    Var.Map.map
+      (fun (m_opt, a) ->
+        let m_opt = Option.map (presolve_tm var_map) m_opt in
+        let a = presolve_tm var_map a in
+        (m_opt, a))
+      ctx.var
+  in
+  { ctx with var }
+
+(* occurs checking *)
 let rec occurs_sort x = function
   | SMeta (y, ss) -> SMeta.equal x y || List.exists (occurs_sort x) ss
   | _ -> false
@@ -132,7 +336,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
       with
       | _ ->
         if expand then
-          failwith "unifier1.solve_pprbm(App)"
+          [ eqn ]
         else
           simpl_iprbm ~expand:true (EqualTerm (ctx, m1, m2)))
     | Let (relv1, m1, bnd1), Let (relv2, m2, bnd2) when relv1 = relv2 ->
@@ -203,7 +407,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
       else
         simpl_iprbm ~expand:true (EqualTerm (ctx, m1, m2)))
 
-let solve_iprbm (eqns : IPrbm.eqns) =
+let solve_iprbm (smeta_map, imeta_map) (eqn : IPrbm.eqn) =
   let open IPrbm in
   let svar_spine sp =
     List.map
@@ -219,53 +423,49 @@ let solve_iprbm (eqns : IPrbm.eqns) =
         | _ -> Var.mk "")
       sp
   in
-  let solve (smeta_map, imeta_map) = function
-    | EqualSort (s1, s2) -> (
-      match (s1, s2) with
-      | _, SMeta (x, xs) ->
-        if occurs_sort x s1 then
-          (smeta_map, imeta_map)
-        else
-          let xs = svar_spine xs in
-          let bnd = bind_mvar (Array.of_list xs) (lift_sort s1) in
-          (SMeta.Map.add x (unbox bnd) smeta_map, imeta_map)
-      | _ -> (smeta_map, imeta_map))
-    | EqualTerm (ctx, m1, m2) -> (
-      match (m1, m2) with
-      | _, IMeta (x, ss, xs) ->
-        if occurs_tm x m1 then
-          (smeta_map, imeta_map)
-        else
-          let ss = svar_spine ss in
-          let xs = var_spine xs in
-          let bnd = bind_mvar (Array.of_list xs) (lift_tm m1) in
-          let bnd = bind_mvar (Array.of_list ss) bnd in
-          (smeta_map, IMeta.Map.add x (unbox bnd) imeta_map)
-      | _ -> (smeta_map, imeta_map))
-  in
-  let rec loop meta_map eqns =
-    match eqns with
-    | [] -> meta_map
-    | _ ->
-      let smeta_map, imeta_map = meta_map in
-      let eqns =
-        List.map
-          (function
-            | EqualSort (s1, s2) ->
-              EqualSort (subst_smeta smeta_map s1, subst_smeta smeta_map s2)
-            | EqualTerm (ctx, m1, m2) ->
-              EqualTerm (ctx, subst_imeta meta_map m1, subst_imeta meta_map m2))
-          eqns
-      in
-      let eqns = List.concat_map simpl_iprbm eqns in
-      let meta_map = List.fold_left solve meta_map eqns in
-      loop meta_map eqns
-  in
-  loop (SMeta.Map.empty, IMeta.Map.empty) eqns
+  match eqn with
+  | EqualSort (s1, s2) -> (
+    match (s1, s2) with
+    | _, SMeta (x, xs) ->
+      if occurs_sort x s1 then
+        (smeta_map, imeta_map, None)
+      else
+        let xs = svar_spine xs in
+        let bnd = bind_mvar (Array.of_list xs) (lift_sort s1) in
+        (SMeta.Map.add x (unbox bnd) smeta_map, imeta_map, None)
+    | _ -> (smeta_map, imeta_map, Some eqn))
+  | EqualTerm (ctx, m1, m2) -> (
+    match (m1, m2) with
+    | _, IMeta (x, ss, xs) ->
+      if occurs_tm x m1 then
+        (smeta_map, imeta_map, None)
+      else
+        let ss = svar_spine ss in
+        let xs = var_spine xs in
+        let bnd = bind_mvar (Array.of_list xs) (lift_tm m1) in
+        let bnd = bind_mvar (Array.of_list ss) bnd in
+        (smeta_map, IMeta.Map.add x (unbox bnd) imeta_map, None)
+    | _ -> (smeta_map, imeta_map, Some eqn))
 
-let resolve_iprbm (eqns : IPrbm.eqns) (m : tm) : tm =
-  let meta_map = solve_iprbm eqns in
-  subst_imeta meta_map m
+let unify_iprbm ((smeta_map, imeta_map) as meta_map) (eqns : IPrbm.eqns) =
+  let open IPrbm in
+  let eqns =
+    List.map
+      (function
+        | EqualSort (s1, s2) ->
+          EqualSort (resolve_sort smeta_map s1, resolve_sort smeta_map s2)
+        | EqualTerm (ctx, m1, m2) ->
+          EqualTerm (ctx, resolve_tm meta_map m1, resolve_tm meta_map m2))
+      eqns
+  in
+  let eqns = List.concat_map simpl_iprbm eqns in
+  List.fold_left
+    (fun (meta_map, acc) eqn ->
+      let smeta_map, imeta_map, eqn_opt = solve_iprbm meta_map eqn in
+      match eqn_opt with
+      | Some eqn -> ((smeta_map, imeta_map), eqn :: acc)
+      | None -> ((smeta_map, imeta_map), acc))
+    (meta_map, []) eqns
 
 let rec simpl_pprbm ?(expand = false) eqn =
   let open PPrbm in
@@ -419,4 +619,4 @@ let solve_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
 
 let resolve_pprbm (eqns : PPrbm.eqns) (m : tm) : tm =
   let var_map = solve_pprbm eqns in
-  subst_pmeta var_map m
+  presolve_tm var_map m

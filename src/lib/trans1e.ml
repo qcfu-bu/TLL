@@ -7,6 +7,7 @@ open Constraint1
 open Equality1
 open Unifier1
 open Pprint1
+open Debug
 
 module State : sig
   type t
@@ -14,16 +15,22 @@ module State : sig
   val add_eqn : IPrbm.eqn -> unit
   val add_imeta : Ctx.t -> IMeta.t -> sorts -> tms -> tm -> unit
   val find_imeta : IMeta.t -> tm option
-  val init : unit -> unit
-  val export_eqns : unit -> IPrbm.eqns
-  val export_mctx : unit -> MCtx.t
+  val resolve : tm -> tm
+  val export_mctx : unit -> (Ctx.t * tm * tm) list
+  val export_meta : unit -> meta_map
 end = struct
   type t =
     { mutable eqns : IPrbm.eqns
     ; mutable mctx : MCtx.t
+    ; mutable meta_map : meta_map
     }
 
-  let state : t = { eqns = []; mctx = MCtx.empty }
+  let state : t =
+    { eqns = []
+    ; mctx = MCtx.empty
+    ; meta_map = (SMeta.Map.empty, IMeta.Map.empty)
+    }
+
   let add_eqn prbm = state.eqns <- prbm :: state.eqns
 
   let add_imeta ctx x ss xs a =
@@ -31,12 +38,28 @@ end = struct
 
   let find_imeta x = MCtx.find_imeta x state.mctx
 
-  let init () =
-    state.eqns <- [];
-    state.mctx <- MCtx.empty
+  let resolve m =
+    let meta_map, eqns = unify_iprbm state.meta_map state.eqns in
+    state.meta_map <- meta_map;
+    state.eqns <- eqns;
+    resolve_tm meta_map m
 
-  let export_eqns () = state.eqns
-  let export_mctx () = state.mctx
+  let export_mctx () =
+    let mctx = state.mctx in
+    state.mctx <- MCtx.empty;
+    MCtx.entries mctx
+
+  let rec export_meta () =
+    let meta_map, eqns = unify_iprbm state.meta_map state.eqns in
+    match eqns with
+    | [] ->
+      state.meta_map <- meta_map;
+      state.eqns <- eqns;
+      meta_map
+    | _ ->
+      state.meta_map <- meta_map;
+      state.eqns <- eqns;
+      export_meta ()
 end
 
 let has_failed f =
@@ -65,12 +88,13 @@ let assert_equal1 ctx m1 m2 =
 
 let rec assert_type ctx a =
   let t = infer_tm ctx a in
-  let t = resolve_iprbm (State.export_eqns ()) t in
+  let t = State.resolve t in
   match whnf ~expand:true ctx t with
   | Type _ -> ()
   | _ -> failwith "trans1e.assert_type"
 
 and infer_tm ctx m : tm =
+  Debug.exec (fun () -> pr "infer_tm(%a)@." pp_tm m);
   match m with
   (* inference *)
   | Ann (m, a) ->
@@ -103,7 +127,7 @@ and infer_tm ctx m : tm =
     a
   | App (m, n) -> (
     let t = infer_tm ctx m in
-    let t = resolve_iprbm (State.export_eqns ()) t in
+    let t = State.resolve t in
     match whnf ~expand:true ctx t with
     | Pi (_, _, a, bnd) ->
       check_tm ctx n a;
@@ -133,12 +157,12 @@ and infer_tm ctx m : tm =
   | Return m -> IO (infer_tm ctx m)
   | MLet (m, bnd) -> (
     let t1 = infer_tm ctx m in
-    let t1 = resolve_iprbm (State.export_eqns ()) t1 in
+    let t1 = State.resolve t1 in
     match whnf ~expand:true ctx t1 with
     | IO a -> (
       let x, n = unbind bnd in
       let t2 = infer_tm (Ctx.add_var0 x a ctx) n in
-      let t2 = resolve_iprbm (State.export_eqns ()) t2 in
+      let t2 = State.resolve t2 in
       match whnf ~expand:true ctx t2 with
       | IO b -> IO b
       | _ -> failwith "trans1e.MLet")
@@ -191,6 +215,7 @@ and infer_motive ctx ms a =
   | _ -> failwith "trans1e.infer_motive"
 
 and check_tm ctx m a : unit =
+  Debug.exec (fun () -> pr "check_tm(%a, %a)@." pp_tm m pp_tm a);
   match m with
   (* inference *)
   | IMeta (x, ss, xs) -> State.add_imeta ctx x ss xs a
@@ -285,8 +310,8 @@ and check_cls ctx cls a : unit =
               Constr (c, ss, ms, List.map (fun (_, x, _) -> PMeta x) args)
             in
             let var_map = Var.Map.singleton x m in
-            let a = subst_pmeta var_map a in
-            let ctx = Ctx.subst_pmeta var_map ctx in
+            let a = presolve_tm var_map a in
+            let ctx = presolve_ctx var_map ctx in
             let prbm = prbm_simpl ctx var_map prbm in
             let prbm =
               PPrbm.{ prbm with global = EqualTerm (ctx, b, t) :: prbm.global }
@@ -297,17 +322,17 @@ and check_cls ctx cls a : unit =
     (* case coverage *)
     | (eqns, [], rhs) :: _ ->
       let var_map = solve_pprbm (prbm.global @ eqns) in
-      let a = subst_pmeta var_map a in
-      let ctx = Ctx.subst_pmeta var_map ctx in
+      let a = presolve_tm var_map a in
+      let ctx = presolve_ctx var_map ctx in
       let rhs =
         match rhs with
-        | Some m -> subst_pmeta var_map m
+        | Some m -> presolve_tm var_map m
         | None -> failwith "trans1e.check_cls(Cover)"
       in
       check_tm ctx rhs a
   in
   let prbm = PPrbm.of_cls cls in
-  let a = resolve_iprbm (State.export_eqns ()) a in
+  let a = State.resolve a in
   aux_prbm ctx prbm a
 
 and prbm_add ctx prbm x a =
@@ -325,8 +350,8 @@ and prbm_simpl ctx var_map prbm =
   let rec aux_global = function
     | [] -> []
     | PPrbm.EqualTerm (ctx, a, b) :: eqns ->
-      let a = subst_pmeta var_map a in
-      let b = subst_pmeta var_map b in
+      let a = presolve_tm var_map a in
+      let b = presolve_tm var_map b in
       let eqns = aux_global eqns in
       PPrbm.EqualTerm (ctx, a, b) :: eqns
     | PPrbm.EqualPat _ :: _ -> failwith "trans1e.prbm_simpl(Global)"
@@ -340,8 +365,8 @@ and prbm_simpl ctx var_map prbm =
           (fun acc eqn ->
             match (acc, eqn) with
             | Some acc, PPrbm.EqualPat (ctx, l, r, a) -> (
-              let l = subst_pmeta var_map l in
-              let a = subst_pmeta var_map a in
+              let l = presolve_tm var_map l in
+              let a = presolve_tm var_map a in
               match p_simpl ctx l r a with
               | Some eqns -> Some (acc @ eqns)
               | None -> None)
@@ -412,52 +437,52 @@ and ps_simpl ctx ms ps tele =
   | _ -> None
 
 let rec check_dcls ctx dcls =
-  let rec loop meta_map entries =
+  let rec loop entries =
     match entries with
-    | [] -> _
-    | (ctx, m, a) :: mctx ->
-      let ctx = Ctx.subst_imeta meta_map ctx in
-      let m = subst_imeta meta_map m in
-      let a = subst_imeta meta_map a in
-      State.init ();
+    | [] -> State.export_meta ()
+    | (ctx, m, a) :: entries ->
+      let meta_map = State.export_meta () in
+      let ctx = resolve_ctx meta_map ctx in
+      let m = resolve_tm meta_map m in
+      let a = resolve_tm meta_map a in
+      assert_type ctx a;
       check_tm ctx m a;
-      let eqns = State.export_eqns in
-      let mctx = State.export_mctx in
-      _
+      let entries0 = State.export_mctx () in
+      loop (entries0 @ entries)
   in
   match dcls with
   | Definition { name = x; relv; scheme = sch } :: dcls ->
     let ss, (m, a) = unmbind sch in
     let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
-    State.init ();
     assert_type ctx0 a;
     check_tm ctx0 m a;
-    let eqns = State.export_eqns () in
-    let mctx = State.export_mctx () in
-    let mctx = MCtx.entries mctx in
-    let prbms =
-      let ctx = Ctx.add_const x sch ctx in
-      check_dcls ctx dcls
+    let entries = State.export_mctx () in
+    let meta_map = loop entries in
+    let sch =
+      mbinder_compose sch (fun (m, a) ->
+          (resolve_tm meta_map m, resolve_tm meta_map a))
     in
-    prbm :: prbms
+    let ctx = Ctx.add_const x sch ctx in
+    check_dcls ctx dcls
   | Inductive { name = ind; relv; arity; dconstrs } :: dcls ->
-    State.init ();
     check_arity ctx arity;
+    let entries = State.export_mctx () in
+    let meta_map = loop entries in
+    let arity = mbinder_compose arity (resolve_param resolve_tele meta_map) in
     let ctx0 = Ctx.add_ind ind (arity, []) ctx in
     check_dconstrs ind ctx0 dconstrs;
-    let prbm = State.(export_eqns (), export_mctx ()) in
-    let prbms =
-      let cs, ctx =
-        List.fold_right
-          (fun (mode, c, sch) (acc, ctx) ->
-            (c :: acc, Ctx.add_constr c (sch, mode) ctx))
-          dconstrs ([], ctx)
-      in
-      let ctx = Ctx.add_ind ind (arity, cs) ctx in
-      check_dcls ctx dcls
+    let entries = State.export_mctx () in
+    let meta_map = loop entries in
+    let dconstrs = resolve_dconstrs meta_map dconstrs in
+    let cs, ctx =
+      List.fold_right
+        (fun (mode, c, sch) (acc, ctx) ->
+          (c :: acc, Ctx.add_constr c (sch, mode) ctx))
+        dconstrs ([], ctx)
     in
-    prbm :: prbms
-  | [] -> []
+    let ctx = Ctx.add_ind ind (arity, cs) ctx in
+    check_dcls ctx dcls
+  | [] -> State.export_meta ()
 
 and check_arity ctx arity =
   let rec aux_param ctx = function
@@ -502,3 +527,8 @@ and check_dconstrs ind ctx dconstrs =
     aux_param (Array.to_list sids) [] ctx param
   in
   List.iter (check_dconstr ind ctx) dconstrs
+
+let trans_dcls dcls =
+  let meta_map = check_dcls Ctx.empty dcls in
+  Debug.exec (fun () -> pr "%a@." pp_meta meta_map);
+  resolve_dcls meta_map dcls
