@@ -16,13 +16,16 @@ let rec simpl_pprbm ?(expand = false) eqn =
     let m1 = whnf ~expand ctx m1 in
     let m2 = whnf ~expand ctx m2 in
     match (m1, m2) with
+    (* inference *)
+    | IMeta (x1, _, _), IMeta (x2, _, _) when IMeta.equal x2 x2 -> []
+    | PMeta x, PMeta y when compare_vars x y < 0 -> [ EqualTerm (ctx, m1, m2) ]
+    | PMeta x, PMeta y when compare_vars x y > 0 -> [ EqualTerm (ctx, m2, m1) ]
+    | PMeta x, PMeta y when compare_vars x y = 0 -> []
+    | _, PMeta _ -> [ EqualTerm (ctx, m1, m2) ]
+    | PMeta _, _ -> [ EqualTerm (ctx, m2, m1) ]
     (* core *)
-    | Var x, Var y when compare_vars x y < 0 -> [ EqualTerm (ctx, m1, m2) ]
-    | Var x, Var y when compare_vars x y > 0 -> [ EqualTerm (ctx, m2, m1) ]
-    | Var x, Var y when compare_vars x y = 0 -> []
-    | _, Var _ -> [ EqualTerm (ctx, m1, m2) ]
-    | Var _, _ -> [ EqualTerm (ctx, m2, m1) ]
     | Type s1, Type s2 when eq_sort s1 s2 -> []
+    | Var x1, Var x2 when eq_vars x1 x2 -> []
     | Const (x1, ss1), Const (x2, ss2)
       when Const.equal x1 x2 && List.equal eq_sort ss1 ss2 ->
       []
@@ -136,7 +139,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
 let solve_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
   let open PPrbm in
   let solve map = function
-    | EqualTerm (_, m, Var x) ->
+    | EqualTerm (_, m, PMeta x) ->
       if occur x (lift_tm m) then
         failwith "unifier.solve_pprbm(occurs)"
       else
@@ -147,7 +150,7 @@ let solve_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
     List.map
       (fun eqn ->
         match eqn with
-        | EqualPat (ctx, m, PVar x, _) -> EqualTerm (ctx, m, Var x)
+        | EqualPat (ctx, m, PVar x, _) -> EqualTerm (ctx, m, PMeta x)
         | EqualPat _ -> failwith "unifier1.solve_pprbm(unify)"
         | EqualTerm _ -> eqn)
       eqns
@@ -157,4 +160,4 @@ let solve_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
 
 let resolve_pprbm (eqns : PPrbm.eqns) (m : tm) : tm =
   let var_map = solve_pprbm eqns in
-  subst_fvar var_map m
+  subst_pmeta var_map m

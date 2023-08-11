@@ -82,6 +82,7 @@ let rec aeq_tm m1 m2 =
     (* inference *)
     | Ann (m1, a1), Ann (m2, a2) -> aeq_tm m1 m2 && aeq_tm a1 a2
     | IMeta (x1, _, _), IMeta (x2, _, _) -> IMeta.equal x1 x2
+    | PMeta x1, PMeta x2 -> eq_vars x1 x2
     (* core *)
     | Type s1, Type s2 -> eq_sort s1 s2
     | Var x1, Var x2 -> eq_vars x1 x2
@@ -127,6 +128,7 @@ let rec eq_tm ?(expand = false) ctx m1 m2 =
       match (m1, m2) with
       (* inference *)
       | IMeta (x1, _, _), IMeta (x2, _, _) -> IMeta.equal x1 x2
+      | PMeta x1, PMeta x2 -> eq_vars x1 x2
       (* core *)
       | Type s1, Type s2 -> eq_sort s1 s2
       | Var x1, Var x2 -> eq_vars x1 x2

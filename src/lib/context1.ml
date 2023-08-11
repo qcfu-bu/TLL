@@ -21,7 +21,7 @@ module Ctx : sig
   val find_constr : Constr.t -> t -> tele param scheme * mode
   val spine_var : t -> Var.t list
   val spine_svar : t -> SVar.t list
-  val subst_fvar : tm Var.Map.t -> t -> t
+  val subst_pmeta : tm Var.Map.t -> t -> t
 end = struct
   type t =
     { var : (tm option * tm) Var.Map.t
@@ -64,12 +64,12 @@ end = struct
   let spine_var (ctx : t) = ctx.var |> Var.Map.bindings |> List.map fst
   let spine_svar (ctx : t) = ctx.svar |> SVar.Set.elements
 
-  let subst_fvar var_map (ctx : t) =
+  let subst_pmeta var_map (ctx : t) =
     let var =
       Var.Map.map
         (fun (m_opt, a) ->
-          let m_opt = Option.map (subst_fvar var_map) m_opt in
-          let a = subst_fvar var_map a in
+          let m_opt = Option.map (subst_pmeta var_map) m_opt in
+          let a = subst_pmeta var_map a in
           (m_opt, a))
         ctx.var
     in

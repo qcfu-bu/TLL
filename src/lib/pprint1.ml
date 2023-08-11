@@ -46,6 +46,7 @@ and pp_tm fmt = function
   (* inference *)
   | Ann (m, a) -> pf fmt "@[(%a@;<1 2>: %a)@]" pp_tm m pp_tm a
   | IMeta (x, _, _) -> pf fmt "?%a" IMeta.pp x
+  | PMeta x -> pf fmt "#%a" Var.pp x
   (* core *)
   | Type U -> pf fmt "U"
   | Type L -> pf fmt "L"

@@ -1,4 +1,5 @@
 open Fmt
+open Bindlib
 open Syntax1
 open Context1
 open Equality1
@@ -39,8 +40,9 @@ module PPrbm = struct
   let rec of_cls (cls : cls) : t =
     match cls with
     | [] -> { global = []; clause = [] }
-    | cl :: cls ->
-      let ps, rhs = unbind_ps cl in
+    | (p0s, bnd) :: cls ->
+      let xs, rhs = unmbind_pmeta bnd in
+      let _, ps = ps_of_mvar (Array.to_list xs) p0s in
       let prbm = of_cls cls in
       { prbm with clause = ([], ps, rhs) :: prbm.clause }
 

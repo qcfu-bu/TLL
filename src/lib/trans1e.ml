@@ -81,6 +81,7 @@ and infer_tm ctx m : tm =
       let a = imeta_of_ctx ctx in
       State.add_imeta ctx x a;
       a)
+  | PMeta x -> Ctx.find_var0 x ctx
   (* core *)
   | Type _ -> Type U
   | Var x -> Ctx.find_var0 x ctx
@@ -197,26 +198,26 @@ and check_tm ctx m a : unit =
 and check_cls ctx cls a : unit =
   let rec is_absurd eqns rhs =
     match (eqns, rhs) with
-    | PPrbm.EqualPat (_, Var _, PAbsurd, _) :: _, None -> true
-    | PPrbm.EqualPat (_, Var _, PAbsurd, _) :: _, Some _ ->
+    | PPrbm.EqualPat (_, PMeta _, PAbsurd, _) :: _, None -> true
+    | PPrbm.EqualPat (_, PMeta _, PAbsurd, _) :: _, Some _ ->
       failwith "trans1e.is_absurd"
     | _ :: eqns, _ -> is_absurd eqns rhs
     | [], _ -> false
   in
   let rec get_absurd = function
-    | PPrbm.EqualPat (_, Var _, PAbsurd, a) :: _ -> a
+    | PPrbm.EqualPat (_, PMeta _, PAbsurd, a) :: _ -> a
     | _ :: eqns -> get_absurd eqns
     | [] -> failwith "trans1e.get_absurd"
   in
   let rec can_split = function
-    | PPrbm.EqualPat (_, Var _, PMul _, _) :: _ -> true
-    | PPrbm.EqualPat (_, Var _, PAdd _, _) :: _ -> true
+    | PPrbm.EqualPat (_, PMeta _, PMul _, _) :: _ -> true
+    | PPrbm.EqualPat (_, PMeta _, PAdd _, _) :: _ -> true
     | _ :: eqns -> can_split eqns
     | [] -> false
   in
   let rec first_split = function
-    | PPrbm.EqualPat (_, Var x, PMul _, a) :: _ -> (x, a)
-    | PPrbm.EqualPat (_, Var x, PAdd _, a) :: _ -> (x, a)
+    | PPrbm.EqualPat (_, PMeta x, PMul _, a) :: _ -> (x, a)
+    | PPrbm.EqualPat (_, PMeta x, PAdd _, a) :: _ -> (x, a)
     | _ :: eqns -> first_split eqns
     | [] -> failwith "trans1e.first_split"
   in
@@ -248,7 +249,7 @@ and check_cls ctx cls a : unit =
     | (eqns, p :: ps, rhs) :: clause -> (
       match whnf ~expand:true ctx a with
       | Pi (_, _, a, bnd) ->
-        let x, b = unbind bnd in
+        let x, b = unbind_pmeta bnd in
         let ctx = Ctx.add_var0 x a ctx in
         let prbm = prbm_add ctx prbm x a in
         aux_prbm ctx prbm b
@@ -277,11 +278,11 @@ and check_cls ctx cls a : unit =
                 ctx args
             in
             let m =
-              Constr (c, ss, ms, List.map (fun (_, x, _) -> Var x) args)
+              Constr (c, ss, ms, List.map (fun (_, x, _) -> PMeta x) args)
             in
             let var_map = Var.Map.singleton x m in
-            let a = subst_fvar var_map a in
-            let ctx = Ctx.subst_fvar var_map ctx in
+            let a = subst_pmeta var_map a in
+            let ctx = Ctx.subst_pmeta var_map ctx in
             let prbm = prbm_simpl ctx var_map prbm in
             let prbm =
               PPrbm.{ prbm with global = EqualTerm (ctx, b, t) :: prbm.global }
@@ -292,17 +293,13 @@ and check_cls ctx cls a : unit =
       (* case coverage *))
     | (eqns, [], rhs) :: _ ->
       let var_map = solve_pprbm (prbm.global @ eqns) in
-      let a = subst_fvar var_map a in
-      let ctx = Ctx.subst_fvar var_map ctx in
-      Var.Map.iter (fun x m -> pr "%a <= %a@." Var.pp x pp_tm m) var_map;
+      let a = subst_pmeta var_map a in
+      let ctx = Ctx.subst_pmeta var_map ctx in
       let rhs =
         match rhs with
-        | Some m ->
-          pr "rhs_pre := %a@." pp_tm m;
-          subst_fvar var_map m
+        | Some m -> subst_pmeta var_map m
         | None -> failwith "trans1e.check_cls(Cover)"
       in
-      pr "rhs := %a, ty := %a@." pp_tm rhs pp_tm a;
       check_tm ctx rhs a
   in
   let prbm = PPrbm.of_cls cls in
@@ -315,7 +312,7 @@ and prbm_add ctx prbm x a =
   | (eqns, p :: ps, rhs) :: clause ->
     let prbm = prbm_add ctx { prbm with clause } x a in
     let clause =
-      (eqns @ [ PPrbm.EqualPat (ctx, Var x, p, a) ], ps, rhs) :: prbm.clause
+      (eqns @ [ PPrbm.EqualPat (ctx, PMeta x, p, a) ], ps, rhs) :: prbm.clause
     in
     { prbm with clause }
   | _ -> failwith "trans1e.prbm_add"
@@ -324,8 +321,10 @@ and prbm_simpl ctx var_map prbm =
   let rec aux_global = function
     | [] -> []
     | PPrbm.EqualTerm (ctx, a, b) :: eqns ->
+      let a = subst_pmeta var_map a in
+      let b = subst_pmeta var_map b in
       let eqns = aux_global eqns in
-      PPrbm.EqualTerm (ctx, subst_fvar var_map a, b) :: eqns
+      PPrbm.EqualTerm (ctx, a, b) :: eqns
     | PPrbm.EqualPat _ :: _ -> failwith "trans1e.prbm_simpl(Global)"
   in
   let rec aux_clause = function
@@ -337,8 +336,8 @@ and prbm_simpl ctx var_map prbm =
           (fun acc eqn ->
             match (acc, eqn) with
             | Some acc, PPrbm.EqualPat (ctx, l, r, a) -> (
-              let l = subst_fvar var_map l in
-              let a = subst_fvar var_map a in
+              let l = subst_pmeta var_map l in
+              let a = subst_pmeta var_map a in
               match p_simpl ctx l r a with
               | Some eqns -> Some (acc @ eqns)
               | None -> None)
