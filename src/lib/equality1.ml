@@ -3,6 +3,14 @@ open Names
 open Syntax1
 open Context1
 
+let rec is_nf = function
+  | Ann _ -> false
+  | App _ -> false
+  | Let _ -> false
+  | Match _ -> false
+  | MLet _ -> false
+  | _ -> true
+
 let rec whnf ?(expand = true) (ctx : Ctx.t) = function
   (* inference *)
   | Ann (m, a) -> whnf ~expand ctx m

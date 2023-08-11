@@ -1,7 +1,15 @@
-[Inductive {name = "unit"; relv = R;
+[Inductive {name = "bool"; relv = R;
    body =
    (Binder ([],
-      (PBase ((TBase (Type U)), [(DMul ("tt", (TBase (Id "unit"))))]))))};
+      (PBase
+         ((TBase (Type U)),
+          [(DMul ("true", (TBase (Id "bool"))));
+            (DMul ("false", (TBase (Id "bool"))))]))
+      ))};
+  Inductive {name = "unit"; relv = R;
+    body =
+    (Binder ([],
+       (PBase ((TBase (Type U)), [(DMul ("tt", (TBase (Id "unit"))))]))))};
   Inductive {name = "nat"; relv = R;
     body =
     (Binder ([],
@@ -9,364 +17,274 @@
           ((TBase (Type U)),
            [(DMul ("zero", (TBase (Id "nat"))));
              (DMul ("succ",
-                (TBind (R, (Id "nat"), (Binder ("n", (TBase (Id "nat"))))))))
-             ]))
-       ))};
-  Inductive {name = "sing"; relv = R;
-    body =
-    (Binder (["s"],
-       (PBind ((Type (SId "s")),
-          (Binder ("A",
-             (PBase
-                ((TBind (R, (Id "A"),
-                    (Binder ("_", (TBase (Type (SId "s"))))))),
-                 [(DMul ("just",
-                     (TBind (R, (Id "A"),
-                        (Binder ("m",
-                           (TBase (App [(Id "sing"); (Id "_"); (Id "m")]))))
-                        ))
-                     ))
-                   ]))
-             ))
-          ))
-       ))};
-  Inductive {name = "eq"; relv = N;
-    body =
-    (Binder (["s"],
-       (PBind ((Type (SId "s")),
-          (Binder ("A",
-             (PBind ((Id "A"),
-                (Binder ("m",
-                   (PBase
-                      ((TBind (R, (Id "A"), (Binder ("_", (TBase (Type U))))
-                          )),
-                       [(DMul ("eq_refl",
-                           (TBase
-                              (App [(Id "eq"); (Id "_"); (Id "m"); (Id "m")]))
-                           ))
-                         ]))
+                (TBind (R, (Id "nat"), (Binder ("pred", (TBase (Id "nat"))))
                    ))
                 ))
-             ))
-          ))
+             ]))
        ))};
-  Definition {name = "test"; relv = R;
+  Definition {name = "max"; relv = R;
     body =
     (Binder ([],
        ((Fun (
-           (Pi (R, U,
-              (App
-                 [(Id "sing"); (Id "nat"); (App [(Id "succ"); (Id "zero")])]),
-              (Binder ("_", (Id "unit"))))),
-           (Binder ((Some "test"),
-              [([(PMul ("just", [(PId "x")]))],
-                (Some (Let (R,
-                         (Ann ((Id "eq_refl"),
-                            (App
-                               [(Id "eq"); (Id "_"); (Id "x");
-                                 (App [(Id "succ"); (Id "zero")])])
-                            )),
-                         (Binder ("pf", (Id "tt")))))))
+           (Pi (R, U, (Id "nat"),
+              (Binder ("x",
+                 (Pi (R, U, (Id "nat"), (Binder ("y", (Id "nat")))))))
+              )),
+           (Binder ((Some "max"),
+              [([(PId "x"); (PId "y")],
+                (Some (Match (
+                         [(R, (Id "x"), (Some ("_", (Id "nat"))));
+                           (R, (Id "y"), (Some ("_", (Id "nat"))))],
+                         None,
+                         [([(PId "zero"); (PId "j")], (Some (Id "j")));
+                           ([(PId "i"); (PId "zero")], (Some (Id "i")));
+                           ([(PMul ("succ", [(PId "i")]));
+                              (PMul ("succ", [(PId "j")]))],
+                            (Some (App
+                                     [(Id "succ");
+                                       (App [(Id "max"); (Id "i"); (Id "j")])
+                                       ])))
+                           ]
+                         ))))
                 ]
               ))
            )),
-        (Pi (R, U,
-           (App [(Id "sing"); (Id "nat"); (App [(Id "succ"); (Id "zero")])]),
-           (Binder ("_", (Id "unit"))))))
-       ))};
-  Definition {name = "print"; relv = R;
-    body =
-    (Binder (["s"],
-       ((Fun (
-           (Pi (N, U, (Type (SId "s")),
-              (Binder ("A",
-                 (Pi (R, U, (Id "A"), (Binder ("x", (IO (Id "unit"))))))))
-              )),
-           (Binder ((Some "print"),
-              [([(PId "A"); (PId "x")], (Some (Magic (Id "_"))))]))
-           )),
-        (Pi (N, U, (Type (SId "s")),
-           (Binder ("A",
-              (Pi (R, U, (Id "A"), (Binder ("x", (IO (Id "unit"))))))))
+        (Pi (R, U, (Id "nat"),
+           (Binder ("x", (Pi (R, U, (Id "nat"), (Binder ("y", (Id "nat")))))
+              ))
            )))
        ))};
-  Definition {name = "_"; relv = R;
-    body =
-    (Binder ([],
-       ((App [(Id "print"); (Id "_"); (Id "tt")]), (IO (Id "unit")))))}
+  Definition {name = "one"; relv = R;
+    body = (Binder ([], ((App [(Id "succ"); (Id "zero")]), (Id "nat"))))};
+  Definition {name = "two"; relv = R;
+    body = (Binder ([], ((App [(Id "succ"); (Id "one")]), (Id "nat"))))};
+  Definition {name = "three"; relv = R;
+    body = (Binder ([], ((App [(Id "succ"); (Id "two")]), (Id "nat"))))}
   ]
 
 -----------------------------------------
 
 #[program]
-inductive unit_1‹› : U where
-| tt_1 : unit_1
+inductive bool_1‹› : U where
+| true_1 : bool_1
+| false_2 : bool_1
 
 #[program]
-inductive nat_2‹› : U where
-| zero_2 : nat_2
-| succ_3 (n_27 : nat_2) : nat_2
+inductive unit_2‹› : U where
+| tt_3 : unit_2
 
 #[program]
-inductive sing_3‹s_28› (A_29 : Type‹s_28›): A_29 -> Type‹s_28›
-where
-| just_4 (m_31 : A_29) : (sing_3‹??_1› ?_1 m_31)
-
-#[logical]
-inductive eq_4‹s_32› (A_33 : Type‹s_32›) (m_34 : A_33): A_33 -> U
-where
-| eq_refl_5 : (eq_4‹??_2› ?_2 m_34 m_34)
+inductive nat_3‹› : U where
+| zero_4 : nat_3
+| succ_5 (pred_14 : nat_3) : nat_3
 
 #[program]
-def test_1‹› : (sing_3‹??_6› nat_2 (succ_3‹› zero_2)) -> unit_1
-:=
-  function test_37 : (sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1
-  | (just_4 x_39) =>
-    let pf_40 :=
-      (eq_refl_5‹??_4› : (eq_4‹??_5› ?_5 x_39 (succ_3‹› zero_2)))
-    in tt_1
+def max_1‹› : nat_3 -> nat_3 -> nat_3 :=
+  function max_17 : nat_3 -> nat_3 -> nat_3
+  | x_20 y_21 =>
+    match x_20, y_21 in ∀ (__22 : nat_3) -o ∀ (__23 : nat_3) -o ?_1 with
+    | zero_4, j_24 => j_24
+    | i_25, zero_4 => i_25
+    | (succ_5 i_26), (succ_5 j_27) => (succ_5‹› (max_17) i_26 j_27)
 
 #[program]
-def print_2‹s_41› : ∀ {A_42 : Type‹s_41›} -> A_42 -> IO unit_1 :=
-  function print_44 : ∀ {A_45 : Type‹s_41›} -> A_45 -> IO unit_1
-  | A_47 x_48 => #magic[?_6]
+def one_2‹› : nat_3 := (succ_5‹› zero_4)
 
 #[program]
-def __3‹› : IO unit_1 := (print_2‹??_7›) ?_7 tt_1
+def two_3‹› : nat_3 := (succ_5‹› one_2)
+
+#[program]
+def three_4‹› : nat_3 := (succ_5‹› two_3)
 
 -----------------------------------------
 
-infer_tm(unit_1)
-infer_tm(nat_2)
-infer_tm(nat_2)
-infer_tm(nat_2)
-infer_tm(Type‹s_51›)
-infer_tm(A_52)
-infer_tm(Type‹s_60›)
-infer_tm(A_61)
-infer_tm((sing_3‹??_1› ?_1 m_62))
-check_tm(?_1, Type‹??_1›)
-check_tm(m_62, ?_1)
-infer_tm(m_62)
-loop_check(A_61 Type‹s_60›)
-infer_tm(Type‹s_60›)
-check_tm(A_61, Type‹s_60›)
-infer_tm(A_61)
-infer_tm(Type‹s_69›)
-infer_tm(A_70)
-infer_tm(A_70)
-infer_tm(Type‹s_78›)
-infer_tm(A_79)
-infer_tm((eq_4‹??_2› ?_2 m_80 m_80))
-check_tm(?_2, Type‹??_2›)
-check_tm(m_80, ?_2)
-infer_tm(m_80)
-check_tm(m_80, ?_2)
-infer_tm(m_80)
-loop_check(A_79 Type‹s_78›)
-infer_tm(Type‹s_78›)
-check_tm(A_79, Type‹s_78›)
-infer_tm(A_79)
-infer_tm((sing_3‹??_6› nat_2 (succ_3‹› zero_2)) -> unit_1)
-infer_tm((sing_3‹??_6› nat_2 (succ_3‹› zero_2)))
-check_tm(nat_2, Type‹??_6›)
-infer_tm(nat_2)
-check_tm((succ_3‹› zero_2), nat_2)
-infer_tm((succ_3‹› zero_2))
-check_tm(zero_2, nat_2)
-infer_tm(zero_2)
-infer_tm(unit_1)
-check_tm(function test_90 :
-           (sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1
-         | (just_4 x_92) =>
-           let pf_93 :=
-             (eq_refl_5‹??_4›
-               : (eq_4‹??_5› ?_5 x_92 (succ_3‹› zero_2)))
-           in tt_1, (sing_3‹U› nat_2 (succ_3‹› zero_2)) -> unit_1)
-infer_tm(function test_95 :
-           (sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1
-         | (just_4 x_97) =>
-           let pf_98 :=
-             (eq_refl_5‹??_4›
-               : (eq_4‹??_5› ?_5 x_97 (succ_3‹› zero_2)))
-           in tt_1)
-infer_tm((sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1)
-infer_tm((sing_3‹??_3› nat_2 (succ_3‹› zero_2)))
-check_tm(nat_2, Type‹??_3›)
-infer_tm(nat_2)
-check_tm((succ_3‹› zero_2), nat_2)
-infer_tm((succ_3‹› zero_2))
-check_tm(zero_2, nat_2)
-infer_tm(zero_2)
-infer_tm(unit_1)
-case_coverage{|
-  prblm {|
-    eq_term?( (sing_3‹U› nat_2 (succ_3‹› zero_2)),
-      (sing_3‹U› nat_2 #m_105));
-    {| eq_pat?( #m_105, x_102 : nat_2) ::: [] =>?
-         let pf_107 :=
-           (eq_refl_5‹??_4›
-             : (eq_4‹??_5› ?_5 #x_102 (succ_3‹› zero_2)))
-         in tt_1
-    |}
-  |}
-|}
-solve_pprm(
-  eq_term?( (sing_3‹U› nat_2 (succ_3‹› zero_2)),
-    (sing_3‹U› nat_2 #m_105))
-  eq_pat?( #m_105, x_102 : nat_2)
-)
-case_coverage_ok(let pf_110 :=
-                   (eq_refl_5‹??_4›
-                     : (eq_4‹??_5›
-                         ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
-                 in tt_1, unit_1)
-check_tm(let pf_111 :=
-           (eq_refl_5‹??_4›
-             : (eq_4‹??_5›
-                 ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
-         in tt_1, unit_1)
-infer_tm(let pf_112 :=
-           (eq_refl_5‹??_4›
-             : (eq_4‹??_5›
-                 ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
-         in tt_1)
-infer_tm((eq_refl_5‹??_4›
-           : (eq_4‹??_5› ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2))))
-infer_tm((eq_4‹??_5› ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
-check_tm(?_5, Type‹??_5›)
-check_tm((succ_3‹› zero_2), ?_5)
-infer_tm((succ_3‹› zero_2))
-check_tm(zero_2, nat_2)
-infer_tm(zero_2)
-check_tm((succ_3‹› zero_2), ?_5)
-infer_tm((succ_3‹› zero_2))
-check_tm(zero_2, nat_2)
-infer_tm(zero_2)
-check_tm(eq_refl_5‹??_4›, (eq_4‹??_5›
-                                ?_5 (succ_3‹› zero_2)
-                                (succ_3‹› zero_2)))
-infer_tm(eq_refl_5‹??_4›)
-check_tm(?_3, Type‹??_4›)
-check_tm(?_4, ?_3)
-infer_tm(tt_1)
-loop_check(nat_2 Type‹??_4›)
-infer_tm(Type‹??_4›)
-check_tm(nat_2, Type‹??_4›)
-infer_tm(nat_2)
-loop_check((succ_3‹› zero_2) nat_2)
-infer_tm(nat_2)
-check_tm((succ_3‹› zero_2), nat_2)
-infer_tm((succ_3‹› zero_2))
-check_tm(zero_2, nat_2)
-infer_tm(zero_2)
-loop_check(nat_2 U)
-infer_tm(U)
-check_tm(nat_2, U)
-infer_tm(nat_2)
-infer_tm(∀ {A_131 : Type‹s_130›} -> A_131 -> IO unit_1)
-infer_tm(Type‹s_130›)
-infer_tm(A_133 -> IO unit_1)
-infer_tm(A_133)
-infer_tm(IO unit_1)
-infer_tm(unit_1)
-check_tm(function print_138 :
-           ∀ {A_139 : Type‹s_130›} -> A_139 -> IO unit_1
-         | A_141 x_142 => #magic[?_6], ∀ {A_143 : Type‹s_130›} ->
-                                         A_143 -> IO unit_1)
-infer_tm(function print_145 :
-           ∀ {A_146 : Type‹s_130›} -> A_146 -> IO unit_1
-         | A_148 x_149 => #magic[?_6])
-infer_tm(∀ {A_151 : Type‹s_130›} -> A_151 -> IO unit_1)
-infer_tm(Type‹s_130›)
-infer_tm(A_153 -> IO unit_1)
-infer_tm(A_153)
-infer_tm(IO unit_1)
-infer_tm(unit_1)
+infer_tm(bool_1)
+infer_tm(bool_1)
+infer_tm(unit_2)
+infer_tm(nat_3)
+infer_tm(nat_3)
+infer_tm(nat_3)
+infer_tm(nat_3 -> nat_3 -> nat_3)
+infer_tm(nat_3)
+infer_tm(nat_3 -> nat_3)
+infer_tm(nat_3)
+infer_tm(nat_3)
+check_tm(function max_37 : nat_3 -> nat_3 -> nat_3
+         | x_40 y_41 =>
+           match x_40, y_41 in
+             ∀ (__42 : nat_3) -o ∀ (__43 : nat_3) -o ?_1
+           with
+           | zero_4, j_44 => j_44
+           | i_45, zero_4 => i_45
+           | (succ_5 i_46), (succ_5 j_47) =>
+             (succ_5‹› (max_37) i_46 j_47), nat_3 -> nat_3 -> nat_3)
+infer_tm(function max_50 : nat_3 -> nat_3 -> nat_3
+         | x_53 y_54 =>
+           match x_53, y_54 in
+             ∀ (__55 : nat_3) -o ∀ (__56 : nat_3) -o ?_1
+           with
+           | zero_4, j_57 => j_57
+           | i_58, zero_4 => i_58
+           | (succ_5 i_59), (succ_5 j_60) =>
+             (succ_5‹› (max_50) i_59 j_60))
+infer_tm(nat_3 -> nat_3 -> nat_3)
+infer_tm(nat_3)
+infer_tm(nat_3 -> nat_3)
+infer_tm(nat_3)
+infer_tm(nat_3)
 case_coverage{|
   prblm {| ;
-    {| eq_pat?( #A_160, A_156 : Type‹s_130›)
-       eq_pat?( #x_161, x_157 : #A_160) ::: [] =>? #magic[?_6]
+    {| eq_pat?( #x_71, x_67 : nat_3) eq_pat?( #y_72, y_68 : nat_3) ::: [] =>?
+         match #x_67, #y_68 in
+           ∀ (__73 : nat_3) -o ∀ (__74 : nat_3) -o ?_1
+         with
+         | zero_4, j_75 => j_75
+         | i_76, zero_4 => i_76
+         | (succ_5 i_77), (succ_5 j_78) => (succ_5‹› (max_61) i_77 j_78)
+    |}
+  |}
+|}
+solve_pprm( eq_pat?( #x_71, x_67 : nat_3) eq_pat?( #y_72, y_68 : nat_3) )
+case_coverage_ok(match #x_71, #y_72 in
+                   ∀ (__88 : nat_3) -o ∀ (__89 : nat_3) -o ?_1
+                 with
+                 | zero_4, j_90 => j_90
+                 | i_91, zero_4 => i_91
+                 | (succ_5 i_92), (succ_5 j_93) =>
+                   (succ_5‹› (max_61) i_92 j_93), nat_3)
+check_tm(match #x_71, #y_72 in
+           ∀ (__94 : nat_3) -o ∀ (__95 : nat_3) -o ?_1
+         with
+         | zero_4, j_96 => j_96
+         | i_97, zero_4 => i_97
+         | (succ_5 i_98), (succ_5 j_99) => (succ_5‹› (max_61) i_98 j_99), nat_3)
+infer_tm(match #x_71, #y_72 in
+           ∀ (__100 : nat_3) -o ∀ (__101 : nat_3) -o ?_1
+         with
+         | zero_4, j_102 => j_102
+         | i_103, zero_4 => i_103
+         | (succ_5 i_104), (succ_5 j_105) =>
+           (succ_5‹› (max_61) i_104 j_105))
+infer_tm(∀ (__106 : nat_3) -o ∀ (__107 : nat_3) -o ?_1)
+infer_tm(nat_3)
+infer_tm(∀ (__109 : nat_3) -o ?_1)
+infer_tm(nat_3)
+infer_tm(?_1)
+delay_assert(?_2, ??_1)
+case_coverage{|
+  prblm {| eq_term?( nat_3, nat_3);
+    {| eq_pat?( #__119, j_111 : nat_3) ::: [] =>? #j_111 |}
+    {| eq_pat?( zero_4, i_112 : nat_3)
+       eq_pat?( #__119, zero_4 : nat_3) ::: [] =>? #i_112
+    |}
+  |}
+|}
+solve_pprm( eq_term?( nat_3, nat_3) eq_pat?( #__119, j_111 : nat_3) )
+case_coverage_ok(#__119, ?_1)
+check_tm(#__119, ?_1)
+infer_tm(#__119)
+case_coverage{|
+  prblm {| eq_term?( nat_3, nat_3) eq_term?( nat_3, nat_3);
+    {| eq_pat?( (succ_5‹› #pred_124), i_112 : nat_3) ::: [] =>? #i_112 |}
+  |}
+|}
+solve_pprm(
+  eq_term?( nat_3, nat_3)
+  eq_term?( nat_3, nat_3) eq_pat?( (succ_5‹› #pred_124), i_112 : nat_3)
+)
+case_coverage_ok((succ_5‹› #pred_124), ?_1)
+check_tm((succ_5‹› #pred_124), ?_1)
+infer_tm((succ_5‹› #pred_124))
+check_tm(#pred_124, nat_3)
+infer_tm(#pred_124)
+case_coverage{|
+  prblm {| eq_term?( nat_3, nat_3) eq_term?( nat_3, nat_3);
+    {| eq_pat?( #pred_124, i_113 : nat_3)
+       eq_pat?( #pred_131, j_114 : nat_3) ::: [] =>?
+         (succ_5‹› (max_61) #i_113 #j_114)
     |}
   |}
 |}
 solve_pprm(
-  eq_pat?( #A_160, A_156 : Type‹s_130›) eq_pat?( #x_161, x_157 : #A_160)
+  eq_term?( nat_3, nat_3)
+  eq_term?( nat_3, nat_3)
+  eq_pat?( #pred_124, i_113 : nat_3) eq_pat?( #pred_131, j_114 : nat_3)
 )
-case_coverage_ok(#magic[?_6], IO unit_1)
-check_tm(#magic[?_6], IO unit_1)
-infer_tm(#magic[?_6])
-infer_tm(IO unit_1)
-infer_tm(unit_1)
-check_tm((print_2‹??_7›) ?_7 tt_1, IO unit_1)
-infer_tm((print_2‹??_7›) ?_7 tt_1)
-infer_tm((print_2‹??_7›) ?_7)
-infer_tm(print_2‹??_7›)
-check_tm(?_7, Type‹??_7›)
-check_tm(tt_1, ?_7)
-infer_tm(tt_1)
-loop_check(unit_1 Type‹??_7›)
-infer_tm(Type‹??_7›)
-check_tm(unit_1, Type‹??_7›)
-infer_tm(unit_1)
+case_coverage_ok((succ_5‹› (max_61) #pred_124 #pred_131), ?_1)
+check_tm((succ_5‹› (max_61) #pred_124 #pred_131), ?_1)
+infer_tm((succ_5‹› (max_61) #pred_124 #pred_131))
+check_tm((max_61) #pred_124 #pred_131, nat_3)
+infer_tm((max_61) #pred_124 #pred_131)
+infer_tm((max_61) #pred_124)
+infer_tm(max_61)
+check_tm(#pred_124, nat_3)
+infer_tm(#pred_124)
+check_tm(#pred_131, nat_3)
+infer_tm(#pred_131)
+check_tm(#x_71, nat_3)
+infer_tm(#x_71)
+check_tm(#y_72, nat_3)
+infer_tm(#y_72)
+loop_check(nat_3 Type‹??_1›)
+infer_tm(Type‹??_1›)
+check_tm(nat_3, Type‹??_1›)
+infer_tm(nat_3)
+infer_tm(nat_3)
+check_tm((succ_5‹› zero_4), nat_3)
+infer_tm((succ_5‹› zero_4))
+check_tm(zero_4, nat_3)
+infer_tm(zero_4)
+infer_tm(nat_3)
+check_tm((succ_5‹› one_2), nat_3)
+infer_tm((succ_5‹› one_2))
+check_tm(one_2, nat_3)
+infer_tm(one_2)
+infer_tm(nat_3)
+check_tm((succ_5‹› two_3), nat_3)
+infer_tm((succ_5‹› two_3))
+check_tm(two_3, nat_3)
+infer_tm(two_3)
 smeta_meta {|
-  ??_1 <= s_179
-  ??_2 <= s_180
-  ??_3 <= U
-  ??_4 <= U
-  ??_5 <= ??_4
-  ??_6 <= U
-  ??_7 <= U
+  ??_1 <= U
   
 |}
 imeta_meta {|
-  ?_1 <= A_183
-  ?_2 <= A_186
-  ?_3 <= nat_2
-  ?_4 <= (succ_3‹› zero_2)
-  ?_5 <= nat_2
-  ?_6 <= IO unit_1
-  ?_7 <= unit_1
+  ?_1 <= nat_3
+  ?_2 <= Type‹??_1›
   
 |}
 
 #[program]
-inductive unit_1‹› : U where
-| tt_1 : unit_1
+inductive bool_1‹› : U where
+| true_1 : bool_1
+| false_2 : bool_1
 
 #[program]
-inductive nat_2‹› : U where
-| zero_2 : nat_2
-| succ_3 (n_234 : nat_2) : nat_2
+inductive unit_2‹› : U where
+| tt_3 : unit_2
 
 #[program]
-inductive sing_3‹s_235› (A_236 : Type‹s_235›):
-  A_236 -> Type‹s_235›
-where
-| just_4 (m_238 : A_236) : (sing_3‹s_235› A_236 m_238)
-
-#[logical]
-inductive eq_4‹s_239› (A_240 : Type‹s_239›) (m_241 : A_240):
-  A_240 -> U
-where
-| eq_refl_5 : (eq_4‹s_239› A_240 m_241 m_241)
+inductive nat_3‹› : U where
+| zero_4 : nat_3
+| succ_5 (pred_192 : nat_3) : nat_3
 
 #[program]
-def test_1‹› : (sing_3‹U› nat_2 (succ_3‹› zero_2)) -> unit_1 :=
-  function test_244 : (sing_3‹U› nat_2 (succ_3‹› zero_2)) -> unit_1
-  | (just_4 x_246) =>
-    let pf_247 :=
-      (eq_refl_5‹U› : (eq_4‹U› nat_2 x_246 (succ_3‹› zero_2)))
-    in tt_1
+def max_1‹› : nat_3 -> nat_3 -> nat_3 :=
+  function max_195 : nat_3 -> nat_3 -> nat_3
+  | x_198 y_199 =>
+    match x_198, y_199 in nat_3 -o nat_3 -o nat_3 with
+    | zero_4, j_202 => j_202
+    | i_203, zero_4 => i_203
+    | (succ_5 i_204), (succ_5 j_205) => (succ_5‹› (max_195) i_204 j_205)
 
 #[program]
-def print_2‹s_248› : ∀ {A_249 : Type‹s_248›} -> A_249 -> IO unit_1
-:=
-  function print_251 : ∀ {A_252 : Type‹s_248›} -> A_252 -> IO unit_1
-  | A_254 x_255 => #magic[IO unit_1]
+def one_2‹› : nat_3 := (succ_5‹› zero_4)
 
 #[program]
-def __3‹› : IO unit_1 := (print_2‹U›) unit_1 tt_1
+def two_3‹› : nat_3 := (succ_5‹› one_2)
+
+#[program]
+def three_4‹› : nat_3 := (succ_5‹› two_3)
 
 -----------------------------------------
 

@@ -470,11 +470,10 @@ let rec simpl_iprbm ?(expand = false) eqn =
     (* magic *)
     | Magic _, _ -> []
     | _, Magic _ -> []
-    | _ ->
-      if expand then
-        failwith "unifier1.simpl_iprm(%a, %a)" pp_tm m1 pp_tm m2
-      else
-        simpl_iprbm ~expand:true (EqualTerm (ctx, m1, m2)))
+    | _ when not expand -> simpl_iprbm ~expand:true (EqualTerm (ctx, m1, m2))
+    | _ when is_nf m1 && is_nf m2 ->
+      failwith "unifier1.simpl_iprm(%a, %a)" pp_tm m1 pp_tm m2
+    | _ -> [ eqn ])
 
 let solve_iprbm (smeta_map, imeta_map) (eqn : IPrbm.eqn) =
   let open IPrbm in
@@ -658,11 +657,8 @@ let rec simpl_pprbm ?(expand = false) eqn =
     (* magic *)
     | Magic _, _ -> []
     | _, Magic _ -> []
-    | _ ->
-      if expand then
-        failwith "unifier1.simpl_pprbm(%a, %a)" pp_tm m1 pp_tm m2
-      else
-        simpl_pprbm ~expand:true (EqualTerm (ctx, m1, m2)))
+    | _ when not expand -> simpl_pprbm ~expand:true (EqualTerm (ctx, m1, m2))
+    | _ -> failwith "unifier1.simpl_pprbm(%a, %a)" pp_tm m1 pp_tm m2)
 
 let solve_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
   let open PPrbm in

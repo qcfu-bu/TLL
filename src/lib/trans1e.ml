@@ -91,7 +91,11 @@ let rec assert_type ctx a =
   let t = State.resolve t in
   match whnf ~expand:true ctx t with
   | Type _ -> ()
-  | _ -> failwith "trans1e.assert_type"
+  | IMeta _ as m ->
+    let s = smeta_of_ctx ctx in
+    Debug.exec (fun () -> pr "delay_assert(%a, %a)@." pp_tm m pp_sort s);
+    State.add_eqn (EqualTerm (ctx, m, Type s))
+  | t -> failwith "trans1e.assert_type(%a : %a)" pp_tm a pp_tm t
 
 and infer_tm ctx m : tm =
   Debug.exec (fun () -> pr "infer_tm(%a)@." pp_tm m);
