@@ -276,12 +276,51 @@ and lift_cls cls =
   in
   box_list cls
 
-(* subst fvars *)
+(* subst free variables *)
 let subst_fvar var_map m =
-  let xms = Var.Map.bindings var_map in
-  let xs, ms = List.split xms in
-  let bnd = bind_mvar (Array.of_list xs) (lift_tm m) in
-  msubst (unbox bnd) (Array.of_list ms)
+  let rec aux = function
+    (* inference *)
+    | Ann (m, a) -> Ann (aux m, aux a)
+    | IMeta (x, ss, ms) -> IMeta (x, ss, List.map aux ms)
+    (* core *)
+    | Type s -> Type s
+    | Var x -> (
+      match Var.Map.find_opt x var_map with
+      | Some m -> aux m
+      | _ -> Var x)
+    | Const (x, ss) -> Const (x, ss)
+    | Pi (relv, s, a, bnd) -> Pi (relv, s, aux a, binder_compose bnd aux)
+    | Fun (a, bnd) ->
+      let a = aux a in
+      let bnd =
+        binder_compose bnd (fun cls ->
+            List.map
+              (fun (p0s, bnd) -> (p0s, mbinder_compose bnd (Option.map aux)))
+              cls)
+      in
+      Fun (a, bnd)
+    | App (m, n) -> App (aux m, aux n)
+    | Let (relv, m, bnd) -> Let (relv, aux m, binder_compose bnd aux)
+    (* inductive *)
+    | Ind (d, ss, ms, ns) -> Ind (d, ss, List.map aux ms, List.map aux ns)
+    | Constr (c, ss, ms, ns) -> Constr (c, ss, List.map aux ms, List.map aux ns)
+    | Match (ms, a, cls) ->
+      let ms = List.map aux ms in
+      let a = aux a in
+      let cls =
+        List.map
+          (fun (p0s, bnd) -> (p0s, mbinder_compose bnd (Option.map aux)))
+          cls
+      in
+      Match (ms, a, cls)
+    (* monad *)
+    | IO a -> IO (aux a)
+    | Return m -> Return (aux m)
+    | MLet (m, bnd) -> MLet (aux m, binder_compose bnd aux)
+    (* magic *)
+    | Magic a -> Magic (aux a)
+  in
+  aux m
 
 (* pattern equality *)
 let rec eq_p0 p1 p2 =

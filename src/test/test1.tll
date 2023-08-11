@@ -5,13 +5,17 @@ inductive nat : U where
 | zero : nat
 | succ (n : nat) : nat
 
-inductive prod‹s,r,t› (A : Type‹s›) (B : Type‹r›) : Type‹t› where
-| pair (m : A) (n : B) : prod‹_,_,t› A B
+inductive sing‹s› (A : Type‹s›) : A -> Type‹s› where
+| just (m : A) : sing‹s› A m
 
-def max : nat -> nat -> nat
-  | zero y => y
-  | x zero => x
-  | (succ x) (succ y) => succ (max x y)
+#[logical]
+inductive eq‹s› (A : Type‹s›) (m : A) : A -> U where
+| eq_refl : eq _ m m
+
+def test : sing nat (succ zero) -> unit
+  | (just x) =>
+    let pf : eq _ x (succ zero) := eq_refl in
+    tt
 
 -- def print‹s› {A : Type‹s›} (x : A) : IO unit := #magic
 

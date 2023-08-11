@@ -12,31 +12,41 @@
                 (TBind (R, (Id "nat"), (Binder ("n", (TBase (Id "nat"))))))))
              ]))
        ))};
-  Inductive {name = "prod"; relv = R;
+  Inductive {name = "sing"; relv = R;
     body =
-    (Binder (["s"; "r"; "t"],
+    (Binder (["s"],
        (PBind ((Type (SId "s")),
           (Binder ("A",
-             (PBind ((Type (SId "r")),
-                (Binder ("B",
+             (PBase
+                ((TBind (R, (Id "A"),
+                    (Binder ("_", (TBase (Type (SId "s"))))))),
+                 [(DMul ("just",
+                     (TBind (R, (Id "A"),
+                        (Binder ("m",
+                           (TBase
+                              (App
+                                 [(Inst ("sing", [(SId "s")])); (Id "A");
+                                   (Id "m")]))
+                           ))
+                        ))
+                     ))
+                   ]))
+             ))
+          ))
+       ))};
+  Inductive {name = "eq"; relv = N;
+    body =
+    (Binder (["s"],
+       (PBind ((Type (SId "s")),
+          (Binder ("A",
+             (PBind ((Id "A"),
+                (Binder ("m",
                    (PBase
-                      ((TBase (Type (SId "t"))),
-                       [(DMul ("pair",
-                           (TBind (R, (Id "A"),
-                              (Binder ("m",
-                                 (TBind (R, (Id "B"),
-                                    (Binder ("n",
-                                       (TBase
-                                          (App
-                                             [(Inst ("prod",
-                                                 [(SId "_"); (SId "_");
-                                                   (SId "t")]
-                                                 ));
-                                               (Id "A"); (Id "B")]))
-                                       ))
-                                    ))
-                                 ))
-                              ))
+                      ((TBind (R, (Id "A"), (Binder ("_", (TBase (Type U))))
+                          )),
+                       [(DMul ("eq_refl",
+                           (TBase
+                              (App [(Id "eq"); (Id "_"); (Id "m"); (Id "m")]))
                            ))
                          ]))
                    ))
@@ -44,28 +54,29 @@
              ))
           ))
        ))};
-  Definition {name = "max"; relv = R;
+  Definition {name = "test"; relv = R;
     body =
     (Binder ([],
        ((Fun (
-           (Pi (R, U, (Id "nat"),
-              (Binder ("_",
-                 (Pi (R, U, (Id "nat"), (Binder ("_", (Id "nat")))))))
-              )),
-           (Binder ((Some "max"),
-              [([(PId "zero"); (PId "y")], (Some (Id "y")));
-                ([(PId "x"); (PId "zero")], (Some (Id "x")));
-                ([(PMul ("succ", [(PId "x")])); (PMul ("succ", [(PId "y")]))],
-                 (Some (App
-                          [(Id "succ");
-                            (App [(Id "max"); (Id "x"); (Id "y")])])))
+           (Pi (R, U,
+              (App
+                 [(Id "sing"); (Id "nat"); (App [(Id "succ"); (Id "zero")])]),
+              (Binder ("_", (Id "unit"))))),
+           (Binder ((Some "test"),
+              [([(PMul ("just", [(PId "x")]))],
+                (Some (Let (R,
+                         (Ann ((Id "eq_refl"),
+                            (App
+                               [(Id "eq"); (Id "_"); (Id "x");
+                                 (App [(Id "succ"); (Id "zero")])])
+                            )),
+                         (Binder ("pf", (Id "tt")))))))
                 ]
               ))
            )),
-        (Pi (R, U, (Id "nat"),
-           (Binder ("_", (Pi (R, U, (Id "nat"), (Binder ("_", (Id "nat")))))
-              ))
-           )))
+        (Pi (R, U,
+           (App [(Id "sing"); (Id "nat"); (App [(Id "succ"); (Id "zero")])]),
+           (Binder ("_", (Id "unit"))))))
        ))}
   ]
 
@@ -78,23 +89,39 @@ inductive unit_1‹› : U where
 #[program]
 inductive nat_2‹› : U where
 | zero_2 : nat_2
-| succ_3 (n_22 : nat_2) : nat_2
+| succ_3 (n_19 : nat_2) : nat_2
 
 #[program]
-inductive prod_3‹s_23,r_24,t_25› (A_26 : Type‹s_23›) (B_27 : Type‹r_24›):
-  Type‹t_25›
+inductive sing_3‹s_20› (A_21 : Type‹s_20›): A_21 -> Type‹s_20›
 where
-| pair_4 (m_28 : A_26) (n_29 : B_27) : (prod_3‹??_1,??_2,t_25› A_26 B_27)
+| just_4 (m_23 : A_21) : (sing_3‹s_20› A_21 m_23)
+
+#[logical]
+inductive eq_4‹s_24› (A_25 : Type‹s_24›) (m_26 : A_25): A_25 -> U
+where
+| eq_refl_5 : (eq_4‹??_1› ?_1 m_26 m_26)
 
 #[program]
-def max_1‹› : nat_2 -> nat_2 -> nat_2 :=
-  function max_32 : nat_2 -> nat_2 -> nat_2
-  | zero_2 y_35 => y_35
-  | x_36 zero_2 => x_36
-  | (succ_3 x_37) (succ_3 y_38) => (succ_3‹› (max_32) x_37 y_38)
+def test_1‹› : (sing_3‹??_5› nat_2 (succ_3‹› zero_2)) -> unit_1
+:=
+  function test_29 : (sing_3‹??_2› nat_2 (succ_3‹› zero_2)) -> unit_1
+  | (just_4 x_31) =>
+    let pf_32 :=
+      (eq_refl_5‹??_3› : (eq_4‹??_4› ?_4 x_31 (succ_3‹› zero_2)))
+    in tt_1
 
 -----------------------------------------
 
+m_52 <= (succ_3‹› zero_2)
+x_50 <= m_52
+rhs_pre := let pf_53 :=
+             (eq_refl_5‹??_3›
+               : (eq_4‹??_4› ?_4 x_50 (succ_3‹› zero_2)))
+           in tt_1
+rhs := let pf_54 :=
+         (eq_refl_5‹??_3›
+           : (eq_4‹??_4› ?_4 (succ_3‹› zero_2) (succ_3‹› zero_2)))
+       in tt_1, ty := unit_1
 group0 {|
   
   
@@ -106,16 +133,31 @@ group1 {|
 |}
 
 group2 {|
-  equal_tm? (Type‹??_2›, Type‹r_46›);
-  equal_tm? (Type‹??_1›, Type‹s_45›);
-  equal_sort? (r_46, ??_2);
-  equal_sort? (s_45, ??_1)
+  
   
 |}
 
 group3 {|
-  
-  
+  equal_tm? (?_1, A_45);
+  equal_tm? (?_1, A_45);
+  equal_tm? (A_45, ?_1);
+  equal_sort? (s_44, ??_1)
+  ?_1 :? Type‹??_1›
+|}
+
+group4 {|
+  equal_tm? ((sing_3‹??_5› nat_2 (succ_3‹› zero_2)) -> unit_1,
+    (sing_3‹??_2› nat_2 (succ_3‹› zero_2)) -> unit_1);
+  equal_tm?
+    ((eq_4‹??_4› ?_4 (succ_3‹› zero_2) (succ_3‹› zero_2)),
+    (eq_4‹??_1› ?_1 ?_3 ?_3));
+  equal_tm? (?_4, nat_2);
+  equal_tm? (?_4, nat_2);
+  equal_tm? (Type‹??_2›, U);
+  equal_tm? (Type‹??_5›, U)
+  ?_2 :? Type‹??_3›
+  ?_3 :? ?_2
+  ?_4 :? Type‹??_4›
 |}
 
 -----------------------------------------

@@ -294,11 +294,15 @@ and check_cls ctx cls a : unit =
       let var_map = solve_pprbm (prbm.global @ eqns) in
       let a = subst_fvar var_map a in
       let ctx = Ctx.subst_fvar var_map ctx in
+      Var.Map.iter (fun x m -> pr "%a <= %a@." Var.pp x pp_tm m) var_map;
       let rhs =
         match rhs with
-        | Some m -> subst_fvar var_map m
+        | Some m ->
+          pr "rhs_pre := %a@." pp_tm m;
+          subst_fvar var_map m
         | None -> failwith "trans1e.check_cls(Cover)"
       in
+      pr "rhs := %a, ty := %a@." pp_tm rhs pp_tm a;
       check_tm ctx rhs a
   in
   let prbm = PPrbm.of_cls cls in
