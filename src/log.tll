@@ -2,6 +2,16 @@
    body =
    (Binder ([],
       (PBase ((TBase (Type U)), [(DMul ("tt", (TBase (Id "unit"))))]))))};
+  Inductive {name = "nat"; relv = R;
+    body =
+    (Binder ([],
+       (PBase
+          ((TBase (Type U)),
+           [(DMul ("zero", (TBase (Id "nat"))));
+             (DMul ("succ",
+                (TBind (R, (Id "nat"), (Binder ("n", (TBase (Id "nat"))))))))
+             ]))
+       ))};
   Inductive {name = "prod"; relv = R;
     body =
     (Binder (["s"; "r"; "t"],
@@ -34,20 +44,27 @@
              ))
           ))
        ))};
-  Definition {name = "print"; relv = R;
+  Definition {name = "max"; relv = R;
     body =
-    (Binder (["s"],
+    (Binder ([],
        ((Fun (
-           (Pi (N, U, (Type (SId "s")),
-              (Binder ("A",
-                 (Pi (R, U, (Id "A"), (Binder ("x", (IO (Id "unit"))))))))
+           (Pi (R, U, (Id "nat"),
+              (Binder ("_",
+                 (Pi (R, U, (Id "nat"), (Binder ("_", (Id "nat")))))))
               )),
-           (Binder ((Some "print"),
-              [([(PId "A"); (PId "x")], (Some (Magic (Id "_"))))]))
+           (Binder ((Some "max"),
+              [([(PId "zero"); (PId "y")], (Some (Id "y")));
+                ([(PId "x"); (PId "zero")], (Some (Id "x")));
+                ([(PMul ("succ", [(PId "x")])); (PMul ("succ", [(PId "y")]))],
+                 (Some (App
+                          [(Id "succ");
+                            (App [(Id "max"); (Id "x"); (Id "y")])])))
+                ]
+              ))
            )),
-        (Pi (N, U, (Type (SId "s")),
-           (Binder ("A",
-              (Pi (R, U, (Id "A"), (Binder ("x", (IO (Id "unit"))))))))
+        (Pi (R, U, (Id "nat"),
+           (Binder ("_", (Pi (R, U, (Id "nat"), (Binder ("_", (Id "nat")))))
+              ))
            )))
        ))}
   ]
@@ -59,18 +76,47 @@ inductive unit_1‹› : U where
 | tt_1 : unit_1
 
 #[program]
-inductive prod_2‹s_20,r_21,t_22› (A_23 : Type‹s_20›) (B_24 : Type‹r_21›):
-  Type‹t_22›
-where
-| pair_2 (m_25 : A_23) (n_26 : B_24) : (prod_2‹??_1,??_2,t_22› A_23 B_24)
+inductive nat_2‹› : U where
+| zero_2 : nat_2
+| succ_3 (n_22 : nat_2) : nat_2
 
 #[program]
-def print_1‹s_27› : ∀ {A_28 : Type‹s_27›} -> A_28 -> IO unit_1 :=
-  function print_30 : ∀ {A_31 : Type‹s_27›} -> A_31 -> IO unit_1
-  | A_33 x_34 => #magic[?_1]
+inductive prod_3‹s_23,r_24,t_25› (A_26 : Type‹s_23›) (B_27 : Type‹r_24›):
+  Type‹t_25›
+where
+| pair_4 (m_28 : A_26) (n_29 : B_27) : (prod_3‹??_1,??_2,t_25› A_26 B_27)
+
+#[program]
+def max_1‹› : nat_2 -> nat_2 -> nat_2 :=
+  function max_32 : nat_2 -> nat_2 -> nat_2
+  | zero_2 y_35 => y_35
+  | x_36 zero_2 => x_36
+  | (succ_3 x_37) (succ_3 y_38) => (succ_3‹› (max_32) x_37 y_38)
 
 -----------------------------------------
 
-error -----------------------------------
+group0 {|
+  
+  
+|}
 
-unimplemented
+group1 {|
+  
+  
+|}
+
+group2 {|
+  equal_tm? (Type‹??_2›, Type‹r_46›);
+  equal_tm? (Type‹??_1›, Type‹s_45›);
+  equal_sort? (r_46, ??_2);
+  equal_sort? (s_45, ??_1)
+  
+|}
+
+group3 {|
+  
+  
+|}
+
+-----------------------------------------
+

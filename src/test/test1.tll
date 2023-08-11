@@ -1,10 +1,19 @@
 inductive unit : U where
 | tt : unit
 
+inductive nat : U where
+| zero : nat
+| succ (n : nat) : nat
+
 inductive prod‹s,r,t› (A : Type‹s›) (B : Type‹r›) : Type‹t› where
 | pair (m : A) (n : B) : prod‹_,_,t› A B
 
-def print‹s› {A : Type‹s›} (x : A) : IO unit := #magic
+def max : nat -> nat -> nat
+  | zero y => y
+  | x zero => x
+  | (succ x) (succ y) => succ (max x y)
+
+-- def print‹s› {A : Type‹s›} (x : A) : IO unit := #magic
 
 -- def _ : IO unit := print _ tt
 

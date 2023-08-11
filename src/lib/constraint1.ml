@@ -25,9 +25,9 @@ end
 
 module PPrbm = struct
   type eqn =
-    | EqualTerm of Ctx.t * tm * p * tm
+    | EqualPat of Ctx.t * tm * p * tm
     (* left: pattern type, right: checked type *)
-    | EqualType of Ctx.t * tm * tm
+    | EqualTerm of Ctx.t * tm * tm
 
   and eqns = eqn list
 
@@ -45,10 +45,11 @@ module PPrbm = struct
       { prbm with clause = ([], ps, rhs) :: prbm.clause }
 
   let pp_eqn fmt = function
-    | EqualTerm (_, m, p, a) ->
-      pf fmt "@[eq_tm?@;<1 2>(%a,@;<1 2>%a :@;<1 2>%a)@]" pp_tm m pp_p p pp_tm a
-    | EqualType (_, a, b) ->
-      pf fmt "@[eq_tm?@;<1 2>(%a,@;<1 2>%a)@]" pp_tm a pp_tm b
+    | EqualPat (_, m, p, a) ->
+      pf fmt "@[eq_pat?@;<1 2>(%a,@;<1 2>%a :@;<1 2>%a)@]" pp_tm m pp_p p pp_tm
+        a
+    | EqualTerm (_, a, b) ->
+      pf fmt "@[eq_term?@;<1 2>(%a,@;<1 2>%a)@]" pp_tm a pp_tm b
 
   let rec pp_eqns fmt = function
     | [] -> ()

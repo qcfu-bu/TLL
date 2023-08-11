@@ -32,7 +32,6 @@ type tm =
   | Ind of Ind.t * sorts * tms * tms
   | Constr of Constr.t * sorts * tms * tms
   | Match of tms * tm * cls
-  | Absurd
   (* monad *)
   | IO of tm
   | Return of tm
@@ -161,7 +160,6 @@ let _Let relv = box_apply2 (fun m n -> Let (relv, m, n))
 let _Ind d = box_apply3 (fun ss ms ns -> Ind (d, ss, ms, ns))
 let _Constr c = box_apply3 (fun ss ms ns -> Constr (c, ss, ms, ns))
 let _Match = box_apply3 (fun ms a cls -> Match (ms, a, cls))
-let _Absurd = box Absurd
 
 (* monad *)
 let _IO = box_apply (fun a -> IO a)
@@ -258,7 +256,6 @@ let rec lift_tm = function
   | Match (ms, a, cls) ->
     let ms = List.map lift_tm ms in
     _Match (box_list ms) (lift_tm a) (lift_cls cls)
-  | Absurd -> _Absurd
   (* monad *)
   | IO a -> _IO (lift_tm a)
   | Return m -> _Return (lift_tm m)
