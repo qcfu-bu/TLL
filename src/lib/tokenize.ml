@@ -105,10 +105,11 @@ let prim_stderr = [%sedlex.regexp? "stderr"]
 let identifier =
   [%sedlex.regexp? (letter | '_'), Star (letter | digit | '_' | '\'')]
 
-let constant = [%sedlex.regexp? identifier, "<"]
 let integer = [%sedlex.regexp? Plus digit]
-let tm_type = [%sedlex.regexp? "Type"]
-let tm_forall = [%sedlex.regexp? "forall"]
+let tm_type0 = [%sedlex.regexp? "Type", lt]
+let tm_type1 = [%sedlex.regexp? "Type", flq]
+let tm_forall0 = [%sedlex.regexp? "forall", lt]
+let tm_forall1 = [%sedlex.regexp? "forall", flq]
 let tm_fn = [%sedlex.regexp? "fn"]
 let tm_ln = [%sedlex.regexp? "ln"]
 let tm_function = [%sedlex.regexp? "function"]
@@ -126,6 +127,8 @@ let tm_magic = [%sedlex.regexp? "#magic"]
 let tm_io = [%sedlex.regexp? "IO"]
 let tm_return = [%sedlex.regexp? "return"]
 let tm_mlet = [%sedlex.regexp? "let*"]
+let constant0 = [%sedlex.regexp? identifier, lt]
+let constant1 = [%sedlex.regexp? identifier, flq]
 
 (* modifiers *)
 let mod_program = [%sedlex.regexp? "program"]
@@ -239,8 +242,10 @@ let rec tokenize buf =
   | prim_stdout -> PRIM_STDOUT
   | prim_stderr -> PRIM_STDERR
   (* tm *)
-  | tm_type -> TM_TYPE
-  | tm_forall -> TM_FORALL
+  | tm_type0 -> TM_TYPE0
+  | tm_type1 -> TM_TYPE1
+  | tm_forall0 -> TM_FORALL0
+  | tm_forall1 -> TM_FORALL1
   | tm_fn -> TM_FN
   | tm_ln -> TM_LN
   | tm_function -> TM_FUNCTION
@@ -272,9 +277,12 @@ let rec tokenize buf =
   | integer ->
     let i = int_of_string (Utf8.lexeme buf) in
     INTEGER i
-  | constant ->
+  | constant0 ->
     let s = Utf8.lexeme buf in
-    CONSTANT String.(sub s 0 (length s - 1))
+    CONSTANT0 Text.(sub s 0 (length s - 1))
+  | constant1 ->
+    let s = Utf8.lexeme buf in
+    CONSTANT1 Text.(sub s 0 (length s - 1))
   | identifier ->
     let s = Utf8.lexeme buf in
     IDENTIFIER s

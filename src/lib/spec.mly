@@ -105,13 +105,16 @@
 %token PRIM_STDERR // stderr
 
 // identifier
-%token<int> INTEGER
-%token<string> IDENTIFIER
-%token<string> CONSTANT
+%token<int> INTEGER         // 123
+%token<string> IDENTIFIER   // foo
+%token<string> CONSTANT0    // foo<
+%token<string> CONSTANT1    // foo‹
 
 // tm
-%token TM_TYPE     // Type
-%token TM_FORALL   // forall
+%token TM_TYPE0    // Type<
+%token TM_TYPE1    // Type‹
+%token TM_FORALL0  // forall<
+%token TM_FORALL1  // forall‹
 %token TM_FN       // fn
 %token TM_LN       // fn
 %token TM_FUNCTION // function
@@ -164,8 +167,11 @@
 let iden ==
   | ~ = IDENTIFIER; <>
 
-let const ==
-  | ~ = CONSTANT; <>
+let const0 ==
+  | ~ = CONSTANT0; <>
+
+let const1 ==
+  | ~ = CONSTANT1; <>
 
 let sort :=
   | SORT_U; { U }
@@ -177,18 +183,10 @@ let tm_id :=
 
 // instance
 /* X‹s,r,t› */
-let flq ==
-  | FLQ
-  | LT
-
-let frq ==
-  | FRQ
-  | GT
-
 let tm_inst :=
-  | id = iden; FLQ; ss = separated_list(COMMA, sort); FRQ;
+  | id = const0; ss = separated_list(COMMA, sort); GT;
     { Inst (id, ss) }
-  | id = const; ss = separated_list(COMMA, sort); GT;
+  | id = const1; ss = separated_list(COMMA, sort); FRQ;
     { Inst (id, ss) }
 
 // annotation
@@ -211,7 +209,8 @@ let tm_ann_open :=
 let tm_type :=
   | SORT_U; { Type U }
   | SORT_L; { Type L }
-  | TM_TYPE; flq; srt = sort; frq; { Type srt }
+  | TM_TYPE0; srt = sort; GT; { Type srt }
+  | TM_TYPE1; srt = sort; FRQ; { Type srt }
 
 // pi types
 /*
@@ -238,8 +237,10 @@ let tm_pi(p) :=
   | FORALL; args = tm_pi_args; MULTIMAP; b = p; 
     { List.fold_right (fun (rel, id, a) b ->
         Pi (rel, L, a, Binder (id, b))) args b }
-  | TM_FORALL;
-    flq; s = sort; frq; args = tm_pi_args; COMMA; b = p;
+  | TM_FORALL0; s = sort; GT; args = tm_pi_args; COMMA; b = p;
+    { List.fold_right (fun (rel, id, a) b ->
+        Pi (rel, s, a, Binder (id, b))) args b }
+  | TM_FORALL1; s = sort; FRQ; args = tm_pi_args; COMMA; b = p;
     { List.fold_right (fun (rel, id, a) b ->
         Pi (rel, s, a, Binder (id, b))) args b }
 
@@ -564,12 +565,12 @@ let tm_magic :=
 // terms
 let tm0 :=
   | ~ = tm_ann; <>
-  | ~ = tm_inst; <>
-  | ~ = tm_id; <>
   | ~ = tm_type; <>
   | ~ = tm_io; <>
   | ~ = tm_return; <>
   | ~ = tm_magic; <>
+  | ~ = tm_id; <>
+  | ~ = tm_inst; <>
   | LPAREN; ~ = tm; RPAREN; <>
 
 let tm1 :=
@@ -622,8 +623,8 @@ let dcl_modifier :=
 
 // dcl identifier
 let dcl_iden :=
-  | id = iden; flq; sargs = separated_list(COMMA, iden); frq; { (id, sargs) }
-  | id = const; sargs = separated_list(COMMA, iden); GT; { (id, sargs) }
+  | id = const0; sargs = separated_list(COMMA, iden); GT; { (id, sargs) }
+  | id = const1; sargs = separated_list(COMMA, iden); FRQ; { (id, sargs) }
   | id = iden; { (id, []) }
 
 // def
