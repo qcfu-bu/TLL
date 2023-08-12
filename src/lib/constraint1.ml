@@ -18,10 +18,13 @@ module IPrbm = struct
     | EqualTerm (_, m1, m2) ->
       pf fmt "@[equal_tm?@;<1 2>(%a,@;<1 2>%a)@]" pp_tm m1 pp_tm m2
 
-  let rec pp_eqns fmt = function
-    | [] -> ()
-    | [ eqn ] -> pp_eqn fmt eqn
-    | eqn :: eqns -> pf fmt "%a;@;<1 0>%a" pp_eqn eqn pp_eqns eqns
+  let pp_eqns fmt eqns =
+    let rec aux fmt = function
+      | [] -> ()
+      | [ eqn ] -> pp_eqn fmt eqn
+      | eqn :: eqns -> pf fmt "%a;@;<1 0>%a" pp_eqn eqn aux eqns
+    in
+    pf fmt "@[<v 0>eqns {|@;<1 2>@[<v 0>%a@]@;<1 0>|}@]" aux eqns
 end
 
 module PPrbm = struct

@@ -46,6 +46,14 @@ end = struct
 
   let get_delayed () =
     let mctx = state.mctx in
+    Debug.exec (fun () ->
+        pr
+          "@[<v 0>begin_delayed@;\
+           <1 2>%a@;\
+           <1 2>%a@;\
+           <1 2>@[%a@]@;\
+           <1 0>end_delayed@]@." MCtx.pp mctx pp_meta state.meta_map
+          IPrbm.pp_eqns state.eqns);
     state.mctx <- MCtx.empty;
     MCtx.entries mctx
 
@@ -84,6 +92,7 @@ let assert_equal0 s1 s2 =
   if not (eq_sort s1 s2) then State.add_eqn (EqualSort (s1, s2))
 
 let assert_equal1 ctx m1 m2 =
+  Debug.exec (fun () -> pr "assert_equal1(%a, %a)@." pp_tm m1 pp_tm m2);
   if not (eq_tm ctx m1 m2) then State.add_eqn (EqualTerm (ctx, m1, m2))
 
 let rec assert_type ctx a =
@@ -444,22 +453,26 @@ and ps_simpl ctx ms ps tele =
   | _ -> None
 
 let rec check_dcls ctx dcls =
-  let rec solve_delayed entries =
-    match entries with
-    | [] -> State.solve_all ()
-    | (ctx, m, a) :: entries ->
-      let meta_map = State.solve_all () in
-      let ctx = resolve_ctx meta_map ctx in
-      let m = resolve_tm meta_map m in
-      let a = resolve_tm meta_map a in
-      Debug.exec (fun () -> pr "loop_check(%a %a)@." pp_tm m pp_tm a);
-      assert_type ctx a;
-      check_tm ctx m a;
-      let entries0 = State.get_delayed () in
-      solve_delayed (entries0 @ entries)
+  let solve_delayed entries =
+    let rec loop i entries =
+      match entries with
+      | (ctx, m, a) :: entries when 0 < i ->
+        let meta_map = State.solve_all () in
+        let ctx = resolve_ctx meta_map ctx in
+        let m = resolve_tm meta_map m in
+        let a = resolve_tm meta_map a in
+        Debug.exec (fun () -> pr "loop_check(%a %a)@." pp_tm m pp_tm a);
+        assert_type ctx a;
+        check_tm ctx m a;
+        let entries0 = State.get_delayed () in
+        loop (i - 1) (entries0 @ entries)
+      | _ -> State.solve_all ()
+    in
+    loop 1000 entries
   in
   match dcls with
   | Definition { name = x; relv; scheme = sch } :: dcls ->
+    Debug.exec (fun () -> pr "definition-------------------------@.");
     let ss, (m, a) = unmbind sch in
     let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
     assert_type ctx0 a;
@@ -472,8 +485,10 @@ let rec check_dcls ctx dcls =
         meta_map sch
     in
     let ctx = Ctx.add_const x sch ctx in
+    Debug.exec (fun () -> pr "----------------------------------@.@.");
     check_dcls ctx dcls
   | Inductive { name = ind; relv; arity; dconstrs } :: dcls ->
+    Debug.exec (fun () -> pr "inductive-------------------------@.");
     check_arity ctx arity;
     let ctx0 = Ctx.add_ind ind (arity, []) ctx in
     check_dconstrs ind ctx0 dconstrs;
@@ -491,6 +506,7 @@ let rec check_dcls ctx dcls =
         dconstrs ([], ctx)
     in
     let ctx = Ctx.add_ind ind (arity, cs) ctx in
+    Debug.exec (fun () -> pr "----------------------------------@.@.");
     check_dcls ctx dcls
   | [] -> State.solve_all ()
 

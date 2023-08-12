@@ -78,5 +78,6 @@ end = struct
       | (x, (_, _, _, a)) :: ls ->
         pf fmt "?%a :? %a@;<1 0>%a" IMeta.pp x pp_tm a aux ls
     in
-    aux fmt (IMeta.Map.bindings mctx)
+    pf fmt "@[<v 0>mctx {|@;<1 2>@[<v 0>%a@]@;<1 0>|}@]" aux
+      (IMeta.Map.bindings mctx)
 end

@@ -9,8 +9,59 @@
           ((TBase (Type U)),
            [(DMul ("zero", (TBase (Id "nat"))));
              (DMul ("succ",
-                (TBind (R, (Id "nat"), (Binder ("n", (TBase (Id "nat"))))))))
+                (TBind (R, (Id "nat"), (Binder ("pred", (TBase (Id "nat"))))
+                   ))
+                ))
              ]))
+       ))};
+  Inductive {name = "eq"; relv = N;
+    body =
+    (Binder (["s"],
+       (PBind ((Type (SId "s")),
+          (Binder ("A",
+             (PBind ((Id "A"),
+                (Binder ("m",
+                   (PBase
+                      ((TBind (R, (Id "A"), (Binder ("_", (TBase (Type U))))
+                          )),
+                       [(DMul ("refl",
+                           (TBase
+                              (App [(Id "eq"); (Id "_"); (Id "m"); (Id "m")]))
+                           ))
+                         ]))
+                   ))
+                ))
+             ))
+          ))
+       ))};
+  Inductive {name = "exists"; relv = R;
+    body =
+    (Binder (["s"; "r"; "t"],
+       (PBind ((Type (SId "s")),
+          (Binder ("A",
+             (PBind ((Pi (R, U, (Id "A"), (Binder ("_", (Type (SId "r")))))),
+                (Binder ("B",
+                   (PBase
+                      ((TBase (Type (SId "t"))),
+                       [(DMul ("ex",
+                           (TBind (R, (Id "A"),
+                              (Binder ("m",
+                                 (TBind (N, (App [(Id "B"); (Id "m")]),
+                                    (Binder ("pf",
+                                       (TBase
+                                          (App
+                                             [(Id "exists"); (Id "A");
+                                               (Id "B")]))
+                                       ))
+                                    ))
+                                 ))
+                              ))
+                           ))
+                         ]))
+                   ))
+                ))
+             ))
+          ))
        ))};
   Inductive {name = "sing"; relv = R;
     body =
@@ -30,70 +81,44 @@
              ))
           ))
        ))};
-  Inductive {name = "eq"; relv = N;
-    body =
-    (Binder (["s"],
-       (PBind ((Type (SId "s")),
-          (Binder ("A",
-             (PBind ((Id "A"),
-                (Binder ("m",
-                   (PBase
-                      ((TBind (R, (Id "A"), (Binder ("_", (TBase (Type U))))
-                          )),
-                       [(DMul ("eq_refl",
-                           (TBase
-                              (App [(Id "eq"); (Id "_"); (Id "m"); (Id "m")]))
-                           ))
-                         ]))
-                   ))
-                ))
-             ))
-          ))
-       ))};
+  Definition {name = "one"; relv = R;
+    body = (Binder ([], ((App [(Id "succ"); (Id "zero")]), (Id "_"))))};
   Definition {name = "test"; relv = R;
     body =
     (Binder ([],
        ((Fun (
-           (Pi (R, U,
-              (App
-                 [(Id "sing"); (Id "nat"); (App [(Id "succ"); (Id "zero")])]),
+           (Pi (R, U, (App [(Id "sing"); (Id "nat"); (Id "one")]),
               (Binder ("_", (Id "unit"))))),
            (Binder ((Some "test"),
               [([(PMul ("just", [(PId "x")]))],
                 (Some (Let (R,
-                         (Ann ((Id "eq_refl"),
+                         (Ann ((App [(Id "ex"); (Id "x"); (Id "refl")]),
                             (App
-                               [(Id "eq"); (Id "_"); (Id "x");
-                                 (App [(Id "succ"); (Id "zero")])])
+                               [(Id "exists"); (Id "nat");
+                                 (Fun (
+                                    (Pi (R, U, (Id "_"),
+                                       (Binder ("x", (Id "_"))))),
+                                    (Binder (None,
+                                       [([(PId "x")],
+                                         (Some (App
+                                                  [(Id "eq"); (Id "_");
+                                                    (Id "x");
+                                                    (App
+                                                       [(Id "succ");
+                                                         (Id "zero")])
+                                                    ])))
+                                         ]
+                                       ))
+                                    ))
+                                 ])
                             )),
                          (Binder ("pf", (Id "tt")))))))
                 ]
               ))
            )),
-        (Pi (R, U,
-           (App [(Id "sing"); (Id "nat"); (App [(Id "succ"); (Id "zero")])]),
+        (Pi (R, U, (App [(Id "sing"); (Id "nat"); (Id "one")]),
            (Binder ("_", (Id "unit"))))))
-       ))};
-  Definition {name = "print"; relv = R;
-    body =
-    (Binder (["s"],
-       ((Fun (
-           (Pi (N, U, (Type (SId "s")),
-              (Binder ("A",
-                 (Pi (R, U, (Id "A"), (Binder ("x", (IO (Id "unit"))))))))
-              )),
-           (Binder ((Some "print"),
-              [([(PId "A"); (PId "x")], (Some (Magic (Id "_"))))]))
-           )),
-        (Pi (N, U, (Type (SId "s")),
-           (Binder ("A",
-              (Pi (R, U, (Id "A"), (Binder ("x", (IO (Id "unit"))))))))
-           )))
-       ))};
-  Definition {name = "_"; relv = R;
-    body =
-    (Binder ([],
-       ((App [(Id "print"); (Id "_"); (Id "tt")]), (IO (Id "unit")))))}
+       ))}
   ]
 
 -----------------------------------------
@@ -105,231 +130,919 @@ inductive unit_1‹› : U where
 #[program]
 inductive nat_2‹› : U where
 | zero_2 : nat_2
-| succ_3 (n_27 : nat_2) : nat_2
-
-#[program]
-inductive sing_3‹s_28› (A_29 : Type‹s_28›): A_29 -> Type‹s_28›
-where
-| just_4 (m_31 : A_29) : (sing_3‹??_1› ?_1 m_31)
+| succ_3 (pred_36 : nat_2) : nat_2
 
 #[logical]
-inductive eq_4‹s_32› (A_33 : Type‹s_32›) (m_34 : A_33): A_33 -> U
+inductive eq_3‹s_37› (A_38 : Type‹s_37›) (m_39 : A_38): A_38 -> U
 where
-| eq_refl_5 : (eq_4‹??_2› ?_2 m_34 m_34)
+| refl_4 : (eq_3‹??_1› ?_1 m_39 m_39)
 
 #[program]
-def test_1‹› : (sing_3‹??_6› nat_2 (succ_3‹› zero_2)) -> unit_1
-:=
-  function test_37 : (sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1
-  | (just_4 x_39) =>
-    let pf_40 :=
-      (eq_refl_5‹??_4› : (eq_4‹??_5› ?_5 x_39 (succ_3‹› zero_2)))
+inductive exists_4‹s_41,r_42,t_43› (A_44 : Type‹s_41›) (B_45 : 
+A_44 -> Type‹r_42›): Type‹t_43› where
+| ex_5
+    (m_47 : A_44) {pf_48 : (B_45) m_47}
+    : (exists_4‹??_2,??_3,??_4› A_44 B_45)
+
+#[program]
+inductive sing_5‹s_49› (A_50 : Type‹s_49›): A_50 -> Type‹s_49›
+where
+| just_6 (m_52 : A_50) : (sing_5‹??_5› ?_2 m_52)
+
+#[program]
+def one_1‹› : ?_3 := (succ_3‹› zero_2)
+
+#[program]
+def test_2‹› : (sing_5‹??_15› nat_2 one_1) -> unit_1 :=
+  function test_54 : (sing_5‹??_6› nat_2 one_1) -> unit_1
+  | (just_6 x_56) =>
+    let pf_57 :=
+      ((ex_5‹??_8,??_9,??_10› x_56 refl_4‹??_7›)
+        : (exists_4‹??_12,??_13,??_14›
+            nat_2
+            function _58 : ∀ (x_59 : ?_8) -> ?_9
+            | x_60 => (eq_3‹??_11› ?_10 x_60 (succ_3‹› zero_2))))
     in tt_1
-
-#[program]
-def print_2‹s_41› : ∀ {A_42 : Type‹s_41›} -> A_42 -> IO unit_1 :=
-  function print_44 : ∀ {A_45 : Type‹s_41›} -> A_45 -> IO unit_1
-  | A_47 x_48 => #magic[?_6]
-
-#[program]
-def __3‹› : IO unit_1 := (print_2‹??_7›) ?_7 tt_1
 
 -----------------------------------------
 
+inductive-------------------------
 infer_tm(unit_1)
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    
+  |}
+  imeta_meta {|
+    
+  |}
+  eqns {|
+    
+  |}
+end_delayed
+----------------------------------
+
+inductive-------------------------
 infer_tm(nat_2)
 infer_tm(nat_2)
 infer_tm(nat_2)
-infer_tm(Type‹s_51›)
-infer_tm(A_52)
-infer_tm(Type‹s_54›)
-infer_tm(A_55)
-infer_tm((sing_3‹??_1› ?_1 m_56))
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    
+  |}
+  imeta_meta {|
+    
+  |}
+  eqns {|
+    
+  |}
+end_delayed
+----------------------------------
+
+inductive-------------------------
+infer_tm(Type‹s_63›)
+infer_tm(A_64)
+infer_tm(A_64)
+infer_tm(Type‹s_67›)
+infer_tm(A_68)
+assert_equal1(A_68, ?_1)
+assert_equal1(m_69, m_69)
+infer_tm((eq_3‹??_1› ?_1 m_69 m_69))
 check_tm(?_1, Type‹??_1›)
-check_tm(m_56, ?_1)
-infer_tm(m_56)
-loop_check(A_55 Type‹s_54›)
-infer_tm(Type‹s_54›)
-check_tm(A_55, Type‹s_54›)
-infer_tm(A_55)
-infer_tm(Type‹s_69›)
-infer_tm(A_70)
-infer_tm(A_70)
-infer_tm(Type‹s_73›)
-infer_tm(A_74)
-infer_tm((eq_4‹??_2› ?_2 m_75 m_75))
-check_tm(?_2, Type‹??_2›)
-check_tm(m_75, ?_2)
-infer_tm(m_75)
-check_tm(m_75, ?_2)
-infer_tm(m_75)
-loop_check(A_74 Type‹s_73›)
-infer_tm(Type‹s_73›)
-check_tm(A_74, Type‹s_73›)
-infer_tm(A_74)
-infer_tm((sing_3‹??_6› nat_2 (succ_3‹› zero_2)) -> unit_1)
-infer_tm((sing_3‹??_6› nat_2 (succ_3‹› zero_2)))
+check_tm(m_69, ?_1)
+infer_tm(m_69)
+assert_equal1(?_1, A_68)
+check_tm(m_69, ?_1)
+infer_tm(m_69)
+assert_equal1(?_1, A_68)
+begin_delayed
+  mctx {|
+    ?_1 :? Type‹??_1›
+  |}
+  smeta_meta {|
+    ??_1 <= s_70
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_73
+    
+  |}
+  eqns {|
+    
+  |}
+end_delayed
+loop_check(A_68 Type‹s_67›)
+infer_tm(Type‹s_67›)
+check_tm(A_68, Type‹s_67›)
+infer_tm(A_68)
+assert_equal1(Type‹s_67›, Type‹s_67›)
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_74
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_77
+    
+  |}
+  eqns {|
+    
+  |}
+end_delayed
+----------------------------------
+
+inductive-------------------------
+infer_tm(Type‹s_89›)
+infer_tm(A_92 -> Type‹r_90›)
+infer_tm(A_92)
+infer_tm(Type‹r_90›)
+infer_tm(Type‹s_96›)
+infer_tm(A_99 -> Type‹r_97›)
+infer_tm(A_99)
+infer_tm(Type‹r_97›)
+infer_tm(A_99)
+infer_tm((B_100) m_103)
+infer_tm(B_100)
+check_tm(m_103, A_99)
+infer_tm(m_103)
+assert_equal1(A_99, A_99)
+assert_equal1(A_99, A_99)
+assert_equal1(B_100, B_100)
+infer_tm((exists_4‹??_2,??_3,??_4› A_99 B_100))
+check_tm(A_99, Type‹??_2›)
+infer_tm(A_99)
+assert_equal1(Type‹??_2›, Type‹s_96›)
+check_tm(B_100, A_99 -> Type‹??_3›)
+infer_tm(B_100)
+assert_equal1(A_99 -> Type‹??_3›, A_99 -> Type‹r_97›)
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_116
+    ??_2 <= s_119
+    ??_3 <= r_121
+    ??_4 <= t_123
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_128
+    
+  |}
+  eqns {|
+    
+  |}
+end_delayed
+----------------------------------
+
+inductive-------------------------
+infer_tm(Type‹s_160›)
+infer_tm(A_161)
+infer_tm(Type‹s_163›)
+infer_tm(A_164)
+assert_equal1(A_164, ?_2)
+infer_tm((sing_5‹??_5› ?_2 m_165))
+check_tm(?_2, Type‹??_5›)
+check_tm(m_165, ?_2)
+infer_tm(m_165)
+assert_equal1(?_2, A_164)
+begin_delayed
+  mctx {|
+    ?_2 :? Type‹??_5›
+  |}
+  smeta_meta {|
+    ??_1 <= s_166
+    ??_2 <= s_169
+    ??_3 <= r_171
+    ??_4 <= t_173
+    ??_5 <= s_176
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_179
+    ?_2 <= A_182
+    
+  |}
+  eqns {|
+    
+  |}
+end_delayed
+loop_check(A_164 Type‹s_163›)
+infer_tm(Type‹s_163›)
+check_tm(A_164, Type‹s_163›)
+infer_tm(A_164)
+assert_equal1(Type‹s_163›, Type‹s_163›)
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_183
+    ??_2 <= s_186
+    ??_3 <= r_188
+    ??_4 <= t_190
+    ??_5 <= s_193
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_196
+    ?_2 <= A_199
+    
+  |}
+  eqns {|
+    
+  |}
+end_delayed
+----------------------------------
+
+definition-------------------------
+infer_tm(?_3)
+delay_assert(?_11, ??_16)
+check_tm((succ_3‹› zero_2), ?_3)
+infer_tm((succ_3‹› zero_2))
+check_tm(zero_2, nat_2)
+infer_tm(zero_2)
+assert_equal1(nat_2, nat_2)
+assert_equal1(?_3, nat_2)
+begin_delayed
+  mctx {|
+    ?_3 :? ?_11
+  |}
+  smeta_meta {|
+    ??_1 <= s_212
+    ??_2 <= s_215
+    ??_3 <= r_217
+    ??_4 <= t_219
+    ??_5 <= s_222
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_225
+    ?_2 <= A_228
+    
+  |}
+  eqns {|
+    equal_tm? (?_3, nat_2);
+    equal_tm? (?_11, Type‹??_16›)
+  |}
+end_delayed
+loop_check(nat_2 Type‹??_16›)
+infer_tm(Type‹??_16›)
+check_tm(nat_2, Type‹??_16›)
+infer_tm(nat_2)
+assert_equal1(Type‹??_16›, U)
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_229
+    ??_2 <= s_232
+    ??_3 <= r_234
+    ??_4 <= t_236
+    ??_5 <= s_239
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_242
+    ?_2 <= A_245
+    ?_3 <= nat_2
+    ?_11 <= Type‹??_16›
+    
+  |}
+  eqns {|
+    equal_tm? (Type‹??_16›, U)
+  |}
+end_delayed
+----------------------------------
+
+definition-------------------------
+infer_tm((sing_5‹??_15› nat_2 one_1) -> unit_1)
+infer_tm((sing_5‹??_15› nat_2 one_1))
+check_tm(nat_2, Type‹??_15›)
+infer_tm(nat_2)
+assert_equal1(Type‹??_15›, U)
+check_tm(one_1, nat_2)
+infer_tm(one_1)
+assert_equal1(nat_2, nat_2)
+infer_tm(unit_1)
+check_tm(function test_248 : (sing_5‹??_6› nat_2 one_1) -> unit_1
+         | (just_6 x_250) =>
+           let pf_251 :=
+             ((ex_5‹??_8,??_9,??_10› x_250 refl_4‹??_7›)
+               : (exists_4‹??_12,??_13,??_14›
+                   nat_2
+                   function _252 : ∀ (x_253 : ?_8) -> ?_9
+                   | x_254 =>
+                     (eq_3‹??_11› ?_10 x_254 (succ_3‹› zero_2))))
+           in tt_1, (sing_5‹??_15› nat_2 one_1) -> unit_1)
+infer_tm(function test_256 : (sing_5‹??_6› nat_2 one_1) -> unit_1
+         | (just_6 x_258) =>
+           let pf_259 :=
+             ((ex_5‹??_8,??_9,??_10› x_258 refl_4‹??_7›)
+               : (exists_4‹??_12,??_13,??_14›
+                   nat_2
+                   function _260 : ∀ (x_261 : ?_8) -> ?_9
+                   | x_262 =>
+                     (eq_3‹??_11› ?_10 x_262 (succ_3‹› zero_2))))
+           in tt_1)
+infer_tm((sing_5‹??_6› nat_2 one_1) -> unit_1)
+infer_tm((sing_5‹??_6› nat_2 one_1))
 check_tm(nat_2, Type‹??_6›)
 infer_tm(nat_2)
-check_tm((succ_3‹› zero_2), nat_2)
-infer_tm((succ_3‹› zero_2))
-check_tm(zero_2, nat_2)
-infer_tm(zero_2)
-infer_tm(unit_1)
-check_tm(function test_89 :
-           (sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1
-         | (just_4 x_91) =>
-           let pf_92 :=
-             (eq_refl_5‹??_4›
-               : (eq_4‹??_5› ?_5 x_91 (succ_3‹› zero_2)))
-           in tt_1, (sing_3‹??_6› nat_2 (succ_3‹› zero_2)) -> unit_1)
-infer_tm(function test_94 :
-           (sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1
-         | (just_4 x_96) =>
-           let pf_97 :=
-             (eq_refl_5‹??_4›
-               : (eq_4‹??_5› ?_5 x_96 (succ_3‹› zero_2)))
-           in tt_1)
-infer_tm((sing_3‹??_3› nat_2 (succ_3‹› zero_2)) -> unit_1)
-infer_tm((sing_3‹??_3› nat_2 (succ_3‹› zero_2)))
-check_tm(nat_2, Type‹??_3›)
-infer_tm(nat_2)
-check_tm((succ_3‹› zero_2), nat_2)
-infer_tm((succ_3‹› zero_2))
-check_tm(zero_2, nat_2)
-infer_tm(zero_2)
+assert_equal1(Type‹??_6›, U)
+check_tm(one_1, nat_2)
+infer_tm(one_1)
+assert_equal1(nat_2, nat_2)
 infer_tm(unit_1)
 case_coverage{|
   prblm {|
-    eq_term?( (sing_3‹U› nat_2 (succ_3‹› zero_2)),
-      (sing_3‹U› nat_2 #m_104));
-    {| eq_pat?( #m_104, x_101 : nat_2) ::: [] =>?
-         let pf_106 :=
-           (eq_refl_5‹??_4›
-             : (eq_4‹??_5› ?_5 #x_101 (succ_3‹› zero_2)))
+    eq_term?( (sing_5‹U› nat_2 one_1), (sing_5‹U› nat_2 #m_269));
+    {| eq_pat?( #m_269, x_266 : nat_2) ::: [] =>?
+         let pf_271 :=
+           ((ex_5‹??_8,??_9,??_10› #x_266 refl_4‹??_7›)
+             : (exists_4‹??_12,??_13,??_14›
+                 nat_2
+                 function _272 : ∀ (x_273 : ?_8) -> ?_9
+                 | x_274 =>
+                   (eq_3‹??_11› ?_10 x_274 (succ_3‹› zero_2))))
          in tt_1
     |}
   |}
 |}
 solve_pprm(
-  eq_term?( (sing_3‹U› nat_2 (succ_3‹› zero_2)),
-    (sing_3‹U› nat_2 #m_104))
-  eq_pat?( #m_104, x_101 : nat_2)
+  eq_term?( (sing_5‹U› nat_2 one_1), (sing_5‹U› nat_2 #m_269))
+  eq_pat?( #m_269, x_266 : nat_2)
 )
-case_coverage_ok(let pf_109 :=
-                   (eq_refl_5‹??_4›
-                     : (eq_4‹??_5›
-                         ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
+case_coverage_ok(let pf_280 :=
+                   ((ex_5‹??_8,??_9,??_10› one_1 refl_4‹??_7›)
+                     : (exists_4‹??_12,??_13,??_14›
+                         nat_2
+                         function _281 : ∀ (x_282 : ?_8) -> ?_9
+                         | x_283 =>
+                           (eq_3‹??_11› ?_10 x_283 (succ_3‹› zero_2))))
                  in tt_1, unit_1)
-check_tm(let pf_110 :=
-           (eq_refl_5‹??_4›
-             : (eq_4‹??_5›
-                 ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
+check_tm(let pf_284 :=
+           ((ex_5‹??_8,??_9,??_10› one_1 refl_4‹??_7›)
+             : (exists_4‹??_12,??_13,??_14›
+                 nat_2
+                 function _285 : ∀ (x_286 : ?_8) -> ?_9
+                 | x_287 =>
+                   (eq_3‹??_11› ?_10 x_287 (succ_3‹› zero_2))))
          in tt_1, unit_1)
-infer_tm(let pf_111 :=
-           (eq_refl_5‹??_4›
-             : (eq_4‹??_5›
-                 ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
+infer_tm(let pf_288 :=
+           ((ex_5‹??_8,??_9,??_10› one_1 refl_4‹??_7›)
+             : (exists_4‹??_12,??_13,??_14›
+                 nat_2
+                 function _289 : ∀ (x_290 : ?_8) -> ?_9
+                 | x_291 =>
+                   (eq_3‹??_11› ?_10 x_291 (succ_3‹› zero_2))))
          in tt_1)
-infer_tm((eq_refl_5‹??_4›
-           : (eq_4‹??_5› ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2))))
-infer_tm((eq_4‹??_5› ?_5 (succ_3‹› zero_2) (succ_3‹› zero_2)))
-check_tm(?_5, Type‹??_5›)
-check_tm((succ_3‹› zero_2), ?_5)
+infer_tm(((ex_5‹??_8,??_9,??_10› one_1 refl_4‹??_7›)
+           : (exists_4‹??_12,??_13,??_14›
+               nat_2
+               function _293 : ∀ (x_294 : ?_8) -> ?_9
+               | x_295 => (eq_3‹??_11› ?_10 x_295 (succ_3‹› zero_2)))))
+infer_tm((exists_4‹??_12,??_13,??_14›
+           nat_2
+           function _296 : ∀ (x_297 : ?_8) -> ?_9
+           | x_298 => (eq_3‹??_11› ?_10 x_298 (succ_3‹› zero_2))))
+check_tm(nat_2, Type‹??_12›)
+infer_tm(nat_2)
+assert_equal1(Type‹??_12›, U)
+check_tm(function _299 : ∀ (x_300 : ?_8) -> ?_9
+         | x_301 => (eq_3‹??_11› ?_10 x_301 (succ_3‹› zero_2)), 
+nat_2 -> Type‹??_13›)
+infer_tm(function _303 : ∀ (x_304 : ?_8) -> ?_9
+         | x_305 => (eq_3‹??_11› ?_10 x_305 (succ_3‹› zero_2)))
+infer_tm(∀ (x_307 : ?_8) -> ?_9)
+infer_tm(?_8)
+delay_assert(?_12, ??_17)
+infer_tm(?_9)
+delay_assert(?_13, ??_18)
+case_coverage{|
+  prblm {| ;
+    {| eq_pat?( #x_311, x_309 : ?_8) ::: [] =>?
+         (eq_3‹??_11› ?_10 #x_309 (succ_3‹› zero_2))
+    |}
+  |}
+|}
+solve_pprm( eq_pat?( #x_311, x_309 : ?_8) )
+case_coverage_ok((eq_3‹??_11› ?_10 #x_311 (succ_3‹› zero_2)), ?_9)
+check_tm((eq_3‹??_11› ?_10 #x_311 (succ_3‹› zero_2)), ?_9)
+infer_tm((eq_3‹??_11› ?_10 #x_311 (succ_3‹› zero_2)))
+check_tm(?_10, Type‹??_11›)
+check_tm(#x_311, ?_10)
+infer_tm(#x_311)
+assert_equal1(?_10, ?_8)
+check_tm((succ_3‹› zero_2), ?_10)
 infer_tm((succ_3‹› zero_2))
 check_tm(zero_2, nat_2)
 infer_tm(zero_2)
-check_tm((succ_3‹› zero_2), ?_5)
-infer_tm((succ_3‹› zero_2))
-check_tm(zero_2, nat_2)
-infer_tm(zero_2)
-check_tm(eq_refl_5‹??_4›, (eq_4‹??_5›
-                                ?_5 (succ_3‹› zero_2)
-                                (succ_3‹› zero_2)))
-infer_tm(eq_refl_5‹??_4›)
-check_tm(?_3, Type‹??_4›)
-check_tm(?_4, ?_3)
+assert_equal1(nat_2, nat_2)
+assert_equal1(?_10, nat_2)
+assert_equal1(?_9, U)
+assert_equal1(nat_2 -> Type‹??_13›, ∀ (x_315 : ?_8) -> ?_9)
+check_tm((ex_5‹??_8,??_9,??_10› one_1 refl_4‹??_7›), (exists_4‹??_12,??_13,??_14›
+                                                               nat_2
+                                                               function _323 :
+                                                                 ∀ (x_324 :
+                                                                   ?_8) ->
+                                                                   ?_9
+                                                               | x_325 =>
+                                                                 (eq_3‹??_11›
+                                                                   ?_10 x_325
+                                                                   (succ_3‹›
+                                                                    zero_2))))
+infer_tm((ex_5‹??_8,??_9,??_10› one_1 refl_4‹??_7›))
+check_tm(?_6, Type‹??_8›)
+check_tm(?_7, ?_6 -> Type‹??_9›)
+check_tm(one_1, ?_6)
+infer_tm(one_1)
+assert_equal1(?_6, nat_2)
+check_tm(refl_4‹??_7›, (?_7) one_1)
+infer_tm(refl_4‹??_7›)
+check_tm(?_4, Type‹??_7›)
+check_tm(?_5, ?_4)
+assert_equal1((?_7) one_1, (eq_3‹??_7› ?_4 ?_5 ?_5))
+assert_equal1((exists_4‹??_12,??_13,??_14›
+                nat_2
+                function _327 : ∀ (x_328 : ?_8) -> ?_9
+                | x_329 => (eq_3‹??_11› ?_10 x_329 (succ_3‹› zero_2))), 
+(exists_4‹??_8,??_9,??_10› ?_6 ?_7))
 infer_tm(tt_1)
-loop_check(nat_2 Type‹??_4›)
-infer_tm(Type‹??_4›)
-check_tm(nat_2, Type‹??_4›)
+assert_equal1(unit_1, unit_1)
+assert_equal1((sing_5‹??_15› nat_2 one_1) -> unit_1, (sing_5‹??_6›
+                                                           nat_2 one_1) ->
+                                                           unit_1)
+begin_delayed
+  mctx {|
+    ?_4 :? Type‹??_7›
+    ?_5 :? ?_4
+    ?_6 :? Type‹??_8›
+    ?_7 :? ?_6 -> Type‹??_9›
+    ?_8 :? ?_12
+    ?_9 :? ?_13
+    ?_10 :? Type‹??_11›
+  |}
+  smeta_meta {|
+    ??_1 <= s_333
+    ??_2 <= s_336
+    ??_3 <= r_338
+    ??_4 <= t_340
+    ??_5 <= s_343
+    ??_6 <= U
+    ??_12 <= U
+    ??_13 <= U
+    ??_15 <= U
+    ??_16 <= U
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_346
+    ?_2 <= A_349
+    ?_3 <= nat_2
+    ?_8 <= nat_2
+    ?_9 <= Type‹??_13›
+    ?_10 <= nat_2
+    ?_11 <= Type‹??_16›
+    ?_12 <= Type‹??_17›
+    ?_13 <= Type‹??_18›
+    
+  |}
+  eqns {|
+    equal_tm? ((sing_5‹??_15› nat_2 one_1) -> unit_1,
+      (sing_5‹??_6› nat_2 one_1) -> unit_1);
+    equal_tm?
+      ((exists_4‹??_12,??_13,??_14›
+         nat_2
+         function _367 : ∀ (x_368 : ?_8) -> ?_9
+         | x_369 => (eq_3‹??_11› ?_10 x_369 (succ_3‹› zero_2))),
+      (exists_4‹??_8,??_9,??_10› ?_6 ?_7));
+    equal_tm? ((?_7) one_1, (eq_3‹??_7› ?_4 ?_5 ?_5));
+    equal_tm? (?_6, nat_2)
+  |}
+end_delayed
+loop_check(nat_2 Type‹??_7›)
+infer_tm(Type‹??_7›)
+check_tm(nat_2, Type‹??_7›)
 infer_tm(nat_2)
-loop_check((succ_3‹› zero_2) nat_2)
+assert_equal1(Type‹??_7›, U)
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_390
+    ??_2 <= s_393
+    ??_3 <= r_395
+    ??_4 <= t_397
+    ??_5 <= s_400
+    ??_6 <= U
+    ??_8 <= U
+    ??_9 <= U
+    ??_11 <= ??_7
+    ??_12 <= U
+    ??_13 <= U
+    ??_14 <= ??_10
+    ??_15 <= U
+    ??_16 <= U
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_403
+    ?_2 <= A_406
+    ?_3 <= nat_2
+    ?_4 <= nat_2
+    ?_5 <= one_1
+    ?_6 <= nat_2
+    ?_7 <= function _415 : nat_2 -> U
+           | x_417 => (eq_3‹??_11› nat_2 x_417 (succ_3‹› zero_2))
+    ?_8 <= nat_2
+    ?_9 <= Type‹??_13›
+    ?_10 <= nat_2
+    ?_11 <= Type‹??_16›
+    ?_12 <= Type‹??_17›
+    ?_13 <= Type‹??_18›
+    
+  |}
+  eqns {|
+    equal_tm? (Type‹??_7›, U)
+  |}
+end_delayed
+loop_check(one_1 nat_2)
 infer_tm(nat_2)
-check_tm((succ_3‹› zero_2), nat_2)
-infer_tm((succ_3‹› zero_2))
-check_tm(zero_2, nat_2)
-infer_tm(zero_2)
+check_tm(one_1, nat_2)
+infer_tm(one_1)
+assert_equal1(nat_2, nat_2)
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_434
+    ??_2 <= s_437
+    ??_3 <= r_439
+    ??_4 <= t_441
+    ??_5 <= s_444
+    ??_6 <= U
+    ??_7 <= U
+    ??_8 <= U
+    ??_9 <= U
+    ??_11 <= ??_7
+    ??_12 <= U
+    ??_13 <= U
+    ??_14 <= ??_10
+    ??_15 <= U
+    ??_16 <= U
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_447
+    ?_2 <= A_450
+    ?_3 <= nat_2
+    ?_4 <= nat_2
+    ?_5 <= one_1
+    ?_6 <= nat_2
+    ?_7 <= function _459 : nat_2 -> U
+           | x_461 => (eq_3‹??_11› nat_2 x_461 (succ_3‹› zero_2))
+    ?_8 <= nat_2
+    ?_9 <= Type‹??_13›
+    ?_10 <= nat_2
+    ?_11 <= Type‹??_16›
+    ?_12 <= Type‹??_17›
+    ?_13 <= Type‹??_18›
+    
+  |}
+  eqns {|
+    
+  |}
+end_delayed
 loop_check(nat_2 U)
 infer_tm(U)
 check_tm(nat_2, U)
 infer_tm(nat_2)
-infer_tm(∀ {A_130 : Type‹s_129›} -> A_130 -> IO unit_1)
-infer_tm(Type‹s_129›)
-infer_tm(A_132 -> IO unit_1)
-infer_tm(A_132)
-infer_tm(IO unit_1)
-infer_tm(unit_1)
-check_tm(function print_135 :
-           ∀ {A_136 : Type‹s_129›} -> A_136 -> IO unit_1
-         | A_138 x_139 => #magic[?_6], ∀ {A_140 : Type‹s_129›} ->
-                                         A_140 -> IO unit_1)
-infer_tm(function print_142 :
-           ∀ {A_143 : Type‹s_129›} -> A_143 -> IO unit_1
-         | A_145 x_146 => #magic[?_6])
-infer_tm(∀ {A_148 : Type‹s_129›} -> A_148 -> IO unit_1)
-infer_tm(Type‹s_129›)
-infer_tm(A_150 -> IO unit_1)
-infer_tm(A_150)
-infer_tm(IO unit_1)
-infer_tm(unit_1)
+assert_equal1(U, U)
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_478
+    ??_2 <= s_481
+    ??_3 <= r_483
+    ??_4 <= t_485
+    ??_5 <= s_488
+    ??_6 <= U
+    ??_7 <= U
+    ??_8 <= U
+    ??_9 <= U
+    ??_11 <= ??_7
+    ??_12 <= U
+    ??_13 <= U
+    ??_14 <= ??_10
+    ??_15 <= U
+    ??_16 <= U
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_491
+    ?_2 <= A_494
+    ?_3 <= nat_2
+    ?_4 <= nat_2
+    ?_5 <= one_1
+    ?_6 <= nat_2
+    ?_7 <= function _503 : nat_2 -> U
+           | x_505 => (eq_3‹??_11› nat_2 x_505 (succ_3‹› zero_2))
+    ?_8 <= nat_2
+    ?_9 <= Type‹??_13›
+    ?_10 <= nat_2
+    ?_11 <= Type‹??_16›
+    ?_12 <= Type‹??_17›
+    ?_13 <= Type‹??_18›
+    
+  |}
+  eqns {|
+    
+  |}
+end_delayed
+loop_check(function _526 : nat_2 -> U
+           | x_528 => (eq_3‹U› nat_2 x_528 (succ_3‹› zero_2)) 
+nat_2 -> U)
+infer_tm(nat_2 -> U)
+infer_tm(nat_2)
+infer_tm(U)
+check_tm(function _532 : nat_2 -> U
+         | x_534 => (eq_3‹U› nat_2 x_534 (succ_3‹› zero_2)), 
+nat_2 -> U)
+infer_tm(function _536 : nat_2 -> U
+         | x_538 => (eq_3‹U› nat_2 x_538 (succ_3‹› zero_2)))
+infer_tm(nat_2 -> U)
+infer_tm(nat_2)
+infer_tm(U)
 case_coverage{|
   prblm {| ;
-    {| eq_pat?( #A_157, A_153 : Type‹s_129›)
-       eq_pat?( #x_158, x_154 : #A_157) ::: [] =>? #magic[?_6]
+    {| eq_pat?( #x_544, x_542 : nat_2) ::: [] =>?
+         (eq_3‹U› nat_2 #x_542 (succ_3‹› zero_2))
     |}
   |}
 |}
-solve_pprm(
-  eq_pat?( #A_157, A_153 : Type‹s_129›) eq_pat?( #x_158, x_154 : #A_157)
-)
-case_coverage_ok(#magic[?_6], IO unit_1)
-check_tm(#magic[?_6], IO unit_1)
-infer_tm(#magic[?_6])
-infer_tm(IO unit_1)
-infer_tm(unit_1)
-check_tm((print_2‹??_7›) ?_7 tt_1, IO unit_1)
-infer_tm((print_2‹??_7›) ?_7 tt_1)
-infer_tm((print_2‹??_7›) ?_7)
-infer_tm(print_2‹??_7›)
-check_tm(?_7, Type‹??_7›)
-check_tm(tt_1, ?_7)
-infer_tm(tt_1)
-loop_check(unit_1 Type‹??_7›)
-infer_tm(Type‹??_7›)
-check_tm(unit_1, Type‹??_7›)
-infer_tm(unit_1)
+solve_pprm( eq_pat?( #x_544, x_542 : nat_2) )
+case_coverage_ok((eq_3‹U› nat_2 #x_544 (succ_3‹› zero_2)), U)
+check_tm((eq_3‹U› nat_2 #x_544 (succ_3‹› zero_2)), U)
+infer_tm((eq_3‹U› nat_2 #x_544 (succ_3‹› zero_2)))
+check_tm(nat_2, U)
+infer_tm(nat_2)
+assert_equal1(U, U)
+check_tm(#x_544, nat_2)
+infer_tm(#x_544)
+assert_equal1(nat_2, nat_2)
+check_tm((succ_3‹› zero_2), nat_2)
+infer_tm((succ_3‹› zero_2))
+check_tm(zero_2, nat_2)
+infer_tm(zero_2)
+assert_equal1(nat_2, nat_2)
+assert_equal1(nat_2, nat_2)
+assert_equal1(U, U)
+assert_equal1(nat_2 -> U, nat_2 -> U)
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_550
+    ??_2 <= s_553
+    ??_3 <= r_555
+    ??_4 <= t_557
+    ??_5 <= s_560
+    ??_6 <= U
+    ??_7 <= U
+    ??_8 <= U
+    ??_9 <= U
+    ??_11 <= ??_7
+    ??_12 <= U
+    ??_13 <= U
+    ??_14 <= ??_10
+    ??_15 <= U
+    ??_16 <= U
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_563
+    ?_2 <= A_566
+    ?_3 <= nat_2
+    ?_4 <= nat_2
+    ?_5 <= one_1
+    ?_6 <= nat_2
+    ?_7 <= function _575 : nat_2 -> U
+           | x_577 => (eq_3‹??_11› nat_2 x_577 (succ_3‹› zero_2))
+    ?_8 <= nat_2
+    ?_9 <= Type‹??_13›
+    ?_10 <= nat_2
+    ?_11 <= Type‹??_16›
+    ?_12 <= Type‹??_17›
+    ?_13 <= Type‹??_18›
+    
+  |}
+  eqns {|
+    
+  |}
+end_delayed
+loop_check(nat_2 Type‹??_17›)
+infer_tm(Type‹??_17›)
+check_tm(nat_2, Type‹??_17›)
+infer_tm(nat_2)
+assert_equal1(Type‹??_17›, U)
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_594
+    ??_2 <= s_597
+    ??_3 <= r_599
+    ??_4 <= t_601
+    ??_5 <= s_604
+    ??_6 <= U
+    ??_7 <= U
+    ??_8 <= U
+    ??_9 <= U
+    ??_11 <= ??_7
+    ??_12 <= U
+    ??_13 <= U
+    ??_14 <= ??_10
+    ??_15 <= U
+    ??_16 <= U
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_607
+    ?_2 <= A_610
+    ?_3 <= nat_2
+    ?_4 <= nat_2
+    ?_5 <= one_1
+    ?_6 <= nat_2
+    ?_7 <= function _619 : nat_2 -> U
+           | x_621 => (eq_3‹??_11› nat_2 x_621 (succ_3‹› zero_2))
+    ?_8 <= nat_2
+    ?_9 <= Type‹??_13›
+    ?_10 <= nat_2
+    ?_11 <= Type‹??_16›
+    ?_12 <= Type‹??_17›
+    ?_13 <= Type‹??_18›
+    
+  |}
+  eqns {|
+    equal_tm? (Type‹??_17›, U)
+  |}
+end_delayed
+loop_check(U Type‹??_18›)
+infer_tm(Type‹??_18›)
+check_tm(U, Type‹??_18›)
+infer_tm(U)
+assert_equal1(Type‹??_18›, U)
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_638
+    ??_2 <= s_641
+    ??_3 <= r_643
+    ??_4 <= t_645
+    ??_5 <= s_648
+    ??_6 <= U
+    ??_7 <= U
+    ??_8 <= U
+    ??_9 <= U
+    ??_11 <= ??_7
+    ??_12 <= U
+    ??_13 <= U
+    ??_14 <= ??_10
+    ??_15 <= U
+    ??_16 <= U
+    ??_17 <= U
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_651
+    ?_2 <= A_654
+    ?_3 <= nat_2
+    ?_4 <= nat_2
+    ?_5 <= one_1
+    ?_6 <= nat_2
+    ?_7 <= function _663 : nat_2 -> U
+           | x_665 => (eq_3‹??_11› nat_2 x_665 (succ_3‹› zero_2))
+    ?_8 <= nat_2
+    ?_9 <= Type‹??_13›
+    ?_10 <= nat_2
+    ?_11 <= Type‹??_16›
+    ?_12 <= Type‹??_17›
+    ?_13 <= Type‹??_18›
+    
+  |}
+  eqns {|
+    equal_tm? (Type‹??_18›, U)
+  |}
+end_delayed
+loop_check(nat_2 U)
+infer_tm(U)
+check_tm(nat_2, U)
+infer_tm(nat_2)
+assert_equal1(U, U)
+begin_delayed
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_683
+    ??_2 <= s_686
+    ??_3 <= r_688
+    ??_4 <= t_690
+    ??_5 <= s_693
+    ??_6 <= U
+    ??_7 <= U
+    ??_8 <= U
+    ??_9 <= U
+    ??_11 <= ??_7
+    ??_12 <= U
+    ??_13 <= U
+    ??_14 <= ??_10
+    ??_15 <= U
+    ??_16 <= U
+    ??_17 <= U
+    ??_18 <= U
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_696
+    ?_2 <= A_699
+    ?_3 <= nat_2
+    ?_4 <= nat_2
+    ?_5 <= one_1
+    ?_6 <= nat_2
+    ?_7 <= function _708 : nat_2 -> U
+           | x_710 => (eq_3‹??_11› nat_2 x_710 (succ_3‹› zero_2))
+    ?_8 <= nat_2
+    ?_9 <= Type‹??_13›
+    ?_10 <= nat_2
+    ?_11 <= Type‹??_16›
+    ?_12 <= Type‹??_17›
+    ?_13 <= Type‹??_18›
+    
+  |}
+  eqns {|
+    
+  |}
+end_delayed
+----------------------------------
+
 smeta_meta {|
-  ??_1 <= s_176
-  ??_2 <= s_177
-  ??_3 <= U
-  ??_4 <= U
-  ??_5 <= ??_4
+  ??_1 <= s_737
+  ??_2 <= s_740
+  ??_3 <= r_742
+  ??_4 <= t_744
+  ??_5 <= s_747
   ??_6 <= U
   ??_7 <= U
+  ??_8 <= U
+  ??_9 <= U
+  ??_11 <= ??_7
+  ??_12 <= U
+  ??_13 <= U
+  ??_14 <= ??_10
+  ??_15 <= U
+  ??_16 <= U
+  ??_17 <= U
+  ??_18 <= U
   
 |}
 imeta_meta {|
-  ?_1 <= A_180
-  ?_2 <= A_183
+  ?_1 <= A_750
+  ?_2 <= A_753
   ?_3 <= nat_2
-  ?_4 <= (succ_3‹› zero_2)
-  ?_5 <= nat_2
-  ?_6 <= IO unit_1
-  ?_7 <= unit_1
+  ?_4 <= nat_2
+  ?_5 <= one_1
+  ?_6 <= nat_2
+  ?_7 <= function _762 : nat_2 -> U
+         | x_764 => (eq_3‹??_11› nat_2 x_764 (succ_3‹› zero_2))
+  ?_8 <= nat_2
+  ?_9 <= Type‹??_13›
+  ?_10 <= nat_2
+  ?_11 <= Type‹??_16›
+  ?_12 <= Type‹??_17›
+  ?_13 <= Type‹??_18›
   
 |}
-
 #[program]
 inductive unit_1‹› : U where
 | tt_1 : unit_1
@@ -337,36 +1050,41 @@ inductive unit_1‹› : U where
 #[program]
 inductive nat_2‹› : U where
 | zero_2 : nat_2
-| succ_3 (n_231 : nat_2) : nat_2
-
-#[program]
-inductive sing_3‹s_232› (A_233 : Type‹s_232›):
-  A_233 -> Type‹s_232›
-where
-| just_4 (m_235 : A_233) : (sing_3‹s_232› A_233 m_235)
+| succ_3 (pred_846 : nat_2) : nat_2
 
 #[logical]
-inductive eq_4‹s_236› (A_237 : Type‹s_236›) (m_238 : A_237):
-  A_237 -> U
+inductive eq_3‹s_847› (A_848 : Type‹s_847›) (m_849 : A_848):
+  A_848 -> U
 where
-| eq_refl_5 : (eq_4‹s_236› A_237 m_238 m_238)
+| refl_4 : (eq_3‹s_847› A_848 m_849 m_849)
 
 #[program]
-def test_1‹› : (sing_3‹U› nat_2 (succ_3‹› zero_2)) -> unit_1 :=
-  function test_241 : (sing_3‹U› nat_2 (succ_3‹› zero_2)) -> unit_1
-  | (just_4 x_243) =>
-    let pf_244 :=
-      (eq_refl_5‹U› : (eq_4‹U› nat_2 x_243 (succ_3‹› zero_2)))
+inductive exists_4‹s_851,r_852,t_853› (A_854 : Type‹s_851›) (B_855 : 
+A_854 -> Type‹r_852›): Type‹t_853› where
+| ex_5
+    (m_857 : A_854) {pf_858 : (B_855) m_857}
+    : (exists_4‹s_851,r_852,t_853› A_854 B_855)
+
+#[program]
+inductive sing_5‹s_859› (A_860 : Type‹s_859›):
+  A_860 -> Type‹s_859›
+where
+| just_6 (m_862 : A_860) : (sing_5‹s_859› A_860 m_862)
+
+#[program]
+def one_1‹› : nat_2 := (succ_3‹› zero_2)
+
+#[program]
+def test_2‹› : (sing_5‹U› nat_2 one_1) -> unit_1 :=
+  function test_864 : (sing_5‹U› nat_2 one_1) -> unit_1
+  | (just_6 x_866) =>
+    let pf_867 :=
+      ((ex_5‹U,U,??_10› x_866 refl_4‹U›)
+        : (exists_4‹U,U,??_10›
+            nat_2
+            function _868 : nat_2 -> U
+            | x_870 => (eq_3‹U› nat_2 x_870 (succ_3‹› zero_2))))
     in tt_1
-
-#[program]
-def print_2‹s_245› : ∀ {A_246 : Type‹s_245›} -> A_246 -> IO unit_1
-:=
-  function print_248 : ∀ {A_249 : Type‹s_245›} -> A_249 -> IO unit_1
-  | A_251 x_252 => #magic[IO unit_1]
-
-#[program]
-def __3‹› : IO unit_1 := (print_2‹U›) unit_1 tt_1
 
 -----------------------------------------
 

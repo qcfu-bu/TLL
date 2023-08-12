@@ -113,7 +113,6 @@ let tm_ln = [%sedlex.regexp? "ln"]
 let tm_function = [%sedlex.regexp? "function"]
 let tm_let = [%sedlex.regexp? "let"]
 let tm_in = [%sedlex.regexp? "in"]
-let tm_exists = [%sedlex.regexp? "exists"]
 let tm_tup = [%sedlex.regexp? "tup"]
 let tm_match = [%sedlex.regexp? "match"]
 let tm_as = [%sedlex.regexp? "as"]
@@ -123,22 +122,9 @@ let tm_then = [%sedlex.regexp? "then"]
 let tm_else = [%sedlex.regexp? "else"]
 let tm_absurd = [%sedlex.regexp? "!!"]
 let tm_magic = [%sedlex.regexp? "#magic"]
-let tm_refl = [%sedlex.regexp? "refl"]
-let tm_rew = [%sedlex.regexp? "rew"]
 let tm_io = [%sedlex.regexp? "IO"]
 let tm_return = [%sedlex.regexp? "return"]
 let tm_mlet = [%sedlex.regexp? "let*"]
-let tm_sleep = [%sedlex.regexp? "sleep"]
-let tm_rand = [%sedlex.regexp? "rand"]
-let tm_proto = [%sedlex.regexp? "proto"]
-let tm_end = [%sedlex.regexp? "end"]
-let tm_ch = [%sedlex.regexp? "ch"]
-let tm_hc = [%sedlex.regexp? "hc"]
-let tm_open = [%sedlex.regexp? "open"]
-let tm_fork = [%sedlex.regexp? "fork"]
-let tm_recv = [%sedlex.regexp? "recv"]
-let tm_send = [%sedlex.regexp? "send"]
-let tm_close = [%sedlex.regexp? "close"]
 
 (* modifiers *)
 let mod_program = [%sedlex.regexp? "program"]
@@ -259,7 +245,6 @@ let rec tokenize buf =
   | tm_function -> TM_FUNCTION
   | tm_let -> TM_LET
   | tm_in -> TM_IN
-  | tm_exists -> TM_EXISTS
   | tm_tup -> TM_TUP
   | tm_match -> TM_MATCH
   | tm_as -> TM_AS
@@ -269,22 +254,9 @@ let rec tokenize buf =
   | tm_else -> TM_ELSE
   | tm_absurd -> TM_ABSURD
   | tm_magic -> TM_MAGIC
-  | tm_refl -> TM_REFL
-  | tm_rew -> TM_REW
   | tm_io -> TM_IO
   | tm_return -> TM_RETURN
   | tm_mlet -> TM_MLET
-  | tm_proto -> TM_PROTO
-  | tm_end -> TM_END
-  | tm_ch, langle -> TM_CH
-  | tm_hc, langle -> TM_HC
-  | tm_open -> TM_OPEN
-  | tm_fork -> TM_FORK
-  | tm_recv -> TM_RECV
-  | tm_send -> TM_SEND
-  | tm_close -> TM_CLOSE
-  | tm_sleep -> TM_SLEEP
-  | tm_rand -> TM_RAND
   (* modifiers *)
   | mod_program -> MOD_PROGRAM
   | mod_logical -> MOD_LOGICAL

@@ -36,7 +36,7 @@ let pp_imeta fmt (imeta_map : imeta_map) =
 
 let pp_meta fmt (meta_map : meta_map) =
   let smeta_map, imeta_map = meta_map in
-  pf fmt "%a@.%a@." pp_smeta smeta_map pp_imeta imeta_map
+  pf fmt "@[<v 0>%a@;<1 0>%a@]" pp_smeta smeta_map pp_imeta imeta_map
 
 let rec resolve_sort (smeta_map : smeta_map) = function
   | SMeta (x, ss) as s -> (
@@ -475,7 +475,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
       failwith "unifier1.simpl_iprm(%a, %a)" pp_tm m1 pp_tm m2
     | _ -> [ eqn ])
 
-let solve_iprbm (smeta_map, imeta_map) (eqn : IPrbm.eqn) =
+let solve_iprbm ((smeta_map, imeta_map) : meta_map) (eqn : IPrbm.eqn) =
   let open IPrbm in
   let svar_spine sp =
     List.map
@@ -515,25 +515,34 @@ let solve_iprbm (smeta_map, imeta_map) (eqn : IPrbm.eqn) =
         (smeta_map, IMeta.Map.add x (unbox bnd) imeta_map, None)
     | _ -> (smeta_map, imeta_map, Some eqn))
 
-let unify_iprbm ((smeta_map, imeta_map) as meta_map) (eqns : IPrbm.eqns) =
+let unify_iprbm meta_map (eqns : IPrbm.eqns) =
   let open IPrbm in
-  let eqns =
-    List.map
-      (function
-        | EqualSort (s1, s2) ->
-          EqualSort (resolve_sort smeta_map s1, resolve_sort smeta_map s2)
-        | EqualTerm (ctx, m1, m2) ->
-          EqualTerm (ctx, resolve_tm meta_map m1, resolve_tm meta_map m2))
-      eqns
+  let rec aux_eqns ((smeta_map, imeta_map) as meta_map) delay = function
+    | [] -> (meta_map, delay)
+    | EqualSort (s1, s2) :: eqns -> (
+      let s1 = resolve_sort smeta_map s1 in
+      let s2 = resolve_sort smeta_map s2 in
+      match simpl_iprbm (EqualSort (s1, s2)) with
+      | [] -> aux_eqns meta_map delay eqns
+      | eqn :: eqns0 -> (
+        let smeta_map, imeta_map, eqn_opt = solve_iprbm meta_map eqn in
+        match eqn_opt with
+        | Some eqn ->
+          aux_eqns (smeta_map, imeta_map) (eqn :: delay) (eqns0 @ eqns)
+        | None -> aux_eqns (smeta_map, imeta_map) delay (eqns0 @ eqns)))
+    | EqualTerm (ctx, m1, m2) :: eqns -> (
+      let m1 = resolve_tm meta_map m1 in
+      let m2 = resolve_tm meta_map m2 in
+      match simpl_iprbm (EqualTerm (ctx, m1, m2)) with
+      | [] -> aux_eqns meta_map delay eqns
+      | eqn :: eqns0 -> (
+        let smeta_map, imeta_map, eqn_opt = solve_iprbm meta_map eqn in
+        match eqn_opt with
+        | Some eqn ->
+          aux_eqns (smeta_map, imeta_map) (eqn :: delay) (eqns0 @ eqns)
+        | None -> aux_eqns (smeta_map, imeta_map) delay (eqns0 @ eqns)))
   in
-  let eqns = List.concat_map simpl_iprbm eqns in
-  List.fold_left
-    (fun (meta_map, acc) eqn ->
-      let smeta_map, imeta_map, eqn_opt = solve_iprbm meta_map eqn in
-      match eqn_opt with
-      | Some eqn -> ((smeta_map, imeta_map), eqn :: acc)
-      | None -> ((smeta_map, imeta_map), acc))
-    (meta_map, []) eqns
+  aux_eqns meta_map [] eqns
 
 let rec simpl_pprbm ?(expand = false) eqn =
   let open PPrbm in
