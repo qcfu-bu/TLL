@@ -42,7 +42,7 @@ module Ctx = struct
 
   let find_var1 x (ctx : t) : tm option =
     try fst (Var.Map.find x ctx.var) with
-    | _ -> failwith "context1.find_var1(%a)" Var.pp x
+    | _ -> None
 
   let find_svar x (ctx : t) : SVar.t = SVar.Set.find x ctx.svar
   let find_const x (ctx : t) = Const.Map.find x ctx.const
