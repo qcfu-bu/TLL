@@ -275,7 +275,7 @@ and check_cls ctx cls a : unit =
         let tele = param_inst param ms in
         let _, t = unbind_tele tele in
         let global = PPrbm.EqualTerm (ctx, a, t) :: global in
-        if not (has_failed (fun () -> solve_pprbm global)) then
+        if not (has_failed (fun () -> unify_pprbm global)) then
           failwith "trans1e.fail_on_ind")
       cs
   in
@@ -283,7 +283,7 @@ and check_cls ctx cls a : unit =
     match prbm.clause with
     (* empty *)
     | [] -> (
-      if not (has_failed (fun () -> solve_pprbm prbm.global)) then
+      if not (has_failed (fun () -> unify_pprbm prbm.global)) then
         match whnf ~expand:true ctx a with
         | Pi (_, _, a, _) -> (
           match whnf ~expand:true ctx a with
@@ -301,7 +301,7 @@ and check_cls ctx cls a : unit =
       | a -> failwith "trans1e.check_cls(Intro, %a, %a)" pp_tm a (pp_ps " ") ps)
     (* absurd pattern *)
     | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> (
-      if not (has_failed (fun () -> solve_pprbm prbm.global)) then
+      if not (has_failed (fun () -> unify_pprbm prbm.global)) then
         let a = get_absurd eqns in
         match whnf ~expand:true ctx a with
         | Ind (d, ss, ms, ns) -> fail_on_ind prbm.global ctx d ss ms a
@@ -340,7 +340,7 @@ and check_cls ctx cls a : unit =
     | (eqns, [], rhs) :: _ ->
       Debug.exec (fun () ->
           pr "@[<v 0>case_coverage{|@;<1 2>%a@;<1 0>|}@]@." PPrbm.pp prbm);
-      let var_map = solve_pprbm (prbm.global @ eqns) in
+      let var_map = unify_pprbm (prbm.global @ eqns) in
       let a = presolve_tm var_map a in
       let ctx = presolve_ctx var_map ctx in
       let rhs =

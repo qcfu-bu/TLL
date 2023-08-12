@@ -56,10 +56,13 @@ module PPrbm = struct
     | EqualTerm (_, a, b) ->
       pf fmt "@[eq_term?(@;<1 2>%a,@;<1 2>%a)@]" pp_tm a pp_tm b
 
-  let rec pp_eqns fmt = function
-    | [] -> ()
-    | [ prbm ] -> pp_eqn fmt prbm
-    | prbm :: prbms -> pf fmt "@[%a@]@;<1 0>@[%a@]" pp_eqn prbm pp_eqns prbms
+  let pp_eqns fmt eqns =
+    let rec aux fmt = function
+      | [] -> ()
+      | [ prbm ] -> pp_eqn fmt prbm
+      | prbm :: prbms -> pf fmt "@[%a@]@;<1 0>%a" pp_eqn prbm aux prbms
+    in
+    pf fmt "@[<v 0>%a@]" aux eqns
 
   let pp_clause fmt (prbms, ps, opt) =
     match opt with

@@ -17,3 +17,7 @@ inductive sing‹s› (A : Type‹s›) : A -> Type‹s› where
 
 def sing_eq‹s› {A : Type‹s›} {m : A} : sing _ m -> exists‹_,_,L› _ (fn x => eq _ x m)
   | (just m) => ex m refl
+
+def sing_double‹s› {A : Type‹s›} {m : A} : sing _ m -> sing _ m -> unit
+  | (just x) (just y) =>
+    let pf : eq _ x y := refl in tt

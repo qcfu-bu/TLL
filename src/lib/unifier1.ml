@@ -670,18 +670,20 @@ let rec simpl_pprbm ?(expand = false) eqn =
     | _ when not expand -> simpl_pprbm ~expand:true (EqualTerm (ctx, m1, m2))
     | _ -> failwith "unifier1.simpl_pprbm(%a, %a)" pp_tm m1 pp_tm m2)
 
-let solve_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
+let solve_pprbm map eqn =
+  let open PPrbm in
+  match eqn with
+  | EqualTerm (_, m, PMeta x) ->
+    if occur x (lift_tm m) then
+      failwith "unifier.solve_pprbm(occurs)"
+    else
+      Var.Map.add x m map
+  | _ -> failwith "unifier1.solve_pprbm(solve)"
+
+let unify_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
   let open PPrbm in
   Debug.exec (fun () ->
-      pr "@[solve_pprm(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns eqns);
-  let solve map = function
-    | EqualTerm (_, m, PMeta x) ->
-      if occur x (lift_tm m) then
-        failwith "unifier.solve_pprbm(occurs)"
-      else
-        Var.Map.add x m map
-    | _ -> failwith "unifier1.solve_pprbm(solve)"
-  in
+      pr "@[unify_pprbm(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns eqns);
   let eqns =
     List.map
       (fun eqn ->
@@ -692,8 +694,28 @@ let solve_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
       eqns
   in
   let eqns = List.concat_map simpl_pprbm eqns in
-  List.fold_left solve Var.Map.empty eqns
+  let rec aux_eqns var_map = function
+    | [] -> var_map
+    | EqualPat (ctx, m, PVar x, _) :: eqns -> (
+      let m = presolve_tm var_map m in
+      let n = presolve_tm var_map (PMeta x) in
+      match simpl_pprbm (EqualTerm (ctx, m, n)) with
+      | [] -> aux_eqns var_map eqns
+      | eqn :: eqns0 ->
+        let var_map = solve_pprbm var_map eqn in
+        aux_eqns var_map (eqns0 @ eqns))
+    | EqualPat _ :: eqns -> failwith "unifier1.unify_pprbm"
+    | EqualTerm (ctx, m, n) :: eqns -> (
+      let m = presolve_tm var_map m in
+      let n = presolve_tm var_map n in
+      match simpl_pprbm (EqualTerm (ctx, m, n)) with
+      | [] -> aux_eqns var_map eqns
+      | eqn :: eqns0 ->
+        let var_map = solve_pprbm var_map eqn in
+        aux_eqns var_map (eqns0 @ eqns))
+  in
+  aux_eqns Var.Map.empty eqns
 
 let resolve_pprbm (eqns : PPrbm.eqns) (m : tm) : tm =
-  let var_map = solve_pprbm eqns in
+  let var_map = unify_pprbm eqns in
   presolve_tm var_map m
