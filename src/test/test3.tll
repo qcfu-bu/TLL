@@ -23,11 +23,6 @@ inductive list‹s› (A : Type‹s›) : U where
 | nil : list A
 | cons (hd : A) (tl : list A) : list A
 
-#[logical]
-inductive at (A : U) (x : A) : nat -> list A -> U where
-| at_zero (xs0 : list A) : at _ _ zero (cons x xs0)
-| at_succ (n : nat) (x0 : A) (xs0 : list A) (h : at A x n xs0) : at _ _ (succ n) (cons x0 xs0)
-
 def lte : nat -> nat -> bool
   | zero _ => true
   | _ zero => false
@@ -39,6 +34,11 @@ def lt (x : nat) (y : nat) : bool := lte (succ x) y
 def length‹s› (A : Type‹s›) : list A -> nat
   | nil => zero
   | (cons _ tl) => succ (length _ tl)
+
+#[logical]
+inductive at (A : U) (x : A) : nat -> list A -> U where
+| at_zero (xs0 : list A) : at _ _ zero (cons x xs0)
+| at_succ (n : nat) (x0 : A) (xs0 : list A) (h : at A x n xs0) : at _ _ (succ n) (cons x0 xs0)
 
 def get_at {A : U}
 : ∀ (n : nat) (xs : list A) -> eq _ (lt n (length _ xs)) true -> exists‹_,_,L› _ (fn x => at _ x n xs)

@@ -50,6 +50,10 @@ module Ctx = struct
   let find_constr x (ctx : t) = Constr.Map.find x ctx.constr
   let spine_var (ctx : t) = ctx.var |> Var.Map.bindings |> List.map fst
   let spine_svar (ctx : t) = ctx.svar |> SVar.Set.elements
+
+  let map_var f (ctx : t) =
+    let var = Var.Map.map (fun (opt, a) -> (Option.map f opt, f a)) ctx.var in
+    { ctx with var }
 end
 
 module MCtx : sig

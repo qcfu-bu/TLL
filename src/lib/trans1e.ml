@@ -322,8 +322,8 @@ and check_cls ctx cls a : unit =
               Constr (c, ss, ms, List.map (fun (_, x, _) -> PMeta x) args)
             in
             let var_map = Var.Map.singleton x m in
-            let a = presolve_tm var_map a in
-            let ctx = presolve_ctx var_map ctx in
+            let a = subst_pmeta var_map a in
+            let ctx = Ctx.map_var (subst_pmeta var_map) ctx in
             let prbm = prbm_simpl ctx var_map prbm in
             let prbm =
               PPrbm.{ prbm with global = EqualTerm (ctx, b, t) :: prbm.global }
@@ -344,11 +344,11 @@ and check_cls ctx cls a : unit =
       Debug.exec (fun () ->
           pr "@[<v 0>case_coverage{|@;<1 2>%a@;<1 0>|}@]@." PPrbm.pp prbm);
       let var_map = unify_pprbm (prbm.global @ eqns) in
-      let a = presolve_tm var_map a in
-      let ctx = presolve_ctx var_map ctx in
+      let a = resolve_pmeta var_map a in
+      let ctx = Ctx.map_var (resolve_pmeta var_map) ctx in
       let rhs =
         match rhs with
-        | Some m -> presolve_tm var_map m
+        | Some m -> resolve_pmeta var_map m
         | None -> failwith "trans1e.check_cls(Cover)"
       in
       Debug.exec (fun () -> pr "case_coverage_ok(%a, %a)@." pp_tm rhs pp_tm a);
@@ -375,8 +375,8 @@ and prbm_simpl ctx var_map prbm =
   let rec aux_global = function
     | [] -> []
     | PPrbm.EqualTerm (ctx, a, b) :: eqns ->
-      let a = presolve_tm var_map a in
-      let b = presolve_tm var_map b in
+      let a = subst_pmeta var_map a in
+      let b = subst_pmeta var_map b in
       let eqns = aux_global eqns in
       PPrbm.EqualTerm (ctx, a, b) :: eqns
     | PPrbm.EqualPat _ :: _ -> failwith "trans1e.prbm_simpl(Global)"
@@ -390,8 +390,8 @@ and prbm_simpl ctx var_map prbm =
           (fun acc eqn ->
             match (acc, eqn) with
             | Some acc, PPrbm.EqualPat (ctx, l, r, a) -> (
-              let l = presolve_tm var_map l in
-              let a = presolve_tm var_map a in
+              let l = subst_pmeta var_map l in
+              let a = subst_pmeta var_map a in
               match p_simpl ctx l r a with
               | Some eqns -> Some (acc @ eqns)
               | None -> None)
@@ -469,7 +469,7 @@ let rec check_dcls ctx dcls =
       | [] -> State.solve_all ()
       | (ctx, m, a) :: entries when 0 < i ->
         let meta_map = State.solve_all () in
-        let ctx = resolve_ctx meta_map ctx in
+        let ctx = Ctx.map_var (resolve_tm meta_map) ctx in
         let m = resolve_tm meta_map m in
         let a = resolve_tm meta_map a in
         assert_type ctx a;

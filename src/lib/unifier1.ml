@@ -181,12 +181,13 @@ let resolve_dcl (meta_map : meta_map) = function
 
 let resolve_dcls meta_map dcls = List.map (resolve_dcl meta_map) dcls
 
-let rec demote_pmeta m =
-  let rec aux = function
+let map_pmeta f m =
+  let rec aux m =
+    match m with
     (* inference *)
     | Ann (m, a) -> Ann (aux m, aux a)
     | IMeta (x, ss, ms) -> IMeta (x, ss, List.map aux ms)
-    | PMeta x -> Var x
+    | PMeta x -> f aux x
     (* core *)
     | Type s -> Type s
     | Var x -> Var x
@@ -244,93 +245,21 @@ let rec demote_pmeta m =
   in
   aux m
 
-let presolve_tm var_map m =
-  let rec aux = function
-    (* inference *)
-    | Ann (m, a) -> Ann (aux m, aux a)
-    | IMeta (x, ss, ms) -> IMeta (x, ss, List.map aux ms)
-    | PMeta x -> (
+let subst_pmeta var_map m =
+  map_pmeta
+    (fun self x ->
       match Var.Map.find_opt x var_map with
-      | Some m -> aux m
-      | _ -> PMeta x)
-    (* core *)
-    | Type s -> Type s
-    | Var x -> Var x
-    | Const (x, ss) -> Const (x, ss)
-    | Pi (relv, s, a, bnd) ->
-      let x, b = unbind bnd in
-      let a = aux a in
-      let b = lift_tm (aux b) in
-      Pi (relv, s, a, unbox (bind_var x b))
-    | Fun (a, bnd) ->
-      let x, cls = unbind bnd in
-      let a = aux a in
-      let cls =
-        List.map
-          (fun cl ->
-            let ps, rhs_opt = unbind_ps cl in
-            let rhs_opt = Option.map (fun rhs -> lift_tm (aux rhs)) rhs_opt in
-            bind_ps ps (box_opt rhs_opt))
-          cls
-      in
-      let cls = box_list cls in
-      Fun (a, unbox (bind_var x cls))
-    | App (m, n) -> App (aux m, aux n)
-    | Let (relv, m, bnd) ->
-      let x, n = unbind bnd in
-      let m = aux m in
-      let n = lift_tm (aux n) in
-      Let (relv, m, unbox (bind_var x n))
-    (* inductive *)
-    | Ind (d, ss, ms, ns) -> Ind (d, ss, List.map aux ms, List.map aux ns)
-    | Constr (c, ss, ms, ns) -> Constr (c, ss, List.map aux ms, List.map aux ns)
-    | Match (ms, a, cls) ->
-      let ms = List.map aux ms in
-      let a = aux a in
-      let cls =
-        List.map
-          (fun cl ->
-            let ps, rhs_opt = unbind_ps cl in
-            let rhs_opt = Option.map (fun rhs -> lift_tm (aux rhs)) rhs_opt in
-            bind_ps ps (box_opt rhs_opt))
-          cls
-      in
-      let cls = box_list cls in
-      Match (ms, a, unbox cls)
-    (* monad *)
-    | IO a -> IO (aux a)
-    | Return m -> Return (aux m)
-    | MLet (m, bnd) ->
-      let x, n = unbind bnd in
-      let m = aux m in
-      let n = lift_tm (aux n) in
-      MLet (m, unbox (bind_var x n))
-    (* magic *)
-    | Magic a -> Magic (aux a)
-  in
-  aux m
+      | Some m -> self m
+      | None -> PMeta x)
+    m
 
-let resolve_ctx meta_map (ctx : Ctx.t) =
-  let var =
-    Var.Map.map
-      (fun (m_opt, a) ->
-        let m_opt = Option.map (resolve_tm meta_map) m_opt in
-        let a = resolve_tm meta_map a in
-        (m_opt, a))
-      ctx.var
-  in
-  { ctx with var }
-
-let presolve_ctx var_map (ctx : Ctx.t) =
-  let var =
-    Var.Map.map
-      (fun (m_opt, a) ->
-        let m_opt = Option.map (presolve_tm var_map) m_opt in
-        let a = presolve_tm var_map a in
-        (m_opt, a))
-      ctx.var
-  in
-  { ctx with var }
+let resolve_pmeta var_map m =
+  map_pmeta
+    (fun self x ->
+      match Var.Map.find_opt x var_map with
+      | Some m -> self m
+      | None -> Var x)
+    m
 
 (* occurs checking *)
 let rec occurs_sort x = function
@@ -575,7 +504,6 @@ let solve_iprbm ((smeta_map, imeta_map) : meta_map) (eqn : IPrbm.eqn) =
       else
         let ss = svar_spine ss in
         let xs = var_spine xs in
-        let m1 = demote_pmeta m1 in
         let bnd = bind_mvar (Array.of_list xs) (lift_tm m1) in
         let bnd = bind_mvar (Array.of_list ss) bnd in
         (smeta_map, IMeta.Map.add x (unbox bnd) imeta_map, None)
@@ -750,8 +678,8 @@ let unify_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
   let rec aux_eqns var_map = function
     | [] -> var_map
     | EqualPat (ctx, m, PVar x, _) :: eqns -> (
-      let m = presolve_tm var_map m in
-      let n = presolve_tm var_map (PMeta x) in
+      let m = subst_pmeta var_map m in
+      let n = subst_pmeta var_map (PMeta x) in
       match simpl_pprbm (EqualTerm (ctx, m, n)) with
       | [] -> aux_eqns var_map eqns
       | eqn :: eqns0 ->
@@ -759,8 +687,8 @@ let unify_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
         aux_eqns var_map (eqns0 @ eqns))
     | EqualPat _ :: eqns -> failwith "unifier1.unify_pprbm"
     | EqualTerm (ctx, m, n) :: eqns -> (
-      let m = presolve_tm var_map m in
-      let n = presolve_tm var_map n in
+      let m = subst_pmeta var_map m in
+      let n = subst_pmeta var_map n in
       match simpl_pprbm (EqualTerm (ctx, m, n)) with
       | [] -> aux_eqns var_map eqns
       | eqn :: eqns0 ->
@@ -771,4 +699,4 @@ let unify_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
 
 let resolve_pprbm (eqns : PPrbm.eqns) (m : tm) : tm =
   let var_map = unify_pprbm eqns in
-  presolve_tm var_map m
+  subst_pmeta var_map m
