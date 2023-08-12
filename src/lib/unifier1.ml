@@ -352,6 +352,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
     | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y = 0 -> []
     | _, IMeta _ -> [ EqualTerm (ctx, m1, m2) ]
     | IMeta _, _ -> [ EqualTerm (ctx, m2, m1) ]
+    | PMeta x1, PMeta x2 when eq_vars x1 x2 -> []
     (* core *)
     | Type s1, Type s2 -> simpl_iprbm ~expand (EqualSort (s1, s2))
     | Var x1, Var x2 when eq_vars x1 x2 -> []
