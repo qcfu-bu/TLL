@@ -235,6 +235,11 @@ and check_tm ctx m a : unit =
   match m with
   (* inference *)
   | IMeta (x, ss, xs) -> State.add_imeta ctx x ss xs a
+  | Fun (b, bnd) ->
+    let x, cls = unbind bnd in
+    assert_type ctx b;
+    assert_equal1 ctx a b;
+    check_cls (Ctx.add_var0 x a ctx) cls a
   | _ ->
     let b = infer_tm ctx m in
     assert_equal1 ctx a b
