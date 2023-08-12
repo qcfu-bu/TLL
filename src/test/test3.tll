@@ -13,8 +13,6 @@ inductive nat : U where
 inductive eq‹s› (A : Type‹s›) (m : A) : A -> U where
 | refl : eq _ m m
 
-def id (A : U) (x : A) : A := x
-
 inductive exists‹s,r,t› (A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
 | ex (m : A) {pf : B m} : exists A B
 
@@ -42,24 +40,11 @@ def length‹s› (A : Type‹s›) : list A -> nat
   | nil => zero
   | (cons _ tl) => succ (length _ tl)
 
-def test (x y : nat) : eq _ (lt x y) (lte (succ x) y) := refl
-
--- def get_at {A : U}
--- : ∀ (n : nat) (xs : list A) -> eq _ (lt n (length _ xs)) true -> exists‹_,_,L› _ (fn x => at _ x n xs)
---   | _        nil         !! =>
---   | zero     (cons x xs) _  => ex x (at_zero xs)
---   | (succ n) (cons x xs) e  => 
---     let pf : eq _ (lt n (length _ xs)) true := e in
---     #magic
-
--- def test (n : nat) (xs : list unit) (e : eq _ (lt (succ n) (length _ (cons tt xs))) true) :
---   eq _ (lt n (length _ xs)) true
--- := e
-
--- def get_at {A : U}
--- : ∀ (n : nat) (xs : list A) -> eq _ (lt n (length _ xs)) true -> unit
---   | _        nil         !! =>
---   | zero     (cons x xs) _  => tt
---   | (succ n) (cons x xs) e  => 
---     let pf : eq _ (lt n (length _ xs)) true := e in
---     tt
+def get_at {A : U}
+: ∀ (n : nat) (xs : list A) -> eq _ (lt n (length _ xs)) true -> exists‹_,_,L› _ (fn x => at _ x n xs)
+  | _        nil         !! =>
+  | zero     (cons x xs) _  => ex x (at_zero xs)
+  | (succ n) (cons x xs) e  => 
+    -- need to find a good way to infer motives
+    match get_at _ n xs e as _ : exists _ (fn x => at _ x n xs) with
+    | ex x0 pf => ex x0 (at_succ _ _ _ pf)
