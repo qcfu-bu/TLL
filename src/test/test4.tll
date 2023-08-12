@@ -27,6 +27,28 @@ inductive vec<s> (A : Type<s>) : nat -> U where
 | vnil : vec A zero
 | vcons {n : nat} (hd : A) (tl : vec<s> A n) : vec A (succ n)
 
+def rwl<s,r> {A : Type<s>} {m n : A} {B : A -> Type<r>} : eq _ m n -> B m -> B n
+  | refl x => x
+
+def rwr<s,r> {A : Type<s>} {m n : A} {B : A -> Type<r>} : eq _ m n -> B n -> B m
+  | refl x => x
+
+#[logical]
+def congr<s,r,t> (A : Type<s>) (B : Type<r>) (m n : A) (f : forall<t>(_ : A), B)
+: eq _ m n -> eq _ (f m) (f n)
+  | refl => refl
+
 def hd_vec<s> {A : Type<s>} {n : nat} : vec<s> A (succ n) -> A
   | vnil =>
   | (vcons _ hd _) => hd
+
+def hd_vec2<s> {A : Type<s>} {n : nat} (xs : vec<s> A (succ n)) : A :=
+  match {_} as n0, xs as _ : vec<s> A (succ n0) with
+  | _, vnil =>
+  | _, (vcons _ hd _) => hd
+
+def vlength<s> {A : Type<s>} {n : nat} : vec A n -> exists<_,_,L> _ (fn x => eq _ x n)
+  | vnil => ex zero refl
+  | (vcons _ _ tl) => 
+    match vlength _ _ tl with
+    | ex n pf => ex (succ n) (congr _ _ _ _ (fn x => succ x) pf)

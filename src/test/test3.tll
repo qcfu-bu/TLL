@@ -45,6 +45,9 @@ def get_at {A : U}
   | _        nil         !! =>
   | zero     (cons x xs) _  => ex x (at_zero xs)
   | (succ n) (cons x xs) e  => 
-    -- need to find a good way to infer motives
+    /- inference for motive:
+       check discrminees against motive
+       - if motive is rigid then we are done
+       - if motive is flex then unify against discrimees' types -/
     match get_at _ n xs e with
     | ex x0 pf => ex x0 (at_succ _ _ _ pf)
