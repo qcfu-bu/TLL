@@ -1,0 +1,65 @@
+inductive unit : U where
+| tt : unit
+
+inductive bool : U where
+| true  : bool
+| false : bool
+
+inductive nat : U where
+| zero : nat
+| succ (pred : nat) : nat
+
+#[logical]
+inductive eq‹s› (A : Type‹s›) (m : A) : A -> U where
+| refl : eq _ m m
+
+def id (A : U) (x : A) : A := x
+
+inductive exists‹s,r,t› (A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
+| ex (m : A) {pf : B m} : exists A B
+
+inductive sing‹s› (A : Type‹s›) : A -> Type‹s› where
+| just (m : A) : sing _ m
+
+inductive list‹s› (A : Type‹s›) : U where
+| nil : list A
+| cons (hd : A) (tl : list A) : list A
+
+#[logical]
+inductive at (A : U) (x : A) : nat -> list A -> U where
+| at_zero (xs0 : list A) : at _ _ zero (cons x xs0)
+| at_succ (n : nat) (x0 : A) (xs0 : list A) (h : at A x n xs0) : at _ _ (succ n) (cons x0 xs0)
+
+def lte : nat -> nat -> bool
+  | zero _ => true
+  | _ zero => false
+  | (succ x) (succ y) => lte x y
+
+def lt (x : nat) (y : nat) : bool := lte (succ x) y
+
+#[logical]
+def length‹s› (A : Type‹s›) : list A -> nat
+  | nil => zero
+  | (cons _ tl) => succ (length _ tl)
+
+def test (x y : nat) : eq _ (lt x y) (lte (succ x) y) := refl
+
+-- def get_at {A : U}
+-- : ∀ (n : nat) (xs : list A) -> eq _ (lt n (length _ xs)) true -> exists‹_,_,L› _ (fn x => at _ x n xs)
+--   | _        nil         !! =>
+--   | zero     (cons x xs) _  => ex x (at_zero xs)
+--   | (succ n) (cons x xs) e  => 
+--     let pf : eq _ (lt n (length _ xs)) true := e in
+--     #magic
+
+-- def test (n : nat) (xs : list unit) (e : eq _ (lt (succ n) (length _ (cons tt xs))) true) :
+--   eq _ (lt n (length _ xs)) true
+-- := e
+
+-- def get_at {A : U}
+-- : ∀ (n : nat) (xs : list A) -> eq _ (lt n (length _ xs)) true -> unit
+--   | _        nil         !! =>
+--   | zero     (cons x xs) _  => tt
+--   | (succ n) (cons x xs) e  => 
+--     let pf : eq _ (lt n (length _ xs)) true := e in
+--     tt

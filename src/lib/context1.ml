@@ -36,8 +36,14 @@ module Ctx = struct
   let add_constr x sch ctx =
     { ctx with constr = Constr.Map.add x sch ctx.constr }
 
-  let find_var0 x (ctx : t) = snd (Var.Map.find x ctx.var)
-  let find_var1 x (ctx : t) : tm option = fst (Var.Map.find x ctx.var)
+  let find_var0 x (ctx : t) =
+    try snd (Var.Map.find x ctx.var) with
+    | _ -> failwith "context1.find_var0(%a)" Var.pp x
+
+  let find_var1 x (ctx : t) : tm option =
+    try fst (Var.Map.find x ctx.var) with
+    | _ -> failwith "context1.find_var1(%a)" Var.pp x
+
   let find_svar x (ctx : t) : SVar.t = SVar.Set.find x ctx.svar
   let find_const x (ctx : t) = Const.Map.find x ctx.const
   let find_ind x (ctx : t) = Ind.Map.find x ctx.ind

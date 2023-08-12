@@ -64,7 +64,7 @@ end = struct
         loop (i - 1)
       | _ -> failwith "trans1e.solve_all(Timeout)"
     in
-    loop 1000
+    loop 10
 
   let dump () =
     pr "@[<v 0>begin_dump@;<1 2>%a@;<1 2>%a@;<1 2>@[%a@]@;<1 0>end_dump@]@."
@@ -281,6 +281,7 @@ and check_cls ctx cls a : unit =
     match prbm.clause with
     (* empty *)
     | [] -> (
+      Debug.exec (fun () -> pr "case_empty@.");
       if not (has_failed (fun () -> unify_pprbm prbm.global)) then
         match whnf ~expand:true ctx a with
         | Pi (_, _, a, _) -> (
@@ -290,6 +291,7 @@ and check_cls ctx cls a : unit =
         | _ -> failwith "trans1e.check_cls(Empty)")
     (* case intro *)
     | (eqns, p :: ps, rhs) :: clause -> (
+      Debug.exec (fun () -> pr "case_intro@.");
       match whnf ~expand:true ctx a with
       | Pi (_, _, a, bnd) ->
         let x, b = unbind_pmeta bnd in
@@ -297,21 +299,16 @@ and check_cls ctx cls a : unit =
         let prbm = prbm_add ctx prbm x a in
         aux_prbm ctx prbm b
       | a -> failwith "trans1e.check_cls(Intro, %a, %a)" pp_tm a (pp_ps " ") ps)
-    (* absurd pattern *)
-    | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> (
-      if not (has_failed (fun () -> unify_pprbm prbm.global)) then
-        let a = get_absurd eqns in
-        match whnf ~expand:true ctx a with
-        | Ind (d, ss, ms, ns) -> fail_on_ind prbm.global ctx d ss ms a
-        | _ -> failwith "trans1e.check_cls(Absurd)")
     (* case splitting *)
     | (eqns, [], rhs) :: _ when can_split eqns -> (
+      Debug.exec (fun () -> pr "case_splitting@.");
       let x, b = first_split eqns in
       match whnf ~expand:true ctx b with
       | Ind (d, ss, ms, _) ->
         let _, cs = Ctx.find_ind d ctx in
         List.iter
           (fun c ->
+            Debug.exec (fun () -> pr "splitting_on(%a)@." Constr.pp c);
             let sch, _ = Ctx.find_constr c ctx in
             let param = msubst sch (Array.of_list ss) in
             let tele = param_inst param ms in
@@ -334,6 +331,14 @@ and check_cls ctx cls a : unit =
             aux_prbm ctx prbm a)
           cs
       | _ -> failwith "trans1e.check_cls(Split)")
+    (* absurd pattern *)
+    | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> (
+      Debug.exec (fun () -> pr "case_absurd@.");
+      if not (has_failed (fun () -> unify_pprbm prbm.global)) then
+        let a = get_absurd eqns in
+        match whnf ~expand:true ctx a with
+        | Ind (d, ss, ms, ns) -> fail_on_ind prbm.global ctx d ss ms a
+        | _ -> failwith "trans1e.check_cls(Absurd)")
     (* case coverage *)
     | (eqns, [], rhs) :: _ ->
       Debug.exec (fun () ->
@@ -351,6 +356,8 @@ and check_cls ctx cls a : unit =
   in
   let prbm = PPrbm.of_cls cls in
   let a = State.resolve a in
+  Debug.exec (fun () ->
+      pr "@[<v 0>check_cls {|@;<1 2>%a@;<1 0>|}@]@." PPrbm.pp prbm);
   aux_prbm ctx prbm a
 
 and prbm_add ctx prbm x a =
