@@ -163,8 +163,9 @@ and infer_tm ctx m : tm =
     infer_constr ctx ms ns ptl
   | Match (ms, a, cls) ->
     assert_type ctx a;
+    let b = infer_motive ctx ms a in
     check_cls ctx cls a;
-    infer_motive ctx ms a
+    b
   (* monad *)
   | IO a ->
     assert_type ctx a;

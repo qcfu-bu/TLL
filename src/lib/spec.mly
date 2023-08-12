@@ -37,34 +37,34 @@
 %token TOP
 
 // bool
-%token BOOL_AND   // &&
-%token BOOL_OR    // ||
-%left BOOL_AND
-%left BOOL_OR
+%token AND   // &&
+%token OR    // ||
+%left AND
+%left OR
 
 // nat
-%token NAT_ADD  // +
-%token NAT_SUB  // -
-%token NAT_MUL  // *
-%token NAT_DIV  // /
-%token NAT_MOD  // %
-%token NAT_LTE  // <=
-%token NAT_GTE  // >=
-%token NAT_LT   // <
-%token NAT_GT   // >
-%token NAT_EQ   // ==
-%token NAT_NEQ  // !=
-%left NAT_ADD
-%left NAT_SUB
-%left NAT_MUL
-%left NAT_DIV
-%left NAT_MOD
-%left NAT_LTE
-%left NAT_GTE
-%left NAT_LT
-%left NAT_GT
-%left NAT_EQ
-%left NAT_NEQ
+%token ADD  // +
+%token SUB  // -
+%token MUL  // *
+%token DIV  // /
+%token REM  // %
+%token LTE  // <=
+%token GTE  // >=
+%token LT   // <
+%token GT   // >
+%token EQEQ   // ==
+%token NEQ  // !=
+%left ADD
+%left SUB
+%left MUL
+%left DIV
+%left MOD
+%left LTE
+%left GTE
+%left LT
+%left GT
+%left EQEQ
+%left NEQ
 
 // string
 %token<int> CHAR
@@ -107,6 +107,7 @@
 // identifier
 %token<int> INTEGER
 %token<string> IDENTIFIER
+%token<string> CONSTANT
 
 // tm
 %token TM_TYPE     // Type
@@ -160,9 +161,11 @@
 %start <dcl list> main
 
 %%
-
 let iden ==
   | ~ = IDENTIFIER; <>
+
+let const ==
+  | ~ = CONSTANT; <>
 
 let sort :=
   | SORT_U; { U }
@@ -174,8 +177,18 @@ let tm_id :=
 
 // instance
 /* X‹s,r,t› */
+let flq ==
+  | FLQ
+  | LT
+
+let frq ==
+  | FRQ
+  | GT
+
 let tm_inst :=
   | id = iden; FLQ; ss = separated_list(COMMA, sort); FRQ;
+    { Inst (id, ss) }
+  | id = const; ss = separated_list(COMMA, sort); GT;
     { Inst (id, ss) }
 
 // annotation
@@ -198,7 +211,7 @@ let tm_ann_open :=
 let tm_type :=
   | SORT_U; { Type U }
   | SORT_L; { Type L }
-  | TM_TYPE; FLQ; srt = sort; FRQ; { Type srt }
+  | TM_TYPE; flq; srt = sort; frq; { Type srt }
 
 // pi types
 /*
@@ -226,7 +239,7 @@ let tm_pi(p) :=
     { List.fold_right (fun (rel, id, a) b ->
         Pi (rel, L, a, Binder (id, b))) args b }
   | TM_FORALL;
-    FLQ; s = sort; FRQ; args = tm_pi_args; COMMA; b = p;
+    flq; s = sort; frq; args = tm_pi_args; COMMA; b = p;
     { List.fold_right (fun (rel, id, a) b ->
         Pi (rel, s, a, Binder (id, b))) args b }
 
@@ -607,10 +620,11 @@ let dcl_modifier :=
   | MODIFIER; MOD_LOGICAL; RBRACK; { N }
   | { R }
 
-// dcl sort args
-let dcl_sargs :=
-  | FLQ; ~ = separated_list(COMMA, iden); FRQ; <>
-  | { [] }
+// dcl identifier
+let dcl_iden :=
+  | id = iden; flq; sargs = separated_list(COMMA, iden); frq; { (id, sargs) }
+  | id = const; sargs = separated_list(COMMA, iden); GT; { (id, sargs) }
+  | id = iden; { (id, []) }
 
 // def
 /*
@@ -654,9 +668,10 @@ let dcl_def_cls :=
 
 let dcl_def :=
   | relv = dcl_modifier;
-    DCL_DEF; id = iden; sids = dcl_sargs; args = dcl_def_args; COLON; b = tm_closed;
+    DCL_DEF; id_sids = dcl_iden; args = dcl_def_args; COLON; b = tm_closed;
     cls = dcl_def_cls;
-    { let a =
+    { let id, sids = id_sids in
+      let a =
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, U, a, Binder (id, acc))) args b
       in
@@ -666,9 +681,10 @@ let dcl_def :=
       let sch = Binder (sids, (m, a)) in
       Definition { name = id; relv = relv; body = sch } }
   | relv = dcl_modifier;
-    DCL_DEF; id = iden; sids = dcl_sargs; args = dcl_def_args; COLON; b = tm;
+    DCL_DEF; id_sids = dcl_iden; args = dcl_def_args; COLON; b = tm;
     ASSIGN; m = tm;
-    { let a =
+    { let id, sids = id_sids in
+      let a =
         List.fold_right (fun (relv, id, a) acc ->
           Pi (relv, U, a, Binder (id, acc))) args b
       in
@@ -730,9 +746,10 @@ let dcl_dconstrs :=
 
 let dcl_inductive :=
   | relv = dcl_modifier;
-    DCL_INDUCTIVE; id = iden; sids = dcl_sargs; params = dcl_ind_params; COLON;
+    DCL_INDUCTIVE; id_sids = dcl_iden; params = dcl_ind_params; COLON;
     tele = dcl_ind_tele; DCL_WHERE; dconstrs = dcl_dconstrs;
-    { let params = 
+    { let id, sids = id_sids in
+      let params = 
         List.fold_right (fun (id, a) acc ->
           PBind (a, Binder (id, acc))) params (PBase (tele, dconstrs))
       in

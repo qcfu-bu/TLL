@@ -10,7 +10,7 @@ inductive nat : U where
 | succ (pred : nat) : nat
 
 #[logical]
-inductive eq‹s› (A : Type‹s›) (m : A) : A -> U where
+inductive eq<s> (A : Type‹s›) (m : A) : A -> U where
 | refl : eq _ m m
 
 inductive exists‹s,r,t› (A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
@@ -46,5 +46,5 @@ def get_at {A : U}
   | zero     (cons x xs) _  => ex x (at_zero xs)
   | (succ n) (cons x xs) e  => 
     -- need to find a good way to infer motives
-    match get_at _ n xs e as _ : exists _ (fn x => at _ x n xs) with
+    match get_at _ n xs e with
     | ex x0 pf => ex x0 (at_succ _ _ _ pf)

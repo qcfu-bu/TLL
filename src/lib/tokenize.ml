@@ -54,17 +54,17 @@ let bool_and = [%sedlex.regexp? "&&"]
 let bool_or = [%sedlex.regexp? "||"]
 
 (* nat *)
-let nat_add = [%sedlex.regexp? '+']
-let nat_sub = [%sedlex.regexp? '-']
-let nat_mul = [%sedlex.regexp? '*']
-let nat_div = [%sedlex.regexp? '/']
-let nat_mod = [%sedlex.regexp? '%']
-let nat_lte = [%sedlex.regexp? "<="]
-let nat_gte = [%sedlex.regexp? ">="]
-let nat_lt = [%sedlex.regexp? "<"]
-let nat_gt = [%sedlex.regexp? ">"]
-let nat_eq = [%sedlex.regexp? "=="]
-let nat_neq = [%sedlex.regexp? "!="]
+let add = [%sedlex.regexp? '+']
+let sub = [%sedlex.regexp? '-']
+let mul = [%sedlex.regexp? '*']
+let div = [%sedlex.regexp? '/']
+let rem = [%sedlex.regexp? '%']
+let lte = [%sedlex.regexp? "<="]
+let gte = [%sedlex.regexp? ">="]
+let lt = [%sedlex.regexp? "<"]
+let gt = [%sedlex.regexp? ">"]
+let eq = [%sedlex.regexp? "=="]
+let neq = [%sedlex.regexp? "!="]
 
 (* string *)
 let quote0 = [%sedlex.regexp? "\'"]
@@ -105,6 +105,7 @@ let prim_stderr = [%sedlex.regexp? "stderr"]
 let identifier =
   [%sedlex.regexp? (letter | '_'), Star (letter | digit | '_' | '\'')]
 
+let constant = [%sedlex.regexp? identifier, "<"]
 let integer = [%sedlex.regexp? Plus digit]
 let tm_type = [%sedlex.regexp? "Type"]
 let tm_forall = [%sedlex.regexp? "forall"]
@@ -195,20 +196,20 @@ let rec tokenize buf =
   | times -> TIMES
   | otimes -> OTIMES
   (* bool *)
-  | bool_and -> BOOL_AND
-  | bool_or -> BOOL_OR
+  | bool_and -> AND
+  | bool_or -> OR
   (* nat *)
-  | nat_add -> NAT_ADD
-  | nat_sub -> NAT_SUB
-  | nat_mul -> NAT_MUL
-  | nat_div -> NAT_DIV
-  | nat_mod -> NAT_MOD
-  | nat_lte -> NAT_LTE
-  | nat_gte -> NAT_GTE
-  | nat_lt -> NAT_LT
-  | nat_gt -> NAT_GT
-  | nat_eq -> NAT_EQ
-  | nat_neq -> NAT_NEQ
+  | add -> ADD
+  | sub -> SUB
+  | mul -> MUL
+  | div -> DIV
+  | rem -> REM
+  | lte -> LTE
+  | gte -> GTE
+  | lt -> LT
+  | gt -> GT
+  | eq -> EQEQ
+  | neq -> NEQ
   (* string *)
   | quote0 -> CHAR (tokenize_char buf)
   | quote1 -> STRING (tokenize_string buf)
@@ -271,6 +272,9 @@ let rec tokenize buf =
   | integer ->
     let i = int_of_string (Utf8.lexeme buf) in
     INTEGER i
+  | constant ->
+    let s = Utf8.lexeme buf in
+    CONSTANT String.(sub s 0 (length s - 1))
   | identifier ->
     let s = Utf8.lexeme buf in
     IDENTIFIER s
