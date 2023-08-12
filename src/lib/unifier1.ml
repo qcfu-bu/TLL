@@ -245,6 +245,7 @@ let map_pmeta f m =
   in
   aux m
 
+(* substitute pmeta variables *)
 let subst_pmeta var_map m =
   map_pmeta
     (fun self x ->
@@ -253,6 +254,7 @@ let subst_pmeta var_map m =
       | None -> PMeta x)
     m
 
+(* substitute and demote pmeta variables *)
 let resolve_pmeta var_map m =
   map_pmeta
     (fun self x ->

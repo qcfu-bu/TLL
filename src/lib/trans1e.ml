@@ -123,7 +123,7 @@ and infer_tm ctx m : tm =
       let a = imeta_of_ctx ctx in
       State.add_imeta ctx x ss xs a;
       a)
-  | PMeta x -> Ctx.find_var0 x ctx
+  | PMeta _ -> failwith "trans1e.infer_tm(PMeta)"
   (* core *)
   | Type _ -> Type U
   | Var x -> Ctx.find_var0 x ctx
