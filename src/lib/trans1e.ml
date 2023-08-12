@@ -57,17 +57,21 @@ end = struct
     state.mctx <- MCtx.empty;
     MCtx.entries mctx
 
-  let rec solve_all () =
-    let meta_map, eqns = unify_iprbm state.meta_map state.eqns in
-    match eqns with
-    | [] ->
-      state.meta_map <- meta_map;
-      state.eqns <- eqns;
-      meta_map
-    | _ ->
-      state.meta_map <- meta_map;
-      state.eqns <- eqns;
-      solve_all ()
+  let solve_all () =
+    let rec loop i =
+      let meta_map, eqns = unify_iprbm state.meta_map state.eqns in
+      match eqns with
+      | [] ->
+        state.meta_map <- meta_map;
+        state.eqns <- eqns;
+        meta_map
+      | _ when 0 < i ->
+        state.meta_map <- meta_map;
+        state.eqns <- eqns;
+        loop (i - 1)
+      | _ -> failwith "trans1e.solve_all(Timeout)"
+    in
+    loop 1000
 end
 
 let has_failed f =
@@ -456,6 +460,7 @@ let rec check_dcls ctx dcls =
   let solve_delayed entries =
     let rec loop i entries =
       match entries with
+      | [] -> State.solve_all ()
       | (ctx, m, a) :: entries when 0 < i ->
         let meta_map = State.solve_all () in
         let ctx = resolve_ctx meta_map ctx in
@@ -466,7 +471,7 @@ let rec check_dcls ctx dcls =
         check_tm ctx m a;
         let entries0 = State.get_delayed () in
         loop (i - 1) (entries0 @ entries)
-      | _ -> State.solve_all ()
+      | _ -> failwith "trans1e.solve_delayed(Timeout)"
     in
     loop 1000 entries
   in
