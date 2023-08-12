@@ -13,15 +13,20 @@ inductive nat : U where
 inductive eq<s> (A : Type<s>) (m : A) : A -> U where
 | refl : eq _ m m
 
--- inductive exists‹s,r,t› (A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
--- | ex (m : A) {pf : B m} : exists A B
+inductive exists‹s,r,t› (A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
+| ex (m : A) {pf : B m} : exists A B
 
--- inductive sing‹s› (A : Type‹s›) : A -> Type‹s› where
--- | just (m : A) : sing _ m
+inductive sing‹s› (A : Type‹s›) : A -> Type‹s› where
+| just (m : A) : sing _ m
 
--- inductive list‹s› (A : Type‹s›) : U where
--- | nil : list A
--- | cons (hd : A) (tl : list A) : list A
+inductive list‹s› (A : Type‹s›) : U where
+| nil : list A
+| cons (hd : A) (tl : list A) : list A
 
--- inductive vec<s> (A : Type<s>) : nat -> U where
--- | vnil : vec A zero
+inductive vec<s> (A : Type<s>) : nat -> U where
+| vnil : vec A zero
+| vcons {n : nat} (hd : A) (tl : vec<s> A n) : vec A (succ n)
+
+def hd_vec<s> {A : Type<s>} {n : nat} : vec<s> A (succ n) -> A
+  | vnil =>
+  | (vcons _ hd _) => hd

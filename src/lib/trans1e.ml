@@ -341,19 +341,20 @@ and check_cls ctx cls a : unit =
         | Ind (d, ss, ms, ns) -> fail_on_ind prbm.global ctx d ss ms a
         | _ -> failwith "trans1e.check_cls(Absurd)")
     (* case coverage *)
-    | (eqns, [], rhs) :: _ ->
+    | (eqns, [], rhs) :: _ -> (
       Debug.exec (fun () ->
           pr "@[<v 0>case_coverage{|@;<1 2>%a@;<1 0>|}@]@." PPrbm.pp prbm);
-      let var_map = unify_pprbm (prbm.global @ eqns) in
-      let a = resolve_pmeta var_map a in
-      let ctx = Ctx.map_var (resolve_pmeta var_map) ctx in
-      let rhs =
-        match rhs with
-        | Some m -> resolve_pmeta var_map m
-        | None -> failwith "trans1e.check_cls(Cover)"
-      in
-      Debug.exec (fun () -> pr "case_coverage_ok(%a, %a)@." pp_tm rhs pp_tm a);
-      check_tm ctx rhs a
+      match rhs with
+      | Some m ->
+        let var_map = unify_pprbm (prbm.global @ eqns) in
+        let a = resolve_pmeta var_map a in
+        let ctx = Ctx.map_var (resolve_pmeta var_map) ctx in
+        let rhs = resolve_pmeta var_map m in
+        Debug.exec (fun () -> pr "case_coverage_ok(%a, %a)@." pp_tm rhs pp_tm a);
+        check_tm ctx rhs a
+      | _ ->
+        if not (has_failed (fun () -> unify_pprbm prbm.global)) then
+          failwith "trans1e.check_cls(Cover)")
   in
   let prbm = PPrbm.of_cls cls in
   let a = State.resolve a in
