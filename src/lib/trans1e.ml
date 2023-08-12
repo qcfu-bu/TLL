@@ -18,6 +18,7 @@ module State : sig
   val resolve : tm -> tm
   val get_delayed : unit -> (Ctx.t * tm * tm) list
   val solve_all : unit -> meta_map
+  val dump : unit -> unit
 end = struct
   type t =
     { mutable eqns : IPrbm.eqns
@@ -46,14 +47,6 @@ end = struct
 
   let get_delayed () =
     let mctx = state.mctx in
-    Debug.exec (fun () ->
-        pr
-          "@[<v 0>begin_delayed@;\
-           <1 2>%a@;\
-           <1 2>%a@;\
-           <1 2>@[%a@]@;\
-           <1 0>end_delayed@]@." MCtx.pp mctx pp_meta state.meta_map
-          IPrbm.pp_eqns state.eqns);
     state.mctx <- MCtx.empty;
     MCtx.entries mctx
 
@@ -72,6 +65,10 @@ end = struct
       | _ -> failwith "trans1e.solve_all(Timeout)"
     in
     loop 1000
+
+  let dump () =
+    pr "@[<v 0>begin_dump@;<1 2>%a@;<1 2>%a@;<1 2>@[%a@]@;<1 0>end_dump@]@."
+      MCtx.pp state.mctx pp_meta state.meta_map IPrbm.pp_eqns state.eqns
 end
 
 let has_failed f =
@@ -96,7 +93,8 @@ let assert_equal0 s1 s2 =
   if not (eq_sort s1 s2) then State.add_eqn (EqualSort (s1, s2))
 
 let assert_equal1 ctx m1 m2 =
-  Debug.exec (fun () -> pr "assert_equal1(%a, %a)@." pp_tm m1 pp_tm m2);
+  Debug.exec (fun () ->
+      pr "@[assert_equal1(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m1 pp_tm m2);
   if not (eq_tm ctx m1 m2) then State.add_eqn (EqualTerm (ctx, m1, m2))
 
 let rec assert_type ctx a =
@@ -458,6 +456,7 @@ and ps_simpl ctx ms ps tele =
 
 let rec check_dcls ctx dcls =
   let solve_delayed entries =
+    Debug.exec (fun () -> State.dump ());
     let rec loop i entries =
       match entries with
       | [] -> State.solve_all ()
@@ -466,7 +465,6 @@ let rec check_dcls ctx dcls =
         let ctx = resolve_ctx meta_map ctx in
         let m = resolve_tm meta_map m in
         let a = resolve_tm meta_map a in
-        Debug.exec (fun () -> pr "loop_check(%a %a)@." pp_tm m pp_tm a);
         assert_type ctx a;
         check_tm ctx m a;
         let entries0 = State.get_delayed () in
