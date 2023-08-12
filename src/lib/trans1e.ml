@@ -231,7 +231,8 @@ and infer_motive ctx ms a =
   | _ -> failwith "trans1e.infer_motive"
 
 and check_tm ctx m a : unit =
-  Debug.exec (fun () -> pr "check_tm(%a, %a)@." pp_tm m pp_tm a);
+  Debug.exec (fun () ->
+      pr "@[check_tm(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m pp_tm a);
   match m with
   (* inference *)
   | IMeta (x, ss, xs) -> State.add_imeta ctx x ss xs a
@@ -355,7 +356,8 @@ and check_cls ctx cls a : unit =
         let a = resolve_pmeta var_map a in
         let ctx = Ctx.map_var (resolve_pmeta var_map) ctx in
         let rhs = resolve_pmeta var_map m in
-        Debug.exec (fun () -> pr "case_coverage_ok(%a, %a)@." pp_tm rhs pp_tm a);
+        Debug.exec (fun () ->
+            pr "@[case_coverage_ok(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm rhs pp_tm a);
         check_tm ctx rhs a
       | _ ->
         if not (has_failed (fun () -> unify_pprbm prbm.global)) then
