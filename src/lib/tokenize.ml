@@ -1,6 +1,7 @@
 open Fmt
 open Sedlexing
 open Spec
+open Debug
 
 exception
   LexError of
@@ -13,6 +14,7 @@ let blank = [%sedlex.regexp? ' ' | '\t']
 let newline = [%sedlex.regexp? '\r' | '\n' | "\r\n"]
 let letter = [%sedlex.regexp? 'a' .. 'z' | 'A' .. 'Z']
 let digit = [%sedlex.regexp? '0' .. '9']
+let integer = [%sedlex.regexp? Plus digit]
 
 (* comments *)
 let comment0_begin = [%sedlex.regexp? "--"]
@@ -31,10 +33,13 @@ let langle = [%sedlex.regexp? 10216] (* ⟨ *)
 let rangle = [%sedlex.regexp? 10217] (* ⟩ *)
 let flq = [%sedlex.regexp? 8249] (* ‹ *)
 let frq = [%sedlex.regexp? 8250] (* › *)
+let qlparen = [%sedlex.regexp? "?("]
+let qlbrace = [%sedlex.regexp? "?{"]
 
 (* quantifiers *)
 let forall = [%sedlex.regexp? 8704] (* ∀ *)
 let exists = [%sedlex.regexp? 8707] (* ∃ *)
+let question = [%sedlex.regexp? "?"]
 
 (* arrows *)
 let leftarrow0 = [%sedlex.regexp? "<-" | 8592] (* ← *)
@@ -48,6 +53,7 @@ let downarrow1 = [%sedlex.regexp? 8659] (* ⇓ *)
 (* products *)
 let times = [%sedlex.regexp? 215] (* × *)
 let otimes = [%sedlex.regexp? 8855] (* ⊗ *)
+let at = [%sedlex.regexp? "@"]
 
 (* bool *)
 let bool_and = [%sedlex.regexp? "&&"]
@@ -101,11 +107,17 @@ let prim_stdin = [%sedlex.regexp? "stdin"]
 let prim_stdout = [%sedlex.regexp? "stdout"]
 let prim_stderr = [%sedlex.regexp? "stderr"]
 
-(* tm *)
+(* identifiers *)
 let identifier =
   [%sedlex.regexp? (letter | '_'), Star (letter | digit | '_' | '\'')]
 
-let integer = [%sedlex.regexp? Plus digit]
+let constant0 = [%sedlex.regexp? identifier, lt]
+let constant1 = [%sedlex.regexp? identifier, flq]
+let at_identifier = [%sedlex.regexp? "@", identifier]
+let at_constant0 = [%sedlex.regexp? "@", constant0]
+let at_constant1 = [%sedlex.regexp? "@", constant1]
+
+(* term *)
 let tm_type0 = [%sedlex.regexp? "Type", lt]
 let tm_type1 = [%sedlex.regexp? "Type", flq]
 let tm_forall0 = [%sedlex.regexp? "forall", lt]
@@ -127,8 +139,6 @@ let tm_magic = [%sedlex.regexp? "#magic"]
 let tm_io = [%sedlex.regexp? "IO"]
 let tm_return = [%sedlex.regexp? "return"]
 let tm_mlet = [%sedlex.regexp? "let*"]
-let constant0 = [%sedlex.regexp? identifier, lt]
-let constant1 = [%sedlex.regexp? identifier, flq]
 
 (* modifiers *)
 let mod_program = [%sedlex.regexp? "program"]
@@ -184,6 +194,8 @@ let rec tokenize buf =
   | rangle -> RANGLE
   | flq -> FLQ
   | frq -> FRQ
+  | qlparen -> QLPAREN
+  | qlbrace -> QLBRACE
   (* quantifiers *)
   | forall -> FORALL
   | exists -> EXISTS
@@ -286,6 +298,15 @@ let rec tokenize buf =
   | identifier ->
     let s = Utf8.lexeme buf in
     IDENTIFIER s
+  | at_constant0 ->
+    let s = Utf8.lexeme buf in
+    AT_CONSTANT0 Text.(sub s 1 (length s - 2))
+  | at_constant1 ->
+    let s = Utf8.lexeme buf in
+    AT_CONSTANT1 Text.(sub s 1 (length s - 2))
+  | at_identifier ->
+    let s = Utf8.lexeme buf in
+    AT_IDENTIFIER Text.(sub s 1 (length s - 1))
   | _ ->
     let pos = fst (lexing_positions buf) in
     raise (LexError { pos_lnum = pos.pos_lnum; pos_cnum = pos.pos_cnum })

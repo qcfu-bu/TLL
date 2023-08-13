@@ -4,11 +4,11 @@ open Names
 open Syntax0
 
 type nspc_entry =
-  | EVar of Syntax1.tm var
+  | EVar of Syntax1.tm var * view list
   | ESVar of Syntax1.sort var
-  | EConst of Const.t * int
-  | EInd of Ind.t * int * int
-  | EConstr of Constr.t * int * int
+  | EConst of Const.t * int * view list
+  | EInd of Ind.t * int * int * view list
+  | EConstr of Constr.t * int * int * view list
 
 type nspc = (string * nspc_entry) list
 
@@ -21,7 +21,7 @@ let find_var s nspc =
       nspc
   in
   match opt with
-  | Some (_, EVar x) -> Some x
+  | Some (_, EVar (x, _)) -> Some x
   | _ -> None
 
 let find_svar s nspc =
@@ -45,7 +45,7 @@ let find_const s nspc =
       nspc
   in
   match opt with
-  | Some (_, EConst (x, _)) -> Some x
+  | Some (_, EConst (x, _, _)) -> Some x
   | _ -> None
 
 let find_ind s nspc =
@@ -57,7 +57,7 @@ let find_ind s nspc =
       nspc
   in
   match opt with
-  | Some (_, EInd (d, i, j)) -> Some (d, i, j)
+  | Some (_, EInd (d, i, j, view)) -> Some (d, i, j, view)
   | _ -> None
 
 let find_constr s nspc =
@@ -69,7 +69,7 @@ let find_constr s nspc =
       nspc
   in
   match opt with
-  | Some (_, EConstr (c, i, j)) -> Some (c, i, j)
+  | Some (_, EConstr (c, i, j, view)) -> Some (c, i, j, view)
   | _ -> None
 
 let trans_relv = function
@@ -88,7 +88,7 @@ let vspine_of_nspc nspc =
   List.fold_right
     (fun (_, entry) acc ->
       match entry with
-      | EVar x -> Syntax1._Var x :: acc
+      | EVar (x, _) -> Syntax1._Var x :: acc
       | _ -> acc)
     nspc []
 
@@ -126,72 +126,112 @@ let rec list_take i ms =
     (m :: ms, ns)
   | _ -> (ms, [])
 
+let rec inject_implicit nspc view ms =
+  match (view, ms) with
+  | [], _ -> ms
+  | E :: view, m :: ms -> m :: inject_implicit nspc view ms
+  | E :: view, [] -> failwith "trans01.inject_view"
+  | I :: view, _ -> mk_meta nspc :: inject_implicit nspc view ms
+
 let rec trans_tm nspc = function
   (* inference *)
   | Ann (m, a) ->
     let m = trans_tm nspc m in
     let a = trans_tm nspc a in
     Syntax1.(_Ann m a)
+  | IMeta -> mk_meta nspc
   (* core *)
   | Type s -> Syntax1.(_Type (trans_sort nspc s))
-  | Id "_" -> mk_meta nspc
-  | Id id -> (
+  | Id ("_", _) -> mk_meta nspc
+  | Id (id, _) -> (
     Syntax1.(
       match List.assoc_opt id nspc with
-      | Some (EVar x) -> _Var x
-      | Some (EConst (x, i)) -> _Const x (mk_inst nspc i)
-      | Some (EInd (d, i, _)) -> _Ind d (mk_inst nspc i) (box []) (box [])
-      | Some (EConstr (c, i, j)) ->
+      | Some (EVar (x, _)) -> _Var x
+      | Some (EConst (x, i, _)) -> _Const x (mk_inst nspc i)
+      | Some (EInd (d, i, _, _)) -> _Ind d (mk_inst nspc i) (box []) (box [])
+      | Some (EConstr (c, i, j, _)) ->
         _Constr c (mk_inst nspc i) (mk_param nspc j) (box [])
       | _ -> failwith "trans01.trans_tm.Id(%s)" id))
-  | Inst (id, ss) -> (
+  | Inst (id, ss, _) -> (
     let ss = box_list (List.map (trans_sort nspc) ss) in
     Syntax1.(
       match List.assoc_opt id nspc with
-      | Some (EConst (x, _)) -> _Const x ss
-      | Some (EInd (d, _, _)) -> _Ind d ss (box []) (box [])
-      | Some (EConstr (c, _, j)) -> _Constr c ss (mk_param nspc j) (box [])
+      | Some (EConst (x, _, _)) -> _Const x ss
+      | Some (EInd (d, _, _, _)) -> _Ind d ss (box []) (box [])
+      | Some (EConstr (c, _, j, _)) -> _Constr c ss (mk_param nspc j) (box [])
       | _ -> failwith "trans01.trans_tm.Inst(%s)" id))
   | Pi (relv, s, a, Binder (id, b)) ->
     let a = trans_tm nspc a in
     let x = Syntax1.(Var.mk id) in
-    let b = trans_tm ((id, EVar x) :: nspc) b in
+    let b = trans_tm ((id, EVar (x, [])) :: nspc) b in
     Syntax1.(_Pi (trans_relv relv) (trans_sort nspc s) a (bind_var x b))
-  | Fun (a, Binder (id_opt, cls)) ->
+  | Fun (a, Binder (id_opt, cls), view) ->
     let a = trans_tm nspc a in
     let x, nspc =
       match id_opt with
       | Some id ->
         let x = Syntax1.(Var.mk id) in
-        (x, (id, EVar x) :: nspc)
+        (x, (id, EVar (x, view)) :: nspc)
       | None -> (Syntax1.(Var.mk ""), nspc)
     in
     let cls = trans_cls nspc cls in
     Syntax1.(_Fun a (bind_var x (box_list cls)))
   | App ms -> (
     match ms with
-    | Id id :: ms -> (
+    | Id (id, E) :: ms -> (
       Syntax1.(
         let ms = List.map (trans_tm nspc) ms in
         match List.assoc_opt id nspc with
-        | Some (EVar x) -> _mkApps (_Var x) ms
-        | Some (EConst (x, i)) -> _mkApps (_Const x (mk_inst nspc i)) ms
-        | Some (EInd (d, i, j)) ->
+        | Some (EVar (x, _)) -> _mkApps (_Var x) ms
+        | Some (EConst (x, i, _)) -> _mkApps (_Const x (mk_inst nspc i)) ms
+        | Some (EInd (d, i, j, _)) ->
           let ms, ns = list_take j ms in
           _Ind d (mk_inst nspc i) (box_list ms) (box_list ns)
-        | Some (EConstr (c, i, j)) ->
+        | Some (EConstr (c, i, j, _)) ->
           _Constr c (mk_inst nspc i) (mk_param nspc j) (box_list ms)
         | _ -> failwith "trans01.trans_tm.App(%s)" id))
-    | Inst (id, ss) :: ms -> (
+    | Id (id, I) :: ms -> (
+      Syntax1.(
+        let ms = List.map (trans_tm nspc) ms in
+        match List.assoc_opt id nspc with
+        | Some (EVar (x, view)) ->
+          let ms = inject_implicit nspc view ms in
+          _mkApps (_Var x) ms
+        | Some (EConst (x, i, view)) ->
+          let ms = inject_implicit nspc view ms in
+          _mkApps (_Const x (mk_inst nspc i)) ms
+        | Some (EInd (d, i, j, view)) ->
+          let ms, ns = list_take j (inject_implicit nspc view ms) in
+          _Ind d (mk_inst nspc i) (box_list ms) (box_list ns)
+        | Some (EConstr (c, i, j, view)) ->
+          let ms = inject_implicit nspc view ms in
+          _Constr c (mk_inst nspc i) (mk_param nspc j) (box_list ms)
+        | _ -> failwith "trans01.trans_tm.App(%s)" id))
+    | Inst (id, ss, E) :: ms -> (
       Syntax1.(
         let ss = List.map (trans_sort nspc) ss in
         let ms = List.map (trans_tm nspc) ms in
         match List.assoc_opt id nspc with
-        | Some (EConst (x, _)) -> _mkApps (_Const x (box_list ss)) ms
-        | Some (EInd (d, _, j)) ->
+        | Some (EConst (x, _, _)) -> _mkApps (_Const x (box_list ss)) ms
+        | Some (EInd (d, _, j, _)) ->
           let ms, ns = list_take j ms in
           _Ind d (box_list ss) (box_list ms) (box_list ns)
-        | Some (EConstr (c, _, j)) ->
+        | Some (EConstr (c, _, j, _)) ->
+          _Constr c (box_list ss) (mk_param nspc j) (box_list ms)
+        | _ -> failwith "trans01.trans_tm.Inst"))
+    | Inst (id, ss, I) :: ms -> (
+      Syntax1.(
+        let ss = List.map (trans_sort nspc) ss in
+        let ms = List.map (trans_tm nspc) ms in
+        match List.assoc_opt id nspc with
+        | Some (EConst (x, _, view)) ->
+          let ms = inject_implicit nspc view ms in
+          _mkApps (_Const x (box_list ss)) ms
+        | Some (EInd (d, _, j, view)) ->
+          let ms, ns = list_take j (inject_implicit nspc view ms) in
+          _Ind d (box_list ss) (box_list ms) (box_list ns)
+        | Some (EConstr (c, _, j, view)) ->
+          let ms = inject_implicit nspc view ms in
           _Constr c (box_list ss) (mk_param nspc j) (box_list ms)
         | _ -> failwith "trans01.trans_tm.Inst"))
     | m :: ms ->
@@ -202,7 +242,7 @@ let rec trans_tm nspc = function
   | Let (relv, m, Binder (id, n)) ->
     let m = trans_tm nspc m in
     let x = Syntax1.(Var.mk id) in
-    let n = trans_tm ((id, EVar x) :: nspc) n in
+    let n = trans_tm ((id, EVar (x, [])) :: nspc) n in
     Syntax1.(_Let (trans_relv relv) m (bind_var x n))
   (* inductive *)
   | Match (rms, opt, cls) ->
@@ -215,11 +255,11 @@ let rec trans_tm nspc = function
           | Some (id, a) ->
             let x = Syntax1.(Var.mk id) in
             let a = trans_tm nspc a in
-            ((relv, x, a) :: args, (id, EVar x) :: nspc)
+            ((relv, x, a) :: args, (id, EVar (x, [])) :: nspc)
           | None ->
             let x = Syntax1.(Var.mk "") in
             let a = mk_meta nspc in
-            ((relv, x, a) :: args, ("", EVar x) :: nspc))
+            ((relv, x, a) :: args, ("", EVar (x, [])) :: nspc))
         ([], nspc) rms
     in
     let a =
@@ -238,7 +278,7 @@ let rec trans_tm nspc = function
   | MLet (m, Binder (id, n)) ->
     let m = trans_tm nspc m in
     let x = Syntax1.(Var.mk id) in
-    let n = trans_tm ((id, EVar x) :: nspc) n in
+    let n = trans_tm ((id, EVar (x, [])) :: nspc) n in
     Syntax1.(_MLet m (bind_var x n))
   | Magic a -> Syntax1.(_Magic (trans_tm nspc a))
 
@@ -250,7 +290,9 @@ and trans_cls nspc cls =
       | _ ->
         let args, ps = trans_ps nspc ps in
         let nspc =
-          List.fold_left (fun acc (id, x) -> (id, EVar x) :: acc) nspc args
+          List.fold_left
+            (fun acc (id, x) -> (id, EVar (x, [])) :: acc)
+            nspc args
         in
         let xs = List.map (fun (_, x) -> x) args in
         let opt = Option.map (trans_tm nspc) opt in
@@ -263,20 +305,20 @@ and trans_p nspc p =
   | PId id -> (
     Syntax1.(
       match find_constr id nspc with
-      | Some (c, _, _) -> ([], _P0Mul c (box []))
+      | Some (c, _, _, _) -> ([], _P0Mul c (box []))
       | _ -> ([ (id, Var.mk id) ], _P0Rel)))
   | PAbsurd -> Syntax1.([], _P0Absurd)
   | PMul (id, ps) -> (
     Syntax1.(
       match find_constr id nspc with
-      | Some (c, _, _) ->
+      | Some (c, _, _, _) ->
         let xs, ps = trans_ps nspc ps in
         (xs, _P0Mul c (box_list ps))
       | _ -> failwith "trans01.trans_p.PMul"))
   | PAdd (id, i, ps) -> (
     Syntax1.(
       match find_constr id nspc with
-      | Some (c, _, _) ->
+      | Some (c, _, _, _) ->
         let xs, ps = trans_ps nspc ps in
         (xs, _P0Add c i (box_list ps))
       | _ -> failwith "trans01.trans_p.PAdd"))
@@ -289,7 +331,7 @@ and trans_ps nspc ps =
     [] ps
 
 let rec trans_dcl nspc = function
-  | Definition { name = id; relv; body = Binder (sids, (m, a)) } ->
+  | Definition { name = id; relv; body = Binder (sids, (m, a)); view } ->
     let x = Const.mk id in
     let (local, i), xs =
       List.fold_left_map
@@ -298,24 +340,24 @@ let rec trans_dcl nspc = function
           (((sid, ESVar x) :: nspc, i + 1), x))
         (nspc, 0) sids
     in
-    let nspc = (id, EConst (x, i)) :: nspc in
+    let nspc = (id, EConst (x, i, view)) :: nspc in
     let m = trans_tm local m in
     let a = trans_tm local a in
     let sch = bind_mvar (Array.of_list xs) (box_pair m a) in
     Syntax1.
       (nspc, Definition { name = x; relv = trans_relv relv; scheme = unbox sch })
-  | Inductive { name = id; relv; body = Binder (sids, param) } ->
+  | Inductive { name = id; relv; body = Binder (sids, param); view } ->
     let d = Ind.mk id in
     let args, tele, dconstrs = flatten_param param in
     let i = List.length sids in
     let j = List.length args in
     let arity = trans_tele nspc sids args tele in
-    let nspc = (id, EInd (d, i, j)) :: nspc in
+    let nspc = (id, EInd (d, i, j, view)) :: nspc in
     let dconstrs = trans_dconstrs nspc sids args dconstrs in
     let (nspc, cset), dconstrs =
       List.fold_left_map
-        (fun (nspc, cset) (mode, id, c, sch) ->
-          let nspc = (id, EConstr (c, i, j)) :: nspc in
+        (fun (nspc, cset) (mode, id, c, sch, view) ->
+          let nspc = (id, EConstr (c, i, j, view)) :: nspc in
           let cset = Constr.Set.add c cset in
           let dconstr = Syntax1._DConstr mode c sch in
           ((nspc, cset), dconstr))
@@ -350,14 +392,14 @@ and trans_tele nspc sids args tele =
     | (id, a) :: args ->
       let x = Syntax1.Var.mk id in
       let a = trans_tm nspc a in
-      let param = aux_args ((id, EVar x) :: nspc) args in
+      let param = aux_args ((id, EVar (x, [])) :: nspc) args in
       Syntax1._PBind a (bind_var x param)
   and aux_tele nspc = function
     | TBase a -> Syntax1._TBase (trans_tm nspc a)
     | TBind (relv, a, Binder (id, tele)) ->
       let x = Syntax1.Var.mk id in
       let a = trans_tm nspc a in
-      let tele = aux_tele ((id, EVar x) :: nspc) tele in
+      let tele = aux_tele ((id, EVar (x, [])) :: nspc) tele in
       Syntax1._TBind (trans_relv relv) a (bind_var x tele)
   in
   let xs = List.map Syntax1.SVar.mk sids in
@@ -367,14 +409,14 @@ and trans_tele nspc sids args tele =
   bind_mvar (Array.of_list xs) (aux_args nspc args)
 
 and trans_dconstr nspc sids args = function
-  | DMul (id, tele) ->
+  | DMul (id, tele, view) ->
     let c = Constr.mk id in
     let sch = trans_tele nspc sids args tele in
-    (Syntax1.Multiplicative, id, c, sch)
-  | DAdd (id, tele) ->
+    (Syntax1.Multiplicative, id, c, sch, view)
+  | DAdd (id, tele, view) ->
     let c = Constr.mk id in
     let sch = trans_tele nspc sids args tele in
-    (Syntax1.Additive, id, c, sch)
+    (Syntax1.Additive, id, c, sch, view)
 
 and trans_dconstrs nspc sids args dconstrs =
   List.map (trans_dconstr nspc sids args) dconstrs

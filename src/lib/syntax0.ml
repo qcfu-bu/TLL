@@ -2,16 +2,21 @@ type id = string [@@deriving show { with_path = false }]
 and ids = id list
 
 type sort =
-  | U
-  | L
+  | U (* non-linear *)
+  | L (* linear *)
   | SId of id
 [@@deriving show { with_path = false }]
 
 and sorts = sort list
 
 type relv =
-  | N
-  | R
+  | N (* irrelevant *)
+  | R (* relevant *)
+[@@deriving show { with_path = false }]
+
+type view =
+  | E (* explicit *)
+  | I (* implicit *)
 [@@deriving show { with_path = false }]
 
 type ('a, 'b) binder = Binder of 'a * 'b
@@ -20,12 +25,13 @@ type ('a, 'b) binder = Binder of 'a * 'b
 type tm =
   (* inference *)
   | Ann of tm * tm
+  | IMeta
   (* core *)
   | Type of sort
-  | Id of id
-  | Inst of id * sorts
+  | Id of id * view
+  | Inst of id * sorts * view
   | Pi of relv * sort * tm * (id, tm) binder
-  | Fun of tm * (id option, cls) binder
+  | Fun of tm * (id option, cls) binder * view list
   | App of tms
   | Let of relv * tm * (id, tm) binder
   (* inductive *)
@@ -56,19 +62,21 @@ type dcl =
       { name : id
       ; relv : relv
       ; body : (tm * tm) scheme
+      ; view : view list
       }
   | Inductive of
       { name : id
       ; relv : relv
       ; body : (tele * dconstrs) param scheme
+      ; view : view list
       }
 [@@deriving show { with_path = false }]
 
 and dcls = dcl list
 
 and dconstr =
-  | DMul of id * tele
-  | DAdd of id * tele
+  | DMul of id * tele * view list
+  | DAdd of id * tele * view list
 
 and dconstrs = dconstr list
 and 'a scheme = (ids, 'a) binder

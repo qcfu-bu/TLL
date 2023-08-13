@@ -1,20 +1,22 @@
 %token EOF
 
 // delimiters
-%token LPAREN // (
-%token RPAREN // )
-%token LBRACK // [
-%token RBRACK // ]
-%token LBRACE // {
-%token RBRACE // {
-%token LANGLE // ⟨
-%token RANGLE // ⟩
-%token FLQ    // ‹
-%token FRQ    // ›
+%token LPAREN  // (
+%token RPAREN  // )
+%token LBRACK  // [
+%token RBRACK  // ]
+%token LBRACE  // {
+%token RBRACE  // {
+%token LANGLE  // ⟨
+%token RANGLE  // ⟩
+%token FLQ     // ‹
+%token FRQ     // ›
+%token QLPAREN // ?(
+%token QLBRACE // ?{
 
 // quantifiers
-%token FORALL // ∀
-%token EXISTS // ∃
+%token FORALL   // ∀
+%token EXISTS   // ∃
 
 // arrows
 %token LEFTARROW0  // ←
@@ -30,6 +32,7 @@
 // products
 %token TIMES  // ×
 %token OTIMES // ⊗
+%token AT     // @
 %right TIMES
 %right OTIMES
 
@@ -105,10 +108,13 @@
 %token PRIM_STDERR // stderr
 
 // identifier
-%token<int> INTEGER         // 123
-%token<string> IDENTIFIER   // foo
-%token<string> CONSTANT0    // foo<
-%token<string> CONSTANT1    // foo‹
+%token<int> INTEGER          // 123
+%token<string> IDENTIFIER    // foo
+%token<string> CONSTANT0     // foo<
+%token<string> CONSTANT1     // foo‹
+%token<string> AT_IDENTIFIER // @foo
+%token<string> AT_CONSTANT0  // @foo<
+%token<string> AT_CONSTANT1  // @foo‹
 
 // tm
 %token TM_TYPE0    // Type<
@@ -164,6 +170,7 @@
 %start <dcl list> main
 
 %%
+// baiscs
 let iden ==
   | ~ = IDENTIFIER; <>
 
@@ -173,21 +180,39 @@ let const0 ==
 let const1 ==
   | ~ = CONSTANT1; <>
 
+let at_iden ==
+  | ~ = AT_IDENTIFIER; <>
+
+let at_const0 ==
+  | ~ = AT_CONSTANT0; <>
+
+let at_const1 ==
+  | ~ = AT_CONSTANT1; <>
+
+// sorts
+/* U L Type<s> */
 let sort :=
   | SORT_U; { U }
   | SORT_L; { L }
   | id = iden; { SId id }
 
+// identifiers
+/* foo @foo */
 let tm_id :=
-  | id = iden; { Id id }
+  | id = iden; { if id = "_" then IMeta else Id (id, I) }
+  | id = at_iden; { Id (id, E) }
 
 // instance
 /* X‹s,r,t› */
 let tm_inst :=
   | id = const0; ss = separated_list(COMMA, sort); GT;
-    { Inst (id, ss) }
+    { Inst (id, ss, I) }
   | id = const1; ss = separated_list(COMMA, sort); FRQ;
-    { Inst (id, ss) }
+    { Inst (id, ss, I) }
+  | id = at_const0; ss = separated_list(COMMA, sort); GT;
+    { Inst (id, ss, E) }
+  | id = at_const1; ss = separated_list(COMMA, sort); FRQ;
+    { Inst (id, ss, E) }
 
 // annotation
 /* (m : A) */
@@ -255,11 +280,11 @@ ln (x y z : A) => m
 ln {x y z : A} => m
 */
 let tm_lam_arg :=
-  | id = iden; { [ (R, id, Id "_") ] }
+  | id = iden; { [ (R, id, IMeta) ] }
   | LPAREN; ids = iden+; RPAREN;
-    { List.map (fun id -> (R, id, Id "_")) ids }
+    { List.map (fun id -> (R, id, IMeta)) ids }
   | LBRACE; ids = iden+; RBRACE;
-    { List.map (fun id -> (N, id, Id "_")) ids }
+    { List.map (fun id -> (N, id, IMeta)) ids }
   | LPAREN; ids = iden+; COLON; a = tm; RPAREN;
     { List.map (fun id -> (R, id, a)) ids }
   | LBRACE; ids = iden+; COLON; a = tm; RBRACE;
@@ -272,7 +297,7 @@ let tm_lam(p) :=
   | TM_FN; args = tm_lam_args; opt = tm_ann_closed; RIGHTARROW1; m = p;
     { let b =
         match opt with
-        | None -> Id "_"
+        | None -> IMeta
         | Some b -> b
       in
       let a = 
@@ -280,11 +305,11 @@ let tm_lam(p) :=
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
-      Fun (a, Binder (None, [(ps, Some m)])) }
+      Fun (a, Binder (None, [(ps, Some m)]), []) }
   | TM_LN; args = tm_lam_args; opt = tm_ann_closed; RIGHTARROW1; m = p;
     { let b =
         match opt with
-        | None -> Id "_"
+        | None -> IMeta
         | Some b -> b
       in
       let a = 
@@ -292,7 +317,7 @@ let tm_lam(p) :=
           Pi (relv, L, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
-      Fun (a, Binder (None, [(ps, Some m)])) }
+      Fun (a, Binder (None, [(ps, Some m)]), []) }
 
 // pattern function
 /*
@@ -340,7 +365,7 @@ let tm_fun :=
   | TM_FUNCTION; id = iden?; args = tm_fun_args; opt = tm_ann_closed; cls = tm_fun_cls;
     { let b =
         match opt with
-        | None -> Id "_"
+        | None -> IMeta
         | Some b -> b
       in
       let a =
@@ -349,7 +374,7 @@ let tm_fun :=
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
-      Fun (a, Binder (id, cls)) }
+      Fun (a, Binder (id, cls), []) }
 
 // let expression
 /*
@@ -397,7 +422,7 @@ let tm_letcls(p) :=
     cls = tm_fun_cls; TM_IN; m = p;
     { let b =
         match opt with
-        | None -> Id "_"
+        | None -> IMeta
         | Some b -> b
       in
       let a =
@@ -406,12 +431,12 @@ let tm_letcls(p) :=
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
-      Let (R, Fun (a, Binder (Some id, cls)), Binder (id, m)) }
+      Let (R, Fun (a, Binder (Some id, cls), []), Binder (id, m)) }
   | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_closed;
     cls = tm_fun_cls; TM_IN; m = p;
     { let b =
         match opt with
-        | None -> Id "_"
+        | None -> IMeta
         | Some b -> b
       in
       let a =
@@ -420,7 +445,7 @@ let tm_letcls(p) :=
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
-      Let (N, Fun (a, Binder (Some id, cls)), Binder (id, m)) }
+      Let (N, Fun (a, Binder (Some id, cls), []), Binder (id, m)) }
 
 // let function
 /*
@@ -441,7 +466,7 @@ let tm_letfun(p) :=
     ASSIGN; m = tm; TM_IN; n = p;
     { let b =
         match opt with
-        | None -> Id "_"
+        | None -> IMeta
         | Some b -> b
       in
       let a =
@@ -449,12 +474,12 @@ let tm_letfun(p) :=
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
-      Let (R, Fun (a, Binder (Some id, [(ps, Some m)])), Binder (id, n)) }
+      Let (R, Fun (a, Binder (Some id, [(ps, Some m)]), []), Binder (id, n)) }
   | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_open;
     ASSIGN; m = tm; TM_IN; n = p;
     { let b =
         match opt with
-        | None -> Id "_"
+        | None -> IMeta
         | Some b -> b
       in
       let a =
@@ -462,7 +487,7 @@ let tm_letfun(p) :=
           Pi (relv, U, a, Binder (id, acc))) args b
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
-      Let (N, Fun (a, Binder (Some id, [(ps, Some m)])), Binder (id, n)) }
+      Let (N, Fun (a, Binder (Some id, [(ps, Some m)]), []), Binder (id, n)) }
 
 // match expression
 /*
@@ -480,10 +505,10 @@ match {m} as x : A, {n} as y : B x in A x y with
 */
 let tm_match_arg :=
   | m = tm; { (R, m, None) }
-  | m = tm; TM_AS; id = iden; { (R, m, Some (id, Id "_")) }
+  | m = tm; TM_AS; id = iden; { (R, m, Some (id, IMeta)) }
   | m = tm; TM_AS; id = iden; COLON; a = tm; { (R, m, Some (id, a)) }
   | LBRACE; m = tm; RBRACE; { (N, m, None) }
-  | LBRACE; m = tm; RBRACE; TM_AS; id = iden; { (N, m, Some (id, Id "_")) }
+  | LBRACE; m = tm; RBRACE; TM_AS; id = iden; { (N, m, Some (id, IMeta)) }
   | LBRACE; m = tm; RBRACE; TM_AS; id = iden; COLON; a = tm; { (N, m, Some (id, a)) }
 
 let tm_match_args :=
@@ -559,7 +584,7 @@ let tm_mlet(p) :=
 #magic[A]
 */
 let tm_magic :=
-  | TM_MAGIC; { Magic (Id "_") }
+  | TM_MAGIC; { Magic IMeta }
   | TM_MAGIC; LBRACK; a = tm; RBRACK; { Magic a }
 
 // terms
@@ -638,9 +663,13 @@ def foo‹s› (x : A) : A -> B
 */
 let dcl_def_arg :=
   | LPAREN; ids = iden+; COLON; a = tm; RPAREN;
-    { List.map (fun id -> (R, id, a)) ids }
+    { List.map (fun id -> (R, id, a, E)) ids }
   | LBRACE; ids = iden+; COLON; a = tm; RBRACE;
-    { List.map (fun id -> (N, id, a)) ids }
+    { List.map (fun id -> (N, id, a, E)) ids }
+  | QLPAREN; ids = iden+; COLON; a = tm; RPAREN;
+    { List.map (fun id -> (R, id, a, I)) ids }
+  | QLBRACE; ids = iden+; COLON; a = tm; RBRACE;
+    { List.map (fun id -> (N, id, a, I)) ids }
 
 let dcl_def_args :=
   | args = dcl_def_arg*; { List.concat args }
@@ -672,32 +701,37 @@ let dcl_def :=
     DCL_DEF; id_sids = dcl_iden; args = dcl_def_args; COLON; b = tm_closed;
     cls = dcl_def_cls;
     { let id, sids = id_sids in
-      let a =
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args b
+      let a, view =
+        List.fold_right (fun (relv, id, a, v) (b, view) ->
+          (Pi (relv, U, a, Binder (id, b)), v :: view)) args (b, [])
       in
-      let ps = List.map (fun (_, id, _) -> PId id) args in
+      let ps = List.map (fun (_, id, _, _) -> PId id) args in
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
-      let m = Fun (a, Binder (Some id, cls)) in
+      let m = Fun (a, Binder (Some id, cls), view) in
       let sch = Binder (sids, (m, a)) in
-      Definition { name = id; relv = relv; body = sch } }
+      Definition { name = id; relv; body = sch; view } }
   | relv = dcl_modifier;
-    DCL_DEF; id_sids = dcl_iden; args = dcl_def_args; COLON; b = tm;
+    DCL_DEF; id_sids = dcl_iden; args = dcl_def_args; opt = tm_ann_open;
     ASSIGN; m = tm;
     { let id, sids = id_sids in
-      let a =
-        List.fold_right (fun (relv, id, a) acc ->
-          Pi (relv, U, a, Binder (id, acc))) args b
+      let b =
+        match opt with
+        | Some b -> b
+        | None -> IMeta
+      in
+      let a, view =
+        List.fold_right (fun (relv, id, a, v) (b, view) ->
+          (Pi (relv, U, a, Binder (id, b)), v :: view)) args (b, [])
       in
       let m =
         match args with
         | [] -> m
         | _ ->
-          let ps = List.map (fun (_, id, _) -> PId id) args in
-          Fun (a, Binder (Some id, [(ps, Some m)]))
+          let ps = List.map (fun (_, id, _, _) -> PId id) args in
+          Fun (a, Binder (Some id, [(ps, Some m)]), view)
       in
       let sch = Binder (sids, (m, a)) in
-      Definition { name = id; relv = relv; body = sch } }
+      Definition { name = id; relv; body = sch; view } }
 
 // inductive
 /*
@@ -708,10 +742,13 @@ inductive vec‹s,r› (A : Type‹s›) : nat -> Type‹r› where
   vcons {n : nat} (hd : A) (tl : vec‹s,r›A n) : vec‹s,r›A (succ n)
 */
 let dcl_ind_param :=
-  | LPAREN; id = iden; COLON; a = tm; RPAREN; { (id, a) }
+  | LPAREN; ids = iden+; COLON; a = tm; RPAREN;
+    { List.map (fun id -> (id, a, E)) ids }
+  | QLPAREN; ids = iden+; COLON; a = tm; RPAREN;
+    { List.map (fun id -> (id, a, I)) ids }
 
 let dcl_ind_params :=
-  | ~ = dcl_ind_param*; <>
+  | args = dcl_ind_param*; { List.concat args }
 
 let dcl_ind_tele :=
   | a = tm;
@@ -722,25 +759,28 @@ let dcl_ind_tele :=
       in aux a }
 
 let dcl_dconstr_modifier :=
-  | MODIFIER; MOD_MULTIPLICATIVE; RBRACK; { fun id tele -> DMul (id, tele) }
-  | MODIFIER; MOD_ADDITIVE; RBRACK; { fun id tele -> DAdd (id, tele) }
-  | { fun id tele -> DMul (id, tele) }
+  | MODIFIER; MOD_MULTIPLICATIVE; RBRACK; { fun id tele view -> DMul (id, tele, view) }
+  | MODIFIER; MOD_ADDITIVE; RBRACK; { fun id tele view -> DAdd (id, tele, view) }
+  | { fun id tele view -> DMul (id, tele, view) }
 
 let dcl_dconstr_arg :=
-  | LPAREN; id = iden; COLON; a = tm; RPAREN; { (R, id, a) }
-  | LBRACE; id = iden; COLON; a = tm; RBRACE; { (N, id, a) }
+  | LPAREN; ids = iden+; COLON; a = tm; RPAREN; { List.map (fun id -> (R, id, a, E)) ids }
+  | LBRACE; ids = iden+; COLON; a = tm; RBRACE; { List.map (fun id -> (N, id, a, E)) ids }
+  | QLPAREN; ids = iden+; COLON; a = tm; RPAREN; { List.map (fun id -> (R, id, a, I)) ids }
+  | QLBRACE; ids = iden+; COLON; a = tm; RBRACE; { List.map (fun id -> (N, id, a, I)) ids }
 
 let dcl_dconstr_args :=
-  | ~ = dcl_dconstr_arg*; <>
+  | args = dcl_dconstr_arg*; { List.concat args }
 
 let dcl_dconstr :=
   | PIPE; modifier = dcl_dconstr_modifier;
     id = iden; args = dcl_dconstr_args; COLON; b = tm_closed;
-    { let tele =
-        List.fold_right (fun (relv, id, a) acc ->
-          TBind (relv, a, Binder (id, acc))) args (TBase b)
+    { let tele, view =
+        List.fold_right (fun (relv, id, a, v) (tele, view) ->
+          (TBind (relv, a, Binder (id, tele)), v :: view))
+        args (TBase b, [])
       in
-      modifier id tele }
+      modifier id tele view }
 
 let dcl_dconstrs :=
   | ~ = dcl_dconstr*; <>
@@ -750,12 +790,13 @@ let dcl_inductive :=
     DCL_INDUCTIVE; id_sids = dcl_iden; params = dcl_ind_params; COLON;
     tele = dcl_ind_tele; DCL_WHERE; dconstrs = dcl_dconstrs;
     { let id, sids = id_sids in
-      let params = 
-        List.fold_right (fun (id, a) acc ->
-          PBind (a, Binder (id, acc))) params (PBase (tele, dconstrs))
+      let param, view = 
+        List.fold_right (fun (id, a, v) (param, view) ->
+          (PBind (a, Binder (id, param)), v :: view))
+        params (PBase (tele, dconstrs), [])
       in
-      let sch = Binder (sids, params) in
-      Inductive { name = id; relv = relv; body = sch } }
+      let sch = Binder (sids, param) in
+      Inductive { name = id; relv; body = sch; view } }
 
 // declarations
 let dcl :=
