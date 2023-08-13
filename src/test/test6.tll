@@ -41,7 +41,7 @@ inductive at ?(A : U) (x : A) : nat -> list A -> U where
   | at_succ ?(n : nat) (x0 : A) ?(xs0 : list A) (h : at x n xs0) : at x (succ n) (cons x0 xs0)
 
 def get_at ?{A : U}
-: ∀ (n : nat) (xs : list A) -> eq (lt n (length xs)) true -> exists‹_,_,L› (fn x => at x n xs)
+: ∀ (n : nat) (xs : list A) -> eq (lt n (length xs)) true -> exists<_,_,L> (fn x => at x n xs)
   | _        nil         !! =>
   | zero     (cons x xs) _  => ex x (at_zero xs)
   | (succ n) (cons x xs) e  => 

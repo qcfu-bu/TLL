@@ -11,7 +11,7 @@
 (setq tll-keywords-regexp (regexp-opt tll-keywords 'symbols))
 (setq tll-lambda-regexp (regexp-opt tll-lambda 'symbols))
 (setq tll-builtin-regexp (regexp-opt tll-builtin 'symbols))
-(setq tll-quantifier-regexp "\\(?:∀\\|∃\\|⇑\\|⇓\\|•\\)")
+(setq tll-quantifier-regexp "\\(?:∀\\|forall\\|∃\\|exists\\|⇑\\|⇓\\|•\\)")
 (setq tll-magic-regexp "\\(?:#magic\\)")
 (setq tll-absurd-regexp "\\(?:!!\\)")
 (setq tll-infer-regexp "\\(?:infer_tm\\)")
@@ -51,6 +51,18 @@
         (modify-syntax-entry ?< "." st)
         (modify-syntax-entry ?> "." st)
         st))
+
+(add-hook 'tll-mode-hook
+          (lambda ()
+            (setq prettify-symbols-alist
+                  '(("->" . ?→)
+                    ("<-" . ?←)
+                    ("=>" . ?⇒)
+                    ("-o" . ?⊸)
+                    (":=" . ?≔)
+                    ("exists" . ?∃)
+                    ("forall" . ?∀)))
+            (prettify-symbols-mode 1)))
 
 ;;;###autoload
 (define-derived-mode tll-mode prog-mode
