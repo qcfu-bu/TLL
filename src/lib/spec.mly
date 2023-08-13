@@ -574,7 +574,7 @@ let tm_mlet(p) :=
     { let m =
         match opt with
         | None -> m
-        | Some a -> Ann (m, a)
+        | Some a -> Ann (m, IO a)
       in
       MLet (m, Binder (id, n)) }
 
