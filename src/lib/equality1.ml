@@ -113,8 +113,7 @@ let rec aeq_tm m1 m2 =
     | MLet (m1, bnd1), MLet (m2, bnd2) ->
       aeq_tm m1 m2 && eq_binder aeq_tm bnd1 bnd2
     (* magic *)
-    | Magic _, _ -> true
-    | _, Magic _ -> true
+    | Magic a1, Magic a2 -> aeq_tm a1 a2
     (* other *)
     | _ -> false
 
@@ -159,8 +158,7 @@ let rec eq_tm ?(expand = false) ctx m1 m2 =
       | MLet (m1, bnd1), MLet (m2, bnd2) ->
         equal m1 m2 && eq_binder equal bnd1 bnd2
       (* magic *)
-      | Magic _, _ -> true
-      | _, Magic _ -> true
+      | Magic a1, Magic a2 -> equal a1 a2
       (* other *)
       | _ -> false
   in

@@ -184,7 +184,9 @@ and infer_tm ctx m : tm =
       | _ -> failwith "trans1e.MLet")
     | _ -> failwith "trans1e.MLet")
   (* magic *)
-  | Magic a -> a
+  | Magic a ->
+    assert_type ctx a;
+    a
 
 and infer_ind ctx ms ns ptl =
   let rec aux_param ms ptl =

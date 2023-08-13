@@ -462,8 +462,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
       let eqns2 = simpl_iprbm (EqualTerm (ctx, n1, n2)) in
       eqns1 @ eqns2
     (* magic *)
-    | Magic _, _ -> []
-    | _, Magic _ -> []
+    | Magic a1, Magic a2 -> simpl_iprbm (EqualTerm (ctx, a1, a2))
     | _ when not expand -> simpl_iprbm ~expand:true (EqualTerm (ctx, m1, m2))
     | _ when imeta_blocked m1 || imeta_blocked m2 -> [ eqn ]
     | _ ->
@@ -646,8 +645,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
       let eqns2 = simpl_pprbm (EqualTerm (ctx, n1, n2)) in
       eqns1 @ eqns2
     (* magic *)
-    | Magic _, _ -> []
-    | _, Magic _ -> []
+    | Magic a1, Magic a2 -> simpl_pprbm (EqualTerm (ctx, a1, a2))
     | _ when not expand -> simpl_pprbm ~expand:true (EqualTerm (ctx, m1, m2))
     | _ ->
       failwith "@[<v 0>unifier1.simpl_pprbm(@;<1 2>%a,@;<1 2>%a@;<1 0>)@]" pp_tm
