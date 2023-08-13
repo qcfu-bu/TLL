@@ -55,7 +55,7 @@
 %token GTE  // >=
 %token LT   // <
 %token GT   // >
-%token EQEQ   // ==
+%token EQEQ // ==
 %token NEQ  // !=
 %left ADD
 %left SUB
