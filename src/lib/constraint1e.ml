@@ -1,8 +1,8 @@
 open Fmt
 open Bindlib
 open Syntax1
-open Context1
-open Equality1
+open Context1e
+open Equality1e
 open Pprint1
 
 module IPrbm = struct

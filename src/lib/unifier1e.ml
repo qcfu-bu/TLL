@@ -2,11 +2,10 @@ open Fmt
 open Bindlib
 open Names
 open Syntax1
-open Context1
-open Equality1
-open Constraint1
+open Context1e
+open Equality1e
+open Constraint1e
 open Pprint1
-open Debug
 
 (* subst meta-variables *)
 type smeta_map = (sort, sort) mbinder SMeta.Map.t

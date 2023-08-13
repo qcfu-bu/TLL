@@ -2,12 +2,11 @@ open Fmt
 open Bindlib
 open Names
 open Syntax1
-open Context1
-open Constraint1
-open Equality1
-open Unifier1
+open Context1e
+open Constraint1e
+open Equality1e
+open Unifier1e
 open Pprint1
-open Debug
 
 module State : sig
   type t

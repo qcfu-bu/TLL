@@ -1,7 +1,6 @@
 open Fmt
 open Sedlexing
 open Spec
-open Debug
 
 exception
   LexError of

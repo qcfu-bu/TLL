@@ -1,7 +1,7 @@
 open Bindlib
 open Names
 open Syntax1
-open Context1
+open Context1e
 
 let rec whnf ?(expand = true) (ctx : Ctx.t) = function
   (* inference *)
