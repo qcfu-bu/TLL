@@ -188,7 +188,8 @@ let rec trans_tm nspc = function
           let ms, ns = list_take j ms in
           _Ind d (mk_inst nspc i) (box_list ms) (box_list ns)
         | Some (EConstr (c, i, j, _)) ->
-          _Constr c (mk_inst nspc i) (mk_param nspc j) (box_list ms)
+          let ms, ns = list_take j ms in
+          _Constr c (mk_inst nspc i) (box_list ms) (box_list ns)
         | _ -> failwith "trans01.trans_tm.App(%s)" id))
     | Id (id, I) :: ms -> (
       Syntax1.(
@@ -217,7 +218,8 @@ let rec trans_tm nspc = function
           let ms, ns = list_take j ms in
           _Ind d (box_list ss) (box_list ms) (box_list ns)
         | Some (EConstr (c, _, j, _)) ->
-          _Constr c (box_list ss) (mk_param nspc j) (box_list ms)
+          let ms, ns = list_take j ms in
+          _Constr c (box_list ss) (box_list ms) (box_list ns)
         | _ -> failwith "trans01.trans_tm.Inst"))
     | Inst (id, ss, I) :: ms -> (
       Syntax1.(
