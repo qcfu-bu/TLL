@@ -153,11 +153,11 @@ and infer_tm ctx m : tm =
   | Ind (d, ss, ms, ns) ->
     let sch, _ = Ctx.find_ind d ctx in
     let ptl = msubst sch (Array.of_list ss) in
-    infer_ind ctx ms ns ptl
+    infer_ptl ctx ms ns ptl
   | Constr (c, ss, ms, ns) ->
     let sch, _ = Ctx.find_constr c ctx in
     let ptl = msubst sch (Array.of_list ss) in
-    infer_constr ctx ms ns ptl
+    infer_ptl ctx ms ns ptl
   | Match (ms, a, cls) ->
     assert_type ctx a;
     let b = infer_motive ctx ms a in
@@ -185,7 +185,7 @@ and infer_tm ctx m : tm =
     assert_type ctx a;
     a
 
-and infer_ind ctx ms ns ptl =
+and infer_ptl ctx ms ns ptl =
   let rec aux_param ms ptl =
     match (ms, ptl) with
     | [], PBase tl -> aux_tele ns tl
@@ -200,24 +200,6 @@ and infer_ind ctx ms ns ptl =
       check_tm ctx n a;
       aux_tele ns (subst bnd n)
     | _ -> failwith "trans1e.infer_ind(tele)"
-  in
-  aux_param ms ptl
-
-and infer_constr ctx ms ns ptl =
-  let rec aux_param ms ptl =
-    match (ms, ptl) with
-    | [], PBase tl -> aux_tele ns tl
-    | m :: ms, PBind (a, bnd) ->
-      check_tm ctx m a;
-      aux_param ms (subst bnd m)
-    | _ -> failwith "trans1e.infer_constr(param)"
-  and aux_tele ns tl =
-    match (ns, tl) with
-    | [], TBase a -> a
-    | n :: ns, TBind (_, a, bnd) ->
-      check_tm ctx n a;
-      aux_tele ns (subst bnd n)
-    | _ -> failwith "trans1e.infer_constr(tele)"
   in
   aux_param ms ptl
 

@@ -84,8 +84,44 @@ module Logical = struct
       let a = infer_tm ctx env m in
       let s = infer_sort ctx env a in
       infer_tm (Ctx.add_var x a s ctx) (Env.add_var x m env) n
-    | _ -> _
+    (* inductive *)
+    | Ind (d0, ss, ms, ns) ->
+      List.iter assert_sort ss;
+      let d1 = State.find_ind d0 ss in
+      let ptl, _ = Ctx.find_ind d1 ctx in
+      infer_ptl ctx env ms ns ptl
+    | Constr (c0, ss, ms, ns) ->
+      List.iter assert_sort ss;
+      let c1 = State.find_constr c0 ss in
+      let ptl, _, _ = Ctx.find_constr c1 ctx in
+      infer_ptl ctx env ms ns ptl
+    | Match (ms, a, cls) ->
+      let b = infer_motive ctx env ms a in
+      check_cls ctx env cls a;
+      b
+    (* monad *)
+    | IO a ->
+      let _ = infer_sort ctx env a in
+      Type L
+    | Return m -> IO (infer_tm ctx env m)
+    | MLet (m, bnd) -> (
+      let t1 = infer_tm ctx env m in
+      match whnf env t1 with
+      | IO a -> (
+        let s = infer_sort ctx env a in
+        let x, n = unbind bnd in
+        let t2 = infer_tm (Ctx.add_var x a s ctx) env n in
+        match whnf env t2 with
+        | IO b -> IO b
+        | _ -> failwith "trans12.Logical.infer_tm(MLet)")
+      | _ -> failwith "trans12.Logical.infer_tm(MLet)")
+    (* magic *)
+    | Magic a ->
+      let _ = infer_sort ctx env a in
+      a
 
+  and infer_ptl ctx env ms ns ptl = _
+  and infer_motive ctx env ms a = _
   and check_tm ctx env m a = _
   and check_cls ctx env cls a = _
 end
