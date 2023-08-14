@@ -403,3 +403,89 @@ module Logical = struct
     | _, [], [], TBase _ -> Some []
     | _ -> None
 end
+
+module Program = struct
+  let trans_sort = function
+    | U -> Syntax2.U
+    | L -> Syntax2.L
+    | _ -> failwith "trans12.Program.trans_sort"
+
+  let trans_relv = function
+    | N -> Syntax2.N
+    | R -> Syntax2.R
+
+  let trans_var x = Syntax2.(copy_var x var (name_of x))
+  let trans_mvar xs = Array.map trans_var xs
+
+  let rec infer_tm ctx env m =
+    match m with
+    (* inference *)
+    | Ann (m, a) ->
+      let _ = Logical.infer_sort ctx env a in
+      let m_elab, usg = check_tm ctx env m a in
+      (a, m_elab, usg)
+    | IMeta _ -> failwith "trans12.Program.infer_tm(IMeta)"
+    | PMeta x ->
+      let a, s = Ctx.find_var x ctx in
+      Syntax2.(a, _Var (trans_var x), Usage.var_singleton x (s, false))
+    (* core *)
+    | Type _ -> failwith "trans12.Program.infer_tm(Type)"
+    | Var x ->
+      let a, s = Ctx.find_var x ctx in
+      Syntax2.(a, _Var (trans_var x), Usage.var_singleton x (s, false))
+    | Const (x0, ss) ->
+      let x1 = State.find_const x0 ss in
+      let a, s = Ctx.find_const x1 ctx in
+      Syntax2.(a, _Const x1, Usage.const_singleton x1 (s, false))
+    | Pi _ -> failwith "trans12.Program.infer_tm(Pi)"
+    | Fun (a, bnd) ->
+      let x, cls = unbind bnd in
+      let s = Logical.infer_sort ctx env a in
+      let cls_elab, usg = check_cls (Ctx.add_var x a s ctx) env cls a in
+      let usg =
+        match s with
+        | U ->
+          let usg = Usage.remove_var x usg R U in
+          Usage.assert_pure usg;
+          usg
+        | L -> Usage.remove_var x usg N L
+        | _ -> failwith "trans12.Program.infer_tm(Fun)"
+      in
+      Syntax2.(a, _Fun (bind_var (trans_var x) cls_elab), usg)
+    | App (m, n) -> (
+      let t, m_elab, usg1 = infer_tm ctx env m in
+      match whnf env t with
+      | Pi (N, s, a, bnd) ->
+        Logical.check_tm ctx env n a;
+        Syntax2.(subst bnd n, _App (trans_sort s) m_elab _Null, usg1)
+      | Pi (R, s, a, bnd) ->
+        let n_elab, usg2 = check_tm ctx env n a in
+        Syntax2.
+          (subst bnd n, _App (trans_sort s) m_elab n_elab, Usage.merge usg1 usg2)
+      | _ -> failwith "trans12.Program.infer_tm(App)")
+    | Let (N, m, bnd) ->
+      let x, n = unbind bnd in
+      let a = Logical.infer_tm ctx env m in
+      let s = Logical.infer_sort ctx env a in
+      let ctx = Ctx.add_var x a s ctx in
+      let env = Env.add_var x m env in
+      let b, n_elab, usg = infer_tm ctx env n in
+      let usg = Usage.remove_var x usg N s in
+      Syntax2.(b, _Let _Null (bind_var (trans_var x) n_elab), usg)
+    | Let (R, m, bnd) ->
+      let x, n = unbind bnd in
+      let a, m_elab, usg1 = infer_tm ctx env m in
+      let s = Logical.infer_sort ctx env a in
+      let ctx = Ctx.add_var x a s ctx in
+      let env = Env.add_var x m env in
+      let b, n_elab, usg2 = infer_tm ctx env n in
+      let usg = Usage.(merge usg1 (remove_var x usg2 R s)) in
+      Syntax2.(b, _Let m_elab (bind_var (trans_var x) n_elab), usg)
+    (* inductive *)
+    | Ind _ -> failwith "trans12.Program.infer_tm(Ind)"
+    | Constr (c0, ss, ms, ns) -> _
+    | _ -> _
+
+  and check_tm ctx env m a = _
+  and check_cls ctx env cls a = _
+end

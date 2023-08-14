@@ -125,7 +125,8 @@ end
 
 module Usage = struct
   type t =
-    { var : (sort * bool) Var.Map.t
+    { (* true: slacked usage, false: fixed usage *)
+      var : (sort * bool) Var.Map.t
     ; const : (sort * bool) Const.Map.t
     }
 

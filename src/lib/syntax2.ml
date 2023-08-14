@@ -16,7 +16,7 @@ type tm =
   (* core *)
   | Var of tm var
   | Const of Const.t
-  | Fix of (tm, tm) binder
+  | Fun of (tm, tm) binder
   | Lam of (tm, tm) binder
   | App of sort * tm * tm
   | Let of tm * (tm, tm) binder
@@ -85,7 +85,7 @@ let _R = box R
 (* core *)
 let _Var = box_var
 let _Const x = box (Const x)
-let _Fix = box_apply (fun m -> Fix m)
+let _Fun = box_apply (fun m -> Fun m)
 let _Lam = box_apply (fun m -> Lam m)
 let _App s = box_apply2 (fun m n -> App (s, m, n))
 let _Let = box_apply2 (fun m n -> Let (m, n))
@@ -129,7 +129,7 @@ let rec lift_tm = function
   (* core *)
   | Var x -> _Var x
   | Const x -> _Const x
-  | Fix bnd -> _Fix (box_binder lift_tm bnd)
+  | Fun bnd -> _Fun (box_binder lift_tm bnd)
   | Lam bnd -> _Lam (box_binder lift_tm bnd)
   | App (s, m, n) -> _App s (lift_tm m) (lift_tm n)
   | Let (m, bnd) -> _Let (lift_tm m) (box_binder lift_tm bnd)
