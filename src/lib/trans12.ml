@@ -614,20 +614,70 @@ module Program = struct
           let global = PPrbm.EqualTerm (env, a, t) :: global in
           if not (has_failed (fun () -> unify_pprbm global)) then
             failwith "trans12.Program.fail_on_ind")
-        cs0
+        cs0;
+      (Syntax2._Absurd, Usage.of_ctx ctx)
     in
     let rec aux_prbm ctx env (prbm : PPrbm.t) a =
       match prbm.clause with
       (* empty *)
-      | [] -> _
+      | [] -> (
+        if has_failed (fun () -> unify_pprbm prbm.global) then
+          (Syntax2._Absurd, Usage.of_ctx ctx)
+        else
+          match whnf env a with
+          | Pi (_, _, a, _) -> (
+            match whnf env a with
+            | Ind (d0, ss, ms, ns) ->
+              let d1 = State.find_ind d0 ss in
+              fail_on_ind prbm.global ctx env d1 ss ms a
+            | _ -> failwith "trans12.Program.check_cls(Empty)")
+          | _ -> failwith "trans12.Program.check_cls(Empty)")
       (* case intro *)
-      | (eqns, p :: ps, rhs) :: clause -> _
+      | (eqns, p :: ps, rhs) :: clause -> (
+        match whnf env a with
+        | Pi (relv, s, a, bnd) -> (
+          let x, b = unbind_pmeta bnd in
+          let t = Logical.infer_sort ctx env a in
+          let ctx = Ctx.add_var x a s ctx in
+          let prbm = prbm_add env prbm x a relv in
+          let ctree, usg = aux_prbm ctx env prbm b in
+          let usg = Usage.remove_var x usg relv t in
+          match s with
+          | U ->
+            let usg = Usage.refine_pure usg in
+            Syntax2.(_Lam (bind_var (trans_var x) ctree), usg)
+          | L -> Syntax2.(_Lam (bind_var (trans_var x) ctree), usg)
+          | _ -> failwith "trans12.Program.check_cls(Intro)")
+        | a ->
+          failwith "trans12.Program.check_cls(Intro(%a, %a))" pp_tm a
+            (pp_ps " ") ps)
       (* case splitting *)
-      | (eqns, [], rhs) :: _ when can_split eqns -> _
+      | (eqns, [], rhs) :: _ when can_split eqns -> Debug.hole ()
       (* absurd pattern *)
-      | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> _
+      | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> (
+        if has_failed (fun () -> unify_pprbm prbm.global) then
+          (Syntax2._Absurd, Usage.of_ctx ctx)
+        else
+          let a = get_absurd eqns in
+          match whnf env a with
+          | Ind (d0, ss, ms, ns) ->
+            let d1 = State.find_ind d0 ss in
+            fail_on_ind prbm.global ctx env d1 ss ms a
+          | _ -> failwith "trans12.Program.check_cls(Absurd)")
       (* case coverage *)
-      | (eqns, [], rhs) :: _ -> _
+      | (eqns, [], rhs) :: _ -> (
+        match rhs with
+        | Some m ->
+          let var_map = unify_pprbm (prbm.global @ eqns) in
+          let a = resolve_pmeta var_map a in
+          let ctx = Ctx.map_var (resolve_pmeta var_map) ctx in
+          let rhs = resolve_pmeta var_map m in
+          check_tm ctx env rhs a
+        | None ->
+          if has_failed (fun () -> unify_pprbm prbm.global) then
+            (Syntax2._Absurd, Usage.of_ctx ctx)
+          else
+            failwith "trans12.Program.check_cls(Cover)")
     in
     aux_prbm ctx env (PPrbm.of_cls cls) a
 end

@@ -1,0 +1,32 @@
+inductive unit : U where
+| tt : unit
+
+inductive bool : U where
+| true  : bool
+| false : bool
+
+inductive nat : U where
+| zero : nat
+| succ (pred : nat) : nat
+
+#[logical]
+inductive eq<s> ?(A : Type<s>) (m : A) : A -> U where
+| refl : eq m m
+
+inductive exists<s,r,t> ?(A : Type<s>) (B : A -> Type<r>) : Type<t> where
+| ex (m : A) {pf : B m} : exists B
+
+inductive sing<s> ?(A : Type<s>) : A -> Type<s> where
+| just (m : A) : sing m
+
+inductive list<s> (A : Type<s>) : U where
+| nil : list A
+| cons (hd : A) (tl : list A) : list A
+
+inductive vec<s> (A : Type<s>) : nat -> U where
+| vnil : vec A zero
+| vcons ?{n : nat} (hd : A) (tl : vec<s> A n) : vec A (succ n)
+
+def uncons2<s> ?{A : Type<s>} ?{n : nat} : vec A n -> vec A n -> unit
+  | vnil vnil => tt
+  | (vcons _ _ _) (vcons _ _ _) => tt
