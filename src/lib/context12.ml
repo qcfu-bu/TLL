@@ -57,7 +57,7 @@ module Env = struct
     { env with const = Const.Map.add x entry env.const }
 end
 
-module Res = struct
+module Resolver = struct
   module Sorts = struct
     type t = sorts
 
@@ -75,15 +75,8 @@ module Res = struct
   let empty =
     { const = Const.Map.empty; ind = Ind.Map.empty; constr = Constr.Map.empty }
 
-  let add_const x0 ss x1 (res : t) =
-    { res with
-      const =
-        Const.Map.add x0
-          (match Const.Map.find_opt x0 res.const with
-          | Some rmap -> RMap.add ss x1 rmap
-          | None -> RMap.singleton ss x1)
-          res.const
-    }
+  let add_const x0 rmap (res : t) =
+    { res with const = Const.Map.add x0 rmap res.const }
 
   let add_ind d0 ss d1 (res : t) : t =
     { res with

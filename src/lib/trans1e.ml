@@ -9,8 +9,6 @@ open Unifier1e
 open Pprint1
 
 module State : sig
-  type t
-
   val add_eqn : IPrbm.eqn -> unit
   val add_imeta : Ctx.t -> IMeta.t -> sorts -> tms -> tm -> unit
   val find_imeta : IMeta.t -> tm option
