@@ -27,6 +27,13 @@ end = struct
   let find_constr c0 ss = Resolver.find_constr c0 ss !state
 end
 
+let has_failed f =
+  try
+    f ();
+    false
+  with
+  | _ -> true
+
 module Logical = struct
   let assert_sort = function
     | U -> ()
@@ -120,8 +127,80 @@ module Logical = struct
       let _ = infer_sort ctx env a in
       a
 
-  and infer_ptl ctx env ms ns ptl = _
-  and infer_motive ctx env ms a = _
-  and check_tm ctx env m a = _
-  and check_cls ctx env cls a = _
+  and infer_ptl ctx env ms ns ptl =
+    let rec aux_param ms ptl =
+      match (ms, ptl) with
+      | [], PBase tl -> aux_tele ns tl
+      | m :: ms, PBind (a, bnd) ->
+        check_tm ctx env m a;
+        aux_param ms (subst bnd m)
+      | _ -> failwith "trans12.Logical.infer_ptl(param)"
+    and aux_tele ns tl =
+      match (ns, tl) with
+      | [], TBase a -> a
+      | n :: ns, TBind (_, a, bnd) ->
+        check_tm ctx env n a;
+        aux_tele ns (subst bnd n)
+      | _ -> failwith "trans12.Logical.infer_ptl(tele)"
+    in
+    aux_param ms ptl
+
+  and infer_motive ctx env ms a =
+    match (ms, whnf env a) with
+    | [], a -> a
+    | m :: ms, Pi (_, _, a, bnd) ->
+      check_tm ctx env m a;
+      infer_motive ctx env ms (subst bnd m)
+    | _ -> failwith "trans12.infer_motive"
+
+  and check_tm ctx env m a =
+    match m with
+    | Fun (b, bnd) ->
+      let x, cls = unbind bnd in
+      let s = infer_sort ctx env b in
+      assert_equal env a b;
+      check_cls (Ctx.add_var x a s ctx) env cls a
+    | _ ->
+      let b = infer_tm ctx env m in
+      assert_equal env a b
+
+  and check_cls ctx env cls a : unit =
+    let rec is_absurd eqns rhs =
+      match (eqns, rhs) with
+      | PPrbm.EqualPat (_, _, PMeta _, PAbsurd, _) :: _, None -> true
+      | PPrbm.EqualPat (_, _, PMeta _, PAbsurd, _) :: _, Some _ ->
+        failwith "trans12.Logical.is_absurd"
+      | _ :: eqns, _ -> is_absurd eqns rhs
+      | [], _ -> false
+    in
+    let rec get_absurd = function
+      | PPrbm.EqualPat (_, _, PMeta _, PAbsurd, a) :: _ -> a
+      | _ :: eqns -> get_absurd eqns
+      | [] -> failwith "trans12.Logical.get_absurd"
+    in
+    let rec can_split = function
+      | PPrbm.EqualPat (_, _, PMeta _, PMul _, _) :: _ -> true
+      | PPrbm.EqualPat (_, _, PMeta _, PAdd _, _) :: _ -> true
+      | _ :: eqns -> can_split eqns
+      | [] -> false
+    in
+    let rec first_split = function
+      | PPrbm.EqualPat (_, _, PMeta x, PMul _, a) :: _ -> (x, a)
+      | PPrbm.EqualPat (_, _, PMeta x, PAdd _, a) :: _ -> (x, a)
+      | _ :: eqns -> first_split eqns
+      | [] -> failwith "trans1e.Logical.first_split"
+    in
+    let fail_on_ind global ctx env d ss ms a =
+      let _, cs = Ctx.find_ind d ctx in
+      List.iter
+        (fun c ->
+          let param, _ = Ctx.find_ind d ctx in
+          let tele = param_inst param ms in
+          let _, t = unbind_tele tele in
+          let global = PPrbm.EqualTerm (env, a, t) :: global in
+          if not (has_failed (fun () -> unify_pprbm global)) then
+            failwith "trans12.Logical.fail_on_ind")
+        cs
+    in
+    _
 end

@@ -192,14 +192,14 @@ and infer_ptl ctx ms ns ptl =
     | m :: ms, PBind (a, bnd) ->
       check_tm ctx m a;
       aux_param ms (subst bnd m)
-    | _ -> failwith "trans1e.infer_ind(param)"
+    | _ -> failwith "trans1e.infer_ptl(param)"
   and aux_tele ns tl =
     match (ns, tl) with
     | [], TBase a -> a
     | n :: ns, TBind (_, a, bnd) ->
       check_tm ctx n a;
       aux_tele ns (subst bnd n)
-    | _ -> failwith "trans1e.infer_ind(tele)"
+    | _ -> failwith "trans1e.infer_ptl(tele)"
   in
   aux_param ms ptl
 
@@ -252,8 +252,8 @@ and check_cls ctx cls a : unit =
     | _ :: eqns -> first_split eqns
     | [] -> failwith "trans1e.first_split"
   in
-  let fail_on_ind global ctx ind ss ms a =
-    let _, cs = Ctx.find_ind ind ctx in
+  let fail_on_ind global ctx d ss ms a =
+    let _, cs = Ctx.find_ind d ctx in
     List.iter
       (fun c ->
         let sch, _ = Ctx.find_constr c ctx in
