@@ -139,25 +139,25 @@ module Usage = struct
     { var = Var.Map.empty; const = Const.Map.singleton x entry }
 
   let merge usg1 usg2 =
-    let aux _ opt1 opt2 =
+    let aux pp x opt1 opt2 =
       match (opt1, opt2) with
-      | Some (L, false), Some (_, false) -> failwith "merge"
-      | Some (_, false), Some (L, false) -> failwith "merge"
+      | Some (L, false), Some (_, false) -> failwith "merge(%a)" pp x
+      | Some (_, false), Some (L, false) -> failwith "merge(%a)" pp x
       | Some (s1, b1), Some (s2, b2) ->
         if eq_sort s1 s2 then
           Some (s1, b1 && b2)
         else
-          failwith "merge"
+          failwith "merge(%a)" pp x
       | Some b, None -> Some b
       | None, Some b -> Some b
       | _ -> None
     in
-    { var = Var.Map.merge aux usg1.var usg2.var
-    ; const = Const.Map.merge aux usg1.const usg2.const
+    { var = Var.(Map.merge (aux pp) usg1.var usg2.var)
+    ; const = Const.(Map.merge (aux pp) usg1.const usg2.const)
     }
 
   let refine_usage usg1 usg2 =
-    let aux _ opt1 opt2 =
+    let aux pp x opt1 opt2 =
       match (opt1, opt2) with
       | Some (U, false), None -> Some (U, false)
       | None, Some (U, false) -> Some (U, false)
@@ -165,32 +165,22 @@ module Usage = struct
       | Some (_, true), None -> None
       | None, Some (_, true) -> None
       | None, None -> None
-      | _ -> failwith "refine_usage"
+      | _ -> failwith "refine_usage(%a)" pp x
     in
-    { var = Var.Map.merge aux usg1.var usg2.var
-    ; const = Const.Map.merge aux usg1.const usg2.const
+    { var = Var.(Map.merge (aux pp) usg1.var usg2.var)
+    ; const = Const.(Map.merge (aux pp) usg1.const usg2.const)
     }
 
   let refine_pure usg =
-    let var =
-      Var.Map.filter_map
-        (fun x (sort, slack) ->
-          match (sort, slack) with
-          | U, _ -> Some (U, slack)
-          | L, true -> None
-          | _ -> failwith "refine_pure(Var %a)" Var.pp x)
-        usg.var
+    let aux pp x (sort, slack) =
+      match (sort, slack) with
+      | U, _ -> Some (U, slack)
+      | L, true -> None
+      | _ -> failwith "refine_pure(%a)" pp x
     in
-    let const =
-      Const.Map.filter_map
-        (fun x (sort, slack) ->
-          match (sort, slack) with
-          | U, _ -> Some (U, slack)
-          | L, true -> None
-          | _ -> failwith "refine_pure(Const %a)" Const.pp x)
-        usg.const
-    in
-    { var; const }
+    { var = Var.(Map.filter_map (aux pp) usg.var)
+    ; const = Const.(Map.filter_map (aux pp) usg.const)
+    }
 
   let assert_empty usg =
     let aux _ (_, b) = b in
