@@ -151,7 +151,7 @@ module Logical = struct
     | m :: ms, Pi (_, _, a, bnd) ->
       check_tm ctx env m a;
       infer_motive ctx env ms (subst bnd m)
-    | _ -> failwith "trans12.infer_motive"
+    | _ -> failwith "trans12.Logical.infer_motive"
 
   and check_tm ctx env m a =
     match m with
@@ -446,8 +446,7 @@ module Program = struct
         match s with
         | U ->
           let usg = Usage.remove_var x usg R U in
-          Usage.assert_pure usg;
-          usg
+          Usage.refine_pure usg
         | L -> Usage.remove_var x usg N L
         | _ -> failwith "trans12.Program.infer_tm(Fun)"
       in
@@ -483,9 +482,99 @@ module Program = struct
       Syntax2.(b, _Let m_elab (bind_var (trans_var x) n_elab), usg)
     (* inductive *)
     | Ind _ -> failwith "trans12.Program.infer_tm(Ind)"
-    | Constr (c0, ss, ms, ns) -> _
-    | _ -> _
+    | Constr (c0, ss, ms, ns) -> (
+      List.iter Logical.assert_sort ss;
+      let c1 = State.find_constr c0 ss in
+      let ptl, relv, mode = Ctx.find_constr c1 ctx in
+      let a, ns_elab, usg = infer_ptl ctx env ms ns ptl mode in
+      let s = Logical.infer_sort ctx env a in
+      match (s, relv, mode) with
+      | _, R, M -> Syntax2.(a, _CMul c1 (box_list ns_elab), usg)
+      | U, R, A ->
+        let usg = Usage.refine_pure usg in
+        Syntax2.(a, _CAdd c1 (box_list ns_elab), usg)
+      | L, R, A -> Syntax2.(a, _CAdd c1 (box_list ns_elab), usg)
+      | _ -> failwith "trans12.Program.infer_tm(Constr)")
+    | Match (ms, a, cls) ->
+      let b, ms_elab, usg1 = infer_motive ctx env ms a in
+      let cls_elab, usg2 = check_cls ctx env cls a in
+      Syntax2.(b, _Match (box_list ms_elab) cls_elab, Usage.merge usg1 usg2)
+    | IO _ -> failwith "trans12.Program.infer_tm(IO)"
+    | Return m ->
+      let a, m_elab, usg = infer_tm ctx env m in
+      Syntax2.(IO a, _Return m_elab, usg)
+    | MLet (m, bnd) -> (
+      let t1, m_elab, usg1 = infer_tm ctx env m in
+      match whnf env t1 with
+      | IO a -> (
+        let s = Logical.infer_sort ctx env a in
+        let x, n = unbind bnd in
+        let t2, n_elab, usg2 = infer_tm (Ctx.add_var x a s ctx) env n in
+        let usg = Usage.(merge usg1 (remove_var x usg2 R s)) in
+        match whnf env t2 with
+        | IO b ->
+          Syntax2.(IO b, _MLet m_elab (bind_var (trans_var x) n_elab), usg)
+        | _ -> failwith "trans12.Program.infer_tm(MLet)")
+      | _ -> failwith "trans12.Program.infer_tm(MLet)")
+    | Magic a ->
+      let _ = Logical.infer_sort ctx env a in
+      Syntax2.(a, _Magic, Usage.of_ctx ctx)
 
-  and check_tm ctx env m a = _
+  and infer_ptl ctx env ms ns ptl mode =
+    let rec aux_param ms ptl =
+      match (ms, ptl) with
+      | [], PBase tl -> (
+        match mode with
+        | M -> aux_M ns tl
+        | A -> aux_A ns tl)
+      | m :: ms, PBind (a, bnd) ->
+        Logical.check_tm ctx env m a;
+        aux_param ms (subst bnd m)
+      | _ -> failwith "trans12.Program.infer_ptl(param)"
+    and aux_M ns tl =
+      match (ns, tl) with
+      | [], TBase a -> (a, [], Usage.empty)
+      | n :: ns, TBind (N, a, bnd) ->
+        Logical.check_tm ctx env n a;
+        let b, ns_elab, usg = aux_M ns (subst bnd n) in
+        Syntax2.(b, _Null :: ns_elab, usg)
+      | n :: ns, TBind (R, a, bnd) ->
+        let n_elab, usg1 = check_tm ctx env n a in
+        let b, ns_elab, usg2 = aux_M ns (subst bnd n) in
+        Syntax2.(b, n_elab :: ns_elab, Usage.merge usg1 usg2)
+      | _ -> failwith "trans12.Program.infer_ptl(multiplicative)"
+    and aux_A ns tl =
+      match (ns, tl) with
+      | [], TBase a -> (a, [], Usage.of_ctx ctx)
+      | n :: ns, TBind (N, a, bnd) ->
+        Logical.check_tm ctx env n a;
+        let b, ns_elab, usg = aux_A ns (subst bnd n) in
+        Syntax2.(b, _Null :: ns_elab, usg)
+      | n :: ns, TBind (R, a, bnd) ->
+        let n_elab, usg1 = check_tm ctx env n a in
+        let b, ns_elab, usg2 = aux_A ns (subst bnd n) in
+        Syntax2.(b, n_elab :: ns_elab, Usage.refine_usage usg1 usg2)
+      | _ -> failwith "trans12.Program.infer_ptl(additive)"
+    in
+    aux_param ms ptl
+
+  and infer_motive ctx env ms a =
+    match (ms, whnf env a) with
+    | [], a -> (a, [], Usage.empty)
+    | m :: ms, Pi (N, L, a, bnd) ->
+      Logical.check_tm ctx env m a;
+      let b, ms_elab, usg = infer_motive ctx env ms (subst bnd m) in
+      Syntax2.(b, _Null :: ms_elab, usg)
+    | m :: ms, Pi (R, L, a, bnd) ->
+      let m_elab, usg1 = check_tm ctx env m a in
+      let b, ms_elab, usg2 = infer_motive ctx env ms (subst bnd m) in
+      Syntax2.(b, m_elab :: ms_elab, Usage.merge usg1 usg2)
+    | _ -> failwith "trans12.Program.infer_motive"
+
+  and check_tm ctx env m a =
+    let b, m_elab, usg = infer_tm ctx env m in
+    Logical.assert_equal env a b;
+    (m_elab, usg)
+
   and check_cls ctx env cls a = _
 end

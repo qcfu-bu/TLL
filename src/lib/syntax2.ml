@@ -24,12 +24,15 @@ type tm =
   | CMul of Constr.t * tms
   | CAdd of Constr.t * tms
   | Case of relv * sort * tm * cls
+  | Match of tms * tm
   | Absurd
   (* monad *)
   | Return of tm
   | MLet of tm * (tm, tm) binder
   (* erasure *)
   | Null
+  (* magic *)
+  | Magic
 
 and tms = tm list
 
@@ -94,6 +97,7 @@ let _Let = box_apply2 (fun m n -> Let (m, n))
 let _CMul x = box_apply (fun ms -> CMul (x, ms))
 let _CAdd x = box_apply (fun ms -> CAdd (x, ms))
 let _Case r s = box_apply2 (fun m cls -> Case (r, s, m, cls))
+let _Match = box_apply2 (fun m cls -> Match (m, cls))
 let _Absurd = box Absurd
 
 (* monad *)
@@ -102,6 +106,9 @@ let _MLet = box_apply2 (fun m n -> MLet (m, n))
 
 (* erasure *)
 let _Null = box Null
+
+(* magic *)
+let _Magic = box Magic
 
 (* clause *)
 let _PMul x = box_apply (fun rhs -> PMul (x, rhs))
@@ -149,9 +156,15 @@ let rec lift_tm = function
         cls
     in
     _Case relv s (lift_tm m) (box_list cls)
+  | Match (ms, cls) ->
+    let ms = List.map lift_tm ms in
+    let cls = lift_tm cls in
+    _Match (box_list ms) cls
   | Absurd -> _Absurd
   (* monad *)
   | Return m -> _Return (lift_tm m)
   | MLet (m, bnd) -> _MLet (lift_tm m) (box_binder lift_tm bnd)
   (* erasure *)
   | Null -> _Null
+  (* magic *)
+  | Magic -> _Magic

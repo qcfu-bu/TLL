@@ -171,12 +171,26 @@ module Usage = struct
     ; const = Const.Map.merge aux usg1.const usg2.const
     }
 
-  let assert_pure usg =
-    let aux _ (s, b) = s = U || b in
-    if Var.Map.for_all aux usg.var && Const.Map.for_all aux usg.const then
-      ()
-    else
-      failwith "assert_pure"
+  let refine_pure usg =
+    let var =
+      Var.Map.filter_map
+        (fun x (sort, slack) ->
+          match (sort, slack) with
+          | U, _ -> Some (U, slack)
+          | L, true -> None
+          | _ -> failwith "refine_pure(Var %a)" Var.pp x)
+        usg.var
+    in
+    let const =
+      Const.Map.filter_map
+        (fun x (sort, slack) ->
+          match (sort, slack) with
+          | U, _ -> Some (U, slack)
+          | L, true -> None
+          | _ -> failwith "refine_pure(Const %a)" Const.pp x)
+        usg.const
+    in
+    { var; const }
 
   let assert_empty usg =
     let aux _ (_, b) = b in
