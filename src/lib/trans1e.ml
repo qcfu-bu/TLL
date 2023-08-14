@@ -97,7 +97,7 @@ let assert_equal1 ctx m1 m2 =
 let rec assert_type ctx a =
   let t = infer_tm ctx a in
   let t = State.resolve t in
-  match whnf ~expand:true ctx t with
+  match whnf ctx t with
   | Type _ -> ()
   | IMeta _ as m ->
     let s = smeta_of_ctx ctx in
@@ -140,7 +140,7 @@ and infer_tm ctx m : tm =
   | App (m, n) -> (
     let t = infer_tm ctx m in
     let t = State.resolve t in
-    match whnf ~expand:true ctx t with
+    match whnf ctx t with
     | Pi (_, _, a, bnd) ->
       check_tm ctx n a;
       subst bnd n
@@ -171,12 +171,12 @@ and infer_tm ctx m : tm =
   | MLet (m, bnd) -> (
     let t1 = infer_tm ctx m in
     let t1 = State.resolve t1 in
-    match whnf ~expand:true ctx t1 with
+    match whnf ctx t1 with
     | IO a -> (
       let x, n = unbind bnd in
       let t2 = infer_tm (Ctx.add_var0 x a ctx) n in
       let t2 = State.resolve t2 in
-      match whnf ~expand:true ctx t2 with
+      match whnf ctx t2 with
       | IO b -> IO b
       | _ -> failwith "trans1e.MLet")
     | _ -> failwith "trans1e.MLet")
@@ -222,7 +222,7 @@ and infer_constr ctx ms ns ptl =
   aux_param ms ptl
 
 and infer_motive ctx ms a =
-  match (ms, whnf ~expand:true ctx a) with
+  match (ms, whnf ctx a) with
   | [], a -> a
   | m :: ms, Pi (_, _, a, bnd) ->
     check_tm ctx m a;
@@ -289,16 +289,16 @@ and check_cls ctx cls a : unit =
     | [] -> (
       Debug.exec (fun () -> pr "case_empty@.");
       if not (has_failed (fun () -> unify_pprbm prbm.global)) then
-        match whnf ~expand:true ctx a with
+        match whnf ctx a with
         | Pi (_, _, a, _) -> (
-          match whnf ~expand:true ctx a with
+          match whnf ctx a with
           | Ind (d, ss, ms, ns) -> fail_on_ind prbm.global ctx d ss ms a
           | _ -> failwith "trans1e.check_cls(Empty)")
         | _ -> failwith "trans1e.check_cls(Empty)")
     (* case intro *)
     | (eqns, p :: ps, rhs) :: clause -> (
       Debug.exec (fun () -> pr "case_intro@.");
-      match whnf ~expand:true ctx a with
+      match whnf ctx a with
       | Pi (_, _, a, bnd) ->
         let x, b = unbind_pmeta bnd in
         let ctx = Ctx.add_var0 x a ctx in
@@ -309,7 +309,7 @@ and check_cls ctx cls a : unit =
     | (eqns, [], rhs) :: _ when can_split eqns -> (
       Debug.exec (fun () -> pr "case_splitting@.");
       let x, b = first_split eqns in
-      match whnf ~expand:true ctx b with
+      match whnf ctx b with
       | Ind (d, ss, ms, _) ->
         let _, cs = Ctx.find_ind d ctx in
         List.iter
@@ -342,7 +342,7 @@ and check_cls ctx cls a : unit =
       Debug.exec (fun () -> pr "case_absurd@.");
       if not (has_failed (fun () -> unify_pprbm prbm.global)) then
         let a = get_absurd eqns in
-        match whnf ~expand:true ctx a with
+        match whnf ctx a with
         | Ind (d, ss, ms, ns) -> fail_on_ind prbm.global ctx d ss ms a
         | _ -> failwith "trans1e.check_cls(Absurd)")
     (* case coverage *)
@@ -415,7 +415,7 @@ and prbm_simpl ctx var_map prbm =
   { global; clause }
 
 and p_simpl ctx m p a =
-  let a = whnf ~expand:true ctx a in
+  let a = whnf ctx a in
   match (m, p, a) with
   | Constr (c1, _, _, ns1), PMul (c2, ps), Ind (d, ss, ms, ns2) ->
     let _, cs = Ctx.find_ind d ctx in
