@@ -181,11 +181,11 @@ let pp_dconstr xs args fmt dconstr =
     | _ -> failwith "pp_dconstr.pack_param"
   in
   match dconstr with
-  | Multiplicative, c, sch ->
+  | M, c, sch ->
     let param = msubst sch (Array.map (fun x -> SVar x) xs) in
     let tele = pack_param args param in
     pf fmt "| @[%a@;<1 2>@[%a@]@]" Constr.pp c pp_tele tele
-  | Additive, c, sch ->
+  | A, c, sch ->
     let param = msubst sch (Array.map (fun x -> SVar x) xs) in
     let tele = pack_param args param in
     pf fmt "| @[<v 0>#[additive]@;<1 0>@[%a@;<1 2>@[%a@]@]@]" Constr.pp c

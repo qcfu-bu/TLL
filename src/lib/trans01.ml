@@ -414,11 +414,11 @@ and trans_dconstr nspc sids args = function
   | DMul (id, tele, view) ->
     let c = Constr.mk id in
     let sch = trans_tele nspc sids args tele in
-    (Syntax1.Multiplicative, id, c, sch, view)
+    (Syntax1.M, id, c, sch, view)
   | DAdd (id, tele, view) ->
     let c = Constr.mk id in
     let sch = trans_tele nspc sids args tele in
-    (Syntax1.Additive, id, c, sch, view)
+    (Syntax1.A, id, c, sch, view)
 
 and trans_dconstrs nspc sids args dconstrs =
   List.map (trans_dconstr nspc sids args) dconstrs

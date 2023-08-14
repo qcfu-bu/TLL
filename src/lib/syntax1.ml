@@ -15,6 +15,11 @@ type relv =
   | N
   | R
 
+(* additive/multiplicative *)
+type mode =
+  | A
+  | M
+
 (* terms *)
 type tm =
   (* inference *)
@@ -79,11 +84,6 @@ type dcl =
       }
 
 and dcls = dcl list
-
-and mode =
-  | Additive
-  | Multiplicative
-
 and dconstr = mode * Constr.t * tele param scheme
 and dconstrs = dconstr list
 and 'a scheme = (sort, 'a) mbinder
@@ -285,6 +285,13 @@ let rec lift_param lift = function
 let rec lift_tele = function
   | TBase a -> _TBase (lift_tm a)
   | TBind (relv, a, bnd) -> _TBind relv (lift_tm a) (box_binder lift_tele bnd)
+
+(* sort equality *)
+let rec eq_sort s1 s2 =
+  match (s1, s2) with
+  | SVar x, SVar y -> eq_vars x y
+  | SMeta (x1, _), SMeta (x2, _) -> SMeta.equal x1 x2
+  | _ -> s1 = s2
 
 (* pattern equality *)
 let rec eq_p0 p1 p2 =
