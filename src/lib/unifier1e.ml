@@ -695,7 +695,3 @@ let unify_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
         aux_eqns var_map (eqns0 @ eqns))
   in
   aux_eqns Var.Map.empty eqns
-
-let resolve_pprbm (eqns : PPrbm.eqns) (m : tm) : tm =
-  let var_map = unify_pprbm eqns in
-  subst_pmeta var_map m

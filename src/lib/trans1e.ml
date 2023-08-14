@@ -286,7 +286,7 @@ and check_cls ctx cls a : unit =
         let ctx = Ctx.add_var0 x a ctx in
         let prbm = prbm_add ctx prbm x a in
         aux_prbm ctx prbm b
-      | a -> failwith "trans1e.check_cls(Intro, %a, %a)" pp_tm a (pp_ps " ") ps)
+      | a -> failwith "trans1e.check_cls(Intro(%a, %a))" pp_tm a (pp_ps " ") ps)
     (* case splitting *)
     | (eqns, [], rhs) :: _ when can_split eqns -> (
       Debug.exec (fun () -> pr "case_splitting@.");
@@ -340,7 +340,7 @@ and check_cls ctx cls a : unit =
         Debug.exec (fun () ->
             pr "@[case_coverage_ok(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm rhs pp_tm a);
         check_tm ctx rhs a
-      | _ ->
+      | None ->
         if not (has_failed (fun () -> unify_pprbm prbm.global)) then
           failwith "trans1e.check_cls(Cover)")
   in

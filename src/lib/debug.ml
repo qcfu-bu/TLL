@@ -15,3 +15,5 @@ end = struct
 end
 
 include Debug
+
+let hole () = failwith "unimplemented"

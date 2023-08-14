@@ -5,24 +5,9 @@ open Sedlexing
 open Parser
 open Debug
 
-let rec normalize_dcls ctx dcls =
-  let open Syntax1 in
-  let open Context1 in
-  let open Equality1 in
-  match dcls with
-  | Definition { name = x; relv; scheme = sch } :: dcls ->
-    let xs, (m, a) = unmbind sch in
-    let m = whnf ~expand:true ctx m in
-    let a = whnf ~expand:true ctx a in
-    let sch = bind_mvar xs (box_pair (lift_tm m) (lift_tm a)) in
-    let env = Ctx.add_const x (unbox sch) ctx in
-    Definition { name = x; relv; scheme = unbox sch } :: normalize_dcls env dcls
-  | Inductive m :: dcls -> Inductive m :: normalize_dcls ctx dcls
-  | [] -> []
-
 let pp_prbms fmt groups =
-  let open Constraint1 in
-  let open Context1 in
+  let open Constraint1e in
+  let open Context1e in
   let rec aux i fmt = function
     | [] -> ()
     | [ (eqns, mctx) ] ->
