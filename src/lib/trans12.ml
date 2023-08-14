@@ -680,4 +680,16 @@ module Program = struct
             failwith "trans12.Program.check_cls(Cover)")
     in
     aux_prbm ctx env (PPrbm.of_cls cls) a
+
+  and prbm_add env prbm x a relv =
+    match prbm.clause with
+    | [] -> prbm
+    | (eqns, p :: ps, rhs) :: clause ->
+      let prbm = prbm_add env { prbm with clause } x a relv in
+      let clause =
+        (eqns @ [ PPrbm.EqualPat (relv, env, PMeta x, p, a) ], ps, rhs)
+        :: prbm.clause
+      in
+      { prbm with clause }
+    | _ -> failwith "trans12.Program.prbm_add"
 end
