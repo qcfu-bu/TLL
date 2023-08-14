@@ -399,32 +399,31 @@ and prbm_simpl ctx var_map prbm =
 and p_simpl ctx m p a =
   let a = whnf ctx a in
   match (m, p, a) with
-  | Constr (c1, _, _, ns1), PMul (c2, ps), Ind (d, ss, ms, ns2) ->
+  | Constr (c1, _, _, ns), PMul (c2, ps), Ind (d, ss, ms, _) ->
     let _, cs = Ctx.find_ind d ctx in
     if List.exists (fun c -> Constr.equal c c2) cs then
       if Constr.equal c1 c2 then
         let sch, _ = Ctx.find_constr c1 ctx in
         let param = msubst sch (Array.of_list ss) in
         let tele = param_inst param ms in
-        ps_simpl ctx ns1 ps tele
+        ps_simpl ctx ns ps tele
       else
         None
     else
       failwith "trans1e.p_simpl"
-  | Constr (c1, _, _, ns1), PAdd (c2, i, ps), Ind (d, ss, ms, ns2) ->
+  | Constr (c1, _, _, ns), PAdd (c2, i, ps), Ind (d, ss, ms, _) ->
     let _, cs = Ctx.find_ind d ctx in
     if List.exists (fun c -> Constr.equal c c2) cs then
       if Constr.equal c1 c2 then
         let sch, _ = Ctx.find_constr c1 ctx in
         let param = msubst sch (Array.of_list ss) in
         let tele = param_inst param ms in
-        ps_simpl ctx ns1 ps tele
+        ps_simpl ctx ns ps tele
       else
         None
     else
       failwith "trans1e.p_simpl"
-  | Constr (c1, _, _, _), _, Ind (d, _, _, _) ->
-    Some [ PPrbm.EqualPat (ctx, m, p, a) ]
+  | Constr _, _, Ind _ -> Some [ PPrbm.EqualPat (ctx, m, p, a) ]
   | _, PMul (c2, _), Ind (d, _, _, _) ->
     let _, cs = Ctx.find_ind d ctx in
     if List.exists (fun c -> Constr.equal c c2) cs then

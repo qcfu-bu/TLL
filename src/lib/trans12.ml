@@ -335,7 +335,8 @@ module Logical = struct
   and p_simpl relv ctx env m p a =
     let a = whnf env a in
     match (m, p, a) with
-    | Constr (c0, _, _, ns1), PMul (c, ps), Ind (d0, ss, ms, ns2) ->
+    (* simplify multiplicative pattern *)
+    | Constr (c0, _, _, ns), PMul (c, ps), Ind (d0, ss, ms, _) ->
       let d1 = State.find_ind d0 ss in
       let _, cs0 = Ctx.find_ind d1 ctx in
       if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
@@ -343,15 +344,43 @@ module Logical = struct
           let c1 = State.find_constr c0 ss in
           let param, _, _ = Ctx.find_constr c1 ctx in
           let tele = param_inst param ms in
-          ps_simpl relv ctx env ns1 ps tele
+          ps_simpl relv ctx env ns ps tele
         else
           None
       else
-        failwith "trans12.Logical.p_simpl"
-    | Constr (c1, _, _, ns1), PAdd (c2, i, ps), Ind (d0, ss, ms, ns2) -> _
-    | Constr (c1, _, _, _), _, Ind (d0, _, _, _) -> _
-    | _, PMul (c2, _), Ind (d0, _, _, _) -> _
-    | _, PAdd (c2, _, _), Ind (d0, _, _, _) -> _
+        failwith "trans12.Logical.p_simpl(PMul)"
+    (* simplify additive pattern *)
+    | Constr (c0, _, _, ns), PAdd (c, i, ps), Ind (d0, ss, ms, _) ->
+      let d1 = State.find_ind d0 ss in
+      let _, cs0 = Ctx.find_ind d1 ctx in
+      if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
+        if Constr.equal c0 c then
+          let c1 = State.find_constr c0 ss in
+          let param, _, _ = Ctx.find_constr c1 ctx in
+          let tele = param_inst param ms in
+          ps_simpl relv ctx env ns ps tele
+        else
+          None
+      else
+        failwith "trans12.Logical.p_simpl(PAdd)"
+    (* fully simplified pattern *)
+    | Constr _, _, Ind _ -> Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
+    (* blocked multiplicative pattern *)
+    | _, PMul (c, _), Ind (d0, ss, _, _) ->
+      let d1 = State.find_ind d0 ss in
+      let _, cs0 = Ctx.find_ind d1 ctx in
+      if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
+        Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
+      else
+        failwith "trans12.Logical.p_simpl(PMul)"
+    (* blocked additive pattern *)
+    | _, PAdd (c, _, _), Ind (d0, ss, _, _) ->
+      let d1 = State.find_ind d0 ss in
+      let _, cs0 = Ctx.find_ind d1 ctx in
+      if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
+        Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
+      else
+        failwith "trans12.Logical.p_simpl(PMul)"
     | m, p, a -> Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
 
   and ps_simpl relv0 ctx env ms ps tele =
@@ -363,6 +392,7 @@ module Logical = struct
       match (opt1, opt2) with
       | Some eqns1, Some eqns2 -> Some (eqns1 @ eqns2)
       | _ -> None)
+    (* sub-patterns inherit irrelevancy *)
     | N, m :: ms, p :: ps, TBind (_, a, bnd) -> (
       let opt1 = p_simpl N ctx env m p a in
       let tele = subst bnd m in
