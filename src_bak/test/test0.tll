@@ -1,0 +1,31 @@
+inductive bool : U where
+| true : bool
+| false : bool
+
+inductive unit : U where
+| tt : unit
+
+inductive nat : U where
+| zero : nat
+| succ (pred : nat) : nat
+
+-- inductive prod‹s,r,t› (A : Type‹s›) (B : Type‹r›) : Type‹t› where
+-- | pair (m : A) (n : B) : prod‹s,r,t›A B
+ 
+-- #[program]
+-- inductive vec‹s,r› (A : Type‹s›) : nat -> Type‹r› where
+-- | vnil : vec‹s,r›A zero
+-- | #[additive]
+--   vcons {n : nat} (hd : A) (tl : vec‹s,r›A n) : vec‹s,r›A (succ n)
+
+def max (x y : nat) : nat :=
+  match x as _ : nat, y as _ : nat with
+  | zero, j => j
+  | i, zero => i
+  | (succ i), (succ j) => succ (max i j)
+
+def one : nat := succ zero
+def two : nat := succ one
+def three : _ := succ two
+
+-- def test : nat := max (two) (three)

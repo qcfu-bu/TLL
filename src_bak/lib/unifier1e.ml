@@ -75,9 +75,7 @@ let resolve_tm (meta_map : meta_map) m =
         List.map
           (fun cl ->
             let ps, rhs_opt = unbind_ps cl in
-            let rhs_opt =
-              Option.map (fun rhs -> lift_tm (aux_tm rhs)) rhs_opt
-            in
+            let rhs_opt = Option.map (fun rhs -> lift_tm (aux_tm rhs)) rhs_opt in
             bind_ps ps (box_opt rhs_opt))
           cls
       in
@@ -90,8 +88,7 @@ let resolve_tm (meta_map : meta_map) m =
       let n = lift_tm (aux_tm n) in
       Let (relv, m, unbox (bind_var x n))
     (* inductive *)
-    | Ind (d, ss, ms, ns) ->
-      Ind (d, List.map aux_sort ss, List.map aux_tm ms, List.map aux_tm ns)
+    | Ind (d, ss, ms, ns) -> Ind (d, List.map aux_sort ss, List.map aux_tm ms, List.map aux_tm ns)
     | Constr (c, ss, ms, ns) ->
       Constr (c, List.map aux_sort ss, List.map aux_tm ms, List.map aux_tm ns)
     | Match (ms, a, cls) ->
@@ -101,9 +98,7 @@ let resolve_tm (meta_map : meta_map) m =
         List.map
           (fun cl ->
             let ps, rhs_opt = unbind_ps cl in
-            let rhs_opt =
-              Option.map (fun rhs -> lift_tm (aux_tm rhs)) rhs_opt
-            in
+            let rhs_opt = Option.map (fun rhs -> lift_tm (aux_tm rhs)) rhs_opt in
             bind_ps ps (box_opt rhs_opt))
           cls
       in
@@ -151,14 +146,11 @@ let resolve_tele (meta_map : meta_map) tele =
 
 let resolve_dconstr (meta_map : meta_map) (c, sch) =
   let sch =
-    resolve_scheme (lift_param lift_tele)
-      (resolve_param lift_tele resolve_tele)
-      meta_map sch
+    resolve_scheme (lift_param lift_tele) (resolve_param lift_tele resolve_tele) meta_map sch
   in
   (c, sch)
 
-let resolve_dconstrs (meta_map : meta_map) dconstrs =
-  List.map (resolve_dconstr meta_map) dconstrs
+let resolve_dconstrs (meta_map : meta_map) dconstrs = List.map (resolve_dconstr meta_map) dconstrs
 
 let resolve_dcl (meta_map : meta_map) = function
   | Definition { name; relv; scheme = sch } ->
@@ -171,9 +163,7 @@ let resolve_dcl (meta_map : meta_map) = function
     Definition { name; relv; scheme = sch }
   | Inductive { name; relv; arity; dconstrs } ->
     let arity =
-      resolve_scheme (lift_param lift_tele)
-        (resolve_param lift_tele resolve_tele)
-        meta_map arity
+      resolve_scheme (lift_param lift_tele) (resolve_param lift_tele resolve_tele) meta_map arity
     in
     let dconstrs = resolve_dconstrs meta_map dconstrs in
     Inductive { name; relv; arity; dconstrs }
@@ -252,9 +242,6 @@ let subst_pmeta var_map m =
       | Some m -> self m
       | None -> PMeta x)
     m
-
-(* demote pmeta variables *)
-let demote_pmeta m = map_pmeta (fun _ x -> Var x) m
 
 (* substitute and demote pmeta variables *)
 let resolve_pmeta var_map m =
@@ -342,53 +329,46 @@ let rec simpl_iprbm ?(expand = false) eqn =
       []
     else
       match (s1, s2) with
-      | SMeta (x, _), SMeta (y, _) when SMeta.compare x y < 0 ->
-        [ EqualSort (s1, s2) ]
-      | SMeta (x, _), SMeta (y, _) when SMeta.compare x y > 0 ->
-        [ EqualSort (s2, s1) ]
+      | SMeta (x, _), SMeta (y, _) when SMeta.compare x y < 0 -> [ EqualSort (s1, s2) ]
+      | SMeta (x, _), SMeta (y, _) when SMeta.compare x y > 0 -> [ EqualSort (s2, s1) ]
       | SMeta (x, _), SMeta (y, _) when SMeta.compare x y = 0 -> []
       | _, SMeta _ -> [ EqualSort (s1, s2) ]
       | SMeta _, _ -> [ EqualSort (s2, s1) ]
       | _ -> failwith "unifier1.simpl_iprbm(EqualSort)")
-  | EqualTerm (env, m1, m2) -> (
-    let m1 = whnf ~expand env m1 in
-    let m2 = whnf ~expand env m2 in
+  | EqualTerm (ctx, m1, m2) -> (
+    let m1 = whnf ~expand ctx m1 in
+    let m2 = whnf ~expand ctx m2 in
     Debug.exec (fun () ->
-        pr "@[simpl_tm ~expand:%b(@;<1 2>%a,@;<1 2>%a)@]@." expand pp_tm m1
-          pp_tm m2);
+        pr "@[simpl_tm ~expand:%b(@;<1 2>%a,@;<1 2>%a)@]@." expand pp_tm m1 pp_tm m2);
     match (m1, m2) with
     (* inference *)
-    | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y < 0 ->
-      [ EqualTerm (env, m1, m2) ]
-    | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y > 0 ->
-      [ EqualTerm (env, m2, m1) ]
+    | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y < 0 -> [ EqualTerm (ctx, m1, m2) ]
+    | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y > 0 -> [ EqualTerm (ctx, m2, m1) ]
     | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y = 0 -> []
-    | _, IMeta _ -> [ EqualTerm (env, m1, m2) ]
-    | IMeta _, _ -> [ EqualTerm (env, m2, m1) ]
+    | _, IMeta _ -> [ EqualTerm (ctx, m1, m2) ]
+    | IMeta _, _ -> [ EqualTerm (ctx, m2, m1) ]
     | PMeta x1, PMeta x2 when eq_vars x1 x2 -> []
     (* core *)
     | Type s1, Type s2 -> simpl_iprbm (EqualSort (s1, s2))
     | Var x1, Var x2 when eq_vars x1 x2 -> []
     | Const (x1, ss1), Const (x2, ss2) when Const.equal x1 x2 ->
-      List.concat
-        (List.map2 (fun s1 s2 -> simpl_iprbm (EqualSort (s1, s2))) ss1 ss2)
+      List.concat (List.map2 (fun s1 s2 -> simpl_iprbm (EqualSort (s1, s2))) ss1 ss2)
     | Pi (relv1, s1, a1, bnd1), Pi (relv2, s2, a2, bnd2) when relv1 = relv2 ->
       let _, b1, b2 = unbind2 bnd1 bnd2 in
       let eqns0 = simpl_iprbm (EqualSort (s1, s2)) in
-      let eqns1 = simpl_iprbm (EqualTerm (env, a1, a2)) in
-      let eqns2 = simpl_iprbm (EqualTerm (env, b1, b2)) in
+      let eqns1 = simpl_iprbm (EqualTerm (ctx, a1, a2)) in
+      let eqns2 = simpl_iprbm (EqualTerm (ctx, b1, b2)) in
       eqns0 @ eqns1 @ eqns2
     | Fun (a1, bnd1), Fun (a2, bnd2) ->
-      Debug.exec (fun () ->
-          pr "@[simpl_function(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m1 pp_tm m2);
+      Debug.exec (fun () -> pr "@[simpl_function(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m1 pp_tm m2);
       let _, cls1, cls2 = unbind2 bnd1 bnd2 in
-      let eqns1 = simpl_iprbm (EqualTerm (env, a1, a2)) in
+      let eqns1 = simpl_iprbm (EqualTerm (ctx, a1, a2)) in
       let eqns2 =
         List.map2
           (fun cl1 cl2 ->
             let _, rhs_opt1, rhs_opt2 = unbind_ps2 cl1 cl2 in
             match (rhs_opt1, rhs_opt2) with
-            | Some rhs1, Some rhs2 -> simpl_iprbm (EqualTerm (env, rhs1, rhs2))
+            | Some rhs1, Some rhs2 -> simpl_iprbm (EqualTerm (ctx, rhs1, rhs2))
             | None, None -> []
             | _ -> failwith "unifier.simpl_iprbm(Fun)")
           cls1 cls2
@@ -399,77 +379,56 @@ let rec simpl_iprbm ?(expand = false) eqn =
       try
         let hd1, sp1 = unApps m1 in
         let hd2, sp2 = unApps m2 in
-        let eqns1 = simpl_iprbm (EqualTerm (env, hd1, hd2)) in
-        let eqns2 =
-          List.map2 (fun m n -> simpl_iprbm (EqualTerm (env, m, n))) sp1 sp2
-        in
+        let eqns1 = simpl_iprbm (EqualTerm (ctx, hd1, hd2)) in
+        let eqns2 = List.map2 (fun m n -> simpl_iprbm (EqualTerm (ctx, m, n))) sp1 sp2 in
         eqns1 @ List.concat eqns2
       with
-      | _ when not expand -> simpl_iprbm ~expand:true (EqualTerm (env, m1, m2))
+      | _ when not expand -> simpl_iprbm ~expand:true (EqualTerm (ctx, m1, m2))
       | _ when imeta_blocked m1 || imeta_blocked m2 -> [ eqn ]
-      | _ ->
-        failwith "@[<v 0>unifier1.simpl_iprbm(@;<1 2>%a,@;<1 2>%a@;<1 0>)@]"
-          pp_tm m1 pp_tm m2)
+      | _ -> failwith "@[<v 0>unifier1.simpl_iprbm(@;<1 2>%a,@;<1 2>%a@;<1 0>)@]" pp_tm m1 pp_tm m2)
     | Let (relv1, m1, bnd1), Let (relv2, m2, bnd2) when relv1 = relv2 ->
       let _, n1, n2 = unbind2 bnd1 bnd2 in
-      let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
-      let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+      let eqns1 = simpl_iprbm (EqualTerm (ctx, m1, m2)) in
+      let eqns2 = simpl_iprbm (EqualTerm (ctx, n1, n2)) in
       eqns1 @ eqns2
     (* inductive *)
     | Ind (d1, ss1, ms1, ns1), Ind (d2, ss2, ms2, ns2) when Ind.equal d1 d2 ->
-      let eqns0 =
-        List.map2 (fun s1 s2 -> simpl_iprbm (EqualSort (s1, s2))) ss1 ss2
-      in
-      let eqns1 =
-        List.map2 (fun m1 m2 -> simpl_iprbm (EqualTerm (env, m1, m2))) ms1 ms2
-      in
-      let eqns2 =
-        List.map2 (fun n1 n2 -> simpl_iprbm (EqualTerm (env, n1, n2))) ns1 ns2
-      in
+      let eqns0 = List.map2 (fun s1 s2 -> simpl_iprbm (EqualSort (s1, s2))) ss1 ss2 in
+      let eqns1 = List.map2 (fun m1 m2 -> simpl_iprbm (EqualTerm (ctx, m1, m2))) ms1 ms2 in
+      let eqns2 = List.map2 (fun n1 n2 -> simpl_iprbm (EqualTerm (ctx, n1, n2))) ns1 ns2 in
       List.concat eqns0 @ List.concat eqns1 @ List.concat eqns2
-    | Constr (c1, ss1, ms1, ns1), Constr (c2, ss2, ms2, ns2)
-      when Constr.equal c1 c2 ->
-      let eqns0 =
-        List.map2 (fun s1 s2 -> simpl_iprbm (EqualSort (s1, s2))) ss1 ss2
-      in
-      let eqns1 =
-        List.map2 (fun m1 m2 -> simpl_iprbm (EqualTerm (env, m1, m2))) ms1 ms2
-      in
-      let eqns2 =
-        List.map2 (fun n1 n2 -> simpl_iprbm (EqualTerm (env, n1, n2))) ns1 ns2
-      in
+    | Constr (c1, ss1, ms1, ns1), Constr (c2, ss2, ms2, ns2) when Constr.equal c1 c2 ->
+      let eqns0 = List.map2 (fun s1 s2 -> simpl_iprbm (EqualSort (s1, s2))) ss1 ss2 in
+      let eqns1 = List.map2 (fun m1 m2 -> simpl_iprbm (EqualTerm (ctx, m1, m2))) ms1 ms2 in
+      let eqns2 = List.map2 (fun n1 n2 -> simpl_iprbm (EqualTerm (ctx, n1, n2))) ns1 ns2 in
       List.concat eqns0 @ List.concat eqns1 @ List.concat eqns2
     | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
-      let eqns1 =
-        List.map2 (fun m1 m2 -> simpl_iprbm (EqualTerm (env, m1, m2))) ms1 ms2
-      in
-      let eqns2 = simpl_iprbm (EqualTerm (env, a1, a2)) in
+      let eqns1 = List.map2 (fun m1 m2 -> simpl_iprbm (EqualTerm (ctx, m1, m2))) ms1 ms2 in
+      let eqns2 = simpl_iprbm (EqualTerm (ctx, a1, a2)) in
       let eqns3 =
         List.map2
           (fun cl1 cl2 ->
             let _, rhs_opt1, rhs_opt2 = unbind_ps2 cl1 cl2 in
             match (rhs_opt1, rhs_opt2) with
-            | Some rhs1, Some rhs2 -> simpl_iprbm (EqualTerm (env, rhs1, rhs2))
+            | Some rhs1, Some rhs2 -> simpl_iprbm (EqualTerm (ctx, rhs1, rhs2))
             | None, None -> []
             | _ -> failwith "unifier.simpl_iprbm(Match)")
           cls1 cls2
       in
       List.concat eqns1 @ eqns2 @ List.concat eqns3
     (* monad *)
-    | IO a1, IO a2 -> simpl_iprbm (EqualTerm (env, a1, a2))
-    | Return m1, Return m2 -> simpl_iprbm (EqualTerm (env, m1, m2))
+    | IO a1, IO a2 -> simpl_iprbm (EqualTerm (ctx, a1, a2))
+    | Return m1, Return m2 -> simpl_iprbm (EqualTerm (ctx, m1, m2))
     | MLet (m1, bnd1), MLet (m2, bnd2) ->
       let _, n1, n2 = unbind2 bnd1 bnd2 in
-      let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
-      let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+      let eqns1 = simpl_iprbm (EqualTerm (ctx, m1, m2)) in
+      let eqns2 = simpl_iprbm (EqualTerm (ctx, n1, n2)) in
       eqns1 @ eqns2
     (* magic *)
-    | Magic a1, Magic a2 -> simpl_iprbm (EqualTerm (env, a1, a2))
-    | _ when not expand -> simpl_iprbm ~expand:true (EqualTerm (env, m1, m2))
+    | Magic a1, Magic a2 -> simpl_iprbm (EqualTerm (ctx, a1, a2))
+    | _ when not expand -> simpl_iprbm ~expand:true (EqualTerm (ctx, m1, m2))
     | _ when imeta_blocked m1 || imeta_blocked m2 -> [ eqn ]
-    | _ ->
-      failwith "@[<v 0>unifier1.simpl_iprbm(@;<1 2>%a,@;<1 2>%a@;<1 0>)@]" pp_tm
-        m1 pp_tm m2)
+    | _ -> failwith "@[<v 0>unifier1.simpl_iprbm(@;<1 2>%a,@;<1 2>%a@;<1 0>)@]" pp_tm m1 pp_tm m2)
 
 let solve_iprbm ((smeta_map, imeta_map) : meta_map) (eqn : IPrbm.eqn) =
   let open IPrbm in
@@ -524,8 +483,7 @@ let unify_iprbm meta_map (eqns : IPrbm.eqns) =
       | eqn :: eqns0 -> (
         let smeta_map, imeta_map, eqn_opt = solve_iprbm meta_map eqn in
         match eqn_opt with
-        | Some eqn ->
-          aux_eqns (smeta_map, imeta_map) (eqn :: delay) (eqns0 @ eqns)
+        | Some eqn -> aux_eqns (smeta_map, imeta_map) (eqn :: delay) (eqns0 @ eqns)
         | None -> aux_eqns (smeta_map, imeta_map) delay (eqns0 @ eqns)))
     | EqualTerm (ctx, m1, m2) :: eqns -> (
       let m1 = resolve_tm meta_map m1 in
@@ -535,8 +493,7 @@ let unify_iprbm meta_map (eqns : IPrbm.eqns) =
       | eqn :: eqns0 -> (
         let smeta_map, imeta_map, eqn_opt = solve_iprbm meta_map eqn in
         match eqn_opt with
-        | Some eqn ->
-          aux_eqns (smeta_map, imeta_map) (eqn :: delay) (eqns0 @ eqns)
+        | Some eqn -> aux_eqns (smeta_map, imeta_map) (eqn :: delay) (eqns0 @ eqns)
         | None -> aux_eqns (smeta_map, imeta_map) delay (eqns0 @ eqns)))
   in
   aux_eqns meta_map [] eqns
@@ -549,8 +506,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
     let m1 = whnf ~expand ctx m1 in
     let m2 = whnf ~expand ctx m2 in
     Debug.exec (fun () ->
-        pr "@[simpl_pprbm ~expand:%b(@;<1 2>%a,@;<1 2>%a)@]@." expand pp_tm m1
-          pp_tm m2);
+        pr "@[simpl_pprbm ~expand:%b(@;<1 2>%a,@;<1 2>%a)@]@." expand pp_tm m1 pp_tm m2);
     match (m1, m2) with
     (* inference *)
     | IMeta (x1, _, _), IMeta (x2, _, _) when IMeta.equal x2 x2 -> []
@@ -562,11 +518,8 @@ let rec simpl_pprbm ?(expand = false) eqn =
     (* core *)
     | Type s1, Type s2 when eq_sort s1 s2 -> []
     | Var x1, Var x2 when eq_vars x1 x2 -> []
-    | Const (x1, ss1), Const (x2, ss2)
-      when Const.equal x1 x2 && List.equal eq_sort ss1 ss2 ->
-      []
-    | Pi (relv1, s1, a1, bnd1), Pi (relv2, s2, a2, bnd2)
-      when relv1 = relv2 && eq_sort s1 s2 ->
+    | Const (x1, ss1), Const (x2, ss2) when Const.equal x1 x2 && List.equal eq_sort ss1 ss2 -> []
+    | Pi (relv1, s1, a1, bnd1), Pi (relv2, s2, a2, bnd2) when relv1 = relv2 && eq_sort s1 s2 ->
       let _, b1, b2 = unbind2 bnd1 bnd2 in
       let eqns1 = simpl_pprbm (EqualTerm (ctx, a1, a2)) in
       let eqns2 = simpl_pprbm (EqualTerm (ctx, b1, b2)) in
@@ -591,9 +544,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
         let hd1, sp1 = unApps m1 in
         let hd2, sp2 = unApps m2 in
         let eqns1 = simpl_pprbm (EqualTerm (ctx, hd1, hd2)) in
-        let eqns2 =
-          List.map2 (fun m n -> simpl_pprbm (EqualTerm (ctx, m, n))) sp1 sp2
-        in
+        let eqns2 = List.map2 (fun m n -> simpl_pprbm (EqualTerm (ctx, m, n))) sp1 sp2 in
         eqns1 @ List.concat eqns2
       with
       | _ when expand -> failwith "unifier1.solve_pprbm(App)"
@@ -606,26 +557,16 @@ let rec simpl_pprbm ?(expand = false) eqn =
     (* inductive *)
     | Ind (d1, ss1, ms1, ns1), Ind (d2, ss2, ms2, ns2)
       when Ind.equal d1 d2 && List.equal eq_sort ss1 ss2 ->
-      let eqns1 =
-        List.map2 (fun m1 m2 -> simpl_pprbm (EqualTerm (ctx, m1, m2))) ms1 ms2
-      in
-      let eqns2 =
-        List.map2 (fun n1 n2 -> simpl_pprbm (EqualTerm (ctx, n1, n2))) ns1 ns2
-      in
+      let eqns1 = List.map2 (fun m1 m2 -> simpl_pprbm (EqualTerm (ctx, m1, m2))) ms1 ms2 in
+      let eqns2 = List.map2 (fun n1 n2 -> simpl_pprbm (EqualTerm (ctx, n1, n2))) ns1 ns2 in
       List.concat eqns1 @ List.concat eqns2
     | Constr (c1, ss1, ms1, ns1), Constr (c2, ss2, ms2, ns2)
       when Constr.equal c1 c2 && List.equal eq_sort ss1 ss2 ->
-      let eqns1 =
-        List.map2 (fun m1 m2 -> simpl_pprbm (EqualTerm (ctx, m1, m2))) ms1 ms2
-      in
-      let eqns2 =
-        List.map2 (fun n1 n2 -> simpl_pprbm (EqualTerm (ctx, n1, n2))) ns1 ns2
-      in
+      let eqns1 = List.map2 (fun m1 m2 -> simpl_pprbm (EqualTerm (ctx, m1, m2))) ms1 ms2 in
+      let eqns2 = List.map2 (fun n1 n2 -> simpl_pprbm (EqualTerm (ctx, n1, n2))) ns1 ns2 in
       List.concat eqns1 @ List.concat eqns2
     | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
-      let eqns1 =
-        List.map2 (fun m1 m2 -> simpl_pprbm (EqualTerm (ctx, m1, m2))) ms1 ms2
-      in
+      let eqns1 = List.map2 (fun m1 m2 -> simpl_pprbm (EqualTerm (ctx, m1, m2))) ms1 ms2 in
       let eqns2 = simpl_pprbm (EqualTerm (ctx, a1, a2)) in
       let eqns3 =
         List.map2
@@ -649,9 +590,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
     (* magic *)
     | Magic a1, Magic a2 -> simpl_pprbm (EqualTerm (ctx, a1, a2))
     | _ when not expand -> simpl_pprbm ~expand:true (EqualTerm (ctx, m1, m2))
-    | _ ->
-      failwith "@[<v 0>unifier1.simpl_pprbm(@;<1 2>%a,@;<1 2>%a@;<1 0>)@]" pp_tm
-        m1 pp_tm m2)
+    | _ -> failwith "@[<v 0>unifier1.simpl_pprbm(@;<1 2>%a,@;<1 2>%a@;<1 0>)@]" pp_tm m1 pp_tm m2)
 
 let solve_pprbm map eqn =
   let open PPrbm in
@@ -665,8 +604,7 @@ let solve_pprbm map eqn =
 
 let unify_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
   let open PPrbm in
-  Debug.exec (fun () ->
-      pr "@[unify_pprbm(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns eqns);
+  Debug.exec (fun () -> pr "@[unify_pprbm(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns eqns);
   let eqns =
     List.map
       (fun eqn ->

@@ -267,17 +267,11 @@ module Usage = struct
     ; const = Const.Map.map (fun (_, s) -> (s, true)) ctx.const
     }
 
-  let pp fmt usg =
-    let aux_var fmt map =
+  let pp_var fmt usg =
+    let aux fmt map =
       Var.Map.iter
-        (fun x (s, b) -> pf fmt "@[%a : %a, %b@]@;<1 0>" Var.pp x pp_sort s b)
+        (fun x (s, b) -> pf fmt "@[%a : %a := %b@]@;<1 0>" Var.pp x pp_sort s b)
         map
     in
-    let aux_const fmt map =
-      Const.Map.iter
-        (fun x (s, b) -> pf fmt "@[%a : %a, %b@]@;<1 0>" Const.pp x pp_sort s b)
-        map
-    in
-    pf fmt "@[<v 0>usg {|@;<1 2>@[%a@]@;<1 2>@[%a@]@;<1 0>|}@]" aux_var usg.var
-      aux_const usg.const
+    pf fmt "@[<v 0>usg {|@;<1 2>%a@;<1 0>|}@]" aux usg.var
 end

@@ -19,4 +19,6 @@ inductive prod<s,r,t> (A : Type<s>) (B : Type<r>) : Type<t> where
 | pair (m : A) (n : B) : prod A B
 
 def sing_double<s> {A : Type<s>} {m : A} : sing m -o sing m -o prod<_,_,L>A A
-  | (just x) (just y) => pair x y
+  | (just x) (just y) =>
+    let {pf} : eq x y := refl in
+    pair x y

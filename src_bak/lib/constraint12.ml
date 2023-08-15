@@ -1,35 +1,13 @@
 open Fmt
 open Bindlib
 open Syntax1
-open Context1e
-open Equality1e
+open Context12
+open Equality12
 open Pprint1
-
-module IPrbm = struct
-  type eqn =
-    | EqualSort of sort * sort
-    | EqualTerm of Env.t * tm * tm
-
-  type eqns = eqn list
-
-  let pp_eqn fmt = function
-    | EqualSort (s1, s2) ->
-      pf fmt "@[equal_sort?@;<1 2>(%a,@;<1 2>%a)@]" pp_sort s1 pp_sort s2
-    | EqualTerm (_, m1, m2) ->
-      pf fmt "@[equal_tm?@;<1 2>(%a,@;<1 2>%a)@]" pp_tm m1 pp_tm m2
-
-  let pp_eqns fmt eqns =
-    let rec aux fmt = function
-      | [] -> ()
-      | [ eqn ] -> pp_eqn fmt eqn
-      | eqn :: eqns -> pf fmt "%a;@;<1 0>%a" pp_eqn eqn aux eqns
-    in
-    pf fmt "@[<v 0>eqns {|@;<1 2>@[<v 0>%a@]@;<1 0>|}@]" aux eqns
-end
 
 module PPrbm = struct
   type eqn =
-    | EqualPat of Env.t * tm * p * tm
+    | EqualPat of relv * Env.t * tm * p * tm
     (* left: pattern type, right: checked type *)
     | EqualTerm of Env.t * tm * tm
 
@@ -50,8 +28,11 @@ module PPrbm = struct
       { prbm with clause = ([], ps, rhs) :: prbm.clause }
 
   let pp_eqn fmt = function
-    | EqualPat (_, m, p, a) ->
-      pf fmt "@[eq_pat?(@;<1 2>%a,@;<1 2>%a :@;<1 2>%a)@]" pp_tm m pp_p p pp_tm
+    | EqualPat (N, _, m, p, a) ->
+      pf fmt "@[eq_pat?(N@;<1 2>%a,@;<1 2>%a :@;<1 2>%a)@]" pp_tm m pp_p p pp_tm
+        a
+    | EqualPat (R, _, m, p, a) ->
+      pf fmt "@[eq_pat?(R@;<1 2>%a,@;<1 2>%a :@;<1 2>%a)@]" pp_tm m pp_p p pp_tm
         a
     | EqualTerm (_, a, b) ->
       pf fmt "@[eq_term?(@;<1 2>%a,@;<1 2>%a)@]" pp_tm a pp_tm b

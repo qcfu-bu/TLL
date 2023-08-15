@@ -1,21 +1,20 @@
 open Bindlib
 open Names
 open Syntax1
-open Context1e
+open Context12
 
 let rec whnf ?(expand = true) (env : Env.t) = function
   (* inference *)
   | Ann (m, a) -> whnf ~expand env m
   (* core *)
   | Var x when expand -> (
-    try whnf ~expand env (Env.find_var x env) with
+    match Env.find_var x env with
+    | Some m -> whnf ~expand env m
     | _ -> Var x)
   | Const (x, ss) when expand -> (
-    try
-      let sch = Env.find_const x env in
-      whnf ~expand env (scheme_inst sch ss)
-    with
-    | _ -> Const (x, ss))
+    match Env.find_const x env with
+    | Some f -> whnf ~expand env (f ss)
+    | None -> Const (x, ss))
   | App _ as m -> (
     let hd, ms = unApps m in
     let hd = whnf ~expand env hd in

@@ -226,8 +226,7 @@ let rec lift_tm = function
   | Const (x, ss) ->
     let ss = List.map lift_sort ss in
     _Const x (box_list ss)
-  | Pi (relv, s, a, bnd) ->
-    _Pi relv (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
+  | Pi (relv, s, a, bnd) -> _Pi relv (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
   | Fun (a, bnd) ->
     let bnd = box_binder (fun cls -> lift_cls cls) bnd in
     _Fun (lift_tm a) bnd
@@ -259,9 +258,7 @@ and lift_cls cls =
     List.map
       (fun (p0s, mbnd) ->
         let p0s = List.map box_p0 p0s in
-        let mbnd =
-          box_mbinder (fun opt -> opt |> Option.map lift_tm |> box_opt) mbnd
-        in
+        let mbnd = box_mbinder (fun opt -> opt |> Option.map lift_tm |> box_opt) mbnd in
         box_pair (box_list p0s) mbnd)
       cls
   in
@@ -287,14 +284,11 @@ let rec eq_p0 p1 p2 =
   match (p1, p2) with
   | P0Rel, P0Rel -> true
   | P0Absurd, P0Absurd -> true
-  | P0Constr (c1, p0s1), P0Constr (c2, p0s2) ->
-    Constr.equal c1 c2 && eq_p0s p0s1 p0s2
+  | P0Constr (c1, p0s1), P0Constr (c2, p0s2) -> Constr.equal c1 c2 && eq_p0s p0s1 p0s2
   | _ -> false
 
 and eq_p0s ps1 ps2 = List.equal eq_p0 ps1 ps2
-
-and eq_pbinder eq (p0s1, bnd1) (p0s2, bnd2) =
-  eq_p0s p0s1 p0s2 && eq_mbinder eq bnd1 bnd2
+and eq_pbinder eq (p0s1, bnd1) (p0s2, bnd2) = eq_p0s p0s1 p0s2 && eq_mbinder eq bnd1 bnd2
 
 (* pattern binding *)
 let rec mvar_of_p p =
@@ -355,18 +349,11 @@ let psubst (p0s, bnd) ms =
   let rec match_p0 p0 m =
     match (p0, m) with
     | P0Rel, _ -> [ m ]
-    | P0Constr (c1, p0s), Constr (c2, _, _, ms) when Constr.equal c1 c2 ->
-      match_p0s p0s ms
+    | P0Constr (c1, p0s), Constr (c2, _, _, ms) when Constr.equal c1 c2 -> match_p0s p0s ms
     | _ -> failwith "binding1.match_p0"
-  and match_p0s p0s ms =
-    List.fold_left2 (fun acc p0 m -> acc @ match_p0 p0 m) [] p0s ms
-  in
+  and match_p0s p0s ms = List.fold_left2 (fun acc p0 m -> acc @ match_p0 p0 m) [] p0s ms in
   let ms = match_p0s p0s ms in
   msubst bnd (Array.of_list ms)
-
-let rec scheme_inst sch ss =
-  try msubst sch (Array.of_list ss) with
-  | _ -> failwith "scheme_inst"
 
 (* param instantiation *)
 let rec param_inst param ms =

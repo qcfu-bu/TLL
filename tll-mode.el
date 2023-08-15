@@ -17,6 +17,7 @@
 (setq tll-infer-regexp "\\(?:infer_tm\\)")
 (setq tll-check-regexp "\\(?:check_tm\\)")
 (setq tll-assert-regexp "\\(?:assert_equal\\)")
+(setq tll-warning-regexp "\\(?:warning\\)")
 
 (setq tll-font-lock-keywords
       `(("\\(\\<inductive\\>\\|\\<def\\>\\)\s*\\([[:graph:]]*\\)"
@@ -34,6 +35,7 @@
         (,tll-infer-regexp . font-lock-string-face)
         (,tll-check-regexp . font-lock-warning-face)
         (,tll-assert-regexp . font-lock-doc-face)
+        (,tll-warning-regexp (1 '(:foreground "red")))
         ))
 
 (defvar tll-mode-syntax-table nil "syntax table for tll-mode")

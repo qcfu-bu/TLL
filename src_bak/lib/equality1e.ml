@@ -3,46 +3,45 @@ open Names
 open Syntax1
 open Context1e
 
-let rec whnf ?(expand = true) (env : Env.t) = function
+let rec whnf ?(expand = true) (ctx : Ctx.t) = function
   (* inference *)
-  | Ann (m, a) -> whnf ~expand env m
+  | Ann (m, a) -> whnf ~expand ctx m
   (* core *)
   | Var x when expand -> (
-    try whnf ~expand env (Env.find_var x env) with
+    match Ctx.find_var1 x ctx with
+    | Some m -> whnf ~expand ctx m
     | _ -> Var x)
-  | Const (x, ss) when expand -> (
-    try
-      let sch = Env.find_const x env in
-      whnf ~expand env (scheme_inst sch ss)
-    with
-    | _ -> Const (x, ss))
+  | Const (x, ss) when expand ->
+    let sch = Ctx.find_const x ctx in
+    let m, _ = msubst sch (Array.of_list ss) in
+    whnf ~expand ctx m
   | App _ as m -> (
     let hd, ms = unApps m in
-    let hd = whnf ~expand env hd in
-    let ms = List.map (whnf ~expand env) ms in
+    let hd = whnf ~expand ctx hd in
+    let ms = List.map (whnf ~expand ctx) ms in
     match hd with
     | Fun (_, bnd) -> (
       let cls = subst bnd hd in
       match match_cls cls ms with
-      | Some (Some rhs, rst) -> whnf ~expand env (mkApps rhs rst)
+      | Some (Some rhs, rst) -> whnf ~expand ctx (mkApps rhs rst)
       | _ -> mkApps hd ms)
     | _ -> mkApps hd ms)
   | Let (_, m, bnd) ->
-    let m = whnf ~expand env m in
-    whnf ~expand env (subst bnd m)
+    let m = whnf ~expand ctx m in
+    whnf ~expand ctx (subst bnd m)
   (* inductive *)
   | Match (ms, a, cls) -> (
-    let ms = List.map (whnf ~expand env) ms in
+    let ms = List.map (whnf ~expand ctx) ms in
     match match_cls cls ms with
-    | Some (Some rhs, []) -> whnf ~expand env rhs
+    | Some (Some rhs, []) -> whnf ~expand ctx rhs
     | _ -> Match (ms, a, cls))
   (* monadic *)
   | MLet (m, bnd) -> (
-    let m = whnf ~expand env m in
+    let m = whnf ~expand ctx m in
     match m with
     | Return m ->
-      let m = whnf ~expand env m in
-      whnf ~expand env (subst bnd m)
+      let m = whnf ~expand ctx m in
+      whnf ~expand ctx (subst bnd m)
     | _ -> MLet (m, bnd))
   (* other *)
   | m -> m
@@ -112,13 +111,13 @@ let rec aeq_tm m1 m2 =
     (* other *)
     | _ -> false
 
-let rec eq_tm ?(expand = false) env m1 m2 =
+let rec eq_tm ?(expand = false) ctx m1 m2 =
   let rec equal m1 m2 =
     if aeq_tm m1 m2 then
       true
     else
-      let m1 = whnf ~expand env m1 in
-      let m2 = whnf ~expand env m2 in
+      let m1 = whnf ~expand ctx m1 in
+      let m2 = whnf ~expand ctx m2 in
       match (m1, m2) with
       (* inference *)
       | IMeta (x1, _, _), IMeta (x2, _, _) -> IMeta.equal x1 x2
@@ -162,4 +161,4 @@ let rec eq_tm ?(expand = false) env m1 m2 =
   else if expand then
     false
   else
-    eq_tm ~expand:true env m1 m2
+    eq_tm ~expand:true ctx m1 m2

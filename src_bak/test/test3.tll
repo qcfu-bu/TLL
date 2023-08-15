@@ -1,0 +1,53 @@
+inductive unit : U where
+| tt : unit
+
+inductive bool : U where
+| true  : bool
+| false : bool
+
+inductive nat : U where
+| zero : nat
+| succ (pred : nat) : nat
+
+#[logical]
+inductive eq<s> (A : Type‹s›) (m : A) : A -> U where
+| refl : eq _ m m
+
+inductive exists<s,r,t> (A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
+| ex (m : A) {pf : B m} : exists A B
+
+inductive sing‹s› (A : Type‹s›) : A -> Type‹s› where
+| just (m : A) : sing _ m
+
+inductive list‹s› (A : Type‹s›) : U where
+| nil : list A
+| cons (hd : A) (tl : list A) : list A
+
+def lte : nat -> nat -> bool
+  | zero _ => true
+  | _ zero => false
+  | (succ x) (succ y) => lte x y
+
+def lt (x : nat) (y : nat) : bool := lte (succ x) y
+
+#[logical]
+def length‹s› (A : Type‹s›) : list A -> nat
+  | nil => zero
+  | (cons _ tl) => succ (length _ tl)
+
+#[logical]
+inductive at (A : U) (x : A) : nat -> list A -> U where
+| at_zero (xs0 : list A) : at _ _ zero (cons x xs0)
+| at_succ (n : nat) (x0 : A) (xs0 : list A) (h : at A x n xs0) : at _ _ (succ n) (cons x0 xs0)
+
+def get_at {A : U}
+: ∀ (n : nat) (xs : list A) -> eq _ (lt n (length _ xs)) true -> exists‹_,_,L› _ (fn x => at _ x n xs)
+  | _        nil         !! =>
+  | zero     (cons x xs) _  => ex x (at_zero xs)
+  | (succ n) (cons x xs) e  => 
+    /- inference for motive:
+       check discrminees against motive
+       - if motive is rigid then we are done
+       - if motive is flex then unify against discrimees' types -/
+    match get_at _ n xs e with
+    | ex x0 pf => ex x0 (at_succ _ _ _ pf)

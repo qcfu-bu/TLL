@@ -1,0 +1,35 @@
+inductive unit : U where
+| tt : unit
+
+inductive nat : U where
+| zero : nat
+| succ (pred : nat) : nat
+
+#[logical]
+inductive eq‹s› (A : Type‹s›) (m : A) : A -> U where
+| refl : eq _ m m
+
+inductive exists‹s,r,t› (A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
+| ex (m : A) {pf : B m} : exists A B
+
+inductive sing‹s› (A : Type‹s›) : A -> Type‹s› where
+| just (m : A) : sing _ m
+
+-- def test : exists unit (fn x => eq _ x tt) := #magic
+  -- ex (succ zero) refl
+
+def one : _ := succ zero
+
+def test : sing _ one -> unit
+  | (just x) =>
+    let pf : exists‹_,_,L› _ (fn x => eq _ x (succ zero)) := ex x refl in
+    tt
+
+-- def id {A : U} : A -> A
+--   | x => x
+
+-- def print‹s› {A : Type‹s›} (x : A) : IO unit := #magic
+
+-- def _ : IO unit := print _ tt
+
+-- def _ : _ := print _ (just tt)

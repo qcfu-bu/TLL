@@ -80,9 +80,6 @@ let subst_pmeta var_map m =
       | None -> PMeta x)
     m
 
-(* demote pmeta variables *)
-let demote_pmeta m = map_pmeta (fun self x -> Var x) m
-
 (* substitute and demote pmeta variables *)
 let resolve_pmeta var_map m =
   map_pmeta
@@ -91,6 +88,8 @@ let resolve_pmeta var_map m =
       | Some m -> self m
       | None -> Var x)
     m
+
+let demote_pmeta m = map_pmeta (fun self x -> Var x) m
 
 let rec simpl_pprbm ?(expand = false) eqn =
   let open PPrbm in

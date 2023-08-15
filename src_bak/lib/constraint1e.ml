@@ -8,7 +8,7 @@ open Pprint1
 module IPrbm = struct
   type eqn =
     | EqualSort of sort * sort
-    | EqualTerm of Env.t * tm * tm
+    | EqualTerm of Ctx.t * tm * tm
 
   type eqns = eqn list
 
@@ -29,9 +29,9 @@ end
 
 module PPrbm = struct
   type eqn =
-    | EqualPat of Env.t * tm * p * tm
+    | EqualPat of Ctx.t * tm * p * tm
     (* left: pattern type, right: checked type *)
-    | EqualTerm of Env.t * tm * tm
+    | EqualTerm of Ctx.t * tm * tm
 
   and eqns = eqn list
 

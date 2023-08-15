@@ -30,13 +30,5 @@ inductive vec (A : U) : nat -> U where
 | vnil : vec A zero
 | vcons ?{n : nat} (hd : A) (tl : vec A n) : vec A (succ n)
 
-def uncons ?{A : U} : ∀ {n : nat} -> vec A (succ n) -> A
-  | zero (vcons n hd _) => (
-    match {n} with
-    | zero => hd
-    | succ _ => hd)
-  | _ (vcons _ hd _) => hd
-
-
 def uncons2 ?{A : U} ?{n : nat} : vec A (succ n) -> vec A (succ n) -> prod<_,_,L> A A
   | (vcons _ hd1 _) (vcons _ hd2 _) => pair hd1 hd2
