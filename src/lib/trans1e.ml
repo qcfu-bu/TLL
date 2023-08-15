@@ -68,13 +68,6 @@ end = struct
       MCtx.pp state.mctx pp_meta state.meta_map IPrbm.pp_eqns state.eqns
 end
 
-let has_failed f =
-  try
-    f ();
-    false
-  with
-  | _ -> true
-
 let smeta_of_ctx (ctx : Ctx.t) =
   let x = SMeta.mk "" in
   let ss = Ctx.spine_svar ctx |> List.map svar in
@@ -257,8 +250,7 @@ and check_cls ctx env cls a : unit =
         let tele = param_inst param ms in
         let _, t = unbind_tele tele in
         let global = PPrbm.EqualTerm (env, a, t) :: global in
-        if not (has_failed (fun () -> unify_pprbm global)) then
-          failwith "trans1e.fail_on_ind")
+        if succeed_pprbm global then failwith "trans1e.fail_on_ind")
       cs
   in
   let rec aux_prbm (ctx : Ctx.t) (prbm : PPrbm.t) a =
@@ -266,7 +258,7 @@ and check_cls ctx env cls a : unit =
     (* empty *)
     | [] -> (
       Debug.exec (fun () -> pr "case_empty@.");
-      if not (has_failed (fun () -> unify_pprbm prbm.global)) then
+      if succeed_pprbm prbm.global then
         match whnf env a with
         | Pi (_, _, a, _) -> (
           match whnf env a with
@@ -316,7 +308,7 @@ and check_cls ctx env cls a : unit =
     (* absurd pattern *)
     | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> (
       Debug.exec (fun () -> pr "case_absurd@.");
-      if not (has_failed (fun () -> unify_pprbm prbm.global)) then
+      if succeed_pprbm prbm.global then
         let a = get_absurd eqns in
         match whnf env a with
         | Ind (d, ss, ms, ns) -> fail_on_ind prbm.global ctx d ss ms a
@@ -327,18 +319,16 @@ and check_cls ctx env cls a : unit =
           pr "@[<v 0>case_coverage{|@;<1 2>%a@;<1 0>|}@]@." PPrbm.pp prbm);
       match rhs with
       | Some rhs ->
-        let var_map0 = unify_pprbm eqns in
-        let var_map1 = unify_pprbm (prbm.global @ eqns) in
-        let a = resolve_pmeta var_map1 a in
-        let ctx = Ctx.map_var (resolve_pmeta var_map1) ctx in
-        let env = Env.merge_var (Var.Map.map demote_pmeta var_map1) env in
-        let rhs = resolve_pmeta var_map0 rhs in
+        let local_map, global_map = unify_pprbm eqns prbm.global in
+        let a = resolve_pmeta global_map a in
+        let ctx = Ctx.map_var (resolve_pmeta global_map) ctx in
+        let env = Env.merge_var (Var.Map.map demote_pmeta global_map) env in
+        let rhs = resolve_pmeta local_map rhs in
         Debug.exec (fun () ->
             pr "@[case_coverage_ok(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm rhs pp_tm a);
         check_tm ctx env rhs a
       | None ->
-        if not (has_failed (fun () -> unify_pprbm prbm.global)) then
-          failwith "trans1e.check_cls(Cover)")
+        if succeed_pprbm prbm.global then failwith "trans1e.check_cls(Cover)")
   in
   let prbm = PPrbm.of_cls cls in
   let a = State.resolve a in
