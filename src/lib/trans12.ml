@@ -203,8 +203,8 @@ module Logical = struct
             | Ind (d0, ss, ms, ns) ->
               let d1 = State.find_ind d0 ss in
               fail_on_ind prbm.global ctx d1 ss ms a
-            | _ -> failwith "trans12.check_cls(Empty)")
-          | _ -> failwith "trans12.check_cls(Empty)")
+            | _ -> failwith "trans12.Logical.check_cls(Empty)")
+          | _ -> failwith "trans12.Logical.check_cls(Empty)")
       (* case intro *)
       | (eqns, p :: ps, rhs) :: clause -> (
         match whnf env a with
@@ -529,4 +529,115 @@ module Program = struct
     let b, m_elab, usg = infer_tm ctx env m in
     Logical.assert_equal env a b;
     (m_elab, usg)
+
+  and check_cls ctx env cls a =
+    let rec is_absurd eqns rhs =
+      match (eqns, rhs) with
+      | EqualPat (_, _, PMeta _, PAbsurd, _) :: _, None -> true
+      | EqualPat (_, _, PMeta _, PAbsurd, _) :: _, Some _ ->
+        failwith "trans12.Program.is_absurd"
+      | _ :: eqns, _ -> is_absurd eqns rhs
+      | [], _ -> false
+    in
+    let rec get_absurd = function
+      | EqualPat (_, _, PMeta _, PAbsurd, a) :: _ -> a
+      | _ :: eqns -> get_absurd eqns
+      | [] -> failwith "trans12.Program.get_absurd"
+    in
+    let rec can_split = function
+      | EqualPat (_, _, PMeta _, PConstr _, _) :: _ -> true
+      | _ :: eqns -> can_split eqns
+      | [] -> false
+    in
+    let rec first_split = function
+      | EqualPat (_, _, PMeta x, PConstr _, a) :: _ -> (x, a)
+      | _ :: eqns -> first_split eqns
+      | [] -> failwith "trans12.Program.first_split"
+    in
+    let fail_on_ind global ctx d1 ss ms a =
+      let _, cs0 = Ctx.find_ind d1 ctx in
+      List.iter
+        (fun c0 ->
+          let c1 = State.find_constr c0 ss in
+          let param, _ = Ctx.find_constr c1 ctx in
+          let tele = param_inst param ms in
+          let _, t = unbind_tele tele in
+          let global = EqualTerm (env, a, t) :: global in
+          if succeed_pprbm global then
+            failwith "trans12.Program.fail_on_ind(%a)" Ind.pp d1)
+        cs0
+    in
+    let rec aux_prbm ctx env prbm a =
+      match prbm.clause with
+      (* empty *)
+      | [] ->
+        Debug.exec (fun () -> pr "case_empty@.");
+        if succeed_pprbm prbm.global then
+          match whnf env a with
+          | Pi (_, _, a, _) -> (
+            match whnf env a with
+            | Ind (d0, ss, ms, ns) ->
+              let d1 = State.find_ind d0 ss in
+              fail_on_ind prbm.global ctx d1 ss ms a;
+              Syntax2.([], _Absurd, Usage.of_ctx ctx)
+            | _ -> failwith "trans12.Program.check_cls(Empty)")
+          | _ -> failwith "trans12.Program.check_cls(Empty)"
+        else
+          Syntax2.([], _Absurd, Usage.of_ctx ctx)
+      (* case intro *)
+      | (eqns, p :: ps, rhs) :: clause -> (
+        match whnf env a with
+        | Pi (relv, s, a, bnd) -> (
+          let x, b = unbind_pmeta bnd in
+          let t =
+            let ctx = Ctx.map_var demote_pmeta ctx in
+            Logical.infer_sort ctx env (demote_pmeta a)
+          in
+          let ctx = Ctx.add_var x a t ctx in
+          let prbm = prbm_add env prbm x a relv in
+          let xs, ctree, usg = aux_prbm ctx env prbm b in
+          let usg = Usage.remove_var x usg relv t in
+          match s with
+          | U -> (trans_var x :: xs, ctree, Usage.refine_pure usg)
+          | L -> (trans_var x :: xs, ctree, usg)
+          | _ -> failwith "trans12.Program.check_cls(Intro(%a))" pp_tm a)
+        | a -> failwith "trans12.Program.check_cls(Intro(%a))" pp_tm a)
+      (* case split *)
+      | (eqns, [], rhs) :: _ when can_split eqns -> _
+      (* absurd pattern *)
+      | (eqns, [], rhs) :: _ when is_absurd eqns rhs ->
+        Debug.exec (fun () -> pr "trans12.Program.case_absurd@.");
+        if succeed_pprbm prbm.global then
+          let a = get_absurd eqns in
+          match whnf env a with
+          | Ind (d0, ss, ms, ns) ->
+            let d1 = State.find_ind d0 ss in
+            fail_on_ind prbm.global ctx d1 ss ms a;
+            Syntax2.([], _Absurd, Usage.of_ctx ctx)
+          | _ -> failwith "trans12.Program.check_cls(Absurd)"
+        else
+          Syntax2.([], _Absurd, Usage.of_ctx ctx)
+      (* case coverage *)
+      | (eqns, [], rhs) :: _ -> (
+        Debug.exec (fun () ->
+            pr "@[<v 0>case_coverage{|@;<1 2>%a@;<1 0>|}@]@." pp_pprbm prbm);
+        match rhs with
+        | Some rhs ->
+          let local_map, global_map = unify_pprbm eqns prbm.global in
+          let a = resolve_pmeta global_map a in
+          let ctx = Ctx.map_var (resolve_pmeta global_map) ctx in
+          let env = Env.merge_var (Var.Map.map demote_pmeta global_map) env in
+          let rhs = resolve_pmeta local_map rhs in
+          Debug.exec (fun () ->
+              pr "@[case_coverage_ok(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm rhs pp_tm a);
+          let rhs_elab, usg = check_tm ctx env rhs a in
+          ([], rhs_elab, usg)
+        | None ->
+          if succeed_pprbm prbm.global then
+            failwith "trans12.Program.check_cls(Cover)"
+          else
+            Syntax2.([], _Absurd, Usage.of_ctx ctx))
+    in
+    let xs, ctree, usg = aux_prbm ctx env (of_cls cls) a in
+    (bind_mvar (Array.of_list xs) ctree, usg)
 end
