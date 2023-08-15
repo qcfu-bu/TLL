@@ -9,7 +9,7 @@ module Ctx = struct
     ; svar : SVar.Set.t
     ; const : (tm * tm) scheme Const.Map.t
     ; ind : (tele param scheme * Constr.t list) Ind.Map.t
-    ; constr : (tele param scheme * mode) Constr.Map.t
+    ; constr : tele param scheme Constr.Map.t
     }
 
   let empty =
@@ -20,21 +20,12 @@ module Ctx = struct
     ; constr = Constr.Map.empty
     }
 
-  let add_var0 x a (ctx : t) =
-    { ctx with var = Var.Map.add x (None, a) ctx.var }
-
-  let add_var1 x m a (ctx : t) =
-    { ctx with var = Var.Map.add x (Some m, a) ctx.var }
-
+  let add_var0 x a (ctx : t) = { ctx with var = Var.Map.add x (None, a) ctx.var }
+  let add_var1 x m a (ctx : t) = { ctx with var = Var.Map.add x (Some m, a) ctx.var }
   let add_svar x (ctx : t) = { ctx with svar = SVar.Set.add x ctx.svar }
-
-  let add_const x sch (ctx : t) =
-    { ctx with const = Const.Map.add x sch ctx.const }
-
+  let add_const x sch (ctx : t) = { ctx with const = Const.Map.add x sch ctx.const }
   let add_ind x ind (ctx : t) = { ctx with ind = Ind.Map.add x ind ctx.ind }
-
-  let add_constr x sch ctx =
-    { ctx with constr = Constr.Map.add x sch ctx.constr }
+  let add_constr x sch ctx = { ctx with constr = Constr.Map.add x sch ctx.constr }
 
   let find_var0 x (ctx : t) =
     try snd (Var.Map.find x ctx.var) with
@@ -76,18 +67,14 @@ end = struct
     | _ -> None
 
   let entries (mctx : t) =
-    List.map
-      (fun (x, (ctx, ss, xs, a)) -> (ctx, IMeta (x, ss, xs), a))
-      (IMeta.Map.bindings mctx)
+    List.map (fun (x, (ctx, ss, xs, a)) -> (ctx, IMeta (x, ss, xs), a)) (IMeta.Map.bindings mctx)
 
   let pp fmt (mctx : t) =
     let open Pprint1 in
     let rec aux fmt = function
       | [] -> ()
       | [ (x, (_, _, _, a)) ] -> pf fmt "?%a :? %a" IMeta.pp x pp_tm a
-      | (x, (_, _, _, a)) :: ls ->
-        pf fmt "?%a :? %a@;<1 0>%a" IMeta.pp x pp_tm a aux ls
+      | (x, (_, _, _, a)) :: ls -> pf fmt "?%a :? %a@;<1 0>%a" IMeta.pp x pp_tm a aux ls
     in
-    pf fmt "@[<v 0>mctx {|@;<1 2>@[<v 0>%a@]@;<1 0>|}@]" aux
-      (IMeta.Map.bindings mctx)
+    pf fmt "@[<v 0>mctx {|@;<1 2>@[<v 0>%a@]@;<1 0>|}@]" aux (IMeta.Map.bindings mctx)
 end

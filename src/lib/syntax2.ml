@@ -21,8 +21,7 @@ type tm =
   | App of sort * tm * tm
   | Let of tm * (tm, tm) binder
   (* inductive *)
-  | CMul of Constr.t * tms
-  | CAdd of Constr.t * tms
+  | Constr of Constr.t * tms
   | Case of relv * sort * tm * cls
   | Match of tms * tm
   | Absurd
@@ -35,11 +34,7 @@ type tm =
   | Magic
 
 and tms = tm list
-
-and cl =
-  | PMul of Constr.t * (tm, tm) mbinder
-  | PAdd of Constr.t * int * (tm, tm) mbinder
-
+and cl = Constr.t * (tm, tm) mbinder
 and cls = cl list
 
 type dcl =
@@ -52,10 +47,7 @@ type dcl =
       ; body : dconstrs
       }
 
-and dconstr =
-  | DMul of Constr.t * int
-  | DAdd of Constr.t * int
-
+and dconstr = Constr.t * int
 and dconstrs = dconstr list
 
 module Var = struct
@@ -94,8 +86,7 @@ let _App s = box_apply2 (fun m n -> App (s, m, n))
 let _Let = box_apply2 (fun m n -> Let (m, n))
 
 (* inductive *)
-let _CMul x = box_apply (fun ms -> CMul (x, ms))
-let _CAdd x = box_apply (fun ms -> CAdd (x, ms))
+let _Constr x = box_apply (fun ms -> Constr (x, ms))
 let _Case r s = box_apply2 (fun m cls -> Case (r, s, m, cls))
 let _Match = box_apply2 (fun m cls -> Match (m, cls))
 let _Absurd = box Absurd
@@ -111,8 +102,7 @@ let _Null = box Null
 let _Magic = box Magic
 
 (* clause *)
-let _PMul x = box_apply (fun rhs -> PMul (x, rhs))
-let _PAdd x i = box_apply (fun rhs -> PAdd (x, i, rhs))
+let _PConstr x = box_apply (fun rhs -> (x, rhs))
 
 (* spine forms *)
 let unApps m =
@@ -141,20 +131,11 @@ let rec lift_tm = function
   | App (s, m, n) -> _App s (lift_tm m) (lift_tm n)
   | Let (m, bnd) -> _Let (lift_tm m) (box_binder lift_tm bnd)
   (* inductive *)
-  | CMul (c, ms) ->
+  | Constr (c, ms) ->
     let ms = List.map lift_tm ms in
-    _CMul c (box_list ms)
-  | CAdd (c, ms) ->
-    let ms = List.map lift_tm ms in
-    _CAdd c (box_list ms)
+    _Constr c (box_list ms)
   | Case (relv, s, m, cls) ->
-    let cls =
-      List.map
-        (function
-          | PMul (c, bnd) -> _PMul c (box_mbinder lift_tm bnd)
-          | PAdd (c, i, bnd) -> _PAdd c i (box_mbinder lift_tm bnd))
-        cls
-    in
+    let cls = List.map (fun (c, bnd) -> _PConstr c (box_mbinder lift_tm bnd)) cls in
     _Case relv s (lift_tm m) (box_list cls)
   | Match (ms, cls) ->
     let ms = List.map lift_tm ms in

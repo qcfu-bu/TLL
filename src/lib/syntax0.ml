@@ -19,8 +19,7 @@ type view =
   | I (* implicit *)
 [@@deriving show { with_path = false }]
 
-type ('a, 'b) binder = Binder of 'a * 'b
-[@@deriving show { with_path = false }]
+type ('a, 'b) binder = Binder of 'a * 'b [@@deriving show { with_path = false }]
 
 type tm =
   (* inference *)
@@ -49,8 +48,7 @@ and tms = tm list
 and p =
   | PId of id
   | PAbsurd
-  | PMul of id * ps
-  | PAdd of id * int * ps
+  | PConstr of id * ps
 [@@deriving show { with_path = false }]
 
 and ps = p list
@@ -73,11 +71,7 @@ type dcl =
 [@@deriving show { with_path = false }]
 
 and dcls = dcl list
-
-and dconstr =
-  | DMul of id * tele * view list
-  | DAdd of id * tele * view list
-
+and dconstr = DConstr of id * tele * view list
 and dconstrs = dconstr list
 and 'a scheme = (ids, 'a) binder
 

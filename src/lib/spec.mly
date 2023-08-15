@@ -156,8 +156,6 @@
 // modifiers
 %token MOD_PROGRAM        // program
 %token MOD_LOGICAL        // logical
-%token MOD_MULTIPLICATIVE // multiplicative
-%token MOD_ADDITIVE       // additive
 %token MODIFIER           // #[
 
 // dcl
@@ -346,9 +344,7 @@ let tm_fun_p :=
   | id = iden; { PId id }
   | TM_ABSURD; { PAbsurd }
   | LPAREN; id = iden; args = tm_fun_ps; RPAREN;
-    { PMul (id, args) }
-  | LPAREN; id = iden; DOT; i = INTEGER;  args = tm_fun_ps; RPAREN;
-    { PAdd (id, i, args) }
+    { PConstr (id, args) }
   | LPAREN; ~ = tm_fun_p; RPAREN; <>
 
 let tm_fun_ps :=
@@ -518,9 +514,7 @@ let tm_match_p0 :=
   | id = iden; { PId id }
   | TM_ABSURD; { PAbsurd }
   | LPAREN; id = iden; args = tm_match_p0s; RPAREN;
-    { PMul (id, args) }
-  | LPAREN; id = iden; DOT; i = INTEGER;  args = tm_match_p0s; RPAREN;
-    { PAdd (id, i, args) }
+    { PConstr (id, args) }
   | LPAREN; ~ = tm_match_p0; RPAREN; <>
 
 let tm_match_p0s :=
@@ -529,8 +523,7 @@ let tm_match_p0s :=
 let tm_match_p :=
   | id = iden; { PId id }
   | TM_ABSURD; { PAbsurd }
-  | id = iden; ps = tm_match_p0s; { PMul (id, ps) }
-  | id = iden; DOT; i = INTEGER; ps = tm_match_p0s; { PAdd (id, i, ps) }
+  | id = iden; ps = tm_match_p0s; { PConstr (id, ps) }
   | LPAREN; ~ = tm_match_p; RPAREN; <>
 
 let tm_match_cl0(p) :=
@@ -678,9 +671,7 @@ let dcl_def_p :=
   | id = iden; { PId id }
   | TM_ABSURD; { PAbsurd }
   | LPAREN; id = iden; args = dcl_def_ps; RPAREN;
-    { PMul (id, args) }
-  | LPAREN; id = iden; DOT; i = INTEGER;  args = dcl_def_ps; RPAREN;
-    { PAdd (id, i, args) }
+    { PConstr (id, args) }
   | LPAREN; ~ = dcl_def_p; RPAREN; <>
 
 let dcl_def_ps :=
@@ -758,11 +749,6 @@ let dcl_ind_tele :=
         | a -> TBase a
       in aux a }
 
-let dcl_dconstr_modifier :=
-  | MODIFIER; MOD_MULTIPLICATIVE; RBRACK; { fun id tele view -> DMul (id, tele, view) }
-  | MODIFIER; MOD_ADDITIVE; RBRACK; { fun id tele view -> DAdd (id, tele, view) }
-  | { fun id tele view -> DMul (id, tele, view) }
-
 let dcl_dconstr_arg :=
   | LPAREN; ids = iden+; COLON; a = tm; RPAREN; { List.map (fun id -> (R, id, a, E)) ids }
   | LBRACE; ids = iden+; COLON; a = tm; RBRACE; { List.map (fun id -> (N, id, a, E)) ids }
@@ -773,14 +759,13 @@ let dcl_dconstr_args :=
   | args = dcl_dconstr_arg*; { List.concat args }
 
 let dcl_dconstr :=
-  | PIPE; modifier = dcl_dconstr_modifier;
-    id = iden; args = dcl_dconstr_args; COLON; b = tm_closed;
+  | PIPE; id = iden; args = dcl_dconstr_args; COLON; b = tm_closed;
     { let tele, view =
         List.fold_right (fun (relv, id, a, v) (tele, view) ->
           (TBind (relv, a, Binder (id, tele)), v :: view))
         args (TBase b, [])
       in
-      modifier id tele view }
+      DConstr (id, tele, view) }
 
 let dcl_dconstrs :=
   | ~ = dcl_dconstr*; <>

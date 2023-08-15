@@ -99,7 +99,7 @@ module Logical = struct
     | Constr (c0, ss, ms, ns) ->
       List.iter assert_sort ss;
       let c1 = State.find_constr c0 ss in
-      let ptl, _, _ = Ctx.find_constr c1 ctx in
+      let ptl, _ = Ctx.find_constr c1 ctx in
       infer_ptl ctx env ms ns ptl
     | Match (ms, a, cls) ->
       let b = infer_motive ctx env ms a in
@@ -178,14 +178,12 @@ module Logical = struct
       | [] -> failwith "trans12.Logical.get_absurd"
     in
     let rec can_split = function
-      | PPrbm.EqualPat (_, _, PMeta _, PMul _, _) :: _ -> true
-      | PPrbm.EqualPat (_, _, PMeta _, PAdd _, _) :: _ -> true
+      | PPrbm.EqualPat (_, _, PMeta _, PConstr _, _) :: _ -> true
       | _ :: eqns -> can_split eqns
       | [] -> false
     in
     let rec first_split = function
-      | PPrbm.EqualPat (_, _, PMeta x, PMul _, a) :: _ -> (x, a)
-      | PPrbm.EqualPat (_, _, PMeta x, PAdd _, a) :: _ -> (x, a)
+      | PPrbm.EqualPat (_, _, PMeta x, PConstr _, a) :: _ -> (x, a)
       | _ :: eqns -> first_split eqns
       | [] -> failwith "trans1e.Logical.first_split"
     in
@@ -194,7 +192,7 @@ module Logical = struct
       List.iter
         (fun c0 ->
           let c1 = State.find_constr c0 ss in
-          let param, _, _ = Ctx.find_constr c1 ctx in
+          let param, _ = Ctx.find_constr c1 ctx in
           let tele = param_inst param ms in
           let _, t = unbind_tele tele in
           let global = PPrbm.EqualTerm (env, a, t) :: global in
@@ -235,14 +233,14 @@ module Logical = struct
           List.iter
             (fun c0 ->
               let c1 = State.find_constr c0 ss in
-              let param, _, _ = Ctx.find_constr c1 ctx in
+              let param, _ = Ctx.find_constr c1 ctx in
               let tele = param_inst param ms in
               let args, t = unbind_tele tele in
               let ctx =
                 List.fold_left
-                  (fun acc (_, x, a) ->
+                  (fun ctx (_, x, a) ->
                     let s = infer_sort ctx env a in
-                    Ctx.add_var x a s acc)
+                    Ctx.add_var x a s ctx)
                   ctx args
               in
               let m = Constr (c0, ss, ms, List.map (fun (_, x, _) -> PMeta x) args) in
@@ -325,46 +323,21 @@ module Logical = struct
   and p_simpl relv ctx env m p a =
     let a = whnf env a in
     match (m, p, a) with
-    (* simplify multiplicative pattern *)
-    | Constr (c0, _, _, ns), PMul (c, ps), Ind (d0, ss, ms, _) ->
+    | Constr (c0, _, _, ns), PConstr (c, ps), Ind (d0, ss, ms, _) ->
       let d1 = State.find_ind d0 ss in
       let _, cs0 = Ctx.find_ind d1 ctx in
       if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
         if Constr.equal c0 c then
           let c1 = State.find_constr c0 ss in
-          let param, _, _ = Ctx.find_constr c1 ctx in
+          let param, _ = Ctx.find_constr c1 ctx in
           let tele = param_inst param ms in
           ps_simpl relv ctx env ns ps tele
         else
           None
       else
         failwith "trans12.Logical.p_simpl(PMul)"
-    (* simplify additive pattern *)
-    | Constr (c0, _, _, ns), PAdd (c, i, ps), Ind (d0, ss, ms, _) ->
-      let d1 = State.find_ind d0 ss in
-      let _, cs0 = Ctx.find_ind d1 ctx in
-      if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
-        if Constr.equal c0 c then
-          let c1 = State.find_constr c0 ss in
-          let param, _, _ = Ctx.find_constr c1 ctx in
-          let tele = param_inst param ms in
-          ps_simpl relv ctx env ns ps tele
-        else
-          None
-      else
-        failwith "trans12.Logical.p_simpl(PAdd)"
-    (* fully simplified pattern *)
     | Constr _, _, Ind _ -> Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
-    (* blocked multiplicative pattern *)
-    | _, PMul (c, _), Ind (d0, ss, _, _) ->
-      let d1 = State.find_ind d0 ss in
-      let _, cs0 = Ctx.find_ind d1 ctx in
-      if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
-        Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
-      else
-        failwith "trans12.Logical.p_simpl(PMul)"
-    (* blocked additive pattern *)
-    | _, PAdd (c, _, _), Ind (d0, ss, _, _) ->
+    | _, PConstr (c, _), Ind (d0, ss, _, _) ->
       let d1 = State.find_ind d0 ss in
       let _, cs0 = Ctx.find_ind d1 ctx in
       if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
@@ -474,15 +447,10 @@ module Program = struct
     | Constr (c0, ss, ms, ns) -> (
       List.iter Logical.assert_sort ss;
       let c1 = State.find_constr c0 ss in
-      let ptl, relv, mode = Ctx.find_constr c1 ctx in
-      let a, ns_elab, usg = infer_ptl ctx env ms ns ptl mode in
-      let s = Logical.infer_sort ctx env a in
-      match (s, relv, mode) with
-      | _, R, M -> Syntax2.(a, _CMul c1 (box_list ns_elab), usg)
-      | U, R, A ->
-        let usg = Usage.refine_pure usg in
-        Syntax2.(a, _CAdd c1 (box_list ns_elab), usg)
-      | L, R, A -> Syntax2.(a, _CAdd c1 (box_list ns_elab), usg)
+      let ptl, relv = Ctx.find_constr c1 ctx in
+      let a, ns_elab, usg = infer_ptl ctx env ms ns ptl in
+      match relv with
+      | R -> Syntax2.(a, _Constr c1 (box_list ns_elab), usg)
       | _ -> failwith "trans12.Program.infer_tm(Constr)")
     | Match (ms, a, cls) ->
       let b, ms_elab, usg1 = infer_motive ctx env ms a in
@@ -508,41 +476,26 @@ module Program = struct
       let _ = Logical.infer_sort ctx env a in
       Syntax2.(a, _Magic, Usage.of_ctx ctx)
 
-  and infer_ptl ctx env ms ns ptl mode =
+  and infer_ptl ctx env ms ns ptl =
     let rec aux_param ms ptl =
       match (ms, ptl) with
-      | [], PBase tl -> (
-        match mode with
-        | M -> aux_M ns tl
-        | A -> aux_A ns tl)
+      | [], PBase tl -> aux_tele ns tl
       | m :: ms, PBind (a, bnd) ->
         Logical.check_tm ctx env m a;
         aux_param ms (subst bnd m)
       | _ -> failwith "trans12.Program.infer_ptl(param)"
-    and aux_M ns tl =
+    and aux_tele ns tl =
       match (ns, tl) with
       | [], TBase a -> (a, [], Usage.empty)
       | n :: ns, TBind (N, a, bnd) ->
         Logical.check_tm ctx env n a;
-        let b, ns_elab, usg = aux_M ns (subst bnd n) in
+        let b, ns_elab, usg = aux_tele ns (subst bnd n) in
         Syntax2.(b, _Null :: ns_elab, usg)
       | n :: ns, TBind (R, a, bnd) ->
         let n_elab, usg1 = check_tm ctx env n a in
-        let b, ns_elab, usg2 = aux_M ns (subst bnd n) in
+        let b, ns_elab, usg2 = aux_tele ns (subst bnd n) in
         Syntax2.(b, n_elab :: ns_elab, Usage.merge usg1 usg2)
-      | _ -> failwith "trans12.Program.infer_ptl(multiplicative)"
-    and aux_A ns tl =
-      match (ns, tl) with
-      | [], TBase a -> (a, [], Usage.of_ctx ctx)
-      | n :: ns, TBind (N, a, bnd) ->
-        Logical.check_tm ctx env n a;
-        let b, ns_elab, usg = aux_A ns (subst bnd n) in
-        Syntax2.(b, _Null :: ns_elab, usg)
-      | n :: ns, TBind (R, a, bnd) ->
-        let n_elab, usg1 = check_tm ctx env n a in
-        let b, ns_elab, usg2 = aux_A ns (subst bnd n) in
-        Syntax2.(b, n_elab :: ns_elab, Usage.refine_usage usg1 usg2)
-      | _ -> failwith "trans12.Program.infer_ptl(additive)"
+      | _ -> failwith "trans12.Program.infer_ptl(tele)"
     in
     aux_param ms ptl
 
@@ -579,14 +532,12 @@ module Program = struct
       | [] -> failwith "trans12.Program.get_absurd"
     in
     let rec can_split = function
-      | PPrbm.EqualPat (_, _, PMeta _, PMul _, _) :: _ -> true
-      | PPrbm.EqualPat (_, _, PMeta _, PAdd _, _) :: _ -> true
+      | PPrbm.EqualPat (_, _, PMeta _, PConstr _, _) :: _ -> true
       | _ :: eqns -> can_split eqns
       | [] -> false
     in
     let rec first_split = function
-      | PPrbm.EqualPat (relv, _, PMeta x, PMul _, a) :: _ -> (relv, x, a)
-      | PPrbm.EqualPat (relv, _, PMeta x, PAdd _, a) :: _ -> (relv, x, a)
+      | PPrbm.EqualPat (relv, _, PMeta x, PConstr _, a) :: _ -> (relv, x, a)
       | _ :: eqns -> first_split eqns
       | [] -> failwith "trans12.Program.first_split"
     in
@@ -595,7 +546,7 @@ module Program = struct
       List.iter
         (fun c0 ->
           let c1 = State.find_constr c0 ss in
-          let param, _, _ = Ctx.find_constr c1 ctx in
+          let param, _ = Ctx.find_constr c1 ctx in
           let tele = param_inst param ms in
           let _, t = unbind_tele tele in
           let global = PPrbm.EqualTerm (env, a, t) :: global in
@@ -646,38 +597,36 @@ module Program = struct
           let _, cs0 = Ctx.find_ind d1 ctx in
           let cls_elab, usg =
             List.fold_left
-              (fun (cls_elab, acc) c0 ->
+              (fun (cls_elab, usg_acc) c0 ->
                 let c1 = State.find_constr c0 ss in
-                let param, _, mode = Ctx.find_constr c1 ctx in
+                let param, _ = Ctx.find_constr c1 ctx in
                 let tele = param_inst param ms in
                 let args, t = unbind_tele tele in
                 let ctx, args =
                   List.fold_left_map
-                    (fun acc (relv, x, a) ->
+                    (fun ctx (relv, x, a) ->
                       let s = Logical.infer_sort ctx env a in
-                      (Ctx.add_var x a s acc, (x, s)))
+                      (Ctx.add_var x a s ctx, (relv, x, s)))
                     ctx args
                 in
-                let m = Constr (c0, ss, ms, List.map (fun (x, _) -> PMeta x) args) in
+                let m = Constr (c0, ss, ms, List.map (fun (_, x, _) -> PMeta x) args) in
                 let var_map = Var.Map.singleton x m in
                 let a = subst_pmeta var_map a in
                 let ctx = Ctx.map_var (subst_pmeta var_map) ctx in
-                let prbm, relvs, i = prbm_simpl ctx env var_map prbm relv mode in
+                let prbm = prbm_simpl ctx env var_map prbm in
                 let prbm = PPrbm.{ prbm with global = EqualTerm (env, b, t) :: prbm.global } in
                 let ctree, usg = aux_prbm ctx env prbm a in
                 let usg =
-                  List.fold_left2
-                    (fun acc (x, s) relv -> Usage.remove_var x acc relv s)
-                    usg args relvs
+                  List.fold_left
+                    (fun acc (relv0, x, s) ->
+                      match relv with
+                      | N -> Usage.remove_var x acc N s
+                      | R -> Usage.remove_var x acc relv0 s)
+                    usg args
                 in
-                let xs = List.map (fun (x, _) -> trans_var x) args in
-                let cl_elab =
-                  Syntax2.(
-                    match mode with
-                    | M -> _PMul c1 (bind_mvar (Array.of_list xs) ctree)
-                    | A -> _PAdd c1 i (bind_mvar (Array.of_list xs) ctree))
-                in
-                (cl_elab :: cls_elab, Usage.refine_equal acc usg))
+                let xs = List.map (fun (_, x, _) -> trans_var x) args in
+                let cl_elab = Syntax2.(_PConstr c1 (bind_mvar (Array.of_list xs) ctree)) in
+                (cl_elab :: cls_elab, Usage.refine_equal usg_acc usg))
               ([], Usage.of_ctx ctx)
               cs0
           in
@@ -686,7 +635,7 @@ module Program = struct
             | R -> Usage.add_var x s false usg
             | N -> usg
           in
-          let cls_elab = box_list cls_elab in
+          let cls_elab = box_list (List.rev cls_elab) in
           Syntax2.(_Case (trans_relv relv) (trans_sort s) (_Var (trans_var x)) cls_elab, usg)
         | _ -> failwith "trans12.Program.check_cls(split)")
       (* absurd pattern *)
@@ -725,4 +674,85 @@ module Program = struct
       let clause = (eqns @ [ PPrbm.EqualPat (relv, env, PMeta x, p, a) ], ps, rhs) :: prbm.clause in
       { prbm with clause }
     | _ -> failwith "trans12.Program.prbm_add"
+
+  and prbm_simpl ctx env var_map prbm =
+    let rec aux_global = function
+      | [] -> []
+      | PPrbm.EqualTerm (env, a, b) :: eqns ->
+        let a = subst_pmeta var_map a in
+        let b = subst_pmeta var_map b in
+        let eqns = aux_global eqns in
+        PPrbm.EqualTerm (env, a, b) :: eqns
+      | PPrbm.EqualPat _ :: _ -> failwith "trans12.Program.prbm_simpl(Global)"
+    in
+    let rec aux_clause = function
+      | [] -> []
+      | (eqns, ps, rhs) :: clause -> (
+        let clause = aux_clause clause in
+        let opt =
+          List.fold_left
+            (fun acc eqn ->
+              match (acc, eqn) with
+              | Some acc, PPrbm.EqualPat (relv, env, l, r, a) -> (
+                let l = subst_pmeta var_map l in
+                let a = subst_pmeta var_map a in
+                match p_simpl relv ctx env l r a with
+                | Some eqns -> Some (acc @ eqns)
+                | None -> None)
+              | _ -> None)
+            (Some []) eqns
+        in
+        match opt with
+        | Some eqns -> (eqns, ps, rhs) :: clause
+        | None -> clause)
+    in
+    let global = aux_global prbm.global in
+    let clause = aux_clause prbm.clause in
+    { global; clause }
+
+  and p_simpl relv ctx env m p a =
+    let a = whnf env a in
+    match (m, p, a) with
+    | Constr (c0, _, _, ns), PConstr (c, ps), Ind (d0, ss, ms, _) ->
+      let d1 = State.find_ind d0 ss in
+      let _, cs0 = Ctx.find_ind d1 ctx in
+      if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
+        if Constr.equal c0 c then
+          let c1 = State.find_constr c0 ss in
+          let param, _ = Ctx.find_constr c1 ctx in
+          let tele = param_inst param ms in
+          ps_simpl relv ctx env ns ps tele
+        else
+          None
+      else
+        failwith "trans12.Program.p_simpl(Constr-PConstr)"
+    | Constr _, _, Ind _ -> Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
+    | _, PConstr (c, _), Ind (d0, ss, _, _) ->
+      let d1 = State.find_ind d0 ss in
+      let _, cs0 = Ctx.find_ind d1 ctx in
+      if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
+        Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
+      else
+        failwith "trans12.Program.p_simpl(PConstr)"
+    | m, p, a -> Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
+
+  and ps_simpl relv0 ctx env ms ps tele =
+    match (relv0, ms, ps, tele) with
+    | R, m :: ms, p :: ps, TBind (relv, a, bnd) -> (
+      let opt1 = p_simpl relv ctx env m p a in
+      let tele = subst bnd m in
+      let opt2 = ps_simpl relv0 ctx env ms ps tele in
+      match (opt1, opt2) with
+      | Some eqns1, Some eqns2 -> Some (eqns1 @ eqns2)
+      | _ -> None)
+    (* sub-patterns inherit irrelevancy *)
+    | N, m :: ms, p :: ps, TBind (_, a, bnd) -> (
+      let opt1 = p_simpl N ctx env m p a in
+      let tele = subst bnd m in
+      let opt2 = ps_simpl N ctx env ms ps tele in
+      match (opt1, opt2) with
+      | Some eqns1, Some eqns2 -> Some (eqns1 @ eqns2)
+      | _ -> None)
+    | _, [], [], TBase _ -> Some []
+    | _ -> None
 end

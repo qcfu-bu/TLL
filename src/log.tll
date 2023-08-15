@@ -2,7 +2,7 @@
    body =
    (Binder ([],
       (PBase
-         ((TBase (Type U)), [(DMul ("tt", (TBase (Id ("unit", I))), []))]))
+         ((TBase (Type U)), [(DConstr ("tt", (TBase (Id ("unit", I))), []))]))
       ));
    view = []};
   Inductive {name = "bool"; relv = R;
@@ -10,8 +10,8 @@
     (Binder ([],
        (PBase
           ((TBase (Type U)),
-           [(DMul ("true", (TBase (Id ("bool", I))), []));
-             (DMul ("false", (TBase (Id ("bool", I))), []))]))
+           [(DConstr ("true", (TBase (Id ("bool", I))), []));
+             (DConstr ("false", (TBase (Id ("bool", I))), []))]))
        ));
     view = []};
   Inductive {name = "nat"; relv = R;
@@ -19,8 +19,8 @@
     (Binder ([],
        (PBase
           ((TBase (Type U)),
-           [(DMul ("zero", (TBase (Id ("nat", I))), []));
-             (DMul ("succ",
+           [(DConstr ("zero", (TBase (Id ("nat", I))), []));
+             (DConstr ("succ",
                 (TBind (R, (Id ("nat", I)),
                    (Binder ("pred", (TBase (Id ("nat", I))))))),
                 [E]))
@@ -37,7 +37,7 @@
                    (PBase
                       ((TBind (R, (Id ("A", I)),
                           (Binder ("_", (TBase (Type U)))))),
-                       [(DMul ("refl",
+                       [(DConstr ("refl",
                            (TBase
                               (App
                                  [(Id ("eq", I)); (Id ("m", I));
@@ -60,7 +60,7 @@
                 (Binder ("B",
                    (PBase
                       ((TBase (Type (SId "t"))),
-                       [(DMul ("ex",
+                       [(DConstr ("ex",
                            (TBind (R, (Id ("A", I)),
                               (Binder ("m",
                                  (TBind (N,
@@ -90,7 +90,7 @@
              (PBase
                 ((TBind (R, (Id ("A", I)),
                     (Binder ("_", (TBase (Type (SId "s"))))))),
-                 [(DMul ("just",
+                 [(DConstr ("just",
                      (TBind (R, (Id ("A", I)),
                         (Binder ("m",
                            (TBase (App [(Id ("sing", I)); (Id ("m", I))]))))
@@ -108,10 +108,10 @@
           (Binder ("A",
              (PBase
                 ((TBase (Type U)),
-                 [(DMul ("nil",
+                 [(DConstr ("nil",
                      (TBase (App [(Id ("list", I)); (Id ("A", I))])), 
                      []));
-                   (DMul ("cons",
+                   (DConstr ("cons",
                       (TBind (R, (Id ("A", I)),
                          (Binder ("hd",
                             (TBind (R,
@@ -137,12 +137,12 @@
              (PBase
                 ((TBind (R, (Id ("nat", I)), (Binder ("_", (TBase (Type U))))
                     )),
-                 [(DMul ("vnil",
+                 [(DConstr ("vnil",
                      (TBase
                         (App
                            [(Id ("vec", I)); (Id ("A", I)); (Id ("zero", I))])),
                      []));
-                   (DMul ("vcons",
+                   (DConstr ("vcons",
                       (TBind (N, (Id ("nat", I)),
                          (Binder ("n",
                             (TBind (R, (Id ("A", I)),
@@ -198,15 +198,10 @@
            (Binder ((Some "uncons2"),
               [([(PId "A"); (PId "n"); (PId "vnil"); (PId "vnil")],
                 (Some (Id ("tt", I))));
-                ([(PId "A"); (PId "n"); (PId "vnil"); PAbsurd], None);
                 ([(PId "A"); (PId "n");
-                   (PMul ("vcons", [(PId "_"); (PId "_"); (PId "_")]));
-                   (PMul ("vcons", [(PId "_"); (PId "_"); (PId "_")]))],
-                 (Some (Id ("tt", I))));
-                ([(PId "A"); (PId "n");
-                   (PMul ("vcons", [(PId "_"); (PId "_"); (PId "_")]));
-                   PAbsurd],
-                 None)
+                   (PConstr ("vcons", [(PId "_"); (PId "_"); (PId "_")]));
+                   (PConstr ("vcons", [(PId "_"); (PId "_"); (PId "_")]))],
+                 (Some (Id ("tt", I))))
                 ]
               )),
            [I; I])),
@@ -246,55 +241,52 @@ inductive bool_2‹› : U where
 #[program]
 inductive nat_3‹› : U where
 | zero_4 : nat_3
-| succ_5 (pred_73 : nat_3) : nat_3
+| succ_5 (pred_66 : nat_3) : nat_3
 
 #[logical]
-inductive eq_4‹s_74› (A_75 : Type‹s_74›) (m_76 : A_75): A_75 -> U
+inductive eq_4‹s_67› (A_68 : Type‹s_67›) (m_69 : A_68): A_68 -> U
 where
-| refl_6 : (eq_4‹??_1› ?_1 m_76 m_76)
+| refl_6 : (eq_4‹??_1› ?_1 m_69 m_69)
 
 #[program]
-inductive exists_5‹s_78,r_79,t_80› (A_81 : Type‹s_78›) (B_82 : 
-A_81 -> Type‹r_79›): Type‹t_80› where
+inductive exists_5‹s_71,r_72,t_73› (A_74 : Type‹s_71›) (B_75 : 
+A_74 -> Type‹r_72›): Type‹t_73› where
 | ex_7
-    (m_84 : A_81) {pf_85 : ((B_82) m_84)}
-    : (exists_5‹??_2,??_3,??_4› ?_2 B_82)
+    (m_77 : A_74) {pf_78 : ((B_75) m_77)}
+    : (exists_5‹??_2,??_3,??_4› ?_2 B_75)
 
 #[program]
-inductive sing_6‹s_86› (A_87 : Type‹s_86›): A_87 -> Type‹s_86›
+inductive sing_6‹s_79› (A_80 : Type‹s_79›): A_80 -> Type‹s_79›
 where
-| just_8 (m_89 : A_87) : (sing_6‹??_5› ?_3 m_89)
+| just_8 (m_82 : A_80) : (sing_6‹??_5› ?_3 m_82)
 
 #[program]
-inductive list_7‹s_90› (A_91 : Type‹s_90›): U where
-| nil_9 : (list_7‹??_6› A_91)
+inductive list_7‹s_83› (A_84 : Type‹s_83›): U where
+| nil_9 : (list_7‹??_6› A_84)
 | cons_10
-    (hd_92 : A_91) (tl_93 : (list_7‹??_7› A_91))
-    : (list_7‹??_8› A_91)
+    (hd_85 : A_84) (tl_86 : (list_7‹??_7› A_84))
+    : (list_7‹??_8› A_84)
 
 #[program]
-inductive vec_8‹s_94› (A_95 : Type‹s_94›): nat_3 -> U where
-| vnil_11 : (vec_8‹??_9› A_95 zero_4)
+inductive vec_8‹s_87› (A_88 : Type‹s_87›): nat_3 -> U where
+| vnil_11 : (vec_8‹??_9› A_88 zero_4)
 | vcons_12
-    {n_97 : nat_3} (hd_98 : A_95) (tl_99 : (vec_8‹s_94› A_95 n_97))
-    : (vec_8‹??_10› A_95 (succ_5‹› n_97))
+    {n_90 : nat_3} (hd_91 : A_88) (tl_92 : (vec_8‹s_87› A_88 n_90))
+    : (vec_8‹??_10› A_88 (succ_5‹› n_90))
 
 #[program]
-def uncons2_1‹s_100› :
-  ∀ {A_101 : Type‹s_100›} ->
-    ∀ {n_102 : nat_3} ->
-      (vec_8‹??_13› A_101 n_102) ->
-        (vec_8‹??_14› A_101 n_102) -> unit_1
+def uncons2_1‹s_93› :
+  ∀ {A_94 : Type‹s_93›} ->
+    ∀ {n_95 : nat_3} ->
+      (vec_8‹??_13› A_94 n_95) -> (vec_8‹??_14› A_94 n_95) -> unit_1
 :=
-  function uncons2_105 :
-    ∀ {A_106 : Type‹s_100›} ->
-      ∀ {n_107 : nat_3} ->
-        (vec_8‹??_11› A_106 n_107) ->
-          (vec_8‹??_12› A_106 n_107) -> unit_1
-  | A_110 n_111 vnil_11 vnil_11 => tt_1
-  | A_112 n_113 vnil_11 !! =>
-  | A_114 n_115 (vcons_12 _116 _117 _118) (vcons_12 _119 _120 _121) => tt_1
-  | A_122 n_123 (vcons_12 _124 _125 _126) !! =>
+  function uncons2_98 :
+    ∀ {A_99 : Type‹s_93›} ->
+      ∀ {n_100 : nat_3} ->
+        (vec_8‹??_11› A_99 n_100) ->
+          (vec_8‹??_12› A_99 n_100) -> unit_1
+  | A_103 n_104 vnil_11 vnil_11 => tt_1
+  | A_105 n_106 (vcons_12 _107 _108 _109) (vcons_12 _110 _111 _112) => tt_1
 
 -----------------------------------------
 
@@ -356,180 +348,180 @@ end_dump
 ----------------------------------
 
 inductive-------------------------
-infer_tm(Type‹s_129›)
-infer_tm(A_130)
-infer_tm(A_130)
-infer_tm(Type‹s_133›)
-infer_tm(A_134)
-assert_equal1( A_134, ?_1)
-assert_equal1( m_135, m_135)
-infer_tm((eq_4‹??_1› ?_1 m_135 m_135))
+infer_tm(Type‹s_115›)
+infer_tm(A_116)
+infer_tm(A_116)
+infer_tm(Type‹s_119›)
+infer_tm(A_120)
+assert_equal1( A_120, ?_1)
+assert_equal1( m_121, m_121)
+infer_tm((eq_4‹??_1› ?_1 m_121 m_121))
 check_tm( ?_1, Type‹??_1›)
-check_tm( m_135, ?_1)
-infer_tm(m_135)
-assert_equal1( ?_1, A_134)
-check_tm( m_135, ?_1)
-infer_tm(m_135)
-assert_equal1( ?_1, A_134)
-simpl_tm ~expand:false( ?_1, A_134)
-simpl_tm ~expand:false( A_134, A_134)
-simpl_tm ~expand:false( A_134, A_134)
+check_tm( m_121, ?_1)
+infer_tm(m_121)
+assert_equal1( ?_1, A_120)
+check_tm( m_121, ?_1)
+infer_tm(m_121)
+assert_equal1( ?_1, A_120)
+simpl_tm ~expand:false( ?_1, A_120)
+simpl_tm ~expand:false( A_120, A_120)
+simpl_tm ~expand:false( A_120, A_120)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_136
+    ??_1 <= s_122
     
   |}
   imeta_meta {|
-    ?_1 <= A_139
+    ?_1 <= A_125
     
   |}
   eqns {|
     
   |}
 end_dump
-infer_tm(Type‹s_133›)
-check_tm( A_134, Type‹s_133›)
-infer_tm(A_134)
-assert_equal1( Type‹s_133›, Type‹s_133›)
+infer_tm(Type‹s_119›)
+check_tm( A_120, Type‹s_119›)
+infer_tm(A_120)
+assert_equal1( Type‹s_119›, Type‹s_119›)
 ----------------------------------
 
 inductive-------------------------
-infer_tm(Type‹s_151›)
-infer_tm(A_154 -> Type‹r_152›)
-infer_tm(A_154)
-infer_tm(Type‹r_152›)
-infer_tm(Type‹s_158›)
-infer_tm(A_161 -> Type‹r_159›)
-infer_tm(A_161)
-infer_tm(Type‹r_159›)
-infer_tm(A_161)
-infer_tm(((B_162) m_165))
-infer_tm(B_162)
-check_tm( m_165, A_161)
-infer_tm(m_165)
-assert_equal1( A_161, A_161)
-assert_equal1( A_161, ?_2)
-assert_equal1( B_162, B_162)
-infer_tm((exists_5‹??_2,??_3,??_4› ?_2 B_162))
+infer_tm(Type‹s_137›)
+infer_tm(A_140 -> Type‹r_138›)
+infer_tm(A_140)
+infer_tm(Type‹r_138›)
+infer_tm(Type‹s_144›)
+infer_tm(A_147 -> Type‹r_145›)
+infer_tm(A_147)
+infer_tm(Type‹r_145›)
+infer_tm(A_147)
+infer_tm(((B_148) m_151))
+infer_tm(B_148)
+check_tm( m_151, A_147)
+infer_tm(m_151)
+assert_equal1( A_147, A_147)
+assert_equal1( A_147, ?_2)
+assert_equal1( B_148, B_148)
+infer_tm((exists_5‹??_2,??_3,??_4› ?_2 B_148))
 check_tm( ?_2, Type‹??_2›)
-check_tm( B_162, ?_2 -> Type‹??_3›)
-infer_tm(B_162)
-assert_equal1( ?_2 -> Type‹??_3›, A_161 -> Type‹r_159›)
-simpl_tm ~expand:false( ?_2 -> Type‹??_3›, A_161 -> Type‹r_159›)
-simpl_tm ~expand:false( ?_2, A_161)
-simpl_tm ~expand:false( Type‹??_3›, Type‹r_159›)
-simpl_tm ~expand:false( A_161, A_161)
+check_tm( B_148, ?_2 -> Type‹??_3›)
+infer_tm(B_148)
+assert_equal1( ?_2 -> Type‹??_3›, A_147 -> Type‹r_145›)
+simpl_tm ~expand:false( ?_2 -> Type‹??_3›, A_147 -> Type‹r_145›)
+simpl_tm ~expand:false( ?_2, A_147)
+simpl_tm ~expand:false( Type‹??_3›, Type‹r_145›)
+simpl_tm ~expand:false( A_147, A_147)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_176
-    ??_2 <= s_179
-    ??_3 <= r_181
-    ??_4 <= t_183
+    ??_1 <= s_162
+    ??_2 <= s_165
+    ??_3 <= r_167
+    ??_4 <= t_169
     
   |}
   imeta_meta {|
-    ?_1 <= A_188
-    ?_2 <= A_195
+    ?_1 <= A_174
+    ?_2 <= A_181
     
   |}
   eqns {|
     
   |}
 end_dump
-infer_tm(Type‹s_158›)
-check_tm( A_161, Type‹s_158›)
-infer_tm(A_161)
-assert_equal1( Type‹s_158›, Type‹s_158›)
+infer_tm(Type‹s_144›)
+check_tm( A_147, Type‹s_144›)
+infer_tm(A_147)
+assert_equal1( Type‹s_144›, Type‹s_144›)
 ----------------------------------
 
 inductive-------------------------
-infer_tm(Type‹s_228›)
-infer_tm(A_229)
-infer_tm(Type‹s_231›)
-infer_tm(A_232)
-assert_equal1( A_232, ?_3)
-infer_tm((sing_6‹??_5› ?_3 m_233))
+infer_tm(Type‹s_214›)
+infer_tm(A_215)
+infer_tm(Type‹s_217›)
+infer_tm(A_218)
+assert_equal1( A_218, ?_3)
+infer_tm((sing_6‹??_5› ?_3 m_219))
 check_tm( ?_3, Type‹??_5›)
-check_tm( m_233, ?_3)
-infer_tm(m_233)
-assert_equal1( ?_3, A_232)
-simpl_tm ~expand:false( ?_3, A_232)
-simpl_tm ~expand:false( A_232, A_232)
+check_tm( m_219, ?_3)
+infer_tm(m_219)
+assert_equal1( ?_3, A_218)
+simpl_tm ~expand:false( ?_3, A_218)
+simpl_tm ~expand:false( A_218, A_218)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_234
-    ??_2 <= s_237
-    ??_3 <= r_239
-    ??_4 <= t_241
-    ??_5 <= s_244
+    ??_1 <= s_220
+    ??_2 <= s_223
+    ??_3 <= r_225
+    ??_4 <= t_227
+    ??_5 <= s_230
     
   |}
   imeta_meta {|
-    ?_1 <= A_247
-    ?_2 <= A_254
-    ?_3 <= A_257
+    ?_1 <= A_233
+    ?_2 <= A_240
+    ?_3 <= A_243
     
   |}
   eqns {|
     
   |}
 end_dump
-infer_tm(Type‹s_231›)
-check_tm( A_232, Type‹s_231›)
-infer_tm(A_232)
-assert_equal1( Type‹s_231›, Type‹s_231›)
+infer_tm(Type‹s_217›)
+check_tm( A_218, Type‹s_217›)
+infer_tm(A_218)
+assert_equal1( Type‹s_217›, Type‹s_217›)
 ----------------------------------
 
 inductive-------------------------
-infer_tm(Type‹s_270›)
-infer_tm(Type‹s_272›)
-assert_equal1( A_273, A_273)
-infer_tm((list_7‹??_6› A_273))
-check_tm( A_273, Type‹??_6›)
-infer_tm(A_273)
-assert_equal1( Type‹??_6›, Type‹s_272›)
-simpl_tm ~expand:false( Type‹??_6›, Type‹s_272›)
-infer_tm(Type‹s_274›)
-infer_tm(A_275)
-infer_tm((list_7‹??_7› A_275))
-check_tm( A_275, Type‹??_7›)
-infer_tm(A_275)
-assert_equal1( Type‹??_7›, Type‹s_274›)
-simpl_tm ~expand:false( Type‹??_7›, Type‹s_274›)
-assert_equal1( A_275, A_275)
-infer_tm((list_7‹??_8› A_275))
-check_tm( A_275, Type‹??_8›)
-infer_tm(A_275)
-assert_equal1( Type‹??_8›, Type‹s_274›)
-simpl_tm ~expand:false( Type‹??_8›, Type‹s_274›)
+infer_tm(Type‹s_256›)
+infer_tm(Type‹s_258›)
+assert_equal1( A_259, A_259)
+infer_tm((list_7‹??_6› A_259))
+check_tm( A_259, Type‹??_6›)
+infer_tm(A_259)
+assert_equal1( Type‹??_6›, Type‹s_258›)
+simpl_tm ~expand:false( Type‹??_6›, Type‹s_258›)
+infer_tm(Type‹s_260›)
+infer_tm(A_261)
+infer_tm((list_7‹??_7› A_261))
+check_tm( A_261, Type‹??_7›)
+infer_tm(A_261)
+assert_equal1( Type‹??_7›, Type‹s_260›)
+simpl_tm ~expand:false( Type‹??_7›, Type‹s_260›)
+assert_equal1( A_261, A_261)
+infer_tm((list_7‹??_8› A_261))
+check_tm( A_261, Type‹??_8›)
+infer_tm(A_261)
+assert_equal1( Type‹??_8›, Type‹s_260›)
+simpl_tm ~expand:false( Type‹??_8›, Type‹s_260›)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_278
-    ??_2 <= s_281
-    ??_3 <= r_283
-    ??_4 <= t_285
-    ??_5 <= s_288
-    ??_6 <= s_289
-    ??_7 <= s_290
-    ??_8 <= s_291
+    ??_1 <= s_264
+    ??_2 <= s_267
+    ??_3 <= r_269
+    ??_4 <= t_271
+    ??_5 <= s_274
+    ??_6 <= s_275
+    ??_7 <= s_276
+    ??_8 <= s_277
     
   |}
   imeta_meta {|
-    ?_1 <= A_294
-    ?_2 <= A_301
-    ?_3 <= A_304
+    ?_1 <= A_280
+    ?_2 <= A_287
+    ?_3 <= A_290
     
   |}
   eqns {|
@@ -539,61 +531,61 @@ end_dump
 ----------------------------------
 
 inductive-------------------------
-infer_tm(Type‹s_320›)
+infer_tm(Type‹s_306›)
 infer_tm(nat_3)
-infer_tm(Type‹s_323›)
-assert_equal1( A_324, A_324)
-infer_tm((vec_8‹??_9› A_324 zero_4))
-check_tm( A_324, Type‹??_9›)
-infer_tm(A_324)
-assert_equal1( Type‹??_9›, Type‹s_323›)
+infer_tm(Type‹s_309›)
+assert_equal1( A_310, A_310)
+infer_tm((vec_8‹??_9› A_310 zero_4))
+check_tm( A_310, Type‹??_9›)
+infer_tm(A_310)
+assert_equal1( Type‹??_9›, Type‹s_309›)
 check_tm( zero_4, nat_3)
 infer_tm(zero_4)
 assert_equal1( nat_3, nat_3)
-simpl_tm ~expand:false( Type‹??_9›, Type‹s_323›)
-infer_tm(Type‹s_325›)
+simpl_tm ~expand:false( Type‹??_9›, Type‹s_309›)
+infer_tm(Type‹s_311›)
 infer_tm(nat_3)
-infer_tm(A_326)
-infer_tm((vec_8‹s_325› A_326 n_327))
-check_tm( A_326, Type‹s_325›)
-infer_tm(A_326)
-assert_equal1( Type‹s_325›, Type‹s_325›)
-check_tm( n_327, nat_3)
-infer_tm(n_327)
+infer_tm(A_312)
+infer_tm((vec_8‹s_311› A_312 n_313))
+check_tm( A_312, Type‹s_311›)
+infer_tm(A_312)
+assert_equal1( Type‹s_311›, Type‹s_311›)
+check_tm( n_313, nat_3)
+infer_tm(n_313)
 assert_equal1( nat_3, nat_3)
-assert_equal1( A_326, A_326)
-infer_tm((vec_8‹??_10› A_326 (succ_5‹› n_327)))
-check_tm( A_326, Type‹??_10›)
-infer_tm(A_326)
-assert_equal1( Type‹??_10›, Type‹s_325›)
-check_tm( (succ_5‹› n_327), nat_3)
-infer_tm((succ_5‹› n_327))
-check_tm( n_327, nat_3)
-infer_tm(n_327)
+assert_equal1( A_312, A_312)
+infer_tm((vec_8‹??_10› A_312 (succ_5‹› n_313)))
+check_tm( A_312, Type‹??_10›)
+infer_tm(A_312)
+assert_equal1( Type‹??_10›, Type‹s_311›)
+check_tm( (succ_5‹› n_313), nat_3)
+infer_tm((succ_5‹› n_313))
+check_tm( n_313, nat_3)
+infer_tm(n_313)
 assert_equal1( nat_3, nat_3)
 assert_equal1( nat_3, nat_3)
-simpl_tm ~expand:false( Type‹??_10›, Type‹s_325›)
+simpl_tm ~expand:false( Type‹??_10›, Type‹s_311›)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_330
-    ??_2 <= s_333
-    ??_3 <= r_335
-    ??_4 <= t_337
-    ??_5 <= s_340
-    ??_6 <= s_341
-    ??_7 <= s_342
-    ??_8 <= s_343
-    ??_9 <= s_344
-    ??_10 <= s_345
+    ??_1 <= s_316
+    ??_2 <= s_319
+    ??_3 <= r_321
+    ??_4 <= t_323
+    ??_5 <= s_326
+    ??_6 <= s_327
+    ??_7 <= s_328
+    ??_8 <= s_329
+    ??_9 <= s_330
+    ??_10 <= s_331
     
   |}
   imeta_meta {|
-    ?_1 <= A_348
-    ?_2 <= A_355
-    ?_3 <= A_358
+    ?_1 <= A_334
+    ?_2 <= A_341
+    ?_3 <= A_344
     
   |}
   eqns {|
@@ -603,126 +595,123 @@ end_dump
 ----------------------------------
 
 definition-------------------------
-infer_tm(∀ {A_381 : Type‹s_380›} ->
-           ∀ {n_382 : nat_3} ->
-             (vec_8‹??_13› A_381 n_382) ->
-               (vec_8‹??_14› A_381 n_382) -> unit_1)
-infer_tm(Type‹s_380›)
-infer_tm(∀ {n_386 : nat_3} ->
-           (vec_8‹??_13› A_385 n_386) ->
-             (vec_8‹??_14› A_385 n_386) -> unit_1)
+infer_tm(∀ {A_367 : Type‹s_366›} ->
+           ∀ {n_368 : nat_3} ->
+             (vec_8‹??_13› A_367 n_368) ->
+               (vec_8‹??_14› A_367 n_368) -> unit_1)
+infer_tm(Type‹s_366›)
+infer_tm(∀ {n_372 : nat_3} ->
+           (vec_8‹??_13› A_371 n_372) ->
+             (vec_8‹??_14› A_371 n_372) -> unit_1)
 infer_tm(nat_3)
-infer_tm((vec_8‹??_13› A_385 n_389) ->
-           (vec_8‹??_14› A_385 n_389) -> unit_1)
-infer_tm((vec_8‹??_13› A_385 n_389))
-check_tm( A_385, Type‹??_13›)
-infer_tm(A_385)
-assert_equal1( Type‹??_13›, Type‹s_380›)
-check_tm( n_389, nat_3)
-infer_tm(n_389)
+infer_tm((vec_8‹??_13› A_371 n_375) ->
+           (vec_8‹??_14› A_371 n_375) -> unit_1)
+infer_tm((vec_8‹??_13› A_371 n_375))
+check_tm( A_371, Type‹??_13›)
+infer_tm(A_371)
+assert_equal1( Type‹??_13›, Type‹s_366›)
+check_tm( n_375, nat_3)
+infer_tm(n_375)
 assert_equal1( nat_3, nat_3)
-simpl_tm ~expand:false( Type‹??_13›, Type‹s_380›)
-infer_tm((vec_8‹??_14› A_385 n_389) -> unit_1)
-infer_tm((vec_8‹??_14› A_385 n_389))
-check_tm( A_385, Type‹??_14›)
-infer_tm(A_385)
-assert_equal1( Type‹??_14›, Type‹s_380›)
-check_tm( n_389, nat_3)
-infer_tm(n_389)
+simpl_tm ~expand:false( Type‹??_13›, Type‹s_366›)
+infer_tm((vec_8‹??_14› A_371 n_375) -> unit_1)
+infer_tm((vec_8‹??_14› A_371 n_375))
+check_tm( A_371, Type‹??_14›)
+infer_tm(A_371)
+assert_equal1( Type‹??_14›, Type‹s_366›)
+check_tm( n_375, nat_3)
+infer_tm(n_375)
 assert_equal1( nat_3, nat_3)
-simpl_tm ~expand:false( Type‹??_14›, Type‹s_380›)
+simpl_tm ~expand:false( Type‹??_14›, Type‹s_366›)
 infer_tm(unit_1)
 check_tm(
-  function uncons2_395 :
-    ∀ {A_396 : Type‹s_380›} ->
-      ∀ {n_397 : nat_3} ->
-        (vec_8‹??_11› A_396 n_397) ->
-          (vec_8‹??_12› A_396 n_397) -> unit_1
-  | A_400 n_401 vnil_11 vnil_11 => tt_1
-  | A_402 n_403 vnil_11 !! =>
-  | A_404 n_405 (vcons_12 _406 _407 _408) (vcons_12 _409 _410 _411) => tt_1
-  | A_412 n_413 (vcons_12 _414 _415 _416) !! =>,
-  ∀ {A_417 : Type‹s_380›} ->
-    ∀ {n_418 : nat_3} ->
-      (vec_8‹??_13› A_417 n_418) ->
-        (vec_8‹??_14› A_417 n_418) -> unit_1)
-infer_tm(∀ {A_422 : Type‹s_380›} ->
-           ∀ {n_423 : nat_3} ->
-             (vec_8‹??_11› A_422 n_423) ->
-               (vec_8‹??_12› A_422 n_423) -> unit_1)
-infer_tm(Type‹s_380›)
-infer_tm(∀ {n_427 : nat_3} ->
-           (vec_8‹??_11› A_426 n_427) ->
-             (vec_8‹??_12› A_426 n_427) -> unit_1)
+  function uncons2_381 :
+    ∀ {A_382 : Type‹s_366›} ->
+      ∀ {n_383 : nat_3} ->
+        (vec_8‹??_11› A_382 n_383) ->
+          (vec_8‹??_12› A_382 n_383) -> unit_1
+  | A_386 n_387 vnil_11 vnil_11 => tt_1
+  | A_388 n_389 (vcons_12 _390 _391 _392) (vcons_12 _393 _394 _395) => tt_1,
+  ∀ {A_396 : Type‹s_366›} ->
+    ∀ {n_397 : nat_3} ->
+      (vec_8‹??_13› A_396 n_397) ->
+        (vec_8‹??_14› A_396 n_397) -> unit_1)
+infer_tm(∀ {A_401 : Type‹s_366›} ->
+           ∀ {n_402 : nat_3} ->
+             (vec_8‹??_11› A_401 n_402) ->
+               (vec_8‹??_12› A_401 n_402) -> unit_1)
+infer_tm(Type‹s_366›)
+infer_tm(∀ {n_406 : nat_3} ->
+           (vec_8‹??_11› A_405 n_406) ->
+             (vec_8‹??_12› A_405 n_406) -> unit_1)
 infer_tm(nat_3)
-infer_tm((vec_8‹??_11› A_426 n_430) ->
-           (vec_8‹??_12› A_426 n_430) -> unit_1)
-infer_tm((vec_8‹??_11› A_426 n_430))
-check_tm( A_426, Type‹??_11›)
-infer_tm(A_426)
-assert_equal1( Type‹??_11›, Type‹s_380›)
-check_tm( n_430, nat_3)
-infer_tm(n_430)
+infer_tm((vec_8‹??_11› A_405 n_409) ->
+           (vec_8‹??_12› A_405 n_409) -> unit_1)
+infer_tm((vec_8‹??_11› A_405 n_409))
+check_tm( A_405, Type‹??_11›)
+infer_tm(A_405)
+assert_equal1( Type‹??_11›, Type‹s_366›)
+check_tm( n_409, nat_3)
+infer_tm(n_409)
 assert_equal1( nat_3, nat_3)
-simpl_tm ~expand:false( Type‹??_11›, Type‹s_380›)
-infer_tm((vec_8‹??_12› A_426 n_430) -> unit_1)
-infer_tm((vec_8‹??_12› A_426 n_430))
-check_tm( A_426, Type‹??_12›)
-infer_tm(A_426)
-assert_equal1( Type‹??_12›, Type‹s_380›)
-check_tm( n_430, nat_3)
-infer_tm(n_430)
+simpl_tm ~expand:false( Type‹??_11›, Type‹s_366›)
+infer_tm((vec_8‹??_12› A_405 n_409) -> unit_1)
+infer_tm((vec_8‹??_12› A_405 n_409))
+check_tm( A_405, Type‹??_12›)
+infer_tm(A_405)
+assert_equal1( Type‹??_12›, Type‹s_366›)
+check_tm( n_409, nat_3)
+infer_tm(n_409)
 assert_equal1( nat_3, nat_3)
-simpl_tm ~expand:false( Type‹??_12›, Type‹s_380›)
+simpl_tm ~expand:false( Type‹??_12›, Type‹s_366›)
 infer_tm(unit_1)
 assert_equal1(
-  ∀ {A_436 : Type‹s_380›} ->
-    ∀ {n_437 : nat_3} ->
-      (vec_8‹??_13› A_436 n_437) ->
-        (vec_8‹??_14› A_436 n_437) -> unit_1,
-  ∀ {A_440 : Type‹s_380›} ->
-    ∀ {n_441 : nat_3} ->
-      (vec_8‹??_11› A_440 n_441) ->
-        (vec_8‹??_12› A_440 n_441) -> unit_1)
+  ∀ {A_415 : Type‹s_366›} ->
+    ∀ {n_416 : nat_3} ->
+      (vec_8‹??_13› A_415 n_416) ->
+        (vec_8‹??_14› A_415 n_416) -> unit_1,
+  ∀ {A_419 : Type‹s_366›} ->
+    ∀ {n_420 : nat_3} ->
+      (vec_8‹??_11› A_419 n_420) ->
+        (vec_8‹??_12› A_419 n_420) -> unit_1)
 simpl_tm ~expand:false(
-  ∀ {A_485 : Type‹s_380›} ->
-    ∀ {n_486 : nat_3} ->
-      (vec_8‹s_380› A_485 n_486) ->
-        (vec_8‹s_380› A_485 n_486) -> unit_1,
-  ∀ {A_489 : Type‹s_380›} ->
-    ∀ {n_490 : nat_3} ->
-      (vec_8‹s_380› A_489 n_490) ->
-        (vec_8‹s_380› A_489 n_490) -> unit_1)
-simpl_tm ~expand:false( Type‹s_380›, Type‹s_380›)
+  ∀ {A_457 : Type‹s_366›} ->
+    ∀ {n_458 : nat_3} ->
+      (vec_8‹s_366› A_457 n_458) ->
+        (vec_8‹s_366› A_457 n_458) -> unit_1,
+  ∀ {A_461 : Type‹s_366›} ->
+    ∀ {n_462 : nat_3} ->
+      (vec_8‹s_366› A_461 n_462) ->
+        (vec_8‹s_366› A_461 n_462) -> unit_1)
+simpl_tm ~expand:false( Type‹s_366›, Type‹s_366›)
 simpl_tm ~expand:false(
-  ∀ {n_494 : nat_3} ->
-    (vec_8‹s_380› A_493 n_494) ->
-      (vec_8‹s_380› A_493 n_494) -> unit_1,
-  ∀ {n_497 : nat_3} ->
-    (vec_8‹s_380› A_493 n_497) ->
-      (vec_8‹s_380› A_493 n_497) -> unit_1)
+  ∀ {n_466 : nat_3} ->
+    (vec_8‹s_366› A_465 n_466) ->
+      (vec_8‹s_366› A_465 n_466) -> unit_1,
+  ∀ {n_469 : nat_3} ->
+    (vec_8‹s_366› A_465 n_469) ->
+      (vec_8‹s_366› A_465 n_469) -> unit_1)
 simpl_tm ~expand:false( nat_3, nat_3)
 simpl_tm ~expand:false(
-  (vec_8‹s_380› A_493 n_500) -> (vec_8‹s_380› A_493 n_500) -> unit_1,
-  (vec_8‹s_380› A_493 n_500) -> (vec_8‹s_380› A_493 n_500) -> unit_1)
-simpl_tm ~expand:false( (vec_8‹s_380› A_493 n_500),
-  (vec_8‹s_380› A_493 n_500))
-simpl_tm ~expand:false( A_493, A_493)
-simpl_tm ~expand:false( n_500, n_500)
-simpl_tm ~expand:false( (vec_8‹s_380› A_493 n_500) -> unit_1,
-  (vec_8‹s_380› A_493 n_500) -> unit_1)
-simpl_tm ~expand:false( (vec_8‹s_380› A_493 n_500),
-  (vec_8‹s_380› A_493 n_500))
-simpl_tm ~expand:false( A_493, A_493)
-simpl_tm ~expand:false( n_500, n_500)
+  (vec_8‹s_366› A_465 n_472) -> (vec_8‹s_366› A_465 n_472) -> unit_1,
+  (vec_8‹s_366› A_465 n_472) -> (vec_8‹s_366› A_465 n_472) -> unit_1)
+simpl_tm ~expand:false( (vec_8‹s_366› A_465 n_472),
+  (vec_8‹s_366› A_465 n_472))
+simpl_tm ~expand:false( A_465, A_465)
+simpl_tm ~expand:false( n_472, n_472)
+simpl_tm ~expand:false( (vec_8‹s_366› A_465 n_472) -> unit_1,
+  (vec_8‹s_366› A_465 n_472) -> unit_1)
+simpl_tm ~expand:false( (vec_8‹s_366› A_465 n_472),
+  (vec_8‹s_366› A_465 n_472))
+simpl_tm ~expand:false( A_465, A_465)
+simpl_tm ~expand:false( n_472, n_472)
 simpl_tm ~expand:false( unit_1, unit_1)
 check_cls {|
   prblm {| ;
-    {|  ::: [A_454, n_455, vnil_11, vnil_11] =>? tt_1 |}
-    () ::: [A_456, n_457, vnil_11, !!] =>? !!
-    {|  ::: [A_458, n_459, (vcons_12 _460 _461 _462), (vcons_12 _463 _464 _465)] =>?
+    {|  ::: [A_433, n_434, vnil_11, vnil_11] =>? tt_1 |}
+    {|  ::: [A_435, n_436, (vcons_12 _437 _438 _439), (vcons_12 _440 _441 _442)] =>?
          tt_1
-    |} () ::: [A_466, n_467, (vcons_12 _468 _469 _470), !!] =>? !!
+    |}
   |}
 |}
 case_intro
@@ -735,175 +724,141 @@ case_splitting
 splitting_on(vnil_11)
 case_coverage{|
   prblm {|
-    eq_term?( (vec_8‹s_380› #A_516 #n_517),
-      (vec_8‹s_380› #A_516 zero_4))
-    eq_term?( (vec_8‹s_380› #A_516 #n_517),
-      (vec_8‹s_380› #A_516 zero_4));
-    {| eq_pat?( #A_516, A_454 : Type‹s_380›)
-       eq_pat?( #n_517, n_455 : nat_3) ::: [] =>? tt_1
+    eq_term?( (vec_8‹s_366› #A_488 #n_489),
+      (vec_8‹s_366› #A_488 zero_4))
+    eq_term?( (vec_8‹s_366› #A_488 #n_489),
+      (vec_8‹s_366› #A_488 zero_4));
+    {| eq_pat?( #A_488, A_433 : Type‹s_366›)
+       eq_pat?( #n_489, n_434 : nat_3) ::: [] =>? tt_1
     |}
-    (eq_pat?( #A_516, A_456 : Type‹s_380›)
-     eq_pat?( #n_517, n_457 : nat_3)
-     eq_pat?( vnil_11‹s_380›, !! : (vec_8‹s_380› #A_516 #n_517))) ::: [] =>? !!
   |}
 |}
 unify_pprbm(
-  eq_term?( (vec_8‹s_380› #A_516 #n_517),
-    (vec_8‹s_380› #A_516 zero_4))
-  eq_term?( (vec_8‹s_380› #A_516 #n_517),
-    (vec_8‹s_380› #A_516 zero_4))
-  eq_pat?( #A_516, A_454 : Type‹s_380›)
-  eq_pat?( #n_517, n_455 : nat_3)
+  eq_term?( (vec_8‹s_366› #A_488 #n_489),
+    (vec_8‹s_366› #A_488 zero_4))
+  eq_term?( (vec_8‹s_366› #A_488 #n_489),
+    (vec_8‹s_366› #A_488 zero_4))
+  eq_pat?( #A_488, A_433 : Type‹s_366›)
+  eq_pat?( #n_489, n_434 : nat_3)
 )
-simpl_pprbm ~expand:false( (vec_8‹s_380› #A_516 #n_517),
-  (vec_8‹s_380› #A_516 zero_4))
-simpl_pprbm ~expand:false( #A_516, #A_516)
-simpl_pprbm ~expand:false( #n_517, zero_4)
-simpl_pprbm ~expand:false( (vec_8‹s_380› #A_516 #n_517),
-  (vec_8‹s_380› #A_516 zero_4))
-simpl_pprbm ~expand:false( #A_516, #A_516)
-simpl_pprbm ~expand:false( #n_517, zero_4)
-simpl_pprbm ~expand:false( #A_516, #A_454)
-simpl_pprbm ~expand:false( #n_517, #n_455)
-simpl_pprbm ~expand:false( zero_4, #n_517)
+simpl_pprbm ~expand:false( (vec_8‹s_366› #A_488 #n_489),
+  (vec_8‹s_366› #A_488 zero_4))
+simpl_pprbm ~expand:false( #A_488, #A_488)
+simpl_pprbm ~expand:false( #n_489, zero_4)
+simpl_pprbm ~expand:false( (vec_8‹s_366› #A_488 #n_489),
+  (vec_8‹s_366› #A_488 zero_4))
+simpl_pprbm ~expand:false( #A_488, #A_488)
+simpl_pprbm ~expand:false( #n_489, zero_4)
+simpl_pprbm ~expand:false( #A_488, #A_433)
+simpl_pprbm ~expand:false( #n_489, #n_434)
+simpl_pprbm ~expand:false( zero_4, #n_489)
 simpl_pprbm ~expand:false( zero_4, zero_4)
-simpl_pprbm ~expand:false( #A_516, #A_454)
-simpl_pprbm ~expand:false( zero_4, #n_455)
+simpl_pprbm ~expand:false( #A_488, #A_433)
+simpl_pprbm ~expand:false( zero_4, #n_434)
 case_coverage_ok( tt_1, unit_1)
 check_tm( tt_1, unit_1)
 infer_tm(tt_1)
 assert_equal1( unit_1, unit_1)
 splitting_on(vcons_12)
-case_coverage{|
-  prblm {|
-    eq_term?( (vec_8‹s_380› #A_516 #n_517),
-      (vec_8‹s_380› #A_516 (succ_5‹› #n_541)))
-    eq_term?( (vec_8‹s_380› #A_516 #n_517),
-      (vec_8‹s_380› #A_516 zero_4));
-    (eq_pat?( #A_516, A_456 : Type‹s_380›)
-     eq_pat?( #n_517, n_457 : nat_3)
-     eq_pat?( (vcons_12‹s_380› #n_541 #hd_542 #tl_543), !! :
-       (vec_8‹s_380› #A_516 #n_517))) ::: [] =>? !!
-  |}
-|}
+case_empty
 unify_pprbm(
-  eq_term?( (vec_8‹s_380› #A_516 #n_517),
-    (vec_8‹s_380› #A_516 (succ_5‹› #n_541)))
-  eq_term?( (vec_8‹s_380› #A_516 #n_517),
-    (vec_8‹s_380› #A_516 zero_4))
+  eq_term?( (vec_8‹s_366› #A_488 #n_489),
+    (vec_8‹s_366› #A_488 (succ_5‹› #n_513)))
+  eq_term?( (vec_8‹s_366› #A_488 #n_489),
+    (vec_8‹s_366› #A_488 zero_4))
 )
-simpl_pprbm ~expand:false( (vec_8‹s_380› #A_516 #n_517),
-  (vec_8‹s_380› #A_516 (succ_5‹› #n_541)))
-simpl_pprbm ~expand:false( #A_516, #A_516)
-simpl_pprbm ~expand:false( #n_517, (succ_5‹› #n_541))
-simpl_pprbm ~expand:false( (vec_8‹s_380› #A_516 #n_517),
-  (vec_8‹s_380› #A_516 zero_4))
-simpl_pprbm ~expand:false( #A_516, #A_516)
-simpl_pprbm ~expand:false( #n_517, zero_4)
-simpl_pprbm ~expand:false( (succ_5‹› #n_541), #n_517)
-simpl_pprbm ~expand:false( zero_4, (succ_5‹› #n_541))
-simpl_pprbm ~expand:true( zero_4, (succ_5‹› #n_541))
+simpl_pprbm ~expand:false( (vec_8‹s_366› #A_488 #n_489),
+  (vec_8‹s_366› #A_488 (succ_5‹› #n_513)))
+simpl_pprbm ~expand:false( #A_488, #A_488)
+simpl_pprbm ~expand:false( #n_489, (succ_5‹› #n_513))
+simpl_pprbm ~expand:false( (vec_8‹s_366› #A_488 #n_489),
+  (vec_8‹s_366› #A_488 zero_4))
+simpl_pprbm ~expand:false( #A_488, #A_488)
+simpl_pprbm ~expand:false( #n_489, zero_4)
+simpl_pprbm ~expand:false( (succ_5‹› #n_513), #n_489)
+simpl_pprbm ~expand:false( zero_4, (succ_5‹› #n_513))
+simpl_pprbm ~expand:true( zero_4, (succ_5‹› #n_513))
 splitting_on(vcons_12)
 case_splitting
 splitting_on(vnil_11)
-case_coverage{|
-  prblm {|
-    eq_term?( (vec_8‹s_380› #A_516 #n_517),
-      (vec_8‹s_380› #A_516 zero_4))
-    eq_term?( (vec_8‹s_380› #A_516 #n_517),
-      (vec_8‹s_380› #A_516 (succ_5‹› #n_551)));
-    (eq_pat?( #A_516, A_466 : Type‹s_380›)
-     eq_pat?( #n_517, n_467 : nat_3)
-     eq_pat?( #n_551, _468 : nat_3)
-     eq_pat?( #hd_552, _469 : #A_516)
-     eq_pat?( #tl_553, _470 : (vec_8‹s_380› #A_516 #n_551))
-     eq_pat?( vnil_11‹s_380›, !! : (vec_8‹s_380› #A_516 #n_517))) ::: [] =>? !!
-  |}
-|}
+case_empty
 unify_pprbm(
-  eq_term?( (vec_8‹s_380› #A_516 #n_517),
-    (vec_8‹s_380› #A_516 zero_4))
-  eq_term?( (vec_8‹s_380› #A_516 #n_517),
-    (vec_8‹s_380› #A_516 (succ_5‹› #n_551)))
+  eq_term?( (vec_8‹s_366› #A_488 #n_489),
+    (vec_8‹s_366› #A_488 zero_4))
+  eq_term?( (vec_8‹s_366› #A_488 #n_489),
+    (vec_8‹s_366› #A_488 (succ_5‹› #n_523)))
 )
-simpl_pprbm ~expand:false( (vec_8‹s_380› #A_516 #n_517),
-  (vec_8‹s_380› #A_516 zero_4))
-simpl_pprbm ~expand:false( #A_516, #A_516)
-simpl_pprbm ~expand:false( #n_517, zero_4)
-simpl_pprbm ~expand:false( (vec_8‹s_380› #A_516 #n_517),
-  (vec_8‹s_380› #A_516 (succ_5‹› #n_551)))
-simpl_pprbm ~expand:false( #A_516, #A_516)
-simpl_pprbm ~expand:false( #n_517, (succ_5‹› #n_551))
-simpl_pprbm ~expand:false( zero_4, #n_517)
-simpl_pprbm ~expand:false( (succ_5‹› #n_551), zero_4)
-simpl_pprbm ~expand:true( (succ_5‹› #n_551), zero_4)
+simpl_pprbm ~expand:false( (vec_8‹s_366› #A_488 #n_489),
+  (vec_8‹s_366› #A_488 zero_4))
+simpl_pprbm ~expand:false( #A_488, #A_488)
+simpl_pprbm ~expand:false( #n_489, zero_4)
+simpl_pprbm ~expand:false( (vec_8‹s_366› #A_488 #n_489),
+  (vec_8‹s_366› #A_488 (succ_5‹› #n_523)))
+simpl_pprbm ~expand:false( #A_488, #A_488)
+simpl_pprbm ~expand:false( #n_489, (succ_5‹› #n_523))
+simpl_pprbm ~expand:false( zero_4, #n_489)
+simpl_pprbm ~expand:false( (succ_5‹› #n_523), zero_4)
+simpl_pprbm ~expand:true( (succ_5‹› #n_523), zero_4)
 splitting_on(vcons_12)
 case_coverage{|
   prblm {|
-    eq_term?( (vec_8‹s_380› #A_516 #n_517),
-      (vec_8‹s_380› #A_516 (succ_5‹› #n_568)))
-    eq_term?( (vec_8‹s_380› #A_516 #n_517),
-      (vec_8‹s_380› #A_516 (succ_5‹› #n_551)));
-    {| eq_pat?( #A_516, A_458 : Type‹s_380›)
-       eq_pat?( #n_517, n_459 : nat_3)
-       eq_pat?( #n_551, _460 : nat_3)
-       eq_pat?( #hd_552, _461 : #A_516)
-       eq_pat?( #tl_553, _462 : (vec_8‹s_380› #A_516 #n_551))
-       eq_pat?( #n_568, _463 : nat_3)
-       eq_pat?( #hd_569, _464 : #A_516)
-       eq_pat?( #tl_570, _465 : (vec_8‹s_380› #A_516 #n_568)) ::: [] =>?
+    eq_term?( (vec_8‹s_366› #A_488 #n_489),
+      (vec_8‹s_366› #A_488 (succ_5‹› #n_540)))
+    eq_term?( (vec_8‹s_366› #A_488 #n_489),
+      (vec_8‹s_366› #A_488 (succ_5‹› #n_523)));
+    {| eq_pat?( #A_488, A_435 : Type‹s_366›)
+       eq_pat?( #n_489, n_436 : nat_3)
+       eq_pat?( #n_523, _437 : nat_3)
+       eq_pat?( #hd_524, _438 : #A_488)
+       eq_pat?( #tl_525, _439 : (vec_8‹s_366› #A_488 #n_523))
+       eq_pat?( #n_540, _440 : nat_3)
+       eq_pat?( #hd_541, _441 : #A_488)
+       eq_pat?( #tl_542, _442 : (vec_8‹s_366› #A_488 #n_540)) ::: [] =>?
          tt_1
     |}
-    (eq_pat?( #A_516, A_466 : Type‹s_380›)
-     eq_pat?( #n_517, n_467 : nat_3)
-     eq_pat?( #n_551, _468 : nat_3)
-     eq_pat?( #hd_552, _469 : #A_516)
-     eq_pat?( #tl_553, _470 : (vec_8‹s_380› #A_516 #n_551))
-     eq_pat?( (vcons_12‹s_380› #n_568 #hd_569 #tl_570), !! :
-       (vec_8‹s_380› #A_516 #n_517))) ::: [] =>? !!
   |}
 |}
 unify_pprbm(
-  eq_term?( (vec_8‹s_380› #A_516 #n_517),
-    (vec_8‹s_380› #A_516 (succ_5‹› #n_568)))
-  eq_term?( (vec_8‹s_380› #A_516 #n_517),
-    (vec_8‹s_380› #A_516 (succ_5‹› #n_551)))
-  eq_pat?( #A_516, A_458 : Type‹s_380›)
-  eq_pat?( #n_517, n_459 : nat_3)
-  eq_pat?( #n_551, _460 : nat_3)
-  eq_pat?( #hd_552, _461 : #A_516)
-  eq_pat?( #tl_553, _462 : (vec_8‹s_380› #A_516 #n_551))
-  eq_pat?( #n_568, _463 : nat_3)
-  eq_pat?( #hd_569, _464 : #A_516)
-  eq_pat?( #tl_570, _465 : (vec_8‹s_380› #A_516 #n_568))
+  eq_term?( (vec_8‹s_366› #A_488 #n_489),
+    (vec_8‹s_366› #A_488 (succ_5‹› #n_540)))
+  eq_term?( (vec_8‹s_366› #A_488 #n_489),
+    (vec_8‹s_366› #A_488 (succ_5‹› #n_523)))
+  eq_pat?( #A_488, A_435 : Type‹s_366›)
+  eq_pat?( #n_489, n_436 : nat_3)
+  eq_pat?( #n_523, _437 : nat_3)
+  eq_pat?( #hd_524, _438 : #A_488)
+  eq_pat?( #tl_525, _439 : (vec_8‹s_366› #A_488 #n_523))
+  eq_pat?( #n_540, _440 : nat_3)
+  eq_pat?( #hd_541, _441 : #A_488)
+  eq_pat?( #tl_542, _442 : (vec_8‹s_366› #A_488 #n_540))
 )
-simpl_pprbm ~expand:false( (vec_8‹s_380› #A_516 #n_517),
-  (vec_8‹s_380› #A_516 (succ_5‹› #n_568)))
-simpl_pprbm ~expand:false( #A_516, #A_516)
-simpl_pprbm ~expand:false( #n_517, (succ_5‹› #n_568))
-simpl_pprbm ~expand:false( (vec_8‹s_380› #A_516 #n_517),
-  (vec_8‹s_380› #A_516 (succ_5‹› #n_551)))
-simpl_pprbm ~expand:false( #A_516, #A_516)
-simpl_pprbm ~expand:false( #n_517, (succ_5‹› #n_551))
-simpl_pprbm ~expand:false( #A_516, #A_458)
-simpl_pprbm ~expand:false( #n_517, #n_459)
-simpl_pprbm ~expand:false( #n_551, #_460)
-simpl_pprbm ~expand:false( #hd_552, #_461)
-simpl_pprbm ~expand:false( #tl_553, #_462)
-simpl_pprbm ~expand:false( #n_568, #_463)
-simpl_pprbm ~expand:false( #hd_569, #_464)
-simpl_pprbm ~expand:false( #tl_570, #_465)
-simpl_pprbm ~expand:false( (succ_5‹› #n_568), #n_517)
-simpl_pprbm ~expand:false( (succ_5‹› #n_551), (succ_5‹› #n_568))
-simpl_pprbm ~expand:false( #n_551, #n_568)
-simpl_pprbm ~expand:false( #A_516, #A_458)
-simpl_pprbm ~expand:false( (succ_5‹› #n_568), #n_459)
-simpl_pprbm ~expand:false( #n_568, #_460)
-simpl_pprbm ~expand:false( #hd_552, #_461)
-simpl_pprbm ~expand:false( #tl_553, #_462)
-simpl_pprbm ~expand:false( #n_568, #_463)
-simpl_pprbm ~expand:false( #hd_569, #_464)
-simpl_pprbm ~expand:false( #tl_570, #_465)
+simpl_pprbm ~expand:false( (vec_8‹s_366› #A_488 #n_489),
+  (vec_8‹s_366› #A_488 (succ_5‹› #n_540)))
+simpl_pprbm ~expand:false( #A_488, #A_488)
+simpl_pprbm ~expand:false( #n_489, (succ_5‹› #n_540))
+simpl_pprbm ~expand:false( (vec_8‹s_366› #A_488 #n_489),
+  (vec_8‹s_366› #A_488 (succ_5‹› #n_523)))
+simpl_pprbm ~expand:false( #A_488, #A_488)
+simpl_pprbm ~expand:false( #n_489, (succ_5‹› #n_523))
+simpl_pprbm ~expand:false( #A_488, #A_435)
+simpl_pprbm ~expand:false( #n_489, #n_436)
+simpl_pprbm ~expand:false( #n_523, #_437)
+simpl_pprbm ~expand:false( #hd_524, #_438)
+simpl_pprbm ~expand:false( #tl_525, #_439)
+simpl_pprbm ~expand:false( #n_540, #_440)
+simpl_pprbm ~expand:false( #hd_541, #_441)
+simpl_pprbm ~expand:false( #tl_542, #_442)
+simpl_pprbm ~expand:false( (succ_5‹› #n_540), #n_489)
+simpl_pprbm ~expand:false( (succ_5‹› #n_523), (succ_5‹› #n_540))
+simpl_pprbm ~expand:false( #n_523, #n_540)
+simpl_pprbm ~expand:false( #A_488, #A_435)
+simpl_pprbm ~expand:false( (succ_5‹› #n_540), #n_436)
+simpl_pprbm ~expand:false( #n_540, #_437)
+simpl_pprbm ~expand:false( #hd_524, #_438)
+simpl_pprbm ~expand:false( #tl_525, #_439)
+simpl_pprbm ~expand:false( #n_540, #_440)
+simpl_pprbm ~expand:false( #hd_541, #_441)
+simpl_pprbm ~expand:false( #tl_542, #_442)
 case_coverage_ok( tt_1, unit_1)
 check_tm( tt_1, unit_1)
 infer_tm(tt_1)
@@ -913,26 +868,26 @@ begin_dump
     
   |}
   smeta_meta {|
-    ??_1 <= s_585
-    ??_2 <= s_588
-    ??_3 <= r_590
-    ??_4 <= t_592
-    ??_5 <= s_595
-    ??_6 <= s_596
-    ??_7 <= s_597
-    ??_8 <= s_598
-    ??_9 <= s_599
-    ??_10 <= s_600
-    ??_11 <= s_601
-    ??_12 <= s_602
-    ??_13 <= s_603
-    ??_14 <= s_604
+    ??_1 <= s_557
+    ??_2 <= s_560
+    ??_3 <= r_562
+    ??_4 <= t_564
+    ??_5 <= s_567
+    ??_6 <= s_568
+    ??_7 <= s_569
+    ??_8 <= s_570
+    ??_9 <= s_571
+    ??_10 <= s_572
+    ??_11 <= s_573
+    ??_12 <= s_574
+    ??_13 <= s_575
+    ??_14 <= s_576
     
   |}
   imeta_meta {|
-    ?_1 <= A_607
-    ?_2 <= A_614
-    ?_3 <= A_617
+    ?_1 <= A_579
+    ?_2 <= A_586
+    ?_3 <= A_589
     
   |}
   eqns {|
@@ -942,26 +897,26 @@ end_dump
 ----------------------------------
 
 smeta_meta {|
-  ??_1 <= s_657
-  ??_2 <= s_660
-  ??_3 <= r_662
-  ??_4 <= t_664
-  ??_5 <= s_667
-  ??_6 <= s_668
-  ??_7 <= s_669
-  ??_8 <= s_670
-  ??_9 <= s_671
-  ??_10 <= s_672
-  ??_11 <= s_673
-  ??_12 <= s_674
-  ??_13 <= s_675
-  ??_14 <= s_676
+  ??_1 <= s_622
+  ??_2 <= s_625
+  ??_3 <= r_627
+  ??_4 <= t_629
+  ??_5 <= s_632
+  ??_6 <= s_633
+  ??_7 <= s_634
+  ??_8 <= s_635
+  ??_9 <= s_636
+  ??_10 <= s_637
+  ??_11 <= s_638
+  ??_12 <= s_639
+  ??_13 <= s_640
+  ??_14 <= s_641
   
 |}
 imeta_meta {|
-  ?_1 <= A_679
-  ?_2 <= A_686
-  ?_3 <= A_689
+  ?_1 <= A_644
+  ?_2 <= A_651
+  ?_3 <= A_654
   
 |}
 #[program]
@@ -976,58 +931,56 @@ inductive bool_2‹› : U where
 #[program]
 inductive nat_3‹› : U where
 | zero_4 : nat_3
-| succ_5 (pred_820 : nat_3) : nat_3
+| succ_5 (pred_778 : nat_3) : nat_3
 
 #[logical]
-inductive eq_4‹s_821› (A_822 : Type‹s_821›) (m_823 : A_822):
-  A_822 -> U
+inductive eq_4‹s_779› (A_780 : Type‹s_779›) (m_781 : A_780):
+  A_780 -> U
 where
-| refl_6 : (eq_4‹s_821› A_822 m_823 m_823)
+| refl_6 : (eq_4‹s_779› A_780 m_781 m_781)
 
 #[program]
-inductive exists_5‹s_825,r_826,t_827› (A_828 : Type‹s_825›) (B_829 : 
-A_828 -> Type‹r_826›): Type‹t_827› where
+inductive exists_5‹s_783,r_784,t_785› (A_786 : Type‹s_783›) (B_787 : 
+A_786 -> Type‹r_784›): Type‹t_785› where
 | ex_7
-    (m_831 : A_828) {pf_832 : ((B_829) m_831)}
-    : (exists_5‹s_825,r_826,t_827› A_828 B_829)
+    (m_789 : A_786) {pf_790 : ((B_787) m_789)}
+    : (exists_5‹s_783,r_784,t_785› A_786 B_787)
 
 #[program]
-inductive sing_6‹s_833› (A_834 : Type‹s_833›):
-  A_834 -> Type‹s_833›
+inductive sing_6‹s_791› (A_792 : Type‹s_791›):
+  A_792 -> Type‹s_791›
 where
-| just_8 (m_836 : A_834) : (sing_6‹s_833› A_834 m_836)
+| just_8 (m_794 : A_792) : (sing_6‹s_791› A_792 m_794)
 
 #[program]
-inductive list_7‹s_837› (A_838 : Type‹s_837›): U where
-| nil_9 : (list_7‹s_837› A_838)
+inductive list_7‹s_795› (A_796 : Type‹s_795›): U where
+| nil_9 : (list_7‹s_795› A_796)
 | cons_10
-    (hd_839 : A_838) (tl_840 : (list_7‹s_837› A_838))
-    : (list_7‹s_837› A_838)
+    (hd_797 : A_796) (tl_798 : (list_7‹s_795› A_796))
+    : (list_7‹s_795› A_796)
 
 #[program]
-inductive vec_8‹s_841› (A_842 : Type‹s_841›): nat_3 -> U where
-| vnil_11 : (vec_8‹s_841› A_842 zero_4)
+inductive vec_8‹s_799› (A_800 : Type‹s_799›): nat_3 -> U where
+| vnil_11 : (vec_8‹s_799› A_800 zero_4)
 | vcons_12
-    {n_844 : nat_3} (hd_845 : A_842)
-    (tl_846 : (vec_8‹s_841› A_842 n_844))
-    : (vec_8‹s_841› A_842 (succ_5‹› n_844))
+    {n_802 : nat_3} (hd_803 : A_800)
+    (tl_804 : (vec_8‹s_799› A_800 n_802))
+    : (vec_8‹s_799› A_800 (succ_5‹› n_802))
 
 #[program]
-def uncons2_1‹s_847› :
-  ∀ {A_848 : Type‹s_847›} ->
-    ∀ {n_849 : nat_3} ->
-      (vec_8‹s_847› A_848 n_849) ->
-        (vec_8‹s_847› A_848 n_849) -> unit_1
+def uncons2_1‹s_805› :
+  ∀ {A_806 : Type‹s_805›} ->
+    ∀ {n_807 : nat_3} ->
+      (vec_8‹s_805› A_806 n_807) ->
+        (vec_8‹s_805› A_806 n_807) -> unit_1
 :=
-  function uncons2_852 :
-    ∀ {A_853 : Type‹s_847›} ->
-      ∀ {n_854 : nat_3} ->
-        (vec_8‹s_847› A_853 n_854) ->
-          (vec_8‹s_847› A_853 n_854) -> unit_1
-  | A_857 n_858 vnil_11 vnil_11 => tt_1
-  | A_859 n_860 vnil_11 !! =>
-  | A_861 n_862 (vcons_12 _863 _864 _865) (vcons_12 _866 _867 _868) => tt_1
-  | A_869 n_870 (vcons_12 _871 _872 _873) !! =>
+  function uncons2_810 :
+    ∀ {A_811 : Type‹s_805›} ->
+      ∀ {n_812 : nat_3} ->
+        (vec_8‹s_805› A_811 n_812) ->
+          (vec_8‹s_805› A_811 n_812) -> unit_1
+  | A_815 n_816 vnil_11 vnil_11 => tt_1
+  | A_817 n_818 (vcons_12 _819 _820 _821) (vcons_12 _822 _823 _824) => tt_1
 
 -----------------------------------------
 

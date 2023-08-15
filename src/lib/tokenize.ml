@@ -107,9 +107,7 @@ let prim_stdout = [%sedlex.regexp? "stdout"]
 let prim_stderr = [%sedlex.regexp? "stderr"]
 
 (* identifiers *)
-let identifier =
-  [%sedlex.regexp? (letter | '_'), Star (letter | digit | '_' | '\'')]
-
+let identifier = [%sedlex.regexp? (letter | '_'), Star (letter | digit | '_' | '\'')]
 let constant0 = [%sedlex.regexp? identifier, lt]
 let constant1 = [%sedlex.regexp? identifier, flq]
 let at_identifier = [%sedlex.regexp? "@", identifier]
@@ -142,8 +140,6 @@ let tm_mlet = [%sedlex.regexp? "let*"]
 (* modifiers *)
 let mod_program = [%sedlex.regexp? "program"]
 let mod_logical = [%sedlex.regexp? "logical"]
-let mod_multiplicative = [%sedlex.regexp? "multiplicative"]
-let mod_additive = [%sedlex.regexp? "additive"]
 let modifier = [%sedlex.regexp? "#["]
 
 (* dcl *)
@@ -277,8 +273,6 @@ let rec tokenize buf =
   (* modifiers *)
   | mod_program -> MOD_PROGRAM
   | mod_logical -> MOD_LOGICAL
-  | mod_multiplicative -> MOD_MULTIPLICATIVE
-  | mod_additive -> MOD_ADDITIVE
   | modifier -> MODIFIER
   (* dcl *)
   | dcl_def -> DCL_DEF
