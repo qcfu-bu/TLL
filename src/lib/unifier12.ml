@@ -214,20 +214,12 @@ let solve_pprbm map eqn =
       Var.Map.add x m map
   | _ -> failwith "unifier1.solve_pprbm(solve)"
 
-let unify_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
+let unify_pprbm local global =
   let open PPrbm in
   Debug.exec (fun () ->
-      pr "@[unify_pprbm(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns eqns);
-  let eqns =
-    List.map
-      (fun eqn ->
-        match eqn with
-        | EqualPat (_, env, m, PVar x, _) -> EqualTerm (env, m, PMeta x)
-        | EqualPat _ -> failwith "unifier1.solve_pprbm(unify)"
-        | EqualTerm _ -> eqn)
-      eqns
-  in
-  let eqns = List.concat_map simpl_pprbm eqns in
+      pr "@[unify_local(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns local);
+  Debug.exec (fun () ->
+      pr "@[unify_global(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns global);
   let rec aux_eqns var_map = function
     | [] -> var_map
     | EqualPat (_, env, m, PVar x, _) :: eqns -> (
@@ -238,7 +230,7 @@ let unify_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
       | eqn :: eqns0 ->
         let var_map = solve_pprbm var_map eqn in
         aux_eqns var_map (eqns0 @ eqns))
-    | EqualPat _ :: eqns -> failwith "unifier1.unify_pprbm"
+    | EqualPat _ :: eqns -> failwith "unifier12.unify_pprbm"
     | EqualTerm (env, m, n) :: eqns -> (
       let m = subst_pmeta var_map m in
       let n = subst_pmeta var_map n in
@@ -247,5 +239,20 @@ let unify_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
       | eqn :: eqns0 ->
         let var_map = solve_pprbm var_map eqn in
         aux_eqns var_map (eqns0 @ eqns))
+  and flatten_eqn = function
+    | EqualPat (relv, env, m, PVar x, _) -> EqualTerm (env, m, PMeta x)
+    | EqualPat _ -> failwith "unifier12.solve_pprbm(unify)"
+    | eqn -> eqn
   in
-  aux_eqns Var.Map.empty eqns
+  let local = List.map flatten_eqn local in
+  let local_map = aux_eqns Var.Map.empty local in
+  let global = List.map flatten_eqn global in
+  let global_map = aux_eqns local_map global in
+  (local_map, global_map)
+
+let succeed_pprbm global =
+  try
+    let _ = unify_pprbm [] global in
+    true
+  with
+  | _ -> false

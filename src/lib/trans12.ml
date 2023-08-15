@@ -27,13 +27,6 @@ end = struct
   let find_constr c0 ss = Resolver.find_constr c0 ss !state
 end
 
-let has_failed f =
-  try
-    f ();
-    false
-  with
-  | _ -> true
-
 module Logical = struct
   let assert_sort = function
     | U -> ()
