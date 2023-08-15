@@ -186,18 +186,19 @@ module Logical = struct
       | [] -> failwith "trans12.Logical.first_split"
     in
     let fail_on_ind global ctx d1 ss ms a =
-      let _, cs1 = Ctx.find_ind d1 ctx in
+      let _, cs0 = Ctx.find_ind d1 ctx in
       List.iter
-        (fun c1 ->
+        (fun c0 ->
+          let c1 = State.find_constr c0 ss in
           let param, _ = Ctx.find_constr c1 ctx in
           let tele = param_inst param ms in
           let _, t = unbind_tele tele in
           let global = EqualTerm (env, a, t) :: global in
           if succeed_pprbm global then
             failwith "trans12.Logical.fail_on_ind(%a)" Ind.pp d1)
-        cs1
+        cs0
     in
-    let rec aux_prbm ctx env prbm a =
+    let rec aux_prbm ctx prbm a =
       match prbm.clause with
       (* empty *)
       | [] -> (
@@ -219,16 +220,46 @@ module Logical = struct
           let s =
             infer_sort (Ctx.map_var demote_pmeta ctx) env (demote_pmeta a)
           in
+          let ctx = Ctx.add_var x a s ctx in
           let prbm = prbm_add env prbm x a relv in
-          aux_prbm ctx env prbm b
+          aux_prbm ctx prbm b
         | a ->
           failwith "trans12.Logical.check_cls(Intro(%a, %a))" pp_tm a
             (pp_ps " ") ps)
       (* case splitting *)
-      | (eqns, [], rhs) :: _ when can_split eqns -> _
+      | (eqns, [], rhs) :: _ when can_split eqns -> (
+        let x, b = first_split eqns in
+        match whnf env b with
+        | Ind (d0, ss, ms, _) ->
+          let d1 = State.find_ind d0 ss in
+          let _, cs0 = Ctx.find_ind d1 ctx in
+          List.iter
+            (fun c0 ->
+              let c1 = State.find_constr c0 ss in
+              let param, _ = Ctx.find_constr c1 ctx in
+              let tele = param_inst param ms in
+              let args, t = unbind_tele tele in
+              let ctx, ns =
+                List.fold_left_map
+                  (fun ctx (_, x, a) ->
+                    let s = infer_sort ctx env a in
+                    (Ctx.add_var x a s ctx, PMeta x))
+                  ctx args
+              in
+              let m = Constr (c0, ss, ms, ns) in
+              let var_map = Var.Map.singleton x m in
+              let a = subst_pmeta var_map a in
+              let ctx = Ctx.map_var (subst_pmeta var_map) ctx in
+              let prbm = prbm_simpl ctx var_map prbm in
+              let prbm =
+                { prbm with global = EqualTerm (env, b, t) :: prbm.global }
+              in
+              aux_prbm ctx prbm a)
+            cs0
+        | _ -> failwith "trans12.Logical.check_cls(Split(%a))" pp_tm b)
       (* absurd pattern *)
       | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> (
-        Debug.exec (fun () -> pr "trans12.case_absurd@.");
+        Debug.exec (fun () -> pr "trans12.Logical.case_absurd@.");
         if succeed_pprbm prbm.global then
           let a = get_absurd eqns in
           match whnf env a with
@@ -254,7 +285,97 @@ module Logical = struct
           if succeed_pprbm prbm.global then
             failwith "trans12.Logical.check_cls(Cover)")
     in
-    aux_prbm ctx env (of_cls cls) a
+    aux_prbm ctx (of_cls cls) a
 
-  and prbm_add env prbm x a = _
+  and prbm_add env prbm x a relv =
+    match prbm.clause with
+    | [] -> prbm
+    | (eqns, p :: ps, rhs) :: clause ->
+      let prbm = prbm_add env { prbm with clause } x a relv in
+      let clause =
+        (eqns @ [ EqualPat (relv, env, PMeta x, p, a) ], ps, rhs) :: prbm.clause
+      in
+      { prbm with clause }
+    | _ -> failwith "trans12.Logical.prbm_add"
+
+  and prbm_simpl ctx var_map prbm =
+    let rec aux_global = function
+      | [] -> []
+      | EqualTerm (env, a, b) :: eqns ->
+        let a = subst_pmeta var_map a in
+        let b = subst_pmeta var_map b in
+        let eqns = aux_global eqns in
+        EqualTerm (env, a, b) :: eqns
+      | EqualPat _ :: _ -> failwith "trans12.Logical.prbm_simpl(Global)"
+    in
+    let rec aux_clause = function
+      | [] -> []
+      | (eqns, ps, rhs) :: clause -> (
+        let clause = aux_clause clause in
+        let opt =
+          List.fold_left
+            (fun acc eqn ->
+              match (acc, eqn) with
+              | Some acc, EqualPat (relv, env, l, r, a) -> (
+                let l = subst_pmeta var_map l in
+                let a = subst_pmeta var_map a in
+                match p_simpl relv ctx env l r a with
+                | Some eqns -> Some (acc @ eqns)
+                | None -> None)
+              | _ -> None)
+            (Some []) eqns
+        in
+        match opt with
+        | Some eqns -> (eqns, ps, rhs) :: clause
+        | None -> clause)
+    in
+    let global = aux_global prbm.global in
+    let clause = aux_clause prbm.clause in
+    { global; clause }
+
+  and p_simpl relv ctx env m p a =
+    let a = whnf env a in
+    match (m, p, a) with
+    | Constr (c0, _, _, ns), PConstr (c, ps), Ind (d0, ss, ms, _) ->
+      let d1 = State.find_ind d0 ss in
+      let _, cs0 = Ctx.find_ind d1 ctx in
+      if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
+        if Constr.equal c0 c then
+          let c1 = State.find_constr c0 ss in
+          let param, _ = Ctx.find_constr c1 ctx in
+          let tele = param_inst param ms in
+          ps_simpl relv ctx env ns ps tele
+        else
+          None
+      else
+        failwith "trans12.Logical.p_simpl"
+    | Constr _, _, Ind _ -> Some [ EqualPat (relv, env, m, p, a) ]
+    | _, PConstr (c, _), Ind (d0, ss, _, _) ->
+      let d1 = State.find_ind d0 ss in
+      let _, cs0 = Ctx.find_ind d1 ctx in
+      if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
+        Some [ EqualPat (relv, env, m, p, a) ]
+      else
+        failwith "trans12.Logical.p_simpl"
+    | m, p, a -> Some [ EqualPat (relv, env, m, p, a) ]
+
+  and ps_simpl relv0 ctx env ms ps tele =
+    match (relv0, ms, ps, tele) with
+    | R, m :: ms, p :: ps, TBind (relv, a, bnd) -> (
+      let opt1 = p_simpl relv ctx env m p a in
+      let tele = subst bnd m in
+      let opt2 = ps_simpl relv0 ctx env ms ps tele in
+      match (opt1, opt2) with
+      | Some eqns1, Some eqns2 -> Some (eqns1 @ eqns2)
+      | _ -> None)
+    (* sub-patterns inherit irrelevancy *)
+    | N, m :: ms, p :: ps, TBind (_, a, bnd) -> (
+      let opt1 = p_simpl N ctx env m p a in
+      let tele = subst bnd m in
+      let opt2 = ps_simpl N ctx env ms ps tele in
+      match (opt1, opt2) with
+      | Some eqns1, Some eqns2 -> Some (eqns1 @ eqns2)
+      | _ -> None)
+    | _, [], [], TBase _ -> Some []
+    | _ -> None
 end
