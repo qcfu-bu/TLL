@@ -13,7 +13,7 @@ let rec whnf ?(expand = true) (env : Env.t) = function
   | Const (x, ss) when expand -> (
     try
       let sch = Env.find_const x env in
-      whnf ~expand env (scheme_inst sch ss)
+      whnf ~expand env (msubst sch (Array.of_list ss))
     with
     | _ -> Const (x, ss))
   | App _ as m -> (

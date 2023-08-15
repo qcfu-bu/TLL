@@ -364,10 +364,6 @@ let psubst (p0s, bnd) ms =
   let ms = match_p0s p0s ms in
   msubst bnd (Array.of_list ms)
 
-let rec scheme_inst sch ss =
-  try msubst sch (Array.of_list ss) with
-  | _ -> failwith "scheme_inst"
-
 (* param instantiation *)
 let rec param_inst param ms =
   match (param, ms) with

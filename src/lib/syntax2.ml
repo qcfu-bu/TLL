@@ -16,14 +16,12 @@ type tm =
   (* core *)
   | Var of tm var
   | Const of Const.t
-  | Fun of (tm, tm) binder
-  | Lam of (tm, tm) binder
+  | Fun of (tm, tm) mbinder
   | App of sort * tm * tm
   | Let of tm * (tm, tm) binder
   (* inductive *)
   | Constr of Constr.t * tms
   | Case of relv * sort * tm * cls
-  | Match of tms * tm
   | Absurd
   (* monad *)
   | Return of tm
@@ -81,14 +79,12 @@ let _R = box R
 let _Var = box_var
 let _Const x = box (Const x)
 let _Fun = box_apply (fun m -> Fun m)
-let _Lam = box_apply (fun m -> Lam m)
 let _App s = box_apply2 (fun m n -> App (s, m, n))
 let _Let = box_apply2 (fun m n -> Let (m, n))
 
 (* inductive *)
 let _Constr x = box_apply (fun ms -> Constr (x, ms))
 let _Case r s = box_apply2 (fun m cls -> Case (r, s, m, cls))
-let _Match = box_apply2 (fun m cls -> Match (m, cls))
 let _Absurd = box Absurd
 
 (* monad *)
@@ -126,8 +122,7 @@ let rec lift_tm = function
   (* core *)
   | Var x -> _Var x
   | Const x -> _Const x
-  | Fun bnd -> _Fun (box_binder lift_tm bnd)
-  | Lam bnd -> _Lam (box_binder lift_tm bnd)
+  | Fun bnd -> _Fun (box_mbinder lift_tm bnd)
   | App (s, m, n) -> _App s (lift_tm m) (lift_tm n)
   | Let (m, bnd) -> _Let (lift_tm m) (box_binder lift_tm bnd)
   (* inductive *)
@@ -135,12 +130,10 @@ let rec lift_tm = function
     let ms = List.map lift_tm ms in
     _Constr c (box_list ms)
   | Case (relv, s, m, cls) ->
-    let cls = List.map (fun (c, bnd) -> _PConstr c (box_mbinder lift_tm bnd)) cls in
+    let cls =
+      List.map (fun (c, bnd) -> _PConstr c (box_mbinder lift_tm bnd)) cls
+    in
     _Case relv s (lift_tm m) (box_list cls)
-  | Match (ms, cls) ->
-    let ms = List.map lift_tm ms in
-    let cls = lift_tm cls in
-    _Match (box_list ms) cls
   | Absurd -> _Absurd
   (* monad *)
   | Return m -> _Return (lift_tm m)

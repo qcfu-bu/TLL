@@ -117,7 +117,7 @@ and infer_tm ctx env m : tm =
   (* core *)
   | Type _ -> Type U
   | Var x -> Ctx.find_var x ctx
-  | Const (x, ss) -> scheme_inst (Ctx.find_const x ctx) ss
+  | Const (x, ss) -> msubst (Ctx.find_const x ctx) (Array.of_list ss)
   | Pi (rel, s, a, bnd) ->
     let x, b = unbind bnd in
     assert_type ctx env a;
@@ -250,7 +250,7 @@ and check_cls ctx env cls a : unit =
         let tele = param_inst param ms in
         let _, t = unbind_tele tele in
         let global = PPrbm.EqualTerm (env, a, t) :: global in
-        if succeed_pprbm global then failwith "trans1e.fail_on_ind")
+        if succeed_pprbm global then failwith "trans1e.fail_on_ind(%a)" Ind.pp d)
       cs
   in
   let rec aux_prbm (ctx : Ctx.t) (prbm : PPrbm.t) a =

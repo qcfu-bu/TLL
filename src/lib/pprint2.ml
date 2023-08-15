@@ -30,23 +30,13 @@ let rec pp_rxs fmt = function
     | R -> pf fmt "(%a : %a)@;<1 0>%a" Var.pp x pp_tm a pp_rxs rxs
     | N -> pf fmt "{%a : %a}@;<1 0>%a" Var.pp x pp_tm a pp_rxs rxs)
 
-and gather_lam = function
-  | Lam bnd ->
-    let x, m = unbind bnd in
-    let xs, m = gather_lam m in
-    (x :: xs, m)
-  | m -> ([], m)
-
 and pp_tm fmt = function
   (* core *)
   | Var x -> Var.pp fmt x
   | Const x -> pf fmt "%a" Const.pp x
   | Fun bnd ->
-    let x, m = unbind bnd in
-    pf fmt "@[<v 0>@[fun %a =>@;<1 2>@[%a@]@]" Var.pp x pp_tm m
-  | Lam _ as m ->
-    let xs, m = gather_lam m in
-    pf fmt "@[<v 0>@[lam %a =>@;<1 2>@[%a@]@]" (list ~sep:sp Var.pp) xs pp_tm m
+    let xs, m = unmbind bnd in
+    pf fmt "@[<v 0>@[fun %a =>@;<1 2>@[%a@]@]" (array ~sep:sp Var.pp) xs pp_tm m
   | App (_, m, n) ->
     let hd, ms = unApps m in
     let ms = List.map fst ms in
@@ -63,9 +53,6 @@ and pp_tm fmt = function
     pf fmt "@[<v 0>@[case %a of@]@;<1 0>@[%a@]@;<1 0>end@]" pp_tm m pp_cls cls
   | Case (N, _, m, cls) ->
     pf fmt "@[<v 0>@[case {%a} of@]@;<1 0>@[%a@]@;<1 0>end@]" pp_tm m pp_cls cls
-  | Match (ms, m) ->
-    pf fmt "@[<v 0>@[match %a with@]@;<1 0>@[<v 0>%a@]@;<1 0>end@]"
-      (list ~sep:comma pp_tm) ms pp_tm m
   | Absurd -> pf fmt "!!"
   (* monad *)
   | Return m -> pf fmt "return %a" pp_tm m

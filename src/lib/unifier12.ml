@@ -93,7 +93,6 @@ let resolve_pmeta var_map m =
     m
 
 let rec simpl_pprbm ?(expand = false) eqn =
-  let open PPrbm in
   match eqn with
   | EqualPat _ -> failwith "unifier1.simpl_pprbm(EqualPat)"
   | EqualTerm (env, m1, m2) -> (
@@ -205,7 +204,6 @@ let rec simpl_pprbm ?(expand = false) eqn =
         m1 pp_tm m2)
 
 let solve_pprbm map eqn =
-  let open PPrbm in
   match eqn with
   | EqualTerm (_, m, PMeta x) ->
     if occur x (lift_tm m) then
@@ -215,7 +213,6 @@ let solve_pprbm map eqn =
   | _ -> failwith "unifier1.solve_pprbm(solve)"
 
 let unify_pprbm local global =
-  let open PPrbm in
   Debug.exec (fun () ->
       pr "@[unify_local(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns local);
   Debug.exec (fun () ->
