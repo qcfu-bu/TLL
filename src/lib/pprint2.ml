@@ -35,8 +35,10 @@ and pp_tm fmt = function
   | Var x -> Var.pp fmt x
   | Const x -> pf fmt "%a" Const.pp x
   | Fun bnd ->
+    let x, bnd = unbind bnd in
     let xs, m = unmbind bnd in
-    pf fmt "@[<v 0>@[fun %a =>@;<1 2>@[%a@]@]" (array ~sep:sp Var.pp) xs pp_tm m
+    pf fmt "@[<v 0>@[fun %a (%a) =>@;<1 2>@[%a@]@]" Var.pp x
+      (array ~sep:comma Var.pp) xs pp_tm m
   | App (_, m, n) ->
     let hd, ms = unApps m in
     let ms = List.map fst ms in

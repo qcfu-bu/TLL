@@ -16,7 +16,7 @@ type tm =
   (* core *)
   | Var of tm var
   | Const of Const.t
-  | Fun of (tm, tm) mbinder
+  | Fun of (tm, (tm, tm) mbinder) binder
   | App of sort * tm * tm
   | Let of tm * (tm, tm) binder
   (* inductive *)
@@ -122,7 +122,7 @@ let rec lift_tm = function
   (* core *)
   | Var x -> _Var x
   | Const x -> _Const x
-  | Fun bnd -> _Fun (box_mbinder lift_tm bnd)
+  | Fun bnd -> _Fun (box_binder (box_mbinder lift_tm) bnd)
   | App (s, m, n) -> _App s (lift_tm m) (lift_tm n)
   | Let (m, bnd) -> _Let (lift_tm m) (box_binder lift_tm bnd)
   (* inductive *)
