@@ -155,6 +155,10 @@ module Logical = struct
     assert_equal env a b
 
   and check_cls ctx env cls a =
+    let infer_demote ctx env a =
+      let ctx = Ctx.map_var demote_pmeta ctx in
+      infer_sort ctx env (demote_pmeta a)
+    in
     let rec is_absurd eqns rhs =
       match (eqns, rhs) with
       | EqualPat (_, _, PMeta _, PAbsurd, _) :: _, None -> true
@@ -210,9 +214,7 @@ module Logical = struct
         match whnf env a with
         | Pi (relv, _, a, bnd) ->
           let x, b = unbind_pmeta bnd in
-          let s =
-            infer_sort (Ctx.map_var demote_pmeta ctx) env (demote_pmeta a)
-          in
+          let s = infer_demote ctx env a in
           let ctx = Ctx.add_var x a s ctx in
           let prbm = prbm_add env prbm x a relv in
           aux_prbm ctx prbm b
@@ -235,7 +237,7 @@ module Logical = struct
               let ctx, ns =
                 List.fold_left_map
                   (fun ctx (_, x, a) ->
-                    let s = infer_sort ctx env a in
+                    let s = infer_demote ctx env a in
                     (Ctx.add_var x a s ctx, PMeta x))
                   ctx args
               in
@@ -531,6 +533,10 @@ module Program = struct
     (m_elab, usg)
 
   and check_cls ctx env cls a =
+    let infer_demote ctx env a =
+      let ctx = Ctx.map_var demote_pmeta ctx in
+      Logical.infer_sort ctx env (demote_pmeta a)
+    in
     let rec is_absurd eqns rhs =
       match (eqns, rhs) with
       | EqualPat (_, _, PMeta _, PAbsurd, _) :: _, None -> true
@@ -550,7 +556,7 @@ module Program = struct
       | [] -> false
     in
     let rec first_split = function
-      | EqualPat (_, _, PMeta x, PConstr _, a) :: _ -> (x, a)
+      | EqualPat (relv, _, PMeta x, PConstr _, a) :: _ -> (relv, x, a)
       | _ :: eqns -> first_split eqns
       | [] -> failwith "trans12.Program.first_split"
     in
@@ -589,10 +595,7 @@ module Program = struct
         match whnf env a with
         | Pi (relv, s, a, bnd) -> (
           let x, b = unbind_pmeta bnd in
-          let t =
-            let ctx = Ctx.map_var demote_pmeta ctx in
-            Logical.infer_sort ctx env (demote_pmeta a)
-          in
+          let t = infer_demote ctx env a in
           let ctx = Ctx.add_var x a t ctx in
           let prbm = prbm_add env prbm x a relv in
           let xs, ctree, usg = aux_prbm ctx env prbm b in
@@ -603,7 +606,65 @@ module Program = struct
           | _ -> failwith "trans12.Program.check_cls(Intro(%a))" pp_tm a)
         | a -> failwith "trans12.Program.check_cls(Intro(%a))" pp_tm a)
       (* case split *)
-      | (eqns, [], rhs) :: _ when can_split eqns -> _
+      | (eqns, [], rhs) :: _ when can_split eqns -> (
+        let relv, x, b = first_split eqns in
+        let s = infer_demote ctx env b in
+        let usg1 =
+          match relv with
+          | R -> Usage.var_singleton x (s, false)
+          | N -> Usage.empty
+        in
+        match whnf env b with
+        | Ind (d0, ss, ms, _) ->
+          let d1 = State.find_ind d0 ss in
+          let _, cs0 = Ctx.find_ind d1 ctx in
+          let ctrees, usg2 =
+            List.fold_left
+              (fun (ctrees, usg2) c0 ->
+                let c1 = State.find_constr c0 ss in
+                let param, _ = Ctx.find_constr c1 ctx in
+                let tele = param_inst param ms in
+                let args, t = unbind_tele tele in
+                let ctx, args =
+                  List.fold_left_map
+                    (fun ctx (relv, x, a) ->
+                      let s = infer_demote ctx env a in
+                      (Ctx.add_var x a s ctx, (relv, x, s)))
+                    ctx args
+                in
+                let m =
+                  Constr (c0, ss, ms, List.map (fun (_, x, _) -> PMeta x) args)
+                in
+                let var_map = Var.Map.singleton x m in
+                let a = subst_pmeta var_map a in
+                let ctx = Ctx.map_var (subst_pmeta var_map) ctx in
+                let prbm = prbm_simpl ctx env var_map prbm in
+                let prbm =
+                  { prbm with global = EqualTerm (env, b, t) :: prbm.global }
+                in
+                let _, ctree, usg = aux_prbm ctx env prbm a in
+                let usg =
+                  List.fold_left
+                    (fun usg (relv0, x, s) ->
+                      match relv with
+                      | N -> Usage.remove_var x usg N s
+                      | R -> Usage.remove_var x usg relv0 s)
+                    usg args
+                in
+                let xs = List.map (fun (_, x, _) -> trans_var x) args in
+                let ctree =
+                  Syntax2.(_PConstr c1 (bind_mvar (Array.of_list xs) ctree))
+                in
+                (ctree :: ctrees, Usage.refine_equal usg2 usg))
+              ([], Usage.of_ctx ctx)
+              cs0
+          in
+          let ctrees = box_rev_list ctrees in
+          Syntax2.
+            ( []
+            , _Case (trans_relv relv) (trans_sort s) (_Var (trans_var x)) ctrees
+            , Usage.merge usg1 usg2 )
+        | _ -> failwith "trans12.Program.check_cls(Split(%a))" pp_tm b)
       (* absurd pattern *)
       | (eqns, [], rhs) :: _ when is_absurd eqns rhs ->
         Debug.exec (fun () -> pr "trans12.Program.case_absurd@.");
@@ -640,4 +701,15 @@ module Program = struct
     in
     let xs, ctree, usg = aux_prbm ctx env (of_cls cls) a in
     (bind_mvar (Array.of_list xs) ctree, usg)
+
+  and prbm_add env prbm x a relv =
+    match prbm.clause with
+    | [] -> prbm
+    | (eqns, p :: ps, rhs) :: clause ->
+      let prbm = prbm_add env { prbm with clause } x a relv in
+      let clause =
+        (eqns @ [ EqualPat (relv, env, PMeta x, p, a) ], ps, rhs) :: prbm.clause
+      in
+      { prbm with clause }
+    | _ -> failwith "trans12.Program.prbm_add"
 end
