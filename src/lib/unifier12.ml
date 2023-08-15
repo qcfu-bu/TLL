@@ -89,6 +89,8 @@ let resolve_pmeta var_map m =
       | None -> Var x)
     m
 
+let demote_pmeta m = map_pmeta (fun self x -> Var x) m
+
 let rec simpl_pprbm ?(expand = false) eqn =
   let open PPrbm in
   match eqn with

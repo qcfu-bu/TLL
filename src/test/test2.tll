@@ -6,18 +6,19 @@ inductive nat : U where
 | succ (pred : nat) : nat
 
 #[logical]
-inductive eq‹s› (A : Type‹s›) (m : A) : A -> U where
-| refl : eq _ m m
+inductive eq<s> ?(A : Type‹s›) (m : A) : A -> U where
+| refl : eq m m
 
-inductive exists‹s,r,t› (A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
-| ex (m : A) {pf : B m} : exists A B
+inductive exists<s,r,t> ?(A : Type‹s›) (B : A -> Type<r>) : Type<t> where
+| ex (m : A) {pf : B m} : exists B
 
-inductive sing‹s› (A : Type‹s›) : A -> Type‹s› where
-| just (m : A) : sing _ m
+inductive sing<s> ?(A : Type<s>) : A -> Type<s> where
+| just (m : A) : sing m
 
-def sing_eq‹s› {A : Type‹s›} {m : A} : sing _ m -> exists‹_,_,L› _ (fn x => eq _ x m)
-  | (just m) => ex m refl
+inductive prod<s,r,t> (A : Type<s>) (B : Type<r>) : Type<t> where
+| pair (m : A) (n : B) : prod A B
 
-def sing_double‹s› {A : Type‹s›} {m : A} : sing _ m -> sing _ m -> unit
+def sing_double<s> {A : Type<s>} {m : A} : sing m -o sing m -o prod<_,_,L>A A
   | (just x) (just y) =>
-    let pf : eq _ x y := refl in tt
+    let {pf} : eq x y := refl in
+    pair x y

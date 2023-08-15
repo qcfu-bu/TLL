@@ -13,12 +13,21 @@ module Ctx = struct
     }
 
   let empty =
-    { var = Var.Map.empty; const = Const.Map.empty; ind = Ind.Map.empty; constr = Constr.Map.empty }
+    { var = Var.Map.empty
+    ; const = Const.Map.empty
+    ; ind = Ind.Map.empty
+    ; constr = Constr.Map.empty
+    }
 
   let add_var x a s (ctx : t) = { ctx with var = Var.Map.add x (a, s) ctx.var }
-  let add_const x a s (ctx : t) = { ctx with const = Const.Map.add x (a, s) ctx.const }
+
+  let add_const x a s (ctx : t) =
+    { ctx with const = Const.Map.add x (a, s) ctx.const }
+
   let add_ind x ind (ctx : t) = { ctx with ind = Ind.Map.add x ind ctx.ind }
-  let add_constr x sch ctx = { ctx with constr = Constr.Map.add x sch ctx.constr }
+
+  let add_constr x sch ctx =
+    { ctx with constr = Constr.Map.add x sch ctx.constr }
 
   let find_var x (ctx : t) =
     try Var.Map.find x ctx.var with
@@ -43,7 +52,34 @@ module Env = struct
   let find_var x env = Var.Map.find_opt x env.var
   let find_const x env = Const.Map.find_opt x env.const
   let add_var x m env = { env with var = Var.Map.add x m env.var }
-  let add_const x entry env = { env with const = Const.Map.add x entry env.const }
+
+  let add_const x entry env =
+    { env with const = Const.Map.add x entry env.const }
+
+  let merge_var var_map env =
+    let var =
+      Var.Map.merge
+        (fun x opt1 opt2 ->
+          match (opt1, opt2) with
+          | Some m, None -> Some m
+          | None, Some m -> Some m
+          | None, None -> None
+          | _ -> failwith "context1.merge_var(%a)" Var.pp x)
+        var_map env.var
+    in
+    { env with var }
+
+  let map_var f (env : t) : t =
+    let var = Var.Map.map (fun a -> f a) env.var in
+    { env with var }
+
+  let pp_var fmt env =
+    let aux fmt map =
+      Var.Map.iter
+        (fun x m -> pf fmt "@[%a := %a@]@;<1 0>" Var.pp x pp_tm m)
+        map
+    in
+    pf fmt "@[<v 0>env {|@;<1 2>%a@;<1 0>|}@]" aux env.var
 end
 
 module Resolver = struct
@@ -61,8 +97,11 @@ module Resolver = struct
     ; constr : Constr.t RMap.t Constr.Map.t
     }
 
-  let empty = { const = Const.Map.empty; ind = Ind.Map.empty; constr = Constr.Map.empty }
-  let add_const x0 rmap (res : t) = { res with const = Const.Map.add x0 rmap res.const }
+  let empty =
+    { const = Const.Map.empty; ind = Ind.Map.empty; constr = Constr.Map.empty }
+
+  let add_const x0 rmap (res : t) =
+    { res with const = Const.Map.add x0 rmap res.const }
 
   let add_ind d0 ss d1 (res : t) : t =
     { res with
@@ -117,8 +156,12 @@ module Usage = struct
     }
 
   let empty = { var = Var.Map.empty; const = Const.Map.empty }
-  let var_singleton x entry = { var = Var.Map.singleton x entry; const = Const.Map.empty }
-  let const_singleton x entry = { var = Var.Map.empty; const = Const.Map.singleton x entry }
+
+  let var_singleton x entry =
+    { var = Var.Map.singleton x entry; const = Const.Map.empty }
+
+  let const_singleton x entry =
+    { var = Var.Map.empty; const = Const.Map.singleton x entry }
 
   let merge usg1 usg2 =
     let aux pp x opt1 opt2 =
@@ -142,6 +185,10 @@ module Usage = struct
   let add_const x s b usg = merge (const_singleton x (s, b)) usg
 
   let refine_equal usg1 usg2 =
+    let pp_opt fmt = function
+      | Some (s, b) -> pf fmt "Some(%a, %b)" pp_sort s b
+      | None -> pf fmt "None"
+    in
     let aux pp x opt1 opt2 =
       match (opt1, opt2) with
       | Some (U, false), None -> Some (U, false)
@@ -150,7 +197,7 @@ module Usage = struct
       | Some (_, true), None -> None
       | None, Some (_, true) -> None
       | None, None -> None
-      | _ -> failwith "refine_usage(%a)" pp x
+      | _ -> failwith "refine_usage(%a, %a, %a)" pp x pp_opt opt1 pp_opt opt2
     in
     { var = Var.(Map.merge (aux pp) usg1.var usg2.var)
     ; const = Const.(Map.merge (aux pp) usg1.const usg2.const)
@@ -173,10 +220,14 @@ module Usage = struct
       ()
     else
       let aux0 fmt map =
-        Var.Map.iter (fun x (s, b) -> pf fmt "{%a, %a, %b}@." Var.pp x pp_sort s b) map
+        Var.Map.iter
+          (fun x (s, b) -> pf fmt "{%a, %a, %b}@." Var.pp x pp_sort s b)
+          map
       in
       let aux1 fmt map =
-        Const.Map.iter (fun x (s, b) -> pf fmt "{%a, %a, %b}@." Const.pp x pp_sort s b) map
+        Const.Map.iter
+          (fun x (s, b) -> pf fmt "{%a, %a, %b}@." Const.pp x pp_sort s b)
+          map
       in
       failwith "assert_empty@.%a@.%a" aux0 usg.var aux1 usg.const
 
@@ -198,7 +249,8 @@ module Usage = struct
   let remove_const x usg r s =
     match (r, s) with
     | N, _ ->
-      if Const.Map.exists (fun y (_, b) -> Const.equal x y && not b) usg.const then
+      if Const.Map.exists (fun y (_, b) -> Const.equal x y && not b) usg.const
+      then
         failwith "remove_const(%a)" Const.pp x
       else
         { usg with const = Const.Map.remove x usg.const }
@@ -214,4 +266,12 @@ module Usage = struct
     { var = Var.Map.map (fun (_, s) -> (s, true)) ctx.var
     ; const = Const.Map.map (fun (_, s) -> (s, true)) ctx.const
     }
+
+  let pp_var fmt usg =
+    let aux fmt map =
+      Var.Map.iter
+        (fun x (s, b) -> pf fmt "@[%a : %a := %b@]@;<1 0>" Var.pp x pp_sort s b)
+        map
+    in
+    pf fmt "@[<v 0>usg {|@;<1 2>%a@;<1 0>|}@]" aux usg.var
 end

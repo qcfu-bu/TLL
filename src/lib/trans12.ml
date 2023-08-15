@@ -52,6 +52,7 @@ module Logical = struct
     | _ -> failwith "trans12.Logical.infer_sort(%a : %a)" pp_tm a pp_tm t
 
   and infer_tm ctx env m : tm =
+    Debug.exec (fun () -> pr "Logical.infer_tm(%a)@." pp_tm m);
     match m with
     (* inference *)
     | Ann (m, a) ->
@@ -154,6 +155,7 @@ module Logical = struct
     | _ -> failwith "trans12.Logical.infer_motive"
 
   and check_tm ctx env m a =
+    Debug.exec (fun () -> pr "Logical.check_tm(%a, %a)@." pp_tm m pp_tm a);
     match m with
     | Fun (b, bnd) ->
       let x, cls = unbind bnd in
@@ -392,6 +394,7 @@ module Program = struct
   let trans_mvar xs = Array.map trans_var xs
 
   let rec infer_tm ctx env m =
+    Debug.exec (fun () -> pr "Program.infer_tm(%a)@." pp_tm m);
     match m with
     (* inference *)
     | Ann (m, a) ->
@@ -526,6 +529,7 @@ module Program = struct
     | _ -> failwith "trans12.Program.infer_motive"
 
   and check_tm ctx env m a =
+    Debug.exec (fun () -> pr "Program.check_tm(%a, %a)@." pp_tm m pp_tm a);
     let b, m_elab, usg = infer_tm ctx env m in
     Logical.assert_equal env a b;
     (m_elab, usg)
@@ -589,7 +593,7 @@ module Program = struct
         | Pi (relv, s, a, bnd) -> (
           let x, b = unbind_pmeta bnd in
           let t = Logical.infer_sort ctx env a in
-          let ctx = Ctx.add_var x a s ctx in
+          let ctx = Ctx.add_var x a t ctx in
           let prbm = prbm_add env prbm x a relv in
           let ctree, usg = aux_prbm ctx env prbm b in
           let usg = Usage.remove_var x usg relv t in
@@ -610,6 +614,8 @@ module Program = struct
         | Ind (d0, ss, ms, _) ->
           let d1 = State.find_ind d0 ss in
           let _, cs0 = Ctx.find_ind d1 ctx in
+          Debug.exec (fun () ->
+              pr "d1 := %a, cs0 := %a@." Ind.pp d1 (list ~sep:sp Constr.pp) cs0);
           let cls_elab, usg =
             List.fold_left
               (fun (cls_elab, usg_acc) c0 ->
@@ -627,6 +633,8 @@ module Program = struct
                 let m =
                   Constr (c0, ss, ms, List.map (fun (_, x, _) -> PMeta x) args)
                 in
+                Debug.exec (fun () -> pr "splitting_on(%a)@." Constr.pp c1);
+                Debug.exec (fun () -> pr "splitting_with(%a)@." pp_tm m);
                 let var_map = Var.Map.singleton x m in
                 let a = subst_pmeta var_map a in
                 let ctx = Ctx.map_var (subst_pmeta var_map) ctx in
@@ -644,6 +652,8 @@ module Program = struct
                       | R -> Usage.remove_var x acc relv0 s)
                     usg args
                 in
+                Debug.exec (fun () -> pr "usg %a@." Usage.pp_var usg);
+                Debug.exec (fun () -> pr "usg_acc %a@." Usage.pp_var usg_acc);
                 let xs = List.map (fun (_, x, _) -> trans_var x) args in
                 let cl_elab =
                   Syntax2.(_PConstr c1 (bind_mvar (Array.of_list xs) ctree))
@@ -677,12 +687,19 @@ module Program = struct
           | _ -> failwith "trans12.Program.check_cls(Absurd)")
       (* case coverage *)
       | (eqns, [], rhs) :: _ -> (
+        Debug.exec (fun () ->
+            pr "@[<v 0>case_coverage{|@;<1 2>%a@;<1 0>|}@]@." PPrbm.pp prbm);
         match rhs with
         | Some m ->
-          let var_map = unify_pprbm (prbm.global @ eqns) in
-          let a = resolve_pmeta var_map a in
-          let ctx = Ctx.map_var (resolve_pmeta var_map) ctx in
-          let rhs = resolve_pmeta var_map m in
+          let var_map0 = unify_pprbm eqns in
+          let var_map1 = unify_pprbm (prbm.global @ eqns) in
+          let a = resolve_pmeta var_map1 a in
+          let ctx = Ctx.map_var (resolve_pmeta var_map1) ctx in
+          let env = Env.merge_var var_map1 env in
+          let env = Env.map_var demote_pmeta env in
+          Debug.exec (fun () -> pr "%a@." Env.pp_var env);
+          let rhs = resolve_pmeta var_map0 m in
+          Debug.exec (fun () -> pr "rhs := %a@." pp_tm rhs);
           check_tm ctx env rhs a
         | None ->
           if has_failed (fun () -> unify_pprbm prbm.global) then
@@ -786,11 +803,17 @@ module Program = struct
     | _ -> None
 end
 
-let warn_const x = pr "@[@;<2 0>warning - pruned constant %a@]@." Const.pp x
-let warn_ind x = pr "@[@;<2 0>warning - pruned inductive %a@]@." Ind.pp x
+let warn_const x e =
+  match e with
+  | Failure s ->
+    pr "@[@;<2 0>warning - pruned constant %a@;<1 0>%s@]@." Const.pp x s
+  | _ -> raise e
 
-let warn_constr x =
-  pr "@[@;<2 0>warning - pruned constructor %a@]@." Constr.pp x
+let warn_ind x e =
+  pr "@[@;<2 0>warning - pruned inductive %a %a@]@." Ind.pp x exn e
+
+let warn_constr x e =
+  pr "@[@;<2 0>warning - pruned constructor %a %a@]@." Constr.pp x exn e
 
 let const_extend x ss =
   match ss with
@@ -844,8 +867,8 @@ let rec check_dcls ctx env = function
               , RMap.add ss m env_acc
               , (x1, s) :: xs )
           with
-          | _ ->
-            warn_const x1;
+          | e ->
+            warn_const x1 e;
             (res_acc, ctx_acc, env_acc, xs))
         init
         Resolver.(RMap.empty, ctx, RMap.empty, [])
@@ -865,7 +888,7 @@ let rec check_dcls ctx env = function
         (fun ss (def_elab, res_acc, ctx_acc, env_acc, xs, usg_acc) ->
           let x1 = const_extend x0 ss in
           try
-            let a, m = msubst sch (Array.of_list ss) in
+            let m, a = msubst sch (Array.of_list ss) in
             let s = Logical.infer_sort ctx env a in
             let m_elab, usg = Program.check_tm ctx env m a in
             Resolver.
@@ -877,8 +900,8 @@ let rec check_dcls ctx env = function
               , (x1, s) :: xs
               , Usage.merge usg usg_acc )
           with
-          | _ ->
-            warn_const x1;
+          | e ->
+            warn_const x1 e;
             (def_elab, res_acc, ctx_acc, env_acc, xs, usg_acc))
         init
         Resolver.([], RMap.empty, ctx, RMap.empty, [], Usage.empty)
@@ -967,8 +990,8 @@ and check_dconstrs ss ctx env relv d0 dconstrs ctx_acc =
         let i = aux_param ctx env relv d0 param in
         Some (i, param)
       with
-      | _ ->
-        warn_constr c1;
+      | e ->
+        warn_constr c1 e;
         None
     in
     let dconstrs_elab, ctx_acc, cs =
@@ -978,5 +1001,10 @@ and check_dconstrs ss ctx env relv d0 dconstrs ctx_acc =
     | Some (i, param) ->
       State.add_constr c0 ss c1;
       let ctx_acc = Ctx.add_constr c1 (param, relv) ctx_acc in
-      ((c1, i) :: dconstrs_elab, ctx_acc, c1 :: cs)
+      ((c1, i) :: dconstrs_elab, ctx_acc, c0 :: cs)
     | None -> (dconstrs_elab, ctx_acc, cs))
+
+let trans_dcls dcls =
+  let dcls, usg = check_dcls Ctx.empty Env.empty dcls in
+  Usage.assert_empty usg;
+  dcls
