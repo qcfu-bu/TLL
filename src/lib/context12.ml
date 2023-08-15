@@ -156,7 +156,10 @@ module Usage = struct
     ; const = Const.(Map.merge (aux pp) usg1.const usg2.const)
     }
 
-  let refine_usage usg1 usg2 =
+  let add_var x s b usg = merge (var_singleton x (s, b)) usg
+  let add_const x s b usg = merge (const_singleton x (s, b)) usg
+
+  let refine_equal usg1 usg2 =
     let aux pp x opt1 opt2 =
       match (opt1, opt2) with
       | Some (U, false), None -> Some (U, false)
