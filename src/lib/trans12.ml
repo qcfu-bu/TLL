@@ -414,9 +414,7 @@ module Program = struct
       let ctree, usg = check_cls (Ctx.add_var x a s ctx) env cls a in
       let usg =
         match s with
-        | U ->
-          let usg = Usage.remove_var x usg R U in
-          Usage.refine_pure usg
+        | U -> Usage.remove_var x usg R U
         | L -> Usage.remove_var x usg N L
         | _ -> failwith "trans12.Program.infer_tm(Fun)"
       in
@@ -794,3 +792,221 @@ module Program = struct
     | _, [], [], TBase _ -> Some []
     | _ -> None
 end
+
+let warn_const x e =
+  match e with
+  | Failure s ->
+    pr "@[@;<2 0>warning - pruned constant %a@;<1 0>%s@]@." Const.pp x s
+  | _ -> raise e
+
+let warn_ind x e =
+  match e with
+  | Failure s ->
+    pr "@[@;<2 0>warning - pruned inductive %a@;<1 0>%s@]@." Ind.pp x s
+  | _ -> raise e
+
+let warn_constr x e =
+  match e with
+  | Failure s ->
+    pr "@[@;<2 0>warning - pruned constructor %a@;<1 0>%s@]@." Constr.pp x s
+  | _ -> raise e
+
+let const_extend x ss =
+  match ss with
+  | [] -> x
+  | _ ->
+    let ss = String.concat "" (List.map (str "%a" pp_sort) ss) in
+    Const.extend x ss
+
+let ind_extend d ss =
+  match ss with
+  | [] -> d
+  | _ ->
+    let ss = String.concat "" (List.map (str "%a" pp_sort) ss) in
+    Ind.extend d ss
+
+let constr_extend c ss =
+  match ss with
+  | [] -> c
+  | _ ->
+    let ss = String.concat "" (List.map (str "%a" pp_sort) ss) in
+    Constr.extend c ss
+
+let make_init xs =
+  let rec loop xs =
+    match xs with
+    | [] -> [ [] ]
+    | _ :: xs ->
+      let ss = loop xs in
+      let ssU = List.(map (cons U)) ss in
+      let ssL = List.(map (cons L)) ss in
+      ssU @ ssL
+  in
+  loop (Array.to_list xs)
+
+let rec check_dcls ctx env = function
+  | [] -> ([], Usage.empty)
+  | Definition { name = x0; relv = N; scheme = sch } :: dcls ->
+    let sargs = mbinder_names sch in
+    let init = make_init sargs in
+    let res, ctx, local, xs =
+      List.fold_right
+        (fun ss (res, ctx_acc, local, xs) ->
+          let x1 = const_extend x0 ss in
+          try
+            let m, a = msubst sch (Array.of_list ss) in
+            let s = Logical.infer_sort ctx env a in
+            Logical.check_tm ctx env m a;
+            Resolver.
+              ( RMap.add ss x1 res
+              , Ctx.add_const x1 a s ctx_acc
+              , RMap.add ss m local
+              , (x1, s) :: xs )
+          with
+          | e ->
+            warn_const x1 e;
+            (res, ctx_acc, local, xs))
+        init
+        Resolver.(RMap.empty, ctx, RMap.empty, [])
+    in
+    State.add_const x0 res;
+    let env = Env.add_const x0 (fun ss -> Resolver.RMap.find ss local) env in
+    let dcls_elab, usg = check_dcls ctx env dcls in
+    let usg =
+      List.fold_left (fun usg (x, s) -> Usage.remove_const x usg N s) usg xs
+    in
+    (dcls_elab, usg)
+  | Definition { name = x0; relv = R; scheme = sch } :: dcls ->
+    let sargs = mbinder_names sch in
+    let init = make_init sargs in
+    let dcl_elab, res, ctx, local, xs, usg1 =
+      List.fold_right
+        (fun ss (dcl_elab, res, ctx_acc, local, xs, usg1) ->
+          let x1 = const_extend x0 ss in
+          try
+            let m, a = msubst sch (Array.of_list ss) in
+            let s = Logical.infer_sort ctx env a in
+            let m_elab, usg = Program.check_tm ctx env m a in
+            Resolver.
+              ( Syntax2.(Definition { name = x1; body = unbox m_elab })
+                :: dcl_elab
+              , RMap.add ss x1 res
+              , Ctx.add_const x1 a s ctx_acc
+              , RMap.add ss m local
+              , (x1, s) :: xs
+              , Usage.merge usg usg1 )
+          with
+          | e ->
+            warn_const x1 e;
+            (dcl_elab, res, ctx_acc, local, xs, usg1))
+        init
+        Resolver.([], RMap.empty, ctx, RMap.empty, [], Usage.empty)
+    in
+    State.add_const x0 res;
+    let env = Env.add_const x0 (fun ss -> Resolver.RMap.find ss local) env in
+    let dcls_elab, usg2 = check_dcls ctx env dcls in
+    let usg2 =
+      List.fold_left (fun usg2 (x, s) -> Usage.remove_const x usg2 R s) usg2 xs
+    in
+    (dcl_elab @ dcls_elab, Usage.merge usg1 usg2)
+  | Inductive { name = d0; relv; arity; dconstrs } :: dcls ->
+    let sargs = mbinder_names arity in
+    let init = make_init sargs in
+    let dcl_elab, ctx =
+      List.fold_right
+        (fun ss (dcl_elab, ctx_acc) ->
+          let d1 = ind_extend d0 ss in
+          try
+            let arity = msubst arity (Array.of_list ss) in
+            check_arity ctx env arity;
+            State.add_ind d0 ss d1;
+            let ctx = Ctx.add_ind d1 (arity, []) ctx in
+            let dconstrs_elab, ctx_acc, cs0 =
+              check_dconstrs ss ctx env relv d0 dconstrs ctx_acc
+            in
+            let ctx_acc = Ctx.add_ind d1 (arity, cs0) ctx_acc in
+            Syntax2.
+              ( Inductive { name = d1; body = dconstrs_elab } :: dcl_elab
+              , ctx_acc )
+          with
+          | e ->
+            warn_ind d1 e;
+            (dcl_elab, ctx_acc))
+        init
+        Resolver.([], ctx)
+    in
+    let dcls_elab, usg = check_dcls ctx env dcls in
+    (dcl_elab @ dcls_elab, usg)
+
+and check_arity ctx env arity =
+  let rec aux_param ctx = function
+    | PBase tele -> aux_tele ctx tele
+    | PBind (a, bnd) ->
+      let x, b = unbind bnd in
+      let s = Logical.infer_sort ctx env a in
+      aux_param (Ctx.add_var x a s ctx) b
+  and aux_tele ctx = function
+    | TBase (Type U) -> ()
+    | TBase (Type L) -> ()
+    | TBind (R, a, bnd) ->
+      let x, b = unbind bnd in
+      let s = Logical.infer_sort ctx env a in
+      aux_tele (Ctx.add_var x a s ctx) b
+    | _ -> failwith "trans12.check_arity"
+  in
+  aux_param ctx arity
+
+and check_dconstrs ss ctx env relv d0 dconstrs ctx_acc =
+  let rec aux_param ctx env relv d0 = function
+    | PBase tele -> fst (aux_tele ctx env relv d0 tele)
+    | PBind (a, bnd) ->
+      let x, b = unbind bnd in
+      let s = Logical.infer_sort ctx env a in
+      aux_param (Ctx.add_var x a s ctx) env relv d0 b
+  and aux_tele ctx env relv d0 = function
+    | TBase (Ind (d, _, _, _) as a) when Ind.equal d d0 ->
+      let t = Logical.infer_sort ctx env a in
+      (0, t)
+    | TBind (N, a, bnd) ->
+      let x, b = unbind bnd in
+      let s = Logical.infer_sort ctx env a in
+      let i, t = aux_tele (Ctx.add_var x a s ctx) env relv d0 b in
+      (i + 1, t)
+    | TBind (R, a, bnd) ->
+      let x, b = unbind bnd in
+      let s = Logical.infer_sort ctx env a in
+      let i, t = aux_tele (Ctx.add_var x a s ctx) env relv d0 b in
+      if relv = N || s <= t then
+        (i + 1, t)
+      else
+        failwith "trans12.check_dconstrs"
+    | _ -> failwith "trans12.check_dconstrs"
+  in
+  match dconstrs with
+  | [] -> ([], ctx_acc, [])
+  | (c0, sch) :: dconstrs -> (
+    let c1 = constr_extend c0 ss in
+    let opt =
+      try
+        let param = msubst sch (Array.of_list ss) in
+        let i = aux_param ctx env relv d0 param in
+        Some (i, param)
+      with
+      | e ->
+        warn_constr c1 e;
+        None
+    in
+    let dconstrs_elab, ctx_acc, cs0 =
+      check_dconstrs ss ctx env relv d0 dconstrs ctx_acc
+    in
+    match opt with
+    | Some (i, param) ->
+      State.add_constr c0 ss c1;
+      let ctx_acc = Ctx.add_constr c1 (param, relv) ctx_acc in
+      ((c1, i) :: dconstrs_elab, ctx_acc, c0 :: cs0)
+    | None -> (dconstrs_elab, ctx_acc, cs0))
+
+let trans_dcls dcls =
+  let dcls, usg = check_dcls Ctx.empty Env.empty dcls in
+  Usage.assert_empty usg;
+  dcls

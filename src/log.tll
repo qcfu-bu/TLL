@@ -122,7 +122,7 @@
           ))
        ));
     view = [E; E]};
-  Definition {name = "sing_double"; relv = N;
+  Definition {name = "sing_double"; relv = R;
     body =
     (Binder (["s"],
        ((Fun (
@@ -130,14 +130,15 @@
               (Binder ("A",
                  (Pi (N, U, (Id ("A", I)),
                     (Binder ("m",
-                       (Pi (R, L, (App [(Id ("sing", I)); (Id ("m", I))]),
-                          (Binder ("x",
+                       (Pi (N, L, (App [(Id ("sing", I)); (Id ("m", I))]),
+                          (Binder ("_",
                              (Pi (R, L,
                                 (App [(Id ("sing", I)); (Id ("m", I))]),
-                                (Binder ("y",
+                                (Binder ("_",
                                    (App
-                                      [(Id ("eq", I)); (Id ("x", I));
-                                        (Id ("y", I))])
+                                      [(Inst ("prod",
+                                          [(SId "_"); (SId "_"); L], I));
+                                        (Id ("A", I)); (Id ("A", I))])
                                    ))
                                 ))
                              ))
@@ -149,20 +150,32 @@
            (Binder ((Some "sing_double"),
               [([(PId "A"); (PId "m"); (PConstr ("just", [(PId "x")]));
                   (PConstr ("just", [(PId "y")]))],
-                (Some (Id ("refl", I))))]
+                (Some (Let (N,
+                         (Ann ((Id ("refl", I)),
+                            (App
+                               [(Id ("eq", I)); (Id ("x", I)); (Id ("y", I))])
+                            )),
+                         (Binder ("pf",
+                            (App
+                               [(Id ("pair", I)); (Id ("y", I));
+                                 (Id ("y", I))])
+                            ))
+                         ))))
+                ]
               )),
            [E; E])),
         (Pi (N, U, (Type (SId "s")),
            (Binder ("A",
               (Pi (N, U, (Id ("A", I)),
                  (Binder ("m",
-                    (Pi (R, L, (App [(Id ("sing", I)); (Id ("m", I))]),
-                       (Binder ("x",
+                    (Pi (N, L, (App [(Id ("sing", I)); (Id ("m", I))]),
+                       (Binder ("_",
                           (Pi (R, L, (App [(Id ("sing", I)); (Id ("m", I))]),
-                             (Binder ("y",
+                             (Binder ("_",
                                 (App
-                                   [(Id ("eq", I)); (Id ("x", I));
-                                     (Id ("y", I))])
+                                   [(Inst ("prod", [(SId "_"); (SId "_"); L],
+                                       I));
+                                     (Id ("A", I)); (Id ("A", I))])
                                 ))
                              ))
                           ))
@@ -184,46 +197,48 @@ inductive unit_1‹› : U where
 #[program]
 inductive nat_2‹› : U where
 | zero_2 : nat_2
-| succ_3 (pred_54 : nat_2) : nat_2
+| succ_3 (pred_55 : nat_2) : nat_2
 
 #[logical]
-inductive eq_3‹s_55› (A_56 : Type‹s_55›) (m_57 : A_56): A_56 -> U
+inductive eq_3‹s_56› (A_57 : Type‹s_56›) (m_58 : A_57): A_57 -> U
 where
-| refl_4 : (eq_3‹??_1› ?_1 m_57 m_57)
+| refl_4 : (eq_3‹??_1› ?_1 m_58 m_58)
 
 #[program]
-inductive exists_4‹s_59,r_60,t_61› (A_62 : Type‹s_59›) (B_63 : 
-A_62 -> Type‹r_60›): Type‹t_61› where
+inductive exists_4‹s_60,r_61,t_62› (A_63 : Type‹s_60›) (B_64 : 
+A_63 -> Type‹r_61›): Type‹t_62› where
 | ex_5
-    (m_65 : A_62) {pf_66 : ((B_63) m_65)}
-    : (exists_4‹??_2,??_3,??_4› ?_2 B_63)
+    (m_66 : A_63) {pf_67 : ((B_64) m_66)}
+    : (exists_4‹??_2,??_3,??_4› ?_2 B_64)
 
 #[program]
-inductive sing_5‹s_67› (A_68 : Type‹s_67›): A_68 -> Type‹s_67›
+inductive sing_5‹s_68› (A_69 : Type‹s_68›): A_69 -> Type‹s_68›
 where
-| just_6 (m_70 : A_68) : (sing_5‹??_5› ?_3 m_70)
+| just_6 (m_71 : A_69) : (sing_5‹??_5› ?_3 m_71)
 
 #[program]
-inductive prod_6‹s_71,r_72,t_73› (A_74 : Type‹s_71›) (B_75 : Type‹r_72›):
-  Type‹t_73›
+inductive prod_6‹s_72,r_73,t_74› (A_75 : Type‹s_72›) (B_76 : Type‹r_73›):
+  Type‹t_74›
 where
-| pair_7 (m_76 : A_74) (n_77 : B_75) : (prod_6‹??_6,??_7,??_8› A_74 B_75)
+| pair_7 (m_77 : A_75) (n_78 : B_76) : (prod_6‹??_6,??_7,??_8› A_75 B_76)
 
-#[logical]
-def sing_double_1‹s_78› :
-  ∀ {A_79 : Type‹s_78›} ->
-    ∀ {m_80 : A_79} ->
-      ∀ (x_81 : (sing_5‹??_13› ?_9 m_80)) -o
-        ∀ (y_82 : (sing_5‹??_14› ?_10 m_80)) -o
-          (eq_3‹??_15› ?_11 x_81 y_82)
+#[program]
+def sing_double_1‹s_79› :
+  ∀ {A_80 : Type‹s_79›} ->
+    ∀ {m_81 : A_80} ->
+      ∀ {__82 : (sing_5‹??_18› ?_11 m_81)} -o
+        (sing_5‹??_19› ?_12 m_81) -o
+          (prod_6‹??_20,??_21,L› A_80 A_80)
 :=
-  function sing_double_83 :
-    ∀ {A_84 : Type‹s_78›} ->
-      ∀ {m_85 : A_84} ->
-        ∀ (x_86 : (sing_5‹??_9› ?_4 m_85)) -o
-          ∀ (y_87 : (sing_5‹??_10› ?_5 m_85)) -o
-            (eq_3‹??_11› ?_6 x_86 y_87)
-  | A_88 m_89 (just_6 x_90) (just_6 y_91) => refl_4‹??_12›
+  function sing_double_84 :
+    ∀ {A_85 : Type‹s_79›} ->
+      ∀ {m_86 : A_85} ->
+        ∀ {__87 : (sing_5‹??_9› ?_4 m_86)} -o
+          (sing_5‹??_10› ?_5 m_86) -o
+            (prod_6‹??_11,??_12,L› A_85 A_85)
+  | A_89 m_90 (just_6 x_91) (just_6 y_92) =>
+    let {pf_93} := (refl_4‹??_13› : (eq_3‹??_14› ?_8 x_91 y_92)) in
+    (pair_7‹??_15,??_16,??_17› y_92 y_92)
 
 -----------------------------------------
 
@@ -266,176 +281,176 @@ end_dump
 ----------------------------------
 
 inductive-------------------------
-infer_tm(Type‹s_94›)
-infer_tm(A_95)
-infer_tm(A_95)
-infer_tm(Type‹s_98›)
-infer_tm(A_99)
-assert_equal1( A_99, ?_1)
-assert_equal1( m_100, m_100)
-infer_tm((eq_3‹??_1› ?_1 m_100 m_100))
+infer_tm(Type‹s_96›)
+infer_tm(A_97)
+infer_tm(A_97)
+infer_tm(Type‹s_100›)
+infer_tm(A_101)
+assert_equal1( A_101, ?_1)
+assert_equal1( m_102, m_102)
+infer_tm((eq_3‹??_1› ?_1 m_102 m_102))
 check_tm( ?_1, Type‹??_1›)
-check_tm( m_100, ?_1)
-infer_tm(m_100)
-assert_equal1( ?_1, A_99)
-check_tm( m_100, ?_1)
-infer_tm(m_100)
-assert_equal1( ?_1, A_99)
-simpl_tm ~expand:false( ?_1, A_99)
-simpl_tm ~expand:false( A_99, A_99)
-simpl_tm ~expand:false( A_99, A_99)
+check_tm( m_102, ?_1)
+infer_tm(m_102)
+assert_equal1( ?_1, A_101)
+check_tm( m_102, ?_1)
+infer_tm(m_102)
+assert_equal1( ?_1, A_101)
+simpl_tm ~expand:false( ?_1, A_101)
+simpl_tm ~expand:false( A_101, A_101)
+simpl_tm ~expand:false( A_101, A_101)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_101
+    ??_1 <= s_103
     
   |}
   imeta_meta {|
-    ?_1 <= A_104
+    ?_1 <= A_106
     
   |}
   eqns {|
     
   |}
 end_dump
-infer_tm(Type‹s_98›)
-check_tm( A_99, Type‹s_98›)
-infer_tm(A_99)
-assert_equal1( Type‹s_98›, Type‹s_98›)
+infer_tm(Type‹s_100›)
+check_tm( A_101, Type‹s_100›)
+infer_tm(A_101)
+assert_equal1( Type‹s_100›, Type‹s_100›)
 ----------------------------------
 
 inductive-------------------------
-infer_tm(Type‹s_116›)
-infer_tm(A_119 -> Type‹r_117›)
-infer_tm(A_119)
-infer_tm(Type‹r_117›)
-infer_tm(Type‹s_123›)
-infer_tm(A_126 -> Type‹r_124›)
-infer_tm(A_126)
-infer_tm(Type‹r_124›)
-infer_tm(A_126)
-infer_tm(((B_127) m_130))
-infer_tm(B_127)
-check_tm( m_130, A_126)
-infer_tm(m_130)
-assert_equal1( A_126, A_126)
-assert_equal1( A_126, ?_2)
-assert_equal1( B_127, B_127)
-infer_tm((exists_4‹??_2,??_3,??_4› ?_2 B_127))
+infer_tm(Type‹s_118›)
+infer_tm(A_121 -> Type‹r_119›)
+infer_tm(A_121)
+infer_tm(Type‹r_119›)
+infer_tm(Type‹s_125›)
+infer_tm(A_128 -> Type‹r_126›)
+infer_tm(A_128)
+infer_tm(Type‹r_126›)
+infer_tm(A_128)
+infer_tm(((B_129) m_132))
+infer_tm(B_129)
+check_tm( m_132, A_128)
+infer_tm(m_132)
+assert_equal1( A_128, A_128)
+assert_equal1( A_128, ?_2)
+assert_equal1( B_129, B_129)
+infer_tm((exists_4‹??_2,??_3,??_4› ?_2 B_129))
 check_tm( ?_2, Type‹??_2›)
-check_tm( B_127, ?_2 -> Type‹??_3›)
-infer_tm(B_127)
-assert_equal1( ?_2 -> Type‹??_3›, A_126 -> Type‹r_124›)
-simpl_tm ~expand:false( ?_2 -> Type‹??_3›, A_126 -> Type‹r_124›)
-simpl_tm ~expand:false( ?_2, A_126)
-simpl_tm ~expand:false( Type‹??_3›, Type‹r_124›)
-simpl_tm ~expand:false( A_126, A_126)
+check_tm( B_129, ?_2 -> Type‹??_3›)
+infer_tm(B_129)
+assert_equal1( ?_2 -> Type‹??_3›, A_128 -> Type‹r_126›)
+simpl_tm ~expand:false( ?_2 -> Type‹??_3›, A_128 -> Type‹r_126›)
+simpl_tm ~expand:false( ?_2, A_128)
+simpl_tm ~expand:false( Type‹??_3›, Type‹r_126›)
+simpl_tm ~expand:false( A_128, A_128)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_141
-    ??_2 <= s_144
-    ??_3 <= r_146
-    ??_4 <= t_148
+    ??_1 <= s_143
+    ??_2 <= s_146
+    ??_3 <= r_148
+    ??_4 <= t_150
     
   |}
   imeta_meta {|
-    ?_1 <= A_153
-    ?_2 <= A_160
+    ?_1 <= A_155
+    ?_2 <= A_162
     
   |}
   eqns {|
     
   |}
 end_dump
-infer_tm(Type‹s_123›)
-check_tm( A_126, Type‹s_123›)
-infer_tm(A_126)
-assert_equal1( Type‹s_123›, Type‹s_123›)
+infer_tm(Type‹s_125›)
+check_tm( A_128, Type‹s_125›)
+infer_tm(A_128)
+assert_equal1( Type‹s_125›, Type‹s_125›)
 ----------------------------------
 
 inductive-------------------------
-infer_tm(Type‹s_193›)
-infer_tm(A_194)
-infer_tm(Type‹s_196›)
-infer_tm(A_197)
-assert_equal1( A_197, ?_3)
-infer_tm((sing_5‹??_5› ?_3 m_198))
+infer_tm(Type‹s_195›)
+infer_tm(A_196)
+infer_tm(Type‹s_198›)
+infer_tm(A_199)
+assert_equal1( A_199, ?_3)
+infer_tm((sing_5‹??_5› ?_3 m_200))
 check_tm( ?_3, Type‹??_5›)
-check_tm( m_198, ?_3)
-infer_tm(m_198)
-assert_equal1( ?_3, A_197)
-simpl_tm ~expand:false( ?_3, A_197)
-simpl_tm ~expand:false( A_197, A_197)
+check_tm( m_200, ?_3)
+infer_tm(m_200)
+assert_equal1( ?_3, A_199)
+simpl_tm ~expand:false( ?_3, A_199)
+simpl_tm ~expand:false( A_199, A_199)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_199
-    ??_2 <= s_202
-    ??_3 <= r_204
-    ??_4 <= t_206
-    ??_5 <= s_209
+    ??_1 <= s_201
+    ??_2 <= s_204
+    ??_3 <= r_206
+    ??_4 <= t_208
+    ??_5 <= s_211
     
   |}
   imeta_meta {|
-    ?_1 <= A_212
-    ?_2 <= A_219
-    ?_3 <= A_222
+    ?_1 <= A_214
+    ?_2 <= A_221
+    ?_3 <= A_224
     
   |}
   eqns {|
     
   |}
 end_dump
-infer_tm(Type‹s_196›)
-check_tm( A_197, Type‹s_196›)
-infer_tm(A_197)
-assert_equal1( Type‹s_196›, Type‹s_196›)
+infer_tm(Type‹s_198›)
+check_tm( A_199, Type‹s_198›)
+infer_tm(A_199)
+assert_equal1( Type‹s_198›, Type‹s_198›)
 ----------------------------------
 
 inductive-------------------------
-infer_tm(Type‹s_235›)
-infer_tm(Type‹r_236›)
-infer_tm(Type‹s_240›)
-infer_tm(Type‹r_241›)
-infer_tm(A_243)
-infer_tm(B_244)
-assert_equal1( A_243, A_243)
-assert_equal1( B_244, B_244)
-infer_tm((prod_6‹??_6,??_7,??_8› A_243 B_244))
-check_tm( A_243, Type‹??_6›)
-infer_tm(A_243)
-assert_equal1( Type‹??_6›, Type‹s_240›)
-check_tm( B_244, Type‹??_7›)
-infer_tm(B_244)
-assert_equal1( Type‹??_7›, Type‹r_241›)
-simpl_tm ~expand:false( Type‹??_7›, Type‹r_241›)
-simpl_tm ~expand:false( Type‹??_6›, Type‹s_240›)
+infer_tm(Type‹s_237›)
+infer_tm(Type‹r_238›)
+infer_tm(Type‹s_242›)
+infer_tm(Type‹r_243›)
+infer_tm(A_245)
+infer_tm(B_246)
+assert_equal1( A_245, A_245)
+assert_equal1( B_246, B_246)
+infer_tm((prod_6‹??_6,??_7,??_8› A_245 B_246))
+check_tm( A_245, Type‹??_6›)
+infer_tm(A_245)
+assert_equal1( Type‹??_6›, Type‹s_242›)
+check_tm( B_246, Type‹??_7›)
+infer_tm(B_246)
+assert_equal1( Type‹??_7›, Type‹r_243›)
+simpl_tm ~expand:false( Type‹??_7›, Type‹r_243›)
+simpl_tm ~expand:false( Type‹??_6›, Type‹s_242›)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_247
-    ??_2 <= s_250
-    ??_3 <= r_252
-    ??_4 <= t_254
-    ??_5 <= s_257
-    ??_6 <= s_260
-    ??_7 <= r_262
-    ??_8 <= t_264
+    ??_1 <= s_249
+    ??_2 <= s_252
+    ??_3 <= r_254
+    ??_4 <= t_256
+    ??_5 <= s_259
+    ??_6 <= s_262
+    ??_7 <= r_264
+    ??_8 <= t_266
     
   |}
   imeta_meta {|
-    ?_1 <= A_269
-    ?_2 <= A_276
-    ?_3 <= A_279
+    ?_1 <= A_271
+    ?_2 <= A_278
+    ?_3 <= A_281
     
   |}
   eqns {|
@@ -445,167 +460,156 @@ end_dump
 ----------------------------------
 
 definition-------------------------
-infer_tm(∀ {A_306 : Type‹s_305›} ->
-           ∀ {m_307 : A_306} ->
-             ∀ (x_308 : (sing_5‹??_13› ?_9 m_307)) -o
-               ∀ (y_309 : (sing_5‹??_14› ?_10 m_307)) -o
-                 (eq_3‹??_15› ?_11 x_308 y_309))
-infer_tm(Type‹s_305›)
-infer_tm(∀ {m_311 : A_310} ->
-           ∀ (x_312 : (sing_5‹??_13› ?_9 m_311)) -o
-             ∀ (y_313 : (sing_5‹??_14› ?_10 m_311)) -o
-               (eq_3‹??_15› ?_11 x_312 y_313))
-infer_tm(A_310)
-infer_tm(∀ (x_315 : (sing_5‹??_13› ?_9 m_314)) -o
-           ∀ (y_316 : (sing_5‹??_14› ?_10 m_314)) -o
-             (eq_3‹??_15› ?_11 x_315 y_316))
-infer_tm((sing_5‹??_13› ?_9 m_314))
-check_tm( ?_9, Type‹??_13›)
-check_tm( m_314, ?_9)
-infer_tm(m_314)
-assert_equal1( ?_9, A_310)
-simpl_tm ~expand:false( ?_9, A_310)
-infer_tm(∀ (y_318 : (sing_5‹??_14› ?_10 m_314)) -o
-           (eq_3‹??_15› ?_11 x_317 y_318))
-infer_tm((sing_5‹??_14› ?_10 m_314))
-check_tm( ?_10, Type‹??_14›)
-check_tm( m_314, ?_10)
-infer_tm(m_314)
-assert_equal1( ?_10, A_310)
-simpl_tm ~expand:false( ?_10, A_310)
-infer_tm((eq_3‹??_15› ?_11 x_317 y_319))
-check_tm( ?_11, Type‹??_15›)
-check_tm( x_317, ?_11)
-infer_tm(x_317)
-assert_equal1( ?_11, (sing_5‹??_13› ?_9 m_314))
-check_tm( y_319, ?_11)
-infer_tm(y_319)
-assert_equal1( ?_11, (sing_5‹??_14› ?_10 m_314))
-simpl_tm ~expand:false( ?_11, (sing_5‹??_14› A_310 m_314))
-simpl_tm ~expand:false( (sing_5‹??_14› A_310 m_314),
-  (sing_5‹??_13› A_310 m_314))
-simpl_tm ~expand:false( A_310, A_310)
-simpl_tm ~expand:false( m_314, m_314)
+infer_tm(∀ {A_308 : Type‹s_307›} ->
+           ∀ {m_309 : A_308} ->
+             ∀ {__310 : (sing_5‹??_18› ?_11 m_309)} -o
+               (sing_5‹??_19› ?_12 m_309) -o
+                 (prod_6‹??_20,??_21,L› A_308 A_308))
+infer_tm(Type‹s_307›)
+infer_tm(∀ {m_313 : A_312} ->
+           ∀ {__314 : (sing_5‹??_18› ?_11 m_313)} -o
+             (sing_5‹??_19› ?_12 m_313) -o
+               (prod_6‹??_20,??_21,L› A_312 A_312))
+infer_tm(A_312)
+infer_tm(∀ {__317 : (sing_5‹??_18› ?_11 m_316)} -o
+           (sing_5‹??_19› ?_12 m_316) -o
+             (prod_6‹??_20,??_21,L› A_312 A_312))
+infer_tm((sing_5‹??_18› ?_11 m_316))
+check_tm( ?_11, Type‹??_18›)
+check_tm( m_316, ?_11)
+infer_tm(m_316)
+assert_equal1( ?_11, A_312)
+simpl_tm ~expand:false( ?_11, A_312)
+infer_tm((sing_5‹??_19› ?_12 m_316) -o
+           (prod_6‹??_20,??_21,L› A_312 A_312))
+infer_tm((sing_5‹??_19› ?_12 m_316))
+check_tm( ?_12, Type‹??_19›)
+check_tm( m_316, ?_12)
+infer_tm(m_316)
+assert_equal1( ?_12, A_312)
+simpl_tm ~expand:false( ?_12, A_312)
+infer_tm((prod_6‹??_20,??_21,L› A_312 A_312))
+check_tm( A_312, Type‹??_20›)
+infer_tm(A_312)
+assert_equal1( Type‹??_20›, Type‹s_307›)
+check_tm( A_312, Type‹??_21›)
+infer_tm(A_312)
+assert_equal1( Type‹??_21›, Type‹s_307›)
+simpl_tm ~expand:false( Type‹??_21›, Type‹s_307›)
+simpl_tm ~expand:false( Type‹??_20›, Type‹s_307›)
 check_tm(
-  function sing_double_320 :
-    ∀ {A_321 : Type‹s_305›} ->
-      ∀ {m_322 : A_321} ->
-        ∀ (x_323 : (sing_5‹??_9› ?_4 m_322)) -o
-          ∀ (y_324 : (sing_5‹??_10› ?_5 m_322)) -o
-            (eq_3‹??_11› ?_6 x_323 y_324)
-  | A_325 m_326 (just_6 x_327) (just_6 y_328) => refl_4‹??_12›,
-  ∀ {A_329 : Type‹s_305›} ->
-    ∀ {m_330 : A_329} ->
-      ∀ (x_331 : (sing_5‹??_13› ?_9 m_330)) -o
-        ∀ (y_332 : (sing_5‹??_14› ?_10 m_330)) -o
-          (eq_3‹??_15› ?_11 x_331 y_332))
-infer_tm(∀ {A_334 : Type‹s_305›} ->
-           ∀ {m_335 : A_334} ->
-             ∀ (x_336 : (sing_5‹??_9› ?_4 m_335)) -o
-               ∀ (y_337 : (sing_5‹??_10› ?_5 m_335)) -o
-                 (eq_3‹??_11› ?_6 x_336 y_337))
-infer_tm(Type‹s_305›)
-infer_tm(∀ {m_339 : A_338} ->
-           ∀ (x_340 : (sing_5‹??_9› ?_4 m_339)) -o
-             ∀ (y_341 : (sing_5‹??_10› ?_5 m_339)) -o
-               (eq_3‹??_11› ?_6 x_340 y_341))
-infer_tm(A_338)
-infer_tm(∀ (x_343 : (sing_5‹??_9› ?_4 m_342)) -o
-           ∀ (y_344 : (sing_5‹??_10› ?_5 m_342)) -o
-             (eq_3‹??_11› ?_6 x_343 y_344))
-infer_tm((sing_5‹??_9› ?_4 m_342))
+  function sing_double_322 :
+    ∀ {A_323 : Type‹s_307›} ->
+      ∀ {m_324 : A_323} ->
+        ∀ {__325 : (sing_5‹??_9› ?_4 m_324)} -o
+          (sing_5‹??_10› ?_5 m_324) -o
+            (prod_6‹??_11,??_12,L› A_323 A_323)
+  | A_327 m_328 (just_6 x_329) (just_6 y_330) =>
+    let {pf_331} := (refl_4‹??_13› : (eq_3‹??_14› ?_8 x_329 y_330))
+    in (pair_7‹??_15,??_16,??_17› y_330 y_330),
+  ∀ {A_332 : Type‹s_307›} ->
+    ∀ {m_333 : A_332} ->
+      ∀ {__334 : (sing_5‹??_18› ?_11 m_333)} -o
+        (sing_5‹??_19› ?_12 m_333) -o
+          (prod_6‹??_20,??_21,L› A_332 A_332))
+infer_tm(∀ {A_337 : Type‹s_307›} ->
+           ∀ {m_338 : A_337} ->
+             ∀ {__339 : (sing_5‹??_9› ?_4 m_338)} -o
+               (sing_5‹??_10› ?_5 m_338) -o
+                 (prod_6‹??_11,??_12,L› A_337 A_337))
+infer_tm(Type‹s_307›)
+infer_tm(∀ {m_342 : A_341} ->
+           ∀ {__343 : (sing_5‹??_9› ?_4 m_342)} -o
+             (sing_5‹??_10› ?_5 m_342) -o
+               (prod_6‹??_11,??_12,L› A_341 A_341))
+infer_tm(A_341)
+infer_tm(∀ {__346 : (sing_5‹??_9› ?_4 m_345)} -o
+           (sing_5‹??_10› ?_5 m_345) -o
+             (prod_6‹??_11,??_12,L› A_341 A_341))
+infer_tm((sing_5‹??_9› ?_4 m_345))
 check_tm( ?_4, Type‹??_9›)
-check_tm( m_342, ?_4)
-infer_tm(m_342)
-assert_equal1( ?_4, A_338)
-simpl_tm ~expand:false( ?_4, A_338)
-infer_tm(∀ (y_346 : (sing_5‹??_10› ?_5 m_342)) -o
-           (eq_3‹??_11› ?_6 x_345 y_346))
-infer_tm((sing_5‹??_10› ?_5 m_342))
+check_tm( m_345, ?_4)
+infer_tm(m_345)
+assert_equal1( ?_4, A_341)
+simpl_tm ~expand:false( ?_4, A_341)
+infer_tm((sing_5‹??_10› ?_5 m_345) -o
+           (prod_6‹??_11,??_12,L› A_341 A_341))
+infer_tm((sing_5‹??_10› ?_5 m_345))
 check_tm( ?_5, Type‹??_10›)
-check_tm( m_342, ?_5)
-infer_tm(m_342)
-assert_equal1( ?_5, A_338)
-simpl_tm ~expand:false( ?_5, A_338)
-infer_tm((eq_3‹??_11› ?_6 x_345 y_347))
-check_tm( ?_6, Type‹??_11›)
-check_tm( x_345, ?_6)
-infer_tm(x_345)
-assert_equal1( ?_6, (sing_5‹??_9› ?_4 m_342))
-check_tm( y_347, ?_6)
-infer_tm(y_347)
-assert_equal1( ?_6, (sing_5‹??_10› ?_5 m_342))
-simpl_tm ~expand:false( ?_6, (sing_5‹??_10› A_338 m_342))
-simpl_tm ~expand:false( (sing_5‹??_10› A_338 m_342),
-  (sing_5‹??_9› A_338 m_342))
-simpl_tm ~expand:false( A_338, A_338)
-simpl_tm ~expand:false( m_342, m_342)
+check_tm( m_345, ?_5)
+infer_tm(m_345)
+assert_equal1( ?_5, A_341)
+simpl_tm ~expand:false( ?_5, A_341)
+infer_tm((prod_6‹??_11,??_12,L› A_341 A_341))
+check_tm( A_341, Type‹??_11›)
+infer_tm(A_341)
+assert_equal1( Type‹??_11›, Type‹s_307›)
+check_tm( A_341, Type‹??_12›)
+infer_tm(A_341)
+assert_equal1( Type‹??_12›, Type‹s_307›)
+simpl_tm ~expand:false( Type‹??_12›, Type‹s_307›)
+simpl_tm ~expand:false( Type‹??_11›, Type‹s_307›)
 assert_equal1(
-  ∀ {A_348 : Type‹s_305›} ->
-    ∀ {m_349 : A_348} ->
-      ∀ (x_350 : (sing_5‹??_13› ?_9 m_349)) -o
-        ∀ (y_351 : (sing_5‹??_14› ?_10 m_349)) -o
-          (eq_3‹??_15› ?_11 x_350 y_351),
-  ∀ {A_352 : Type‹s_305›} ->
-    ∀ {m_353 : A_352} ->
-      ∀ (x_354 : (sing_5‹??_9› ?_4 m_353)) -o
-        ∀ (y_355 : (sing_5‹??_10› ?_5 m_353)) -o
-          (eq_3‹??_11› ?_6 x_354 y_355))
+  ∀ {A_351 : Type‹s_307›} ->
+    ∀ {m_352 : A_351} ->
+      ∀ {__353 : (sing_5‹??_18› ?_11 m_352)} -o
+        (sing_5‹??_19› ?_12 m_352) -o
+          (prod_6‹??_20,??_21,L› A_351 A_351),
+  ∀ {A_355 : Type‹s_307›} ->
+    ∀ {m_356 : A_355} ->
+      ∀ {__357 : (sing_5‹??_9› ?_4 m_356)} -o
+        (sing_5‹??_10› ?_5 m_356) -o
+          (prod_6‹??_11,??_12,L› A_355 A_355))
 simpl_tm ~expand:false(
-  ∀ {A_390 : Type‹s_305›} ->
-    ∀ {m_391 : A_390} ->
-      ∀ (x_392 : (sing_5‹??_13› A_390 m_391)) -o
-        ∀ (y_393 : (sing_5‹??_13› A_390 m_391)) -o
-          (eq_3‹??_15› (sing_5‹??_13› A_390 m_391) x_392 y_393),
-  ∀ {A_394 : Type‹s_305›} ->
-    ∀ {m_395 : A_394} ->
-      ∀ (x_396 : (sing_5‹??_9› A_394 m_395)) -o
-        ∀ (y_397 : (sing_5‹??_9› A_394 m_395)) -o
-          (eq_3‹??_11› (sing_5‹??_9› A_394 m_395) x_396 y_397))
-simpl_tm ~expand:false( Type‹s_305›, Type‹s_305›)
+  ∀ {A_393 : Type‹s_307›} ->
+    ∀ {m_394 : A_393} ->
+      {(sing_5‹??_18› A_393 m_394)} -o
+        (sing_5‹??_19› A_393 m_394) -o
+          (prod_6‹s_307,s_307,L› A_393 A_393),
+  ∀ {A_397 : Type‹s_307›} ->
+    ∀ {m_398 : A_397} ->
+      {(sing_5‹??_9› A_397 m_398)} -o
+        (sing_5‹??_10› A_397 m_398) -o
+          (prod_6‹s_307,s_307,L› A_397 A_397))
+simpl_tm ~expand:false( Type‹s_307›, Type‹s_307›)
 simpl_tm ~expand:false(
-  ∀ {m_399 : A_398} ->
-    ∀ (x_400 : (sing_5‹??_13› A_398 m_399)) -o
-      ∀ (y_401 : (sing_5‹??_13› A_398 m_399)) -o
-        (eq_3‹??_15› (sing_5‹??_13› A_398 m_399) x_400 y_401),
-  ∀ {m_402 : A_398} ->
-    ∀ (x_403 : (sing_5‹??_9› A_398 m_402)) -o
-      ∀ (y_404 : (sing_5‹??_9› A_398 m_402)) -o
-        (eq_3‹??_11› (sing_5‹??_9› A_398 m_402) x_403 y_404))
-simpl_tm ~expand:false( A_398, A_398)
+  ∀ {m_402 : A_401} ->
+    {(sing_5‹??_18› A_401 m_402)} -o
+      (sing_5‹??_19› A_401 m_402) -o
+        (prod_6‹s_307,s_307,L› A_401 A_401),
+  ∀ {m_405 : A_401} ->
+    {(sing_5‹??_9› A_401 m_405)} -o
+      (sing_5‹??_10› A_401 m_405) -o
+        (prod_6‹s_307,s_307,L› A_401 A_401))
+simpl_tm ~expand:false( A_401, A_401)
 simpl_tm ~expand:false(
-  ∀ (x_406 : (sing_5‹??_13› A_398 m_405)) -o
-    ∀ (y_407 : (sing_5‹??_13› A_398 m_405)) -o
-      (eq_3‹??_15› (sing_5‹??_13› A_398 m_405) x_406 y_407),
-  ∀ (x_408 : (sing_5‹??_9› A_398 m_405)) -o
-    ∀ (y_409 : (sing_5‹??_9› A_398 m_405)) -o
-      (eq_3‹??_11› (sing_5‹??_9› A_398 m_405) x_408 y_409))
-simpl_tm ~expand:false( (sing_5‹??_13› A_398 m_405),
-  (sing_5‹??_9› A_398 m_405))
-simpl_tm ~expand:false( A_398, A_398)
-simpl_tm ~expand:false( m_405, m_405)
+  {(sing_5‹??_18› A_401 m_408)} -o
+    (sing_5‹??_19› A_401 m_408) -o
+      (prod_6‹s_307,s_307,L› A_401 A_401),
+  {(sing_5‹??_9› A_401 m_408)} -o
+    (sing_5‹??_10› A_401 m_408) -o
+      (prod_6‹s_307,s_307,L› A_401 A_401))
+simpl_tm ~expand:false( (sing_5‹??_18› A_401 m_408),
+  (sing_5‹??_9› A_401 m_408))
+simpl_tm ~expand:false( A_401, A_401)
+simpl_tm ~expand:false( m_408, m_408)
 simpl_tm ~expand:false(
-  ∀ (y_411 : (sing_5‹??_13› A_398 m_405)) -o
-    (eq_3‹??_15› (sing_5‹??_13› A_398 m_405) x_410 y_411),
-  ∀ (y_412 : (sing_5‹??_9› A_398 m_405)) -o
-    (eq_3‹??_11› (sing_5‹??_9› A_398 m_405) x_410 y_412))
-simpl_tm ~expand:false( (sing_5‹??_13› A_398 m_405),
-  (sing_5‹??_9› A_398 m_405))
-simpl_tm ~expand:false( A_398, A_398)
-simpl_tm ~expand:false( m_405, m_405)
-simpl_tm ~expand:false(
-  (eq_3‹??_15› (sing_5‹??_13› A_398 m_405) x_410 y_413),
-  (eq_3‹??_11› (sing_5‹??_9› A_398 m_405) x_410 y_413))
-simpl_tm ~expand:false( (sing_5‹??_13› A_398 m_405),
-  (sing_5‹??_9› A_398 m_405))
-simpl_tm ~expand:false( A_398, A_398)
-simpl_tm ~expand:false( m_405, m_405)
-simpl_tm ~expand:false( x_410, x_410)
-simpl_tm ~expand:false( y_413, y_413)
+  (sing_5‹??_19› A_401 m_408) -o (prod_6‹s_307,s_307,L› A_401 A_401),
+  (sing_5‹??_10› A_401 m_408) -o (prod_6‹s_307,s_307,L› A_401 A_401))
+simpl_tm ~expand:false( (sing_5‹??_19› A_401 m_408),
+  (sing_5‹??_10› A_401 m_408))
+simpl_tm ~expand:false( A_401, A_401)
+simpl_tm ~expand:false( m_408, m_408)
+simpl_tm ~expand:false( (prod_6‹s_307,s_307,L› A_401 A_401),
+  (prod_6‹s_307,s_307,L› A_401 A_401))
+simpl_tm ~expand:false( A_401, A_401)
+simpl_tm ~expand:false( A_401, A_401)
 check_cls {|
   prblm {| ;
-    {|  ::: [A_366, m_367, (just_6 x_368), (just_6 y_369)] =>?
-         refl_4‹??_12›
+    {|  ::: [A_369, m_370, (just_6 x_371), (just_6 y_372)] =>?
+         let {pf_427} :=
+           (refl_4‹??_13› : (eq_3‹??_14› ?_8 #x_371 #y_372))
+         in (pair_7‹??_15,??_16,??_17› #y_372 #y_372)
     |}
   |}
 |}
@@ -619,206 +623,219 @@ case_splitting
 splitting_on(just_6)
 case_coverage{|
   prblm {|
-    eq_term?( (sing_5‹??_9› #A_424 #m_425),
-      (sing_5‹??_9› #A_424 #m_439))
-    eq_term?( (sing_5‹??_9› #A_424 #m_425),
-      (sing_5‹??_9› #A_424 #m_428));
-    {| eq_pat?( #A_424, A_366 : Type‹s_305›)
-       eq_pat?( #m_425, m_367 : #A_424)
-       eq_pat?( #m_428, x_368 : #A_424)
-       eq_pat?( #m_439, y_369 : #A_424) ::: [] =>? refl_4‹??_12›
+    eq_term?( (sing_5‹??_10› #A_428 #m_429),
+      (sing_5‹??_10› #A_428 #m_443))
+    eq_term?( (sing_5‹??_9› #A_428 #m_429),
+      (sing_5‹??_9› #A_428 #m_432));
+    {| eq_pat?( #A_428, A_369 : Type‹s_307›)
+       eq_pat?( #m_429, m_370 : #A_428)
+       eq_pat?( #m_432, x_371 : #A_428)
+       eq_pat?( #m_443, y_372 : #A_428) ::: [] =>?
+         let {pf_454} :=
+           (refl_4‹??_13› : (eq_3‹??_14› ?_8 #x_371 #y_372))
+         in (pair_7‹??_15,??_16,??_17› #y_372 #y_372)
     |}
   |}
 |}
 unify_local(
-  eq_pat?( #A_424, A_366 : Type‹s_305›)
-  eq_pat?( #m_425, m_367 : #A_424)
-  eq_pat?( #m_428, x_368 : #A_424)
-  eq_pat?( #m_439, y_369 : #A_424)
+  eq_pat?( #A_428, A_369 : Type‹s_307›)
+  eq_pat?( #m_429, m_370 : #A_428)
+  eq_pat?( #m_432, x_371 : #A_428)
+  eq_pat?( #m_443, y_372 : #A_428)
 )
 unify_global(
-  eq_term?( (sing_5‹??_9› #A_424 #m_425),
-    (sing_5‹??_9› #A_424 #m_439))
-  eq_term?( (sing_5‹??_9› #A_424 #m_425),
-    (sing_5‹??_9› #A_424 #m_428))
+  eq_term?( (sing_5‹??_10› #A_428 #m_429),
+    (sing_5‹??_10› #A_428 #m_443))
+  eq_term?( (sing_5‹??_9› #A_428 #m_429),
+    (sing_5‹??_9› #A_428 #m_432))
 )
-simpl_pprbm ~expand:false( #A_424, #A_366)
-simpl_pprbm ~expand:false( #m_425, #m_367)
-simpl_pprbm ~expand:false( #m_428, #x_368)
-simpl_pprbm ~expand:false( #m_439, #y_369)
-simpl_pprbm ~expand:false( (sing_5‹??_9› #A_424 #m_425),
-  (sing_5‹??_9› #A_424 #m_439))
-simpl_pprbm ~expand:false( #A_424, #A_424)
-simpl_pprbm ~expand:false( #m_425, #m_439)
-simpl_pprbm ~expand:false( (sing_5‹??_9› #A_424 #m_439),
-  (sing_5‹??_9› #A_424 #m_428))
-simpl_pprbm ~expand:false( #A_424, #A_424)
-simpl_pprbm ~expand:false( #m_439, #m_428)
-case_coverage_ok( refl_4‹??_12›,
-  (eq_3‹??_11›
-    (sing_5‹??_9› A_424 m_439) (just_6‹??_9› m_439)
-    (just_6‹??_9› m_439)))
-check_tm( refl_4‹??_12›,
-  (eq_3‹??_11›
-    (sing_5‹??_9› A_424 m_439) (just_6‹??_9› m_439)
-    (just_6‹??_9› m_439)))
-infer_tm(refl_4‹??_12›)
-check_tm( ?_7, Type‹??_12›)
-check_tm( ?_8, ?_7)
-assert_equal1(
-  (eq_3‹??_11›
-    (sing_5‹??_9› A_424 m_439) (just_6‹??_9› m_439)
-    (just_6‹??_9› m_439)),
-  (eq_3‹??_12› ?_7 ?_8 ?_8))
+simpl_pprbm ~expand:false( #A_428, #A_369)
+simpl_pprbm ~expand:false( #m_429, #m_370)
+simpl_pprbm ~expand:false( #m_432, #x_371)
+simpl_pprbm ~expand:false( #m_443, #y_372)
+simpl_pprbm ~expand:false( (sing_5‹??_10› #A_428 #m_429),
+  (sing_5‹??_10› #A_428 #m_443))
+simpl_pprbm ~expand:false( #A_428, #A_428)
+simpl_pprbm ~expand:false( #m_429, #m_443)
+simpl_pprbm ~expand:false( (sing_5‹??_9› #A_428 #m_443),
+  (sing_5‹??_9› #A_428 #m_432))
+simpl_pprbm ~expand:false( #A_428, #A_428)
+simpl_pprbm ~expand:false( #m_443, #m_432)
+case_coverage_ok(
+  let {pf_466} := (refl_4‹??_13› : (eq_3‹??_14› ?_8 m_432 m_443)) in
+  (pair_7‹??_15,??_16,??_17› m_443 m_443),
+  (prod_6‹s_307,s_307,L› A_428 A_428))
+check_tm(
+  let {pf_467} := (refl_4‹??_13› : (eq_3‹??_14› ?_8 m_432 m_443)) in
+  (pair_7‹??_15,??_16,??_17› m_443 m_443),
+  (prod_6‹s_307,s_307,L› A_428 A_428))
+infer_tm(let {pf_468} :=
+           (refl_4‹??_13› : (eq_3‹??_14› ?_8 m_432 m_443))
+         in (pair_7‹??_15,??_16,??_17› m_443 m_443))
+infer_tm((refl_4‹??_13› : (eq_3‹??_14› ?_8 m_432 m_443)))
+infer_tm((eq_3‹??_14› ?_8 m_432 m_443))
+check_tm( ?_8, Type‹??_14›)
+check_tm( m_432, ?_8)
+infer_tm(m_432)
+assert_equal1( ?_8, A_428)
+check_tm( m_443, ?_8)
+infer_tm(m_443)
+assert_equal1( ?_8, A_428)
+simpl_tm ~expand:false( ?_8, A_428)
+simpl_tm ~expand:false( A_428, A_428)
+check_tm( refl_4‹??_13›, (eq_3‹??_14› ?_8 m_432 m_443))
+infer_tm(refl_4‹??_13›)
+check_tm( ?_6, Type‹??_13›)
+check_tm( ?_7, ?_6)
+assert_equal1( (eq_3‹??_14› ?_8 m_432 m_443),
+  (eq_3‹??_13› ?_6 ?_7 ?_7))
+infer_tm((pair_7‹??_15,??_16,??_17› m_443 m_443))
+check_tm( ?_9, Type‹??_15›)
+check_tm( ?_10, Type‹??_16›)
+check_tm( m_443, ?_9)
+infer_tm(m_443)
+assert_equal1( ?_9, A_428)
+check_tm( m_443, ?_10)
+infer_tm(m_443)
+assert_equal1( ?_10, A_428)
+assert_equal1( (prod_6‹s_307,s_307,L› A_428 A_428),
+  (prod_6‹??_15,??_16,??_17› ?_9 ?_10))
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_460
-    ??_2 <= s_463
-    ??_3 <= r_465
-    ??_4 <= t_467
-    ??_5 <= s_470
-    ??_6 <= s_473
-    ??_7 <= r_475
-    ??_8 <= t_477
-    ??_10 <= ??_9
-    ??_13 <= ??_9
-    ??_14 <= ??_13
-    ??_15 <= ??_11
+    ??_1 <= s_470
+    ??_2 <= s_473
+    ??_3 <= r_475
+    ??_4 <= t_477
+    ??_5 <= s_480
+    ??_6 <= s_483
+    ??_7 <= r_485
+    ??_8 <= t_487
+    ??_11 <= s_490
+    ??_12 <= s_491
+    ??_18 <= ??_9
+    ??_19 <= ??_10
+    ??_20 <= s_494
+    ??_21 <= s_495
     
   |}
   imeta_meta {|
-    ?_1 <= A_486
-    ?_2 <= A_493
-    ?_3 <= A_496
-    ?_4 <= A_499
-    ?_5 <= A_503
-    ?_6 <= (sing_5‹??_10› A_508 m_507)
-    ?_9 <= A_511
-    ?_10 <= A_515
-    ?_11 <= (sing_5‹??_14› A_520 m_519)
+    ?_1 <= A_498
+    ?_2 <= A_505
+    ?_3 <= A_508
+    ?_4 <= A_511
+    ?_5 <= A_515
+    ?_8 <= A_520
+    ?_11 <= A_524
+    ?_12 <= A_528
     
   |}
   eqns {|
-    equal_tm?
-      ((eq_3‹??_11›
-         (sing_5‹??_9› A_424 m_439) (just_6‹??_9› m_439)
-         (just_6‹??_9› m_439)),
-      (eq_3‹??_12› ?_7 ?_8 ?_8))
+    equal_tm? ((prod_6‹s_307,s_307,L› A_428 A_428),
+      (prod_6‹??_15,??_16,??_17› ?_9 ?_10));
+    equal_tm? (?_10, A_428);
+    equal_tm? (?_9, A_428);
+    equal_tm? ((eq_3‹??_14› ?_8 m_432 m_443),
+      (eq_3‹??_13› ?_6 ?_7 ?_7))
   |}
 end_dump
-simpl_tm ~expand:false(
-  (eq_3‹??_11›
-    (sing_5‹??_9› A_424 m_439) (just_6‹??_9› m_439)
-    (just_6‹??_9› m_439)),
-  (eq_3‹??_12› ?_7 ?_8 ?_8))
-simpl_tm ~expand:false( (sing_5‹??_9› A_424 m_439), ?_7)
-simpl_tm ~expand:false( (just_6‹??_9› m_439), ?_8)
-simpl_tm ~expand:false( (just_6‹??_9› m_439), ?_8)
-simpl_tm ~expand:false( (sing_5‹??_9› A_424 m_439), ?_7)
-simpl_tm ~expand:false( (just_6‹??_9› m_439), ?_8)
-simpl_tm ~expand:false( (just_6‹??_9› m_439), (just_6‹??_9› m_439))
-simpl_tm ~expand:false( A_424, A_424)
-simpl_tm ~expand:false( m_439, m_439)
+simpl_tm ~expand:false( (prod_6‹s_307,s_307,L› A_428 A_428),
+  (prod_6‹??_15,??_16,??_17› ?_9 ?_10))
+simpl_tm ~expand:false( A_428, ?_9)
+simpl_tm ~expand:false( A_428, ?_10)
+simpl_tm ~expand:false( A_428, ?_9)
+simpl_tm ~expand:false( A_428, ?_10)
+simpl_tm ~expand:false( A_428, A_428)
+simpl_tm ~expand:false( A_428, A_428)
+simpl_tm ~expand:false( (eq_3‹??_14› A_428 m_432 m_443),
+  (eq_3‹??_13› ?_6 ?_7 ?_7))
+simpl_tm ~expand:false( A_428, ?_6)
+simpl_tm ~expand:false( m_432, ?_7)
+simpl_tm ~expand:false( m_443, ?_7)
+simpl_tm ~expand:false( A_428, ?_6)
+simpl_tm ~expand:false( m_432, ?_7)
+simpl_tm ~expand:false( m_443, m_432)
+simpl_tm ~expand:true( m_443, m_443)
 infer_tm(Type‹??_9›)
-check_tm( A_338, Type‹??_9›)
-infer_tm(A_338)
-assert_equal1( Type‹??_9›, Type‹s_305›)
-simpl_tm ~expand:false( Type‹??_9›, Type‹s_305›)
-infer_tm(Type‹s_305›)
-check_tm( A_338, Type‹s_305›)
-infer_tm(A_338)
-assert_equal1( Type‹s_305›, Type‹s_305›)
-infer_tm(Type‹??_11›)
-check_tm( (sing_5‹s_305› A_338 m_342), Type‹??_11›)
-infer_tm((sing_5‹s_305› A_338 m_342))
-check_tm( A_338, Type‹s_305›)
-infer_tm(A_338)
-assert_equal1( Type‹s_305›, Type‹s_305›)
-check_tm( m_342, A_338)
-infer_tm(m_342)
-assert_equal1( A_338, A_338)
-assert_equal1( Type‹??_11›, Type‹s_305›)
-simpl_tm ~expand:false( Type‹??_11›, Type‹s_305›)
-infer_tm(Type‹s_305›)
-check_tm( (sing_5‹s_305› A_424 m_439), Type‹s_305›)
-infer_tm((sing_5‹s_305› A_424 m_439))
-check_tm( A_424, Type‹s_305›)
-infer_tm(A_424)
-assert_equal1( Type‹s_305›, Type‹s_305›)
-check_tm( m_439, A_424)
-infer_tm(m_439)
-assert_equal1( A_424, A_424)
-assert_equal1( Type‹s_305›, Type‹s_305›)
-infer_tm((sing_5‹s_305› A_424 m_439))
-check_tm( A_424, Type‹s_305›)
-infer_tm(A_424)
-assert_equal1( Type‹s_305›, Type‹s_305›)
-check_tm( m_439, A_424)
-infer_tm(m_439)
-assert_equal1( A_424, A_424)
-check_tm( (just_6‹s_305› m_439), (sing_5‹s_305› A_424 m_439))
-infer_tm((just_6‹s_305› m_439))
-check_tm( A_424, Type‹s_305›)
-infer_tm(A_424)
-assert_equal1( Type‹s_305›, Type‹s_305›)
-check_tm( m_439, A_424)
-infer_tm(m_439)
-assert_equal1( A_424, A_424)
-assert_equal1( (sing_5‹s_305› A_424 m_439),
-  (sing_5‹s_305› A_424 m_439))
-infer_tm(Type‹s_305›)
-check_tm( A_310, Type‹s_305›)
-infer_tm(A_310)
-assert_equal1( Type‹s_305›, Type‹s_305›)
-infer_tm(Type‹s_305›)
-check_tm( A_310, Type‹s_305›)
-infer_tm(A_310)
-assert_equal1( Type‹s_305›, Type‹s_305›)
-infer_tm(Type‹s_305›)
-check_tm( (sing_5‹s_305› A_310 m_314), Type‹s_305›)
-infer_tm((sing_5‹s_305› A_310 m_314))
-check_tm( A_310, Type‹s_305›)
-infer_tm(A_310)
-assert_equal1( Type‹s_305›, Type‹s_305›)
-check_tm( m_314, A_310)
-infer_tm(m_314)
-assert_equal1( A_310, A_310)
-assert_equal1( Type‹s_305›, Type‹s_305›)
+check_tm( A_341, Type‹??_9›)
+infer_tm(A_341)
+assert_equal1( Type‹??_9›, Type‹s_307›)
+simpl_tm ~expand:false( Type‹??_9›, Type‹s_307›)
+infer_tm(Type‹??_10›)
+check_tm( A_341, Type‹??_10›)
+infer_tm(A_341)
+assert_equal1( Type‹??_10›, Type‹s_307›)
+simpl_tm ~expand:false( Type‹??_10›, Type‹s_307›)
+infer_tm(Type‹??_13›)
+check_tm( A_428, Type‹??_13›)
+infer_tm(A_428)
+assert_equal1( Type‹??_13›, Type‹s_307›)
+simpl_tm ~expand:false( Type‹??_13›, Type‹s_307›)
+infer_tm(A_428)
+check_tm( m_432, A_428)
+infer_tm(m_432)
+assert_equal1( A_428, A_428)
+infer_tm(Type‹s_307›)
+check_tm( A_428, Type‹s_307›)
+infer_tm(A_428)
+assert_equal1( Type‹s_307›, Type‹s_307›)
+infer_tm(Type‹s_307›)
+check_tm( A_428, Type‹s_307›)
+infer_tm(A_428)
+assert_equal1( Type‹s_307›, Type‹s_307›)
+infer_tm(Type‹s_307›)
+check_tm( A_428, Type‹s_307›)
+infer_tm(A_428)
+assert_equal1( Type‹s_307›, Type‹s_307›)
+infer_tm(Type‹s_307›)
+check_tm( A_312, Type‹s_307›)
+infer_tm(A_312)
+assert_equal1( Type‹s_307›, Type‹s_307›)
+infer_tm(Type‹s_307›)
+check_tm( A_312, Type‹s_307›)
+infer_tm(A_312)
+assert_equal1( Type‹s_307›, Type‹s_307›)
 ----------------------------------
 
 smeta_meta {|
-  ??_1 <= s_579
-  ??_2 <= s_582
-  ??_3 <= r_584
-  ??_4 <= t_586
-  ??_5 <= s_589
-  ??_6 <= s_592
-  ??_7 <= r_594
-  ??_8 <= t_596
-  ??_9 <= s_599
-  ??_10 <= ??_9
-  ??_11 <= s_601
-  ??_12 <= ??_11
-  ??_13 <= ??_9
+  ??_1 <= s_620
+  ??_2 <= s_623
+  ??_3 <= r_625
+  ??_4 <= t_627
+  ??_5 <= s_630
+  ??_6 <= s_633
+  ??_7 <= r_635
+  ??_8 <= t_637
+  ??_9 <= s_640
+  ??_10 <= s_641
+  ??_11 <= s_642
+  ??_12 <= s_643
+  ??_13 <= s_644
   ??_14 <= ??_13
-  ??_15 <= ??_11
+  ??_15 <= s_646
+  ??_16 <= s_647
+  ??_17 <= L
+  ??_18 <= ??_9
+  ??_19 <= ??_10
+  ??_20 <= s_651
+  ??_21 <= s_652
   
 |}
 imeta_meta {|
-  ?_1 <= A_608
-  ?_2 <= A_615
-  ?_3 <= A_618
-  ?_4 <= A_621
-  ?_5 <= A_625
-  ?_6 <= (sing_5‹??_10› A_630 m_629)
-  ?_7 <= (sing_5‹??_9› A_635 m_632)
-  ?_8 <= (just_6‹??_9› m_638)
-  ?_9 <= A_645
-  ?_10 <= A_649
-  ?_11 <= (sing_5‹??_14› A_654 m_653)
+  ?_1 <= A_655
+  ?_2 <= A_662
+  ?_3 <= A_665
+  ?_4 <= A_668
+  ?_5 <= A_672
+  ?_6 <= A_677
+  ?_7 <= m_681
+  ?_8 <= A_689
+  ?_9 <= A_696
+  ?_10 <= A_703
+  ?_11 <= A_707
+  ?_12 <= A_711
   
 |}
 #[program]
@@ -828,50 +845,789 @@ inductive unit_1‹› : U where
 #[program]
 inductive nat_2‹› : U where
 | zero_2 : nat_2
-| succ_3 (pred_774 : nat_2) : nat_2
+| succ_3 (pred_834 : nat_2) : nat_2
 
 #[logical]
-inductive eq_3‹s_775› (A_776 : Type‹s_775›) (m_777 : A_776):
-  A_776 -> U
+inductive eq_3‹s_835› (A_836 : Type‹s_835›) (m_837 : A_836):
+  A_836 -> U
 where
-| refl_4 : (eq_3‹s_775› A_776 m_777 m_777)
+| refl_4 : (eq_3‹s_835› A_836 m_837 m_837)
 
 #[program]
-inductive exists_4‹s_779,r_780,t_781› (A_782 : Type‹s_779›) (B_783 : 
-A_782 -> Type‹r_780›): Type‹t_781› where
+inductive exists_4‹s_839,r_840,t_841› (A_842 : Type‹s_839›) (B_843 : 
+A_842 -> Type‹r_840›): Type‹t_841› where
 | ex_5
-    (m_785 : A_782) {pf_786 : ((B_783) m_785)}
-    : (exists_4‹s_779,r_780,t_781› A_782 B_783)
+    (m_845 : A_842) {pf_846 : ((B_843) m_845)}
+    : (exists_4‹s_839,r_840,t_841› A_842 B_843)
 
 #[program]
-inductive sing_5‹s_787› (A_788 : Type‹s_787›):
-  A_788 -> Type‹s_787›
+inductive sing_5‹s_847› (A_848 : Type‹s_847›):
+  A_848 -> Type‹s_847›
 where
-| just_6 (m_790 : A_788) : (sing_5‹s_787› A_788 m_790)
+| just_6 (m_850 : A_848) : (sing_5‹s_847› A_848 m_850)
 
 #[program]
-inductive prod_6‹s_791,r_792,t_793› (A_794 : Type‹s_791›) (B_795 : Type‹r_792›):
-  Type‹t_793›
+inductive prod_6‹s_851,r_852,t_853› (A_854 : Type‹s_851›) (B_855 : Type‹r_852›):
+  Type‹t_853›
 where
 | pair_7
-    (m_796 : A_794) (n_797 : B_795)
-    : (prod_6‹s_791,r_792,t_793› A_794 B_795)
+    (m_856 : A_854) (n_857 : B_855)
+    : (prod_6‹s_851,r_852,t_853› A_854 B_855)
 
-#[logical]
-def sing_double_1‹s_798› :
-  ∀ {A_799 : Type‹s_798›} ->
-    ∀ {m_800 : A_799} ->
-      ∀ (x_801 : (sing_5‹s_798› A_799 m_800)) -o
-        ∀ (y_802 : (sing_5‹s_798› A_799 m_800)) -o
-          (eq_3‹s_798› (sing_5‹s_798› A_799 m_800) x_801 y_802)
+#[program]
+def sing_double_1‹s_858› :
+  ∀ {A_859 : Type‹s_858›} ->
+    ∀ {m_860 : A_859} ->
+      {(sing_5‹s_858› A_859 m_860)} -o
+        (sing_5‹s_858› A_859 m_860) -o
+          (prod_6‹s_858,s_858,L› A_859 A_859)
 :=
-  function sing_double_803 :
-    ∀ {A_804 : Type‹s_798›} ->
-      ∀ {m_805 : A_804} ->
-        ∀ (x_806 : (sing_5‹s_798› A_804 m_805)) -o
-          ∀ (y_807 : (sing_5‹s_798› A_804 m_805)) -o
-            (eq_3‹s_798› (sing_5‹s_798› A_804 m_805) x_806 y_807)
-  | A_808 m_809 (just_6 x_810) (just_6 y_811) => refl_4‹s_798›
+  function sing_double_863 :
+    ∀ {A_864 : Type‹s_858›} ->
+      ∀ {m_865 : A_864} ->
+        {(sing_5‹s_858› A_864 m_865)} -o
+          (sing_5‹s_858› A_864 m_865) -o
+            (prod_6‹s_858,s_858,L› A_864 A_864)
+  | A_868 m_869 (just_6 x_870) (just_6 y_871) =>
+    let {pf_872} := (refl_4‹s_858› : (eq_3‹s_858› A_868 x_870 y_871))
+    in (pair_7‹s_858,s_858,L› y_871 y_871)
+
+-----------------------------------------
+
+Logical.infer_tm(unit_1)
+Logical.infer_tm(nat_2)
+Logical.infer_tm(nat_2)
+Logical.infer_tm(nat_2)
+Logical.infer_tm(L)
+Logical.infer_tm(A_874)
+Logical.infer_tm(A_874)
+Logical.infer_tm(L)
+Logical.infer_tm(A_877)
+Logical.infer_tm((eq_3‹L› A_877 m_878 m_878))
+Logical.check_tm( A_877, L )
+Logical.infer_tm(A_877)
+Logical.check_tm( m_878, A_877 )
+Logical.infer_tm(m_878)
+Logical.check_tm( m_878, A_877 )
+Logical.infer_tm(m_878)
+Logical.infer_tm(U)
+Logical.infer_tm(A_879)
+Logical.infer_tm(A_879)
+Logical.infer_tm(U)
+Logical.infer_tm(A_882)
+Logical.infer_tm((eq_3‹U› A_882 m_883 m_883))
+Logical.check_tm( A_882, U )
+Logical.infer_tm(A_882)
+Logical.check_tm( m_883, A_882 )
+Logical.infer_tm(m_883)
+Logical.check_tm( m_883, A_882 )
+Logical.infer_tm(m_883)
+Logical.infer_tm(L)
+Logical.infer_tm(A_884 -> L)
+Logical.infer_tm(A_884)
+Logical.infer_tm(L)
+Logical.infer_tm(L)
+Logical.infer_tm(A_888 -> L)
+Logical.infer_tm(A_888)
+Logical.infer_tm(L)
+Logical.infer_tm(A_888)
+Logical.infer_tm(((B_889) m_892))
+Logical.infer_tm(B_889)
+Logical.check_tm( m_892, A_888 )
+Logical.infer_tm(m_892)
+Logical.infer_tm((exists_4‹L,L,L› A_888 B_889))
+Logical.check_tm( A_888, L )
+Logical.infer_tm(A_888)
+Logical.check_tm( B_889, A_888 -> L )
+Logical.infer_tm(B_889)
+Logical.infer_tm(L)
+Logical.infer_tm(A_896 -> L)
+Logical.infer_tm(A_896)
+Logical.infer_tm(L)
+Logical.infer_tm(L)
+Logical.infer_tm(A_900 -> L)
+Logical.infer_tm(A_900)
+Logical.infer_tm(L)
+Logical.infer_tm(A_900)
+Logical.infer_tm(((B_901) m_904))
+Logical.infer_tm(B_901)
+Logical.check_tm( m_904, A_900 )
+Logical.infer_tm(m_904)
+Logical.infer_tm((exists_4‹L,L,U› A_900 B_901))
+Logical.check_tm( A_900, L )
+Logical.infer_tm(A_900)
+Logical.check_tm( B_901, A_900 -> L )
+Logical.infer_tm(B_901)
+  warning - pruned constructor exLLU_11 trans12.check_dconstrs
+Logical.infer_tm(L)
+Logical.infer_tm(A_908 -> U)
+Logical.infer_tm(A_908)
+Logical.infer_tm(U)
+Logical.infer_tm(L)
+Logical.infer_tm(A_912 -> U)
+Logical.infer_tm(A_912)
+Logical.infer_tm(U)
+Logical.infer_tm(A_912)
+Logical.infer_tm(((B_913) m_916))
+Logical.infer_tm(B_913)
+Logical.check_tm( m_916, A_912 )
+Logical.infer_tm(m_916)
+Logical.infer_tm((exists_4‹L,U,L› A_912 B_913))
+Logical.check_tm( A_912, L )
+Logical.infer_tm(A_912)
+Logical.check_tm( B_913, A_912 -> U )
+Logical.infer_tm(B_913)
+Logical.infer_tm(L)
+Logical.infer_tm(A_920 -> U)
+Logical.infer_tm(A_920)
+Logical.infer_tm(U)
+Logical.infer_tm(L)
+Logical.infer_tm(A_924 -> U)
+Logical.infer_tm(A_924)
+Logical.infer_tm(U)
+Logical.infer_tm(A_924)
+Logical.infer_tm(((B_925) m_928))
+Logical.infer_tm(B_925)
+Logical.check_tm( m_928, A_924 )
+Logical.infer_tm(m_928)
+Logical.infer_tm((exists_4‹L,U,U› A_924 B_925))
+Logical.check_tm( A_924, L )
+Logical.infer_tm(A_924)
+Logical.check_tm( B_925, A_924 -> U )
+Logical.infer_tm(B_925)
+  warning - pruned constructor exLUU_13 trans12.check_dconstrs
+Logical.infer_tm(U)
+Logical.infer_tm(A_932 -> L)
+Logical.infer_tm(A_932)
+Logical.infer_tm(L)
+Logical.infer_tm(U)
+Logical.infer_tm(A_936 -> L)
+Logical.infer_tm(A_936)
+Logical.infer_tm(L)
+Logical.infer_tm(A_936)
+Logical.infer_tm(((B_937) m_940))
+Logical.infer_tm(B_937)
+Logical.check_tm( m_940, A_936 )
+Logical.infer_tm(m_940)
+Logical.infer_tm((exists_4‹U,L,L› A_936 B_937))
+Logical.check_tm( A_936, U )
+Logical.infer_tm(A_936)
+Logical.check_tm( B_937, A_936 -> L )
+Logical.infer_tm(B_937)
+Logical.infer_tm(U)
+Logical.infer_tm(A_944 -> L)
+Logical.infer_tm(A_944)
+Logical.infer_tm(L)
+Logical.infer_tm(U)
+Logical.infer_tm(A_948 -> L)
+Logical.infer_tm(A_948)
+Logical.infer_tm(L)
+Logical.infer_tm(A_948)
+Logical.infer_tm(((B_949) m_952))
+Logical.infer_tm(B_949)
+Logical.check_tm( m_952, A_948 )
+Logical.infer_tm(m_952)
+Logical.infer_tm((exists_4‹U,L,U› A_948 B_949))
+Logical.check_tm( A_948, U )
+Logical.infer_tm(A_948)
+Logical.check_tm( B_949, A_948 -> L )
+Logical.infer_tm(B_949)
+Logical.infer_tm(U)
+Logical.infer_tm(A_956 -> U)
+Logical.infer_tm(A_956)
+Logical.infer_tm(U)
+Logical.infer_tm(U)
+Logical.infer_tm(A_960 -> U)
+Logical.infer_tm(A_960)
+Logical.infer_tm(U)
+Logical.infer_tm(A_960)
+Logical.infer_tm(((B_961) m_964))
+Logical.infer_tm(B_961)
+Logical.check_tm( m_964, A_960 )
+Logical.infer_tm(m_964)
+Logical.infer_tm((exists_4‹U,U,L› A_960 B_961))
+Logical.check_tm( A_960, U )
+Logical.infer_tm(A_960)
+Logical.check_tm( B_961, A_960 -> U )
+Logical.infer_tm(B_961)
+Logical.infer_tm(U)
+Logical.infer_tm(A_968 -> U)
+Logical.infer_tm(A_968)
+Logical.infer_tm(U)
+Logical.infer_tm(U)
+Logical.infer_tm(A_972 -> U)
+Logical.infer_tm(A_972)
+Logical.infer_tm(U)
+Logical.infer_tm(A_972)
+Logical.infer_tm(((B_973) m_976))
+Logical.infer_tm(B_973)
+Logical.check_tm( m_976, A_972 )
+Logical.infer_tm(m_976)
+Logical.infer_tm((exists_4‹U,U,U› A_972 B_973))
+Logical.check_tm( A_972, U )
+Logical.infer_tm(A_972)
+Logical.check_tm( B_973, A_972 -> U )
+Logical.infer_tm(B_973)
+Logical.infer_tm(L)
+Logical.infer_tm(A_980)
+Logical.infer_tm(L)
+Logical.infer_tm(A_982)
+Logical.infer_tm((sing_5‹L› A_982 m_983))
+Logical.check_tm( A_982, L )
+Logical.infer_tm(A_982)
+Logical.check_tm( m_983, A_982 )
+Logical.infer_tm(m_983)
+Logical.infer_tm(U)
+Logical.infer_tm(A_984)
+Logical.infer_tm(U)
+Logical.infer_tm(A_986)
+Logical.infer_tm((sing_5‹U› A_986 m_987))
+Logical.check_tm( A_986, U )
+Logical.infer_tm(A_986)
+Logical.check_tm( m_987, A_986 )
+Logical.infer_tm(m_987)
+Logical.infer_tm(L)
+Logical.infer_tm(L)
+Logical.infer_tm(L)
+Logical.infer_tm(L)
+Logical.infer_tm(A_990)
+Logical.infer_tm(B_991)
+Logical.infer_tm((prod_6‹L,L,L› A_990 B_991))
+Logical.check_tm( A_990, L )
+Logical.infer_tm(A_990)
+Logical.check_tm( B_991, L )
+Logical.infer_tm(B_991)
+Logical.infer_tm(L)
+Logical.infer_tm(L)
+Logical.infer_tm(L)
+Logical.infer_tm(L)
+Logical.infer_tm(A_996)
+Logical.infer_tm(B_997)
+Logical.infer_tm((prod_6‹L,L,U› A_996 B_997))
+Logical.check_tm( A_996, L )
+Logical.infer_tm(A_996)
+Logical.check_tm( B_997, L )
+Logical.infer_tm(B_997)
+  warning - pruned constructor pairLLU_21 trans12.check_dconstrs
+Logical.infer_tm(L)
+Logical.infer_tm(U)
+Logical.infer_tm(L)
+Logical.infer_tm(U)
+Logical.infer_tm(A_1002)
+Logical.infer_tm(B_1003)
+Logical.infer_tm((prod_6‹L,U,L› A_1002 B_1003))
+Logical.check_tm( A_1002, L )
+Logical.infer_tm(A_1002)
+Logical.check_tm( B_1003, U )
+Logical.infer_tm(B_1003)
+Logical.infer_tm(L)
+Logical.infer_tm(U)
+Logical.infer_tm(L)
+Logical.infer_tm(U)
+Logical.infer_tm(A_1008)
+Logical.infer_tm(B_1009)
+Logical.infer_tm((prod_6‹L,U,U› A_1008 B_1009))
+Logical.check_tm( A_1008, L )
+Logical.infer_tm(A_1008)
+Logical.check_tm( B_1009, U )
+Logical.infer_tm(B_1009)
+  warning - pruned constructor pairLUU_23 trans12.check_dconstrs
+Logical.infer_tm(U)
+Logical.infer_tm(L)
+Logical.infer_tm(U)
+Logical.infer_tm(L)
+Logical.infer_tm(A_1014)
+Logical.infer_tm(B_1015)
+Logical.infer_tm((prod_6‹U,L,L› A_1014 B_1015))
+Logical.check_tm( A_1014, U )
+Logical.infer_tm(A_1014)
+Logical.check_tm( B_1015, L )
+Logical.infer_tm(B_1015)
+Logical.infer_tm(U)
+Logical.infer_tm(L)
+Logical.infer_tm(U)
+Logical.infer_tm(L)
+Logical.infer_tm(A_1020)
+Logical.infer_tm(B_1021)
+Logical.infer_tm((prod_6‹U,L,U› A_1020 B_1021))
+Logical.check_tm( A_1020, U )
+Logical.infer_tm(A_1020)
+Logical.check_tm( B_1021, L )
+Logical.infer_tm(B_1021)
+  warning - pruned constructor pairULU_25 trans12.check_dconstrs
+Logical.infer_tm(U)
+Logical.infer_tm(U)
+Logical.infer_tm(U)
+Logical.infer_tm(U)
+Logical.infer_tm(A_1026)
+Logical.infer_tm(B_1027)
+Logical.infer_tm((prod_6‹U,U,L› A_1026 B_1027))
+Logical.check_tm( A_1026, U )
+Logical.infer_tm(A_1026)
+Logical.check_tm( B_1027, U )
+Logical.infer_tm(B_1027)
+Logical.infer_tm(U)
+Logical.infer_tm(U)
+Logical.infer_tm(U)
+Logical.infer_tm(U)
+Logical.infer_tm(A_1032)
+Logical.infer_tm(B_1033)
+Logical.infer_tm((prod_6‹U,U,U› A_1032 B_1033))
+Logical.check_tm( A_1032, U )
+Logical.infer_tm(A_1032)
+Logical.check_tm( B_1033, U )
+Logical.infer_tm(B_1033)
+Logical.infer_tm(∀ {A_1036 : L} ->
+                   ∀ {m_1037 : A_1036} ->
+                     {(sing_5‹L› A_1036 m_1037)} -o
+                       (sing_5‹L› A_1036 m_1037) -o
+                         (prod_6‹L,L,L› A_1036 A_1036))
+Logical.infer_tm(L)
+Logical.infer_tm(∀ {m_1041 : A_1040} ->
+                   {(sing_5‹L› A_1040 m_1041)} -o
+                     (sing_5‹L› A_1040 m_1041) -o
+                       (prod_6‹L,L,L› A_1040 A_1040))
+Logical.infer_tm(A_1040)
+Logical.infer_tm({(sing_5‹L› A_1040 m_1044)} -o
+                   (sing_5‹L› A_1040 m_1044) -o
+                     (prod_6‹L,L,L› A_1040 A_1040))
+Logical.infer_tm((sing_5‹L› A_1040 m_1044))
+Logical.check_tm( A_1040, L )
+Logical.infer_tm(A_1040)
+Logical.check_tm( m_1044, A_1040 )
+Logical.infer_tm(m_1044)
+Logical.infer_tm((sing_5‹L› A_1040 m_1044) -o
+                   (prod_6‹L,L,L› A_1040 A_1040))
+Logical.infer_tm((sing_5‹L› A_1040 m_1044))
+Logical.check_tm( A_1040, L )
+Logical.infer_tm(A_1040)
+Logical.check_tm( m_1044, A_1040 )
+Logical.infer_tm(m_1044)
+Logical.infer_tm((prod_6‹L,L,L› A_1040 A_1040))
+Logical.check_tm( A_1040, L )
+Logical.infer_tm(A_1040)
+Logical.check_tm( A_1040, L )
+Logical.infer_tm(A_1040)
+Program.check_tm(
+  function sing_double_1050 :
+    ∀ {A_1051 : L} ->
+      ∀ {m_1052 : A_1051} ->
+        {(sing_5‹L› A_1051 m_1052)} -o
+          (sing_5‹L› A_1051 m_1052) -o (prod_6‹L,L,L› A_1051 A_1051)
+  | A_1055 m_1056 (just_6 x_1057) (just_6 y_1058) =>
+    let {pf_1059} := (refl_4‹L› : (eq_3‹L› A_1055 x_1057 y_1058)) in
+    (pair_7‹L,L,L› y_1058 y_1058),
+  ∀ {A_1060 : L} ->
+    ∀ {m_1061 : A_1060} ->
+      {(sing_5‹L› A_1060 m_1061)} -o
+        (sing_5‹L› A_1060 m_1061) -o (prod_6‹L,L,L› A_1060 A_1060)
+)
+Program.infer_tm(function sing_double_1064 :
+                   ∀ {A_1065 : L} ->
+                     ∀ {m_1066 : A_1065} ->
+                       {(sing_5‹L› A_1065 m_1066)} -o
+                         (sing_5‹L› A_1065 m_1066) -o
+                           (prod_6‹L,L,L› A_1065 A_1065)
+                 | A_1069 m_1070 (just_6 x_1071) (just_6 y_1072) =>
+                   let {pf_1073} :=
+                     (refl_4‹L› : (eq_3‹L› A_1069 x_1071 y_1072))
+                   in (pair_7‹L,L,L› y_1072 y_1072))
+Logical.infer_tm(∀ {A_1075 : L} ->
+                   ∀ {m_1076 : A_1075} ->
+                     {(sing_5‹L› A_1075 m_1076)} -o
+                       (sing_5‹L› A_1075 m_1076) -o
+                         (prod_6‹L,L,L› A_1075 A_1075))
+Logical.infer_tm(L)
+Logical.infer_tm(∀ {m_1080 : A_1079} ->
+                   {(sing_5‹L› A_1079 m_1080)} -o
+                     (sing_5‹L› A_1079 m_1080) -o
+                       (prod_6‹L,L,L› A_1079 A_1079))
+Logical.infer_tm(A_1079)
+Logical.infer_tm({(sing_5‹L› A_1079 m_1083)} -o
+                   (sing_5‹L› A_1079 m_1083) -o
+                     (prod_6‹L,L,L› A_1079 A_1079))
+Logical.infer_tm((sing_5‹L› A_1079 m_1083))
+Logical.check_tm( A_1079, L )
+Logical.infer_tm(A_1079)
+Logical.check_tm( m_1083, A_1079 )
+Logical.infer_tm(m_1083)
+Logical.infer_tm((sing_5‹L› A_1079 m_1083) -o
+                   (prod_6‹L,L,L› A_1079 A_1079))
+Logical.infer_tm((sing_5‹L› A_1079 m_1083))
+Logical.check_tm( A_1079, L )
+Logical.infer_tm(A_1079)
+Logical.check_tm( m_1083, A_1079 )
+Logical.infer_tm(m_1083)
+Logical.infer_tm((prod_6‹L,L,L› A_1079 A_1079))
+Logical.check_tm( A_1079, L )
+Logical.infer_tm(A_1079)
+Logical.check_tm( A_1079, L )
+Logical.infer_tm(A_1079)
+Logical.infer_tm(L)
+Logical.infer_tm(A_1093)
+Logical.infer_tm((sing_5‹L› A_1093 m_1104))
+Logical.check_tm( A_1093, L )
+Logical.infer_tm(A_1093)
+Logical.check_tm( m_1104, A_1093 )
+Logical.infer_tm(m_1104)
+Logical.infer_tm((sing_5‹L› A_1093 m_1104))
+Logical.check_tm( A_1093, L )
+Logical.infer_tm(A_1093)
+Logical.check_tm( m_1104, A_1093 )
+Logical.infer_tm(m_1104)
+Logical.infer_tm((sing_5‹L› A_1093 m_1104))
+Logical.check_tm( A_1093, L )
+Logical.infer_tm(A_1093)
+Logical.check_tm( m_1104, A_1093 )
+Logical.infer_tm(m_1104)
+Logical.infer_tm(A_1093)
+Logical.infer_tm((sing_5‹L› A_1093 m_1104))
+Logical.check_tm( A_1093, L )
+Logical.infer_tm(A_1093)
+Logical.check_tm( m_1104, A_1093 )
+Logical.infer_tm(m_1104)
+Logical.infer_tm(A_1093)
+case_coverage{|
+  prblm {|
+    eq_term?( (sing_5‹L› #A_1093 #m_1104),
+      (sing_5‹L› #A_1093 #m_1178))
+    eq_term?( (sing_5‹L› #A_1093 #m_1104),
+      (sing_5‹L› #A_1093 #m_1147));
+    {| eq_pat?(N #A_1093, A_1089 : L)
+       eq_pat?(N #m_1104, m_1090 : #A_1093)
+       eq_pat?(N #m_1147, x_1091 : #A_1093)
+       eq_pat?(R #m_1178, y_1092 : #A_1093) ::: [] =>?
+         let {pf_1199} :=
+           (refl_4‹L› : (eq_3‹L› #A_1089 #x_1091 #y_1092))
+         in (pair_7‹L,L,L› #y_1092 #y_1092)
+    |}
+  |}
+|}
+unify_local(
+  eq_pat?(N #A_1093, A_1089 : L)
+  eq_pat?(N #m_1104, m_1090 : #A_1093)
+  eq_pat?(N #m_1147, x_1091 : #A_1093)
+  eq_pat?(R #m_1178, y_1092 : #A_1093)
+)
+unify_global(
+  eq_term?( (sing_5‹L› #A_1093 #m_1104), (sing_5‹L› #A_1093 #m_1178))
+  eq_term?( (sing_5‹L› #A_1093 #m_1104), (sing_5‹L› #A_1093 #m_1147))
+)
+simpl_pprbm ~expand:false( #A_1093, #A_1089)
+simpl_pprbm ~expand:false( #m_1104, #m_1090)
+simpl_pprbm ~expand:false( #m_1147, #x_1091)
+simpl_pprbm ~expand:false( #m_1178, #y_1092)
+simpl_pprbm ~expand:false( (sing_5‹L› #A_1093 #m_1104),
+  (sing_5‹L› #A_1093 #m_1178))
+simpl_pprbm ~expand:false( #A_1093, #A_1093)
+simpl_pprbm ~expand:false( #m_1104, #m_1178)
+simpl_pprbm ~expand:false( (sing_5‹L› #A_1093 #m_1178),
+  (sing_5‹L› #A_1093 #m_1147))
+simpl_pprbm ~expand:false( #A_1093, #A_1093)
+simpl_pprbm ~expand:false( #m_1178, #m_1147)
+case_coverage_ok(
+  let {pf_1211} := (refl_4‹L› : (eq_3‹L› A_1093 m_1147 m_1178)) in
+  (pair_7‹L,L,L› m_1178 m_1178), (prod_6‹L,L,L› A_1093 A_1093))
+Program.check_tm(
+  let {pf_1212} := (refl_4‹L› : (eq_3‹L› A_1093 m_1147 m_1178)) in
+  (pair_7‹L,L,L› m_1178 m_1178), (prod_6‹L,L,L› A_1093 A_1093)
+)
+Program.infer_tm(let {pf_1213} :=
+                   (refl_4‹L› : (eq_3‹L› A_1093 m_1147 m_1178))
+                 in (pair_7‹L,L,L› m_1178 m_1178))
+Logical.infer_tm((refl_4‹L› : (eq_3‹L› A_1093 m_1147 m_1178)))
+Logical.infer_tm((eq_3‹L› A_1093 m_1147 m_1178))
+Logical.check_tm( A_1093, L )
+Logical.infer_tm(A_1093)
+Logical.check_tm( m_1147, A_1093 )
+Logical.infer_tm(m_1147)
+Logical.check_tm( m_1178, A_1093 )
+Logical.infer_tm(m_1178)
+Logical.check_tm( refl_4‹L›, (eq_3‹L› A_1093 m_1147 m_1178) )
+Logical.infer_tm(refl_4‹L›)
+Logical.check_tm( A_1093, L )
+Logical.infer_tm(A_1093)
+Logical.check_tm( m_1147, A_1093 )
+Logical.infer_tm(m_1147)
+Logical.infer_tm((eq_3‹L› A_1093 m_1147 m_1178))
+Logical.check_tm( A_1093, L )
+Logical.infer_tm(A_1093)
+Logical.check_tm( m_1147, A_1093 )
+Logical.infer_tm(m_1147)
+Logical.check_tm( m_1178, A_1093 )
+Logical.infer_tm(m_1178)
+Program.infer_tm((pair_7‹L,L,L› m_1178 m_1178))
+Logical.check_tm( A_1093, L )
+Logical.infer_tm(A_1093)
+Logical.check_tm( A_1093, L )
+Logical.infer_tm(A_1093)
+Program.check_tm( m_1178, A_1093 )
+Program.infer_tm(m_1178)
+Program.check_tm( m_1178, A_1093 )
+Program.infer_tm(m_1178)
+  warning - pruned constant sing_doubleL_2 merge(m_1178)
+Logical.infer_tm(∀ {A_1215 : U} ->
+                   ∀ {m_1216 : A_1215} ->
+                     {(sing_5‹U› A_1215 m_1216)} -o
+                       (sing_5‹U› A_1215 m_1216) -o
+                         (prod_6‹U,U,L› A_1215 A_1215))
+Logical.infer_tm(U)
+Logical.infer_tm(∀ {m_1220 : A_1219} ->
+                   {(sing_5‹U› A_1219 m_1220)} -o
+                     (sing_5‹U› A_1219 m_1220) -o
+                       (prod_6‹U,U,L› A_1219 A_1219))
+Logical.infer_tm(A_1219)
+Logical.infer_tm({(sing_5‹U› A_1219 m_1223)} -o
+                   (sing_5‹U› A_1219 m_1223) -o
+                     (prod_6‹U,U,L› A_1219 A_1219))
+Logical.infer_tm((sing_5‹U› A_1219 m_1223))
+Logical.check_tm( A_1219, U )
+Logical.infer_tm(A_1219)
+Logical.check_tm( m_1223, A_1219 )
+Logical.infer_tm(m_1223)
+Logical.infer_tm((sing_5‹U› A_1219 m_1223) -o
+                   (prod_6‹U,U,L› A_1219 A_1219))
+Logical.infer_tm((sing_5‹U› A_1219 m_1223))
+Logical.check_tm( A_1219, U )
+Logical.infer_tm(A_1219)
+Logical.check_tm( m_1223, A_1219 )
+Logical.infer_tm(m_1223)
+Logical.infer_tm((prod_6‹U,U,L› A_1219 A_1219))
+Logical.check_tm( A_1219, U )
+Logical.infer_tm(A_1219)
+Logical.check_tm( A_1219, U )
+Logical.infer_tm(A_1219)
+Program.check_tm(
+  function sing_double_1229 :
+    ∀ {A_1230 : U} ->
+      ∀ {m_1231 : A_1230} ->
+        {(sing_5‹U› A_1230 m_1231)} -o
+          (sing_5‹U› A_1230 m_1231) -o (prod_6‹U,U,L› A_1230 A_1230)
+  | A_1234 m_1235 (just_6 x_1236) (just_6 y_1237) =>
+    let {pf_1238} := (refl_4‹U› : (eq_3‹U› A_1234 x_1236 y_1237)) in
+    (pair_7‹U,U,L› y_1237 y_1237),
+  ∀ {A_1239 : U} ->
+    ∀ {m_1240 : A_1239} ->
+      {(sing_5‹U› A_1239 m_1240)} -o
+        (sing_5‹U› A_1239 m_1240) -o (prod_6‹U,U,L› A_1239 A_1239)
+)
+Program.infer_tm(function sing_double_1243 :
+                   ∀ {A_1244 : U} ->
+                     ∀ {m_1245 : A_1244} ->
+                       {(sing_5‹U› A_1244 m_1245)} -o
+                         (sing_5‹U› A_1244 m_1245) -o
+                           (prod_6‹U,U,L› A_1244 A_1244)
+                 | A_1248 m_1249 (just_6 x_1250) (just_6 y_1251) =>
+                   let {pf_1252} :=
+                     (refl_4‹U› : (eq_3‹U› A_1248 x_1250 y_1251))
+                   in (pair_7‹U,U,L› y_1251 y_1251))
+Logical.infer_tm(∀ {A_1254 : U} ->
+                   ∀ {m_1255 : A_1254} ->
+                     {(sing_5‹U› A_1254 m_1255)} -o
+                       (sing_5‹U› A_1254 m_1255) -o
+                         (prod_6‹U,U,L› A_1254 A_1254))
+Logical.infer_tm(U)
+Logical.infer_tm(∀ {m_1259 : A_1258} ->
+                   {(sing_5‹U› A_1258 m_1259)} -o
+                     (sing_5‹U› A_1258 m_1259) -o
+                       (prod_6‹U,U,L› A_1258 A_1258))
+Logical.infer_tm(A_1258)
+Logical.infer_tm({(sing_5‹U› A_1258 m_1262)} -o
+                   (sing_5‹U› A_1258 m_1262) -o
+                     (prod_6‹U,U,L› A_1258 A_1258))
+Logical.infer_tm((sing_5‹U› A_1258 m_1262))
+Logical.check_tm( A_1258, U )
+Logical.infer_tm(A_1258)
+Logical.check_tm( m_1262, A_1258 )
+Logical.infer_tm(m_1262)
+Logical.infer_tm((sing_5‹U› A_1258 m_1262) -o
+                   (prod_6‹U,U,L› A_1258 A_1258))
+Logical.infer_tm((sing_5‹U› A_1258 m_1262))
+Logical.check_tm( A_1258, U )
+Logical.infer_tm(A_1258)
+Logical.check_tm( m_1262, A_1258 )
+Logical.infer_tm(m_1262)
+Logical.infer_tm((prod_6‹U,U,L› A_1258 A_1258))
+Logical.check_tm( A_1258, U )
+Logical.infer_tm(A_1258)
+Logical.check_tm( A_1258, U )
+Logical.infer_tm(A_1258)
+Logical.infer_tm(U)
+Logical.infer_tm(A_1272)
+Logical.infer_tm((sing_5‹U› A_1272 m_1283))
+Logical.check_tm( A_1272, U )
+Logical.infer_tm(A_1272)
+Logical.check_tm( m_1283, A_1272 )
+Logical.infer_tm(m_1283)
+Logical.infer_tm((sing_5‹U› A_1272 m_1283))
+Logical.check_tm( A_1272, U )
+Logical.infer_tm(A_1272)
+Logical.check_tm( m_1283, A_1272 )
+Logical.infer_tm(m_1283)
+Logical.infer_tm((sing_5‹U› A_1272 m_1283))
+Logical.check_tm( A_1272, U )
+Logical.infer_tm(A_1272)
+Logical.check_tm( m_1283, A_1272 )
+Logical.infer_tm(m_1283)
+Logical.infer_tm(A_1272)
+Logical.infer_tm((sing_5‹U› A_1272 m_1283))
+Logical.check_tm( A_1272, U )
+Logical.infer_tm(A_1272)
+Logical.check_tm( m_1283, A_1272 )
+Logical.infer_tm(m_1283)
+Logical.infer_tm(A_1272)
+case_coverage{|
+  prblm {|
+    eq_term?( (sing_5‹U› #A_1272 #m_1283),
+      (sing_5‹U› #A_1272 #m_1357))
+    eq_term?( (sing_5‹U› #A_1272 #m_1283),
+      (sing_5‹U› #A_1272 #m_1326));
+    {| eq_pat?(N #A_1272, A_1268 : U)
+       eq_pat?(N #m_1283, m_1269 : #A_1272)
+       eq_pat?(N #m_1326, x_1270 : #A_1272)
+       eq_pat?(R #m_1357, y_1271 : #A_1272) ::: [] =>?
+         let {pf_1378} :=
+           (refl_4‹U› : (eq_3‹U› #A_1268 #x_1270 #y_1271))
+         in (pair_7‹U,U,L› #y_1271 #y_1271)
+    |}
+  |}
+|}
+unify_local(
+  eq_pat?(N #A_1272, A_1268 : U)
+  eq_pat?(N #m_1283, m_1269 : #A_1272)
+  eq_pat?(N #m_1326, x_1270 : #A_1272)
+  eq_pat?(R #m_1357, y_1271 : #A_1272)
+)
+unify_global(
+  eq_term?( (sing_5‹U› #A_1272 #m_1283), (sing_5‹U› #A_1272 #m_1357))
+  eq_term?( (sing_5‹U› #A_1272 #m_1283), (sing_5‹U› #A_1272 #m_1326))
+)
+simpl_pprbm ~expand:false( #A_1272, #A_1268)
+simpl_pprbm ~expand:false( #m_1283, #m_1269)
+simpl_pprbm ~expand:false( #m_1326, #x_1270)
+simpl_pprbm ~expand:false( #m_1357, #y_1271)
+simpl_pprbm ~expand:false( (sing_5‹U› #A_1272 #m_1283),
+  (sing_5‹U› #A_1272 #m_1357))
+simpl_pprbm ~expand:false( #A_1272, #A_1272)
+simpl_pprbm ~expand:false( #m_1283, #m_1357)
+simpl_pprbm ~expand:false( (sing_5‹U› #A_1272 #m_1357),
+  (sing_5‹U› #A_1272 #m_1326))
+simpl_pprbm ~expand:false( #A_1272, #A_1272)
+simpl_pprbm ~expand:false( #m_1357, #m_1326)
+case_coverage_ok(
+  let {pf_1390} := (refl_4‹U› : (eq_3‹U› A_1272 m_1326 m_1357)) in
+  (pair_7‹U,U,L› m_1357 m_1357), (prod_6‹U,U,L› A_1272 A_1272))
+Program.check_tm(
+  let {pf_1391} := (refl_4‹U› : (eq_3‹U› A_1272 m_1326 m_1357)) in
+  (pair_7‹U,U,L› m_1357 m_1357), (prod_6‹U,U,L› A_1272 A_1272)
+)
+Program.infer_tm(let {pf_1392} :=
+                   (refl_4‹U› : (eq_3‹U› A_1272 m_1326 m_1357))
+                 in (pair_7‹U,U,L› m_1357 m_1357))
+Logical.infer_tm((refl_4‹U› : (eq_3‹U› A_1272 m_1326 m_1357)))
+Logical.infer_tm((eq_3‹U› A_1272 m_1326 m_1357))
+Logical.check_tm( A_1272, U )
+Logical.infer_tm(A_1272)
+Logical.check_tm( m_1326, A_1272 )
+Logical.infer_tm(m_1326)
+Logical.check_tm( m_1357, A_1272 )
+Logical.infer_tm(m_1357)
+Logical.check_tm( refl_4‹U›, (eq_3‹U› A_1272 m_1326 m_1357) )
+Logical.infer_tm(refl_4‹U›)
+Logical.check_tm( A_1272, U )
+Logical.infer_tm(A_1272)
+Logical.check_tm( m_1326, A_1272 )
+Logical.infer_tm(m_1326)
+Logical.infer_tm((eq_3‹U› A_1272 m_1326 m_1357))
+Logical.check_tm( A_1272, U )
+Logical.infer_tm(A_1272)
+Logical.check_tm( m_1326, A_1272 )
+Logical.infer_tm(m_1326)
+Logical.check_tm( m_1357, A_1272 )
+Logical.infer_tm(m_1357)
+Program.infer_tm((pair_7‹U,U,L› m_1357 m_1357))
+Logical.check_tm( A_1272, U )
+Logical.infer_tm(A_1272)
+Logical.check_tm( A_1272, U )
+Logical.infer_tm(A_1272)
+Program.check_tm( m_1357, A_1272 )
+Program.infer_tm(m_1357)
+Program.check_tm( m_1357, A_1272 )
+Program.infer_tm(m_1357)
+inductive unit_1 where
+| tt_1 of size(0)
+
+inductive nat_2 where
+| zero_2 of size(0) | succ_3 of size(1)
+
+inductive eqU_8 where
+| reflU_9 of size(0)
+
+inductive eqL_7 where
+| reflL_8 of size(0)
+
+inductive existsUUU_16 where
+| exUUU_17 of size(2)
+
+inductive existsUUL_15 where
+| exUUL_16 of size(2)
+
+inductive existsULU_14 where
+| exULU_15 of size(2)
+
+inductive existsULL_13 where
+| exULL_14 of size(2)
+
+inductive existsLUU_12 where
+
+
+inductive existsLUL_11 where
+| exLUL_12 of size(2)
+
+inductive existsLLU_10 where
+
+
+inductive existsLLL_9 where
+| exLLL_10 of size(2)
+
+inductive singU_18 where
+| justU_19 of size(1)
+
+inductive singL_17 where
+| justL_18 of size(1)
+
+inductive prodUUU_26 where
+| pairUUU_27 of size(2)
+
+inductive prodUUL_25 where
+| pairUUL_26 of size(2)
+
+inductive prodULU_24 where
+
+
+inductive prodULL_23 where
+| pairULL_24 of size(2)
+
+inductive prodLUU_22 where
+
+
+inductive prodLUL_21 where
+| pairLUL_22 of size(2)
+
+inductive prodLLU_20 where
+
+
+inductive prodLLL_19 where
+| pairLLL_20 of size(2)
+
+def sing_doubleU_3 =
+  fun sing_double_1398 (A_1399, m_1400, __1401, __1402) =>
+    case {__1401} of
+    | justU_19 m_1403 =>
+      case __1402 of
+      | justU_19 m_1404 => let pf_1405 := Null in (pairUUL_26 m_1404 m_1404)
+      end
+    end
 
 -----------------------------------------
 
