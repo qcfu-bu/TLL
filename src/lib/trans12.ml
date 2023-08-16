@@ -850,25 +850,26 @@ let rec check_dcls ctx env = function
   | Definition { name = x0; relv = N; scheme = sch } :: dcls ->
     let sargs = mbinder_names sch in
     let init = make_init sargs in
-    let res, ctx, local, xs =
+    let dcl_elab, res, ctx, local, xs =
       List.fold_right
-        (fun ss (res, ctx_acc, local, xs) ->
+        (fun ss (dcl_elab, res, ctx_acc, local, xs) ->
           let x1 = const_extend x0 ss in
           try
             let m, a = msubst sch (Array.of_list ss) in
             let s = Logical.infer_sort ctx env a in
             Logical.check_tm ctx env m a;
             Resolver.
-              ( RMap.add ss x1 res
+              ( Syntax2.(Definition { name = x1; body = NULL }) :: dcl_elab
+              , RMap.add ss x1 res
               , Ctx.add_const x1 a s ctx_acc
               , RMap.add ss m local
               , (x1, s) :: xs )
           with
           | e ->
             warn_const x1 e;
-            (res, ctx_acc, local, xs))
+            (dcl_elab, res, ctx_acc, local, xs))
         init
-        Resolver.(RMap.empty, ctx, RMap.empty, [])
+        Resolver.([], RMap.empty, ctx, RMap.empty, [])
     in
     State.add_const x0 res;
     let env = Env.add_const x0 (fun ss -> Resolver.RMap.find ss local) env in
@@ -876,7 +877,7 @@ let rec check_dcls ctx env = function
     let usg =
       List.fold_left (fun usg (x, s) -> Usage.remove_const x usg N s) usg xs
     in
-    (dcls_elab, usg)
+    (dcl_elab @ dcls_elab, usg)
   | Definition { name = x0; relv = R; scheme = sch } :: dcls ->
     let sargs = mbinder_names sch in
     let init = make_init sargs in
