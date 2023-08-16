@@ -82,10 +82,17 @@ let imeta_of_ctx (ctx : Ctx.t) =
 let assert_equal0 s1 s2 =
   if not (eq_sort s1 s2) then State.add_eqn (EqualSort (s1, s2))
 
-let assert_equal1 ctx m1 m2 =
+let assert_equal1 env m1 m2 =
   Debug.exec (fun () ->
       pr "@[assert_equal1(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m1 pp_tm m2);
-  if not (eq_tm ctx m1 m2) then State.add_eqn (EqualTerm (ctx, m1, m2))
+  match eq_tm env m1 m2 with
+  | true ->
+    Debug.exec (fun () ->
+        pr "@[assert_equal1_ok(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m1 pp_tm m2)
+  | false ->
+    Debug.exec (fun () ->
+        pr "@[assert_equal1_extend(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m1 pp_tm m2);
+    State.add_eqn (EqualTerm (env, m1, m2))
 
 let rec assert_type ctx env a =
   let t = infer_tm ctx env a in
@@ -150,7 +157,6 @@ and infer_tm ctx env m : tm =
     let ptl = msubst sch (Array.of_list ss) in
     infer_ptl ctx env ms ns ptl
   | Match (ms, a, cls) ->
-    assert_type ctx env a;
     let b = infer_motive ctx env ms a in
     check_cls ctx env cls a;
     b
@@ -195,9 +201,13 @@ and infer_ptl ctx env ms ns ptl =
   aux_param ms ptl
 
 and infer_motive ctx env ms a =
-  match (ms, whnf env a) with
-  | [], a -> a
-  | m :: ms, Pi (_, _, a, bnd) ->
+  match (ms, a) with
+  | [], a ->
+    assert_type ctx env a;
+    a
+  | m :: ms, Pi (_, L, a, bnd) ->
+    Debug.exec (fun () -> pr "infer_motive(%a : %a)@." pp_tm m pp_tm a);
+    assert_type ctx env a;
     check_tm ctx env m a;
     infer_motive ctx env ms (subst bnd m)
   | _ -> failwith "trans1e.infer_motive"
@@ -271,6 +281,7 @@ and check_cls ctx env cls a : unit =
       match whnf env a with
       | Pi (_, _, a, bnd) ->
         let x, b = unbind_pmeta bnd in
+        Debug.exec (fun () -> pr "case_introed(%a : %a)@." Var.pp x pp_tm a);
         let ctx = Ctx.add_var x a ctx in
         let prbm = prbm_add env prbm x a in
         aux_prbm ctx prbm b
@@ -304,7 +315,7 @@ and check_cls ctx env cls a : unit =
             in
             aux_prbm ctx prbm a)
           cs
-      | _ -> failwith "trans1e.check_cls(Split)")
+      | b -> failwith "trans1e.check_cls(Split(%a))" pp_tm b)
     (* absurd pattern *)
     | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> (
       Debug.exec (fun () -> pr "case_absurd@.");
@@ -333,7 +344,8 @@ and check_cls ctx env cls a : unit =
   let prbm = PPrbm.of_cls cls in
   let a = State.resolve a in
   Debug.exec (fun () ->
-      pr "@[<v 0>check_cls {|@;<1 2>%a@;<1 0>|}@]@." PPrbm.pp prbm);
+      pr "@[<v 0>check_cls {|@;<1 2>%a@;<1 2>a := @[%a@]@;<1 0>|}@]@." PPrbm.pp
+        prbm pp_tm a);
   aux_prbm ctx prbm a
 
 and prbm_add env prbm x a =
@@ -436,7 +448,7 @@ let rec check_dcls ctx env dcls =
         loop (i - 1) (entries0 @ entries)
       | _ -> failwith "trans1e.solve_delayed(Timeout)"
     in
-    loop 1000 entries
+    loop (100 * List.length entries) entries
   in
   match dcls with
   | Definition { name = x; relv; scheme = sch } :: dcls ->

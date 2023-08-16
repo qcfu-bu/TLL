@@ -101,7 +101,7 @@ let rec aeq_tm m1 m2 =
       && List.equal aeq_tm ms1 ms2 && List.equal aeq_tm ns1 ns2
     | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
       List.equal aeq_tm ms1 ms2 && aeq_tm a1 a2
-      && List.equal (eq_pbinder (Option.equal aeq_tm)) cls1 cls1
+      && List.equal (eq_pbinder (Option.equal aeq_tm)) cls1 cls2
     (* monad *)
     | IO a1, IO a2 -> aeq_tm a1 a2
     | Return m1, Return m2 -> aeq_tm m1 m2

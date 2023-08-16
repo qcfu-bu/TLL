@@ -36,7 +36,7 @@ let qlparen = [%sedlex.regexp? "?("]
 let qlbrace = [%sedlex.regexp? "?{"]
 
 (* quantifiers *)
-let forall = [%sedlex.regexp? 8704] (* ∀ *)
+let forall = [%sedlex.regexp? "forall" | 8704] (* ∀ *)
 let exists = [%sedlex.regexp? 8707] (* ∃ *)
 let question = [%sedlex.regexp? "?"]
 
@@ -107,7 +107,9 @@ let prim_stdout = [%sedlex.regexp? "stdout"]
 let prim_stderr = [%sedlex.regexp? "stderr"]
 
 (* identifiers *)
-let identifier = [%sedlex.regexp? (letter | '_'), Star (letter | digit | '_' | '\'')]
+let identifier =
+  [%sedlex.regexp? (letter | '_'), Star (letter | digit | '_' | '\'')]
+
 let constant0 = [%sedlex.regexp? identifier, lt]
 let constant1 = [%sedlex.regexp? identifier, flq]
 let at_identifier = [%sedlex.regexp? "@", identifier]
