@@ -157,7 +157,7 @@ and infer_tm ctx env m : tm =
     let ptl = msubst sch (Array.of_list ss) in
     infer_ptl ctx env ms ns ptl
   | Match (ms, a, cls) ->
-    let b = infer_motive ctx ctx env ms a a in
+    let b = infer_motive ctx env ms a in
     check_cls ctx env cls a;
     b
   (* monad *)
@@ -200,23 +200,26 @@ and infer_ptl ctx env ms ns ptl =
   in
   aux_param ms ptl
 
-and infer_motive ctx0 ctx1 env ms a0 a1 =
-  (* ctx0: motive context
-     ctx1: discriminee context *)
-  match (ms, a0, a1) with
-  | [], a0, a1 ->
-    assert_type ctx0 env a0;
-    assert_type ctx1 env a1;
-    a1
-  | m :: ms, Pi (_, L, a0, bnd0), Pi (_, L, a1, bnd1) ->
-    Debug.exec (fun () ->
-        pr "infer_motive(%a : %a : %a)@." pp_tm m pp_tm a0 pp_tm a0);
-    let x, b0 = unbind bnd0 in
-    assert_type ctx0 env a0;
-    assert_type ctx1 env a1;
-    check_tm ctx1 env m a1;
-    infer_motive (Ctx.add_var x a0 ctx0) ctx1 env ms b0 (subst bnd1 m)
-  | _ -> failwith "trans1e.infer_motive"
+and infer_motive ctx1 env ms a =
+  let rec aux_motive ctx0 ms a0 a1 =
+    (* ctx0: motive context
+       ctx1: discriminee context *)
+    match (ms, a0, a1) with
+    | [], a0, a1 ->
+      assert_type ctx0 env a0;
+      assert_type ctx1 env a1;
+      a1
+    | m :: ms, Pi (_, L, a0, bnd0), Pi (_, L, a1, bnd1) ->
+      Debug.exec (fun () ->
+          pr "infer_motive(%a : %a : %a)@." pp_tm m pp_tm a0 pp_tm a0);
+      let x, b0 = unbind bnd0 in
+      assert_type ctx0 env a0;
+      assert_type ctx1 env a1;
+      check_tm ctx1 env m a1;
+      aux_motive (Ctx.add_var x a0 ctx0) ms b0 (subst bnd1 m)
+    | _ -> failwith "trans1e.infer_motive"
+  in
+  aux_motive ctx1 ms a a
 
 and check_tm ctx env m a : unit =
   Debug.exec (fun () ->
