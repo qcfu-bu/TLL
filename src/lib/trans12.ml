@@ -592,6 +592,7 @@ module Program = struct
       | (eqns, p :: ps, rhs) :: clause -> (
         match whnf env a with
         | Pi (relv, s, a, bnd) -> (
+          Debug.exec (fun () -> pr "trans12.Program.case_intro(%a)@." pp_tm a);
           let x, b = unbind_pmeta bnd in
           let t = infer_demote ctx env a in
           let ctx = Ctx.add_var x a t ctx in
@@ -660,7 +661,9 @@ module Program = struct
           let ctrees = box_rev_list ctrees in
           Syntax2.
             ( []
-            , _Case (trans_relv relv) (trans_sort s) (_Var (trans_var x)) ctrees
+            , _Match (trans_relv relv) (trans_sort s)
+                (_Var (trans_var x))
+                ctrees
             , Usage.merge usg1 usg2 )
         | _ -> failwith "trans12.Program.check_cls(Split(%a))" pp_tm b)
       (* absurd pattern *)

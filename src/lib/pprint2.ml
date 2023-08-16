@@ -39,7 +39,7 @@ and pp_tm fmt = function
     let xs, m = unmbind bnd in
     pf fmt "@[<v 0>@[fun %a (%a) =>@;<1 2>@[%a@]@]" Var.pp x
       (array ~sep:comma Var.pp) xs pp_tm m
-  | App (_, m, n) ->
+  | App _ as m ->
     let hd, ms = unApps m in
     let ms = List.map fst ms in
     pf fmt "@[((%a)@;<1 2>@[%a@])@]" pp_tm hd (list ~sep:sp pp_tm) ms
@@ -51,10 +51,12 @@ and pp_tm fmt = function
   | Constr (c, []) -> pf fmt "%a" Constr.pp c
   | Constr (c, ms) ->
     pf fmt "@[(%a@;<1 2>@[%a@])@]" Constr.pp c (list ~sep:sp pp_tm) ms
-  | Case (R, _, m, cls) ->
-    pf fmt "@[<v 0>@[case %a of@]@;<1 0>@[%a@]@;<1 0>end@]" pp_tm m pp_cls cls
-  | Case (N, _, m, cls) ->
-    pf fmt "@[<v 0>@[case {%a} of@]@;<1 0>@[%a@]@;<1 0>end@]" pp_tm m pp_cls cls
+  | Match (R, _, m, cls) ->
+    pf fmt "@[<v 0>@[match %a with@]@;<1 0>@[%a@]@;<1 0>end@]" pp_tm m pp_cls
+      cls
+  | Match (N, _, m, cls) ->
+    pf fmt "@[<v 0>@[match {%a} with@]@;<1 0>@[%a@]@;<1 0>end@]" pp_tm m pp_cls
+      cls
   | Absurd -> pf fmt "!!"
   (* monad *)
   | Return m -> pf fmt "return %a" pp_tm m

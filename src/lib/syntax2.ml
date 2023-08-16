@@ -21,7 +21,7 @@ type tm =
   | Let of tm * (tm, tm) binder
   (* inductive *)
   | Constr of Constr.t * tms
-  | Case of relv * sort * tm * cls
+  | Match of relv * sort * tm * cls
   | Absurd
   (* monad *)
   | Return of tm
@@ -84,7 +84,7 @@ let _Let = box_apply2 (fun m n -> Let (m, n))
 
 (* inductive *)
 let _Constr x = box_apply (fun ms -> Constr (x, ms))
-let _Case r s = box_apply2 (fun m cls -> Case (r, s, m, cls))
+let _Match r s = box_apply2 (fun m cls -> Match (r, s, m, cls))
 let _Absurd = box Absurd
 
 (* monad *)
@@ -129,11 +129,11 @@ let rec lift_tm = function
   | Constr (c, ms) ->
     let ms = List.map lift_tm ms in
     _Constr c (box_list ms)
-  | Case (relv, s, m, cls) ->
+  | Match (relv, s, m, cls) ->
     let cls =
       List.map (fun (c, bnd) -> _PConstr c (box_mbinder lift_tm bnd)) cls
     in
-    _Case relv s (lift_tm m) (box_list cls)
+    _Match relv s (lift_tm m) (box_list cls)
   | Absurd -> _Absurd
   (* monad *)
   | Return m -> _Return (lift_tm m)
