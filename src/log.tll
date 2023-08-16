@@ -1,16 +1,39 @@
-[Inductive {name = "unit"; relv = R;
+[Inductive {name = "eq"; relv = N;
    body =
    (Binder (["s"],
-      (PBase
-         ((TBase (Type (SId "s"))),
-          [(DConstr ("tt", (TBase (Id ("unit", I))), []))]))
+      (PBind ((Type (SId "s")),
+         (Binder ("A",
+            (PBind ((Id ("A", I)),
+               (Binder ("m",
+                  (PBase
+                     ((TBind (R, (Id ("A", I)),
+                         (Binder ("_", (TBase (Type U)))))),
+                      [(DConstr ("refl",
+                          (TBase
+                             (App
+                                [(Id ("eq", I)); (Id ("m", I)); (Id ("m", I))
+                                  ])),
+                          []))
+                        ]))
+                  ))
+               ))
+            ))
+         ))
       ));
-   view = []};
+   view = [I; E]};
+  Inductive {name = "unit"; relv = R;
+    body =
+    (Binder (["s"],
+       (PBase
+          ((TBase (Type (SId "s"))),
+           [(DConstr ("tt", (TBase (Id ("unit", I))), []))]))
+       ));
+    view = []};
   Inductive {name = "bool"; relv = R;
     body =
     (Binder ([],
        (PBase
-          ((TBase (Type U)),
+          ((TBase (Type L)),
            [(DConstr ("true", (TBase (Id ("bool", I))), []));
              (DConstr ("false", (TBase (Id ("bool", I))), []))]))
        ));
@@ -19,7 +42,7 @@
     body =
     (Binder ([],
        (PBase
-          ((TBase (Type U)),
+          ((TBase (Type L)),
            [(DConstr ("zero", (TBase (Id ("nat", I))), []));
              (DConstr ("succ",
                 (TBind (R, (Id ("nat", I)),
@@ -28,288 +51,546 @@
              ]))
        ));
     view = []};
-  Inductive {name = "stream_node"; relv = R;
+  Inductive {name = "sing"; relv = R;
     body =
-    (Binder (["s"],
-       (PBind ((Type (SId "s")),
+    (Binder ([],
+       (PBind ((Type L),
           (Binder ("A",
              (PBase
-                ((TBase (Type L)),
-                 [(DConstr ("stream_nil",
-                     (TBase (App [(Id ("stream_node", I)); (Id ("A", I))])),
-                     []));
-                   (DConstr ("stream_cons",
-                      (TBind (R, (Id ("A", I)),
-                         (Binder ("hd",
-                            (TBind (R,
-                               (Pi (R, L, (Id ("bool", I)),
-                                  (Binder ("b",
-                                     (Match ([(R, (Id ("b", I)), None)],
-                                        None,
-                                        [([(PId "true")],
-                                          (Some (App
-                                                   [(Id ("stream_node", I));
-                                                     (Id ("A", I))])));
-                                          ([(PId "false")],
-                                           (Some (Id ("unit", I))))
-                                          ]
-                                        ))
-                                     ))
-                                  )),
-                               (Binder ("tl",
-                                  (TBase
-                                     (App
-                                        [(Id ("stream_node", I));
-                                          (Id ("A", I))]))
-                                  ))
-                               ))
-                            ))
-                         )),
-                      [E; E]))
+                ((TBind (R, (Id ("A", I)), (Binder ("_", (TBase (Type L)))))),
+                 [(DConstr ("just",
+                     (TBind (R, (Id ("A", I)),
+                        (Binder ("m",
+                           (TBase (App [(Id ("sing", I)); (Id ("m", I))]))))
+                        )),
+                     [E]))
                    ]))
              ))
           ))
        ));
-    view = [E]};
-  Definition {name = "stream"; relv = N;
+    view = [I]};
+  Inductive {name = "apair"; relv = R;
     body =
-    (Binder (["s"],
-       ((Fun ((Pi (R, U, (Type (SId "s")), (Binder ("A", IMeta)))),
-           (Binder ((Some "stream"),
-              [([(PId "A")],
-                (Some (Pi (R, L, (Id ("bool", I)),
-                         (Binder ("b",
-                            (Match ([(R, (Id ("b", I)), None)], None,
-                               [([(PId "true")],
-                                 (Some (App
-                                          [(Id ("stream_node", I));
-                                            (Id ("A", I))])));
-                                 ([(PId "false")], (Some (Id ("unit", I))))]
-                               ))
-                            ))
-                         ))))
-                ]
-              )),
-           [E])),
-        (Pi (R, U, (Type (SId "s")), (Binder ("A", IMeta)))))
-       ));
-    view = [E]};
-  Definition {name = "free_stream"; relv = R;
-    body =
-    (Binder (["s"],
-       ((Fun (
-           (Pi (N, U, (Type (SId "s")),
-              (Binder ("A",
-                 (Pi (R, U, (App [(Id ("stream", I)); (Id ("A", I))]),
-                    (Binder ("st", (Inst ("unit", [U], I))))))
-                 ))
-              )),
-           (Binder ((Some "free_stream"),
-              [([(PId "A"); (PId "st")],
-                (Some (Match (
-                         [(R, (App [(Id ("st", I)); (Id ("false", I))]), None)
-                           ],
-                         None, [([(PId "tt")], (Some (Id ("tt", I))))]))))
-                ]
-              )),
-           [I; E])),
-        (Pi (N, U, (Type (SId "s")),
-           (Binder ("A",
-              (Pi (R, U, (App [(Id ("stream", I)); (Id ("A", I))]),
-                 (Binder ("st", (Inst ("unit", [U], I))))))
-              ))
-           )))
+    (Binder ([],
+       (PBind ((Type L),
+          (Binder ("A",
+             (PBind ((Pi (R, U, (Id ("A", I)), (Binder ("_", (Type L))))),
+                (Binder ("B",
+                   (PBase
+                      ((TBase (Type L)),
+                       [(DConstr ("apair_intro",
+                           (TBind (N, (Id ("A", I)),
+                              (Binder ("x",
+                                 (TBind (R,
+                                    (Pi (R, L, (Id ("bool", I)),
+                                       (Binder ("b",
+                                          (Match ([(R, (Id ("b", I)), None)],
+                                             None,
+                                             [([(PId "true")],
+                                               (Some (App
+                                                        [(Id ("sing", I));
+                                                          (Id ("x", I))])));
+                                               ([(PId "false")],
+                                                (Some (App
+                                                         [(Id ("B", I));
+                                                           (Id ("x", I))])))
+                                               ]
+                                             ))
+                                          ))
+                                       )),
+                                    (Binder ("select",
+                                       (TBase
+                                          (App
+                                             [(Id ("apair", I));
+                                               (Id ("B", I))]))
+                                       ))
+                                    ))
+                                 ))
+                              )),
+                           [I; E]))
+                         ]))
+                   ))
+                ))
+             ))
+          ))
        ));
     view = [I; E]};
-  Definition {name = "stream_succ"; relv = R;
+  Definition {name = "sing_elim"; relv = R;
     body =
     (Binder ([],
        ((Fun (
-           (Pi (R, U, (App [(Id ("stream", I)); (Id ("nat", I))]),
-              (Binder ("xs", (App [(Id ("stream", I)); (Id ("nat", I))]))))),
-           (Binder ((Some "stream_succ"),
-              [([(PId "xs")],
-                (Some (Fun (IMeta,
-                         (Binder (None,
-                            [([(PId "true")],
-                              (Some (Match (
-                                       [(R,
-                                         (App
-                                            [(Id ("xs", I)); (Id ("true", I))
-                                              ]),
-                                         None)],
-                                       None,
-                                       [([(PId "stream_nil")],
-                                         (Some (Id ("stream_nil", I))));
-                                         ([(PConstr ("stream_cons",
-                                              [(PId "hd"); (PId "tl")]))
-                                            ],
-                                          (Some (App
-                                                   [(Id ("stream_cons", I));
-                                                     (App
-                                                        [(Id ("succ", I));
-                                                          (Id ("hd", I))]);
-                                                     (App
-                                                        [(Id ("stream_succ",
-                                                            I));
-                                                          (Id ("tl", I))])
-                                                     ])))
-                                         ]
-                                       ))));
-                              ([(PId "false")],
-                               (Some (App [(Id ("xs", I)); (Id ("false", I))])))
-                              ]
-                            )),
-                         []))))
+           (Pi (N, U, (Type L),
+              (Binder ("A",
+                 (Pi (N, U, (Id ("A", I)),
+                    (Binder ("x",
+                       (Pi (R, U, (App [(Id ("sing", I)); (Id ("x", I))]),
+                          (Binder ("_", (Id ("A", I))))))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "sing_elim"),
+              [([(PId "A"); (PId "x"); (PConstr ("just", [(PId "x")]))],
+                (Some (Id ("x", I))))]
+              )),
+           [I; I])),
+        (Pi (N, U, (Type L),
+           (Binder ("A",
+              (Pi (N, U, (Id ("A", I)),
+                 (Binder ("x",
+                    (Pi (R, U, (App [(Id ("sing", I)); (Id ("x", I))]),
+                       (Binder ("_", (Id ("A", I))))))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I]};
+  Definition {name = "sing_uniq"; relv = N;
+    body =
+    (Binder ([],
+       ((Fun (
+           (Pi (R, U, (Type L),
+              (Binder ("A",
+                 (Pi (R, U, (Id ("A", I)),
+                    (Binder ("x0",
+                       (Pi (R, U, (App [(Id ("sing", I)); (Id ("x0", I))]),
+                          (Binder ("x",
+                             (App
+                                [(Id ("eq", I)); (Id ("x0", I));
+                                  (App [(Id ("sing_elim", I)); (Id ("x", I))])
+                                  ])
+                             ))
+                          ))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "sing_uniq"),
+              [([(PId "A"); (PId "x0"); (PConstr ("just", [(PId "_")]))],
+                (Some (Id ("refl", I))))]
+              )),
+           [I; I])),
+        (Pi (R, U, (Type L),
+           (Binder ("A",
+              (Pi (R, U, (Id ("A", I)),
+                 (Binder ("x0",
+                    (Pi (R, U, (App [(Id ("sing", I)); (Id ("x0", I))]),
+                       (Binder ("x",
+                          (App
+                             [(Id ("eq", I)); (Id ("x0", I));
+                               (App [(Id ("sing_elim", I)); (Id ("x", I))])])
+                          ))
+                       ))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I]};
+  Definition {name = "proj1"; relv = R;
+    body =
+    (Binder ([],
+       ((Fun (
+           (Pi (N, U, (Type L),
+              (Binder ("A",
+                 (Pi (N, U,
+                    (Pi (R, U, (Id ("A", I)), (Binder ("_", (Type L))))),
+                    (Binder ("B",
+                       (Pi (R, U,
+                          (App
+                             [(Id ("apair", E)); (Id ("A", I)); (Id ("B", I))
+                               ]),
+                          (Binder ("_", (Id ("A", I))))))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "proj1"),
+              [([(PId "A"); (PId "B");
+                  (PConstr ("apair_intro", [(PId "_"); (PId "select")]))],
+                (Some (App
+                         [(Id ("sing_elim", I));
+                           (App [(Id ("select", I)); (Id ("true", I))])])))
                 ]
               )),
-           [E])),
-        (Pi (R, U, (App [(Id ("stream", I)); (Id ("nat", I))]),
-           (Binder ("xs", (App [(Id ("stream", I)); (Id ("nat", I))]))))))
+           [I; I])),
+        (Pi (N, U, (Type L),
+           (Binder ("A",
+              (Pi (N, U,
+                 (Pi (R, U, (Id ("A", I)), (Binder ("_", (Type L))))),
+                 (Binder ("B",
+                    (Pi (R, U,
+                       (App [(Id ("apair", E)); (Id ("A", I)); (Id ("B", I))]),
+                       (Binder ("_", (Id ("A", I))))))
+                    ))
+                 ))
+              ))
+           )))
        ));
-    view = [E]};
-  Definition {name = "nat_make"; relv = R;
+    view = [I; I]};
+  Definition {name = "proj2"; relv = R;
+    body =
+    (Binder ([],
+       ((Fun (
+           (Pi (N, U, (Type L),
+              (Binder ("A",
+                 (Pi (N, U,
+                    (Pi (R, U, (Id ("A", I)), (Binder ("_", (Type L))))),
+                    (Binder ("B",
+                       (Pi (R, U,
+                          (App
+                             [(Id ("apair", E)); (Id ("A", I)); (Id ("B", I))
+                               ]),
+                          (Binder ("x",
+                             (App
+                                [(Id ("B", I));
+                                  (App [(Id ("proj1", I)); (Id ("x", I))])])
+                             ))
+                          ))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "proj2"),
+              [([(PId "A"); (PId "B");
+                  (PConstr ("apair_intro", [(PId "x"); (PId "select")]))],
+                (Some (Match (
+                         [(N, (Id ("x", I)), (Some ("x0", IMeta)));
+                           (N, (App [(Id ("select", I)); (Id ("true", I))]),
+                            (Some ("a0",
+                                   (App [(Id ("sing", I)); (Id ("x", I))]))));
+                           (N,
+                            (App
+                               [(Id ("sing_uniq", I));
+                                 (App [(Id ("select", I)); (Id ("true", I))])
+                                 ]),
+                            (Some ("_",
+                                   (App
+                                      [(Id ("eq", I)); (Id ("x0", I));
+                                        (App
+                                           [(Id ("sing_elim", I));
+                                             (Id ("a0", I))])
+                                        ]))));
+                           (R, (App [(Id ("select", I)); (Id ("false", I))]),
+                            (Some ("_", (App [(Id ("B", I)); (Id ("x0", I))]))))
+                           ],
+                         (Some (App
+                                  [(Id ("B", I));
+                                    (App
+                                       [(Id ("sing_elim", I)); (Id ("a0", I))
+                                         ])
+                                    ])),
+                         [([(PId "_"); (PId "_"); (PId "refl"); (PId "b")],
+                           (Some (Id ("b", I))))]
+                         ))))
+                ]
+              )),
+           [I; I])),
+        (Pi (N, U, (Type L),
+           (Binder ("A",
+              (Pi (N, U,
+                 (Pi (R, U, (Id ("A", I)), (Binder ("_", (Type L))))),
+                 (Binder ("B",
+                    (Pi (R, U,
+                       (App [(Id ("apair", E)); (Id ("A", I)); (Id ("B", I))]),
+                       (Binder ("x",
+                          (App
+                             [(Id ("B", I));
+                               (App [(Id ("proj1", I)); (Id ("x", I))])])
+                          ))
+                       ))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I]};
+  Definition {name = "bool2nat"; relv = R;
+    body =
+    (Binder ([],
+       ((Fun ((Pi (R, U, (Id ("bool", I)), (Binder ("_", (Id ("nat", I)))))),
+           (Binder ((Some "bool2nat"),
+              [([(PId "true")],
+                (Some (App [(Id ("succ", I)); (Id ("zero", I))])));
+                ([(PId "false")], (Some (Id ("zero", I))))]
+              )),
+           [])),
+        (Pi (R, U, (Id ("bool", I)), (Binder ("_", (Id ("nat", I)))))))
+       ));
+    view = []};
+  Definition {name = "free_bool"; relv = R;
+    body =
+    (Binder ([],
+       ((Fun (
+           (Pi (R, U, (Id ("bool", I)),
+              (Binder ("_", (Inst ("unit", [U], I)))))),
+           (Binder ((Some "free_bool"),
+              [([(PId "true")], (Some (Id ("tt", I))));
+                ([(PId "false")], (Some (Id ("tt", I))))]
+              )),
+           [])),
+        (Pi (R, U, (Id ("bool", I)), (Binder ("_", (Inst ("unit", [U], I))))
+           )))
+       ));
+    view = []};
+  Definition {name = "free_nat"; relv = R;
     body =
     (Binder ([],
        ((Fun (
            (Pi (R, U, (Id ("nat", I)),
-              (Binder ("n", (App [(Id ("stream", I)); (Id ("nat", I))]))))),
-           (Binder ((Some "nat_make"),
-              [([(PId "n")],
-                (Some (Fun (IMeta,
-                         (Binder (None,
-                            [([(PId "true")],
-                              (Some (App
-                                       [(Id ("stream_cons", I));
-                                         (Id ("n", I));
-                                         (App
-                                            [(Id ("nat_make", I));
-                                              (App
-                                                 [(Id ("succ", I));
-                                                   (Id ("n", I))])
-                                              ])
-                                         ])));
-                              ([(PId "false")], (Some (Id ("tt", I))))]
-                            )),
-                         []))))
+              (Binder ("_", (Inst ("unit", [U], I)))))),
+           (Binder ((Some "free_nat"),
+              [([(PId "zero")], (Some (Id ("tt", I))));
+                ([(PConstr ("succ", [(PId "n")]))],
+                 (Some (App [(Id ("free_nat", I)); (Id ("n", I))])))
                 ]
               )),
-           [E])),
-        (Pi (R, U, (Id ("nat", I)),
-           (Binder ("n", (App [(Id ("stream", I)); (Id ("nat", I))]))))))
+           [])),
+        (Pi (R, U, (Id ("nat", I)), (Binder ("_", (Inst ("unit", [U], I)))))))
        ));
-    view = [E]};
-  Definition {name = "nat_stream"; relv = R;
-    body =
-    (Binder ([], ((App [(Id ("nat_make", I)); (Id ("zero", I))]), IMeta)));
     view = []};
-  Definition {name = "snat_stream"; relv = R;
+  Definition {name = "my_apair"; relv = R;
     body =
     (Binder ([],
-       ((App [(Id ("stream_succ", I)); (Id ("nat_stream", I))]), IMeta)));
+       ((Let (R, (Id ("false", I)),
+           (Binder ("my_val",
+              (App
+                 [(Id ("apair_intro", I));
+                   (Fun (IMeta,
+                      (Binder (None,
+                         [([(PId "true")],
+                           (Some (App [(Id ("just", I)); (Id ("my_val", I))])));
+                           ([(PId "false")],
+                            (Some (App
+                                     [(Id ("bool2nat", I));
+                                       (Id ("my_val", I))])))
+                           ]
+                         )),
+                      []))
+                   ])
+              ))
+           )),
+        (App
+           [(Id ("apair", I));
+             (Fun ((Pi (R, U, (Id ("bool", I)), (Binder ("b", IMeta)))),
+                (Binder (None,
+                   [([(PId "b")],
+                     (Some (Match ([(R, (Id ("b", I)), None)], None,
+                              [([(PId "true")],
+                                (Some (Inst ("unit", [L], I))));
+                                ([(PId "false")], (Some (Id ("nat", I))))]
+                              ))))
+                     ]
+                   )),
+                []))
+             ]))
+       ));
     view = []};
   Definition {name = "_"; relv = R;
     body =
     (Binder ([],
-       ((App [(Id ("free_stream", I)); (Id ("snat_stream", I))]), IMeta)));
+       ((App
+           [(Id ("free_bool", I));
+             (App [(Id ("proj1", I)); (Id ("my_apair", I))])]),
+        (Inst ("unit", [U], I)))
+       ));
     view = []}
   ]
 
 -----------------------------------------
 
-#[program]
-inductive unit_1‹s_42› : Type‹s_42› where
-| tt_1 : unit_1‹??_1›
+#[logical]
+inductive eq_1‹s_93› (A_94 : Type‹s_93›) (m_95 : A_94): A_94 -> U
+where
+| refl_1 : (eq_1‹??_1› ?_1 m_95 m_95)
 
 #[program]
-inductive bool_2‹› : U where
-| true_2 : bool_2
-| false_3 : bool_2
+inductive unit_2‹s_97› : Type‹s_97› where
+| tt_2 : unit_2‹??_2›
 
 #[program]
-inductive nat_3‹› : U where
-| zero_4 : nat_3
-| succ_5 (pred_43 : nat_3) : nat_3
+inductive bool_3‹› : L where
+| true_3 : bool_3
+| false_4 : bool_3
 
 #[program]
-inductive stream_node_4‹s_44› (A_45 : Type‹s_44›): L where
-| stream_nil_6 : (stream_node_4‹??_2› A_45)
-| stream_cons_7
-    (hd_46 : A_45)
-    (tl_47 : ∀ (b_48 : bool_2) -o
-               match b_48 in ∀ (_49 : ?_1) -o ?_2 with
-               | true_2 => (stream_node_4‹??_3› A_45)
-               | false_3 => unit_1‹??_4›)
-    : (stream_node_4‹??_5› A_45)
+inductive nat_4‹› : L where
+| zero_5 : nat_4
+| succ_6 (pred_98 : nat_4) : nat_4
+
+#[program]
+inductive sing_5‹› (A_99 : L): A_99 -> L where
+| just_7 (m_101 : A_99) : (sing_5 ?_2 m_101)
+
+#[program]
+inductive apair_6‹› (A_102 : L) (B_103 : A_102 -> L): L where
+| apair_intro_8
+    {x_105 : A_102}
+    (select_106 : ∀ (b_107 : bool_3) -o
+                    match b_107 in ∀ (_108 : ?_3) -o ?_4 with
+                    | true_3 => (sing_5 ?_5 x_105)
+                    | false_4 => ((B_103) x_105))
+    : (apair_6 ?_6 B_103)
+
+#[program]
+def sing_elim_1‹› :
+  ∀ {A_109 : L} -> ∀ {x_110 : A_109} -> (sing_5 ?_8 x_110) -> A_109
+:=
+  function sing_elim_112 :
+    ∀ {A_113 : L} -> ∀ {x_114 : A_113} -> (sing_5 ?_7 x_114) -> A_113
+  | A_116 x_117 (just_7 x_118) => x_118
 
 #[logical]
-def stream_1‹s_50› : ∀ (A_51 : Type‹s_50›) -> ?_6 :=
-  function stream_52 : ∀ (A_53 : Type‹s_50›) -> ?_3
-  | A_54 =>
-    ∀ (b_55 : bool_2) -o
-      match b_55 in ∀ (_56 : ?_4) -o ?_5 with
-      | true_2 => (stream_node_4‹??_6› A_54)
-      | false_3 => unit_1‹??_7›
-
-#[program]
-def free_stream_2‹s_57› :
-  ∀ {A_58 : Type‹s_57›} ->
-    ((stream_1‹??_10›) A_58) -> unit_1‹U›
+def sing_uniq_2‹› :
+  ∀ (A_119 : L) ->
+    ∀ (x0_120 : A_119) ->
+      ∀ (x_121 : (sing_5 ?_15 x0_120)) ->
+        (eq_1‹??_5› ?_18 x0_120 ((sing_elim_1) ?_17 ?_16 x_121))
 :=
-  function free_stream_60 :
-    ∀ {A_61 : Type‹s_57›} ->
-      ((stream_1‹??_8›) A_61) -> unit_1‹U›
-  | A_63 st_64 =>
-    match ((st_64) false_3) in ∀ (_65 : ?_7) -o ?_8 with
-    | tt_1 => tt_1‹??_9›
+  function sing_uniq_122 :
+    ∀ (A_123 : L) ->
+      ∀ (x0_124 : A_123) ->
+        ∀ (x_125 : (sing_5 ?_9 x0_124)) ->
+          (eq_1‹??_3› ?_12 x0_124 ((sing_elim_1) ?_11 ?_10 x_125))
+  | A_126 x0_127 (just_7 _128) => refl_1‹??_4›
 
 #[program]
-def stream_succ_3‹› :
-  ((stream_1‹??_15›) nat_3) -> ((stream_1‹??_16›) nat_3)
+def proj1_3‹› :
+  ∀ {A_129 : L} ->
+    ∀ {B_130 : A_129 -> L} -> (apair_6 A_129 B_130) -> A_129
 :=
-  function stream_succ_67 :
-    ((stream_1‹??_11›) nat_3) -> ((stream_1‹??_12›) nat_3)
-  | xs_69 =>
-    function _70 : ?_9
-    | true_2 =>
-      match ((xs_69) true_2) in ∀ (_71 : ?_10) -o ?_11 with
-      | stream_nil_6 => stream_nil_6‹??_13›
-      | (stream_cons_7 hd_72 tl_73) =>
-        (stream_cons_7‹??_14›
-          (succ_5‹› hd_72) ((stream_succ_67) tl_73))
-    | false_3 => ((xs_69) false_3)
+  function proj1_133 :
+    ∀ {A_134 : L} ->
+      ∀ {B_135 : A_134 -> L} -> (apair_6 A_134 B_135) -> A_134
+  | A_138 B_139 (apair_intro_8 _140 select_141) =>
+    ((sing_elim_1) ?_20 ?_19 ((select_141) true_3))
 
 #[program]
-def nat_make_4‹› : nat_3 -> ((stream_1‹??_20›) nat_3) :=
-  function nat_make_75 : nat_3 -> ((stream_1‹??_17›) nat_3)
-  | n_77 =>
-    function _78 : ?_14
-    | true_2 =>
-      (stream_cons_7‹??_18› n_77 ((nat_make_75) (succ_5‹› n_77)))
-    | false_3 => tt_1‹??_19›
+def proj2_4‹› :
+  ∀ {A_142 : L} ->
+    ∀ {B_143 : A_142 -> L} ->
+      ∀ (x_145 : (apair_6 A_142 B_143)) ->
+        ((B_143) ((proj1_3) ?_33 ?_32 x_145))
+:=
+  function proj2_146 :
+    ∀ {A_147 : L} ->
+      ∀ {B_148 : A_147 -> L} ->
+        ∀ (x_150 : (apair_6 A_147 B_148)) ->
+          ((B_148) ((proj1_3) ?_22 ?_21 x_150))
+  | A_151 B_152 (apair_intro_8 x_153 select_154) =>
+    match x_153, ((select_154) true_3),
+    ((sing_uniq_2) ?_24 ?_23 ((select_154) true_3)),
+    ((select_154) false_4) in
+      ∀ {x0_155 : ?_25} -o
+        ∀ {a0_156 : (sing_5 ?_26 x_153)} -o
+          ∀ {__157 :
+            (eq_1‹??_6› ?_29 x0_155 ((sing_elim_1) ?_28 ?_27 a0_156))} -o
+            ∀ (__158 : ((B_152) x0_155)) -o
+              ((B_152) ((sing_elim_1) ?_31 ?_30 a0_156))
+    with
+    | _159, _160, refl_1, b_161 => b_161
 
 #[program]
-def nat_stream_5‹› : ?_16 := ((nat_make_4) zero_4)
+def bool2nat_5‹› : bool_3 -> nat_4 :=
+  function bool2nat_163 : bool_3 -> nat_4
+  | true_3 => (succ_6‹› zero_5)
+  | false_4 => zero_5
 
 #[program]
-def snat_stream_6‹› : ?_17 := ((stream_succ_3) nat_stream_5)
+def free_bool_6‹› : bool_3 -> unit_2‹U› :=
+  function free_bool_166 : bool_3 -> unit_2‹U›
+  | true_3 => tt_2‹??_7›
+  | false_4 => tt_2‹??_8›
 
 #[program]
-def __7‹› : ?_19 := ((free_stream_2‹??_21›) ?_18 snat_stream_6)
+def free_nat_7‹› : nat_4 -> unit_2‹U› :=
+  function free_nat_169 : nat_4 -> unit_2‹U›
+  | zero_5 => tt_2‹??_9›
+  | (succ_6 n_171) => ((free_nat_169) n_171)
+
+#[program]
+def my_apair_8‹› :
+  (apair_6
+    ?_42
+    function _172 : ∀ (b_173 : bool_3) -> ?_39
+    | b_174 =>
+      match b_174 in ∀ (_175 : ?_40) -o ?_41 with
+      | true_3 => unit_2‹L›
+      | false_4 => nat_4)
+:=
+  let my_val_176 := false_4 in
+  (apair_intro_8‹›
+    ?_36
+    function _177 : ?_34
+    | true_3 => (just_7‹› my_val_176)
+    | false_4 => ((bool2nat_5) my_val_176))
+
+#[program]
+def __9‹› : unit_2‹U› :=
+  ((free_bool_6) ((proj1_3) ?_44 ?_43 my_apair_8))
 
 -----------------------------------------
 
 inductive-------------------------
-infer_tm(unit_1‹??_1›)
+infer_tm(Type‹s_178›)
+infer_tm(A_179)
+infer_tm(A_179)
+infer_tm(Type‹s_182›)
+infer_tm(A_183)
+assert_equal1( A_183, ?_1)
+assert_equal1_extend( A_183, ?_1)
+assert_equal1( m_184, m_184)
+assert_equal1_ok( m_184, m_184)
+infer_tm((eq_1‹??_1› ?_1 m_184 m_184))
+check_tm( ?_1, Type‹??_1›)
+check_tm( m_184, ?_1)
+infer_tm(m_184)
+assert_equal1( ?_1, A_183)
+assert_equal1_extend( ?_1, A_183)
+check_tm( m_184, ?_1)
+infer_tm(m_184)
+assert_equal1( ?_1, A_183)
+assert_equal1_extend( ?_1, A_183)
+simpl_tm ~expand:false( ?_1, A_183)
+simpl_tm ~expand:false( A_183, A_183)
+simpl_tm ~expand:false( A_183, A_183)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_81
+    ??_1 <= s_185
     
   |}
   imeta_meta {|
+    ?_1 <= A_188
+    
+  |}
+  eqns {|
+    
+  |}
+end_dump
+infer_tm(Type‹s_182›)
+check_tm( A_183, Type‹s_182›)
+infer_tm(A_183)
+assert_equal1( Type‹s_182›, Type‹s_182›)
+assert_equal1_ok( Type‹s_182›, Type‹s_182›)
+----------------------------------
+
+inductive-------------------------
+infer_tm(unit_2‹??_2›)
+begin_dump
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_202
+    ??_2 <= s_203
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_206
     
   |}
   eqns {|
@@ -319,17 +600,19 @@ end_dump
 ----------------------------------
 
 inductive-------------------------
-infer_tm(bool_2)
-infer_tm(bool_2)
+infer_tm(bool_3)
+infer_tm(bool_3)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_84
+    ??_1 <= s_209
+    ??_2 <= s_210
     
   |}
   imeta_meta {|
+    ?_1 <= A_213
     
   |}
   eqns {|
@@ -339,18 +622,20 @@ end_dump
 ----------------------------------
 
 inductive-------------------------
-infer_tm(nat_3)
-infer_tm(nat_3)
-infer_tm(nat_3)
+infer_tm(nat_4)
+infer_tm(nat_4)
+infer_tm(nat_4)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_86
+    ??_1 <= s_215
+    ??_2 <= s_216
     
   |}
   imeta_meta {|
+    ?_1 <= A_219
     
   |}
   eqns {|
@@ -360,1910 +645,3250 @@ end_dump
 ----------------------------------
 
 inductive-------------------------
-infer_tm(Type‹s_88›)
-infer_tm(Type‹s_90›)
-assert_equal1( A_91, A_91)
-assert_equal1_ok( A_91, A_91)
-infer_tm((stream_node_4‹??_2› A_91))
-check_tm( A_91, Type‹??_2›)
-infer_tm(A_91)
-assert_equal1( Type‹??_2›, Type‹s_90›)
-assert_equal1_extend( Type‹??_2›, Type‹s_90›)
-simpl_tm ~expand:false( Type‹??_2›, Type‹s_90›)
-infer_tm(Type‹s_92›)
-infer_tm(A_93)
-infer_tm(∀ (b_96 : bool_2) -o
-           match b_96 in ∀ (_97 : ?_1) -o ?_2 with
-           | true_2 => (stream_node_4‹??_3› A_93)
-           | false_3 => unit_1‹??_4›)
-infer_tm(bool_2)
-infer_tm(match b_98 in ∀ (_99 : ?_1) -o ?_2 with
-         | true_2 => (stream_node_4‹??_3› A_93)
-         | false_3 => unit_1‹??_4›)
-infer_motive(b_98 : ?_1)
-infer_tm(?_1)
-delay_assert(?_20, ??_22)
-check_tm( b_98, ?_1)
-infer_tm(b_98)
-assert_equal1( ?_1, bool_2)
-assert_equal1_extend( ?_1, bool_2)
-infer_tm(?_2)
-simpl_tm ~expand:false( ?_1, bool_2)
-simpl_tm ~expand:false( ?_20, Type‹??_22›)
-delay_assert(?_21, ??_23)
-simpl_tm ~expand:false( ?_21, Type‹??_23›)
-check_cls {|
-  prblm {| ;
-    {|  ::: [true_2] =>? (stream_node_4‹??_3› A_93) |}
-    {|  ::: [false_3] =>? unit_1‹??_4› |}
-  |}
-  a := ∀ (_101 : bool_2) -o ?_2
-|}
-case_intro
-case_introed(_102 : bool_2)
-case_splitting
-splitting_on(true_2)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2);
-    {|  ::: [] =>? (stream_node_4‹??_3› A_93) |}
-  |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( (stream_node_4‹??_3› A_93), ?_2)
-check_tm( (stream_node_4‹??_3› A_93), ?_2)
-infer_tm((stream_node_4‹??_3› A_93))
-check_tm( A_93, Type‹??_3›)
-infer_tm(A_93)
-assert_equal1( Type‹??_3›, Type‹s_92›)
-assert_equal1_extend( Type‹??_3›, Type‹s_92›)
-assert_equal1( ?_2, L)
-assert_equal1_extend( ?_2, L)
-splitting_on(false_3)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2); {|  ::: [] =>? unit_1‹??_4› |} |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( unit_1‹??_4›, ?_2)
-check_tm( unit_1‹??_4›, ?_2)
-infer_tm(unit_1‹??_4›)
-assert_equal1( ?_2, Type‹??_4›)
-assert_equal1_extend( ?_2, Type‹??_4›)
-simpl_tm ~expand:false( ?_2, Type‹??_4›)
-simpl_tm ~expand:false( Type‹??_4›, L)
-simpl_tm ~expand:false( Type‹??_3›, Type‹s_92›)
-assert_equal1( A_93, A_93)
-assert_equal1_ok( A_93, A_93)
-infer_tm((stream_node_4‹??_5› A_93))
-check_tm( A_93, Type‹??_5›)
-infer_tm(A_93)
-assert_equal1( Type‹??_5›, Type‹s_92›)
-assert_equal1_extend( Type‹??_5›, Type‹s_92›)
-simpl_tm ~expand:false( Type‹??_5›, Type‹s_92›)
-begin_dump
-  mctx {|
-    
-  |}
-  smeta_meta {|
-    ??_1 <= s_104
-    ??_2 <= s_105
-    ??_3 <= s_106
-    ??_4 <= L
-    ??_5 <= s_108
-    
-  |}
-  imeta_meta {|
-    ?_1 <= bool_2
-    ?_2 <= Type‹??_4›
-    ?_20 <= Type‹??_22›
-    ?_21 <= Type‹??_23›
-    
-  |}
-  eqns {|
-    
-  |}
-end_dump
-infer_tm(Type‹??_22›)
-check_tm( bool_2, Type‹??_22›)
-infer_tm(bool_2)
-assert_equal1( Type‹??_22›, U)
-assert_equal1_extend( Type‹??_22›, U)
-simpl_tm ~expand:false( Type‹??_22›, U)
-infer_tm(Type‹??_23›)
-check_tm( L, Type‹??_23›)
 infer_tm(L)
-assert_equal1( Type‹??_23›, U)
-assert_equal1_extend( Type‹??_23›, U)
-simpl_tm ~expand:false( Type‹??_23›, U)
+infer_tm(A_221)
+infer_tm(L)
+infer_tm(A_223)
+assert_equal1( A_223, ?_2)
+assert_equal1_extend( A_223, ?_2)
+infer_tm((sing_5 ?_2 m_224))
+check_tm( ?_2, L)
+check_tm( m_224, ?_2)
+infer_tm(m_224)
+assert_equal1( ?_2, A_223)
+assert_equal1_extend( ?_2, A_223)
+simpl_tm ~expand:false( ?_2, A_223)
+simpl_tm ~expand:false( A_223, A_223)
+begin_dump
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_225
+    ??_2 <= s_226
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_229
+    ?_2 <= A_231
+    
+  |}
+  eqns {|
+    
+  |}
+end_dump
+infer_tm(L)
+check_tm( A_223, L)
+infer_tm(A_223)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
 ----------------------------------
 
-definition-------------------------
-infer_tm(∀ (A_145 : Type‹s_144›) -> ?_6)
-infer_tm(Type‹s_144›)
-infer_tm(?_6)
-delay_assert(?_22, ??_24)
-simpl_tm ~expand:false( ?_22, Type‹??_24›)
-check_tm(
-  function stream_147 : ∀ (A_148 : Type‹s_144›) -> ?_3
-  | A_149 =>
-    ∀ (b_150 : bool_2) -o
-      match b_150 in ∀ (_151 : ?_4) -o ?_5 with
-      | true_2 => (stream_node_4‹??_6› A_149)
-      | false_3 => unit_1‹??_7›,
-  ∀ (A_152 : Type‹s_144›) -> ?_6)
-infer_tm(∀ (A_154 : Type‹s_144›) -> ?_3)
-infer_tm(Type‹s_144›)
+inductive-------------------------
+infer_tm(L)
+infer_tm(A_237 -> L)
+infer_tm(A_237)
+infer_tm(L)
+infer_tm(L)
+infer_tm(A_241 -> L)
+infer_tm(A_241)
+infer_tm(L)
+infer_tm(A_241)
+infer_tm(∀ (b_247 : bool_3) -o
+           match b_247 in ∀ (_248 : ?_3) -o ?_4 with
+           | true_3 => (sing_5 ?_5 x_245)
+           | false_4 => ((B_242) x_245))
+infer_tm(bool_3)
+infer_tm(match b_249 in ∀ (_250 : ?_3) -o ?_4 with
+         | true_3 => (sing_5 ?_5 x_245)
+         | false_4 => ((B_242) x_245))
+infer_motive(b_249 : ?_3)
 infer_tm(?_3)
-delay_assert(?_23, ??_25)
-simpl_tm ~expand:false( ?_23, Type‹??_25›)
-assert_equal1( ∀ (A_156 : Type‹s_144›) -> ?_6,
-  ∀ (A_157 : Type‹s_144›) -> ?_3)
-assert_equal1_extend( ∀ (A_162 : Type‹s_144›) -> ?_6,
-  ∀ (A_163 : Type‹s_144›) -> ?_3)
-simpl_tm ~expand:false( ∀ (A_167 : Type‹s_144›) -> ?_6,
-  ∀ (A_168 : Type‹s_144›) -> ?_3)
-simpl_tm ~expand:false( Type‹s_144›, Type‹s_144›)
-simpl_tm ~expand:false( ?_6, ?_3)
-check_cls {|
-  prblm {| ;
-    {|  ::: [A_164] =>?
-         ∀ (b_171 : bool_2) -o
-           match b_171 in ∀ (_172 : ?_4) -o ?_5 with
-           | true_2 => (stream_node_4‹??_6› #A_164)
-           | false_3 => unit_1‹??_7›
-    |}
-  |}
-  a := ∀ (A_173 : Type‹s_144›) -> ?_3
-|}
-case_intro
-case_introed(A_174 : Type‹s_144›)
-case_coverage{|
-  prblm {| ;
-    {| eq_pat?( #A_174, A_164 : Type‹s_144›) ::: [] =>?
-         ∀ (b_175 : bool_2) -o
-           match b_175 in ∀ (_176 : ?_4) -o ?_5 with
-           | true_2 => (stream_node_4‹??_6› #A_164)
-           | false_3 => unit_1‹??_7›
-    |}
-  |}
-|}
-unify_local( eq_pat?( #A_174, A_164 : Type‹s_144›) )
-unify_global(  )
-simpl_pprbm ~expand:false( #A_174, #A_164)
-case_coverage_ok(
-  ∀ (b_181 : bool_2) -o
-    match b_181 in ∀ (_182 : ?_4) -o ?_5 with
-    | true_2 => (stream_node_4‹??_6› A_174)
-    | false_3 => unit_1‹??_7›,
-  ?_3)
-check_tm(
-  ∀ (b_183 : bool_2) -o
-    match b_183 in ∀ (_184 : ?_4) -o ?_5 with
-    | true_2 => (stream_node_4‹??_6› A_174)
-    | false_3 => unit_1‹??_7›,
-  ?_3)
-infer_tm(∀ (b_185 : bool_2) -o
-           match b_185 in ∀ (_186 : ?_4) -o ?_5 with
-           | true_2 => (stream_node_4‹??_6› A_174)
-           | false_3 => unit_1‹??_7›)
-infer_tm(bool_2)
-infer_tm(match b_187 in ∀ (_188 : ?_4) -o ?_5 with
-         | true_2 => (stream_node_4‹??_6› A_174)
-         | false_3 => unit_1‹??_7›)
-infer_motive(b_187 : ?_4)
+delay_assert(?_45, ??_10)
+check_tm( b_249, ?_3)
+infer_tm(b_249)
+assert_equal1( ?_3, bool_3)
+assert_equal1_extend( ?_3, bool_3)
 infer_tm(?_4)
-delay_assert(?_24, ??_26)
-check_tm( b_187, ?_4)
-infer_tm(b_187)
-assert_equal1( ?_4, bool_2)
-assert_equal1_extend( ?_4, bool_2)
-infer_tm(?_5)
-simpl_tm ~expand:false( ?_4, bool_2)
-simpl_tm ~expand:false( ?_24, Type‹??_26›)
-delay_assert(?_25, ??_27)
-simpl_tm ~expand:false( ?_25, Type‹??_27›)
+simpl_tm ~expand:false( ?_3, bool_3)
+simpl_tm ~expand:false( ?_45, Type‹??_10›)
+delay_assert(?_46, ??_11)
+simpl_tm ~expand:false( ?_46, Type‹??_11›)
 check_cls {|
   prblm {| ;
-    {|  ::: [true_2] =>? (stream_node_4‹??_6› A_174) |}
-    {|  ::: [false_3] =>? unit_1‹??_7› |}
+    {|  ::: [true_3] =>? (sing_5 ?_5 x_245) |}
+    {|  ::: [false_4] =>? ((B_242) x_245) |}
   |}
-  a := ∀ (_190 : bool_2) -o ?_5
+  a := ∀ (_252 : bool_3) -o ?_4
 |}
 case_intro
-case_introed(_191 : bool_2)
+case_introed(_253 : bool_3)
 case_splitting
-splitting_on(true_2)
+splitting_on(true_3)
 case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2);
-    {|  ::: [] =>? (stream_node_4‹??_6› A_174) |}
-  |}
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? (sing_5 ?_5 x_245) |} |}
 |}
 unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( (stream_node_4‹??_6› A_174), ?_5)
-check_tm( (stream_node_4‹??_6› A_174), ?_5)
-infer_tm((stream_node_4‹??_6› A_174))
-check_tm( A_174, Type‹??_6›)
-infer_tm(A_174)
-assert_equal1( Type‹??_6›, Type‹s_144›)
-assert_equal1_extend( Type‹??_6›, Type‹s_144›)
-assert_equal1( ?_5, L)
-assert_equal1_extend( ?_5, L)
-splitting_on(false_3)
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( (sing_5 ?_5 x_245), ?_4)
+check_tm( (sing_5 ?_5 x_245), ?_4)
+infer_tm((sing_5 ?_5 x_245))
+check_tm( ?_5, L)
+check_tm( x_245, ?_5)
+infer_tm(x_245)
+assert_equal1( ?_5, A_241)
+assert_equal1_extend( ?_5, A_241)
+assert_equal1( ?_4, L)
+assert_equal1_extend( ?_4, L)
+splitting_on(false_4)
 case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2); {|  ::: [] =>? unit_1‹??_7› |} |}
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? ((B_242) x_245) |} |}
 |}
 unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( unit_1‹??_7›, ?_5)
-check_tm( unit_1‹??_7›, ?_5)
-infer_tm(unit_1‹??_7›)
-assert_equal1( ?_5, Type‹??_7›)
-assert_equal1_extend( ?_5, Type‹??_7›)
-simpl_tm ~expand:false( ?_5, Type‹??_7›)
-simpl_tm ~expand:false( Type‹??_7›, L)
-simpl_tm ~expand:false( Type‹??_6›, Type‹s_144›)
-assert_equal1( ?_3, L)
-assert_equal1_extend( ?_3, L)
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( ((B_242) x_245), ?_4)
+check_tm( ((B_242) x_245), ?_4)
+infer_tm(((B_242) x_245))
+infer_tm(B_242)
+simpl_tm ~expand:false( ?_4, L)
+simpl_tm ~expand:false( ?_5, A_241)
+check_tm( x_245, A_241)
+infer_tm(x_245)
+assert_equal1( A_241, A_241)
+assert_equal1_ok( A_241, A_241)
+assert_equal1( ?_4, L)
+assert_equal1_extend( ?_4, L)
+simpl_tm ~expand:false( L, L)
+assert_equal1( A_241, ?_6)
+assert_equal1_extend( A_241, ?_6)
+assert_equal1( B_242, B_242)
+assert_equal1_ok( B_242, B_242)
+infer_tm((apair_6 ?_6 B_242))
+check_tm( ?_6, L)
+check_tm( B_242, ?_6 -> L)
+infer_tm(B_242)
+assert_equal1( ?_6 -> L, A_241 -> L)
+assert_equal1_extend( ?_6 -> L, A_241 -> L)
+simpl_tm ~expand:false( ?_6 -> L, A_241 -> L)
+simpl_tm ~expand:false( ?_6, A_241)
+simpl_tm ~expand:false( L, L)
+simpl_tm ~expand:false( A_241, A_241)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_197
-    ??_2 <= s_198
-    ??_3 <= s_199
-    ??_4 <= L
-    ??_5 <= s_201
-    ??_6 <= s_202
-    ??_7 <= L
-    ??_22 <= U
-    ??_23 <= U
+    ??_1 <= s_270
+    ??_2 <= s_271
     
   |}
   imeta_meta {|
-    ?_1 <= bool_2
-    ?_2 <= Type‹??_4›
-    ?_4 <= bool_2
-    ?_5 <= Type‹??_7›
-    ?_6 <= ?_3
-    ?_20 <= Type‹??_22›
-    ?_21 <= Type‹??_23›
-    ?_22 <= Type‹??_24›
-    ?_23 <= Type‹??_25›
-    ?_24 <= Type‹??_26›
-    ?_25 <= Type‹??_27›
+    ?_1 <= A_274
+    ?_2 <= A_276
+    ?_3 <= bool_3
+    ?_4 <= L
+    ?_5 <= A_289
+    ?_6 <= A_293
+    ?_45 <= Type‹??_10›
+    ?_46 <= Type‹??_11›
     
   |}
   eqns {|
-    equal_tm? (?_3, L)
+    
   |}
 end_dump
-simpl_tm ~expand:false( ?_3, L)
-infer_tm(Type‹??_25›)
-check_tm( L, Type‹??_25›)
+infer_tm(Type‹??_10›)
+check_tm( bool_3, Type‹??_10›)
+infer_tm(bool_3)
+assert_equal1( Type‹??_10›, L)
+assert_equal1_extend( Type‹??_10›, L)
+simpl_tm ~expand:false( Type‹??_10›, L)
+infer_tm(Type‹??_11›)
+check_tm( L, Type‹??_11›)
 infer_tm(L)
-assert_equal1( Type‹??_25›, U)
-assert_equal1_extend( Type‹??_25›, U)
-simpl_tm ~expand:false( Type‹??_25›, U)
-infer_tm(Type‹??_26›)
-check_tm( bool_2, Type‹??_26›)
-infer_tm(bool_2)
-assert_equal1( Type‹??_26›, U)
-assert_equal1_extend( Type‹??_26›, U)
-simpl_tm ~expand:false( Type‹??_26›, U)
-infer_tm(Type‹??_27›)
-check_tm( L, Type‹??_27›)
-infer_tm(L)
-assert_equal1( Type‹??_27›, U)
-assert_equal1_extend( Type‹??_27›, U)
-simpl_tm ~expand:false( Type‹??_27›, U)
-infer_tm(Type‹??_24›)
-check_tm( L, Type‹??_24›)
-infer_tm(L)
-assert_equal1( Type‹??_24›, U)
-assert_equal1_extend( Type‹??_24›, U)
-simpl_tm ~expand:false( Type‹??_24›, U)
-----------------------------------
-
-definition-------------------------
-infer_tm(∀ {A_255 : Type‹s_254›} ->
-           ((stream_1‹??_10›) A_255) -> unit_1‹U›)
-infer_tm(Type‹s_254›)
-infer_tm(((stream_1‹??_10›) A_257) -> unit_1‹U›)
-infer_tm(((stream_1‹??_10›) A_257))
-infer_tm(stream_1‹??_10›)
-check_tm( A_257, Type‹??_10›)
-infer_tm(A_257)
-assert_equal1( Type‹??_10›, Type‹s_254›)
-assert_equal1_extend( Type‹??_10›, Type‹s_254›)
-simpl_tm ~expand:false( Type‹??_10›, Type‹s_254›)
-infer_tm(unit_1‹U›)
-check_tm(
-  function free_stream_261 :
-    ∀ {A_262 : Type‹s_254›} ->
-      ((stream_1‹??_8›) A_262) -> unit_1‹U›
-  | A_264 st_265 =>
-    match ((st_265) false_3) in ∀ (_266 : ?_7) -o ?_8 with
-    | tt_1 => tt_1‹??_9›,
-  ∀ {A_267 : Type‹s_254›} ->
-    ((stream_1‹??_10›) A_267) -> unit_1‹U›)
-infer_tm(∀ {A_270 : Type‹s_254›} ->
-           ((stream_1‹??_8›) A_270) -> unit_1‹U›)
-infer_tm(Type‹s_254›)
-infer_tm(((stream_1‹??_8›) A_272) -> unit_1‹U›)
-infer_tm(((stream_1‹??_8›) A_272))
-infer_tm(stream_1‹??_8›)
-check_tm( A_272, Type‹??_8›)
-infer_tm(A_272)
-assert_equal1( Type‹??_8›, Type‹s_254›)
-assert_equal1_extend( Type‹??_8›, Type‹s_254›)
-simpl_tm ~expand:false( Type‹??_8›, Type‹s_254›)
-infer_tm(unit_1‹U›)
-assert_equal1(
-  ∀ {A_276 : Type‹s_254›} ->
-    ((stream_1‹??_10›) A_276) -> unit_1‹U›,
-  ∀ {A_278 : Type‹s_254›} ->
-    ((stream_1‹??_8›) A_278) -> unit_1‹U›)
-assert_equal1_extend(
-  ∀ {A_285 : Type‹s_254›} ->
-    ((stream_1‹??_10›) A_285) -> unit_1‹U›,
-  ∀ {A_287 : Type‹s_254›} ->
-    ((stream_1‹??_8›) A_287) -> unit_1‹U›)
-simpl_tm ~expand:false(
-  ∀ {A_295 : Type‹s_254›} ->
-    ((stream_1‹s_254›) A_295) -> unit_1‹U›,
-  ∀ {A_297 : Type‹s_254›} ->
-    ((stream_1‹s_254›) A_297) -> unit_1‹U›)
-simpl_tm ~expand:false( Type‹s_254›, Type‹s_254›)
-simpl_tm ~expand:false( ((stream_1‹s_254›) A_299) -> unit_1‹U›,
-  ((stream_1‹s_254›) A_299) -> unit_1‹U›)
-simpl_tm ~expand:false( ((stream_1‹s_254›) A_299),
-  ((stream_1‹s_254›) A_299))
-simpl_tm ~expand:false( stream_1‹s_254›, stream_1‹s_254›)
-simpl_tm ~expand:false( A_299, A_299)
-simpl_tm ~expand:false( unit_1‹U›, unit_1‹U›)
-check_cls {|
-  prblm {| ;
-    {|  ::: [A_289, st_290] =>?
-         match ((#st_290) false_3) in ∀ (_305 : ?_7) -o ?_8 with
-         | tt_1 => tt_1‹??_9›
-    |}
-  |}
-  a := ∀ {A_306 : Type‹s_254›} ->
-         ((stream_1‹s_254›) A_306) -> unit_1‹U›
-|}
-case_intro
-case_introed(A_308 : Type‹s_254›)
-case_intro
-case_introed(st_309 : ((stream_1‹s_254›) #A_308))
-case_coverage{|
-  prblm {| ;
-    {| eq_pat?( #A_308, A_289 : Type‹s_254›)
-       eq_pat?( #st_309, st_290 : ((stream_1‹s_254›) #A_308)) ::: [] =>?
-         match ((#st_290) false_3) in ∀ (_310 : ?_7) -o ?_8 with
-         | tt_1 => tt_1‹??_9›
-    |}
-  |}
-|}
-unify_local(
-  eq_pat?( #A_308, A_289 : Type‹s_254›)
-  eq_pat?( #st_309, st_290 : ((stream_1‹s_254›) #A_308))
-)
-unify_global(  )
-simpl_pprbm ~expand:false( #A_308, #A_289)
-simpl_pprbm ~expand:false( #st_309, #st_290)
-case_coverage_ok(
-  match ((st_309) false_3) in ∀ (_314 : ?_7) -o ?_8 with
-  | tt_1 => tt_1‹??_9›, unit_1‹U›)
-check_tm(
-  match ((st_309) false_3) in ∀ (_315 : ?_7) -o ?_8 with
-  | tt_1 => tt_1‹??_9›, unit_1‹U›)
-infer_tm(match ((st_309) false_3) in ∀ (_316 : ?_7) -o ?_8 with
-         | tt_1 => tt_1‹??_9›)
-infer_motive(((st_309) false_3) : ?_7)
-infer_tm(?_7)
-delay_assert(?_26, ??_28)
-check_tm( ((st_309) false_3), ?_7)
-infer_tm(((st_309) false_3))
-infer_tm(st_309)
-simpl_tm ~expand:false( ?_26, Type‹??_28›)
-check_tm( false_3, bool_2)
-infer_tm(false_3)
-assert_equal1( bool_2, bool_2)
-assert_equal1_ok( bool_2, bool_2)
-assert_equal1( ?_7,
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹s_254› A_308)
-  | false_3 => unit_1‹L›)
-assert_equal1_extend( ?_7,
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹s_254› A_308)
-  | false_3 => unit_1‹L›)
-infer_tm(?_8)
-simpl_tm ~expand:false( ?_7, unit_1‹L›)
-delay_assert(?_27, ??_29)
-simpl_tm ~expand:false( ?_27, Type‹??_29›)
-check_cls {|
-  prblm {| ; {|  ::: [tt_1] =>? tt_1‹??_9› |} |}
-  a := ∀ (_321 : unit_1‹L›) -o ?_8
-|}
-case_intro
-case_introed(_322 : unit_1‹L›)
-case_splitting
-splitting_on(tt_1)
-case_coverage{|
-  prblm {| eq_term?( unit_1‹L›, unit_1‹L›);
-    {|  ::: [] =>? tt_1‹??_9› |}
-  |}
-|}
-unify_local(  )
-unify_global( eq_term?( unit_1‹L›, unit_1‹L›) )
-simpl_pprbm ~expand:false( unit_1‹L›, unit_1‹L›)
-case_coverage_ok( tt_1‹??_9›, ?_8)
-check_tm( tt_1‹??_9›, ?_8)
-infer_tm(tt_1‹??_9›)
-assert_equal1( ?_8, unit_1‹??_9›)
-assert_equal1_extend( ?_8, unit_1‹??_9›)
-assert_equal1( unit_1‹U›, ?_8)
-assert_equal1_extend( unit_1‹U›, ?_8)
-begin_dump
-  mctx {|
-    
-  |}
-  smeta_meta {|
-    ??_1 <= s_327
-    ??_2 <= s_328
-    ??_3 <= s_329
-    ??_4 <= L
-    ??_5 <= s_331
-    ??_6 <= s_332
-    ??_7 <= L
-    ??_8 <= s_334
-    ??_10 <= s_335
-    ??_22 <= U
-    ??_23 <= U
-    ??_24 <= U
-    ??_25 <= U
-    ??_26 <= U
-    ??_27 <= U
-    
-  |}
-  imeta_meta {|
-    ?_1 <= bool_2
-    ?_2 <= Type‹??_4›
-    ?_3 <= L
-    ?_4 <= bool_2
-    ?_5 <= Type‹??_7›
-    ?_6 <= ?_3
-    ?_7 <= unit_1‹L›
-    ?_20 <= Type‹??_22›
-    ?_21 <= Type‹??_23›
-    ?_22 <= Type‹??_24›
-    ?_23 <= Type‹??_25›
-    ?_24 <= Type‹??_26›
-    ?_25 <= Type‹??_27›
-    ?_26 <= Type‹??_28›
-    ?_27 <= Type‹??_29›
-    
-  |}
-  eqns {|
-    equal_tm? (unit_1‹U›, ?_8);
-    equal_tm? (?_8, unit_1‹??_9›)
-  |}
-end_dump
-simpl_tm ~expand:false( unit_1‹U›, ?_8)
-simpl_tm ~expand:false( unit_1‹U›, unit_1‹??_9›)
-infer_tm(Type‹??_28›)
-check_tm( unit_1‹L›, Type‹??_28›)
-infer_tm(unit_1‹L›)
-assert_equal1( Type‹??_28›, L)
-assert_equal1_extend( Type‹??_28›, L)
-simpl_tm ~expand:false( Type‹??_28›, L)
-infer_tm(Type‹??_29›)
-check_tm( unit_1‹U›, Type‹??_29›)
-infer_tm(unit_1‹U›)
-assert_equal1( Type‹??_29›, U)
-assert_equal1_extend( Type‹??_29›, U)
-simpl_tm ~expand:false( Type‹??_29›, U)
-----------------------------------
-
-definition-------------------------
-infer_tm(((stream_1‹??_15›) nat_3) -> ((stream_1‹??_16›) nat_3))
-infer_tm(((stream_1‹??_15›) nat_3))
-infer_tm(stream_1‹??_15›)
-check_tm( nat_3, Type‹??_15›)
-infer_tm(nat_3)
-assert_equal1( Type‹??_15›, U)
-assert_equal1_extend( Type‹??_15›, U)
-simpl_tm ~expand:false( Type‹??_15›, U)
-infer_tm(((stream_1‹??_16›) nat_3))
-infer_tm(stream_1‹??_16›)
-check_tm( nat_3, Type‹??_16›)
-infer_tm(nat_3)
-assert_equal1( Type‹??_16›, U)
-assert_equal1_extend( Type‹??_16›, U)
-simpl_tm ~expand:false( Type‹??_16›, U)
-check_tm(
-  function stream_succ_411 :
-    ((stream_1‹??_11›) nat_3) -> ((stream_1‹??_12›) nat_3)
-  | xs_413 =>
-    function _414 : ?_9
-    | true_2 =>
-      match ((xs_413) true_2) in ∀ (_415 : ?_10) -o ?_11 with
-      | stream_nil_6 => stream_nil_6‹??_13›
-      | (stream_cons_7 hd_416 tl_417) =>
-        (stream_cons_7‹??_14›
-          (succ_5‹› hd_416) ((stream_succ_411) tl_417))
-    | false_3 => ((xs_413) false_3),
-  ((stream_1‹??_15›) nat_3) -> ((stream_1‹??_16›) nat_3))
-infer_tm(((stream_1‹??_11›) nat_3) -> ((stream_1‹??_12›) nat_3))
-infer_tm(((stream_1‹??_11›) nat_3))
-infer_tm(stream_1‹??_11›)
-check_tm( nat_3, Type‹??_11›)
-infer_tm(nat_3)
 assert_equal1( Type‹??_11›, U)
 assert_equal1_extend( Type‹??_11›, U)
 simpl_tm ~expand:false( Type‹??_11›, U)
-infer_tm(((stream_1‹??_12›) nat_3))
-infer_tm(stream_1‹??_12›)
-check_tm( nat_3, Type‹??_12›)
-infer_tm(nat_3)
-assert_equal1( Type‹??_12›, U)
-assert_equal1_extend( Type‹??_12›, U)
-simpl_tm ~expand:false( Type‹??_12›, U)
+infer_tm(L)
+check_tm( A_241, L)
+infer_tm(A_241)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(L)
+check_tm( A_241, L)
+infer_tm(A_241)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+----------------------------------
+
+definition-------------------------
+infer_tm(∀ {A_327 : L} ->
+           ∀ {x_328 : A_327} -> (sing_5 ?_8 x_328) -> A_327)
+infer_tm(L)
+infer_tm(∀ {x_331 : A_330} -> (sing_5 ?_8 x_331) -> A_330)
+infer_tm(A_330)
+infer_tm((sing_5 ?_8 x_333) -> A_330)
+infer_tm((sing_5 ?_8 x_333))
+check_tm( ?_8, L)
+check_tm( x_333, ?_8)
+infer_tm(x_333)
+assert_equal1( ?_8, A_330)
+assert_equal1_extend( ?_8, A_330)
+simpl_tm ~expand:false( ?_8, A_330)
+infer_tm(A_330)
+check_tm(
+  function sing_elim_336 :
+    ∀ {A_337 : L} -> ∀ {x_338 : A_337} -> (sing_5 ?_7 x_338) -> A_337
+  | A_340 x_341 (just_7 x_342) => x_342,
+  ∀ {A_343 : L} -> ∀ {x_344 : A_343} -> (sing_5 ?_8 x_344) -> A_343)
+infer_tm(∀ {A_347 : L} ->
+           ∀ {x_348 : A_347} -> (sing_5 ?_7 x_348) -> A_347)
+infer_tm(L)
+infer_tm(∀ {x_351 : A_350} -> (sing_5 ?_7 x_351) -> A_350)
+infer_tm(A_350)
+infer_tm((sing_5 ?_7 x_353) -> A_350)
+infer_tm((sing_5 ?_7 x_353))
+check_tm( ?_7, L)
+check_tm( x_353, ?_7)
+infer_tm(x_353)
+assert_equal1( ?_7, A_350)
+assert_equal1_extend( ?_7, A_350)
+simpl_tm ~expand:false( ?_7, A_350)
+infer_tm(A_350)
 assert_equal1(
-  ((stream_1‹??_15›) nat_3) -> ((stream_1‹??_16›) nat_3),
-  ((stream_1‹??_11›) nat_3) -> ((stream_1‹??_12›) nat_3))
+  ∀ {A_356 : L} -> ∀ {x_357 : A_356} -> (sing_5 ?_8 x_357) -> A_356,
+  ∀ {A_359 : L} -> ∀ {x_360 : A_359} -> (sing_5 ?_7 x_360) -> A_359)
 assert_equal1_extend(
-  ((stream_1‹??_15›) nat_3) -> ((stream_1‹??_16›) nat_3),
-  ((stream_1‹??_11›) nat_3) -> ((stream_1‹??_12›) nat_3))
+  ∀ {A_372 : L} -> ∀ {x_373 : A_372} -> (sing_5 ?_8 x_373) -> A_372,
+  ∀ {A_375 : L} -> ∀ {x_376 : A_375} -> (sing_5 ?_7 x_376) -> A_375)
 simpl_tm ~expand:false(
-  ((stream_1‹U›) nat_3) -> ((stream_1‹U›) nat_3),
-  ((stream_1‹U›) nat_3) -> ((stream_1‹U›) nat_3))
-simpl_tm ~expand:false( ((stream_1‹U›) nat_3), ((stream_1‹U›) nat_3))
-simpl_tm ~expand:false( stream_1‹U›, stream_1‹U›)
-simpl_tm ~expand:false( nat_3, nat_3)
-simpl_tm ~expand:false( ((stream_1‹U›) nat_3), ((stream_1‹U›) nat_3))
-simpl_tm ~expand:false( stream_1‹U›, stream_1‹U›)
-simpl_tm ~expand:false( nat_3, nat_3)
+  ∀ {A_393 : L} -> ∀ {x_394 : A_393} -> (sing_5 A_393 x_394) -> A_393,
+  ∀ {A_396 : L} -> ∀ {x_397 : A_396} -> (sing_5 A_396 x_397) -> A_396)
+simpl_tm ~expand:false( L, L)
+simpl_tm ~expand:false( ∀ {x_400 : A_399} -> (sing_5 A_399 x_400) -> A_399,
+  ∀ {x_402 : A_399} -> (sing_5 A_399 x_402) -> A_399)
+simpl_tm ~expand:false( A_399, A_399)
+simpl_tm ~expand:false( (sing_5 A_399 x_404) -> A_399,
+  (sing_5 A_399 x_404) -> A_399)
+simpl_tm ~expand:false( (sing_5 A_399 x_404), (sing_5 A_399 x_404))
+simpl_tm ~expand:false( A_399, A_399)
+simpl_tm ~expand:false( x_404, x_404)
+simpl_tm ~expand:false( A_399, A_399)
 check_cls {|
-  prblm {| ;
-    {|  ::: [xs_429] =>?
-         function _436 : ?_9
-         | true_2 =>
-           match ((#xs_429) true_2) in ∀ (_437 : ?_10) -o ?_11 with
-           | stream_nil_6 => stream_nil_6‹??_13›
-           | (stream_cons_7 hd_438 tl_439) =>
-             (stream_cons_7‹??_14›
-               (succ_5‹› hd_438) ((stream_succ_419) tl_439))
-         | false_3 => ((#xs_429) false_3)
-    |}
-  |}
-  a := ((stream_1‹U›) nat_3) -> ((stream_1‹U›) nat_3)
+  prblm {| ; {|  ::: [A_378, x_379, (just_7 x_380)] =>? #x_380 |} |}
+  a := ∀ {A_414 : L} ->
+         ∀ {x_415 : A_414} -> (sing_5 A_414 x_415) -> A_414
 |}
 case_intro
-case_introed(xs_441 : ((stream_1‹U›) nat_3))
-case_coverage{|
-  prblm {| ;
-    {| eq_pat?( #xs_441, xs_429 : ((stream_1‹U›) nat_3)) ::: [] =>?
-         function _442 : ?_9
-         | true_2 =>
-           match ((#xs_429) true_2) in ∀ (_443 : ?_10) -o ?_11 with
-           | stream_nil_6 => stream_nil_6‹??_13›
-           | (stream_cons_7 hd_444 tl_445) =>
-             (stream_cons_7‹??_14›
-               (succ_5‹› hd_444) ((stream_succ_419) tl_445))
-         | false_3 => ((#xs_429) false_3)
-    |}
-  |}
-|}
-unify_local( eq_pat?( #xs_441, xs_429 : ((stream_1‹U›) nat_3)) )
-unify_global(  )
-simpl_pprbm ~expand:false( #xs_441, #xs_429)
-case_coverage_ok(
-  function _454 : ?_9
-  | true_2 =>
-    match ((xs_441) true_2) in ∀ (_455 : ?_10) -o ?_11 with
-    | stream_nil_6 => stream_nil_6‹??_13›
-    | (stream_cons_7 hd_456 tl_457) =>
-      (stream_cons_7‹??_14›
-        (succ_5‹› hd_456) ((stream_succ_419) tl_457))
-  | false_3 => ((xs_441) false_3), ((stream_1‹U›) nat_3))
-check_tm(
-  function _458 : ?_9
-  | true_2 =>
-    match ((xs_441) true_2) in ∀ (_459 : ?_10) -o ?_11 with
-    | stream_nil_6 => stream_nil_6‹??_13›
-    | (stream_cons_7 hd_460 tl_461) =>
-      (stream_cons_7‹??_14›
-        (succ_5‹› hd_460) ((stream_succ_419) tl_461))
-  | false_3 => ((xs_441) false_3), ((stream_1‹U›) nat_3))
-infer_tm(?_9)
-delay_assert(?_28, ??_30)
-assert_equal1( ((stream_1‹U›) nat_3), ?_9)
-assert_equal1_extend( ((stream_1‹U›) nat_3), ?_9)
-simpl_tm ~expand:false( ((stream_1‹U›) nat_3), ?_9)
-simpl_tm ~expand:false( ?_28, Type‹??_30›)
-check_cls {|
-  prblm {| ;
-    {|  ::: [true_2] =>?
-         match ((xs_441) true_2) in ∀ (_463 : ?_10) -o ?_11 with
-         | stream_nil_6 => stream_nil_6‹??_13›
-         | (stream_cons_7 hd_464 tl_465) =>
-           (stream_cons_7‹??_14›
-             (succ_5‹› hd_464) ((stream_succ_419) tl_465))
-    |} {|  ::: [false_3] =>? ((xs_441) false_3) |}
-  |}
-  a := ((stream_1‹U›) nat_3)
-|}
+case_introed(A_417 : L)
 case_intro
-case_introed(b_466 : bool_2)
+case_introed(x_418 : #A_417)
+case_intro
+case_introed(__419 : (sing_5 #A_417 #x_418))
 case_splitting
-splitting_on(true_2)
+splitting_on(just_7)
 case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2);
-    {|  ::: [] =>?
-         match ((xs_441) true_2) in ∀ (_469 : ?_10) -o ?_11 with
-         | stream_nil_6 => stream_nil_6‹??_13›
-         | (stream_cons_7 hd_470 tl_471) =>
-           (stream_cons_7‹??_14›
-             (succ_5‹› hd_470) ((stream_succ_419) tl_471))
-    |}
-  |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok(
-  match ((xs_441) true_2) in ∀ (_477 : ?_10) -o ?_11 with
-  | stream_nil_6 => stream_nil_6‹??_13›
-  | (stream_cons_7 hd_478 tl_479) =>
-    (stream_cons_7‹??_14›
-      (succ_5‹› hd_478) ((stream_succ_419) tl_479)),
-  match true_2 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-check_tm(
-  match ((xs_441) true_2) in ∀ (_481 : ?_10) -o ?_11 with
-  | stream_nil_6 => stream_nil_6‹??_13›
-  | (stream_cons_7 hd_482 tl_483) =>
-    (stream_cons_7‹??_14›
-      (succ_5‹› hd_482) ((stream_succ_419) tl_483)),
-  match true_2 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-infer_tm(match ((xs_441) true_2) in ∀ (_485 : ?_10) -o ?_11 with
-         | stream_nil_6 => stream_nil_6‹??_13›
-         | (stream_cons_7 hd_486 tl_487) =>
-           (stream_cons_7‹??_14›
-             (succ_5‹› hd_486) ((stream_succ_419) tl_487)))
-infer_motive(((xs_441) true_2) : ?_10)
-infer_tm(?_10)
-delay_assert(?_29, ??_31)
-check_tm( ((xs_441) true_2), ?_10)
-infer_tm(((xs_441) true_2))
-infer_tm(xs_441)
-simpl_tm ~expand:false( ?_29, Type‹??_31›)
-check_tm( true_2, bool_2)
-infer_tm(true_2)
-assert_equal1( bool_2, bool_2)
-assert_equal1_ok( bool_2, bool_2)
-assert_equal1( ?_10,
-  match true_2 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-assert_equal1_extend( ?_10,
-  match true_2 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-infer_tm(?_11)
-simpl_tm ~expand:false( ?_10, (stream_node_4‹U› nat_3))
-delay_assert(?_30, ??_32)
-simpl_tm ~expand:false( ?_30, Type‹??_32›)
-check_cls {|
-  prblm {| ;
-    {|  ::: [stream_nil_6] =>? stream_nil_6‹??_13› |}
-    {|  ::: [(stream_cons_7 hd_491 tl_492)] =>?
-         (stream_cons_7‹??_14›
-           (succ_5‹› #hd_491) ((stream_succ_419) #tl_492))
-    |}
-  |}
-  a := ∀ (_494 : (stream_node_4‹U› nat_3)) -o ?_11
-|}
-case_intro
-case_introed(_495 : (stream_node_4‹U› nat_3))
-case_splitting
-splitting_on(stream_nil_6)
-case_coverage{|
-  prblm {|
-    eq_term?( (stream_node_4‹U› nat_3), (stream_node_4‹U› nat_3));
-    {|  ::: [] =>? stream_nil_6‹??_13› |}
-  |}
-|}
-unify_local(  )
-unify_global(
-  eq_term?( (stream_node_4‹U› nat_3), (stream_node_4‹U› nat_3))
-)
-simpl_pprbm ~expand:false( (stream_node_4‹U› nat_3),
-  (stream_node_4‹U› nat_3))
-simpl_pprbm ~expand:false( nat_3, nat_3)
-case_coverage_ok( stream_nil_6‹??_13›, ?_11)
-check_tm( stream_nil_6‹??_13›, ?_11)
-infer_tm(stream_nil_6‹??_13›)
-check_tm( ?_12, Type‹??_13›)
-assert_equal1( ?_11, (stream_node_4‹??_13› ?_12))
-assert_equal1_extend( ?_11, (stream_node_4‹??_13› ?_12))
-splitting_on(stream_cons_7)
-case_coverage{|
-  prblm {|
-    eq_term?( (stream_node_4‹U› nat_3), (stream_node_4‹U› nat_3));
-    {| eq_pat?( #hd_498, hd_491 : nat_3)
-       eq_pat?( #tl_499, tl_492 :
-         ∀ (b_503 : bool_2) -o
-           match b_503 in bool_2 -o L with
-           | true_2 => (stream_node_4‹U› nat_3)
-           | false_3 => unit_1‹L›) ::: [] =>?
-         (stream_cons_7‹??_14›
-           (succ_5‹› #hd_491) ((stream_succ_419) #tl_492))
+  prblm {| eq_term?( (sing_5 #A_417 #x_418), (sing_5 #A_417 #m_420));
+    {| eq_pat?( #A_417, A_378 : L)
+       eq_pat?( #x_418, x_379 : #A_417)
+       eq_pat?( #m_420, x_380 : #A_417) ::: [] =>? #x_380
     |}
   |}
 |}
 unify_local(
-  eq_pat?( #hd_498, hd_491 : nat_3)
-  eq_pat?( #tl_499, tl_492 :
-    ∀ (b_505 : bool_2) -o
-      match b_505 in bool_2 -o L with
-      | true_2 => (stream_node_4‹U› nat_3)
-      | false_3 => unit_1‹L›)
+  eq_pat?( #A_417, A_378 : L)
+  eq_pat?( #x_418, x_379 : #A_417)
+  eq_pat?( #m_420, x_380 : #A_417)
+)
+unify_global( eq_term?( (sing_5 #A_417 #x_418), (sing_5 #A_417 #m_420)) )
+simpl_pprbm ~expand:false( #A_417, #A_378)
+simpl_pprbm ~expand:false( #x_418, #x_379)
+simpl_pprbm ~expand:false( #m_420, #x_380)
+local_map solved
+simpl_pprbm ~expand:false( (sing_5 #A_417 #x_418), (sing_5 #A_417 #m_420))
+simpl_pprbm ~expand:false( #A_417, #A_417)
+simpl_pprbm ~expand:false( #x_418, #m_420)
+global_map solved
+case_coverage_ok( m_420, A_417)
+check_tm( m_420, A_417)
+infer_tm(m_420)
+assert_equal1( A_417, A_417)
+assert_equal1_ok( A_417, A_417)
+begin_dump
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_433
+    ??_2 <= s_434
+    ??_10 <= L
+    ??_11 <= U
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_437
+    ?_2 <= A_439
+    ?_3 <= bool_3
+    ?_4 <= L
+    ?_5 <= A_452
+    ?_6 <= A_456
+    ?_7 <= A_458
+    ?_8 <= A_460
+    ?_45 <= Type‹??_10›
+    ?_46 <= Type‹??_11›
+    
+  |}
+  eqns {|
+    
+  |}
+end_dump
+infer_tm(L)
+check_tm( A_350, L)
+infer_tm(A_350)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(L)
+check_tm( A_330, L)
+infer_tm(A_330)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+----------------------------------
+
+definition-------------------------
+infer_tm(∀ (A_485 : L) ->
+           ∀ (x0_486 : A_485) ->
+             ∀ (x_487 : (sing_5 ?_15 x0_486)) ->
+               (eq_1‹??_5› ?_18 x0_486 ((sing_elim_1) ?_17 ?_16 x_487)))
+infer_tm(L)
+infer_tm(∀ (x0_489 : A_488) ->
+           ∀ (x_490 : (sing_5 ?_15 x0_489)) ->
+             (eq_1‹??_5› ?_18 x0_489 ((sing_elim_1) ?_17 ?_16 x_490)))
+infer_tm(A_488)
+infer_tm(∀ (x_492 : (sing_5 ?_15 x0_491)) ->
+           (eq_1‹??_5› ?_18 x0_491 ((sing_elim_1) ?_17 ?_16 x_492)))
+infer_tm((sing_5 ?_15 x0_491))
+check_tm( ?_15, L)
+check_tm( x0_491, ?_15)
+infer_tm(x0_491)
+assert_equal1( ?_15, A_488)
+assert_equal1_extend( ?_15, A_488)
+simpl_tm ~expand:false( ?_15, A_488)
+infer_tm((eq_1‹??_5› ?_18 x0_491 ((sing_elim_1) ?_17 ?_16 x_493)))
+check_tm( ?_18, Type‹??_5›)
+check_tm( x0_491, ?_18)
+infer_tm(x0_491)
+assert_equal1( ?_18, A_488)
+assert_equal1_extend( ?_18, A_488)
+check_tm( ((sing_elim_1) ?_17 ?_16 x_493), ?_18)
+infer_tm(((sing_elim_1) ?_17 ?_16 x_493))
+infer_tm(((sing_elim_1) ?_17 ?_16))
+infer_tm(((sing_elim_1) ?_17))
+infer_tm(sing_elim_1)
+simpl_tm ~expand:false( ?_18, A_488)
+check_tm( ?_17, L)
+check_tm( ?_16, ?_17)
+check_tm( x_493, (sing_5 ?_17 ?_16))
+infer_tm(x_493)
+assert_equal1( (sing_5 ?_17 ?_16), (sing_5 ?_15 x0_491))
+assert_equal1_extend( (sing_5 ?_17 ?_16), (sing_5 ?_15 x0_491))
+assert_equal1( ?_18, ?_17)
+assert_equal1_extend( ?_18, ?_17)
+simpl_tm ~expand:false( A_488, ?_17)
+simpl_tm ~expand:false( (sing_5 A_488 ?_16), (sing_5 A_488 x0_491))
+simpl_tm ~expand:false( A_488, A_488)
+simpl_tm ~expand:false( ?_16, x0_491)
+check_tm(
+  function sing_uniq_504 :
+    ∀ (A_505 : L) ->
+      ∀ (x0_506 : A_505) ->
+        ∀ (x_507 : (sing_5 ?_9 x0_506)) ->
+          (eq_1‹??_3› ?_12 x0_506 ((sing_elim_1) ?_11 ?_10 x_507))
+  | A_508 x0_509 (just_7 _510) => refl_1‹??_4›,
+  ∀ (A_511 : L) ->
+    ∀ (x0_512 : A_511) ->
+      ∀ (x_513 : (sing_5 ?_15 x0_512)) ->
+        (eq_1‹??_5› ?_18 x0_512 ((sing_elim_1) ?_17 ?_16 x_513)))
+infer_tm(∀ (A_515 : L) ->
+           ∀ (x0_516 : A_515) ->
+             ∀ (x_517 : (sing_5 ?_9 x0_516)) ->
+               (eq_1‹??_3› ?_12 x0_516 ((sing_elim_1) ?_11 ?_10 x_517)))
+infer_tm(L)
+infer_tm(∀ (x0_519 : A_518) ->
+           ∀ (x_520 : (sing_5 ?_9 x0_519)) ->
+             (eq_1‹??_3› ?_12 x0_519 ((sing_elim_1) ?_11 ?_10 x_520)))
+infer_tm(A_518)
+infer_tm(∀ (x_522 : (sing_5 ?_9 x0_521)) ->
+           (eq_1‹??_3› ?_12 x0_521 ((sing_elim_1) ?_11 ?_10 x_522)))
+infer_tm((sing_5 ?_9 x0_521))
+check_tm( ?_9, L)
+check_tm( x0_521, ?_9)
+infer_tm(x0_521)
+assert_equal1( ?_9, A_518)
+assert_equal1_extend( ?_9, A_518)
+simpl_tm ~expand:false( ?_9, A_518)
+infer_tm((eq_1‹??_3› ?_12 x0_521 ((sing_elim_1) ?_11 ?_10 x_523)))
+check_tm( ?_12, Type‹??_3›)
+check_tm( x0_521, ?_12)
+infer_tm(x0_521)
+assert_equal1( ?_12, A_518)
+assert_equal1_extend( ?_12, A_518)
+check_tm( ((sing_elim_1) ?_11 ?_10 x_523), ?_12)
+infer_tm(((sing_elim_1) ?_11 ?_10 x_523))
+infer_tm(((sing_elim_1) ?_11 ?_10))
+infer_tm(((sing_elim_1) ?_11))
+infer_tm(sing_elim_1)
+simpl_tm ~expand:false( ?_12, A_518)
+check_tm( ?_11, L)
+check_tm( ?_10, ?_11)
+check_tm( x_523, (sing_5 ?_11 ?_10))
+infer_tm(x_523)
+assert_equal1( (sing_5 ?_11 ?_10), (sing_5 ?_9 x0_521))
+assert_equal1_extend( (sing_5 ?_11 ?_10), (sing_5 ?_9 x0_521))
+assert_equal1( ?_12, ?_11)
+assert_equal1_extend( ?_12, ?_11)
+simpl_tm ~expand:false( A_518, ?_11)
+simpl_tm ~expand:false( (sing_5 A_518 ?_10), (sing_5 A_518 x0_521))
+simpl_tm ~expand:false( A_518, A_518)
+simpl_tm ~expand:false( ?_10, x0_521)
+assert_equal1(
+  ∀ (A_534 : L) ->
+    ∀ (x0_535 : A_534) ->
+      ∀ (x_536 : (sing_5 ?_15 x0_535)) ->
+        (eq_1‹??_5› ?_18 x0_535 ((sing_elim_1) ?_17 ?_16 x_536)),
+  ∀ (A_537 : L) ->
+    ∀ (x0_538 : A_537) ->
+      ∀ (x_539 : (sing_5 ?_9 x0_538)) ->
+        (eq_1‹??_3› ?_12 x0_538 ((sing_elim_1) ?_11 ?_10 x_539)))
+assert_equal1_extend(
+  ∀ (A_550 : L) ->
+    ∀ (x0_551 : A_550) ->
+      ∀ (x_552 : (sing_5 ?_15 x0_551)) ->
+        (eq_1‹??_5› ?_18 x0_551 ((sing_elim_1) ?_17 ?_16 x_552)),
+  ∀ (A_553 : L) ->
+    ∀ (x0_554 : A_553) ->
+      ∀ (x_555 : (sing_5 ?_9 x0_554)) ->
+        (eq_1‹??_3› ?_12 x0_554 ((sing_elim_1) ?_11 ?_10 x_555)))
+simpl_tm ~expand:false(
+  ∀ (A_571 : L) ->
+    ∀ (x0_572 : A_571) ->
+      ∀ (x_573 : (sing_5 A_571 x0_572)) ->
+        (eq_1‹??_5› A_571 x0_572 ((sing_elim_1) A_571 x0_572 x_573)),
+  ∀ (A_574 : L) ->
+    ∀ (x0_575 : A_574) ->
+      ∀ (x_576 : (sing_5 A_574 x0_575)) ->
+        (eq_1‹??_3› A_574 x0_575 ((sing_elim_1) A_574 x0_575 x_576)))
+simpl_tm ~expand:false( L, L)
+simpl_tm ~expand:false(
+  ∀ (x0_578 : A_577) ->
+    ∀ (x_579 : (sing_5 A_577 x0_578)) ->
+      (eq_1‹??_5› A_577 x0_578 ((sing_elim_1) A_577 x0_578 x_579)),
+  ∀ (x0_580 : A_577) ->
+    ∀ (x_581 : (sing_5 A_577 x0_580)) ->
+      (eq_1‹??_3› A_577 x0_580 ((sing_elim_1) A_577 x0_580 x_581)))
+simpl_tm ~expand:false( A_577, A_577)
+simpl_tm ~expand:false(
+  ∀ (x_583 : (sing_5 A_577 x0_582)) ->
+    (eq_1‹??_5› A_577 x0_582 ((sing_elim_1) A_577 x0_582 x_583)),
+  ∀ (x_584 : (sing_5 A_577 x0_582)) ->
+    (eq_1‹??_3› A_577 x0_582 ((sing_elim_1) A_577 x0_582 x_584)))
+simpl_tm ~expand:false( (sing_5 A_577 x0_582), (sing_5 A_577 x0_582))
+simpl_tm ~expand:false( A_577, A_577)
+simpl_tm ~expand:false( x0_582, x0_582)
+simpl_tm ~expand:false(
+  (eq_1‹??_5› A_577 x0_582 ((sing_elim_1) A_577 x0_582 x_585)),
+  (eq_1‹??_3› A_577 x0_582 ((sing_elim_1) A_577 x0_582 x_585)))
+simpl_tm ~expand:false( A_577, A_577)
+simpl_tm ~expand:false( x0_582, x0_582)
+simpl_tm ~expand:false( ((sing_elim_1) A_577 x0_582 x_585),
+  ((sing_elim_1) A_577 x0_582 x_585))
+simpl_tm ~expand:false( sing_elim_1, sing_elim_1)
+simpl_tm ~expand:false( A_577, A_577)
+simpl_tm ~expand:false( x0_582, x0_582)
+simpl_tm ~expand:false( x_585, x_585)
+check_cls {|
+  prblm {| ; {|  ::: [A_556, x0_557, (just_7 _558)] =>? refl_1‹??_4› |}
+  |}
+  a := ∀ (A_592 : L) ->
+         ∀ (x0_593 : A_592) ->
+           ∀ (x_594 : (sing_5 A_592 x0_593)) ->
+             (eq_1‹??_3› A_592 x0_593 ((sing_elim_1) A_592 x0_593 x_594))
+|}
+case_intro
+case_introed(A_595 : L)
+case_intro
+case_introed(x0_596 : #A_595)
+case_intro
+case_introed(x_597 : (sing_5 #A_595 #x0_596))
+case_splitting
+splitting_on(just_7)
+case_coverage{|
+  prblm {| eq_term?( (sing_5 #A_595 #x0_596), (sing_5 #A_595 #m_598));
+    {| eq_pat?( #A_595, A_556 : L)
+       eq_pat?( #x0_596, x0_557 : #A_595)
+       eq_pat?( #m_598, _558 : #A_595) ::: [] =>? refl_1‹??_4›
+    |}
+  |}
+|}
+unify_local(
+  eq_pat?( #A_595, A_556 : L)
+  eq_pat?( #x0_596, x0_557 : #A_595)
+  eq_pat?( #m_598, _558 : #A_595)
+)
+unify_global( eq_term?( (sing_5 #A_595 #x0_596), (sing_5 #A_595 #m_598)) )
+simpl_pprbm ~expand:false( #A_595, #A_556)
+simpl_pprbm ~expand:false( #x0_596, #x0_557)
+simpl_pprbm ~expand:false( #m_598, #_558)
+local_map solved
+simpl_pprbm ~expand:false( (sing_5 #A_595 #x0_596), (sing_5 #A_595 #m_598))
+simpl_pprbm ~expand:false( #A_595, #A_595)
+simpl_pprbm ~expand:false( #x0_596, #m_598)
+global_map solved
+case_coverage_ok( refl_1‹??_4›,
+  (eq_1‹??_3›
+    A_595 m_598 ((sing_elim_1) A_595 m_598 (just_7‹› m_598))))
+check_tm( refl_1‹??_4›,
+  (eq_1‹??_3›
+    A_595 m_598 ((sing_elim_1) A_595 m_598 (just_7‹› m_598))))
+infer_tm(refl_1‹??_4›)
+check_tm( ?_13, Type‹??_4›)
+check_tm( ?_14, ?_13)
+assert_equal1(
+  (eq_1‹??_3›
+    A_595 m_598 ((sing_elim_1) A_595 m_598 (just_7‹› m_598))),
+  (eq_1‹??_4› ?_13 ?_14 ?_14))
+assert_equal1_extend(
+  (eq_1‹??_3›
+    A_595 m_598 ((sing_elim_1) A_595 m_598 (just_7‹› m_598))),
+  (eq_1‹??_4› ?_13 ?_14 ?_14))
+begin_dump
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_611
+    ??_2 <= s_612
+    ??_5 <= ??_3
+    ??_10 <= L
+    ??_11 <= U
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_615
+    ?_2 <= A_617
+    ?_3 <= bool_3
+    ?_4 <= L
+    ?_5 <= A_630
+    ?_6 <= A_634
+    ?_7 <= A_636
+    ?_8 <= A_638
+    ?_9 <= A_640
+    ?_10 <= x0_642
+    ?_11 <= A_646
+    ?_12 <= A_649
+    ?_15 <= A_651
+    ?_16 <= x0_653
+    ?_17 <= A_657
+    ?_18 <= A_660
+    ?_45 <= Type‹??_10›
+    ?_46 <= Type‹??_11›
+    
+  |}
+  eqns {|
+    equal_tm?
+      ((eq_1‹??_3›
+         A_595 m_598 ((sing_elim_1) A_595 m_598 (just_7‹› m_598))),
+      (eq_1‹??_4› ?_13 ?_14 ?_14))
+  |}
+end_dump
+simpl_tm ~expand:false(
+  (eq_1‹??_3›
+    A_595 m_598 ((sing_elim_1) A_595 m_598 (just_7‹› m_598))),
+  (eq_1‹??_4› ?_13 ?_14 ?_14))
+simpl_tm ~expand:false( A_595, ?_13)
+simpl_tm ~expand:false( m_598, ?_14)
+simpl_tm ~expand:false( ((sing_elim_1) A_595 m_598 (just_7‹› m_598)),
+  ?_14)
+simpl_tm ~expand:false( A_595, ?_13)
+simpl_tm ~expand:false( m_598, ?_14)
+simpl_tm ~expand:false( ((sing_elim_1) A_595 m_598 (just_7‹› m_598)),
+  m_598)
+simpl_tm ~expand:false( sing_elim_1, m_598)
+simpl_tm ~expand:true(
+  function sing_elim_669 :
+    ∀ {A_670 : L} -> ∀ {x_671 : A_670} -> (sing_5 A_670 x_671) -> A_670
+  | A_673 x_674 (just_7 x_675) => x_675, m_598)
+simpl_tm ~expand:true( m_598, m_598)
+infer_tm(L)
+check_tm( A_518, L)
+infer_tm(A_518)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(A_518)
+check_tm( x0_521, A_518)
+infer_tm(x0_521)
+assert_equal1( A_518, A_518)
+assert_equal1_ok( A_518, A_518)
+infer_tm(L)
+check_tm( A_518, L)
+infer_tm(A_518)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(Type‹??_3›)
+check_tm( A_518, Type‹??_3›)
+infer_tm(A_518)
+assert_equal1( Type‹??_3›, L)
+assert_equal1_extend( Type‹??_3›, L)
+simpl_tm ~expand:false( Type‹??_3›, L)
+infer_tm(L)
+check_tm( A_595, L)
+infer_tm(A_595)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(A_595)
+check_tm( m_598, A_595)
+infer_tm(m_598)
+assert_equal1( A_595, A_595)
+assert_equal1_ok( A_595, A_595)
+infer_tm(L)
+check_tm( A_488, L)
+infer_tm(A_488)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(A_488)
+check_tm( x0_491, A_488)
+infer_tm(x0_491)
+assert_equal1( A_488, A_488)
+assert_equal1_ok( A_488, A_488)
+infer_tm(L)
+check_tm( A_488, L)
+infer_tm(A_488)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(L)
+check_tm( A_488, L)
+infer_tm(A_488)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+----------------------------------
+
+definition-------------------------
+infer_tm(∀ {A_711 : L} ->
+           ∀ {B_712 : A_711 -> L} -> (apair_6 A_711 B_712) -> A_711)
+infer_tm(L)
+infer_tm(∀ {B_716 : A_715 -> L} -> (apair_6 A_715 B_716) -> A_715)
+infer_tm(A_715 -> L)
+infer_tm(A_715)
+infer_tm(L)
+infer_tm((apair_6 A_715 B_719) -> A_715)
+infer_tm((apair_6 A_715 B_719))
+check_tm( A_715, L)
+infer_tm(A_715)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+check_tm( B_719, A_715 -> L)
+infer_tm(B_719)
+assert_equal1( A_715 -> L, A_715 -> L)
+assert_equal1_ok( A_715 -> L, A_715 -> L)
+infer_tm(A_715)
+check_tm(
+  function proj1_730 :
+    ∀ {A_731 : L} ->
+      ∀ {B_732 : A_731 -> L} -> (apair_6 A_731 B_732) -> A_731
+  | A_735 B_736 (apair_intro_8 _737 select_738) =>
+    ((sing_elim_1) ?_20 ?_19 ((select_738) true_3)),
+  ∀ {A_739 : L} ->
+    ∀ {B_740 : A_739 -> L} -> (apair_6 A_739 B_740) -> A_739)
+infer_tm(∀ {A_744 : L} ->
+           ∀ {B_745 : A_744 -> L} -> (apair_6 A_744 B_745) -> A_744)
+infer_tm(L)
+infer_tm(∀ {B_749 : A_748 -> L} -> (apair_6 A_748 B_749) -> A_748)
+infer_tm(A_748 -> L)
+infer_tm(A_748)
+infer_tm(L)
+infer_tm((apair_6 A_748 B_752) -> A_748)
+infer_tm((apair_6 A_748 B_752))
+check_tm( A_748, L)
+infer_tm(A_748)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+check_tm( B_752, A_748 -> L)
+infer_tm(B_752)
+assert_equal1( A_748 -> L, A_748 -> L)
+assert_equal1_ok( A_748 -> L, A_748 -> L)
+infer_tm(A_748)
+assert_equal1(
+  ∀ {A_763 : L} ->
+    ∀ {B_764 : A_763 -> L} -> (apair_6 A_763 B_764) -> A_763,
+  ∀ {A_767 : L} ->
+    ∀ {B_768 : A_767 -> L} -> (apair_6 A_767 B_768) -> A_767)
+assert_equal1_ok(
+  ∀ {A_775 : L} ->
+    ∀ {B_776 : A_775 -> L} -> (apair_6 A_775 B_776) -> A_775,
+  ∀ {A_779 : L} ->
+    ∀ {B_780 : A_779 -> L} -> (apair_6 A_779 B_780) -> A_779)
+check_cls {|
+  prblm {| ;
+    {|  ::: [A_783, B_784, (apair_intro_8 _785 select_786)] =>?
+         ((sing_elim_1) ?_20 ?_19 ((#select_786) true_3))
+    |}
+  |}
+  a := ∀ {A_794 : L} ->
+         ∀ {B_795 : A_794 -> L} -> (apair_6 A_794 B_795) -> A_794
+|}
+case_intro
+case_introed(A_798 : L)
+case_intro
+case_introed(B_799 : #A_798 -> L)
+case_intro
+case_introed(__801 : (apair_6 #A_798 #B_799))
+case_splitting
+splitting_on(apair_intro_8)
+case_coverage{|
+  prblm {| eq_term?( (apair_6 #A_798 #B_799), (apair_6 #A_798 #B_799));
+    {| eq_pat?( #A_798, A_783 : L)
+       eq_pat?( #B_799, B_784 : #A_798 -> L)
+       eq_pat?( #x_802, _785 : #A_798)
+       eq_pat?( #select_803, select_786 :
+         ∀ (b_816 : bool_3) -o
+           match b_816 in bool_3 -o L with
+           | true_3 => (sing_5 #A_798 #x_802)
+           | false_4 => ((#B_799) #x_802)) ::: [] =>?
+         ((sing_elim_1) ?_20 ?_19 ((#select_786) true_3))
+    |}
+  |}
+|}
+unify_local(
+  eq_pat?( #A_798, A_783 : L)
+  eq_pat?( #B_799, B_784 : #A_798 -> L)
+  eq_pat?( #x_802, _785 : #A_798)
+  eq_pat?( #select_803, select_786 :
+    ∀ (b_819 : bool_3) -o
+      match b_819 in bool_3 -o L with
+      | true_3 => (sing_5 #A_798 #x_802)
+      | false_4 => ((#B_799) #x_802))
+)
+unify_global( eq_term?( (apair_6 #A_798 #B_799), (apair_6 #A_798 #B_799)) )
+simpl_pprbm ~expand:false( #A_798, #A_783)
+simpl_pprbm ~expand:false( #B_799, #B_784)
+simpl_pprbm ~expand:false( #x_802, #_785)
+simpl_pprbm ~expand:false( #select_803, #select_786)
+local_map solved
+simpl_pprbm ~expand:false( (apair_6 #A_798 #B_799), (apair_6 #A_798 #B_799))
+simpl_pprbm ~expand:false( #A_798, #A_798)
+simpl_pprbm ~expand:false( #B_799, #B_799)
+global_map solved
+case_coverage_ok( ((sing_elim_1) ?_20 ?_19 ((select_803) true_3)), A_798)
+check_tm( ((sing_elim_1) ?_20 ?_19 ((select_803) true_3)), A_798)
+infer_tm(((sing_elim_1) ?_20 ?_19 ((select_803) true_3)))
+infer_tm(((sing_elim_1) ?_20 ?_19))
+infer_tm(((sing_elim_1) ?_20))
+infer_tm(sing_elim_1)
+check_tm( ?_20, L)
+check_tm( ?_19, ?_20)
+check_tm( ((select_803) true_3), (sing_5 ?_20 ?_19))
+infer_tm(((select_803) true_3))
+infer_tm(select_803)
+check_tm( true_3, bool_3)
+infer_tm(true_3)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+assert_equal1( (sing_5 ?_20 ?_19),
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 A_798 x_802)
+  | false_4 => ((B_799) x_802))
+assert_equal1_extend( (sing_5 ?_20 ?_19),
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 A_798 x_802)
+  | false_4 => ((B_799) x_802))
+assert_equal1( A_798, ?_20)
+assert_equal1_extend( A_798, ?_20)
+begin_dump
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_845
+    ??_2 <= s_846
+    ??_3 <= L
+    ??_4 <= ??_3
+    ??_5 <= ??_3
+    ??_10 <= L
+    ??_11 <= U
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_849
+    ?_2 <= A_851
+    ?_3 <= bool_3
+    ?_4 <= L
+    ?_5 <= A_864
+    ?_6 <= A_868
+    ?_7 <= A_870
+    ?_8 <= A_872
+    ?_9 <= A_874
+    ?_10 <= x0_876
+    ?_11 <= A_880
+    ?_12 <= A_883
+    ?_13 <= A_886
+    ?_14 <= m_888
+    ?_15 <= A_893
+    ?_16 <= x0_895
+    ?_17 <= A_899
+    ?_18 <= A_902
+    ?_45 <= Type‹??_10›
+    ?_46 <= Type‹??_11›
+    
+  |}
+  eqns {|
+    equal_tm? (A_798, ?_20);
+    equal_tm? ((sing_5 ?_20 ?_19),
+      match true_3 in bool_3 -o L with
+      | true_3 => (sing_5 A_798 x_802)
+      | false_4 => ((B_799) x_802))
+  |}
+end_dump
+simpl_tm ~expand:false( A_798, ?_20)
+simpl_tm ~expand:false( (sing_5 A_798 ?_19), (sing_5 A_798 x_802))
+simpl_tm ~expand:false( A_798, A_798)
+simpl_tm ~expand:false( ?_19, x_802)
+infer_tm(A_798)
+check_tm( x_802, A_798)
+infer_tm(x_802)
+assert_equal1( A_798, A_798)
+assert_equal1_ok( A_798, A_798)
+infer_tm(L)
+check_tm( A_798, L)
+infer_tm(A_798)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+----------------------------------
+
+definition-------------------------
+infer_tm(∀ {A_952 : L} ->
+           ∀ {B_953 : A_952 -> L} ->
+             ∀ (x_955 : (apair_6 A_952 B_953)) ->
+               ((B_953) ((proj1_3) ?_33 ?_32 x_955)))
+infer_tm(L)
+infer_tm(∀ {B_957 : A_956 -> L} ->
+           ∀ (x_959 : (apair_6 A_956 B_957)) ->
+             ((B_957) ((proj1_3) ?_33 ?_32 x_959)))
+infer_tm(A_956 -> L)
+infer_tm(A_956)
+infer_tm(L)
+infer_tm(∀ (x_963 : (apair_6 A_956 B_960)) ->
+           ((B_960) ((proj1_3) ?_33 ?_32 x_963)))
+infer_tm((apair_6 A_956 B_960))
+check_tm( A_956, L)
+infer_tm(A_956)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+check_tm( B_960, A_956 -> L)
+infer_tm(B_960)
+assert_equal1( A_956 -> L, A_956 -> L)
+assert_equal1_ok( A_956 -> L, A_956 -> L)
+infer_tm(((B_960) ((proj1_3) ?_33 ?_32 x_964)))
+infer_tm(B_960)
+check_tm( ((proj1_3) ?_33 ?_32 x_964), A_956)
+infer_tm(((proj1_3) ?_33 ?_32 x_964))
+infer_tm(((proj1_3) ?_33 ?_32))
+infer_tm(((proj1_3) ?_33))
+infer_tm(proj1_3)
+check_tm( ?_33, L)
+check_tm( ?_32, ?_33 -> L)
+check_tm( x_964, (apair_6 ?_33 ?_32))
+infer_tm(x_964)
+assert_equal1( (apair_6 ?_33 ?_32), (apair_6 A_956 B_960))
+assert_equal1_extend( (apair_6 ?_33 ?_32), (apair_6 A_956 B_960))
+assert_equal1( A_956, ?_33)
+assert_equal1_extend( A_956, ?_33)
+simpl_tm ~expand:false( A_956, ?_33)
+simpl_tm ~expand:false( (apair_6 A_956 ?_32), (apair_6 A_956 B_960))
+simpl_tm ~expand:false( A_956, A_956)
+simpl_tm ~expand:false( ?_32, B_960)
+check_tm(
+  function proj2_985 :
+    ∀ {A_986 : L} ->
+      ∀ {B_987 : A_986 -> L} ->
+        ∀ (x_989 : (apair_6 A_986 B_987)) ->
+          ((B_987) ((proj1_3) ?_22 ?_21 x_989))
+  | A_990 B_991 (apair_intro_8 x_992 select_993) =>
+    match x_992, ((select_993) true_3),
+    ((sing_uniq_2) ?_24 ?_23 ((select_993) true_3)),
+    ((select_993) false_4) in
+      ∀ {x0_994 : ?_25} -o
+        ∀ {a0_995 : (sing_5 ?_26 x_992)} -o
+          ∀ {__996 :
+            (eq_1‹??_6› ?_29 x0_994 ((sing_elim_1) ?_28 ?_27 a0_995))} -o
+            ∀ (__997 : ((B_991) x0_994)) -o
+              ((B_991) ((sing_elim_1) ?_31 ?_30 a0_995))
+    with
+    | _998, _999, refl_1, b_1000 => b_1000,
+  ∀ {A_1001 : L} ->
+    ∀ {B_1002 : A_1001 -> L} ->
+      ∀ (x_1004 : (apair_6 A_1001 B_1002)) ->
+        ((B_1002) ((proj1_3) ?_33 ?_32 x_1004)))
+infer_tm(∀ {A_1006 : L} ->
+           ∀ {B_1007 : A_1006 -> L} ->
+             ∀ (x_1009 : (apair_6 A_1006 B_1007)) ->
+               ((B_1007) ((proj1_3) ?_22 ?_21 x_1009)))
+infer_tm(L)
+infer_tm(∀ {B_1011 : A_1010 -> L} ->
+           ∀ (x_1013 : (apair_6 A_1010 B_1011)) ->
+             ((B_1011) ((proj1_3) ?_22 ?_21 x_1013)))
+infer_tm(A_1010 -> L)
+infer_tm(A_1010)
+infer_tm(L)
+infer_tm(∀ (x_1017 : (apair_6 A_1010 B_1014)) ->
+           ((B_1014) ((proj1_3) ?_22 ?_21 x_1017)))
+infer_tm((apair_6 A_1010 B_1014))
+check_tm( A_1010, L)
+infer_tm(A_1010)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+check_tm( B_1014, A_1010 -> L)
+infer_tm(B_1014)
+assert_equal1( A_1010 -> L, A_1010 -> L)
+assert_equal1_ok( A_1010 -> L, A_1010 -> L)
+infer_tm(((B_1014) ((proj1_3) ?_22 ?_21 x_1018)))
+infer_tm(B_1014)
+check_tm( ((proj1_3) ?_22 ?_21 x_1018), A_1010)
+infer_tm(((proj1_3) ?_22 ?_21 x_1018))
+infer_tm(((proj1_3) ?_22 ?_21))
+infer_tm(((proj1_3) ?_22))
+infer_tm(proj1_3)
+check_tm( ?_22, L)
+check_tm( ?_21, ?_22 -> L)
+check_tm( x_1018, (apair_6 ?_22 ?_21))
+infer_tm(x_1018)
+assert_equal1( (apair_6 ?_22 ?_21), (apair_6 A_1010 B_1014))
+assert_equal1_extend( (apair_6 ?_22 ?_21), (apair_6 A_1010 B_1014))
+assert_equal1( A_1010, ?_22)
+assert_equal1_extend( A_1010, ?_22)
+simpl_tm ~expand:false( A_1010, ?_22)
+simpl_tm ~expand:false( (apair_6 A_1010 ?_21), (apair_6 A_1010 B_1014))
+simpl_tm ~expand:false( A_1010, A_1010)
+simpl_tm ~expand:false( ?_21, B_1014)
+assert_equal1(
+  ∀ {A_1039 : L} ->
+    ∀ {B_1040 : A_1039 -> L} ->
+      ∀ (x_1042 : (apair_6 A_1039 B_1040)) ->
+        ((B_1040) ((proj1_3) ?_33 ?_32 x_1042)),
+  ∀ {A_1043 : L} ->
+    ∀ {B_1044 : A_1043 -> L} ->
+      ∀ (x_1046 : (apair_6 A_1043 B_1044)) ->
+        ((B_1044) ((proj1_3) ?_22 ?_21 x_1046)))
+assert_equal1_extend(
+  ∀ {A_1071 : L} ->
+    ∀ {B_1072 : A_1071 -> L} ->
+      ∀ (x_1074 : (apair_6 A_1071 B_1072)) ->
+        ((B_1072) ((proj1_3) ?_33 ?_32 x_1074)),
+  ∀ {A_1075 : L} ->
+    ∀ {B_1076 : A_1075 -> L} ->
+      ∀ (x_1078 : (apair_6 A_1075 B_1076)) ->
+        ((B_1076) ((proj1_3) ?_22 ?_21 x_1078)))
+simpl_tm ~expand:false(
+  ∀ {A_1097 : L} ->
+    ∀ {B_1098 : A_1097 -> L} ->
+      ∀ (x_1100 : (apair_6 A_1097 B_1098)) ->
+        ((B_1098) ((proj1_3) A_1097 B_1098 x_1100)),
+  ∀ {A_1101 : L} ->
+    ∀ {B_1102 : A_1101 -> L} ->
+      ∀ (x_1104 : (apair_6 A_1101 B_1102)) ->
+        ((B_1102) ((proj1_3) A_1101 B_1102 x_1104)))
+simpl_tm ~expand:false( L, L)
+simpl_tm ~expand:false(
+  ∀ {B_1106 : A_1105 -> L} ->
+    ∀ (x_1108 : (apair_6 A_1105 B_1106)) ->
+      ((B_1106) ((proj1_3) A_1105 B_1106 x_1108)),
+  ∀ {B_1109 : A_1105 -> L} ->
+    ∀ (x_1111 : (apair_6 A_1105 B_1109)) ->
+      ((B_1109) ((proj1_3) A_1105 B_1109 x_1111)))
+simpl_tm ~expand:false( A_1105 -> L, A_1105 -> L)
+simpl_tm ~expand:false( A_1105, A_1105)
+simpl_tm ~expand:false( L, L)
+simpl_tm ~expand:false(
+  ∀ (x_1116 : (apair_6 A_1105 B_1112)) ->
+    ((B_1112) ((proj1_3) A_1105 B_1112 x_1116)),
+  ∀ (x_1117 : (apair_6 A_1105 B_1112)) ->
+    ((B_1112) ((proj1_3) A_1105 B_1112 x_1117)))
+simpl_tm ~expand:false( (apair_6 A_1105 B_1112), (apair_6 A_1105 B_1112))
+simpl_tm ~expand:false( A_1105, A_1105)
+simpl_tm ~expand:false( B_1112, B_1112)
+simpl_tm ~expand:false( ((B_1112) ((proj1_3) A_1105 B_1112 x_1118)),
+  ((B_1112) ((proj1_3) A_1105 B_1112 x_1118)))
+simpl_tm ~expand:false( B_1112, B_1112)
+simpl_tm ~expand:false( ((proj1_3) A_1105 B_1112 x_1118),
+  ((proj1_3) A_1105 B_1112 x_1118))
+simpl_tm ~expand:false( proj1_3, proj1_3)
+simpl_tm ~expand:false( A_1105, A_1105)
+simpl_tm ~expand:false( B_1112, B_1112)
+simpl_tm ~expand:false( x_1118, x_1118)
+check_cls {|
+  prblm {| ;
+    {|  ::: [A_1079, B_1080, (apair_intro_8 x_1081 select_1082)] =>?
+         match #x_1081, ((#select_1082) true_3),
+         ((sing_uniq_2) ?_24 ?_23 ((#select_1082) true_3)),
+         ((#select_1082) false_4) in
+           ∀ {x0_1126 : ?_25} -o
+             ∀ {a0_1127 : (sing_5 ?_26 #x_1081)} -o
+               ∀ {__1128 :
+                 (eq_1‹??_6›
+                   ?_29 x0_1126 ((sing_elim_1) ?_28 ?_27 a0_1127))} -o
+                 ∀ (__1129 : ((#B_1080) x0_1126)) -o
+                   ((#B_1080) ((sing_elim_1) ?_31 ?_30 a0_1127))
+         with
+         | _1130, _1131, refl_1, b_1132 => b_1132
+    |}
+  |}
+  a := ∀ {A_1133 : L} ->
+         ∀ {B_1134 : A_1133 -> L} ->
+           ∀ (x_1136 : (apair_6 A_1133 B_1134)) ->
+             ((B_1134) ((proj1_3) A_1133 B_1134 x_1136))
+|}
+case_intro
+case_introed(A_1137 : L)
+case_intro
+case_introed(B_1138 : #A_1137 -> L)
+case_intro
+case_introed(x_1140 : (apair_6 #A_1137 #B_1138))
+case_splitting
+splitting_on(apair_intro_8)
+case_coverage{|
+  prblm {| eq_term?( (apair_6 #A_1137 #B_1138), (apair_6 #A_1137 #B_1138));
+    {| eq_pat?( #A_1137, A_1079 : L)
+       eq_pat?( #B_1138, B_1080 : #A_1137 -> L)
+       eq_pat?( #x_1141, x_1081 : #A_1137)
+       eq_pat?( #select_1142, select_1082 :
+         ∀ (b_1155 : bool_3) -o
+           match b_1155 in bool_3 -o L with
+           | true_3 => (sing_5 #A_1137 #x_1141)
+           | false_4 => ((#B_1138) #x_1141)) ::: [] =>?
+         match #x_1081, ((#select_1082) true_3),
+         ((sing_uniq_2) ?_24 ?_23 ((#select_1082) true_3)),
+         ((#select_1082) false_4) in
+           ∀ {x0_1157 : ?_25} -o
+             ∀ {a0_1158 : (sing_5 ?_26 #x_1081)} -o
+               ∀ {__1159 :
+                 (eq_1‹??_6›
+                   ?_29 x0_1157 ((sing_elim_1) ?_28 ?_27 a0_1158))} -o
+                 ∀ (__1160 : ((#B_1080) x0_1157)) -o
+                   ((#B_1080) ((sing_elim_1) ?_31 ?_30 a0_1158))
+         with
+         | _1161, _1162, refl_1, b_1163 => b_1163
+    |}
+  |}
+|}
+unify_local(
+  eq_pat?( #A_1137, A_1079 : L)
+  eq_pat?( #B_1138, B_1080 : #A_1137 -> L)
+  eq_pat?( #x_1141, x_1081 : #A_1137)
+  eq_pat?( #select_1142, select_1082 :
+    ∀ (b_1165 : bool_3) -o
+      match b_1165 in bool_3 -o L with
+      | true_3 => (sing_5 #A_1137 #x_1141)
+      | false_4 => ((#B_1138) #x_1141))
+)
+unify_global( eq_term?( (apair_6 #A_1137 #B_1138), (apair_6 #A_1137 #B_1138))
+)
+simpl_pprbm ~expand:false( #A_1137, #A_1079)
+simpl_pprbm ~expand:false( #B_1138, #B_1080)
+simpl_pprbm ~expand:false( #x_1141, #x_1081)
+simpl_pprbm ~expand:false( #select_1142, #select_1082)
+local_map solved
+simpl_pprbm ~expand:false( (apair_6 #A_1137 #B_1138),
+  (apair_6 #A_1137 #B_1138))
+simpl_pprbm ~expand:false( #A_1137, #A_1137)
+simpl_pprbm ~expand:false( #B_1138, #B_1138)
+global_map solved
+case_coverage_ok(
+  match x_1141, ((select_1142) true_3),
+  ((sing_uniq_2) ?_24 ?_23 ((select_1142) true_3)),
+  ((select_1142) false_4) in
+    ∀ {x0_1190 : ?_25} -o
+      ∀ {a0_1191 : (sing_5 ?_26 x_1141)} -o
+        ∀ {__1192 :
+          (eq_1‹??_6› ?_29 x0_1190 ((sing_elim_1) ?_28 ?_27 a0_1191))} -o
+          ∀ (__1193 : ((B_1138) x0_1190)) -o
+            ((B_1138) ((sing_elim_1) ?_31 ?_30 a0_1191))
+  with
+  | _1194, _1195, refl_1, b_1196 => b_1196,
+  ((B_1138)
+    ((proj1_3) A_1137 B_1138 (apair_intro_8‹› x_1141 select_1142))))
+check_tm(
+  match x_1141, ((select_1142) true_3),
+  ((sing_uniq_2) ?_24 ?_23 ((select_1142) true_3)),
+  ((select_1142) false_4) in
+    ∀ {x0_1197 : ?_25} -o
+      ∀ {a0_1198 : (sing_5 ?_26 x_1141)} -o
+        ∀ {__1199 :
+          (eq_1‹??_6› ?_29 x0_1197 ((sing_elim_1) ?_28 ?_27 a0_1198))} -o
+          ∀ (__1200 : ((B_1138) x0_1197)) -o
+            ((B_1138) ((sing_elim_1) ?_31 ?_30 a0_1198))
+  with
+  | _1201, _1202, refl_1, b_1203 => b_1203,
+  ((B_1138)
+    ((proj1_3) A_1137 B_1138 (apair_intro_8‹› x_1141 select_1142))))
+infer_tm(match x_1141, ((select_1142) true_3),
+         ((sing_uniq_2) ?_24 ?_23 ((select_1142) true_3)),
+         ((select_1142) false_4) in
+           ∀ {x0_1204 : ?_25} -o
+             ∀ {a0_1205 : (sing_5 ?_26 x_1141)} -o
+               ∀ {__1206 :
+                 (eq_1‹??_6›
+                   ?_29 x0_1204 ((sing_elim_1) ?_28 ?_27 a0_1205))} -o
+                 ∀ (__1207 : ((B_1138) x0_1204)) -o
+                   ((B_1138) ((sing_elim_1) ?_31 ?_30 a0_1205))
+         with
+         | _1208, _1209, refl_1, b_1210 => b_1210)
+infer_motive(x_1141 : ?_25)
+infer_tm(?_25)
+delay_assert(?_47, ??_12)
+check_tm( x_1141, ?_25)
+infer_tm(x_1141)
+assert_equal1( ?_25, A_1137)
+assert_equal1_extend( ?_25, A_1137)
+infer_motive(((select_1142) true_3) : (sing_5 ?_26 x_1141))
+infer_tm((sing_5 ?_26 x_1141))
+check_tm( ?_26, L)
+check_tm( x_1141, ?_26)
+infer_tm(x_1141)
+assert_equal1( ?_26, A_1137)
+assert_equal1_extend( ?_26, A_1137)
+simpl_tm ~expand:false( ?_26, A_1137)
+simpl_tm ~expand:false( ?_25, A_1137)
+simpl_tm ~expand:false( ?_47, Type‹??_12›)
+check_tm( ((select_1142) true_3), (sing_5 ?_26 x_1141))
+infer_tm(((select_1142) true_3))
+infer_tm(select_1142)
+check_tm( true_3, bool_3)
+infer_tm(true_3)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+assert_equal1( (sing_5 ?_26 x_1141),
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 A_1137 x_1141)
+  | false_4 => ((B_1138) x_1141))
+assert_equal1_extend( (sing_5 ?_26 x_1141),
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 A_1137 x_1141)
+  | false_4 => ((B_1138) x_1141))
+infer_motive(((sing_uniq_2) ?_24 ?_23 ((select_1142) true_3)) : (eq_1‹??_6›
+                                                                  ?_29 x_1141
+                                                                  ((sing_elim_1)
+                                                                    ?_28 ?_27
+                                                                    ((select_1142)
+                                                                    true_3))))
+infer_tm((eq_1‹??_6›
+           ?_29 x_1141 ((sing_elim_1) ?_28 ?_27 ((select_1142) true_3))))
+check_tm( ?_29, Type‹??_6›)
+check_tm( x_1141, ?_29)
+infer_tm(x_1141)
+assert_equal1( ?_29, A_1137)
+assert_equal1_extend( ?_29, A_1137)
+check_tm( ((sing_elim_1) ?_28 ?_27 ((select_1142) true_3)), ?_29)
+infer_tm(((sing_elim_1) ?_28 ?_27 ((select_1142) true_3)))
+infer_tm(((sing_elim_1) ?_28 ?_27))
+infer_tm(((sing_elim_1) ?_28))
+infer_tm(sing_elim_1)
+simpl_tm ~expand:false( ?_29, A_1137)
+simpl_tm ~expand:false( (sing_5 A_1137 x_1141), (sing_5 A_1137 x_1141))
+simpl_tm ~expand:false( A_1137, A_1137)
+simpl_tm ~expand:false( x_1141, x_1141)
+check_tm( ?_28, L)
+check_tm( ?_27, ?_28)
+check_tm( ((select_1142) true_3), (sing_5 ?_28 ?_27))
+infer_tm(((select_1142) true_3))
+infer_tm(select_1142)
+check_tm( true_3, bool_3)
+infer_tm(true_3)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+assert_equal1( (sing_5 ?_28 ?_27),
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 A_1137 x_1141)
+  | false_4 => ((B_1138) x_1141))
+assert_equal1_extend( (sing_5 ?_28 ?_27),
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 A_1137 x_1141)
+  | false_4 => ((B_1138) x_1141))
+assert_equal1( ?_29, ?_28)
+assert_equal1_extend( ?_29, ?_28)
+simpl_tm ~expand:false( A_1137, ?_28)
+simpl_tm ~expand:false( (sing_5 A_1137 ?_27), (sing_5 A_1137 x_1141))
+simpl_tm ~expand:false( A_1137, A_1137)
+simpl_tm ~expand:false( ?_27, x_1141)
+check_tm( ((sing_uniq_2) ?_24 ?_23 ((select_1142) true_3)),
+  (eq_1‹??_6›
+    ?_29 x_1141 ((sing_elim_1) ?_28 ?_27 ((select_1142) true_3))))
+infer_tm(((sing_uniq_2) ?_24 ?_23 ((select_1142) true_3)))
+infer_tm(((sing_uniq_2) ?_24 ?_23))
+infer_tm(((sing_uniq_2) ?_24))
+infer_tm(sing_uniq_2)
+check_tm( ?_24, L)
+check_tm( ?_23, ?_24)
+check_tm( ((select_1142) true_3), (sing_5 ?_24 ?_23))
+infer_tm(((select_1142) true_3))
+infer_tm(select_1142)
+check_tm( true_3, bool_3)
+infer_tm(true_3)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+assert_equal1( (sing_5 ?_24 ?_23),
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 A_1137 x_1141)
+  | false_4 => ((B_1138) x_1141))
+assert_equal1_extend( (sing_5 ?_24 ?_23),
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 A_1137 x_1141)
+  | false_4 => ((B_1138) x_1141))
+assert_equal1(
+  (eq_1‹??_6›
+    ?_29 x_1141 ((sing_elim_1) ?_28 ?_27 ((select_1142) true_3))),
+  (eq_1‹L› ?_24 ?_23 ((sing_elim_1) ?_24 ?_23 ((select_1142) true_3))))
+assert_equal1_extend(
+  (eq_1‹??_6›
+    ?_29 x_1141 ((sing_elim_1) ?_28 ?_27 ((select_1142) true_3))),
+  (eq_1‹L› ?_24 ?_23 ((sing_elim_1) ?_24 ?_23 ((select_1142) true_3))))
+infer_motive(((select_1142) false_4) : ((B_1138) x_1141))
+infer_tm(((B_1138) x_1141))
+infer_tm(B_1138)
+simpl_tm ~expand:false(
+  (eq_1‹??_6›
+    A_1137 x_1141 ((sing_elim_1) A_1137 x_1141 ((select_1142) true_3))),
+  (eq_1‹L› ?_24 ?_23 ((sing_elim_1) ?_24 ?_23 ((select_1142) true_3))))
+simpl_tm ~expand:false( A_1137, ?_24)
+simpl_tm ~expand:false( x_1141, ?_23)
+simpl_tm ~expand:false( ((sing_elim_1) A_1137 x_1141 ((select_1142) true_3)),
+  ((sing_elim_1) ?_24 ?_23 ((select_1142) true_3)))
+simpl_tm ~expand:false( sing_elim_1, sing_elim_1)
+simpl_tm ~expand:false( A_1137, ?_24)
+simpl_tm ~expand:false( x_1141, ?_23)
+simpl_tm ~expand:false( ((select_1142) true_3), ((select_1142) true_3))
+simpl_tm ~expand:false( select_1142, select_1142)
+simpl_tm ~expand:false( true_3, true_3)
+simpl_tm ~expand:false( A_1137, ?_24)
+simpl_tm ~expand:false( x_1141, ?_23)
+simpl_tm ~expand:false( A_1137, A_1137)
+simpl_tm ~expand:false( x_1141, x_1141)
+simpl_tm ~expand:false( (sing_5 A_1137 x_1141), (sing_5 A_1137 x_1141))
+simpl_tm ~expand:false( A_1137, A_1137)
+simpl_tm ~expand:false( x_1141, x_1141)
+check_tm( x_1141, A_1137)
+infer_tm(x_1141)
+assert_equal1( A_1137, A_1137)
+assert_equal1_ok( A_1137, A_1137)
+check_tm( ((select_1142) false_4), ((B_1138) x_1141))
+infer_tm(((select_1142) false_4))
+infer_tm(select_1142)
+check_tm( false_4, bool_3)
+infer_tm(false_4)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+assert_equal1( ((B_1138) x_1141),
+  match false_4 in bool_3 -o L with
+  | true_3 => (sing_5 A_1137 x_1141)
+  | false_4 => ((B_1138) x_1141))
+assert_equal1_ok( ((B_1138) x_1141),
+  match false_4 in bool_3 -o L with
+  | true_3 => (sing_5 A_1137 x_1141)
+  | false_4 => ((B_1138) x_1141))
+infer_tm(((B_1138) ((sing_elim_1) ?_31 ?_30 ((select_1142) true_3))))
+infer_tm(B_1138)
+check_tm( ((sing_elim_1) ?_31 ?_30 ((select_1142) true_3)), A_1137)
+infer_tm(((sing_elim_1) ?_31 ?_30 ((select_1142) true_3)))
+infer_tm(((sing_elim_1) ?_31 ?_30))
+infer_tm(((sing_elim_1) ?_31))
+infer_tm(sing_elim_1)
+check_tm( ?_31, L)
+check_tm( ?_30, ?_31)
+check_tm( ((select_1142) true_3), (sing_5 ?_31 ?_30))
+infer_tm(((select_1142) true_3))
+infer_tm(select_1142)
+check_tm( true_3, bool_3)
+infer_tm(true_3)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+assert_equal1( (sing_5 ?_31 ?_30),
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 A_1137 x_1141)
+  | false_4 => ((B_1138) x_1141))
+assert_equal1_extend( (sing_5 ?_31 ?_30),
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 A_1137 x_1141)
+  | false_4 => ((B_1138) x_1141))
+assert_equal1( A_1137, ?_31)
+assert_equal1_extend( A_1137, ?_31)
+simpl_tm ~expand:false( A_1137, ?_31)
+simpl_tm ~expand:false( (sing_5 A_1137 ?_30), (sing_5 A_1137 x_1141))
+simpl_tm ~expand:false( A_1137, A_1137)
+simpl_tm ~expand:false( ?_30, x_1141)
+check_cls {|
+  prblm {| ; {|  ::: [_1276, _1277, refl_1, b_1278] =>? #b_1278 |} |}
+  a := ∀ {x0_1289 : A_1137} -o
+         ∀ {a0_1290 : (sing_5 A_1137 x_1141)} -o
+           {(eq_1‹L›
+              A_1137 x0_1289 ((sing_elim_1) A_1137 x_1141 a0_1290))} -o
+             ((B_1138) x0_1289) -o
+               ((B_1138) ((sing_elim_1) A_1137 x_1141 a0_1290))
+|}
+case_intro
+case_introed(x0_1293 : A_1137)
+case_intro
+case_introed(a0_1294 : (sing_5 A_1137 x_1141))
+case_intro
+case_introed(__1295 : (eq_1‹L›
+                        A_1137 #x0_1293
+                        ((sing_elim_1) A_1137 x_1141 #a0_1294)))
+case_intro
+case_introed(__1296 : ((B_1138) #x0_1293))
+case_splitting
+splitting_on(refl_1)
+case_coverage{|
+  prblm {|
+    eq_term?(
+      (eq_1‹L› A_1137 #x0_1293 ((sing_elim_1) A_1137 x_1141 #a0_1294)),
+      (eq_1‹L› A_1137 #x0_1293 #x0_1293));
+    {| eq_pat?( #x0_1293, _1276 : A_1137)
+       eq_pat?( #a0_1294, _1277 : (sing_5 A_1137 x_1141))
+       eq_pat?( #__1296, b_1278 : ((B_1138) #x0_1293)) ::: [] =>? #b_1278
+    |}
+  |}
+|}
+unify_local(
+  eq_pat?( #x0_1293, _1276 : A_1137)
+  eq_pat?( #a0_1294, _1277 : (sing_5 A_1137 x_1141))
+  eq_pat?( #__1296, b_1278 : ((B_1138) #x0_1293))
 )
 unify_global(
-  eq_term?( (stream_node_4‹U› nat_3), (stream_node_4‹U› nat_3))
+  eq_term?(
+    (eq_1‹L› A_1137 #x0_1293 ((sing_elim_1) A_1137 x_1141 #a0_1294)),
+    (eq_1‹L› A_1137 #x0_1293 #x0_1293))
 )
-simpl_pprbm ~expand:false( #hd_498, #hd_491)
-simpl_pprbm ~expand:false( #tl_499, #tl_492)
-simpl_pprbm ~expand:false( (stream_node_4‹U› nat_3),
-  (stream_node_4‹U› nat_3))
-simpl_pprbm ~expand:false( nat_3, nat_3)
-case_coverage_ok(
-  (stream_cons_7‹??_14› (succ_5‹› hd_498) ((stream_succ_419) tl_499)),
-  ?_11)
-check_tm(
-  (stream_cons_7‹??_14› (succ_5‹› hd_498) ((stream_succ_419) tl_499)),
-  ?_11)
-infer_tm((stream_cons_7‹??_14›
-           (succ_5‹› hd_498) ((stream_succ_419) tl_499)))
-check_tm( ?_13, Type‹??_14›)
-check_tm( (succ_5‹› hd_498), ?_13)
-infer_tm((succ_5‹› hd_498))
-check_tm( hd_498, nat_3)
-infer_tm(hd_498)
-assert_equal1( nat_3, nat_3)
-assert_equal1_ok( nat_3, nat_3)
-assert_equal1( ?_13, nat_3)
-assert_equal1_extend( ?_13, nat_3)
-check_tm( ((stream_succ_419) tl_499),
-  ∀ (b_510 : bool_2) -o
-    match b_510 in bool_2 -o L with
-    | true_2 => (stream_node_4‹??_14› ?_13)
-    | false_3 => unit_1‹L›)
-infer_tm(((stream_succ_419) tl_499))
-infer_tm(stream_succ_419)
-simpl_tm ~expand:false( ?_13, nat_3)
-simpl_tm ~expand:false( ?_11, (stream_node_4‹??_13› ?_12))
-check_tm( tl_499, ((stream_1‹U›) nat_3))
-infer_tm(tl_499)
-assert_equal1( ((stream_1‹U›) nat_3),
-  ∀ (b_514 : bool_2) -o
-    match b_514 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›)
-assert_equal1_ok( ((stream_1‹U›) nat_3),
-  ∀ (b_518 : bool_2) -o
-    match b_518 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›)
+simpl_pprbm ~expand:false( #x0_1293, #_1276)
+simpl_pprbm ~expand:false( #a0_1294, #_1277)
+simpl_pprbm ~expand:false( #__1296, #b_1278)
+local_map solved
+simpl_pprbm ~expand:false(
+  (eq_1‹L› A_1137 #x0_1293 ((sing_elim_1) A_1137 x_1141 #a0_1294)),
+  (eq_1‹L› A_1137 #x0_1293 #x0_1293))
+simpl_pprbm ~expand:false( A_1137, A_1137)
+simpl_pprbm ~expand:false( #x0_1293, #x0_1293)
+simpl_pprbm ~expand:false( ((sing_elim_1) A_1137 x_1141 #a0_1294), #x0_1293)
+global_map solved
+case_coverage_ok( __1296, ((B_1138) ((sing_elim_1) A_1137 x_1141 a0_1294)))
+check_tm( __1296, ((B_1138) ((sing_elim_1) A_1137 x_1141 a0_1294)))
+infer_tm(__1296)
+assert_equal1( ((B_1138) ((sing_elim_1) A_1137 x_1141 a0_1294)),
+  ((B_1138) ((sing_elim_1) A_1137 x_1141 a0_1294)))
+assert_equal1_ok( ((B_1138) ((sing_elim_1) A_1137 x_1141 a0_1294)),
+  ((B_1138) ((sing_elim_1) A_1137 x_1141 a0_1294)))
 assert_equal1(
-  ∀ (b_520 : bool_2) -o
-    match b_520 in bool_2 -o L with
-    | true_2 => (stream_node_4‹??_14› ?_13)
-    | false_3 => unit_1‹L›,
-  ((stream_1‹U›) nat_3))
+  ((B_1138)
+    ((proj1_3) A_1137 B_1138 (apair_intro_8‹› x_1141 select_1142))),
+  ((B_1138) ((sing_elim_1) ?_31 ?_30 ((select_1142) true_3))))
 assert_equal1_extend(
-  ∀ (b_525 : bool_2) -o
-    match b_525 in bool_2 -o L with
-    | true_2 => (stream_node_4‹??_14› ?_13)
-    | false_3 => unit_1‹L›,
-  ((stream_1‹U›) nat_3))
-assert_equal1( ?_11, (stream_node_4‹??_14› ?_13))
-assert_equal1_extend( ?_11, (stream_node_4‹??_14› ?_13))
-assert_equal1(
-  match true_2 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›, ?_11)
-assert_equal1_extend(
-  match true_2 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›, ?_11)
-splitting_on(false_3)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2); {|  ::: [] =>? ((xs_441) false_3) |} |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( ((xs_441) false_3),
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-check_tm( ((xs_441) false_3),
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-infer_tm(((xs_441) false_3))
-infer_tm(xs_441)
-simpl_tm ~expand:false( (stream_node_4‹U› nat_3),
-  (stream_node_4‹??_13› ?_12))
-simpl_tm ~expand:false( nat_3, ?_12)
-simpl_tm ~expand:false( nat_3, ?_12)
-simpl_tm ~expand:false( (stream_node_4‹U› nat_3),
-  (stream_node_4‹??_14› nat_3))
-simpl_tm ~expand:false( nat_3, nat_3)
-simpl_tm ~expand:false(
-  ∀ (b_538 : bool_2) -o
-    match b_538 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›,
-  ((stream_1‹U›) nat_3))
-simpl_tm ~expand:false(
-  ∀ (b_540 : bool_2) -o
-    match b_540 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›,
-  stream_1‹U›)
-simpl_tm ~expand:true(
-  ∀ (b_542 : bool_2) -o
-    match b_542 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›,
-  function stream_544 : U -> L
-  | A_546 =>
-    ∀ (b_547 : bool_2) -o
-      match b_547 in bool_2 -o L with
-      | true_2 => (stream_node_4‹U› A_546)
-      | false_3 => unit_1‹L›)
-simpl_tm ~expand:true(
-  ∀ (b_556 : bool_2) -o
-    match b_556 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›,
-  ∀ (b_558 : bool_2) -o
-    match b_558 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›)
-simpl_tm ~expand:false( bool_2, bool_2)
-simpl_tm ~expand:false(
-  match b_560 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›,
-  match b_560 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-simpl_tm ~expand:false( b_560, b_560)
-simpl_tm ~expand:false( bool_2 -o L, bool_2 -o L)
-simpl_tm ~expand:false( bool_2, bool_2)
-simpl_tm ~expand:false( L, L)
-simpl_tm ~expand:false( (stream_node_4‹U› nat_3),
-  (stream_node_4‹U› nat_3))
-simpl_tm ~expand:false( nat_3, nat_3)
-simpl_tm ~expand:false( unit_1‹L›, unit_1‹L›)
-check_tm( false_3, bool_2)
-infer_tm(false_3)
-assert_equal1( bool_2, bool_2)
-assert_equal1_ok( bool_2, bool_2)
-assert_equal1(
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›,
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-assert_equal1_ok(
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›,
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
+  ((B_1138)
+    ((proj1_3) A_1137 B_1138 (apair_intro_8‹› x_1141 select_1142))),
+  ((B_1138) ((sing_elim_1) ?_31 ?_30 ((select_1142) true_3))))
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_571
-    ??_2 <= s_572
-    ??_3 <= s_573
-    ??_4 <= L
-    ??_5 <= s_575
-    ??_6 <= s_576
-    ??_7 <= L
-    ??_8 <= s_578
-    ??_9 <= U
-    ??_10 <= s_580
+    ??_1 <= s_1317
+    ??_2 <= s_1318
+    ??_3 <= L
+    ??_4 <= ??_3
+    ??_5 <= ??_3
+    ??_6 <= L
+    ??_10 <= L
     ??_11 <= U
-    ??_12 <= U
-    ??_13 <= U
-    ??_14 <= U
-    ??_15 <= U
-    ??_16 <= U
-    ??_22 <= U
-    ??_23 <= U
-    ??_24 <= U
-    ??_25 <= U
-    ??_26 <= U
-    ??_27 <= U
-    ??_28 <= L
-    ??_29 <= U
     
   |}
   imeta_meta {|
-    ?_1 <= bool_2
-    ?_2 <= Type‹??_4›
-    ?_3 <= L
-    ?_4 <= bool_2
-    ?_5 <= Type‹??_7›
-    ?_6 <= ?_3
-    ?_7 <= unit_1‹L›
-    ?_8 <= unit_1‹U›
-    ?_9 <= ((stream_1‹U›) nat_3)
-    ?_10 <= (stream_node_4‹U› nat_3)
-    ?_11 <= (stream_node_4‹??_13› ?_12)
-    ?_12 <= nat_3
-    ?_13 <= nat_3
-    ?_20 <= Type‹??_22›
-    ?_21 <= Type‹??_23›
-    ?_22 <= Type‹??_24›
-    ?_23 <= Type‹??_25›
-    ?_24 <= Type‹??_26›
-    ?_25 <= Type‹??_27›
-    ?_26 <= Type‹??_28›
-    ?_27 <= Type‹??_29›
-    ?_28 <= Type‹??_30›
-    ?_29 <= Type‹??_31›
-    ?_30 <= Type‹??_32›
+    ?_1 <= A_1321
+    ?_2 <= A_1323
+    ?_3 <= bool_3
+    ?_4 <= L
+    ?_5 <= A_1336
+    ?_6 <= A_1340
+    ?_7 <= A_1342
+    ?_8 <= A_1344
+    ?_9 <= A_1346
+    ?_10 <= x0_1348
+    ?_11 <= A_1352
+    ?_12 <= A_1355
+    ?_13 <= A_1358
+    ?_14 <= m_1360
+    ?_15 <= A_1365
+    ?_16 <= x0_1367
+    ?_17 <= A_1371
+    ?_18 <= A_1374
+    ?_19 <= x_1376
+    ?_20 <= A_1383
+    ?_21 <= B_1386
+    ?_22 <= A_1390
+    ?_23 <= x_1392
+    ?_24 <= A_1399
+    ?_25 <= A_1404
+    ?_26 <= A_1410
+    ?_27 <= x_1415
+    ?_28 <= A_1424
+    ?_29 <= A_1431
+    ?_30 <= x_1438
+    ?_31 <= A_1449
+    ?_32 <= B_1452
+    ?_33 <= A_1456
+    ?_45 <= Type‹??_10›
+    ?_46 <= Type‹??_11›
+    ?_47 <= Type‹??_12›
     
   |}
   eqns {|
-    
+    equal_tm?
+      (((B_1138)
+         ((proj1_3) A_1137 B_1138 (apair_intro_8‹› x_1141 select_1142))),
+      ((B_1138) ((sing_elim_1) ?_31 ?_30 ((select_1142) true_3))))
   |}
 end_dump
-infer_tm(Type‹??_30›)
-check_tm( ((stream_1‹U›) nat_3), Type‹??_30›)
-infer_tm(((stream_1‹U›) nat_3))
-infer_tm(stream_1‹U›)
-check_tm( nat_3, U)
-infer_tm(nat_3)
-assert_equal1( U, U)
-assert_equal1_ok( U, U)
-assert_equal1( Type‹??_30›, L)
-assert_equal1_extend( Type‹??_30›, L)
-simpl_tm ~expand:false( Type‹??_30›, L)
-infer_tm(Type‹??_31›)
-check_tm( (stream_node_4‹U› nat_3), Type‹??_31›)
-infer_tm((stream_node_4‹U› nat_3))
-check_tm( nat_3, U)
-infer_tm(nat_3)
-assert_equal1( U, U)
-assert_equal1_ok( U, U)
-assert_equal1( Type‹??_31›, L)
-assert_equal1_extend( Type‹??_31›, L)
-simpl_tm ~expand:false( Type‹??_31›, L)
-infer_tm(Type‹??_32›)
-check_tm( (stream_node_4‹U› nat_3), Type‹??_32›)
-infer_tm((stream_node_4‹U› nat_3))
-check_tm( nat_3, U)
-infer_tm(nat_3)
-assert_equal1( U, U)
-assert_equal1_ok( U, U)
-assert_equal1( Type‹??_32›, L)
-assert_equal1_extend( Type‹??_32›, L)
-simpl_tm ~expand:false( Type‹??_32›, L)
-infer_tm(U)
-check_tm( nat_3, U)
-infer_tm(nat_3)
-assert_equal1( U, U)
-assert_equal1_ok( U, U)
-infer_tm(U)
-check_tm( nat_3, U)
-infer_tm(nat_3)
-assert_equal1( U, U)
-assert_equal1_ok( U, U)
+simpl_tm ~expand:false(
+  ((B_1138)
+    ((proj1_3) A_1137 B_1138 (apair_intro_8‹› x_1141 select_1142))),
+  ((B_1138) ((sing_elim_1) A_1137 x_1141 ((select_1142) true_3))))
+simpl_tm ~expand:false( B_1138, B_1138)
+simpl_tm ~expand:false(
+  ((proj1_3) A_1137 B_1138 (apair_intro_8‹› x_1141 select_1142)),
+  ((sing_elim_1) A_1137 x_1141 ((select_1142) true_3)))
+simpl_tm ~expand:false( proj1_3, sing_elim_1)
+simpl_tm ~expand:true(
+  function proj1_1471 :
+    ∀ {A_1472 : L} ->
+      ∀ {B_1473 : A_1472 -> L} -> (apair_6 A_1472 B_1473) -> A_1472
+  | A_1476 B_1477 (apair_intro_8 _1478 select_1479) =>
+    ((sing_elim_1) A_1476 _1478 ((select_1479) true_3)),
+  function sing_elim_1480 :
+    ∀ {A_1481 : L} ->
+      ∀ {x_1482 : A_1481} -> (sing_5 A_1481 x_1482) -> A_1481
+  | A_1484 x_1485 (just_7 x_1486) => x_1486)
+simpl_function(
+  function proj1_1487 :
+    ∀ {A_1488 : L} ->
+      ∀ {B_1489 : A_1488 -> L} -> (apair_6 A_1488 B_1489) -> A_1488
+  | A_1492 B_1493 (apair_intro_8 _1494 select_1495) =>
+    ((sing_elim_1) A_1492 _1494 ((select_1495) true_3)),
+  function sing_elim_1496 :
+    ∀ {A_1497 : L} ->
+      ∀ {x_1498 : A_1497} -> (sing_5 A_1497 x_1498) -> A_1497
+  | A_1500 x_1501 (just_7 x_1502) => x_1502)
+simpl_tm ~expand:false(
+  ∀ {A_1504 : L} ->
+    ∀ {B_1505 : A_1504 -> L} -> (apair_6 A_1504 B_1505) -> A_1504,
+  ∀ {A_1508 : L} ->
+    ∀ {x_1509 : A_1508} -> (sing_5 A_1508 x_1509) -> A_1508)
+simpl_tm ~expand:false( L, L)
+simpl_tm ~expand:false(
+  ∀ {B_1512 : A_1511 -> L} -> (apair_6 A_1511 B_1512) -> A_1511,
+  ∀ {x_1515 : A_1511} -> (sing_5 A_1511 x_1515) -> A_1511)
+simpl_tm ~expand:false( A_1511 -> L, A_1511)
+simpl_tm ~expand:true( A_1511 -> L, A_1511)
+simpl_tm ~expand:true(
+  ((function sing_elim_1521 :
+      ∀ {A_1522 : L} ->
+        ∀ {x_1523 : A_1522} -> (sing_5 A_1522 x_1523) -> A_1522
+    | A_1525 x_1526 (just_7 x_1527) => x_1527)
+    A_1137 x_1141 ((select_1142) true_3)),
+  ((function sing_elim_1528 :
+      ∀ {A_1529 : L} ->
+        ∀ {x_1530 : A_1529} -> (sing_5 A_1529 x_1530) -> A_1529
+    | A_1532 x_1533 (just_7 x_1534) => x_1534)
+    A_1137 x_1141 ((select_1142) true_3)))
+simpl_tm ~expand:false(
+  function sing_elim_1535 :
+    ∀ {A_1536 : L} ->
+      ∀ {x_1537 : A_1536} -> (sing_5 A_1536 x_1537) -> A_1536
+  | A_1539 x_1540 (just_7 x_1541) => x_1541,
+  function sing_elim_1542 :
+    ∀ {A_1543 : L} ->
+      ∀ {x_1544 : A_1543} -> (sing_5 A_1543 x_1544) -> A_1543
+  | A_1546 x_1547 (just_7 x_1548) => x_1548)
+simpl_function(
+  function sing_elim_1549 :
+    ∀ {A_1550 : L} ->
+      ∀ {x_1551 : A_1550} -> (sing_5 A_1550 x_1551) -> A_1550
+  | A_1553 x_1554 (just_7 x_1555) => x_1555,
+  function sing_elim_1556 :
+    ∀ {A_1557 : L} ->
+      ∀ {x_1558 : A_1557} -> (sing_5 A_1557 x_1558) -> A_1557
+  | A_1560 x_1561 (just_7 x_1562) => x_1562)
+simpl_tm ~expand:false(
+  ∀ {A_1564 : L} ->
+    ∀ {x_1565 : A_1564} -> (sing_5 A_1564 x_1565) -> A_1564,
+  ∀ {A_1567 : L} ->
+    ∀ {x_1568 : A_1567} -> (sing_5 A_1567 x_1568) -> A_1567)
+simpl_tm ~expand:false( L, L)
+simpl_tm ~expand:false(
+  ∀ {x_1571 : A_1570} -> (sing_5 A_1570 x_1571) -> A_1570,
+  ∀ {x_1573 : A_1570} -> (sing_5 A_1570 x_1573) -> A_1570)
+simpl_tm ~expand:false( A_1570, A_1570)
+simpl_tm ~expand:false( (sing_5 A_1570 x_1575) -> A_1570,
+  (sing_5 A_1570 x_1575) -> A_1570)
+simpl_tm ~expand:false( (sing_5 A_1570 x_1575), (sing_5 A_1570 x_1575))
+simpl_tm ~expand:false( A_1570, A_1570)
+simpl_tm ~expand:false( x_1575, x_1575)
+simpl_tm ~expand:false( A_1570, A_1570)
+simpl_tm ~expand:false( x_1581, x_1581)
+simpl_tm ~expand:false( A_1137, A_1137)
+simpl_tm ~expand:false( x_1141, x_1141)
+simpl_tm ~expand:false( ((select_1142) true_3), ((select_1142) true_3))
+simpl_tm ~expand:false( select_1142, select_1142)
+simpl_tm ~expand:false( true_3, true_3)
+infer_tm(A_1010 -> L)
+infer_tm(A_1010)
+infer_tm(L)
+check_tm( B_1014, A_1010 -> L)
+infer_tm(B_1014)
+assert_equal1( A_1010 -> L, A_1010 -> L)
+assert_equal1_ok( A_1010 -> L, A_1010 -> L)
+infer_tm(L)
+check_tm( A_1010, L)
+infer_tm(A_1010)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(A_1137)
+check_tm( x_1141, A_1137)
+infer_tm(x_1141)
+assert_equal1( A_1137, A_1137)
+assert_equal1_ok( A_1137, A_1137)
+infer_tm(L)
+check_tm( A_1137, L)
+infer_tm(A_1137)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(Type‹??_12›)
+check_tm( A_1137, Type‹??_12›)
+infer_tm(A_1137)
+assert_equal1( Type‹??_12›, L)
+assert_equal1_extend( Type‹??_12›, L)
+simpl_tm ~expand:false( Type‹??_12›, L)
+infer_tm(L)
+check_tm( A_1137, L)
+infer_tm(A_1137)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(A_1137)
+check_tm( x_1141, A_1137)
+infer_tm(x_1141)
+assert_equal1( A_1137, A_1137)
+assert_equal1_ok( A_1137, A_1137)
+infer_tm(L)
+check_tm( A_1137, L)
+infer_tm(A_1137)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(L)
+check_tm( A_1137, L)
+infer_tm(A_1137)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(A_1137)
+check_tm( x_1141, A_1137)
+infer_tm(x_1141)
+assert_equal1( A_1137, A_1137)
+assert_equal1_ok( A_1137, A_1137)
+infer_tm(L)
+check_tm( A_1137, L)
+infer_tm(A_1137)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(A_956 -> L)
+infer_tm(A_956)
+infer_tm(L)
+check_tm( B_960, A_956 -> L)
+infer_tm(B_960)
+assert_equal1( A_956 -> L, A_956 -> L)
+assert_equal1_ok( A_956 -> L, A_956 -> L)
+infer_tm(L)
+check_tm( A_956, L)
+infer_tm(A_956)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
 ----------------------------------
 
 definition-------------------------
-infer_tm(nat_3 -> ((stream_1‹??_20›) nat_3))
-infer_tm(nat_3)
-infer_tm(((stream_1‹??_20›) nat_3))
-infer_tm(stream_1‹??_20›)
-check_tm( nat_3, Type‹??_20›)
-infer_tm(nat_3)
-assert_equal1( Type‹??_20›, U)
-assert_equal1_extend( Type‹??_20›, U)
-simpl_tm ~expand:false( Type‹??_20›, U)
+infer_tm(bool_3 -> nat_4)
+infer_tm(bool_3)
+infer_tm(nat_4)
 check_tm(
-  function nat_make_691 : nat_3 -> ((stream_1‹??_17›) nat_3)
-  | n_693 =>
-    function _694 : ?_14
-    | true_2 =>
-      (stream_cons_7‹??_18› n_693 ((nat_make_691) (succ_5‹› n_693)))
-    | false_3 => tt_1‹??_19›,
-  nat_3 -> ((stream_1‹??_20›) nat_3))
-infer_tm(nat_3 -> ((stream_1‹??_17›) nat_3))
-infer_tm(nat_3)
-infer_tm(((stream_1‹??_17›) nat_3))
-infer_tm(stream_1‹??_17›)
-check_tm( nat_3, Type‹??_17›)
-infer_tm(nat_3)
-assert_equal1( Type‹??_17›, U)
-assert_equal1_extend( Type‹??_17›, U)
-simpl_tm ~expand:false( Type‹??_17›, U)
-assert_equal1( nat_3 -> ((stream_1‹??_20›) nat_3),
-  nat_3 -> ((stream_1‹??_17›) nat_3))
-assert_equal1_extend( nat_3 -> ((stream_1‹??_20›) nat_3),
-  nat_3 -> ((stream_1‹??_17›) nat_3))
-simpl_tm ~expand:false( nat_3 -> ((stream_1‹U›) nat_3),
-  nat_3 -> ((stream_1‹U›) nat_3))
-simpl_tm ~expand:false( nat_3, nat_3)
-simpl_tm ~expand:false( ((stream_1‹U›) nat_3), ((stream_1‹U›) nat_3))
-simpl_tm ~expand:false( stream_1‹U›, stream_1‹U›)
-simpl_tm ~expand:false( nat_3, nat_3)
+  function bool2nat_1732 : bool_3 -> nat_4
+  | true_3 => (succ_6‹› zero_5)
+  | false_4 => zero_5, bool_3 -> nat_4)
+infer_tm(bool_3 -> nat_4)
+infer_tm(bool_3)
+infer_tm(nat_4)
+assert_equal1( bool_3 -> nat_4, bool_3 -> nat_4)
+assert_equal1_ok( bool_3 -> nat_4, bool_3 -> nat_4)
 check_cls {|
   prblm {| ;
-    {|  ::: [n_709] =>?
-         function _716 : ?_14
-         | true_2 =>
-           (stream_cons_7‹??_18›
-             #n_709 ((nat_make_696) (succ_5‹› #n_709)))
-         | false_3 => tt_1‹??_19›
-    |}
+    {|  ::: [true_3] =>? (succ_6‹› zero_5) |}
+    {|  ::: [false_4] =>? zero_5 |}
   |}
-  a := nat_3 -> ((stream_1‹U›) nat_3)
+  a := bool_3 -> nat_4
 |}
 case_intro
-case_introed(n_718 : nat_3)
-case_coverage{|
-  prblm {| ;
-    {| eq_pat?( #n_718, n_709 : nat_3) ::: [] =>?
-         function _719 : ?_14
-         | true_2 =>
-           (stream_cons_7‹??_18›
-             #n_709 ((nat_make_696) (succ_5‹› #n_709)))
-         | false_3 => tt_1‹??_19›
-    |}
-  |}
-|}
-unify_local( eq_pat?( #n_718, n_709 : nat_3) )
-unify_global(  )
-simpl_pprbm ~expand:false( #n_718, #n_709)
-case_coverage_ok(
-  function _722 : ?_14
-  | true_2 =>
-    (stream_cons_7‹??_18› n_718 ((nat_make_696) (succ_5‹› n_718)))
-  | false_3 => tt_1‹??_19›, ((stream_1‹U›) nat_3))
-check_tm(
-  function _723 : ?_14
-  | true_2 =>
-    (stream_cons_7‹??_18› n_718 ((nat_make_696) (succ_5‹› n_718)))
-  | false_3 => tt_1‹??_19›, ((stream_1‹U›) nat_3))
-infer_tm(?_14)
-delay_assert(?_31, ??_33)
-assert_equal1( ((stream_1‹U›) nat_3), ?_14)
-assert_equal1_extend( ((stream_1‹U›) nat_3), ?_14)
-simpl_tm ~expand:false( ((stream_1‹U›) nat_3), ?_14)
-simpl_tm ~expand:false( ?_31, Type‹??_33›)
-check_cls {|
-  prblm {| ;
-    {|  ::: [true_2] =>?
-         (stream_cons_7‹??_18›
-           n_718 ((nat_make_696) (succ_5‹› n_718)))
-    |} {|  ::: [false_3] =>? tt_1‹??_19› |}
-  |}
-  a := ((stream_1‹U›) nat_3)
-|}
-case_intro
-case_introed(b_725 : bool_2)
+case_introed(__1745 : bool_3)
 case_splitting
-splitting_on(true_2)
+splitting_on(true_3)
 case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2);
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? (succ_6‹› zero_5) |}
+  |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( (succ_6‹› zero_5), nat_4)
+check_tm( (succ_6‹› zero_5), nat_4)
+infer_tm((succ_6‹› zero_5))
+check_tm( zero_5, nat_4)
+infer_tm(zero_5)
+assert_equal1( nat_4, nat_4)
+assert_equal1_ok( nat_4, nat_4)
+assert_equal1( nat_4, nat_4)
+assert_equal1_ok( nat_4, nat_4)
+splitting_on(false_4)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? zero_5 |} |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( zero_5, nat_4)
+check_tm( zero_5, nat_4)
+infer_tm(zero_5)
+assert_equal1( nat_4, nat_4)
+assert_equal1_ok( nat_4, nat_4)
+begin_dump
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_1750
+    ??_2 <= s_1751
+    ??_3 <= L
+    ??_4 <= ??_3
+    ??_5 <= ??_3
+    ??_6 <= L
+    ??_10 <= L
+    ??_11 <= U
+    ??_12 <= L
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_1754
+    ?_2 <= A_1756
+    ?_3 <= bool_3
+    ?_4 <= L
+    ?_5 <= A_1769
+    ?_6 <= A_1773
+    ?_7 <= A_1775
+    ?_8 <= A_1777
+    ?_9 <= A_1779
+    ?_10 <= x0_1781
+    ?_11 <= A_1785
+    ?_12 <= A_1788
+    ?_13 <= A_1791
+    ?_14 <= m_1793
+    ?_15 <= A_1798
+    ?_16 <= x0_1800
+    ?_17 <= A_1804
+    ?_18 <= A_1807
+    ?_19 <= x_1809
+    ?_20 <= A_1816
+    ?_21 <= B_1819
+    ?_22 <= A_1823
+    ?_23 <= x_1825
+    ?_24 <= A_1832
+    ?_25 <= A_1837
+    ?_26 <= A_1843
+    ?_27 <= x_1848
+    ?_28 <= A_1857
+    ?_29 <= A_1864
+    ?_30 <= x_1871
+    ?_31 <= A_1882
+    ?_32 <= B_1885
+    ?_33 <= A_1889
+    ?_45 <= Type‹??_10›
+    ?_46 <= Type‹??_11›
+    ?_47 <= Type‹??_12›
+    
+  |}
+  eqns {|
+    
+  |}
+end_dump
+----------------------------------
+
+definition-------------------------
+infer_tm(bool_3 -> unit_2‹U›)
+infer_tm(bool_3)
+infer_tm(unit_2‹U›)
+check_tm(
+  function free_bool_1909 : bool_3 -> unit_2‹U›
+  | true_3 => tt_2‹??_7›
+  | false_4 => tt_2‹??_8›, bool_3 -> unit_2‹U›)
+infer_tm(bool_3 -> unit_2‹U›)
+infer_tm(bool_3)
+infer_tm(unit_2‹U›)
+assert_equal1( bool_3 -> unit_2‹U›, bool_3 -> unit_2‹U›)
+assert_equal1_ok( bool_3 -> unit_2‹U›, bool_3 -> unit_2‹U›)
+check_cls {|
+  prblm {| ;
+    {|  ::: [true_3] =>? tt_2‹??_7› |}
+    {|  ::: [false_4] =>? tt_2‹??_8› |}
+  |}
+  a := bool_3 -> unit_2‹U›
+|}
+case_intro
+case_introed(__1922 : bool_3)
+case_splitting
+splitting_on(true_3)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? tt_2‹??_7› |} |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( tt_2‹??_7›, unit_2‹U›)
+check_tm( tt_2‹??_7›, unit_2‹U›)
+infer_tm(tt_2‹??_7›)
+assert_equal1( unit_2‹U›, unit_2‹??_7›)
+assert_equal1_extend( unit_2‹U›, unit_2‹??_7›)
+splitting_on(false_4)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? tt_2‹??_8› |} |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( tt_2‹??_8›, unit_2‹U›)
+check_tm( tt_2‹??_8›, unit_2‹U›)
+infer_tm(tt_2‹??_8›)
+assert_equal1( unit_2‹U›, unit_2‹??_8›)
+assert_equal1_extend( unit_2‹U›, unit_2‹??_8›)
+begin_dump
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_1927
+    ??_2 <= s_1928
+    ??_3 <= L
+    ??_4 <= ??_3
+    ??_5 <= ??_3
+    ??_6 <= L
+    ??_10 <= L
+    ??_11 <= U
+    ??_12 <= L
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_1931
+    ?_2 <= A_1933
+    ?_3 <= bool_3
+    ?_4 <= L
+    ?_5 <= A_1946
+    ?_6 <= A_1950
+    ?_7 <= A_1952
+    ?_8 <= A_1954
+    ?_9 <= A_1956
+    ?_10 <= x0_1958
+    ?_11 <= A_1962
+    ?_12 <= A_1965
+    ?_13 <= A_1968
+    ?_14 <= m_1970
+    ?_15 <= A_1975
+    ?_16 <= x0_1977
+    ?_17 <= A_1981
+    ?_18 <= A_1984
+    ?_19 <= x_1986
+    ?_20 <= A_1993
+    ?_21 <= B_1996
+    ?_22 <= A_2000
+    ?_23 <= x_2002
+    ?_24 <= A_2009
+    ?_25 <= A_2014
+    ?_26 <= A_2020
+    ?_27 <= x_2025
+    ?_28 <= A_2034
+    ?_29 <= A_2041
+    ?_30 <= x_2048
+    ?_31 <= A_2059
+    ?_32 <= B_2062
+    ?_33 <= A_2066
+    ?_45 <= Type‹??_10›
+    ?_46 <= Type‹??_11›
+    ?_47 <= Type‹??_12›
+    
+  |}
+  eqns {|
+    equal_tm? (unit_2‹U›, unit_2‹??_8›);
+    equal_tm? (unit_2‹U›, unit_2‹??_7›)
+  |}
+end_dump
+simpl_tm ~expand:false( unit_2‹U›, unit_2‹??_8›)
+simpl_tm ~expand:false( unit_2‹U›, unit_2‹??_7›)
+----------------------------------
+
+definition-------------------------
+infer_tm(nat_4 -> unit_2‹U›)
+infer_tm(nat_4)
+infer_tm(unit_2‹U›)
+check_tm(
+  function free_nat_2086 : nat_4 -> unit_2‹U›
+  | zero_5 => tt_2‹??_9›
+  | (succ_6 n_2088) => ((free_nat_2086) n_2088), nat_4 -> unit_2‹U›)
+infer_tm(nat_4 -> unit_2‹U›)
+infer_tm(nat_4)
+infer_tm(unit_2‹U›)
+assert_equal1( nat_4 -> unit_2‹U›, nat_4 -> unit_2‹U›)
+assert_equal1_ok( nat_4 -> unit_2‹U›, nat_4 -> unit_2‹U›)
+check_cls {|
+  prblm {| ;
+    {|  ::: [zero_5] =>? tt_2‹??_9› |}
+    {|  ::: [(succ_6 n_2098)] =>? ((free_nat_2090) #n_2098) |}
+  |}
+  a := nat_4 -> unit_2‹U›
+|}
+case_intro
+case_introed(__2101 : nat_4)
+case_splitting
+splitting_on(zero_5)
+case_coverage{|
+  prblm {| eq_term?( nat_4, nat_4); {|  ::: [] =>? tt_2‹??_9› |} |}
+|}
+unify_local(  )
+unify_global( eq_term?( nat_4, nat_4) )
+local_map solved
+simpl_pprbm ~expand:false( nat_4, nat_4)
+global_map solved
+case_coverage_ok( tt_2‹??_9›, unit_2‹U›)
+check_tm( tt_2‹??_9›, unit_2‹U›)
+infer_tm(tt_2‹??_9›)
+assert_equal1( unit_2‹U›, unit_2‹??_9›)
+assert_equal1_extend( unit_2‹U›, unit_2‹??_9›)
+splitting_on(succ_6)
+case_coverage{|
+  prblm {| eq_term?( nat_4, nat_4);
+    {| eq_pat?( #pred_2104, n_2098 : nat_4) ::: [] =>?
+         ((free_nat_2090) #n_2098)
+    |}
+  |}
+|}
+unify_local( eq_pat?( #pred_2104, n_2098 : nat_4) )
+unify_global( eq_term?( nat_4, nat_4) )
+simpl_pprbm ~expand:false( #pred_2104, #n_2098)
+local_map solved
+simpl_pprbm ~expand:false( nat_4, nat_4)
+global_map solved
+case_coverage_ok( ((free_nat_2090) pred_2104), unit_2‹U›)
+check_tm( ((free_nat_2090) pred_2104), unit_2‹U›)
+infer_tm(((free_nat_2090) pred_2104))
+infer_tm(free_nat_2090)
+simpl_tm ~expand:false( unit_2‹U›, unit_2‹??_9›)
+check_tm( pred_2104, nat_4)
+infer_tm(pred_2104)
+assert_equal1( nat_4, nat_4)
+assert_equal1_ok( nat_4, nat_4)
+assert_equal1( unit_2‹U›, unit_2‹U›)
+assert_equal1_ok( unit_2‹U›, unit_2‹U›)
+begin_dump
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_2108
+    ??_2 <= s_2109
+    ??_3 <= L
+    ??_4 <= ??_3
+    ??_5 <= ??_3
+    ??_6 <= L
+    ??_7 <= U
+    ??_8 <= U
+    ??_9 <= U
+    ??_10 <= L
+    ??_11 <= U
+    ??_12 <= L
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_2112
+    ?_2 <= A_2114
+    ?_3 <= bool_3
+    ?_4 <= L
+    ?_5 <= A_2127
+    ?_6 <= A_2131
+    ?_7 <= A_2133
+    ?_8 <= A_2135
+    ?_9 <= A_2137
+    ?_10 <= x0_2139
+    ?_11 <= A_2143
+    ?_12 <= A_2146
+    ?_13 <= A_2149
+    ?_14 <= m_2151
+    ?_15 <= A_2156
+    ?_16 <= x0_2158
+    ?_17 <= A_2162
+    ?_18 <= A_2165
+    ?_19 <= x_2167
+    ?_20 <= A_2174
+    ?_21 <= B_2177
+    ?_22 <= A_2181
+    ?_23 <= x_2183
+    ?_24 <= A_2190
+    ?_25 <= A_2195
+    ?_26 <= A_2201
+    ?_27 <= x_2206
+    ?_28 <= A_2215
+    ?_29 <= A_2222
+    ?_30 <= x_2229
+    ?_31 <= A_2240
+    ?_32 <= B_2243
+    ?_33 <= A_2247
+    ?_45 <= Type‹??_10›
+    ?_46 <= Type‹??_11›
+    ?_47 <= Type‹??_12›
+    
+  |}
+  eqns {|
+    
+  |}
+end_dump
+----------------------------------
+
+definition-------------------------
+infer_tm((apair_6
+           ?_42
+           function _2266 : ∀ (b_2267 : bool_3) -> ?_39
+           | b_2268 =>
+             match b_2268 in ∀ (_2269 : ?_40) -o ?_41 with
+             | true_3 => unit_2‹L›
+             | false_4 => nat_4))
+check_tm( ?_42, L)
+check_tm(
+  function _2270 : ∀ (b_2271 : bool_3) -> ?_39
+  | b_2272 =>
+    match b_2272 in ∀ (_2273 : ?_40) -o ?_41 with
+    | true_3 => unit_2‹L›
+    | false_4 => nat_4,
+  ?_42 -> L)
+infer_tm(∀ (b_2276 : bool_3) -> ?_39)
+infer_tm(bool_3)
+infer_tm(?_39)
+delay_assert(?_48, ??_13)
+simpl_tm ~expand:false( ?_48, Type‹??_13›)
+assert_equal1( ?_42 -> L, ∀ (b_2279 : bool_3) -> ?_39)
+assert_equal1_extend( ?_42 -> L, ∀ (b_2281 : bool_3) -> ?_39)
+simpl_tm ~expand:false( ?_42 -> L, ∀ (b_2286 : bool_3) -> ?_39)
+simpl_tm ~expand:false( ?_42, bool_3)
+simpl_tm ~expand:false( L, ?_39)
+simpl_tm ~expand:false( L, ?_39)
+check_cls {|
+  prblm {| ;
+    {|  ::: [b_2282] =>?
+         match #b_2282 in ∀ (_2289 : ?_40) -o ?_41 with
+         | true_3 => unit_2‹L›
+         | false_4 => nat_4
+    |}
+  |}
+  a := bool_3 -> L
+|}
+case_intro
+case_introed(__2291 : bool_3)
+case_coverage{|
+  prblm {| ;
+    {| eq_pat?( #__2291, b_2282 : bool_3) ::: [] =>?
+         match #b_2282 in ∀ (_2292 : ?_40) -o ?_41 with
+         | true_3 => unit_2‹L›
+         | false_4 => nat_4
+    |}
+  |}
+|}
+unify_local( eq_pat?( #__2291, b_2282 : bool_3) )
+unify_global(  )
+simpl_pprbm ~expand:false( #__2291, #b_2282)
+local_map solved
+global_map solved
+case_coverage_ok(
+  match __2291 in ∀ (_2295 : ?_40) -o ?_41 with
+  | true_3 => unit_2‹L›
+  | false_4 => nat_4, L)
+check_tm(
+  match __2291 in ∀ (_2296 : ?_40) -o ?_41 with
+  | true_3 => unit_2‹L›
+  | false_4 => nat_4, L)
+infer_tm(match __2291 in ∀ (_2297 : ?_40) -o ?_41 with
+         | true_3 => unit_2‹L›
+         | false_4 => nat_4)
+infer_motive(__2291 : ?_40)
+infer_tm(?_40)
+delay_assert(?_49, ??_14)
+check_tm( __2291, ?_40)
+infer_tm(__2291)
+assert_equal1( ?_40, bool_3)
+assert_equal1_extend( ?_40, bool_3)
+infer_tm(?_41)
+simpl_tm ~expand:false( ?_40, bool_3)
+simpl_tm ~expand:false( ?_49, Type‹??_14›)
+delay_assert(?_50, ??_15)
+simpl_tm ~expand:false( ?_50, Type‹??_15›)
+check_cls {|
+  prblm {| ;
+    {|  ::: [true_3] =>? unit_2‹L› |} {|  ::: [false_4] =>? nat_4 |}
+  |}
+  a := ∀ (_2299 : bool_3) -o ?_41
+|}
+case_intro
+case_introed(_2300 : bool_3)
+case_splitting
+splitting_on(true_3)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? unit_2‹L› |} |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( unit_2‹L›, ?_41)
+check_tm( unit_2‹L›, ?_41)
+infer_tm(unit_2‹L›)
+assert_equal1( ?_41, L)
+assert_equal1_extend( ?_41, L)
+splitting_on(false_4)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? nat_4 |} |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( nat_4, ?_41)
+check_tm( nat_4, ?_41)
+infer_tm(nat_4)
+assert_equal1( ?_41, L)
+assert_equal1_extend( ?_41, L)
+assert_equal1( L, ?_41)
+assert_equal1_extend( L, ?_41)
+simpl_tm ~expand:false( L, ?_41)
+simpl_tm ~expand:false( L, L)
+simpl_tm ~expand:false( L, L)
+check_tm(
+  let my_val_2305 := false_4 in
+  (apair_intro_8‹›
+    ?_36
+    function _2306 : ?_34
+    | true_3 => (just_7‹› my_val_2305)
+    | false_4 => ((bool2nat_5) my_val_2305)),
+  (apair_6
+    ?_42
+    function _2307 : ∀ (b_2308 : bool_3) -> ?_39
+    | b_2309 =>
+      match b_2309 in ∀ (_2310 : ?_40) -o ?_41 with
+      | true_3 => unit_2‹L›
+      | false_4 => nat_4))
+infer_tm(let my_val_2311 := false_4 in
+         (apair_intro_8‹›
+           ?_36
+           function _2312 : ?_34
+           | true_3 => (just_7‹› my_val_2311)
+           | false_4 => ((bool2nat_5) my_val_2311)))
+infer_tm(false_4)
+infer_tm((apair_intro_8‹›
+           ?_36
+           function _2314 : ?_34
+           | true_3 => (just_7‹› my_val_2313)
+           | false_4 => ((bool2nat_5) my_val_2313)))
+check_tm( ?_37, L)
+check_tm( ?_38, ?_37 -> L)
+check_tm( ?_36, ?_37)
+check_tm(
+  function _2316 : ?_34
+  | true_3 => (just_7‹› my_val_2313)
+  | false_4 => ((bool2nat_5) my_val_2313),
+  ∀ (b_2317 : bool_3) -o
+    match b_2317 in bool_3 -o L with
+    | true_3 => (sing_5 ?_37 ?_36)
+    | false_4 => ((?_38) ?_36))
+infer_tm(?_34)
+delay_assert(?_51, ??_16)
+assert_equal1(
+  ∀ (b_2320 : bool_3) -o
+    match b_2320 in bool_3 -o L with
+    | true_3 => (sing_5 ?_37 ?_36)
+    | false_4 => ((?_38) ?_36),
+  ?_34)
+assert_equal1_extend(
+  ∀ (b_2322 : bool_3) -o
+    match b_2322 in bool_3 -o L with
+    | true_3 => (sing_5 ?_37 ?_36)
+    | false_4 => ((?_38) ?_36),
+  ?_34)
+simpl_tm ~expand:false(
+  ∀ (b_2326 : bool_3) -o
+    match b_2326 in bool_3 -o L with
+    | true_3 => (sing_5 ?_37 ?_36)
+    | false_4 => ((?_38) ?_36),
+  ?_34)
+simpl_tm ~expand:false( ?_51, Type‹??_16›)
+check_cls {|
+  prblm {| ;
+    {|  ::: [true_3] =>? (just_7‹› my_val_2313) |}
+    {|  ::: [false_4] =>? ((bool2nat_5) my_val_2313) |}
+  |}
+  a := ∀ (b_2333 : bool_3) -o
+         match b_2333 in bool_3 -o L with
+         | true_3 => (sing_5 ?_37 ?_36)
+         | false_4 => ((?_38) ?_36)
+|}
+case_intro
+case_introed(b_2335 : bool_3)
+case_splitting
+splitting_on(true_3)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3);
+    {|  ::: [] =>? (just_7‹› my_val_2313) |}
+  |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( (just_7‹› my_val_2313),
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 ?_37 ?_36)
+  | false_4 => ((?_38) ?_36))
+check_tm( (just_7‹› my_val_2313),
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 ?_37 ?_36)
+  | false_4 => ((?_38) ?_36))
+infer_tm((just_7‹› my_val_2313))
+check_tm( ?_35, L)
+check_tm( my_val_2313, ?_35)
+infer_tm(my_val_2313)
+assert_equal1( ?_35, bool_3)
+assert_equal1_extend( ?_35, bool_3)
+assert_equal1(
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 ?_37 ?_36)
+  | false_4 => ((?_38) ?_36), (sing_5 ?_35 my_val_2313))
+assert_equal1_extend(
+  match true_3 in bool_3 -o L with
+  | true_3 => (sing_5 ?_37 ?_36)
+  | false_4 => ((?_38) ?_36), (sing_5 ?_35 my_val_2313))
+splitting_on(false_4)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3);
+    {|  ::: [] =>? ((bool2nat_5) my_val_2313) |}
+  |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( ((bool2nat_5) my_val_2313),
+  match false_4 in bool_3 -o L with
+  | true_3 => (sing_5 ?_37 ?_36)
+  | false_4 => ((?_38) ?_36))
+check_tm( ((bool2nat_5) my_val_2313),
+  match false_4 in bool_3 -o L with
+  | true_3 => (sing_5 ?_37 ?_36)
+  | false_4 => ((?_38) ?_36))
+infer_tm(((bool2nat_5) my_val_2313))
+infer_tm(bool2nat_5)
+simpl_tm ~expand:false( (sing_5 ?_37 ?_36), (sing_5 ?_35 my_val_2313))
+simpl_tm ~expand:false( ?_37, ?_35)
+simpl_tm ~expand:false( ?_36, my_val_2313)
+simpl_tm ~expand:false( my_val_2313, ?_36)
+simpl_tm ~expand:false( ?_35, bool_3)
+check_tm( my_val_2313, bool_3)
+infer_tm(my_val_2313)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+assert_equal1(
+  match false_4 in bool_3 -o L with
+  | true_3 => (sing_5 ?_37 ?_36)
+  | false_4 => ((?_38) ?_36), nat_4)
+assert_equal1_extend(
+  match false_4 in bool_3 -o L with
+  | true_3 => (sing_5 ?_37 ?_36)
+  | false_4 => ((?_38) ?_36), nat_4)
+assert_equal1(
+  (apair_6
+    ?_42
+    function _2358 : ∀ (b_2359 : bool_3) -> ?_39
+    | b_2360 =>
+      match b_2360 in ∀ (_2361 : ?_40) -o ?_41 with
+      | true_3 => unit_2‹L›
+      | false_4 => nat_4),
+  (apair_6 ?_37 ?_38))
+assert_equal1_extend(
+  (apair_6
+    ?_42
+    function _2362 : ∀ (b_2363 : bool_3) -> ?_39
+    | b_2364 =>
+      match b_2364 in ∀ (_2365 : ?_40) -o ?_41 with
+      | true_3 => unit_2‹L›
+      | false_4 => nat_4),
+  (apair_6 ?_37 ?_38))
+begin_dump
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_2366
+    ??_2 <= s_2367
+    ??_3 <= L
+    ??_4 <= ??_3
+    ??_5 <= ??_3
+    ??_6 <= L
+    ??_7 <= U
+    ??_8 <= U
+    ??_9 <= U
+    ??_10 <= L
+    ??_11 <= U
+    ??_12 <= L
+    
+  |}
+  imeta_meta {|
+    ?_1 <= A_2370
+    ?_2 <= A_2372
+    ?_3 <= bool_3
+    ?_4 <= L
+    ?_5 <= A_2385
+    ?_6 <= A_2389
+    ?_7 <= A_2391
+    ?_8 <= A_2393
+    ?_9 <= A_2395
+    ?_10 <= x0_2397
+    ?_11 <= A_2401
+    ?_12 <= A_2404
+    ?_13 <= A_2407
+    ?_14 <= m_2409
+    ?_15 <= A_2414
+    ?_16 <= x0_2416
+    ?_17 <= A_2420
+    ?_18 <= A_2423
+    ?_19 <= x_2425
+    ?_20 <= A_2432
+    ?_21 <= B_2435
+    ?_22 <= A_2439
+    ?_23 <= x_2441
+    ?_24 <= A_2448
+    ?_25 <= A_2453
+    ?_26 <= A_2459
+    ?_27 <= x_2464
+    ?_28 <= A_2473
+    ?_29 <= A_2480
+    ?_30 <= x_2487
+    ?_31 <= A_2498
+    ?_32 <= B_2501
+    ?_33 <= A_2505
+    ?_34 <= ∀ (b_2507 : bool_3) -o
+              match b_2507 in bool_3 -o L with
+              | true_3 => (sing_5 ?_37 ?_36)
+              | false_4 => ((?_38) ?_36)
+    ?_35 <= bool_3
+    ?_36 <= my_val_2510
+    ?_37 <= ?_35
+    ?_39 <= L
+    ?_40 <= bool_3
+    ?_41 <= L
+    ?_42 <= bool_3
+    ?_45 <= Type‹??_10›
+    ?_46 <= Type‹??_11›
+    ?_47 <= Type‹??_12›
+    ?_48 <= Type‹??_13›
+    ?_49 <= Type‹??_14›
+    ?_50 <= Type‹??_15›
+    ?_51 <= Type‹??_16›
+    
+  |}
+  eqns {|
+    equal_tm?
+      ((apair_6
+         ?_42
+         function _2536 : ∀ (b_2537 : bool_3) -> ?_39
+         | b_2538 =>
+           match b_2538 in ∀ (_2539 : ?_40) -o ?_41 with
+           | true_3 => unit_2‹L›
+           | false_4 => nat_4),
+      (apair_6 ?_37 ?_38));
+    equal_tm?
+      (match false_4 in bool_3 -o L with
+       | true_3 => (sing_5 ?_37 ?_36)
+       | false_4 => ((?_38) ?_36),
+      nat_4)
+  |}
+end_dump
+simpl_tm ~expand:false(
+  (apair_6
+    bool_3
+    function _2545 : bool_3 -> L
+    | b_2547 =>
+      match b_2547 in bool_3 -o L with
+      | true_3 => unit_2‹L›
+      | false_4 => nat_4),
+  (apair_6 bool_3 ?_38))
+simpl_tm ~expand:false( bool_3, bool_3)
+simpl_tm ~expand:false(
+  function _2549 : bool_3 -> L
+  | b_2551 =>
+    match b_2551 in bool_3 -o L with
+    | true_3 => unit_2‹L›
+    | false_4 => nat_4,
+  ?_38)
+simpl_tm ~expand:false(
+  match my_val_2313 in bool_3 -o L with
+  | true_3 => unit_2‹L›
+  | false_4 => nat_4, nat_4)
+simpl_tm ~expand:true( nat_4, nat_4)
+infer_tm(Type‹??_16›)
+check_tm(
+  ∀ (b_2569 : bool_3) -o
+    match b_2569 in bool_3 -o L with
+    | true_3 => (sing_5 bool_3 my_val_2313)
+    | false_4 =>
+      ((function _2571 : bool_3 -> L
+        | b_2573 =>
+          match b_2573 in bool_3 -o L with
+          | true_3 => unit_2‹L›
+          | false_4 => nat_4)
+        my_val_2313),
+  Type‹??_16›)
+infer_tm(∀ (b_2575 : bool_3) -o
+           match b_2575 in bool_3 -o L with
+           | true_3 => (sing_5 bool_3 my_val_2313)
+           | false_4 =>
+             ((function _2577 : bool_3 -> L
+               | b_2579 =>
+                 match b_2579 in bool_3 -o L with
+                 | true_3 => unit_2‹L›
+                 | false_4 => nat_4)
+               my_val_2313))
+infer_tm(bool_3)
+infer_tm(match b_2581 in bool_3 -o L with
+         | true_3 => (sing_5 bool_3 my_val_2313)
+         | false_4 =>
+           ((function _2583 : bool_3 -> L
+             | b_2585 =>
+               match b_2585 in bool_3 -o L with
+               | true_3 => unit_2‹L›
+               | false_4 => nat_4)
+             my_val_2313))
+infer_motive(b_2581 : bool_3)
+infer_tm(bool_3)
+check_tm( b_2581, bool_3)
+infer_tm(b_2581)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+infer_tm(L)
+check_cls {|
+  prblm {| ;
+    {|  ::: [true_3] =>? (sing_5 bool_3 my_val_2313) |}
+    {|  ::: [false_4] =>?
+         ((function _2588 : bool_3 -> L
+           | b_2590 =>
+             match b_2590 in bool_3 -o L with
+             | true_3 => unit_2‹L›
+             | false_4 => nat_4)
+           my_val_2313)
+    |}
+  |}
+  a := bool_3 -o L
+|}
+case_intro
+case_introed(_2593 : bool_3)
+case_splitting
+splitting_on(true_3)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3);
+    {|  ::: [] =>? (sing_5 bool_3 my_val_2313) |}
+  |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( (sing_5 bool_3 my_val_2313), L)
+check_tm( (sing_5 bool_3 my_val_2313), L)
+infer_tm((sing_5 bool_3 my_val_2313))
+check_tm( bool_3, L)
+infer_tm(bool_3)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+check_tm( my_val_2313, bool_3)
+infer_tm(my_val_2313)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+splitting_on(false_4)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3);
     {|  ::: [] =>?
-         (stream_cons_7‹??_18›
-           n_718 ((nat_make_696) (succ_5‹› n_718)))
+         ((function _2594 : bool_3 -> L
+           | b_2596 =>
+             match b_2596 in bool_3 -o L with
+             | true_3 => unit_2‹L›
+             | false_4 => nat_4)
+           my_val_2313)
     |}
   |}
 |}
 unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
 case_coverage_ok(
-  (stream_cons_7‹??_18› n_718 ((nat_make_696) (succ_5‹› n_718))),
-  match true_2 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
+  ((function _2602 : bool_3 -> L
+    | b_2604 =>
+      match b_2604 in bool_3 -o L with
+      | true_3 => unit_2‹L›
+      | false_4 => nat_4)
+    my_val_2313),
+  L)
 check_tm(
-  (stream_cons_7‹??_18› n_718 ((nat_make_696) (succ_5‹› n_718))),
-  match true_2 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-infer_tm((stream_cons_7‹??_18›
-           n_718 ((nat_make_696) (succ_5‹› n_718))))
-check_tm( ?_15, Type‹??_18›)
-check_tm( n_718, ?_15)
-infer_tm(n_718)
-assert_equal1( ?_15, nat_3)
-assert_equal1_extend( ?_15, nat_3)
-check_tm( ((nat_make_696) (succ_5‹› n_718)),
-  ∀ (b_732 : bool_2) -o
-    match b_732 in bool_2 -o L with
-    | true_2 => (stream_node_4‹??_18› ?_15)
-    | false_3 => unit_1‹L›)
-infer_tm(((nat_make_696) (succ_5‹› n_718)))
-infer_tm(nat_make_696)
-simpl_tm ~expand:false( ?_15, nat_3)
-check_tm( (succ_5‹› n_718), nat_3)
-infer_tm((succ_5‹› n_718))
-check_tm( n_718, nat_3)
-infer_tm(n_718)
-assert_equal1( nat_3, nat_3)
-assert_equal1_ok( nat_3, nat_3)
-assert_equal1( nat_3, nat_3)
-assert_equal1_ok( nat_3, nat_3)
-assert_equal1(
-  ∀ (b_735 : bool_2) -o
-    match b_735 in bool_2 -o L with
-    | true_2 => (stream_node_4‹??_18› ?_15)
-    | false_3 => unit_1‹L›,
-  ((stream_1‹U›) nat_3))
-assert_equal1_extend(
-  ∀ (b_740 : bool_2) -o
-    match b_740 in bool_2 -o L with
-    | true_2 => (stream_node_4‹??_18› ?_15)
-    | false_3 => unit_1‹L›,
-  ((stream_1‹U›) nat_3))
-assert_equal1(
-  match true_2 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›, (stream_node_4‹??_18› ?_15))
-assert_equal1_extend(
-  match true_2 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›, (stream_node_4‹??_18› ?_15))
-splitting_on(false_3)
+  ((function _2606 : bool_3 -> L
+    | b_2608 =>
+      match b_2608 in bool_3 -o L with
+      | true_3 => unit_2‹L›
+      | false_4 => nat_4)
+    my_val_2313),
+  L)
+infer_tm(((function _2610 : bool_3 -> L
+           | b_2612 =>
+             match b_2612 in bool_3 -o L with
+             | true_3 => unit_2‹L›
+             | false_4 => nat_4)
+           my_val_2313))
+infer_tm(function _2614 : bool_3 -> L
+         | b_2616 =>
+           match b_2616 in bool_3 -o L with
+           | true_3 => unit_2‹L›
+           | false_4 => nat_4)
+infer_tm(bool_3 -> L)
+infer_tm(bool_3)
+infer_tm(L)
+check_cls {|
+  prblm {| ;
+    {|  ::: [b_2621] =>?
+         match #b_2621 in bool_3 -o L with
+         | true_3 => unit_2‹L›
+         | false_4 => nat_4
+    |}
+  |}
+  a := bool_3 -> L
+|}
+case_intro
+case_introed(b_2625 : bool_3)
 case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2); {|  ::: [] =>? tt_1‹??_19› |} |}
+  prblm {| ;
+    {| eq_pat?( #b_2625, b_2621 : bool_3) ::: [] =>?
+         match #b_2621 in bool_3 -o L with
+         | true_3 => unit_2‹L›
+         | false_4 => nat_4
+    |}
+  |}
+|}
+unify_local( eq_pat?( #b_2625, b_2621 : bool_3) )
+unify_global(  )
+simpl_pprbm ~expand:false( #b_2625, #b_2621)
+local_map solved
+global_map solved
+case_coverage_ok(
+  match b_2625 in bool_3 -o L with
+  | true_3 => unit_2‹L›
+  | false_4 => nat_4, L)
+check_tm(
+  match b_2625 in bool_3 -o L with
+  | true_3 => unit_2‹L›
+  | false_4 => nat_4, L)
+infer_tm(match b_2625 in bool_3 -o L with
+         | true_3 => unit_2‹L›
+         | false_4 => nat_4)
+infer_motive(b_2625 : bool_3)
+infer_tm(bool_3)
+check_tm( b_2625, bool_3)
+infer_tm(b_2625)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+infer_tm(L)
+check_cls {|
+  prblm {| ;
+    {|  ::: [true_3] =>? unit_2‹L› |} {|  ::: [false_4] =>? nat_4 |}
+  |}
+  a := bool_3 -o L
+|}
+case_intro
+case_introed(_2634 : bool_3)
+case_splitting
+splitting_on(true_3)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? unit_2‹L› |} |}
 |}
 unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( tt_1‹??_19›,
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-check_tm( tt_1‹??_19›,
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-infer_tm(tt_1‹??_19›)
-assert_equal1(
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›, unit_1‹??_19›)
-assert_equal1_extend(
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›, unit_1‹??_19›)
-begin_dump
-  mctx {|
-    
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( unit_2‹L›, L)
+check_tm( unit_2‹L›, L)
+infer_tm(unit_2‹L›)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+splitting_on(false_4)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? nat_4 |} |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( nat_4, L)
+check_tm( nat_4, L)
+infer_tm(nat_4)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+check_tm( my_val_2313, bool_3)
+infer_tm(my_val_2313)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+assert_equal1( Type‹??_16›, L)
+assert_equal1_extend( Type‹??_16›, L)
+simpl_tm ~expand:false( Type‹??_16›, L)
+infer_tm(L)
+check_tm( bool_3, L)
+infer_tm(bool_3)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(bool_3)
+check_tm( my_val_2313, bool_3)
+infer_tm(my_val_2313)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+infer_tm(L)
+check_tm( bool_3, L)
+infer_tm(bool_3)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(bool_3 -> L)
+infer_tm(bool_3)
+infer_tm(L)
+check_tm(
+  function _2653 : bool_3 -> L
+  | b_2655 =>
+    match b_2655 in bool_3 -o L with
+    | true_3 => unit_2‹L›
+    | false_4 => nat_4,
+  bool_3 -> L)
+infer_tm(bool_3 -> L)
+infer_tm(bool_3)
+infer_tm(L)
+assert_equal1( bool_3 -> L, bool_3 -> L)
+assert_equal1_ok( bool_3 -> L, bool_3 -> L)
+check_cls {|
+  prblm {| ;
+    {|  ::: [b_2666] =>?
+         match #b_2666 in bool_3 -o L with
+         | true_3 => unit_2‹L›
+         | false_4 => nat_4
+    |}
   |}
-  smeta_meta {|
-    ??_1 <= s_752
-    ??_2 <= s_753
-    ??_3 <= s_754
-    ??_4 <= L
-    ??_5 <= s_756
-    ??_6 <= s_757
-    ??_7 <= L
-    ??_8 <= s_759
-    ??_9 <= U
-    ??_10 <= s_761
-    ??_11 <= U
-    ??_12 <= U
-    ??_13 <= U
-    ??_14 <= U
-    ??_15 <= U
-    ??_16 <= U
-    ??_17 <= U
-    ??_20 <= U
-    ??_22 <= U
-    ??_23 <= U
-    ??_24 <= U
-    ??_25 <= U
-    ??_26 <= U
-    ??_27 <= U
-    ??_28 <= L
-    ??_29 <= U
-    ??_30 <= L
-    ??_31 <= L
-    ??_32 <= L
-    
+  a := bool_3 -> L
+|}
+case_intro
+case_introed(__2670 : bool_3)
+case_coverage{|
+  prblm {| ;
+    {| eq_pat?( #__2670, b_2666 : bool_3) ::: [] =>?
+         match #b_2666 in bool_3 -o L with
+         | true_3 => unit_2‹L›
+         | false_4 => nat_4
+    |}
   |}
-  imeta_meta {|
-    ?_1 <= bool_2
-    ?_2 <= Type‹??_4›
-    ?_3 <= L
-    ?_4 <= bool_2
-    ?_5 <= Type‹??_7›
-    ?_6 <= ?_3
-    ?_7 <= unit_1‹L›
-    ?_8 <= unit_1‹U›
-    ?_9 <= ((stream_1‹U›) nat_3)
-    ?_10 <= (stream_node_4‹U› nat_3)
-    ?_11 <= (stream_node_4‹??_13› ?_12)
-    ?_12 <= nat_3
-    ?_13 <= nat_3
-    ?_14 <= ((stream_1‹U›) nat_3)
-    ?_15 <= nat_3
-    ?_20 <= Type‹??_22›
-    ?_21 <= Type‹??_23›
-    ?_22 <= Type‹??_24›
-    ?_23 <= Type‹??_25›
-    ?_24 <= Type‹??_26›
-    ?_25 <= Type‹??_27›
-    ?_26 <= Type‹??_28›
-    ?_27 <= Type‹??_29›
-    ?_28 <= Type‹??_30›
-    ?_29 <= Type‹??_31›
-    ?_30 <= Type‹??_32›
-    ?_31 <= Type‹??_33›
-    
+|}
+unify_local( eq_pat?( #__2670, b_2666 : bool_3) )
+unify_global(  )
+simpl_pprbm ~expand:false( #__2670, #b_2666)
+local_map solved
+global_map solved
+case_coverage_ok(
+  match __2670 in bool_3 -o L with
+  | true_3 => unit_2‹L›
+  | false_4 => nat_4, L)
+check_tm(
+  match __2670 in bool_3 -o L with
+  | true_3 => unit_2‹L›
+  | false_4 => nat_4, L)
+infer_tm(match __2670 in bool_3 -o L with
+         | true_3 => unit_2‹L›
+         | false_4 => nat_4)
+infer_motive(__2670 : bool_3)
+infer_tm(bool_3)
+check_tm( __2670, bool_3)
+infer_tm(__2670)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+infer_tm(L)
+check_cls {|
+  prblm {| ;
+    {|  ::: [true_3] =>? unit_2‹L› |} {|  ::: [false_4] =>? nat_4 |}
   |}
-  eqns {|
-    equal_tm?
-      (match false_3 in bool_2 -o L with
-       | true_2 => (stream_node_4‹U› nat_3)
-       | false_3 => unit_1‹L›,
-      unit_1‹??_19›);
-    equal_tm?
-      (match true_2 in bool_2 -o L with
-       | true_2 => (stream_node_4‹U› nat_3)
-       | false_3 => unit_1‹L›,
-      (stream_node_4‹??_18› ?_15));
-    equal_tm?
-      (∀ (b_856 : bool_2) -o
-         match b_856 in bool_2 -o L with
-         | true_2 => (stream_node_4‹??_18› ?_15)
-         | false_3 => unit_1‹L›,
-      ((stream_1‹U›) nat_3))
-  |}
-end_dump
-simpl_tm ~expand:false( unit_1‹L›, unit_1‹??_19›)
-simpl_tm ~expand:false( (stream_node_4‹U› nat_3),
-  (stream_node_4‹??_18› nat_3))
-simpl_tm ~expand:false( nat_3, nat_3)
-simpl_tm ~expand:false(
-  ∀ (b_862 : bool_2) -o
-    match b_862 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›,
-  ((stream_1‹U›) nat_3))
-simpl_tm ~expand:false(
-  ∀ (b_864 : bool_2) -o
-    match b_864 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›,
-  stream_1‹U›)
-simpl_tm ~expand:true(
-  ∀ (b_866 : bool_2) -o
-    match b_866 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›,
-  function stream_868 : U -> L
-  | A_870 =>
-    ∀ (b_871 : bool_2) -o
-      match b_871 in bool_2 -o L with
-      | true_2 => (stream_node_4‹U› A_870)
-      | false_3 => unit_1‹L›)
-simpl_tm ~expand:true(
-  ∀ (b_880 : bool_2) -o
-    match b_880 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›,
-  ∀ (b_882 : bool_2) -o
-    match b_882 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›)
-simpl_tm ~expand:false( bool_2, bool_2)
-simpl_tm ~expand:false(
-  match b_884 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›,
-  match b_884 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-simpl_tm ~expand:false( b_884, b_884)
-simpl_tm ~expand:false( bool_2 -o L, bool_2 -o L)
-simpl_tm ~expand:false( bool_2, bool_2)
-simpl_tm ~expand:false( L, L)
-simpl_tm ~expand:false( (stream_node_4‹U› nat_3),
-  (stream_node_4‹U› nat_3))
-simpl_tm ~expand:false( nat_3, nat_3)
-simpl_tm ~expand:false( unit_1‹L›, unit_1‹L›)
-infer_tm(Type‹??_33›)
-check_tm( ((stream_1‹U›) nat_3), Type‹??_33›)
-infer_tm(((stream_1‹U›) nat_3))
-infer_tm(stream_1‹U›)
-check_tm( nat_3, U)
-infer_tm(nat_3)
-assert_equal1( U, U)
-assert_equal1_ok( U, U)
-assert_equal1( Type‹??_33›, L)
-assert_equal1_extend( Type‹??_33›, L)
-simpl_tm ~expand:false( Type‹??_33›, L)
-infer_tm(U)
-check_tm( nat_3, U)
-infer_tm(nat_3)
-assert_equal1( U, U)
-assert_equal1_ok( U, U)
+  a := bool_3 -o L
+|}
+case_intro
+case_introed(_2679 : bool_3)
+case_splitting
+splitting_on(true_3)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? unit_2‹L› |} |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( unit_2‹L›, L)
+check_tm( unit_2‹L›, L)
+infer_tm(unit_2‹L›)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+splitting_on(false_4)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? nat_4 |} |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( nat_4, L)
+check_tm( nat_4, L)
+infer_tm(nat_4)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(Type‹??_13›)
+check_tm( L, Type‹??_13›)
+infer_tm(L)
+assert_equal1( Type‹??_13›, U)
+assert_equal1_extend( Type‹??_13›, U)
+simpl_tm ~expand:false( Type‹??_13›, U)
+infer_tm(Type‹??_14›)
+check_tm( bool_3, Type‹??_14›)
+infer_tm(bool_3)
+assert_equal1( Type‹??_14›, L)
+assert_equal1_extend( Type‹??_14›, L)
+simpl_tm ~expand:false( Type‹??_14›, L)
+infer_tm(Type‹??_15›)
+check_tm( L, Type‹??_15›)
+infer_tm(L)
+assert_equal1( Type‹??_15›, U)
+assert_equal1_extend( Type‹??_15›, U)
+simpl_tm ~expand:false( Type‹??_15›, U)
+infer_tm(L)
+check_tm( bool_3, L)
+infer_tm(bool_3)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
 ----------------------------------
 
 definition-------------------------
-infer_tm(?_16)
-delay_assert(?_32, ??_34)
-check_tm( ((nat_make_4) zero_4), ?_16)
-infer_tm(((nat_make_4) zero_4))
-infer_tm(nat_make_4)
-simpl_tm ~expand:false( ?_32, Type‹??_34›)
-check_tm( zero_4, nat_3)
-infer_tm(zero_4)
-assert_equal1( nat_3, nat_3)
-assert_equal1_ok( nat_3, nat_3)
-assert_equal1( ?_16, ((stream_1‹U›) nat_3))
-assert_equal1_extend( ?_16, ((stream_1‹U›) nat_3))
+infer_tm(unit_2‹U›)
+check_tm( ((free_bool_6) ((proj1_3) ?_44 ?_43 my_apair_8)), unit_2‹U›)
+infer_tm(((free_bool_6) ((proj1_3) ?_44 ?_43 my_apair_8)))
+infer_tm(free_bool_6)
+check_tm( ((proj1_3) ?_44 ?_43 my_apair_8), bool_3)
+infer_tm(((proj1_3) ?_44 ?_43 my_apair_8))
+infer_tm(((proj1_3) ?_44 ?_43))
+infer_tm(((proj1_3) ?_44))
+infer_tm(proj1_3)
+check_tm( ?_44, L)
+check_tm( ?_43, ?_44 -> L)
+check_tm( my_apair_8, (apair_6 ?_44 ?_43))
+infer_tm(my_apair_8)
+assert_equal1( (apair_6 ?_44 ?_43),
+  (apair_6
+    bool_3
+    function _2717 : bool_3 -> L
+    | b_2719 =>
+      match b_2719 in bool_3 -o L with
+      | true_3 => unit_2‹L›
+      | false_4 => nat_4))
+assert_equal1_extend( (apair_6 ?_44 ?_43),
+  (apair_6
+    bool_3
+    function _2721 : bool_3 -> L
+    | b_2723 =>
+      match b_2723 in bool_3 -o L with
+      | true_3 => unit_2‹L›
+      | false_4 => nat_4))
+assert_equal1( bool_3, ?_44)
+assert_equal1_extend( bool_3, ?_44)
+assert_equal1( unit_2‹U›, unit_2‹U›)
+assert_equal1_ok( unit_2‹U›, unit_2‹U›)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_900
-    ??_2 <= s_901
-    ??_3 <= s_902
-    ??_4 <= L
-    ??_5 <= s_904
-    ??_6 <= s_905
-    ??_7 <= L
-    ??_8 <= s_907
+    ??_1 <= s_2725
+    ??_2 <= s_2726
+    ??_3 <= L
+    ??_4 <= ??_3
+    ??_5 <= ??_3
+    ??_6 <= L
+    ??_7 <= U
+    ??_8 <= U
     ??_9 <= U
-    ??_10 <= s_909
+    ??_10 <= L
     ??_11 <= U
-    ??_12 <= U
+    ??_12 <= L
     ??_13 <= U
-    ??_14 <= U
+    ??_14 <= L
     ??_15 <= U
-    ??_16 <= U
-    ??_17 <= U
-    ??_18 <= U
-    ??_19 <= L
-    ??_20 <= U
-    ??_22 <= U
-    ??_23 <= U
-    ??_24 <= U
-    ??_25 <= U
-    ??_26 <= U
-    ??_27 <= U
-    ??_28 <= L
-    ??_29 <= U
-    ??_30 <= L
-    ??_31 <= L
-    ??_32 <= L
-    ??_33 <= L
+    ??_16 <= L
     
   |}
   imeta_meta {|
-    ?_1 <= bool_2
-    ?_2 <= Type‹??_4›
-    ?_3 <= L
-    ?_4 <= bool_2
-    ?_5 <= Type‹??_7›
-    ?_6 <= ?_3
-    ?_7 <= unit_1‹L›
-    ?_8 <= unit_1‹U›
-    ?_9 <= ((stream_1‹U›) nat_3)
-    ?_10 <= (stream_node_4‹U› nat_3)
-    ?_11 <= (stream_node_4‹??_13› ?_12)
-    ?_12 <= nat_3
-    ?_13 <= nat_3
-    ?_14 <= ((stream_1‹U›) nat_3)
-    ?_15 <= nat_3
-    ?_20 <= Type‹??_22›
-    ?_21 <= Type‹??_23›
-    ?_22 <= Type‹??_24›
-    ?_23 <= Type‹??_25›
-    ?_24 <= Type‹??_26›
-    ?_25 <= Type‹??_27›
-    ?_26 <= Type‹??_28›
-    ?_27 <= Type‹??_29›
-    ?_28 <= Type‹??_30›
-    ?_29 <= Type‹??_31›
-    ?_30 <= Type‹??_32›
-    ?_31 <= Type‹??_33›
-    ?_32 <= Type‹??_34›
+    ?_1 <= A_2729
+    ?_2 <= A_2731
+    ?_3 <= bool_3
+    ?_4 <= L
+    ?_5 <= A_2744
+    ?_6 <= A_2748
+    ?_7 <= A_2750
+    ?_8 <= A_2752
+    ?_9 <= A_2754
+    ?_10 <= x0_2756
+    ?_11 <= A_2760
+    ?_12 <= A_2763
+    ?_13 <= A_2766
+    ?_14 <= m_2768
+    ?_15 <= A_2773
+    ?_16 <= x0_2775
+    ?_17 <= A_2779
+    ?_18 <= A_2782
+    ?_19 <= x_2784
+    ?_20 <= A_2791
+    ?_21 <= B_2794
+    ?_22 <= A_2798
+    ?_23 <= x_2800
+    ?_24 <= A_2807
+    ?_25 <= A_2812
+    ?_26 <= A_2818
+    ?_27 <= x_2823
+    ?_28 <= A_2832
+    ?_29 <= A_2839
+    ?_30 <= x_2846
+    ?_31 <= A_2857
+    ?_32 <= B_2860
+    ?_33 <= A_2864
+    ?_34 <= ∀ (b_2866 : bool_3) -o
+              match b_2866 in bool_3 -o L with
+              | true_3 => (sing_5 ?_37 ?_36)
+              | false_4 => ((?_38) ?_36)
+    ?_35 <= bool_3
+    ?_36 <= my_val_2869
+    ?_37 <= ?_35
+    ?_38 <= function _2872 : bool_3 -> L
+            | b_2874 =>
+              match b_2874 in bool_3 -o L with
+              | true_3 => unit_2‹L›
+              | false_4 => nat_4
+    ?_39 <= L
+    ?_40 <= bool_3
+    ?_41 <= L
+    ?_42 <= bool_3
+    ?_45 <= Type‹??_10›
+    ?_46 <= Type‹??_11›
+    ?_47 <= Type‹??_12›
+    ?_48 <= Type‹??_13›
+    ?_49 <= Type‹??_14›
+    ?_50 <= Type‹??_15›
+    ?_51 <= Type‹??_16›
     
   |}
   eqns {|
-    equal_tm? (?_16, ((stream_1‹U›) nat_3))
+    equal_tm? (bool_3, ?_44);
+    equal_tm? ((apair_6 ?_44 ?_43),
+      (apair_6
+        bool_3
+        function _2900 : bool_3 -> L
+        | b_2902 =>
+          match b_2902 in bool_3 -o L with
+          | true_3 => unit_2‹L›
+          | false_4 => nat_4))
   |}
 end_dump
-simpl_tm ~expand:false( ?_16, ((stream_1‹U›) nat_3))
-infer_tm(Type‹??_34›)
-check_tm( ((stream_1‹U›) nat_3), Type‹??_34›)
-infer_tm(((stream_1‹U›) nat_3))
-infer_tm(stream_1‹U›)
-check_tm( nat_3, U)
-infer_tm(nat_3)
-assert_equal1( U, U)
-assert_equal1_ok( U, U)
-assert_equal1( Type‹??_34›, L)
-assert_equal1_extend( Type‹??_34›, L)
-simpl_tm ~expand:false( Type‹??_34›, L)
-----------------------------------
-
-definition-------------------------
-infer_tm(?_17)
-delay_assert(?_33, ??_35)
-check_tm( ((stream_succ_3) nat_stream_5), ?_17)
-infer_tm(((stream_succ_3) nat_stream_5))
-infer_tm(stream_succ_3)
-simpl_tm ~expand:false( ?_33, Type‹??_35›)
-check_tm( nat_stream_5, ((stream_1‹U›) nat_3))
-infer_tm(nat_stream_5)
-assert_equal1( ((stream_1‹U›) nat_3), ((stream_1‹U›) nat_3))
-assert_equal1_ok( ((stream_1‹U›) nat_3), ((stream_1‹U›) nat_3))
-assert_equal1( ?_17, ((stream_1‹U›) nat_3))
-assert_equal1_extend( ?_17, ((stream_1‹U›) nat_3))
-begin_dump
-  mctx {|
-    
+simpl_tm ~expand:false( bool_3, ?_44)
+simpl_tm ~expand:false( (apair_6 bool_3 ?_43),
+  (apair_6
+    bool_3
+    function _2908 : bool_3 -> L
+    | b_2910 =>
+      match b_2910 in bool_3 -o L with
+      | true_3 => unit_2‹L›
+      | false_4 => nat_4))
+simpl_tm ~expand:false( bool_3, bool_3)
+simpl_tm ~expand:false( ?_43,
+  function _2912 : bool_3 -> L
+  | b_2914 =>
+    match b_2914 in bool_3 -o L with
+    | true_3 => unit_2‹L›
+    | false_4 => nat_4)
+infer_tm(bool_3 -> L)
+infer_tm(bool_3)
+infer_tm(L)
+check_tm(
+  function _2927 : bool_3 -> L
+  | b_2929 =>
+    match b_2929 in bool_3 -o L with
+    | true_3 => unit_2‹L›
+    | false_4 => nat_4,
+  bool_3 -> L)
+infer_tm(bool_3 -> L)
+infer_tm(bool_3)
+infer_tm(L)
+assert_equal1( bool_3 -> L, bool_3 -> L)
+assert_equal1_ok( bool_3 -> L, bool_3 -> L)
+check_cls {|
+  prblm {| ;
+    {|  ::: [b_2940] =>?
+         match #b_2940 in bool_3 -o L with
+         | true_3 => unit_2‹L›
+         | false_4 => nat_4
+    |}
   |}
-  smeta_meta {|
-    ??_1 <= s_1004
-    ??_2 <= s_1005
-    ??_3 <= s_1006
-    ??_4 <= L
-    ??_5 <= s_1008
-    ??_6 <= s_1009
-    ??_7 <= L
-    ??_8 <= s_1011
-    ??_9 <= U
-    ??_10 <= s_1013
-    ??_11 <= U
-    ??_12 <= U
-    ??_13 <= U
-    ??_14 <= U
-    ??_15 <= U
-    ??_16 <= U
-    ??_17 <= U
-    ??_18 <= U
-    ??_19 <= L
-    ??_20 <= U
-    ??_22 <= U
-    ??_23 <= U
-    ??_24 <= U
-    ??_25 <= U
-    ??_26 <= U
-    ??_27 <= U
-    ??_28 <= L
-    ??_29 <= U
-    ??_30 <= L
-    ??_31 <= L
-    ??_32 <= L
-    ??_33 <= L
-    ??_34 <= L
-    
+  a := bool_3 -> L
+|}
+case_intro
+case_introed(__2944 : bool_3)
+case_coverage{|
+  prblm {| ;
+    {| eq_pat?( #__2944, b_2940 : bool_3) ::: [] =>?
+         match #b_2940 in bool_3 -o L with
+         | true_3 => unit_2‹L›
+         | false_4 => nat_4
+    |}
   |}
-  imeta_meta {|
-    ?_1 <= bool_2
-    ?_2 <= Type‹??_4›
-    ?_3 <= L
-    ?_4 <= bool_2
-    ?_5 <= Type‹??_7›
-    ?_6 <= ?_3
-    ?_7 <= unit_1‹L›
-    ?_8 <= unit_1‹U›
-    ?_9 <= ((stream_1‹U›) nat_3)
-    ?_10 <= (stream_node_4‹U› nat_3)
-    ?_11 <= (stream_node_4‹??_13› ?_12)
-    ?_12 <= nat_3
-    ?_13 <= nat_3
-    ?_14 <= ((stream_1‹U›) nat_3)
-    ?_15 <= nat_3
-    ?_16 <= ((stream_1‹U›) nat_3)
-    ?_20 <= Type‹??_22›
-    ?_21 <= Type‹??_23›
-    ?_22 <= Type‹??_24›
-    ?_23 <= Type‹??_25›
-    ?_24 <= Type‹??_26›
-    ?_25 <= Type‹??_27›
-    ?_26 <= Type‹??_28›
-    ?_27 <= Type‹??_29›
-    ?_28 <= Type‹??_30›
-    ?_29 <= Type‹??_31›
-    ?_30 <= Type‹??_32›
-    ?_31 <= Type‹??_33›
-    ?_32 <= Type‹??_34›
-    ?_33 <= Type‹??_35›
-    
+|}
+unify_local( eq_pat?( #__2944, b_2940 : bool_3) )
+unify_global(  )
+simpl_pprbm ~expand:false( #__2944, #b_2940)
+local_map solved
+global_map solved
+case_coverage_ok(
+  match __2944 in bool_3 -o L with
+  | true_3 => unit_2‹L›
+  | false_4 => nat_4, L)
+check_tm(
+  match __2944 in bool_3 -o L with
+  | true_3 => unit_2‹L›
+  | false_4 => nat_4, L)
+infer_tm(match __2944 in bool_3 -o L with
+         | true_3 => unit_2‹L›
+         | false_4 => nat_4)
+infer_motive(__2944 : bool_3)
+infer_tm(bool_3)
+check_tm( __2944, bool_3)
+infer_tm(__2944)
+assert_equal1( bool_3, bool_3)
+assert_equal1_ok( bool_3, bool_3)
+infer_tm(L)
+check_cls {|
+  prblm {| ;
+    {|  ::: [true_3] =>? unit_2‹L› |} {|  ::: [false_4] =>? nat_4 |}
   |}
-  eqns {|
-    equal_tm? (?_17, ((stream_1‹U›) nat_3))
-  |}
-end_dump
-simpl_tm ~expand:false( ?_17, ((stream_1‹U›) nat_3))
-infer_tm(Type‹??_35›)
-check_tm( ((stream_1‹U›) nat_3), Type‹??_35›)
-infer_tm(((stream_1‹U›) nat_3))
-infer_tm(stream_1‹U›)
-check_tm( nat_3, U)
-infer_tm(nat_3)
-assert_equal1( U, U)
-assert_equal1_ok( U, U)
-assert_equal1( Type‹??_35›, L)
-assert_equal1_extend( Type‹??_35›, L)
-simpl_tm ~expand:false( Type‹??_35›, L)
-----------------------------------
-
-definition-------------------------
-infer_tm(?_19)
-delay_assert(?_34, ??_36)
-check_tm( ((free_stream_2‹??_21›) ?_18 snat_stream_6), ?_19)
-infer_tm(((free_stream_2‹??_21›) ?_18 snat_stream_6))
-infer_tm(((free_stream_2‹??_21›) ?_18))
-infer_tm(free_stream_2‹??_21›)
-simpl_tm ~expand:false( ?_34, Type‹??_36›)
-check_tm( ?_18, Type‹??_21›)
-check_tm( snat_stream_6, ((stream_1‹??_21›) ?_18))
-infer_tm(snat_stream_6)
-assert_equal1( ((stream_1‹??_21›) ?_18), ((stream_1‹U›) nat_3))
-assert_equal1_extend( ((stream_1‹??_21›) ?_18),
-  ((stream_1‹U›) nat_3))
-assert_equal1( ?_19, unit_1‹U›)
-assert_equal1_extend( ?_19, unit_1‹U›)
-begin_dump
-  mctx {|
-    
-  |}
-  smeta_meta {|
-    ??_1 <= s_1111
-    ??_2 <= s_1112
-    ??_3 <= s_1113
-    ??_4 <= L
-    ??_5 <= s_1115
-    ??_6 <= s_1116
-    ??_7 <= L
-    ??_8 <= s_1118
-    ??_9 <= U
-    ??_10 <= s_1120
-    ??_11 <= U
-    ??_12 <= U
-    ??_13 <= U
-    ??_14 <= U
-    ??_15 <= U
-    ??_16 <= U
-    ??_17 <= U
-    ??_18 <= U
-    ??_19 <= L
-    ??_20 <= U
-    ??_22 <= U
-    ??_23 <= U
-    ??_24 <= U
-    ??_25 <= U
-    ??_26 <= U
-    ??_27 <= U
-    ??_28 <= L
-    ??_29 <= U
-    ??_30 <= L
-    ??_31 <= L
-    ??_32 <= L
-    ??_33 <= L
-    ??_34 <= L
-    ??_35 <= L
-    
-  |}
-  imeta_meta {|
-    ?_1 <= bool_2
-    ?_2 <= Type‹??_4›
-    ?_3 <= L
-    ?_4 <= bool_2
-    ?_5 <= Type‹??_7›
-    ?_6 <= ?_3
-    ?_7 <= unit_1‹L›
-    ?_8 <= unit_1‹U›
-    ?_9 <= ((stream_1‹U›) nat_3)
-    ?_10 <= (stream_node_4‹U› nat_3)
-    ?_11 <= (stream_node_4‹??_13› ?_12)
-    ?_12 <= nat_3
-    ?_13 <= nat_3
-    ?_14 <= ((stream_1‹U›) nat_3)
-    ?_15 <= nat_3
-    ?_16 <= ((stream_1‹U›) nat_3)
-    ?_17 <= ((stream_1‹U›) nat_3)
-    ?_20 <= Type‹??_22›
-    ?_21 <= Type‹??_23›
-    ?_22 <= Type‹??_24›
-    ?_23 <= Type‹??_25›
-    ?_24 <= Type‹??_26›
-    ?_25 <= Type‹??_27›
-    ?_26 <= Type‹??_28›
-    ?_27 <= Type‹??_29›
-    ?_28 <= Type‹??_30›
-    ?_29 <= Type‹??_31›
-    ?_30 <= Type‹??_32›
-    ?_31 <= Type‹??_33›
-    ?_32 <= Type‹??_34›
-    ?_33 <= Type‹??_35›
-    ?_34 <= Type‹??_36›
-    
-  |}
-  eqns {|
-    equal_tm? (?_19, unit_1‹U›);
-    equal_tm? (((stream_1‹??_21›) ?_18), ((stream_1‹U›) nat_3))
-  |}
-end_dump
-simpl_tm ~expand:false( ?_19, unit_1‹U›)
-simpl_tm ~expand:false( ((stream_1‹??_21›) ?_18),
-  ((stream_1‹U›) nat_3))
-simpl_tm ~expand:false( stream_1‹??_21›, stream_1‹U›)
-simpl_tm ~expand:false( ?_18, nat_3)
-simpl_tm ~expand:false( nat_3, ?_18)
-infer_tm(U)
-check_tm( nat_3, U)
-infer_tm(nat_3)
-assert_equal1( U, U)
-assert_equal1_ok( U, U)
-infer_tm(Type‹??_36›)
-check_tm( unit_1‹U›, Type‹??_36›)
-infer_tm(unit_1‹U›)
-assert_equal1( Type‹??_36›, U)
-assert_equal1_extend( Type‹??_36›, U)
-simpl_tm ~expand:false( Type‹??_36›, U)
+  a := bool_3 -o L
+|}
+case_intro
+case_introed(_2953 : bool_3)
+case_splitting
+splitting_on(true_3)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? unit_2‹L› |} |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( unit_2‹L›, L)
+check_tm( unit_2‹L›, L)
+infer_tm(unit_2‹L›)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+splitting_on(false_4)
+case_coverage{|
+  prblm {| eq_term?( bool_3, bool_3); {|  ::: [] =>? nat_4 |} |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_3, bool_3) )
+local_map solved
+simpl_pprbm ~expand:false( bool_3, bool_3)
+global_map solved
+case_coverage_ok( nat_4, L)
+check_tm( nat_4, L)
+infer_tm(nat_4)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
+infer_tm(L)
+check_tm( bool_3, L)
+infer_tm(bool_3)
+assert_equal1( L, L)
+assert_equal1_ok( L, L)
 ----------------------------------
 
 smeta_meta {|
-  ??_1 <= s_1213
-  ??_2 <= s_1214
-  ??_3 <= s_1215
-  ??_4 <= L
-  ??_5 <= s_1217
-  ??_6 <= s_1218
-  ??_7 <= L
-  ??_8 <= s_1220
+  ??_1 <= s_2962
+  ??_2 <= s_2963
+  ??_3 <= L
+  ??_4 <= ??_3
+  ??_5 <= ??_3
+  ??_6 <= L
+  ??_7 <= U
+  ??_8 <= U
   ??_9 <= U
-  ??_10 <= s_1222
+  ??_10 <= L
   ??_11 <= U
-  ??_12 <= U
+  ??_12 <= L
   ??_13 <= U
-  ??_14 <= U
+  ??_14 <= L
   ??_15 <= U
-  ??_16 <= U
-  ??_17 <= U
-  ??_18 <= U
-  ??_19 <= L
-  ??_20 <= U
-  ??_21 <= U
-  ??_22 <= U
-  ??_23 <= U
-  ??_24 <= U
-  ??_25 <= U
-  ??_26 <= U
-  ??_27 <= U
-  ??_28 <= L
-  ??_29 <= U
-  ??_30 <= L
-  ??_31 <= L
-  ??_32 <= L
-  ??_33 <= L
-  ??_34 <= L
-  ??_35 <= L
-  ??_36 <= U
+  ??_16 <= L
   
 |}
 imeta_meta {|
-  ?_1 <= bool_2
-  ?_2 <= Type‹??_4›
-  ?_3 <= L
-  ?_4 <= bool_2
-  ?_5 <= Type‹??_7›
-  ?_6 <= ?_3
-  ?_7 <= unit_1‹L›
-  ?_8 <= unit_1‹U›
-  ?_9 <= ((stream_1‹U›) nat_3)
-  ?_10 <= (stream_node_4‹U› nat_3)
-  ?_11 <= (stream_node_4‹??_13› ?_12)
-  ?_12 <= nat_3
-  ?_13 <= nat_3
-  ?_14 <= ((stream_1‹U›) nat_3)
-  ?_15 <= nat_3
-  ?_16 <= ((stream_1‹U›) nat_3)
-  ?_17 <= ((stream_1‹U›) nat_3)
-  ?_18 <= nat_3
-  ?_19 <= unit_1‹U›
-  ?_20 <= Type‹??_22›
-  ?_21 <= Type‹??_23›
-  ?_22 <= Type‹??_24›
-  ?_23 <= Type‹??_25›
-  ?_24 <= Type‹??_26›
-  ?_25 <= Type‹??_27›
-  ?_26 <= Type‹??_28›
-  ?_27 <= Type‹??_29›
-  ?_28 <= Type‹??_30›
-  ?_29 <= Type‹??_31›
-  ?_30 <= Type‹??_32›
-  ?_31 <= Type‹??_33›
-  ?_32 <= Type‹??_34›
-  ?_33 <= Type‹??_35›
-  ?_34 <= Type‹??_36›
+  ?_1 <= A_2966
+  ?_2 <= A_2968
+  ?_3 <= bool_3
+  ?_4 <= L
+  ?_5 <= A_2981
+  ?_6 <= A_2985
+  ?_7 <= A_2987
+  ?_8 <= A_2989
+  ?_9 <= A_2991
+  ?_10 <= x0_2993
+  ?_11 <= A_2997
+  ?_12 <= A_3000
+  ?_13 <= A_3003
+  ?_14 <= m_3005
+  ?_15 <= A_3010
+  ?_16 <= x0_3012
+  ?_17 <= A_3016
+  ?_18 <= A_3019
+  ?_19 <= x_3021
+  ?_20 <= A_3028
+  ?_21 <= B_3031
+  ?_22 <= A_3035
+  ?_23 <= x_3037
+  ?_24 <= A_3044
+  ?_25 <= A_3049
+  ?_26 <= A_3055
+  ?_27 <= x_3060
+  ?_28 <= A_3069
+  ?_29 <= A_3076
+  ?_30 <= x_3083
+  ?_31 <= A_3094
+  ?_32 <= B_3097
+  ?_33 <= A_3101
+  ?_34 <= ∀ (b_3103 : bool_3) -o
+            match b_3103 in bool_3 -o L with
+            | true_3 => (sing_5 ?_37 ?_36)
+            | false_4 => ((?_38) ?_36)
+  ?_35 <= bool_3
+  ?_36 <= my_val_3106
+  ?_37 <= ?_35
+  ?_38 <= function _3109 : bool_3 -> L
+          | b_3111 =>
+            match b_3111 in bool_3 -o L with
+            | true_3 => unit_2‹L›
+            | false_4 => nat_4
+  ?_39 <= L
+  ?_40 <= bool_3
+  ?_41 <= L
+  ?_42 <= bool_3
+  ?_43 <= function _3117 : bool_3 -> L
+          | b_3119 =>
+            match b_3119 in bool_3 -o L with
+            | true_3 => unit_2‹L›
+            | false_4 => nat_4
+  ?_44 <= bool_3
+  ?_45 <= Type‹??_10›
+  ?_46 <= Type‹??_11›
+  ?_47 <= Type‹??_12›
+  ?_48 <= Type‹??_13›
+  ?_49 <= Type‹??_14›
+  ?_50 <= Type‹??_15›
+  ?_51 <= Type‹??_16›
   
 |}
-#[program]
-inductive unit_1‹s_1379› : Type‹s_1379› where
-| tt_1 : unit_1‹s_1379›
+#[logical]
+inductive eq_1‹s_3298› (A_3299 : Type‹s_3298›) (m_3300 : A_3299):
+  A_3299 -> U
+where
+| refl_1 : (eq_1‹s_3298› A_3299 m_3300 m_3300)
 
 #[program]
-inductive bool_2‹› : U where
-| true_2 : bool_2
-| false_3 : bool_2
+inductive unit_2‹s_3302› : Type‹s_3302› where
+| tt_2 : unit_2‹s_3302›
 
 #[program]
-inductive nat_3‹› : U where
-| zero_4 : nat_3
-| succ_5 (pred_1380 : nat_3) : nat_3
+inductive bool_3‹› : L where
+| true_3 : bool_3
+| false_4 : bool_3
 
 #[program]
-inductive stream_node_4‹s_1381› (A_1382 : Type‹s_1381›): L where
-| stream_nil_6 : (stream_node_4‹s_1381› A_1382)
-| stream_cons_7
-    (hd_1383 : A_1382)
-    (tl_1384 : ∀ (b_1385 : bool_2) -o
-                 match b_1385 in bool_2 -o L with
-                 | true_2 => (stream_node_4‹s_1381› A_1382)
-                 | false_3 => unit_1‹L›)
-    : (stream_node_4‹s_1381› A_1382)
+inductive nat_4‹› : L where
+| zero_5 : nat_4
+| succ_6 (pred_3303 : nat_4) : nat_4
+
+#[program]
+inductive sing_5‹› (A_3304 : L): A_3304 -> L where
+| just_7 (m_3306 : A_3304) : (sing_5 A_3304 m_3306)
+
+#[program]
+inductive apair_6‹› (A_3307 : L) (B_3308 : A_3307 -> L): L where
+| apair_intro_8
+    {x_3310 : A_3307}
+    (select_3311 : ∀ (b_3312 : bool_3) -o
+                     match b_3312 in bool_3 -o L with
+                     | true_3 => (sing_5 A_3307 x_3310)
+                     | false_4 => ((B_3308) x_3310))
+    : (apair_6 A_3307 B_3308)
+
+#[program]
+def sing_elim_1‹› :
+  ∀ {A_3314 : L} ->
+    ∀ {x_3315 : A_3314} -> (sing_5 A_3314 x_3315) -> A_3314
+:=
+  function sing_elim_3317 :
+    ∀ {A_3318 : L} ->
+      ∀ {x_3319 : A_3318} -> (sing_5 A_3318 x_3319) -> A_3318
+  | A_3321 x_3322 (just_7 x_3323) => x_3323
 
 #[logical]
-def stream_1‹s_1387› : Type‹s_1387› -> L :=
-  function stream_1389 : Type‹s_1387› -> L
-  | A_1391 =>
-    ∀ (b_1392 : bool_2) -o
-      match b_1392 in bool_2 -o L with
-      | true_2 => (stream_node_4‹s_1387› A_1391)
-      | false_3 => unit_1‹L›
-
-#[program]
-def free_stream_2‹s_1394› :
-  ∀ {A_1395 : Type‹s_1394›} ->
-    ((stream_1‹s_1394›) A_1395) -> unit_1‹U›
+def sing_uniq_2‹› :
+  ∀ (A_3324 : L) ->
+    ∀ (x0_3325 : A_3324) ->
+      ∀ (x_3326 : (sing_5 A_3324 x0_3325)) ->
+        (eq_1‹L› A_3324 x0_3325 ((sing_elim_1) A_3324 x0_3325 x_3326))
 :=
-  function free_stream_1397 :
-    ∀ {A_1398 : Type‹s_1394›} ->
-      ((stream_1‹s_1394›) A_1398) -> unit_1‹U›
-  | A_1400 st_1401 =>
-    match ((st_1401) false_3) in unit_1‹L› -o unit_1‹U› with
-    | tt_1 => tt_1‹U›
+  function sing_uniq_3327 :
+    ∀ (A_3328 : L) ->
+      ∀ (x0_3329 : A_3328) ->
+        ∀ (x_3330 : (sing_5 A_3328 x0_3329)) ->
+          (eq_1‹L› A_3328 x0_3329 ((sing_elim_1) A_3328 x0_3329 x_3330))
+  | A_3331 x0_3332 (just_7 _3333) => refl_1‹L›
 
 #[program]
-def stream_succ_3‹› :
-  ((stream_1‹U›) nat_3) -> ((stream_1‹U›) nat_3)
+def proj1_3‹› :
+  ∀ {A_3334 : L} ->
+    ∀ {B_3335 : A_3334 -> L} -> (apair_6 A_3334 B_3335) -> A_3334
 :=
-  function stream_succ_1404 :
-    ((stream_1‹U›) nat_3) -> ((stream_1‹U›) nat_3)
-  | xs_1406 =>
-    function _1407 : ((stream_1‹U›) nat_3)
-    | true_2 =>
-      match ((xs_1406) true_2) in
-        (stream_node_4‹U› nat_3) -o (stream_node_4‹U› nat_3)
-      with
-      | stream_nil_6 => stream_nil_6‹U›
-      | (stream_cons_7 hd_1409 tl_1410) =>
-        (stream_cons_7‹U›
-          (succ_5‹› hd_1409) ((stream_succ_1404) tl_1410))
-    | false_3 => ((xs_1406) false_3)
+  function proj1_3338 :
+    ∀ {A_3339 : L} ->
+      ∀ {B_3340 : A_3339 -> L} -> (apair_6 A_3339 B_3340) -> A_3339
+  | A_3343 B_3344 (apair_intro_8 _3345 select_3346) =>
+    ((sing_elim_1) A_3343 _3345 ((select_3346) true_3))
 
 #[program]
-def nat_make_4‹› : nat_3 -> ((stream_1‹U›) nat_3) :=
-  function nat_make_1412 : nat_3 -> ((stream_1‹U›) nat_3)
-  | n_1414 =>
-    function _1415 : ((stream_1‹U›) nat_3)
-    | true_2 =>
-      (stream_cons_7‹U› n_1414 ((nat_make_1412) (succ_5‹› n_1414)))
-    | false_3 => tt_1‹L›
+def proj2_4‹› :
+  ∀ {A_3347 : L} ->
+    ∀ {B_3348 : A_3347 -> L} ->
+      ∀ (x_3350 : (apair_6 A_3347 B_3348)) ->
+        ((B_3348) ((proj1_3) A_3347 B_3348 x_3350))
+:=
+  function proj2_3351 :
+    ∀ {A_3352 : L} ->
+      ∀ {B_3353 : A_3352 -> L} ->
+        ∀ (x_3355 : (apair_6 A_3352 B_3353)) ->
+          ((B_3353) ((proj1_3) A_3352 B_3353 x_3355))
+  | A_3356 B_3357 (apair_intro_8 x_3358 select_3359) =>
+    match x_3358, ((select_3359) true_3),
+    ((sing_uniq_2) A_3356 x_3358 ((select_3359) true_3)),
+    ((select_3359) false_4) in
+      ∀ {x0_3360 : A_3356} -o
+        ∀ {a0_3361 : (sing_5 A_3356 x_3358)} -o
+          {(eq_1‹L› A_3356 x0_3360 ((sing_elim_1) A_3356 x_3358 a0_3361))} -o
+            ((B_3357) x0_3360) -o
+              ((B_3357) ((sing_elim_1) A_3356 x_3358 a0_3361))
+    with
+    | _3364, _3365, refl_1, b_3366 => b_3366
 
 #[program]
-def nat_stream_5‹› : ((stream_1‹U›) nat_3) := ((nat_make_4) zero_4)
+def bool2nat_5‹› : bool_3 -> nat_4 :=
+  function bool2nat_3368 : bool_3 -> nat_4
+  | true_3 => (succ_6‹› zero_5)
+  | false_4 => zero_5
 
 #[program]
-def snat_stream_6‹› : ((stream_1‹U›) nat_3) :=
-  ((stream_succ_3) nat_stream_5)
+def free_bool_6‹› : bool_3 -> unit_2‹U› :=
+  function free_bool_3371 : bool_3 -> unit_2‹U›
+  | true_3 => tt_2‹U›
+  | false_4 => tt_2‹U›
 
 #[program]
-def __7‹› : unit_1‹U› := ((free_stream_2‹U›) nat_3 snat_stream_6)
+def free_nat_7‹› : nat_4 -> unit_2‹U› :=
+  function free_nat_3374 : nat_4 -> unit_2‹U›
+  | zero_5 => tt_2‹U›
+  | (succ_6 n_3376) => ((free_nat_3374) n_3376)
+
+#[program]
+def my_apair_8‹› :
+  (apair_6
+    bool_3
+    function _3377 : bool_3 -> L
+    | b_3379 =>
+      match b_3379 in bool_3 -o L with
+      | true_3 => unit_2‹L›
+      | false_4 => nat_4)
+:=
+  let my_val_3381 := false_4 in
+  (apair_intro_8‹›
+    my_val_3381
+    function _3382 :
+      ∀ (b_3383 : bool_3) -o
+        match b_3383 in bool_3 -o L with
+        | true_3 => (sing_5 bool_3 my_val_3381)
+        | false_4 =>
+          ((function _3385 : bool_3 -> L
+            | b_3387 =>
+              match b_3387 in bool_3 -o L with
+              | true_3 => unit_2‹L›
+              | false_4 => nat_4)
+            my_val_3381)
+    | true_3 => (just_7‹› my_val_3381)
+    | false_4 => ((bool2nat_5) my_val_3381))
+
+#[program]
+def __9‹› : unit_2‹U› :=
+  ((free_bool_6)
+    ((proj1_3)
+      bool_3
+      function _3389 : bool_3 -> L
+      | b_3391 =>
+        match b_3391 in bool_3 -o L with
+        | true_3 => unit_2‹L›
+        | false_4 => nat_4
+      my_apair_8))
 
 -----------------------------------------
 
-inductive unitU_6 where
-| ttU_9 of size(0)
+inductive eqU_8 where
+| reflU_10 of size(0)
 
-inductive unitL_5 where
-| ttL_8 of size(0)
+inductive eqL_7 where
+| reflL_9 of size(0)
 
-inductive bool_2 where
-| true_2 of size(0) | false_3 of size(0)
+inductive unitU_10 where
+| ttU_12 of size(0)
 
-inductive nat_3 where
-| zero_4 of size(0) | succ_5 of size(1)
+inductive unitL_9 where
+| ttL_11 of size(0)
 
-inductive stream_nodeU_8 where
-| stream_nilU_12 of size(0) | stream_consU_13 of size(2)
+inductive bool_3 where
+| true_3 of size(0) | false_4 of size(0)
 
-inductive stream_nodeL_7 where
-| stream_nilL_10 of size(0) | stream_consL_11 of size(2)
+inductive nat_4 where
+| zero_5 of size(0) | succ_6 of size(1)
 
-def streamU_9 := NULL
+inductive sing_5 where
+| just_7 of size(1)
 
-def streamL_8 := NULL
+inductive apair_6 where
+| apair_intro_8 of size(2)
 
-def free_streamU_11 :=
-  fun free_stream_1604 (A_1605, st_1606) =>
-    match ((st_1606) false_3) with
-    | ttL_8  => ttU_9
+def sing_elim_1 :=
+  fun sing_elim_4072 (A_4073, x_4074, __4075) =>
+    match __4075 with
+    | just_7 m_4076 => m_4076
     end
 
-def free_streamL_10 :=
-  fun free_stream_1607 (A_1608, st_1609) =>
-    match ((st_1609) false_3) with
-    | ttL_8  => ttU_9
+def sing_uniq_2 := NULL
+
+def proj1_3 :=
+  fun proj1_4077 (A_4078, B_4079, __4080) =>
+    match __4080 with
+    | apair_intro_8 x_4081 select_4082 =>
+      ((sing_elim_1) NULL NULL ((select_4082) true_3))
     end
 
-def stream_succ_3 :=
-  fun stream_succ_1610 (xs_1611) =>
-    fun _1612 (b_1613) =>
-      match b_1613 with
-      | true_2  =>
-        match ((xs_1611) true_2) with
-        | stream_nilU_12  => stream_nilU_12
-        | stream_consU_13 hd_1614 tl_1615 =>
-          (stream_consU_13 (succ_5 hd_1614) ((stream_succ_1610) tl_1615))
-        end
-      | false_3  => ((xs_1611) false_3)
+def proj2_4 :=
+  fun proj2_4083 (A_4084, B_4085, x_4086) =>
+    match x_4086 with
+    | apair_intro_8 x_4087 select_4088 =>
+      match {NULL} with
+      | reflL_9  => ((select_4088) false_4)
       end
+    end
 
-def nat_make_4 :=
-  fun nat_make_1616 (n_1617) =>
-    fun _1618 (b_1619) =>
-      match b_1619 with
-      | true_2  => (stream_consU_13 n_1617 ((nat_make_1616) (succ_5 n_1617)))
-      | false_3  => ttL_8
-      end
+def bool2nat_5 :=
+  fun bool2nat_4089 (__4090) =>
+    match __4090 with
+    | true_3  => (succ_6 zero_5) | false_4  => zero_5
+    end
 
-def nat_stream_5 := ((nat_make_4) zero_4)
+def free_bool_6 :=
+  fun free_bool_4091 (__4092) =>
+    match __4092 with
+    | true_3  => ttU_12 | false_4  => ttU_12
+    end
 
-def snat_stream_6 := ((stream_succ_3) nat_stream_5)
+def free_nat_7 :=
+  fun free_nat_4093 (__4094) =>
+    match __4094 with
+    | zero_5  => ttU_12 | succ_6 pred_4095 => ((free_nat_4093) pred_4095)
+    end
 
-def __7 := ((free_streamU_11) NULL snat_stream_6)
+def my_apair_8 :=
+  let my_val_4096 := false_4 in
+  (apair_intro_8
+    NULL
+    fun _4097 (b_4098) =>
+      match b_4098 with
+      | true_3  => (just_7 my_val_4096)
+      | false_4  => ((bool2nat_5) my_val_4096)
+      end)
+
+def __9 := ((free_bool_6) ((proj1_3) NULL NULL my_apair_8))
 
 -----------------------------------------
 

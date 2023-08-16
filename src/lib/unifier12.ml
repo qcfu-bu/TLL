@@ -206,8 +206,8 @@ let rec simpl_pprbm ?(expand = false) eqn =
 let solve_pprbm map eqn =
   match eqn with
   | EqualTerm (_, m, PMeta x) ->
-    if occur x (lift_tm m) then
-      failwith "unifier.solve_pprbm(occurs)"
+    if occur x (lift_tm (demote_pmeta m)) then
+      map
     else
       Var.Map.add x m map
   | _ -> failwith "unifier1.solve_pprbm(solve)"

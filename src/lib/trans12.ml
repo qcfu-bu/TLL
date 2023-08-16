@@ -34,6 +34,7 @@ module Logical = struct
     | _ -> failwith "trans12.Logical.assert_sort"
 
   let assert_equal env m n =
+    Debug.exec (fun () -> pr "Logical.assert_equal(%a, %a)@." pp_tm m pp_tm n);
     if not (eq_tm env m n) then
       failwith "trans12.Logical.assert_equal(%a, %a)" pp_tm m pp_tm n
 
@@ -461,6 +462,7 @@ module Program = struct
       | _ -> failwith "trans12.Program.infer_tm(Constr)")
     | Match (ms, a, cls) ->
       let b, ms_elab, usg1 = infer_motive ctx env ms a in
+      Debug.exec (fun () -> pr "Program.infer_motive_ok@.");
       let ctree, usg2 = check_cls ctx env cls a in
       let ms_elab = box_array (Array.of_list ms_elab) in
       let usg = Usage.merge usg1 usg2 in
@@ -513,10 +515,14 @@ module Program = struct
     match (ms, whnf env a) with
     | [], a -> (a, [], Usage.empty)
     | m :: ms, Pi (N, L, a, bnd) ->
+      Debug.exec (fun () ->
+          pr "Program.infer_motive_N(%a, %a)@." pp_tm m pp_tm a);
       Logical.check_tm ctx env m a;
       let b, ms_elab, usg = infer_motive ctx env ms (subst bnd m) in
       Syntax2.(b, _NULL :: ms_elab, usg)
     | m :: ms, Pi (R, L, a, bnd) ->
+      Debug.exec (fun () ->
+          pr "Program.infer_motive_R(%a, %a)@." pp_tm m pp_tm a);
       let m_elab, usg1 = check_tm ctx env m a in
       let b, ms_elab, usg2 = infer_motive ctx env ms (subst bnd m) in
       Syntax2.(b, m_elab :: ms_elab, Usage.merge usg1 usg2)
@@ -599,6 +605,7 @@ module Program = struct
           let prbm = prbm_add env prbm x a relv in
           let xs, ctree, usg = aux_prbm ctx env prbm b in
           let usg = Usage.remove_var x usg relv t in
+          Debug.exec (fun () -> pr "trans12.Program.case_introed(%a)@." pp_tm a);
           match s with
           | U -> (trans_var x :: xs, ctree, Usage.refine_pure usg)
           | L -> (trans_var x :: xs, ctree, usg)
@@ -621,6 +628,9 @@ module Program = struct
             List.fold_left
               (fun (ctrees, usg2) c0 ->
                 let c1 = State.find_constr c0 ss in
+                Debug.exec (fun () ->
+                    pr "trans12.Program.case_split(%a, %a)@." Ind.pp d1
+                      Constr.pp c1);
                 let param, _ = Ctx.find_constr c1 ctx in
                 let tele = param_inst param ms in
                 let args, t = unbind_tele tele in

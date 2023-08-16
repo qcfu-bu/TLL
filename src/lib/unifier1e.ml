@@ -657,8 +657,8 @@ let solve_pprbm map eqn =
   let open PPrbm in
   match eqn with
   | EqualTerm (_, m, PMeta x) ->
-    if occur x (lift_tm m) then
-      failwith "unifier.solve_pprbm(occurs)"
+    if occur x (lift_tm (demote_pmeta m)) then
+      map
     else
       Var.Map.add x m map
   | _ -> failwith "unifier1.solve_pprbm(solve)"
@@ -695,8 +695,10 @@ let unify_pprbm local global =
   in
   let local = List.map flatten_eqn local in
   let local_map = aux_eqns Var.Map.empty local in
+  Debug.exec (fun () -> pr "local_map solved@.");
   let global = List.map flatten_eqn global in
   let global_map = aux_eqns local_map global in
+  Debug.exec (fun () -> pr "global_map solved@.");
   (local_map, global_map)
 
 let succeed_pprbm global =

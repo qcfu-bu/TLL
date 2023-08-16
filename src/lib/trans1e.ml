@@ -448,7 +448,7 @@ let rec check_dcls ctx env dcls =
         loop (i - 1) (entries0 @ entries)
       | _ -> failwith "trans1e.solve_delayed(Timeout)"
     in
-    loop (100 * List.length entries) entries
+    loop (10 * List.length entries) entries
   in
   match dcls with
   | Definition { name = x; relv; scheme = sch } :: dcls ->
