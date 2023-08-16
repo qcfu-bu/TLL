@@ -73,3 +73,12 @@ let rec trans_tm = function
   | NULL -> _NULL
   (* magic *)
   | Magic -> _Magic
+
+let rec trans_dcls = function
+  | [] -> []
+  | Definition { name; body } :: dcls ->
+    let body_elab = trans_tm body in
+    let dcls_elab = trans_dcls dcls in
+    Definition { name; body = unbox body_elab } :: dcls_elab
+  | Inductive { name; body } :: dcls ->
+    Inductive { name; body } :: trans_dcls dcls

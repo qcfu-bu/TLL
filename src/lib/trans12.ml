@@ -439,7 +439,7 @@ module Program = struct
       let env = Env.add_var x m env in
       let b, n_elab, usg = infer_tm ctx env n in
       let usg = Usage.remove_var x usg N s in
-      Syntax2.(b, _Let _NULL (bind_var (trans_var x) n_elab), usg)
+      Syntax2.(b, n_elab, usg)
     | Let (R, m, bnd) ->
       let x, n = unbind bnd in
       let a, m_elab, usg1 = infer_tm ctx env m in
