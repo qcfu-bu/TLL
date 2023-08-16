@@ -121,6 +121,53 @@
            )))
        ));
     view = [I; E]};
+  Definition {name = "stream_succ"; relv = R;
+    body =
+    (Binder ([],
+       ((Fun (
+           (Pi (R, U, (App [(Id ("stream", I)); (Id ("nat", I))]),
+              (Binder ("xs", (App [(Id ("stream", I)); (Id ("nat", I))]))))),
+           (Binder ((Some "stream_succ"),
+              [([(PId "xs")],
+                (Some (Fun (IMeta,
+                         (Binder (None,
+                            [([(PId "true")],
+                              (Some (Match (
+                                       [(R,
+                                         (App
+                                            [(Id ("xs", I)); (Id ("true", I))
+                                              ]),
+                                         None)],
+                                       None,
+                                       [([(PId "stream_nil")],
+                                         (Some (Id ("stream_nil", I))));
+                                         ([(PConstr ("stream_cons",
+                                              [(PId "hd"); (PId "tl")]))
+                                            ],
+                                          (Some (App
+                                                   [(Id ("stream_cons", I));
+                                                     (App
+                                                        [(Id ("succ", I));
+                                                          (Id ("hd", I))]);
+                                                     (App
+                                                        [(Id ("stream_succ",
+                                                            I));
+                                                          (Id ("tl", I))])
+                                                     ])))
+                                         ]
+                                       ))));
+                              ([(PId "false")],
+                               (Some (App [(Id ("xs", I)); (Id ("false", I))])))
+                              ]
+                            )),
+                         []))))
+                ]
+              )),
+           [E])),
+        (Pi (R, U, (App [(Id ("stream", I)); (Id ("nat", I))]),
+           (Binder ("xs", (App [(Id ("stream", I)); (Id ("nat", I))]))))))
+       ));
+    view = [E]};
   Definition {name = "nat_make"; relv = R;
     body =
     (Binder ([],
@@ -156,17 +203,22 @@
     body =
     (Binder ([], ((App [(Id ("nat_make", I)); (Id ("zero", I))]), IMeta)));
     view = []};
-  Definition {name = "ok"; relv = R;
+  Definition {name = "snat_stream"; relv = R;
     body =
     (Binder ([],
-       ((App [(Id ("free_stream", I)); (Id ("nat_stream", I))]), IMeta)));
+       ((App [(Id ("stream_succ", I)); (Id ("nat_stream", I))]), IMeta)));
+    view = []};
+  Definition {name = "_"; relv = R;
+    body =
+    (Binder ([],
+       ((App [(Id ("free_stream", I)); (Id ("snat_stream", I))]), IMeta)));
     view = []}
   ]
 
 -----------------------------------------
 
 #[program]
-inductive unit_1‹s_34› : Type‹s_34› where
+inductive unit_1‹s_42› : Type‹s_42› where
 | tt_1 : unit_1‹??_1›
 
 #[program]
@@ -177,54 +229,73 @@ inductive bool_2‹› : U where
 #[program]
 inductive nat_3‹› : U where
 | zero_4 : nat_3
-| succ_5 (pred_35 : nat_3) : nat_3
+| succ_5 (pred_43 : nat_3) : nat_3
 
 #[program]
-inductive stream_node_4‹s_36› (A_37 : Type‹s_36›): L where
-| stream_nil_6 : (stream_node_4‹??_2› A_37)
+inductive stream_node_4‹s_44› (A_45 : Type‹s_44›): L where
+| stream_nil_6 : (stream_node_4‹??_2› A_45)
 | stream_cons_7
-    (hd_38 : A_37)
-    (tl_39 : ∀ (b_40 : bool_2) -o
-               match b_40 in ∀ (_41 : ?_1) -o ?_2 with
-               | true_2 => (stream_node_4‹??_3› A_37)
+    (hd_46 : A_45)
+    (tl_47 : ∀ (b_48 : bool_2) -o
+               match b_48 in ∀ (_49 : ?_1) -o ?_2 with
+               | true_2 => (stream_node_4‹??_3› A_45)
                | false_3 => unit_1‹??_4›)
-    : (stream_node_4‹??_5› A_37)
+    : (stream_node_4‹??_5› A_45)
 
 #[logical]
-def stream_1‹s_42› : ∀ (A_43 : Type‹s_42›) -> ?_6 :=
-  function stream_44 : ∀ (A_45 : Type‹s_42›) -> ?_3
-  | A_46 =>
-    ∀ (b_47 : bool_2) -o
-      match b_47 in ∀ (_48 : ?_4) -o ?_5 with
-      | true_2 => (stream_node_4‹??_6› A_46)
+def stream_1‹s_50› : ∀ (A_51 : Type‹s_50›) -> ?_6 :=
+  function stream_52 : ∀ (A_53 : Type‹s_50›) -> ?_3
+  | A_54 =>
+    ∀ (b_55 : bool_2) -o
+      match b_55 in ∀ (_56 : ?_4) -o ?_5 with
+      | true_2 => (stream_node_4‹??_6› A_54)
       | false_3 => unit_1‹??_7›
 
 #[program]
-def free_stream_2‹s_49› :
-  ∀ {A_50 : Type‹s_49›} ->
-    ((stream_1‹??_10›) A_50) -> unit_1‹U›
+def free_stream_2‹s_57› :
+  ∀ {A_58 : Type‹s_57›} ->
+    ((stream_1‹??_10›) A_58) -> unit_1‹U›
 :=
-  function free_stream_52 :
-    ∀ {A_53 : Type‹s_49›} ->
-      ((stream_1‹??_8›) A_53) -> unit_1‹U›
-  | A_55 st_56 =>
-    match ((st_56) false_3) in ∀ (_57 : ?_7) -o ?_8 with
+  function free_stream_60 :
+    ∀ {A_61 : Type‹s_57›} ->
+      ((stream_1‹??_8›) A_61) -> unit_1‹U›
+  | A_63 st_64 =>
+    match ((st_64) false_3) in ∀ (_65 : ?_7) -o ?_8 with
     | tt_1 => tt_1‹??_9›
 
 #[program]
-def nat_make_3‹› : nat_3 -> ((stream_1‹??_14›) nat_3) :=
-  function nat_make_59 : nat_3 -> ((stream_1‹??_11›) nat_3)
-  | n_61 =>
-    function _62 : ?_9
+def stream_succ_3‹› :
+  ((stream_1‹??_15›) nat_3) -> ((stream_1‹??_16›) nat_3)
+:=
+  function stream_succ_67 :
+    ((stream_1‹??_11›) nat_3) -> ((stream_1‹??_12›) nat_3)
+  | xs_69 =>
+    function _70 : ?_9
     | true_2 =>
-      (stream_cons_7‹??_12› n_61 ((nat_make_59) (succ_5‹› n_61)))
-    | false_3 => tt_1‹??_13›
+      match ((xs_69) true_2) in ∀ (_71 : ?_10) -o ?_11 with
+      | stream_nil_6 => stream_nil_6‹??_13›
+      | (stream_cons_7 hd_72 tl_73) =>
+        (stream_cons_7‹??_14›
+          (succ_5‹› hd_72) ((stream_succ_67) tl_73))
+    | false_3 => ((xs_69) false_3)
 
 #[program]
-def nat_stream_4‹› : ?_11 := ((nat_make_3) zero_4)
+def nat_make_4‹› : nat_3 -> ((stream_1‹??_20›) nat_3) :=
+  function nat_make_75 : nat_3 -> ((stream_1‹??_17›) nat_3)
+  | n_77 =>
+    function _78 : ?_14
+    | true_2 =>
+      (stream_cons_7‹??_18› n_77 ((nat_make_75) (succ_5‹› n_77)))
+    | false_3 => tt_1‹??_19›
 
 #[program]
-def ok_5‹› : ?_13 := ((free_stream_2‹??_15›) ?_12 nat_stream_4)
+def nat_stream_5‹› : ?_16 := ((nat_make_4) zero_4)
+
+#[program]
+def snat_stream_6‹› : ?_17 := ((stream_succ_3) nat_stream_5)
+
+#[program]
+def __7‹› : ?_19 := ((free_stream_2‹??_21›) ?_18 snat_stream_6)
 
 -----------------------------------------
 
@@ -235,7 +306,7 @@ begin_dump
     
   |}
   smeta_meta {|
-    ??_1 <= s_65
+    ??_1 <= s_81
     
   |}
   imeta_meta {|
@@ -255,7 +326,7 @@ begin_dump
     
   |}
   smeta_meta {|
-    ??_1 <= s_68
+    ??_1 <= s_84
     
   |}
   imeta_meta {|
@@ -276,7 +347,7 @@ begin_dump
     
   |}
   smeta_meta {|
-    ??_1 <= s_70
+    ??_1 <= s_86
     
   |}
   imeta_meta {|
@@ -289,64 +360,64 @@ end_dump
 ----------------------------------
 
 inductive-------------------------
-infer_tm(Type‹s_72›)
-infer_tm(Type‹s_74›)
-assert_equal1( A_75, A_75)
-assert_equal1_ok( A_75, A_75)
-infer_tm((stream_node_4‹??_2› A_75))
-check_tm( A_75, Type‹??_2›)
-infer_tm(A_75)
-assert_equal1( Type‹??_2›, Type‹s_74›)
-assert_equal1_extend( Type‹??_2›, Type‹s_74›)
-simpl_tm ~expand:false( Type‹??_2›, Type‹s_74›)
-infer_tm(Type‹s_76›)
-infer_tm(A_77)
-infer_tm(∀ (b_80 : bool_2) -o
-           match b_80 in ∀ (_81 : ?_1) -o ?_2 with
-           | true_2 => (stream_node_4‹??_3› A_77)
+infer_tm(Type‹s_88›)
+infer_tm(Type‹s_90›)
+assert_equal1( A_91, A_91)
+assert_equal1_ok( A_91, A_91)
+infer_tm((stream_node_4‹??_2› A_91))
+check_tm( A_91, Type‹??_2›)
+infer_tm(A_91)
+assert_equal1( Type‹??_2›, Type‹s_90›)
+assert_equal1_extend( Type‹??_2›, Type‹s_90›)
+simpl_tm ~expand:false( Type‹??_2›, Type‹s_90›)
+infer_tm(Type‹s_92›)
+infer_tm(A_93)
+infer_tm(∀ (b_96 : bool_2) -o
+           match b_96 in ∀ (_97 : ?_1) -o ?_2 with
+           | true_2 => (stream_node_4‹??_3› A_93)
            | false_3 => unit_1‹??_4›)
 infer_tm(bool_2)
-infer_tm(match b_82 in ∀ (_83 : ?_1) -o ?_2 with
-         | true_2 => (stream_node_4‹??_3› A_77)
+infer_tm(match b_98 in ∀ (_99 : ?_1) -o ?_2 with
+         | true_2 => (stream_node_4‹??_3› A_93)
          | false_3 => unit_1‹??_4›)
-infer_motive(b_82 : ?_1)
+infer_motive(b_98 : ?_1)
 infer_tm(?_1)
-delay_assert(?_14, ??_16)
-check_tm( b_82, ?_1)
-infer_tm(b_82)
+delay_assert(?_20, ??_22)
+check_tm( b_98, ?_1)
+infer_tm(b_98)
 assert_equal1( ?_1, bool_2)
 assert_equal1_extend( ?_1, bool_2)
 infer_tm(?_2)
 simpl_tm ~expand:false( ?_1, bool_2)
-simpl_tm ~expand:false( ?_14, Type‹??_16›)
-delay_assert(?_15, ??_17)
-simpl_tm ~expand:false( ?_15, Type‹??_17›)
+simpl_tm ~expand:false( ?_20, Type‹??_22›)
+delay_assert(?_21, ??_23)
+simpl_tm ~expand:false( ?_21, Type‹??_23›)
 check_cls {|
   prblm {| ;
-    {|  ::: [true_2] =>? (stream_node_4‹??_3› A_77) |}
+    {|  ::: [true_2] =>? (stream_node_4‹??_3› A_93) |}
     {|  ::: [false_3] =>? unit_1‹??_4› |}
   |}
-  a := ∀ (_85 : bool_2) -o ?_2
+  a := ∀ (_101 : bool_2) -o ?_2
 |}
 case_intro
-case_introed(_86 : bool_2)
+case_introed(_102 : bool_2)
 case_splitting
 splitting_on(true_2)
 case_coverage{|
   prblm {| eq_term?( bool_2, bool_2);
-    {|  ::: [] =>? (stream_node_4‹??_3› A_77) |}
+    {|  ::: [] =>? (stream_node_4‹??_3› A_93) |}
   |}
 |}
 unify_local(  )
 unify_global( eq_term?( bool_2, bool_2) )
 simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( (stream_node_4‹??_3› A_77), ?_2)
-check_tm( (stream_node_4‹??_3› A_77), ?_2)
-infer_tm((stream_node_4‹??_3› A_77))
-check_tm( A_77, Type‹??_3›)
-infer_tm(A_77)
-assert_equal1( Type‹??_3›, Type‹s_76›)
-assert_equal1_extend( Type‹??_3›, Type‹s_76›)
+case_coverage_ok( (stream_node_4‹??_3› A_93), ?_2)
+check_tm( (stream_node_4‹??_3› A_93), ?_2)
+infer_tm((stream_node_4‹??_3› A_93))
+check_tm( A_93, Type‹??_3›)
+infer_tm(A_93)
+assert_equal1( Type‹??_3›, Type‹s_92›)
+assert_equal1_extend( Type‹??_3›, Type‹s_92›)
 assert_equal1( ?_2, L)
 assert_equal1_extend( ?_2, L)
 splitting_on(false_3)
@@ -356,170 +427,170 @@ case_coverage{|
 unify_local(  )
 unify_global( eq_term?( bool_2, bool_2) )
 simpl_pprbm ~expand:false( bool_2, bool_2)
-simpl_tm ~expand:false( ?_2, L)
-simpl_tm ~expand:false( Type‹??_3›, Type‹s_76›)
-case_coverage_ok( unit_1‹??_4›, L)
+case_coverage_ok( unit_1‹??_4›, ?_2)
 check_tm( unit_1‹??_4›, ?_2)
 infer_tm(unit_1‹??_4›)
 assert_equal1( ?_2, Type‹??_4›)
 assert_equal1_extend( ?_2, Type‹??_4›)
-simpl_tm ~expand:false( L, Type‹??_4›)
-assert_equal1( A_77, A_77)
-assert_equal1_ok( A_77, A_77)
-infer_tm((stream_node_4‹??_5› A_77))
-check_tm( A_77, Type‹??_5›)
-infer_tm(A_77)
-assert_equal1( Type‹??_5›, Type‹s_76›)
-assert_equal1_extend( Type‹??_5›, Type‹s_76›)
-simpl_tm ~expand:false( Type‹??_5›, Type‹s_76›)
+simpl_tm ~expand:false( ?_2, Type‹??_4›)
+simpl_tm ~expand:false( Type‹??_4›, L)
+simpl_tm ~expand:false( Type‹??_3›, Type‹s_92›)
+assert_equal1( A_93, A_93)
+assert_equal1_ok( A_93, A_93)
+infer_tm((stream_node_4‹??_5› A_93))
+check_tm( A_93, Type‹??_5›)
+infer_tm(A_93)
+assert_equal1( Type‹??_5›, Type‹s_92›)
+assert_equal1_extend( Type‹??_5›, Type‹s_92›)
+simpl_tm ~expand:false( Type‹??_5›, Type‹s_92›)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_88
-    ??_2 <= s_89
-    ??_3 <= s_90
+    ??_1 <= s_104
+    ??_2 <= s_105
+    ??_3 <= s_106
     ??_4 <= L
-    ??_5 <= s_92
+    ??_5 <= s_108
     
   |}
   imeta_meta {|
     ?_1 <= bool_2
-    ?_2 <= L
-    ?_14 <= Type‹??_16›
-    ?_15 <= Type‹??_17›
+    ?_2 <= Type‹??_4›
+    ?_20 <= Type‹??_22›
+    ?_21 <= Type‹??_23›
     
   |}
   eqns {|
     
   |}
 end_dump
-infer_tm(Type‹??_16›)
-check_tm( bool_2, Type‹??_16›)
+infer_tm(Type‹??_22›)
+check_tm( bool_2, Type‹??_22›)
 infer_tm(bool_2)
-assert_equal1( Type‹??_16›, U)
-assert_equal1_extend( Type‹??_16›, U)
-simpl_tm ~expand:false( Type‹??_16›, U)
-infer_tm(Type‹??_17›)
-check_tm( L, Type‹??_17›)
+assert_equal1( Type‹??_22›, U)
+assert_equal1_extend( Type‹??_22›, U)
+simpl_tm ~expand:false( Type‹??_22›, U)
+infer_tm(Type‹??_23›)
+check_tm( L, Type‹??_23›)
 infer_tm(L)
-assert_equal1( Type‹??_17›, U)
-assert_equal1_extend( Type‹??_17›, U)
-simpl_tm ~expand:false( Type‹??_17›, U)
+assert_equal1( Type‹??_23›, U)
+assert_equal1_extend( Type‹??_23›, U)
+simpl_tm ~expand:false( Type‹??_23›, U)
 ----------------------------------
 
 definition-------------------------
-infer_tm(∀ (A_129 : Type‹s_128›) -> ?_6)
-infer_tm(Type‹s_128›)
+infer_tm(∀ (A_145 : Type‹s_144›) -> ?_6)
+infer_tm(Type‹s_144›)
 infer_tm(?_6)
-delay_assert(?_16, ??_18)
-simpl_tm ~expand:false( ?_16, Type‹??_18›)
+delay_assert(?_22, ??_24)
+simpl_tm ~expand:false( ?_22, Type‹??_24›)
 check_tm(
-  function stream_131 : ∀ (A_132 : Type‹s_128›) -> ?_3
-  | A_133 =>
-    ∀ (b_134 : bool_2) -o
-      match b_134 in ∀ (_135 : ?_4) -o ?_5 with
-      | true_2 => (stream_node_4‹??_6› A_133)
+  function stream_147 : ∀ (A_148 : Type‹s_144›) -> ?_3
+  | A_149 =>
+    ∀ (b_150 : bool_2) -o
+      match b_150 in ∀ (_151 : ?_4) -o ?_5 with
+      | true_2 => (stream_node_4‹??_6› A_149)
       | false_3 => unit_1‹??_7›,
-  ∀ (A_136 : Type‹s_128›) -> ?_6)
-infer_tm(∀ (A_138 : Type‹s_128›) -> ?_3)
-infer_tm(Type‹s_128›)
+  ∀ (A_152 : Type‹s_144›) -> ?_6)
+infer_tm(∀ (A_154 : Type‹s_144›) -> ?_3)
+infer_tm(Type‹s_144›)
 infer_tm(?_3)
-delay_assert(?_17, ??_19)
-simpl_tm ~expand:false( ?_17, Type‹??_19›)
-assert_equal1( ∀ (A_140 : Type‹s_128›) -> ?_6,
-  ∀ (A_141 : Type‹s_128›) -> ?_3)
-assert_equal1_extend( ∀ (A_146 : Type‹s_128›) -> ?_6,
-  ∀ (A_147 : Type‹s_128›) -> ?_3)
-simpl_tm ~expand:false( ∀ (A_151 : Type‹s_128›) -> ?_6,
-  ∀ (A_152 : Type‹s_128›) -> ?_3)
-simpl_tm ~expand:false( Type‹s_128›, Type‹s_128›)
+delay_assert(?_23, ??_25)
+simpl_tm ~expand:false( ?_23, Type‹??_25›)
+assert_equal1( ∀ (A_156 : Type‹s_144›) -> ?_6,
+  ∀ (A_157 : Type‹s_144›) -> ?_3)
+assert_equal1_extend( ∀ (A_162 : Type‹s_144›) -> ?_6,
+  ∀ (A_163 : Type‹s_144›) -> ?_3)
+simpl_tm ~expand:false( ∀ (A_167 : Type‹s_144›) -> ?_6,
+  ∀ (A_168 : Type‹s_144›) -> ?_3)
+simpl_tm ~expand:false( Type‹s_144›, Type‹s_144›)
 simpl_tm ~expand:false( ?_6, ?_3)
 check_cls {|
   prblm {| ;
-    {|  ::: [A_148] =>?
-         ∀ (b_155 : bool_2) -o
-           match b_155 in ∀ (_156 : ?_4) -o ?_5 with
-           | true_2 => (stream_node_4‹??_6› #A_148)
+    {|  ::: [A_164] =>?
+         ∀ (b_171 : bool_2) -o
+           match b_171 in ∀ (_172 : ?_4) -o ?_5 with
+           | true_2 => (stream_node_4‹??_6› #A_164)
            | false_3 => unit_1‹??_7›
     |}
   |}
-  a := ∀ (A_157 : Type‹s_128›) -> ?_3
+  a := ∀ (A_173 : Type‹s_144›) -> ?_3
 |}
 case_intro
-case_introed(A_158 : Type‹s_128›)
+case_introed(A_174 : Type‹s_144›)
 case_coverage{|
   prblm {| ;
-    {| eq_pat?( #A_158, A_148 : Type‹s_128›) ::: [] =>?
-         ∀ (b_159 : bool_2) -o
-           match b_159 in ∀ (_160 : ?_4) -o ?_5 with
-           | true_2 => (stream_node_4‹??_6› #A_148)
+    {| eq_pat?( #A_174, A_164 : Type‹s_144›) ::: [] =>?
+         ∀ (b_175 : bool_2) -o
+           match b_175 in ∀ (_176 : ?_4) -o ?_5 with
+           | true_2 => (stream_node_4‹??_6› #A_164)
            | false_3 => unit_1‹??_7›
     |}
   |}
 |}
-unify_local( eq_pat?( #A_158, A_148 : Type‹s_128›) )
+unify_local( eq_pat?( #A_174, A_164 : Type‹s_144›) )
 unify_global(  )
-simpl_pprbm ~expand:false( #A_158, #A_148)
+simpl_pprbm ~expand:false( #A_174, #A_164)
 case_coverage_ok(
-  ∀ (b_168 : bool_2) -o
-    match b_168 in ∀ (_169 : ?_4) -o ?_5 with
-    | true_2 => (stream_node_4‹??_6› A_158)
+  ∀ (b_181 : bool_2) -o
+    match b_181 in ∀ (_182 : ?_4) -o ?_5 with
+    | true_2 => (stream_node_4‹??_6› A_174)
     | false_3 => unit_1‹??_7›,
   ?_3)
 check_tm(
-  ∀ (b_170 : bool_2) -o
-    match b_170 in ∀ (_171 : ?_4) -o ?_5 with
-    | true_2 => (stream_node_4‹??_6› A_158)
+  ∀ (b_183 : bool_2) -o
+    match b_183 in ∀ (_184 : ?_4) -o ?_5 with
+    | true_2 => (stream_node_4‹??_6› A_174)
     | false_3 => unit_1‹??_7›,
   ?_3)
-infer_tm(∀ (b_172 : bool_2) -o
-           match b_172 in ∀ (_173 : ?_4) -o ?_5 with
-           | true_2 => (stream_node_4‹??_6› A_158)
+infer_tm(∀ (b_185 : bool_2) -o
+           match b_185 in ∀ (_186 : ?_4) -o ?_5 with
+           | true_2 => (stream_node_4‹??_6› A_174)
            | false_3 => unit_1‹??_7›)
 infer_tm(bool_2)
-infer_tm(match b_174 in ∀ (_175 : ?_4) -o ?_5 with
-         | true_2 => (stream_node_4‹??_6› A_158)
+infer_tm(match b_187 in ∀ (_188 : ?_4) -o ?_5 with
+         | true_2 => (stream_node_4‹??_6› A_174)
          | false_3 => unit_1‹??_7›)
-infer_motive(b_174 : ?_4)
+infer_motive(b_187 : ?_4)
 infer_tm(?_4)
-delay_assert(?_18, ??_20)
-check_tm( b_174, ?_4)
-infer_tm(b_174)
+delay_assert(?_24, ??_26)
+check_tm( b_187, ?_4)
+infer_tm(b_187)
 assert_equal1( ?_4, bool_2)
 assert_equal1_extend( ?_4, bool_2)
 infer_tm(?_5)
 simpl_tm ~expand:false( ?_4, bool_2)
-simpl_tm ~expand:false( ?_18, Type‹??_20›)
-delay_assert(?_19, ??_21)
-simpl_tm ~expand:false( ?_19, Type‹??_21›)
+simpl_tm ~expand:false( ?_24, Type‹??_26›)
+delay_assert(?_25, ??_27)
+simpl_tm ~expand:false( ?_25, Type‹??_27›)
 check_cls {|
   prblm {| ;
-    {|  ::: [true_2] =>? (stream_node_4‹??_6› A_158) |}
+    {|  ::: [true_2] =>? (stream_node_4‹??_6› A_174) |}
     {|  ::: [false_3] =>? unit_1‹??_7› |}
   |}
-  a := ∀ (_177 : bool_2) -o ?_5
+  a := ∀ (_190 : bool_2) -o ?_5
 |}
 case_intro
-case_introed(_178 : bool_2)
+case_introed(_191 : bool_2)
 case_splitting
 splitting_on(true_2)
 case_coverage{|
   prblm {| eq_term?( bool_2, bool_2);
-    {|  ::: [] =>? (stream_node_4‹??_6› A_158) |}
+    {|  ::: [] =>? (stream_node_4‹??_6› A_174) |}
   |}
 |}
 unify_local(  )
 unify_global( eq_term?( bool_2, bool_2) )
 simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( (stream_node_4‹??_6› A_158), ?_5)
-check_tm( (stream_node_4‹??_6› A_158), ?_5)
-infer_tm((stream_node_4‹??_6› A_158))
-check_tm( A_158, Type‹??_6›)
-infer_tm(A_158)
-assert_equal1( Type‹??_6›, Type‹s_128›)
-assert_equal1_extend( Type‹??_6›, Type‹s_128›)
+case_coverage_ok( (stream_node_4‹??_6› A_174), ?_5)
+check_tm( (stream_node_4‹??_6› A_174), ?_5)
+infer_tm((stream_node_4‹??_6› A_174))
+check_tm( A_174, Type‹??_6›)
+infer_tm(A_174)
+assert_equal1( Type‹??_6›, Type‹s_144›)
+assert_equal1_extend( Type‹??_6›, Type‹s_144›)
 assert_equal1( ?_5, L)
 assert_equal1_extend( ?_5, L)
 splitting_on(false_3)
@@ -529,14 +600,14 @@ case_coverage{|
 unify_local(  )
 unify_global( eq_term?( bool_2, bool_2) )
 simpl_pprbm ~expand:false( bool_2, bool_2)
-simpl_tm ~expand:false( ?_5, L)
-simpl_tm ~expand:false( Type‹??_6›, Type‹s_128›)
-case_coverage_ok( unit_1‹??_7›, L)
+case_coverage_ok( unit_1‹??_7›, ?_5)
 check_tm( unit_1‹??_7›, ?_5)
 infer_tm(unit_1‹??_7›)
 assert_equal1( ?_5, Type‹??_7›)
 assert_equal1_extend( ?_5, Type‹??_7›)
-simpl_tm ~expand:false( L, Type‹??_7›)
+simpl_tm ~expand:false( ?_5, Type‹??_7›)
+simpl_tm ~expand:false( Type‹??_7›, L)
+simpl_tm ~expand:false( Type‹??_6›, Type‹s_144›)
 assert_equal1( ?_3, L)
 assert_equal1_extend( ?_3, L)
 begin_dump
@@ -544,29 +615,29 @@ begin_dump
     
   |}
   smeta_meta {|
-    ??_1 <= s_184
-    ??_2 <= s_185
-    ??_3 <= s_186
+    ??_1 <= s_197
+    ??_2 <= s_198
+    ??_3 <= s_199
     ??_4 <= L
-    ??_5 <= s_188
-    ??_6 <= s_189
+    ??_5 <= s_201
+    ??_6 <= s_202
     ??_7 <= L
-    ??_16 <= U
-    ??_17 <= U
+    ??_22 <= U
+    ??_23 <= U
     
   |}
   imeta_meta {|
     ?_1 <= bool_2
-    ?_2 <= L
+    ?_2 <= Type‹??_4›
     ?_4 <= bool_2
-    ?_5 <= L
+    ?_5 <= Type‹??_7›
     ?_6 <= ?_3
-    ?_14 <= Type‹??_16›
-    ?_15 <= Type‹??_17›
-    ?_16 <= Type‹??_18›
-    ?_17 <= Type‹??_19›
-    ?_18 <= Type‹??_20›
-    ?_19 <= Type‹??_21›
+    ?_20 <= Type‹??_22›
+    ?_21 <= Type‹??_23›
+    ?_22 <= Type‹??_24›
+    ?_23 <= Type‹??_25›
+    ?_24 <= Type‹??_26›
+    ?_25 <= Type‹??_27›
     
   |}
   eqns {|
@@ -574,156 +645,156 @@ begin_dump
   |}
 end_dump
 simpl_tm ~expand:false( ?_3, L)
-infer_tm(Type‹??_19›)
-check_tm( L, Type‹??_19›)
+infer_tm(Type‹??_25›)
+check_tm( L, Type‹??_25›)
 infer_tm(L)
-assert_equal1( Type‹??_19›, U)
-assert_equal1_extend( Type‹??_19›, U)
-simpl_tm ~expand:false( Type‹??_19›, U)
-infer_tm(Type‹??_20›)
-check_tm( bool_2, Type‹??_20›)
+assert_equal1( Type‹??_25›, U)
+assert_equal1_extend( Type‹??_25›, U)
+simpl_tm ~expand:false( Type‹??_25›, U)
+infer_tm(Type‹??_26›)
+check_tm( bool_2, Type‹??_26›)
 infer_tm(bool_2)
-assert_equal1( Type‹??_20›, U)
-assert_equal1_extend( Type‹??_20›, U)
-simpl_tm ~expand:false( Type‹??_20›, U)
-infer_tm(Type‹??_21›)
-check_tm( L, Type‹??_21›)
+assert_equal1( Type‹??_26›, U)
+assert_equal1_extend( Type‹??_26›, U)
+simpl_tm ~expand:false( Type‹??_26›, U)
+infer_tm(Type‹??_27›)
+check_tm( L, Type‹??_27›)
 infer_tm(L)
-assert_equal1( Type‹??_21›, U)
-assert_equal1_extend( Type‹??_21›, U)
-simpl_tm ~expand:false( Type‹??_21›, U)
-infer_tm(Type‹??_18›)
-check_tm( L, Type‹??_18›)
+assert_equal1( Type‹??_27›, U)
+assert_equal1_extend( Type‹??_27›, U)
+simpl_tm ~expand:false( Type‹??_27›, U)
+infer_tm(Type‹??_24›)
+check_tm( L, Type‹??_24›)
 infer_tm(L)
-assert_equal1( Type‹??_18›, U)
-assert_equal1_extend( Type‹??_18›, U)
-simpl_tm ~expand:false( Type‹??_18›, U)
+assert_equal1( Type‹??_24›, U)
+assert_equal1_extend( Type‹??_24›, U)
+simpl_tm ~expand:false( Type‹??_24›, U)
 ----------------------------------
 
 definition-------------------------
-infer_tm(∀ {A_242 : Type‹s_241›} ->
-           ((stream_1‹??_10›) A_242) -> unit_1‹U›)
-infer_tm(Type‹s_241›)
-infer_tm(((stream_1‹??_10›) A_244) -> unit_1‹U›)
-infer_tm(((stream_1‹??_10›) A_244))
+infer_tm(∀ {A_255 : Type‹s_254›} ->
+           ((stream_1‹??_10›) A_255) -> unit_1‹U›)
+infer_tm(Type‹s_254›)
+infer_tm(((stream_1‹??_10›) A_257) -> unit_1‹U›)
+infer_tm(((stream_1‹??_10›) A_257))
 infer_tm(stream_1‹??_10›)
-check_tm( A_244, Type‹??_10›)
-infer_tm(A_244)
-assert_equal1( Type‹??_10›, Type‹s_241›)
-assert_equal1_extend( Type‹??_10›, Type‹s_241›)
-simpl_tm ~expand:false( Type‹??_10›, Type‹s_241›)
+check_tm( A_257, Type‹??_10›)
+infer_tm(A_257)
+assert_equal1( Type‹??_10›, Type‹s_254›)
+assert_equal1_extend( Type‹??_10›, Type‹s_254›)
+simpl_tm ~expand:false( Type‹??_10›, Type‹s_254›)
 infer_tm(unit_1‹U›)
 check_tm(
-  function free_stream_248 :
-    ∀ {A_249 : Type‹s_241›} ->
-      ((stream_1‹??_8›) A_249) -> unit_1‹U›
-  | A_251 st_252 =>
-    match ((st_252) false_3) in ∀ (_253 : ?_7) -o ?_8 with
+  function free_stream_261 :
+    ∀ {A_262 : Type‹s_254›} ->
+      ((stream_1‹??_8›) A_262) -> unit_1‹U›
+  | A_264 st_265 =>
+    match ((st_265) false_3) in ∀ (_266 : ?_7) -o ?_8 with
     | tt_1 => tt_1‹??_9›,
-  ∀ {A_254 : Type‹s_241›} ->
-    ((stream_1‹??_10›) A_254) -> unit_1‹U›)
-infer_tm(∀ {A_257 : Type‹s_241›} ->
-           ((stream_1‹??_8›) A_257) -> unit_1‹U›)
-infer_tm(Type‹s_241›)
-infer_tm(((stream_1‹??_8›) A_259) -> unit_1‹U›)
-infer_tm(((stream_1‹??_8›) A_259))
+  ∀ {A_267 : Type‹s_254›} ->
+    ((stream_1‹??_10›) A_267) -> unit_1‹U›)
+infer_tm(∀ {A_270 : Type‹s_254›} ->
+           ((stream_1‹??_8›) A_270) -> unit_1‹U›)
+infer_tm(Type‹s_254›)
+infer_tm(((stream_1‹??_8›) A_272) -> unit_1‹U›)
+infer_tm(((stream_1‹??_8›) A_272))
 infer_tm(stream_1‹??_8›)
-check_tm( A_259, Type‹??_8›)
-infer_tm(A_259)
-assert_equal1( Type‹??_8›, Type‹s_241›)
-assert_equal1_extend( Type‹??_8›, Type‹s_241›)
-simpl_tm ~expand:false( Type‹??_8›, Type‹s_241›)
+check_tm( A_272, Type‹??_8›)
+infer_tm(A_272)
+assert_equal1( Type‹??_8›, Type‹s_254›)
+assert_equal1_extend( Type‹??_8›, Type‹s_254›)
+simpl_tm ~expand:false( Type‹??_8›, Type‹s_254›)
 infer_tm(unit_1‹U›)
 assert_equal1(
-  ∀ {A_263 : Type‹s_241›} ->
-    ((stream_1‹??_10›) A_263) -> unit_1‹U›,
-  ∀ {A_265 : Type‹s_241›} ->
-    ((stream_1‹??_8›) A_265) -> unit_1‹U›)
+  ∀ {A_276 : Type‹s_254›} ->
+    ((stream_1‹??_10›) A_276) -> unit_1‹U›,
+  ∀ {A_278 : Type‹s_254›} ->
+    ((stream_1‹??_8›) A_278) -> unit_1‹U›)
 assert_equal1_extend(
-  ∀ {A_272 : Type‹s_241›} ->
-    ((stream_1‹??_10›) A_272) -> unit_1‹U›,
-  ∀ {A_274 : Type‹s_241›} ->
-    ((stream_1‹??_8›) A_274) -> unit_1‹U›)
+  ∀ {A_285 : Type‹s_254›} ->
+    ((stream_1‹??_10›) A_285) -> unit_1‹U›,
+  ∀ {A_287 : Type‹s_254›} ->
+    ((stream_1‹??_8›) A_287) -> unit_1‹U›)
 simpl_tm ~expand:false(
-  ∀ {A_282 : Type‹s_241›} ->
-    ((stream_1‹s_241›) A_282) -> unit_1‹U›,
-  ∀ {A_284 : Type‹s_241›} ->
-    ((stream_1‹s_241›) A_284) -> unit_1‹U›)
-simpl_tm ~expand:false( Type‹s_241›, Type‹s_241›)
-simpl_tm ~expand:false( ((stream_1‹s_241›) A_286) -> unit_1‹U›,
-  ((stream_1‹s_241›) A_286) -> unit_1‹U›)
-simpl_tm ~expand:false( ((stream_1‹s_241›) A_286),
-  ((stream_1‹s_241›) A_286))
-simpl_tm ~expand:false( stream_1‹s_241›, stream_1‹s_241›)
-simpl_tm ~expand:false( A_286, A_286)
+  ∀ {A_295 : Type‹s_254›} ->
+    ((stream_1‹s_254›) A_295) -> unit_1‹U›,
+  ∀ {A_297 : Type‹s_254›} ->
+    ((stream_1‹s_254›) A_297) -> unit_1‹U›)
+simpl_tm ~expand:false( Type‹s_254›, Type‹s_254›)
+simpl_tm ~expand:false( ((stream_1‹s_254›) A_299) -> unit_1‹U›,
+  ((stream_1‹s_254›) A_299) -> unit_1‹U›)
+simpl_tm ~expand:false( ((stream_1‹s_254›) A_299),
+  ((stream_1‹s_254›) A_299))
+simpl_tm ~expand:false( stream_1‹s_254›, stream_1‹s_254›)
+simpl_tm ~expand:false( A_299, A_299)
 simpl_tm ~expand:false( unit_1‹U›, unit_1‹U›)
 check_cls {|
   prblm {| ;
-    {|  ::: [A_276, st_277] =>?
-         match ((#st_277) false_3) in ∀ (_292 : ?_7) -o ?_8 with
+    {|  ::: [A_289, st_290] =>?
+         match ((#st_290) false_3) in ∀ (_305 : ?_7) -o ?_8 with
          | tt_1 => tt_1‹??_9›
     |}
   |}
-  a := ∀ {A_293 : Type‹s_241›} ->
-         ((stream_1‹s_241›) A_293) -> unit_1‹U›
+  a := ∀ {A_306 : Type‹s_254›} ->
+         ((stream_1‹s_254›) A_306) -> unit_1‹U›
 |}
 case_intro
-case_introed(A_295 : Type‹s_241›)
+case_introed(A_308 : Type‹s_254›)
 case_intro
-case_introed(st_296 : ((stream_1‹s_241›) #A_295))
+case_introed(st_309 : ((stream_1‹s_254›) #A_308))
 case_coverage{|
   prblm {| ;
-    {| eq_pat?( #A_295, A_276 : Type‹s_241›)
-       eq_pat?( #st_296, st_277 : ((stream_1‹s_241›) #A_295)) ::: [] =>?
-         match ((#st_277) false_3) in ∀ (_297 : ?_7) -o ?_8 with
+    {| eq_pat?( #A_308, A_289 : Type‹s_254›)
+       eq_pat?( #st_309, st_290 : ((stream_1‹s_254›) #A_308)) ::: [] =>?
+         match ((#st_290) false_3) in ∀ (_310 : ?_7) -o ?_8 with
          | tt_1 => tt_1‹??_9›
     |}
   |}
 |}
 unify_local(
-  eq_pat?( #A_295, A_276 : Type‹s_241›)
-  eq_pat?( #st_296, st_277 : ((stream_1‹s_241›) #A_295))
+  eq_pat?( #A_308, A_289 : Type‹s_254›)
+  eq_pat?( #st_309, st_290 : ((stream_1‹s_254›) #A_308))
 )
 unify_global(  )
-simpl_pprbm ~expand:false( #A_295, #A_276)
-simpl_pprbm ~expand:false( #st_296, #st_277)
+simpl_pprbm ~expand:false( #A_308, #A_289)
+simpl_pprbm ~expand:false( #st_309, #st_290)
 case_coverage_ok(
-  match ((st_296) false_3) in ∀ (_302 : ?_7) -o ?_8 with
+  match ((st_309) false_3) in ∀ (_314 : ?_7) -o ?_8 with
   | tt_1 => tt_1‹??_9›, unit_1‹U›)
 check_tm(
-  match ((st_296) false_3) in ∀ (_303 : ?_7) -o ?_8 with
+  match ((st_309) false_3) in ∀ (_315 : ?_7) -o ?_8 with
   | tt_1 => tt_1‹??_9›, unit_1‹U›)
-infer_tm(match ((st_296) false_3) in ∀ (_304 : ?_7) -o ?_8 with
+infer_tm(match ((st_309) false_3) in ∀ (_316 : ?_7) -o ?_8 with
          | tt_1 => tt_1‹??_9›)
-infer_motive(((st_296) false_3) : ?_7)
+infer_motive(((st_309) false_3) : ?_7)
 infer_tm(?_7)
-delay_assert(?_20, ??_22)
-check_tm( ((st_296) false_3), ?_7)
-infer_tm(((st_296) false_3))
-infer_tm(st_296)
-simpl_tm ~expand:false( ?_20, Type‹??_22›)
+delay_assert(?_26, ??_28)
+check_tm( ((st_309) false_3), ?_7)
+infer_tm(((st_309) false_3))
+infer_tm(st_309)
+simpl_tm ~expand:false( ?_26, Type‹??_28›)
 check_tm( false_3, bool_2)
 infer_tm(false_3)
 assert_equal1( bool_2, bool_2)
 assert_equal1_ok( bool_2, bool_2)
 assert_equal1( ?_7,
   match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹s_241› A_295)
+  | true_2 => (stream_node_4‹s_254› A_308)
   | false_3 => unit_1‹L›)
 assert_equal1_extend( ?_7,
   match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹s_241› A_295)
+  | true_2 => (stream_node_4‹s_254› A_308)
   | false_3 => unit_1‹L›)
 infer_tm(?_8)
 simpl_tm ~expand:false( ?_7, unit_1‹L›)
-delay_assert(?_21, ??_23)
-simpl_tm ~expand:false( ?_21, Type‹??_23›)
+delay_assert(?_27, ??_29)
+simpl_tm ~expand:false( ?_27, Type‹??_29›)
 check_cls {|
   prblm {| ; {|  ::: [tt_1] =>? tt_1‹??_9› |} |}
-  a := ∀ (_309 : unit_1‹L›) -o ?_8
+  a := ∀ (_321 : unit_1‹L›) -o ?_8
 |}
 case_intro
-case_introed(_310 : unit_1‹L›)
+case_introed(_322 : unit_1‹L›)
 case_splitting
 splitting_on(tt_1)
 case_coverage{|
@@ -746,39 +817,39 @@ begin_dump
     
   |}
   smeta_meta {|
-    ??_1 <= s_315
-    ??_2 <= s_316
-    ??_3 <= s_317
+    ??_1 <= s_327
+    ??_2 <= s_328
+    ??_3 <= s_329
     ??_4 <= L
-    ??_5 <= s_319
-    ??_6 <= s_320
+    ??_5 <= s_331
+    ??_6 <= s_332
     ??_7 <= L
-    ??_8 <= s_322
-    ??_10 <= s_323
-    ??_16 <= U
-    ??_17 <= U
-    ??_18 <= U
-    ??_19 <= U
-    ??_20 <= U
-    ??_21 <= U
+    ??_8 <= s_334
+    ??_10 <= s_335
+    ??_22 <= U
+    ??_23 <= U
+    ??_24 <= U
+    ??_25 <= U
+    ??_26 <= U
+    ??_27 <= U
     
   |}
   imeta_meta {|
     ?_1 <= bool_2
-    ?_2 <= L
+    ?_2 <= Type‹??_4›
     ?_3 <= L
     ?_4 <= bool_2
-    ?_5 <= L
+    ?_5 <= Type‹??_7›
     ?_6 <= ?_3
     ?_7 <= unit_1‹L›
-    ?_14 <= Type‹??_16›
-    ?_15 <= Type‹??_17›
-    ?_16 <= Type‹??_18›
-    ?_17 <= Type‹??_19›
-    ?_18 <= Type‹??_20›
-    ?_19 <= Type‹??_21›
     ?_20 <= Type‹??_22›
     ?_21 <= Type‹??_23›
+    ?_22 <= Type‹??_24›
+    ?_23 <= Type‹??_25›
+    ?_24 <= Type‹??_26›
+    ?_25 <= Type‹??_27›
+    ?_26 <= Type‹??_28›
+    ?_27 <= Type‹??_29›
     
   |}
   eqns {|
@@ -788,40 +859,50 @@ begin_dump
 end_dump
 simpl_tm ~expand:false( unit_1‹U›, ?_8)
 simpl_tm ~expand:false( unit_1‹U›, unit_1‹??_9›)
-infer_tm(Type‹??_22›)
-check_tm( unit_1‹L›, Type‹??_22›)
+infer_tm(Type‹??_28›)
+check_tm( unit_1‹L›, Type‹??_28›)
 infer_tm(unit_1‹L›)
-assert_equal1( Type‹??_22›, L)
-assert_equal1_extend( Type‹??_22›, L)
-simpl_tm ~expand:false( Type‹??_22›, L)
-infer_tm(Type‹??_23›)
-check_tm( unit_1‹U›, Type‹??_23›)
+assert_equal1( Type‹??_28›, L)
+assert_equal1_extend( Type‹??_28›, L)
+simpl_tm ~expand:false( Type‹??_28›, L)
+infer_tm(Type‹??_29›)
+check_tm( unit_1‹U›, Type‹??_29›)
 infer_tm(unit_1‹U›)
-assert_equal1( Type‹??_23›, U)
-assert_equal1_extend( Type‹??_23›, U)
-simpl_tm ~expand:false( Type‹??_23›, U)
+assert_equal1( Type‹??_29›, U)
+assert_equal1_extend( Type‹??_29›, U)
+simpl_tm ~expand:false( Type‹??_29›, U)
 ----------------------------------
 
 definition-------------------------
-infer_tm(nat_3 -> ((stream_1‹??_14›) nat_3))
+infer_tm(((stream_1‹??_15›) nat_3) -> ((stream_1‹??_16›) nat_3))
+infer_tm(((stream_1‹??_15›) nat_3))
+infer_tm(stream_1‹??_15›)
+check_tm( nat_3, Type‹??_15›)
 infer_tm(nat_3)
-infer_tm(((stream_1‹??_14›) nat_3))
-infer_tm(stream_1‹??_14›)
-check_tm( nat_3, Type‹??_14›)
+assert_equal1( Type‹??_15›, U)
+assert_equal1_extend( Type‹??_15›, U)
+simpl_tm ~expand:false( Type‹??_15›, U)
+infer_tm(((stream_1‹??_16›) nat_3))
+infer_tm(stream_1‹??_16›)
+check_tm( nat_3, Type‹??_16›)
 infer_tm(nat_3)
-assert_equal1( Type‹??_14›, U)
-assert_equal1_extend( Type‹??_14›, U)
-simpl_tm ~expand:false( Type‹??_14›, U)
+assert_equal1( Type‹??_16›, U)
+assert_equal1_extend( Type‹??_16›, U)
+simpl_tm ~expand:false( Type‹??_16›, U)
 check_tm(
-  function nat_make_398 : nat_3 -> ((stream_1‹??_11›) nat_3)
-  | n_400 =>
-    function _401 : ?_9
+  function stream_succ_411 :
+    ((stream_1‹??_11›) nat_3) -> ((stream_1‹??_12›) nat_3)
+  | xs_413 =>
+    function _414 : ?_9
     | true_2 =>
-      (stream_cons_7‹??_12› n_400 ((nat_make_398) (succ_5‹› n_400)))
-    | false_3 => tt_1‹??_13›,
-  nat_3 -> ((stream_1‹??_14›) nat_3))
-infer_tm(nat_3 -> ((stream_1‹??_11›) nat_3))
-infer_tm(nat_3)
+      match ((xs_413) true_2) in ∀ (_415 : ?_10) -o ?_11 with
+      | stream_nil_6 => stream_nil_6‹??_13›
+      | (stream_cons_7 hd_416 tl_417) =>
+        (stream_cons_7‹??_14›
+          (succ_5‹› hd_416) ((stream_succ_411) tl_417))
+    | false_3 => ((xs_413) false_3),
+  ((stream_1‹??_15›) nat_3) -> ((stream_1‹??_16›) nat_3))
+infer_tm(((stream_1‹??_11›) nat_3) -> ((stream_1‹??_12›) nat_3))
 infer_tm(((stream_1‹??_11›) nat_3))
 infer_tm(stream_1‹??_11›)
 check_tm( nat_3, Type‹??_11›)
@@ -829,10 +910,512 @@ infer_tm(nat_3)
 assert_equal1( Type‹??_11›, U)
 assert_equal1_extend( Type‹??_11›, U)
 simpl_tm ~expand:false( Type‹??_11›, U)
-assert_equal1( nat_3 -> ((stream_1‹??_14›) nat_3),
-  nat_3 -> ((stream_1‹??_11›) nat_3))
-assert_equal1_extend( nat_3 -> ((stream_1‹??_14›) nat_3),
-  nat_3 -> ((stream_1‹??_11›) nat_3))
+infer_tm(((stream_1‹??_12›) nat_3))
+infer_tm(stream_1‹??_12›)
+check_tm( nat_3, Type‹??_12›)
+infer_tm(nat_3)
+assert_equal1( Type‹??_12›, U)
+assert_equal1_extend( Type‹??_12›, U)
+simpl_tm ~expand:false( Type‹??_12›, U)
+assert_equal1(
+  ((stream_1‹??_15›) nat_3) -> ((stream_1‹??_16›) nat_3),
+  ((stream_1‹??_11›) nat_3) -> ((stream_1‹??_12›) nat_3))
+assert_equal1_extend(
+  ((stream_1‹??_15›) nat_3) -> ((stream_1‹??_16›) nat_3),
+  ((stream_1‹??_11›) nat_3) -> ((stream_1‹??_12›) nat_3))
+simpl_tm ~expand:false(
+  ((stream_1‹U›) nat_3) -> ((stream_1‹U›) nat_3),
+  ((stream_1‹U›) nat_3) -> ((stream_1‹U›) nat_3))
+simpl_tm ~expand:false( ((stream_1‹U›) nat_3), ((stream_1‹U›) nat_3))
+simpl_tm ~expand:false( stream_1‹U›, stream_1‹U›)
+simpl_tm ~expand:false( nat_3, nat_3)
+simpl_tm ~expand:false( ((stream_1‹U›) nat_3), ((stream_1‹U›) nat_3))
+simpl_tm ~expand:false( stream_1‹U›, stream_1‹U›)
+simpl_tm ~expand:false( nat_3, nat_3)
+check_cls {|
+  prblm {| ;
+    {|  ::: [xs_429] =>?
+         function _436 : ?_9
+         | true_2 =>
+           match ((#xs_429) true_2) in ∀ (_437 : ?_10) -o ?_11 with
+           | stream_nil_6 => stream_nil_6‹??_13›
+           | (stream_cons_7 hd_438 tl_439) =>
+             (stream_cons_7‹??_14›
+               (succ_5‹› hd_438) ((stream_succ_419) tl_439))
+         | false_3 => ((#xs_429) false_3)
+    |}
+  |}
+  a := ((stream_1‹U›) nat_3) -> ((stream_1‹U›) nat_3)
+|}
+case_intro
+case_introed(xs_441 : ((stream_1‹U›) nat_3))
+case_coverage{|
+  prblm {| ;
+    {| eq_pat?( #xs_441, xs_429 : ((stream_1‹U›) nat_3)) ::: [] =>?
+         function _442 : ?_9
+         | true_2 =>
+           match ((#xs_429) true_2) in ∀ (_443 : ?_10) -o ?_11 with
+           | stream_nil_6 => stream_nil_6‹??_13›
+           | (stream_cons_7 hd_444 tl_445) =>
+             (stream_cons_7‹??_14›
+               (succ_5‹› hd_444) ((stream_succ_419) tl_445))
+         | false_3 => ((#xs_429) false_3)
+    |}
+  |}
+|}
+unify_local( eq_pat?( #xs_441, xs_429 : ((stream_1‹U›) nat_3)) )
+unify_global(  )
+simpl_pprbm ~expand:false( #xs_441, #xs_429)
+case_coverage_ok(
+  function _454 : ?_9
+  | true_2 =>
+    match ((xs_441) true_2) in ∀ (_455 : ?_10) -o ?_11 with
+    | stream_nil_6 => stream_nil_6‹??_13›
+    | (stream_cons_7 hd_456 tl_457) =>
+      (stream_cons_7‹??_14›
+        (succ_5‹› hd_456) ((stream_succ_419) tl_457))
+  | false_3 => ((xs_441) false_3), ((stream_1‹U›) nat_3))
+check_tm(
+  function _458 : ?_9
+  | true_2 =>
+    match ((xs_441) true_2) in ∀ (_459 : ?_10) -o ?_11 with
+    | stream_nil_6 => stream_nil_6‹??_13›
+    | (stream_cons_7 hd_460 tl_461) =>
+      (stream_cons_7‹??_14›
+        (succ_5‹› hd_460) ((stream_succ_419) tl_461))
+  | false_3 => ((xs_441) false_3), ((stream_1‹U›) nat_3))
+infer_tm(?_9)
+delay_assert(?_28, ??_30)
+assert_equal1( ((stream_1‹U›) nat_3), ?_9)
+assert_equal1_extend( ((stream_1‹U›) nat_3), ?_9)
+simpl_tm ~expand:false( ((stream_1‹U›) nat_3), ?_9)
+simpl_tm ~expand:false( ?_28, Type‹??_30›)
+check_cls {|
+  prblm {| ;
+    {|  ::: [true_2] =>?
+         match ((xs_441) true_2) in ∀ (_463 : ?_10) -o ?_11 with
+         | stream_nil_6 => stream_nil_6‹??_13›
+         | (stream_cons_7 hd_464 tl_465) =>
+           (stream_cons_7‹??_14›
+             (succ_5‹› hd_464) ((stream_succ_419) tl_465))
+    |} {|  ::: [false_3] =>? ((xs_441) false_3) |}
+  |}
+  a := ((stream_1‹U›) nat_3)
+|}
+case_intro
+case_introed(b_466 : bool_2)
+case_splitting
+splitting_on(true_2)
+case_coverage{|
+  prblm {| eq_term?( bool_2, bool_2);
+    {|  ::: [] =>?
+         match ((xs_441) true_2) in ∀ (_469 : ?_10) -o ?_11 with
+         | stream_nil_6 => stream_nil_6‹??_13›
+         | (stream_cons_7 hd_470 tl_471) =>
+           (stream_cons_7‹??_14›
+             (succ_5‹› hd_470) ((stream_succ_419) tl_471))
+    |}
+  |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_2, bool_2) )
+simpl_pprbm ~expand:false( bool_2, bool_2)
+case_coverage_ok(
+  match ((xs_441) true_2) in ∀ (_477 : ?_10) -o ?_11 with
+  | stream_nil_6 => stream_nil_6‹??_13›
+  | (stream_cons_7 hd_478 tl_479) =>
+    (stream_cons_7‹??_14›
+      (succ_5‹› hd_478) ((stream_succ_419) tl_479)),
+  match true_2 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›)
+check_tm(
+  match ((xs_441) true_2) in ∀ (_481 : ?_10) -o ?_11 with
+  | stream_nil_6 => stream_nil_6‹??_13›
+  | (stream_cons_7 hd_482 tl_483) =>
+    (stream_cons_7‹??_14›
+      (succ_5‹› hd_482) ((stream_succ_419) tl_483)),
+  match true_2 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›)
+infer_tm(match ((xs_441) true_2) in ∀ (_485 : ?_10) -o ?_11 with
+         | stream_nil_6 => stream_nil_6‹??_13›
+         | (stream_cons_7 hd_486 tl_487) =>
+           (stream_cons_7‹??_14›
+             (succ_5‹› hd_486) ((stream_succ_419) tl_487)))
+infer_motive(((xs_441) true_2) : ?_10)
+infer_tm(?_10)
+delay_assert(?_29, ??_31)
+check_tm( ((xs_441) true_2), ?_10)
+infer_tm(((xs_441) true_2))
+infer_tm(xs_441)
+simpl_tm ~expand:false( ?_29, Type‹??_31›)
+check_tm( true_2, bool_2)
+infer_tm(true_2)
+assert_equal1( bool_2, bool_2)
+assert_equal1_ok( bool_2, bool_2)
+assert_equal1( ?_10,
+  match true_2 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›)
+assert_equal1_extend( ?_10,
+  match true_2 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›)
+infer_tm(?_11)
+simpl_tm ~expand:false( ?_10, (stream_node_4‹U› nat_3))
+delay_assert(?_30, ??_32)
+simpl_tm ~expand:false( ?_30, Type‹??_32›)
+check_cls {|
+  prblm {| ;
+    {|  ::: [stream_nil_6] =>? stream_nil_6‹??_13› |}
+    {|  ::: [(stream_cons_7 hd_491 tl_492)] =>?
+         (stream_cons_7‹??_14›
+           (succ_5‹› #hd_491) ((stream_succ_419) #tl_492))
+    |}
+  |}
+  a := ∀ (_494 : (stream_node_4‹U› nat_3)) -o ?_11
+|}
+case_intro
+case_introed(_495 : (stream_node_4‹U› nat_3))
+case_splitting
+splitting_on(stream_nil_6)
+case_coverage{|
+  prblm {|
+    eq_term?( (stream_node_4‹U› nat_3), (stream_node_4‹U› nat_3));
+    {|  ::: [] =>? stream_nil_6‹??_13› |}
+  |}
+|}
+unify_local(  )
+unify_global(
+  eq_term?( (stream_node_4‹U› nat_3), (stream_node_4‹U› nat_3))
+)
+simpl_pprbm ~expand:false( (stream_node_4‹U› nat_3),
+  (stream_node_4‹U› nat_3))
+simpl_pprbm ~expand:false( nat_3, nat_3)
+case_coverage_ok( stream_nil_6‹??_13›, ?_11)
+check_tm( stream_nil_6‹??_13›, ?_11)
+infer_tm(stream_nil_6‹??_13›)
+check_tm( ?_12, Type‹??_13›)
+assert_equal1( ?_11, (stream_node_4‹??_13› ?_12))
+assert_equal1_extend( ?_11, (stream_node_4‹??_13› ?_12))
+splitting_on(stream_cons_7)
+case_coverage{|
+  prblm {|
+    eq_term?( (stream_node_4‹U› nat_3), (stream_node_4‹U› nat_3));
+    {| eq_pat?( #hd_498, hd_491 : nat_3)
+       eq_pat?( #tl_499, tl_492 :
+         ∀ (b_503 : bool_2) -o
+           match b_503 in bool_2 -o L with
+           | true_2 => (stream_node_4‹U› nat_3)
+           | false_3 => unit_1‹L›) ::: [] =>?
+         (stream_cons_7‹??_14›
+           (succ_5‹› #hd_491) ((stream_succ_419) #tl_492))
+    |}
+  |}
+|}
+unify_local(
+  eq_pat?( #hd_498, hd_491 : nat_3)
+  eq_pat?( #tl_499, tl_492 :
+    ∀ (b_505 : bool_2) -o
+      match b_505 in bool_2 -o L with
+      | true_2 => (stream_node_4‹U› nat_3)
+      | false_3 => unit_1‹L›)
+)
+unify_global(
+  eq_term?( (stream_node_4‹U› nat_3), (stream_node_4‹U› nat_3))
+)
+simpl_pprbm ~expand:false( #hd_498, #hd_491)
+simpl_pprbm ~expand:false( #tl_499, #tl_492)
+simpl_pprbm ~expand:false( (stream_node_4‹U› nat_3),
+  (stream_node_4‹U› nat_3))
+simpl_pprbm ~expand:false( nat_3, nat_3)
+case_coverage_ok(
+  (stream_cons_7‹??_14› (succ_5‹› hd_498) ((stream_succ_419) tl_499)),
+  ?_11)
+check_tm(
+  (stream_cons_7‹??_14› (succ_5‹› hd_498) ((stream_succ_419) tl_499)),
+  ?_11)
+infer_tm((stream_cons_7‹??_14›
+           (succ_5‹› hd_498) ((stream_succ_419) tl_499)))
+check_tm( ?_13, Type‹??_14›)
+check_tm( (succ_5‹› hd_498), ?_13)
+infer_tm((succ_5‹› hd_498))
+check_tm( hd_498, nat_3)
+infer_tm(hd_498)
+assert_equal1( nat_3, nat_3)
+assert_equal1_ok( nat_3, nat_3)
+assert_equal1( ?_13, nat_3)
+assert_equal1_extend( ?_13, nat_3)
+check_tm( ((stream_succ_419) tl_499),
+  ∀ (b_510 : bool_2) -o
+    match b_510 in bool_2 -o L with
+    | true_2 => (stream_node_4‹??_14› ?_13)
+    | false_3 => unit_1‹L›)
+infer_tm(((stream_succ_419) tl_499))
+infer_tm(stream_succ_419)
+simpl_tm ~expand:false( ?_13, nat_3)
+simpl_tm ~expand:false( ?_11, (stream_node_4‹??_13› ?_12))
+check_tm( tl_499, ((stream_1‹U›) nat_3))
+infer_tm(tl_499)
+assert_equal1( ((stream_1‹U›) nat_3),
+  ∀ (b_514 : bool_2) -o
+    match b_514 in bool_2 -o L with
+    | true_2 => (stream_node_4‹U› nat_3)
+    | false_3 => unit_1‹L›)
+assert_equal1_ok( ((stream_1‹U›) nat_3),
+  ∀ (b_518 : bool_2) -o
+    match b_518 in bool_2 -o L with
+    | true_2 => (stream_node_4‹U› nat_3)
+    | false_3 => unit_1‹L›)
+assert_equal1(
+  ∀ (b_520 : bool_2) -o
+    match b_520 in bool_2 -o L with
+    | true_2 => (stream_node_4‹??_14› ?_13)
+    | false_3 => unit_1‹L›,
+  ((stream_1‹U›) nat_3))
+assert_equal1_extend(
+  ∀ (b_525 : bool_2) -o
+    match b_525 in bool_2 -o L with
+    | true_2 => (stream_node_4‹??_14› ?_13)
+    | false_3 => unit_1‹L›,
+  ((stream_1‹U›) nat_3))
+assert_equal1( ?_11, (stream_node_4‹??_14› ?_13))
+assert_equal1_extend( ?_11, (stream_node_4‹??_14› ?_13))
+assert_equal1(
+  match true_2 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›, ?_11)
+assert_equal1_extend(
+  match true_2 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›, ?_11)
+splitting_on(false_3)
+case_coverage{|
+  prblm {| eq_term?( bool_2, bool_2); {|  ::: [] =>? ((xs_441) false_3) |} |}
+|}
+unify_local(  )
+unify_global( eq_term?( bool_2, bool_2) )
+simpl_pprbm ~expand:false( bool_2, bool_2)
+case_coverage_ok( ((xs_441) false_3),
+  match false_3 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›)
+check_tm( ((xs_441) false_3),
+  match false_3 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›)
+infer_tm(((xs_441) false_3))
+infer_tm(xs_441)
+simpl_tm ~expand:false( (stream_node_4‹U› nat_3),
+  (stream_node_4‹??_13› ?_12))
+simpl_tm ~expand:false( nat_3, ?_12)
+simpl_tm ~expand:false( nat_3, ?_12)
+simpl_tm ~expand:false( (stream_node_4‹U› nat_3),
+  (stream_node_4‹??_14› nat_3))
+simpl_tm ~expand:false( nat_3, nat_3)
+simpl_tm ~expand:false(
+  ∀ (b_538 : bool_2) -o
+    match b_538 in bool_2 -o L with
+    | true_2 => (stream_node_4‹U› nat_3)
+    | false_3 => unit_1‹L›,
+  ((stream_1‹U›) nat_3))
+simpl_tm ~expand:false(
+  ∀ (b_540 : bool_2) -o
+    match b_540 in bool_2 -o L with
+    | true_2 => (stream_node_4‹U› nat_3)
+    | false_3 => unit_1‹L›,
+  stream_1‹U›)
+simpl_tm ~expand:true(
+  ∀ (b_542 : bool_2) -o
+    match b_542 in bool_2 -o L with
+    | true_2 => (stream_node_4‹U› nat_3)
+    | false_3 => unit_1‹L›,
+  function stream_544 : U -> L
+  | A_546 =>
+    ∀ (b_547 : bool_2) -o
+      match b_547 in bool_2 -o L with
+      | true_2 => (stream_node_4‹U› A_546)
+      | false_3 => unit_1‹L›)
+simpl_tm ~expand:true(
+  ∀ (b_556 : bool_2) -o
+    match b_556 in bool_2 -o L with
+    | true_2 => (stream_node_4‹U› nat_3)
+    | false_3 => unit_1‹L›,
+  ∀ (b_558 : bool_2) -o
+    match b_558 in bool_2 -o L with
+    | true_2 => (stream_node_4‹U› nat_3)
+    | false_3 => unit_1‹L›)
+simpl_tm ~expand:false( bool_2, bool_2)
+simpl_tm ~expand:false(
+  match b_560 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›,
+  match b_560 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›)
+simpl_tm ~expand:false( b_560, b_560)
+simpl_tm ~expand:false( bool_2 -o L, bool_2 -o L)
+simpl_tm ~expand:false( bool_2, bool_2)
+simpl_tm ~expand:false( L, L)
+simpl_tm ~expand:false( (stream_node_4‹U› nat_3),
+  (stream_node_4‹U› nat_3))
+simpl_tm ~expand:false( nat_3, nat_3)
+simpl_tm ~expand:false( unit_1‹L›, unit_1‹L›)
+check_tm( false_3, bool_2)
+infer_tm(false_3)
+assert_equal1( bool_2, bool_2)
+assert_equal1_ok( bool_2, bool_2)
+assert_equal1(
+  match false_3 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›,
+  match false_3 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›)
+assert_equal1_ok(
+  match false_3 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›,
+  match false_3 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›)
+begin_dump
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_571
+    ??_2 <= s_572
+    ??_3 <= s_573
+    ??_4 <= L
+    ??_5 <= s_575
+    ??_6 <= s_576
+    ??_7 <= L
+    ??_8 <= s_578
+    ??_9 <= U
+    ??_10 <= s_580
+    ??_11 <= U
+    ??_12 <= U
+    ??_13 <= U
+    ??_14 <= U
+    ??_15 <= U
+    ??_16 <= U
+    ??_22 <= U
+    ??_23 <= U
+    ??_24 <= U
+    ??_25 <= U
+    ??_26 <= U
+    ??_27 <= U
+    ??_28 <= L
+    ??_29 <= U
+    
+  |}
+  imeta_meta {|
+    ?_1 <= bool_2
+    ?_2 <= Type‹??_4›
+    ?_3 <= L
+    ?_4 <= bool_2
+    ?_5 <= Type‹??_7›
+    ?_6 <= ?_3
+    ?_7 <= unit_1‹L›
+    ?_8 <= unit_1‹U›
+    ?_9 <= ((stream_1‹U›) nat_3)
+    ?_10 <= (stream_node_4‹U› nat_3)
+    ?_11 <= (stream_node_4‹??_13› ?_12)
+    ?_12 <= nat_3
+    ?_13 <= nat_3
+    ?_20 <= Type‹??_22›
+    ?_21 <= Type‹??_23›
+    ?_22 <= Type‹??_24›
+    ?_23 <= Type‹??_25›
+    ?_24 <= Type‹??_26›
+    ?_25 <= Type‹??_27›
+    ?_26 <= Type‹??_28›
+    ?_27 <= Type‹??_29›
+    ?_28 <= Type‹??_30›
+    ?_29 <= Type‹??_31›
+    ?_30 <= Type‹??_32›
+    
+  |}
+  eqns {|
+    
+  |}
+end_dump
+infer_tm(Type‹??_30›)
+check_tm( ((stream_1‹U›) nat_3), Type‹??_30›)
+infer_tm(((stream_1‹U›) nat_3))
+infer_tm(stream_1‹U›)
+check_tm( nat_3, U)
+infer_tm(nat_3)
+assert_equal1( U, U)
+assert_equal1_ok( U, U)
+assert_equal1( Type‹??_30›, L)
+assert_equal1_extend( Type‹??_30›, L)
+simpl_tm ~expand:false( Type‹??_30›, L)
+infer_tm(Type‹??_31›)
+check_tm( (stream_node_4‹U› nat_3), Type‹??_31›)
+infer_tm((stream_node_4‹U› nat_3))
+check_tm( nat_3, U)
+infer_tm(nat_3)
+assert_equal1( U, U)
+assert_equal1_ok( U, U)
+assert_equal1( Type‹??_31›, L)
+assert_equal1_extend( Type‹??_31›, L)
+simpl_tm ~expand:false( Type‹??_31›, L)
+infer_tm(Type‹??_32›)
+check_tm( (stream_node_4‹U› nat_3), Type‹??_32›)
+infer_tm((stream_node_4‹U› nat_3))
+check_tm( nat_3, U)
+infer_tm(nat_3)
+assert_equal1( U, U)
+assert_equal1_ok( U, U)
+assert_equal1( Type‹??_32›, L)
+assert_equal1_extend( Type‹??_32›, L)
+simpl_tm ~expand:false( Type‹??_32›, L)
+infer_tm(U)
+check_tm( nat_3, U)
+infer_tm(nat_3)
+assert_equal1( U, U)
+assert_equal1_ok( U, U)
+infer_tm(U)
+check_tm( nat_3, U)
+infer_tm(nat_3)
+assert_equal1( U, U)
+assert_equal1_ok( U, U)
+----------------------------------
+
+definition-------------------------
+infer_tm(nat_3 -> ((stream_1‹??_20›) nat_3))
+infer_tm(nat_3)
+infer_tm(((stream_1‹??_20›) nat_3))
+infer_tm(stream_1‹??_20›)
+check_tm( nat_3, Type‹??_20›)
+infer_tm(nat_3)
+assert_equal1( Type‹??_20›, U)
+assert_equal1_extend( Type‹??_20›, U)
+simpl_tm ~expand:false( Type‹??_20›, U)
+check_tm(
+  function nat_make_691 : nat_3 -> ((stream_1‹??_17›) nat_3)
+  | n_693 =>
+    function _694 : ?_14
+    | true_2 =>
+      (stream_cons_7‹??_18› n_693 ((nat_make_691) (succ_5‹› n_693)))
+    | false_3 => tt_1‹??_19›,
+  nat_3 -> ((stream_1‹??_20›) nat_3))
+infer_tm(nat_3 -> ((stream_1‹??_17›) nat_3))
+infer_tm(nat_3)
+infer_tm(((stream_1‹??_17›) nat_3))
+infer_tm(stream_1‹??_17›)
+check_tm( nat_3, Type‹??_17›)
+infer_tm(nat_3)
+assert_equal1( Type‹??_17›, U)
+assert_equal1_extend( Type‹??_17›, U)
+simpl_tm ~expand:false( Type‹??_17›, U)
+assert_equal1( nat_3 -> ((stream_1‹??_20›) nat_3),
+  nat_3 -> ((stream_1‹??_17›) nat_3))
+assert_equal1_extend( nat_3 -> ((stream_1‹??_20›) nat_3),
+  nat_3 -> ((stream_1‹??_17›) nat_3))
 simpl_tm ~expand:false( nat_3 -> ((stream_1‹U›) nat_3),
   nat_3 -> ((stream_1‹U›) nat_3))
 simpl_tm ~expand:false( nat_3, nat_3)
@@ -841,66 +1424,66 @@ simpl_tm ~expand:false( stream_1‹U›, stream_1‹U›)
 simpl_tm ~expand:false( nat_3, nat_3)
 check_cls {|
   prblm {| ;
-    {|  ::: [n_416] =>?
-         function _423 : ?_9
+    {|  ::: [n_709] =>?
+         function _716 : ?_14
          | true_2 =>
-           (stream_cons_7‹??_12›
-             #n_416 ((nat_make_403) (succ_5‹› #n_416)))
-         | false_3 => tt_1‹??_13›
+           (stream_cons_7‹??_18›
+             #n_709 ((nat_make_696) (succ_5‹› #n_709)))
+         | false_3 => tt_1‹??_19›
     |}
   |}
   a := nat_3 -> ((stream_1‹U›) nat_3)
 |}
 case_intro
-case_introed(n_425 : nat_3)
+case_introed(n_718 : nat_3)
 case_coverage{|
   prblm {| ;
-    {| eq_pat?( #n_425, n_416 : nat_3) ::: [] =>?
-         function _426 : ?_9
+    {| eq_pat?( #n_718, n_709 : nat_3) ::: [] =>?
+         function _719 : ?_14
          | true_2 =>
-           (stream_cons_7‹??_12›
-             #n_416 ((nat_make_403) (succ_5‹› #n_416)))
-         | false_3 => tt_1‹??_13›
+           (stream_cons_7‹??_18›
+             #n_709 ((nat_make_696) (succ_5‹› #n_709)))
+         | false_3 => tt_1‹??_19›
     |}
   |}
 |}
-unify_local( eq_pat?( #n_425, n_416 : nat_3) )
+unify_local( eq_pat?( #n_718, n_709 : nat_3) )
 unify_global(  )
-simpl_pprbm ~expand:false( #n_425, #n_416)
+simpl_pprbm ~expand:false( #n_718, #n_709)
 case_coverage_ok(
-  function _430 : ?_9
+  function _722 : ?_14
   | true_2 =>
-    (stream_cons_7‹??_12› n_425 ((nat_make_403) (succ_5‹› n_425)))
-  | false_3 => tt_1‹??_13›, ((stream_1‹U›) nat_3))
+    (stream_cons_7‹??_18› n_718 ((nat_make_696) (succ_5‹› n_718)))
+  | false_3 => tt_1‹??_19›, ((stream_1‹U›) nat_3))
 check_tm(
-  function _431 : ?_9
+  function _723 : ?_14
   | true_2 =>
-    (stream_cons_7‹??_12› n_425 ((nat_make_403) (succ_5‹› n_425)))
-  | false_3 => tt_1‹??_13›, ((stream_1‹U›) nat_3))
-infer_tm(?_9)
-delay_assert(?_22, ??_24)
-assert_equal1( ((stream_1‹U›) nat_3), ?_9)
-assert_equal1_extend( ((stream_1‹U›) nat_3), ?_9)
-simpl_tm ~expand:false( ((stream_1‹U›) nat_3), ?_9)
-simpl_tm ~expand:false( ?_22, Type‹??_24›)
+    (stream_cons_7‹??_18› n_718 ((nat_make_696) (succ_5‹› n_718)))
+  | false_3 => tt_1‹??_19›, ((stream_1‹U›) nat_3))
+infer_tm(?_14)
+delay_assert(?_31, ??_33)
+assert_equal1( ((stream_1‹U›) nat_3), ?_14)
+assert_equal1_extend( ((stream_1‹U›) nat_3), ?_14)
+simpl_tm ~expand:false( ((stream_1‹U›) nat_3), ?_14)
+simpl_tm ~expand:false( ?_31, Type‹??_33›)
 check_cls {|
   prblm {| ;
     {|  ::: [true_2] =>?
-         (stream_cons_7‹??_12›
-           n_425 ((nat_make_403) (succ_5‹› n_425)))
-    |} {|  ::: [false_3] =>? tt_1‹??_13› |}
+         (stream_cons_7‹??_18›
+           n_718 ((nat_make_696) (succ_5‹› n_718)))
+    |} {|  ::: [false_3] =>? tt_1‹??_19› |}
   |}
   a := ((stream_1‹U›) nat_3)
 |}
 case_intro
-case_introed(b_433 : bool_2)
+case_introed(b_725 : bool_2)
 case_splitting
 splitting_on(true_2)
 case_coverage{|
   prblm {| eq_term?( bool_2, bool_2);
     {|  ::: [] =>?
-         (stream_cons_7‹??_12›
-           n_425 ((nat_make_403) (succ_5‹› n_425)))
+         (stream_cons_7‹??_18›
+           n_718 ((nat_make_696) (succ_5‹› n_718)))
     |}
   |}
 |}
@@ -908,181 +1491,146 @@ unify_local(  )
 unify_global( eq_term?( bool_2, bool_2) )
 simpl_pprbm ~expand:false( bool_2, bool_2)
 case_coverage_ok(
-  (stream_cons_7‹??_12› n_425 ((nat_make_403) (succ_5‹› n_425))),
+  (stream_cons_7‹??_18› n_718 ((nat_make_696) (succ_5‹› n_718))),
   match true_2 in bool_2 -o L with
   | true_2 => (stream_node_4‹U› nat_3)
   | false_3 => unit_1‹L›)
 check_tm(
-  (stream_cons_7‹??_12› n_425 ((nat_make_403) (succ_5‹› n_425))),
+  (stream_cons_7‹??_18› n_718 ((nat_make_696) (succ_5‹› n_718))),
   match true_2 in bool_2 -o L with
   | true_2 => (stream_node_4‹U› nat_3)
   | false_3 => unit_1‹L›)
-infer_tm((stream_cons_7‹??_12›
-           n_425 ((nat_make_403) (succ_5‹› n_425))))
-check_tm( ?_10, Type‹??_12›)
-check_tm( n_425, ?_10)
-infer_tm(n_425)
-assert_equal1( ?_10, nat_3)
-assert_equal1_extend( ?_10, nat_3)
-check_tm( ((nat_make_403) (succ_5‹› n_425)),
-  ∀ (b_441 : bool_2) -o
-    match b_441 in bool_2 -o L with
-    | true_2 => (stream_node_4‹??_12› ?_10)
+infer_tm((stream_cons_7‹??_18›
+           n_718 ((nat_make_696) (succ_5‹› n_718))))
+check_tm( ?_15, Type‹??_18›)
+check_tm( n_718, ?_15)
+infer_tm(n_718)
+assert_equal1( ?_15, nat_3)
+assert_equal1_extend( ?_15, nat_3)
+check_tm( ((nat_make_696) (succ_5‹› n_718)),
+  ∀ (b_732 : bool_2) -o
+    match b_732 in bool_2 -o L with
+    | true_2 => (stream_node_4‹??_18› ?_15)
     | false_3 => unit_1‹L›)
-infer_tm(((nat_make_403) (succ_5‹› n_425)))
-infer_tm(nat_make_403)
-simpl_tm ~expand:false( ?_10, nat_3)
-check_tm( (succ_5‹› n_425), nat_3)
-infer_tm((succ_5‹› n_425))
-check_tm( n_425, nat_3)
-infer_tm(n_425)
+infer_tm(((nat_make_696) (succ_5‹› n_718)))
+infer_tm(nat_make_696)
+simpl_tm ~expand:false( ?_15, nat_3)
+check_tm( (succ_5‹› n_718), nat_3)
+infer_tm((succ_5‹› n_718))
+check_tm( n_718, nat_3)
+infer_tm(n_718)
 assert_equal1( nat_3, nat_3)
 assert_equal1_ok( nat_3, nat_3)
 assert_equal1( nat_3, nat_3)
 assert_equal1_ok( nat_3, nat_3)
 assert_equal1(
-  ∀ (b_444 : bool_2) -o
-    match b_444 in bool_2 -o L with
-    | true_2 => (stream_node_4‹??_12› ?_10)
+  ∀ (b_735 : bool_2) -o
+    match b_735 in bool_2 -o L with
+    | true_2 => (stream_node_4‹??_18› ?_15)
     | false_3 => unit_1‹L›,
   ((stream_1‹U›) nat_3))
 assert_equal1_extend(
-  ∀ (b_449 : bool_2) -o
-    match b_449 in bool_2 -o L with
-    | true_2 => (stream_node_4‹??_12› ?_10)
+  ∀ (b_740 : bool_2) -o
+    match b_740 in bool_2 -o L with
+    | true_2 => (stream_node_4‹??_18› ?_15)
     | false_3 => unit_1‹L›,
   ((stream_1‹U›) nat_3))
 assert_equal1(
   match true_2 in bool_2 -o L with
   | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›, (stream_node_4‹??_12› ?_10))
+  | false_3 => unit_1‹L›, (stream_node_4‹??_18› ?_15))
 assert_equal1_extend(
   match true_2 in bool_2 -o L with
   | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›, (stream_node_4‹??_12› ?_10))
+  | false_3 => unit_1‹L›, (stream_node_4‹??_18› ?_15))
 splitting_on(false_3)
 case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2); {|  ::: [] =>? tt_1‹??_13› |} |}
+  prblm {| eq_term?( bool_2, bool_2); {|  ::: [] =>? tt_1‹??_19› |} |}
 |}
 unify_local(  )
 unify_global( eq_term?( bool_2, bool_2) )
 simpl_pprbm ~expand:false( bool_2, bool_2)
-simpl_tm ~expand:false( (stream_node_4‹U› nat_3),
-  (stream_node_4‹??_12› nat_3))
-simpl_tm ~expand:false( nat_3, nat_3)
-simpl_tm ~expand:false(
-  ∀ (b_460 : bool_2) -o
-    match b_460 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›,
-  ((stream_1‹U›) nat_3))
-simpl_tm ~expand:false(
-  ∀ (b_462 : bool_2) -o
-    match b_462 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›,
-  stream_1‹U›)
-simpl_tm ~expand:true(
-  ∀ (b_464 : bool_2) -o
-    match b_464 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›,
-  function stream_466 : U -> L
-  | A_468 =>
-    ∀ (b_469 : bool_2) -o
-      match b_469 in bool_2 -o L with
-      | true_2 => (stream_node_4‹U› A_468)
-      | false_3 => unit_1‹L›)
-simpl_tm ~expand:true(
-  ∀ (b_478 : bool_2) -o
-    match b_478 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›,
-  ∀ (b_480 : bool_2) -o
-    match b_480 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›)
-simpl_tm ~expand:false( bool_2, bool_2)
-simpl_tm ~expand:false(
-  match b_482 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›,
-  match b_482 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-simpl_tm ~expand:false( b_482, b_482)
-simpl_tm ~expand:false( bool_2 -o L, bool_2 -o L)
-simpl_tm ~expand:false( bool_2, bool_2)
-simpl_tm ~expand:false( L, L)
-simpl_tm ~expand:false( (stream_node_4‹U› nat_3),
-  (stream_node_4‹U› nat_3))
-simpl_tm ~expand:false( nat_3, nat_3)
-simpl_tm ~expand:false( unit_1‹L›, unit_1‹L›)
-case_coverage_ok( tt_1‹??_13›,
+case_coverage_ok( tt_1‹??_19›,
   match false_3 in bool_2 -o L with
   | true_2 => (stream_node_4‹U› nat_3)
   | false_3 => unit_1‹L›)
-check_tm( tt_1‹??_13›,
+check_tm( tt_1‹??_19›,
   match false_3 in bool_2 -o L with
   | true_2 => (stream_node_4‹U› nat_3)
   | false_3 => unit_1‹L›)
-infer_tm(tt_1‹??_13›)
+infer_tm(tt_1‹??_19›)
 assert_equal1(
   match false_3 in bool_2 -o L with
   | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›, unit_1‹??_13›)
+  | false_3 => unit_1‹L›, unit_1‹??_19›)
 assert_equal1_extend(
   match false_3 in bool_2 -o L with
   | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›, unit_1‹??_13›)
+  | false_3 => unit_1‹L›, unit_1‹??_19›)
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_493
-    ??_2 <= s_494
-    ??_3 <= s_495
+    ??_1 <= s_752
+    ??_2 <= s_753
+    ??_3 <= s_754
     ??_4 <= L
-    ??_5 <= s_497
-    ??_6 <= s_498
+    ??_5 <= s_756
+    ??_6 <= s_757
     ??_7 <= L
-    ??_8 <= s_500
+    ??_8 <= s_759
     ??_9 <= U
-    ??_10 <= s_502
+    ??_10 <= s_761
     ??_11 <= U
     ??_12 <= U
+    ??_13 <= U
     ??_14 <= U
+    ??_15 <= U
     ??_16 <= U
     ??_17 <= U
-    ??_18 <= U
-    ??_19 <= U
     ??_20 <= U
-    ??_21 <= U
-    ??_22 <= L
+    ??_22 <= U
     ??_23 <= U
+    ??_24 <= U
+    ??_25 <= U
+    ??_26 <= U
+    ??_27 <= U
+    ??_28 <= L
+    ??_29 <= U
+    ??_30 <= L
+    ??_31 <= L
+    ??_32 <= L
     
   |}
   imeta_meta {|
     ?_1 <= bool_2
-    ?_2 <= L
+    ?_2 <= Type‹??_4›
     ?_3 <= L
     ?_4 <= bool_2
-    ?_5 <= L
+    ?_5 <= Type‹??_7›
     ?_6 <= ?_3
     ?_7 <= unit_1‹L›
     ?_8 <= unit_1‹U›
     ?_9 <= ((stream_1‹U›) nat_3)
-    ?_10 <= nat_3
-    ?_14 <= Type‹??_16›
-    ?_15 <= Type‹??_17›
-    ?_16 <= Type‹??_18›
-    ?_17 <= Type‹??_19›
-    ?_18 <= Type‹??_20›
-    ?_19 <= Type‹??_21›
+    ?_10 <= (stream_node_4‹U› nat_3)
+    ?_11 <= (stream_node_4‹??_13› ?_12)
+    ?_12 <= nat_3
+    ?_13 <= nat_3
+    ?_14 <= ((stream_1‹U›) nat_3)
+    ?_15 <= nat_3
     ?_20 <= Type‹??_22›
     ?_21 <= Type‹??_23›
     ?_22 <= Type‹??_24›
+    ?_23 <= Type‹??_25›
+    ?_24 <= Type‹??_26›
+    ?_25 <= Type‹??_27›
+    ?_26 <= Type‹??_28›
+    ?_27 <= Type‹??_29›
+    ?_28 <= Type‹??_30›
+    ?_29 <= Type‹??_31›
+    ?_30 <= Type‹??_32›
+    ?_31 <= Type‹??_33›
     
   |}
   eqns {|
@@ -1090,21 +1638,83 @@ begin_dump
       (match false_3 in bool_2 -o L with
        | true_2 => (stream_node_4‹U› nat_3)
        | false_3 => unit_1‹L›,
-      unit_1‹??_13›)
+      unit_1‹??_19›);
+    equal_tm?
+      (match true_2 in bool_2 -o L with
+       | true_2 => (stream_node_4‹U› nat_3)
+       | false_3 => unit_1‹L›,
+      (stream_node_4‹??_18› ?_15));
+    equal_tm?
+      (∀ (b_856 : bool_2) -o
+         match b_856 in bool_2 -o L with
+         | true_2 => (stream_node_4‹??_18› ?_15)
+         | false_3 => unit_1‹L›,
+      ((stream_1‹U›) nat_3))
   |}
 end_dump
-simpl_tm ~expand:false( unit_1‹L›, unit_1‹??_13›)
-infer_tm(Type‹??_24›)
-check_tm( ((stream_1‹U›) nat_3), Type‹??_24›)
+simpl_tm ~expand:false( unit_1‹L›, unit_1‹??_19›)
+simpl_tm ~expand:false( (stream_node_4‹U› nat_3),
+  (stream_node_4‹??_18› nat_3))
+simpl_tm ~expand:false( nat_3, nat_3)
+simpl_tm ~expand:false(
+  ∀ (b_862 : bool_2) -o
+    match b_862 in bool_2 -o L with
+    | true_2 => (stream_node_4‹U› nat_3)
+    | false_3 => unit_1‹L›,
+  ((stream_1‹U›) nat_3))
+simpl_tm ~expand:false(
+  ∀ (b_864 : bool_2) -o
+    match b_864 in bool_2 -o L with
+    | true_2 => (stream_node_4‹U› nat_3)
+    | false_3 => unit_1‹L›,
+  stream_1‹U›)
+simpl_tm ~expand:true(
+  ∀ (b_866 : bool_2) -o
+    match b_866 in bool_2 -o L with
+    | true_2 => (stream_node_4‹U› nat_3)
+    | false_3 => unit_1‹L›,
+  function stream_868 : U -> L
+  | A_870 =>
+    ∀ (b_871 : bool_2) -o
+      match b_871 in bool_2 -o L with
+      | true_2 => (stream_node_4‹U› A_870)
+      | false_3 => unit_1‹L›)
+simpl_tm ~expand:true(
+  ∀ (b_880 : bool_2) -o
+    match b_880 in bool_2 -o L with
+    | true_2 => (stream_node_4‹U› nat_3)
+    | false_3 => unit_1‹L›,
+  ∀ (b_882 : bool_2) -o
+    match b_882 in bool_2 -o L with
+    | true_2 => (stream_node_4‹U› nat_3)
+    | false_3 => unit_1‹L›)
+simpl_tm ~expand:false( bool_2, bool_2)
+simpl_tm ~expand:false(
+  match b_884 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›,
+  match b_884 in bool_2 -o L with
+  | true_2 => (stream_node_4‹U› nat_3)
+  | false_3 => unit_1‹L›)
+simpl_tm ~expand:false( b_884, b_884)
+simpl_tm ~expand:false( bool_2 -o L, bool_2 -o L)
+simpl_tm ~expand:false( bool_2, bool_2)
+simpl_tm ~expand:false( L, L)
+simpl_tm ~expand:false( (stream_node_4‹U› nat_3),
+  (stream_node_4‹U› nat_3))
+simpl_tm ~expand:false( nat_3, nat_3)
+simpl_tm ~expand:false( unit_1‹L›, unit_1‹L›)
+infer_tm(Type‹??_33›)
+check_tm( ((stream_1‹U›) nat_3), Type‹??_33›)
 infer_tm(((stream_1‹U›) nat_3))
 infer_tm(stream_1‹U›)
 check_tm( nat_3, U)
 infer_tm(nat_3)
 assert_equal1( U, U)
 assert_equal1_ok( U, U)
-assert_equal1( Type‹??_24›, L)
-assert_equal1_extend( Type‹??_24›, L)
-simpl_tm ~expand:false( Type‹??_24›, L)
+assert_equal1( Type‹??_33›, L)
+assert_equal1_extend( Type‹??_33›, L)
+simpl_tm ~expand:false( Type‹??_33›, L)
 infer_tm(U)
 check_tm( nat_3, U)
 infer_tm(nat_3)
@@ -1113,244 +1723,405 @@ assert_equal1_ok( U, U)
 ----------------------------------
 
 definition-------------------------
-infer_tm(?_11)
-delay_assert(?_23, ??_25)
-check_tm( ((nat_make_3) zero_4), ?_11)
-infer_tm(((nat_make_3) zero_4))
-infer_tm(nat_make_3)
-simpl_tm ~expand:false( ?_23, Type‹??_25›)
+infer_tm(?_16)
+delay_assert(?_32, ??_34)
+check_tm( ((nat_make_4) zero_4), ?_16)
+infer_tm(((nat_make_4) zero_4))
+infer_tm(nat_make_4)
+simpl_tm ~expand:false( ?_32, Type‹??_34›)
 check_tm( zero_4, nat_3)
 infer_tm(zero_4)
 assert_equal1( nat_3, nat_3)
 assert_equal1_ok( nat_3, nat_3)
-assert_equal1( ?_11, ((stream_1‹U›) nat_3))
-assert_equal1_extend( ?_11, ((stream_1‹U›) nat_3))
+assert_equal1( ?_16, ((stream_1‹U›) nat_3))
+assert_equal1_extend( ?_16, ((stream_1‹U›) nat_3))
 begin_dump
   mctx {|
     
   |}
   smeta_meta {|
-    ??_1 <= s_584
-    ??_2 <= s_585
-    ??_3 <= s_586
+    ??_1 <= s_900
+    ??_2 <= s_901
+    ??_3 <= s_902
     ??_4 <= L
-    ??_5 <= s_588
-    ??_6 <= s_589
+    ??_5 <= s_904
+    ??_6 <= s_905
     ??_7 <= L
-    ??_8 <= s_591
+    ??_8 <= s_907
     ??_9 <= U
-    ??_10 <= s_593
+    ??_10 <= s_909
     ??_11 <= U
     ??_12 <= U
-    ??_13 <= L
+    ??_13 <= U
     ??_14 <= U
+    ??_15 <= U
     ??_16 <= U
     ??_17 <= U
     ??_18 <= U
-    ??_19 <= U
+    ??_19 <= L
     ??_20 <= U
-    ??_21 <= U
-    ??_22 <= L
+    ??_22 <= U
     ??_23 <= U
-    ??_24 <= L
+    ??_24 <= U
+    ??_25 <= U
+    ??_26 <= U
+    ??_27 <= U
+    ??_28 <= L
+    ??_29 <= U
+    ??_30 <= L
+    ??_31 <= L
+    ??_32 <= L
+    ??_33 <= L
     
   |}
   imeta_meta {|
     ?_1 <= bool_2
-    ?_2 <= L
+    ?_2 <= Type‹??_4›
     ?_3 <= L
     ?_4 <= bool_2
-    ?_5 <= L
+    ?_5 <= Type‹??_7›
     ?_6 <= ?_3
     ?_7 <= unit_1‹L›
     ?_8 <= unit_1‹U›
     ?_9 <= ((stream_1‹U›) nat_3)
-    ?_10 <= nat_3
-    ?_14 <= Type‹??_16›
-    ?_15 <= Type‹??_17›
-    ?_16 <= Type‹??_18›
-    ?_17 <= Type‹??_19›
-    ?_18 <= Type‹??_20›
-    ?_19 <= Type‹??_21›
-    ?_20 <= Type‹??_22›
-    ?_21 <= Type‹??_23›
-    ?_22 <= Type‹??_24›
-    ?_23 <= Type‹??_25›
-    
-  |}
-  eqns {|
-    equal_tm? (?_11, ((stream_1‹U›) nat_3))
-  |}
-end_dump
-simpl_tm ~expand:false( ?_11, ((stream_1‹U›) nat_3))
-infer_tm(Type‹??_25›)
-check_tm( ((stream_1‹U›) nat_3), Type‹??_25›)
-infer_tm(((stream_1‹U›) nat_3))
-infer_tm(stream_1‹U›)
-check_tm( nat_3, U)
-infer_tm(nat_3)
-assert_equal1( U, U)
-assert_equal1_ok( U, U)
-assert_equal1( Type‹??_25›, L)
-assert_equal1_extend( Type‹??_25›, L)
-simpl_tm ~expand:false( Type‹??_25›, L)
-----------------------------------
-
-definition-------------------------
-infer_tm(?_13)
-delay_assert(?_24, ??_26)
-check_tm( ((free_stream_2‹??_15›) ?_12 nat_stream_4), ?_13)
-infer_tm(((free_stream_2‹??_15›) ?_12 nat_stream_4))
-infer_tm(((free_stream_2‹??_15›) ?_12))
-infer_tm(free_stream_2‹??_15›)
-simpl_tm ~expand:false( ?_24, Type‹??_26›)
-check_tm( ?_12, Type‹??_15›)
-check_tm( nat_stream_4, ((stream_1‹??_15›) ?_12))
-infer_tm(nat_stream_4)
-assert_equal1( ((stream_1‹??_15›) ?_12), ((stream_1‹U›) nat_3))
-assert_equal1_extend( ((stream_1‹??_15›) ?_12),
-  ((stream_1‹U›) nat_3))
-assert_equal1( ?_13, unit_1‹U›)
-assert_equal1_extend( ?_13, unit_1‹U›)
-begin_dump
-  mctx {|
-    
-  |}
-  smeta_meta {|
-    ??_1 <= s_668
-    ??_2 <= s_669
-    ??_3 <= s_670
-    ??_4 <= L
-    ??_5 <= s_672
-    ??_6 <= s_673
-    ??_7 <= L
-    ??_8 <= s_675
-    ??_9 <= U
-    ??_10 <= s_677
-    ??_11 <= U
-    ??_12 <= U
-    ??_13 <= L
-    ??_14 <= U
-    ??_16 <= U
-    ??_17 <= U
-    ??_18 <= U
-    ??_19 <= U
-    ??_20 <= U
-    ??_21 <= U
-    ??_22 <= L
-    ??_23 <= U
-    ??_24 <= L
-    ??_25 <= L
-    
-  |}
-  imeta_meta {|
-    ?_1 <= bool_2
-    ?_2 <= L
-    ?_3 <= L
-    ?_4 <= bool_2
-    ?_5 <= L
-    ?_6 <= ?_3
-    ?_7 <= unit_1‹L›
-    ?_8 <= unit_1‹U›
-    ?_9 <= ((stream_1‹U›) nat_3)
-    ?_10 <= nat_3
-    ?_11 <= ((stream_1‹U›) nat_3)
-    ?_14 <= Type‹??_16›
-    ?_15 <= Type‹??_17›
-    ?_16 <= Type‹??_18›
-    ?_17 <= Type‹??_19›
-    ?_18 <= Type‹??_20›
-    ?_19 <= Type‹??_21›
+    ?_10 <= (stream_node_4‹U› nat_3)
+    ?_11 <= (stream_node_4‹??_13› ?_12)
+    ?_12 <= nat_3
+    ?_13 <= nat_3
+    ?_14 <= ((stream_1‹U›) nat_3)
+    ?_15 <= nat_3
     ?_20 <= Type‹??_22›
     ?_21 <= Type‹??_23›
     ?_22 <= Type‹??_24›
     ?_23 <= Type‹??_25›
     ?_24 <= Type‹??_26›
+    ?_25 <= Type‹??_27›
+    ?_26 <= Type‹??_28›
+    ?_27 <= Type‹??_29›
+    ?_28 <= Type‹??_30›
+    ?_29 <= Type‹??_31›
+    ?_30 <= Type‹??_32›
+    ?_31 <= Type‹??_33›
+    ?_32 <= Type‹??_34›
     
   |}
   eqns {|
-    equal_tm? (?_13, unit_1‹U›);
-    equal_tm? (((stream_1‹??_15›) ?_12), ((stream_1‹U›) nat_3))
+    equal_tm? (?_16, ((stream_1‹U›) nat_3))
   |}
 end_dump
-simpl_tm ~expand:false( ?_13, unit_1‹U›)
-simpl_tm ~expand:false( ((stream_1‹??_15›) ?_12),
+simpl_tm ~expand:false( ?_16, ((stream_1‹U›) nat_3))
+infer_tm(Type‹??_34›)
+check_tm( ((stream_1‹U›) nat_3), Type‹??_34›)
+infer_tm(((stream_1‹U›) nat_3))
+infer_tm(stream_1‹U›)
+check_tm( nat_3, U)
+infer_tm(nat_3)
+assert_equal1( U, U)
+assert_equal1_ok( U, U)
+assert_equal1( Type‹??_34›, L)
+assert_equal1_extend( Type‹??_34›, L)
+simpl_tm ~expand:false( Type‹??_34›, L)
+----------------------------------
+
+definition-------------------------
+infer_tm(?_17)
+delay_assert(?_33, ??_35)
+check_tm( ((stream_succ_3) nat_stream_5), ?_17)
+infer_tm(((stream_succ_3) nat_stream_5))
+infer_tm(stream_succ_3)
+simpl_tm ~expand:false( ?_33, Type‹??_35›)
+check_tm( nat_stream_5, ((stream_1‹U›) nat_3))
+infer_tm(nat_stream_5)
+assert_equal1( ((stream_1‹U›) nat_3), ((stream_1‹U›) nat_3))
+assert_equal1_ok( ((stream_1‹U›) nat_3), ((stream_1‹U›) nat_3))
+assert_equal1( ?_17, ((stream_1‹U›) nat_3))
+assert_equal1_extend( ?_17, ((stream_1‹U›) nat_3))
+begin_dump
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_1004
+    ??_2 <= s_1005
+    ??_3 <= s_1006
+    ??_4 <= L
+    ??_5 <= s_1008
+    ??_6 <= s_1009
+    ??_7 <= L
+    ??_8 <= s_1011
+    ??_9 <= U
+    ??_10 <= s_1013
+    ??_11 <= U
+    ??_12 <= U
+    ??_13 <= U
+    ??_14 <= U
+    ??_15 <= U
+    ??_16 <= U
+    ??_17 <= U
+    ??_18 <= U
+    ??_19 <= L
+    ??_20 <= U
+    ??_22 <= U
+    ??_23 <= U
+    ??_24 <= U
+    ??_25 <= U
+    ??_26 <= U
+    ??_27 <= U
+    ??_28 <= L
+    ??_29 <= U
+    ??_30 <= L
+    ??_31 <= L
+    ??_32 <= L
+    ??_33 <= L
+    ??_34 <= L
+    
+  |}
+  imeta_meta {|
+    ?_1 <= bool_2
+    ?_2 <= Type‹??_4›
+    ?_3 <= L
+    ?_4 <= bool_2
+    ?_5 <= Type‹??_7›
+    ?_6 <= ?_3
+    ?_7 <= unit_1‹L›
+    ?_8 <= unit_1‹U›
+    ?_9 <= ((stream_1‹U›) nat_3)
+    ?_10 <= (stream_node_4‹U› nat_3)
+    ?_11 <= (stream_node_4‹??_13› ?_12)
+    ?_12 <= nat_3
+    ?_13 <= nat_3
+    ?_14 <= ((stream_1‹U›) nat_3)
+    ?_15 <= nat_3
+    ?_16 <= ((stream_1‹U›) nat_3)
+    ?_20 <= Type‹??_22›
+    ?_21 <= Type‹??_23›
+    ?_22 <= Type‹??_24›
+    ?_23 <= Type‹??_25›
+    ?_24 <= Type‹??_26›
+    ?_25 <= Type‹??_27›
+    ?_26 <= Type‹??_28›
+    ?_27 <= Type‹??_29›
+    ?_28 <= Type‹??_30›
+    ?_29 <= Type‹??_31›
+    ?_30 <= Type‹??_32›
+    ?_31 <= Type‹??_33›
+    ?_32 <= Type‹??_34›
+    ?_33 <= Type‹??_35›
+    
+  |}
+  eqns {|
+    equal_tm? (?_17, ((stream_1‹U›) nat_3))
+  |}
+end_dump
+simpl_tm ~expand:false( ?_17, ((stream_1‹U›) nat_3))
+infer_tm(Type‹??_35›)
+check_tm( ((stream_1‹U›) nat_3), Type‹??_35›)
+infer_tm(((stream_1‹U›) nat_3))
+infer_tm(stream_1‹U›)
+check_tm( nat_3, U)
+infer_tm(nat_3)
+assert_equal1( U, U)
+assert_equal1_ok( U, U)
+assert_equal1( Type‹??_35›, L)
+assert_equal1_extend( Type‹??_35›, L)
+simpl_tm ~expand:false( Type‹??_35›, L)
+----------------------------------
+
+definition-------------------------
+infer_tm(?_19)
+delay_assert(?_34, ??_36)
+check_tm( ((free_stream_2‹??_21›) ?_18 snat_stream_6), ?_19)
+infer_tm(((free_stream_2‹??_21›) ?_18 snat_stream_6))
+infer_tm(((free_stream_2‹??_21›) ?_18))
+infer_tm(free_stream_2‹??_21›)
+simpl_tm ~expand:false( ?_34, Type‹??_36›)
+check_tm( ?_18, Type‹??_21›)
+check_tm( snat_stream_6, ((stream_1‹??_21›) ?_18))
+infer_tm(snat_stream_6)
+assert_equal1( ((stream_1‹??_21›) ?_18), ((stream_1‹U›) nat_3))
+assert_equal1_extend( ((stream_1‹??_21›) ?_18),
   ((stream_1‹U›) nat_3))
-simpl_tm ~expand:false( stream_1‹??_15›, stream_1‹U›)
-simpl_tm ~expand:false( ?_12, nat_3)
-simpl_tm ~expand:false( nat_3, ?_12)
+assert_equal1( ?_19, unit_1‹U›)
+assert_equal1_extend( ?_19, unit_1‹U›)
+begin_dump
+  mctx {|
+    
+  |}
+  smeta_meta {|
+    ??_1 <= s_1111
+    ??_2 <= s_1112
+    ??_3 <= s_1113
+    ??_4 <= L
+    ??_5 <= s_1115
+    ??_6 <= s_1116
+    ??_7 <= L
+    ??_8 <= s_1118
+    ??_9 <= U
+    ??_10 <= s_1120
+    ??_11 <= U
+    ??_12 <= U
+    ??_13 <= U
+    ??_14 <= U
+    ??_15 <= U
+    ??_16 <= U
+    ??_17 <= U
+    ??_18 <= U
+    ??_19 <= L
+    ??_20 <= U
+    ??_22 <= U
+    ??_23 <= U
+    ??_24 <= U
+    ??_25 <= U
+    ??_26 <= U
+    ??_27 <= U
+    ??_28 <= L
+    ??_29 <= U
+    ??_30 <= L
+    ??_31 <= L
+    ??_32 <= L
+    ??_33 <= L
+    ??_34 <= L
+    ??_35 <= L
+    
+  |}
+  imeta_meta {|
+    ?_1 <= bool_2
+    ?_2 <= Type‹??_4›
+    ?_3 <= L
+    ?_4 <= bool_2
+    ?_5 <= Type‹??_7›
+    ?_6 <= ?_3
+    ?_7 <= unit_1‹L›
+    ?_8 <= unit_1‹U›
+    ?_9 <= ((stream_1‹U›) nat_3)
+    ?_10 <= (stream_node_4‹U› nat_3)
+    ?_11 <= (stream_node_4‹??_13› ?_12)
+    ?_12 <= nat_3
+    ?_13 <= nat_3
+    ?_14 <= ((stream_1‹U›) nat_3)
+    ?_15 <= nat_3
+    ?_16 <= ((stream_1‹U›) nat_3)
+    ?_17 <= ((stream_1‹U›) nat_3)
+    ?_20 <= Type‹??_22›
+    ?_21 <= Type‹??_23›
+    ?_22 <= Type‹??_24›
+    ?_23 <= Type‹??_25›
+    ?_24 <= Type‹??_26›
+    ?_25 <= Type‹??_27›
+    ?_26 <= Type‹??_28›
+    ?_27 <= Type‹??_29›
+    ?_28 <= Type‹??_30›
+    ?_29 <= Type‹??_31›
+    ?_30 <= Type‹??_32›
+    ?_31 <= Type‹??_33›
+    ?_32 <= Type‹??_34›
+    ?_33 <= Type‹??_35›
+    ?_34 <= Type‹??_36›
+    
+  |}
+  eqns {|
+    equal_tm? (?_19, unit_1‹U›);
+    equal_tm? (((stream_1‹??_21›) ?_18), ((stream_1‹U›) nat_3))
+  |}
+end_dump
+simpl_tm ~expand:false( ?_19, unit_1‹U›)
+simpl_tm ~expand:false( ((stream_1‹??_21›) ?_18),
+  ((stream_1‹U›) nat_3))
+simpl_tm ~expand:false( stream_1‹??_21›, stream_1‹U›)
+simpl_tm ~expand:false( ?_18, nat_3)
+simpl_tm ~expand:false( nat_3, ?_18)
 infer_tm(U)
 check_tm( nat_3, U)
 infer_tm(nat_3)
 assert_equal1( U, U)
 assert_equal1_ok( U, U)
-infer_tm(Type‹??_26›)
-check_tm( unit_1‹U›, Type‹??_26›)
+infer_tm(Type‹??_36›)
+check_tm( unit_1‹U›, Type‹??_36›)
 infer_tm(unit_1‹U›)
-assert_equal1( Type‹??_26›, U)
-assert_equal1_extend( Type‹??_26›, U)
-simpl_tm ~expand:false( Type‹??_26›, U)
+assert_equal1( Type‹??_36›, U)
+assert_equal1_extend( Type‹??_36›, U)
+simpl_tm ~expand:false( Type‹??_36›, U)
 ----------------------------------
 
 smeta_meta {|
-  ??_1 <= s_747
-  ??_2 <= s_748
-  ??_3 <= s_749
+  ??_1 <= s_1213
+  ??_2 <= s_1214
+  ??_3 <= s_1215
   ??_4 <= L
-  ??_5 <= s_751
-  ??_6 <= s_752
+  ??_5 <= s_1217
+  ??_6 <= s_1218
   ??_7 <= L
-  ??_8 <= s_754
+  ??_8 <= s_1220
   ??_9 <= U
-  ??_10 <= s_756
+  ??_10 <= s_1222
   ??_11 <= U
   ??_12 <= U
-  ??_13 <= L
+  ??_13 <= U
   ??_14 <= U
   ??_15 <= U
   ??_16 <= U
   ??_17 <= U
   ??_18 <= U
-  ??_19 <= U
+  ??_19 <= L
   ??_20 <= U
   ??_21 <= U
-  ??_22 <= L
+  ??_22 <= U
   ??_23 <= U
-  ??_24 <= L
-  ??_25 <= L
+  ??_24 <= U
+  ??_25 <= U
   ??_26 <= U
+  ??_27 <= U
+  ??_28 <= L
+  ??_29 <= U
+  ??_30 <= L
+  ??_31 <= L
+  ??_32 <= L
+  ??_33 <= L
+  ??_34 <= L
+  ??_35 <= L
+  ??_36 <= U
   
 |}
 imeta_meta {|
   ?_1 <= bool_2
-  ?_2 <= L
+  ?_2 <= Type‹??_4›
   ?_3 <= L
   ?_4 <= bool_2
-  ?_5 <= L
+  ?_5 <= Type‹??_7›
   ?_6 <= ?_3
   ?_7 <= unit_1‹L›
   ?_8 <= unit_1‹U›
   ?_9 <= ((stream_1‹U›) nat_3)
-  ?_10 <= nat_3
-  ?_11 <= ((stream_1‹U›) nat_3)
+  ?_10 <= (stream_node_4‹U› nat_3)
+  ?_11 <= (stream_node_4‹??_13› ?_12)
   ?_12 <= nat_3
-  ?_13 <= unit_1‹U›
-  ?_14 <= Type‹??_16›
-  ?_15 <= Type‹??_17›
-  ?_16 <= Type‹??_18›
-  ?_17 <= Type‹??_19›
-  ?_18 <= Type‹??_20›
-  ?_19 <= Type‹??_21›
+  ?_13 <= nat_3
+  ?_14 <= ((stream_1‹U›) nat_3)
+  ?_15 <= nat_3
+  ?_16 <= ((stream_1‹U›) nat_3)
+  ?_17 <= ((stream_1‹U›) nat_3)
+  ?_18 <= nat_3
+  ?_19 <= unit_1‹U›
   ?_20 <= Type‹??_22›
   ?_21 <= Type‹??_23›
   ?_22 <= Type‹??_24›
   ?_23 <= Type‹??_25›
   ?_24 <= Type‹??_26›
+  ?_25 <= Type‹??_27›
+  ?_26 <= Type‹??_28›
+  ?_27 <= Type‹??_29›
+  ?_28 <= Type‹??_30›
+  ?_29 <= Type‹??_31›
+  ?_30 <= Type‹??_32›
+  ?_31 <= Type‹??_33›
+  ?_32 <= Type‹??_34›
+  ?_33 <= Type‹??_35›
+  ?_34 <= Type‹??_36›
   
 |}
 #[program]
-inductive unit_1‹s_877› : Type‹s_877› where
-| tt_1 : unit_1‹s_877›
+inductive unit_1‹s_1379› : Type‹s_1379› where
+| tt_1 : unit_1‹s_1379›
 
 #[program]
 inductive bool_2‹› : U where
@@ -1360,626 +2131,79 @@ inductive bool_2‹› : U where
 #[program]
 inductive nat_3‹› : U where
 | zero_4 : nat_3
-| succ_5 (pred_878 : nat_3) : nat_3
+| succ_5 (pred_1380 : nat_3) : nat_3
 
 #[program]
-inductive stream_node_4‹s_879› (A_880 : Type‹s_879›): L where
-| stream_nil_6 : (stream_node_4‹s_879› A_880)
+inductive stream_node_4‹s_1381› (A_1382 : Type‹s_1381›): L where
+| stream_nil_6 : (stream_node_4‹s_1381› A_1382)
 | stream_cons_7
-    (hd_881 : A_880)
-    (tl_882 : ∀ (b_883 : bool_2) -o
-                match b_883 in bool_2 -o L with
-                | true_2 => (stream_node_4‹s_879› A_880)
-                | false_3 => unit_1‹L›)
-    : (stream_node_4‹s_879› A_880)
+    (hd_1383 : A_1382)
+    (tl_1384 : ∀ (b_1385 : bool_2) -o
+                 match b_1385 in bool_2 -o L with
+                 | true_2 => (stream_node_4‹s_1381› A_1382)
+                 | false_3 => unit_1‹L›)
+    : (stream_node_4‹s_1381› A_1382)
 
 #[logical]
-def stream_1‹s_885› : Type‹s_885› -> L :=
-  function stream_887 : Type‹s_885› -> L
-  | A_889 =>
-    ∀ (b_890 : bool_2) -o
-      match b_890 in bool_2 -o L with
-      | true_2 => (stream_node_4‹s_885› A_889)
+def stream_1‹s_1387› : Type‹s_1387› -> L :=
+  function stream_1389 : Type‹s_1387› -> L
+  | A_1391 =>
+    ∀ (b_1392 : bool_2) -o
+      match b_1392 in bool_2 -o L with
+      | true_2 => (stream_node_4‹s_1387› A_1391)
       | false_3 => unit_1‹L›
 
 #[program]
-def free_stream_2‹s_892› :
-  ∀ {A_893 : Type‹s_892›} ->
-    ((stream_1‹s_892›) A_893) -> unit_1‹U›
+def free_stream_2‹s_1394› :
+  ∀ {A_1395 : Type‹s_1394›} ->
+    ((stream_1‹s_1394›) A_1395) -> unit_1‹U›
 :=
-  function free_stream_895 :
-    ∀ {A_896 : Type‹s_892›} ->
-      ((stream_1‹s_892›) A_896) -> unit_1‹U›
-  | A_898 st_899 =>
-    match ((st_899) false_3) in unit_1‹L› -o unit_1‹U› with
+  function free_stream_1397 :
+    ∀ {A_1398 : Type‹s_1394›} ->
+      ((stream_1‹s_1394›) A_1398) -> unit_1‹U›
+  | A_1400 st_1401 =>
+    match ((st_1401) false_3) in unit_1‹L› -o unit_1‹U› with
     | tt_1 => tt_1‹U›
 
 #[program]
-def nat_make_3‹› : nat_3 -> ((stream_1‹U›) nat_3) :=
-  function nat_make_902 : nat_3 -> ((stream_1‹U›) nat_3)
-  | n_904 =>
-    function _905 : ((stream_1‹U›) nat_3)
+def stream_succ_3‹› :
+  ((stream_1‹U›) nat_3) -> ((stream_1‹U›) nat_3)
+:=
+  function stream_succ_1404 :
+    ((stream_1‹U›) nat_3) -> ((stream_1‹U›) nat_3)
+  | xs_1406 =>
+    function _1407 : ((stream_1‹U›) nat_3)
     | true_2 =>
-      (stream_cons_7‹U› n_904 ((nat_make_902) (succ_5‹› n_904)))
+      match ((xs_1406) true_2) in
+        (stream_node_4‹U› nat_3) -o (stream_node_4‹U› nat_3)
+      with
+      | stream_nil_6 => stream_nil_6‹U›
+      | (stream_cons_7 hd_1409 tl_1410) =>
+        (stream_cons_7‹U›
+          (succ_5‹› hd_1409) ((stream_succ_1404) tl_1410))
+    | false_3 => ((xs_1406) false_3)
+
+#[program]
+def nat_make_4‹› : nat_3 -> ((stream_1‹U›) nat_3) :=
+  function nat_make_1412 : nat_3 -> ((stream_1‹U›) nat_3)
+  | n_1414 =>
+    function _1415 : ((stream_1‹U›) nat_3)
+    | true_2 =>
+      (stream_cons_7‹U› n_1414 ((nat_make_1412) (succ_5‹› n_1414)))
     | false_3 => tt_1‹L›
 
 #[program]
-def nat_stream_4‹› : ((stream_1‹U›) nat_3) := ((nat_make_3) zero_4)
+def nat_stream_5‹› : ((stream_1‹U›) nat_3) := ((nat_make_4) zero_4)
 
 #[program]
-def ok_5‹› : unit_1‹U› := ((free_stream_2‹U›) nat_3 nat_stream_4)
+def snat_stream_6‹› : ((stream_1‹U›) nat_3) :=
+  ((stream_succ_3) nat_stream_5)
+
+#[program]
+def __7‹› : unit_1‹U› := ((free_stream_2‹U›) nat_3 snat_stream_6)
 
 -----------------------------------------
 
-Logical.infer_tm(unit_1‹L›)
-Logical.infer_tm(unit_1‹U›)
-Logical.infer_tm(bool_2)
-Logical.infer_tm(bool_2)
-Logical.infer_tm(nat_3)
-Logical.infer_tm(nat_3)
-Logical.infer_tm(nat_3)
-Logical.infer_tm(L)
-Logical.infer_tm(L)
-Logical.infer_tm((stream_node_4‹L› A_908))
-Logical.check_tm( A_908, L )
-Logical.infer_tm(A_908)
-Logical.infer_tm(L)
-Logical.infer_tm(A_909)
-Logical.infer_tm(∀ (b_912 : bool_2) -o
-                   match b_912 in bool_2 -o L with
-                   | true_2 => (stream_node_4‹L› A_909)
-                   | false_3 => unit_1‹L›)
-Logical.infer_tm(bool_2)
-Logical.infer_tm(match b_914 in bool_2 -o L with
-                 | true_2 => (stream_node_4‹L› A_909)
-                 | false_3 => unit_1‹L›)
-Logical.check_tm( b_914, bool_2 )
-Logical.infer_tm(b_914)
-Logical.infer_tm(bool_2)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2);
-    {|  ::: [] =>? (stream_node_4‹L› A_909) |}
-  |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( (stream_node_4‹L› A_909), L)
-Logical.check_tm( (stream_node_4‹L› A_909), L )
-Logical.infer_tm((stream_node_4‹L› A_909))
-Logical.check_tm( A_909, L )
-Logical.infer_tm(A_909)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2); {|  ::: [] =>? unit_1‹L› |} |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( unit_1‹L›, L)
-Logical.check_tm( unit_1‹L›, L )
-Logical.infer_tm(unit_1‹L›)
-Logical.infer_tm((stream_node_4‹L› A_909))
-Logical.check_tm( A_909, L )
-Logical.infer_tm(A_909)
-Logical.infer_tm(U)
-Logical.infer_tm(U)
-Logical.infer_tm((stream_node_4‹U› A_918))
-Logical.check_tm( A_918, U )
-Logical.infer_tm(A_918)
-Logical.infer_tm(U)
-Logical.infer_tm(A_919)
-Logical.infer_tm(∀ (b_922 : bool_2) -o
-                   match b_922 in bool_2 -o L with
-                   | true_2 => (stream_node_4‹U› A_919)
-                   | false_3 => unit_1‹L›)
-Logical.infer_tm(bool_2)
-Logical.infer_tm(match b_924 in bool_2 -o L with
-                 | true_2 => (stream_node_4‹U› A_919)
-                 | false_3 => unit_1‹L›)
-Logical.check_tm( b_924, bool_2 )
-Logical.infer_tm(b_924)
-Logical.infer_tm(bool_2)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2);
-    {|  ::: [] =>? (stream_node_4‹U› A_919) |}
-  |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( (stream_node_4‹U› A_919), L)
-Logical.check_tm( (stream_node_4‹U› A_919), L )
-Logical.infer_tm((stream_node_4‹U› A_919))
-Logical.check_tm( A_919, U )
-Logical.infer_tm(A_919)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2); {|  ::: [] =>? unit_1‹L› |} |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( unit_1‹L›, L)
-Logical.check_tm( unit_1‹L›, L )
-Logical.infer_tm(unit_1‹L›)
-Logical.infer_tm((stream_node_4‹U› A_919))
-Logical.check_tm( A_919, U )
-Logical.infer_tm(A_919)
-Logical.infer_tm(L -> L)
-Logical.infer_tm(L)
-Logical.infer_tm(L)
-Logical.check_tm(
-  function stream_929 : L -> L
-  | A_931 =>
-    ∀ (b_932 : bool_2) -o
-      match b_932 in bool_2 -o L with
-      | true_2 => (stream_node_4‹L› A_931)
-      | false_3 => unit_1‹L›,
-  L -> L
-)
-Logical.infer_tm(function stream_935 : L -> L
-                 | A_937 =>
-                   ∀ (b_938 : bool_2) -o
-                     match b_938 in bool_2 -o L with
-                     | true_2 => (stream_node_4‹L› A_937)
-                     | false_3 => unit_1‹L›)
-Logical.infer_tm(L -> L)
-Logical.infer_tm(L)
-Logical.infer_tm(L)
-Logical.infer_tm(L)
-case_coverage{|
-  prblm {| ;
-    {| eq_pat?(R #A_944, A_943 : L) ::: [] =>?
-         ∀ (b_946 : bool_2) -o
-           match b_946 in bool_2 -o L with
-           | true_2 => (stream_node_4‹L› #A_943)
-           | false_3 => unit_1‹L›
-    |}
-  |}
-|}
-unify_local( eq_pat?(R #A_944, A_943 : L) )
-unify_global(  )
-simpl_pprbm ~expand:false( #A_944, #A_943)
-case_coverage_ok(
-  ∀ (b_951 : bool_2) -o
-    match b_951 in bool_2 -o L with
-    | true_2 => (stream_node_4‹L› A_944)
-    | false_3 => unit_1‹L›,
-  L)
-Logical.check_tm(
-  ∀ (b_953 : bool_2) -o
-    match b_953 in bool_2 -o L with
-    | true_2 => (stream_node_4‹L› A_944)
-    | false_3 => unit_1‹L›,
-  L
-)
-Logical.infer_tm(∀ (b_955 : bool_2) -o
-                   match b_955 in bool_2 -o L with
-                   | true_2 => (stream_node_4‹L› A_944)
-                   | false_3 => unit_1‹L›)
-Logical.infer_tm(bool_2)
-Logical.infer_tm(match b_957 in bool_2 -o L with
-                 | true_2 => (stream_node_4‹L› A_944)
-                 | false_3 => unit_1‹L›)
-Logical.check_tm( b_957, bool_2 )
-Logical.infer_tm(b_957)
-Logical.infer_tm(bool_2)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2);
-    {|  ::: [] =>? (stream_node_4‹L› A_944) |}
-  |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( (stream_node_4‹L› A_944), L)
-Logical.check_tm( (stream_node_4‹L› A_944), L )
-Logical.infer_tm((stream_node_4‹L› A_944))
-Logical.check_tm( A_944, L )
-Logical.infer_tm(A_944)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2); {|  ::: [] =>? unit_1‹L› |} |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( unit_1‹L›, L)
-Logical.check_tm( unit_1‹L›, L )
-Logical.infer_tm(unit_1‹L›)
-Logical.infer_tm(U -> L)
-Logical.infer_tm(U)
-Logical.infer_tm(L)
-Logical.check_tm(
-  function stream_968 : U -> L
-  | A_970 =>
-    ∀ (b_971 : bool_2) -o
-      match b_971 in bool_2 -o L with
-      | true_2 => (stream_node_4‹U› A_970)
-      | false_3 => unit_1‹L›,
-  U -> L
-)
-Logical.infer_tm(function stream_974 : U -> L
-                 | A_976 =>
-                   ∀ (b_977 : bool_2) -o
-                     match b_977 in bool_2 -o L with
-                     | true_2 => (stream_node_4‹U› A_976)
-                     | false_3 => unit_1‹L›)
-Logical.infer_tm(U -> L)
-Logical.infer_tm(U)
-Logical.infer_tm(L)
-Logical.infer_tm(U)
-case_coverage{|
-  prblm {| ;
-    {| eq_pat?(R #A_983, A_982 : U) ::: [] =>?
-         ∀ (b_985 : bool_2) -o
-           match b_985 in bool_2 -o L with
-           | true_2 => (stream_node_4‹U› #A_982)
-           | false_3 => unit_1‹L›
-    |}
-  |}
-|}
-unify_local( eq_pat?(R #A_983, A_982 : U) )
-unify_global(  )
-simpl_pprbm ~expand:false( #A_983, #A_982)
-case_coverage_ok(
-  ∀ (b_990 : bool_2) -o
-    match b_990 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› A_983)
-    | false_3 => unit_1‹L›,
-  L)
-Logical.check_tm(
-  ∀ (b_992 : bool_2) -o
-    match b_992 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› A_983)
-    | false_3 => unit_1‹L›,
-  L
-)
-Logical.infer_tm(∀ (b_994 : bool_2) -o
-                   match b_994 in bool_2 -o L with
-                   | true_2 => (stream_node_4‹U› A_983)
-                   | false_3 => unit_1‹L›)
-Logical.infer_tm(bool_2)
-Logical.infer_tm(match b_996 in bool_2 -o L with
-                 | true_2 => (stream_node_4‹U› A_983)
-                 | false_3 => unit_1‹L›)
-Logical.check_tm( b_996, bool_2 )
-Logical.infer_tm(b_996)
-Logical.infer_tm(bool_2)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2);
-    {|  ::: [] =>? (stream_node_4‹U› A_983) |}
-  |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( (stream_node_4‹U› A_983), L)
-Logical.check_tm( (stream_node_4‹U› A_983), L )
-Logical.infer_tm((stream_node_4‹U› A_983))
-Logical.check_tm( A_983, U )
-Logical.infer_tm(A_983)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2); {|  ::: [] =>? unit_1‹L› |} |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( unit_1‹L›, L)
-Logical.check_tm( unit_1‹L›, L )
-Logical.infer_tm(unit_1‹L›)
-Logical.infer_tm(∀ {A_1005 : L} ->
-                   ((stream_1‹L›) A_1005) -> unit_1‹U›)
-Logical.infer_tm(L)
-Logical.infer_tm(((stream_1‹L›) A_1007) -> unit_1‹U›)
-Logical.infer_tm(((stream_1‹L›) A_1007))
-Logical.infer_tm(stream_1‹L›)
-Logical.check_tm( A_1007, L )
-Logical.infer_tm(A_1007)
-Logical.infer_tm(unit_1‹U›)
-Program.check_tm(
-  function free_stream_1010 :
-    ∀ {A_1011 : L} -> ((stream_1‹L›) A_1011) -> unit_1‹U›
-  | A_1013 st_1014 =>
-    match ((st_1014) false_3) in unit_1‹L› -o unit_1‹U› with
-    | tt_1 => tt_1‹U›,
-  ∀ {A_1016 : L} -> ((stream_1‹L›) A_1016) -> unit_1‹U›
-)
-Program.infer_tm(function free_stream_1018 :
-                   ∀ {A_1019 : L} ->
-                     ((stream_1‹L›) A_1019) -> unit_1‹U›
-                 | A_1021 st_1022 =>
-                   match ((st_1022) false_3) in
-                     unit_1‹L› -o unit_1‹U›
-                   with
-                   | tt_1 => tt_1‹U›)
-Logical.infer_tm(∀ {A_1025 : L} ->
-                   ((stream_1‹L›) A_1025) -> unit_1‹U›)
-Logical.infer_tm(L)
-Logical.infer_tm(((stream_1‹L›) A_1027) -> unit_1‹U›)
-Logical.infer_tm(((stream_1‹L›) A_1027))
-Logical.infer_tm(stream_1‹L›)
-Logical.check_tm( A_1027, L )
-Logical.infer_tm(A_1027)
-Logical.infer_tm(unit_1‹U›)
-trans12.Program.case_intro(L)
-Logical.infer_tm(L)
-trans12.Program.case_intro(((stream_1‹L›) #A_1032))
-Logical.infer_tm(((stream_1‹L›) A_1032))
-Logical.infer_tm(stream_1‹L›)
-Logical.check_tm( A_1032, L )
-Logical.infer_tm(A_1032)
-case_coverage{|
-  prblm {| ;
-    {| eq_pat?(N #A_1032, A_1030 : L)
-       eq_pat?(R #st_1035, st_1031 : ((stream_1‹L›) #A_1032)) ::: [] =>?
-         match ((#st_1031) false_3) in unit_1‹L› -o unit_1‹U› with
-         | tt_1 => tt_1‹U›
-    |}
-  |}
-|}
-unify_local(
-  eq_pat?(N #A_1032, A_1030 : L)
-  eq_pat?(R #st_1035, st_1031 : ((stream_1‹L›) #A_1032))
-)
-unify_global(  )
-simpl_pprbm ~expand:false( #A_1032, #A_1030)
-simpl_pprbm ~expand:false( #st_1035, #st_1031)
-case_coverage_ok(
-  match ((st_1035) false_3) in unit_1‹L› -o unit_1‹U› with
-  | tt_1 => tt_1‹U›, unit_1‹U›)
-Program.check_tm(
-  match ((st_1035) false_3) in unit_1‹L› -o unit_1‹U› with
-  | tt_1 => tt_1‹U›, unit_1‹U›
-)
-Program.infer_tm(match ((st_1035) false_3) in unit_1‹L› -o unit_1‹U›
-                 with
-                 | tt_1 => tt_1‹U›)
-Program.check_tm( ((st_1035) false_3), unit_1‹L› )
-Program.infer_tm(((st_1035) false_3))
-Program.infer_tm(st_1035)
-Program.check_tm( false_3, bool_2 )
-Program.infer_tm(false_3)
-trans12.Program.case_intro(unit_1‹L›)
-Logical.infer_tm(unit_1‹L›)
-Logical.infer_tm(unit_1‹L›)
-case_coverage{|
-  prblm {| eq_term?( unit_1‹L›, unit_1‹L›);
-    {|  ::: [] =>? tt_1‹U› |}
-  |}
-|}
-unify_local(  )
-unify_global( eq_term?( unit_1‹L›, unit_1‹L›) )
-simpl_pprbm ~expand:false( unit_1‹L›, unit_1‹L›)
-case_coverage_ok( tt_1‹U›, unit_1‹U›)
-Program.check_tm( tt_1‹U›, unit_1‹U› )
-Program.infer_tm(tt_1‹U›)
-Logical.infer_tm(∀ {A_1056 : U} ->
-                   ((stream_1‹U›) A_1056) -> unit_1‹U›)
-Logical.infer_tm(U)
-Logical.infer_tm(((stream_1‹U›) A_1058) -> unit_1‹U›)
-Logical.infer_tm(((stream_1‹U›) A_1058))
-Logical.infer_tm(stream_1‹U›)
-Logical.check_tm( A_1058, U )
-Logical.infer_tm(A_1058)
-Logical.infer_tm(unit_1‹U›)
-Program.check_tm(
-  function free_stream_1061 :
-    ∀ {A_1062 : U} -> ((stream_1‹U›) A_1062) -> unit_1‹U›
-  | A_1064 st_1065 =>
-    match ((st_1065) false_3) in unit_1‹L› -o unit_1‹U› with
-    | tt_1 => tt_1‹U›,
-  ∀ {A_1067 : U} -> ((stream_1‹U›) A_1067) -> unit_1‹U›
-)
-Program.infer_tm(function free_stream_1069 :
-                   ∀ {A_1070 : U} ->
-                     ((stream_1‹U›) A_1070) -> unit_1‹U›
-                 | A_1072 st_1073 =>
-                   match ((st_1073) false_3) in
-                     unit_1‹L› -o unit_1‹U›
-                   with
-                   | tt_1 => tt_1‹U›)
-Logical.infer_tm(∀ {A_1076 : U} ->
-                   ((stream_1‹U›) A_1076) -> unit_1‹U›)
-Logical.infer_tm(U)
-Logical.infer_tm(((stream_1‹U›) A_1078) -> unit_1‹U›)
-Logical.infer_tm(((stream_1‹U›) A_1078))
-Logical.infer_tm(stream_1‹U›)
-Logical.check_tm( A_1078, U )
-Logical.infer_tm(A_1078)
-Logical.infer_tm(unit_1‹U›)
-trans12.Program.case_intro(U)
-Logical.infer_tm(U)
-trans12.Program.case_intro(((stream_1‹U›) #A_1083))
-Logical.infer_tm(((stream_1‹U›) A_1083))
-Logical.infer_tm(stream_1‹U›)
-Logical.check_tm( A_1083, U )
-Logical.infer_tm(A_1083)
-case_coverage{|
-  prblm {| ;
-    {| eq_pat?(N #A_1083, A_1081 : U)
-       eq_pat?(R #st_1086, st_1082 : ((stream_1‹U›) #A_1083)) ::: [] =>?
-         match ((#st_1082) false_3) in unit_1‹L› -o unit_1‹U› with
-         | tt_1 => tt_1‹U›
-    |}
-  |}
-|}
-unify_local(
-  eq_pat?(N #A_1083, A_1081 : U)
-  eq_pat?(R #st_1086, st_1082 : ((stream_1‹U›) #A_1083))
-)
-unify_global(  )
-simpl_pprbm ~expand:false( #A_1083, #A_1081)
-simpl_pprbm ~expand:false( #st_1086, #st_1082)
-case_coverage_ok(
-  match ((st_1086) false_3) in unit_1‹L› -o unit_1‹U› with
-  | tt_1 => tt_1‹U›, unit_1‹U›)
-Program.check_tm(
-  match ((st_1086) false_3) in unit_1‹L› -o unit_1‹U› with
-  | tt_1 => tt_1‹U›, unit_1‹U›
-)
-Program.infer_tm(match ((st_1086) false_3) in unit_1‹L› -o unit_1‹U›
-                 with
-                 | tt_1 => tt_1‹U›)
-Program.check_tm( ((st_1086) false_3), unit_1‹L› )
-Program.infer_tm(((st_1086) false_3))
-Program.infer_tm(st_1086)
-Program.check_tm( false_3, bool_2 )
-Program.infer_tm(false_3)
-trans12.Program.case_intro(unit_1‹L›)
-Logical.infer_tm(unit_1‹L›)
-Logical.infer_tm(unit_1‹L›)
-case_coverage{|
-  prblm {| eq_term?( unit_1‹L›, unit_1‹L›);
-    {|  ::: [] =>? tt_1‹U› |}
-  |}
-|}
-unify_local(  )
-unify_global( eq_term?( unit_1‹L›, unit_1‹L›) )
-simpl_pprbm ~expand:false( unit_1‹L›, unit_1‹L›)
-case_coverage_ok( tt_1‹U›, unit_1‹U›)
-Program.check_tm( tt_1‹U›, unit_1‹U› )
-Program.infer_tm(tt_1‹U›)
-Logical.infer_tm(nat_3 -> ((stream_1‹U›) nat_3))
-Logical.infer_tm(nat_3)
-Logical.infer_tm(((stream_1‹U›) nat_3))
-Logical.infer_tm(stream_1‹U›)
-Logical.check_tm( nat_3, U )
-Logical.infer_tm(nat_3)
-Program.check_tm(
-  function nat_make_1109 : nat_3 -> ((stream_1‹U›) nat_3)
-  | n_1111 =>
-    function _1112 : ((stream_1‹U›) nat_3)
-    | true_2 =>
-      (stream_cons_7‹U› n_1111 ((nat_make_1109) (succ_5‹› n_1111)))
-    | false_3 => tt_1‹L›,
-  nat_3 -> ((stream_1‹U›) nat_3)
-)
-Program.infer_tm(function nat_make_1114 : nat_3 -> ((stream_1‹U›) nat_3)
-                 | n_1116 =>
-                   function _1117 : ((stream_1‹U›) nat_3)
-                   | true_2 =>
-                     (stream_cons_7‹U›
-                       n_1116 ((nat_make_1114) (succ_5‹› n_1116)))
-                   | false_3 => tt_1‹L›)
-Logical.infer_tm(nat_3 -> ((stream_1‹U›) nat_3))
-Logical.infer_tm(nat_3)
-Logical.infer_tm(((stream_1‹U›) nat_3))
-Logical.infer_tm(stream_1‹U›)
-Logical.check_tm( nat_3, U )
-Logical.infer_tm(nat_3)
-trans12.Program.case_intro(nat_3)
-Logical.infer_tm(nat_3)
-case_coverage{|
-  prblm {| ;
-    {| eq_pat?(R #n_1122, n_1121 : nat_3) ::: [] =>?
-         function _1124 : ((stream_1‹U›) nat_3)
-         | true_2 =>
-           (stream_cons_7‹U›
-             #n_1121 ((nat_make_1118) (succ_5‹› #n_1121)))
-         | false_3 => tt_1‹L›
-    |}
-  |}
-|}
-unify_local( eq_pat?(R #n_1122, n_1121 : nat_3) )
-unify_global(  )
-simpl_pprbm ~expand:false( #n_1122, #n_1121)
-case_coverage_ok(
-  function _1127 : ((stream_1‹U›) nat_3)
-  | true_2 =>
-    (stream_cons_7‹U› n_1122 ((nat_make_1118) (succ_5‹› n_1122)))
-  | false_3 => tt_1‹L›, ((stream_1‹U›) nat_3))
-Program.check_tm(
-  function _1128 : ((stream_1‹U›) nat_3)
-  | true_2 =>
-    (stream_cons_7‹U› n_1122 ((nat_make_1118) (succ_5‹› n_1122)))
-  | false_3 => tt_1‹L›, ((stream_1‹U›) nat_3)
-)
-Program.infer_tm(function _1129 : ((stream_1‹U›) nat_3)
-                 | true_2 =>
-                   (stream_cons_7‹U›
-                     n_1122 ((nat_make_1118) (succ_5‹› n_1122)))
-                 | false_3 => tt_1‹L›)
-Logical.infer_tm(((stream_1‹U›) nat_3))
-Logical.infer_tm(stream_1‹U›)
-Logical.check_tm( nat_3, U )
-Logical.infer_tm(nat_3)
-trans12.Program.case_intro(bool_2)
-Logical.infer_tm(bool_2)
-Logical.infer_tm(bool_2)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2);
-    {|  ::: [] =>?
-         (stream_cons_7‹U›
-           n_1122 ((nat_make_1118) (succ_5‹› n_1122)))
-    |}
-  |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok(
-  (stream_cons_7‹U› n_1122 ((nat_make_1118) (succ_5‹› n_1122))),
-  match true_2 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-Program.check_tm(
-  (stream_cons_7‹U› n_1122 ((nat_make_1118) (succ_5‹› n_1122))),
-  match true_2 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›
-)
-Program.infer_tm((stream_cons_7‹U›
-                   n_1122 ((nat_make_1118) (succ_5‹› n_1122))))
-Logical.check_tm( nat_3, U )
-Logical.infer_tm(nat_3)
-Program.check_tm( n_1122, nat_3 )
-Program.infer_tm(n_1122)
-Program.check_tm( ((nat_make_1118) (succ_5‹› n_1122)),
-  ∀ (b_1140 : bool_2) -o
-    match b_1140 in bool_2 -o L with
-    | true_2 => (stream_node_4‹U› nat_3)
-    | false_3 => unit_1‹L›
-)
-Program.infer_tm(((nat_make_1118) (succ_5‹› n_1122)))
-Program.infer_tm(nat_make_1118)
-Program.check_tm( (succ_5‹› n_1122), nat_3 )
-Program.infer_tm((succ_5‹› n_1122))
-Program.check_tm( n_1122, nat_3 )
-Program.infer_tm(n_1122)
-case_coverage{|
-  prblm {| eq_term?( bool_2, bool_2); {|  ::: [] =>? tt_1‹L› |} |}
-|}
-unify_local(  )
-unify_global( eq_term?( bool_2, bool_2) )
-simpl_pprbm ~expand:false( bool_2, bool_2)
-case_coverage_ok( tt_1‹L›,
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›)
-Program.check_tm( tt_1‹L›,
-  match false_3 in bool_2 -o L with
-  | true_2 => (stream_node_4‹U› nat_3)
-  | false_3 => unit_1‹L›
-)
-Program.infer_tm(tt_1‹L›)
-Logical.infer_tm(((stream_1‹U›) nat_3))
-Logical.infer_tm(stream_1‹U›)
-Logical.check_tm( nat_3, U )
-Logical.infer_tm(nat_3)
-Program.check_tm( ((nat_make_3) zero_4), ((stream_1‹U›) nat_3) )
-Program.infer_tm(((nat_make_3) zero_4))
-Program.infer_tm(nat_make_3)
-Program.check_tm( zero_4, nat_3 )
-Program.infer_tm(zero_4)
-Logical.infer_tm(unit_1‹U›)
-Program.check_tm( ((free_stream_2‹U›) nat_3 nat_stream_4), unit_1‹U›
-)
-Program.infer_tm(((free_stream_2‹U›) nat_3 nat_stream_4))
-Program.infer_tm(((free_stream_2‹U›) nat_3))
-Program.infer_tm(free_stream_2‹U›)
-Logical.check_tm( nat_3, U )
-Logical.infer_tm(nat_3)
-Program.check_tm( nat_stream_4, ((stream_1‹U›) nat_3) )
-Program.infer_tm(nat_stream_4)
 inductive unitU_6 where
 | ttU_9 of size(0)
 
@@ -1998,33 +2222,48 @@ inductive stream_nodeU_8 where
 inductive stream_nodeL_7 where
 | stream_nilL_10 of size(0) | stream_consL_11 of size(2)
 
-def streamU_7 = NULL
+def streamU_9 := NULL
 
-def streamL_6 = NULL
+def streamL_8 := NULL
 
-def free_streamU_9 =
-  fun free_stream_1151 (A_1152, st_1153) =>
-    match ((st_1153) false_3) with
+def free_streamU_11 :=
+  fun free_stream_1604 (A_1605, st_1606) =>
+    match ((st_1606) false_3) with
     | ttL_8  => ttU_9
     end
 
-def free_streamL_8 =
-  fun free_stream_1154 (A_1155, st_1156) =>
-    match ((st_1156) false_3) with
+def free_streamL_10 :=
+  fun free_stream_1607 (A_1608, st_1609) =>
+    match ((st_1609) false_3) with
     | ttL_8  => ttU_9
     end
 
-def nat_make_3 =
-  fun nat_make_1157 (n_1158) =>
-    fun _1159 (b_1160) =>
-      match b_1160 with
-      | true_2  => (stream_consU_13 n_1158 ((nat_make_1157) (succ_5 n_1158)))
+def stream_succ_3 :=
+  fun stream_succ_1610 (xs_1611) =>
+    fun _1612 (b_1613) =>
+      match b_1613 with
+      | true_2  =>
+        match ((xs_1611) true_2) with
+        | stream_nilU_12  => stream_nilU_12
+        | stream_consU_13 hd_1614 tl_1615 =>
+          (stream_consU_13 (succ_5 hd_1614) ((stream_succ_1610) tl_1615))
+        end
+      | false_3  => ((xs_1611) false_3)
+      end
+
+def nat_make_4 :=
+  fun nat_make_1616 (n_1617) =>
+    fun _1618 (b_1619) =>
+      match b_1619 with
+      | true_2  => (stream_consU_13 n_1617 ((nat_make_1616) (succ_5 n_1617)))
       | false_3  => ttL_8
       end
 
-def nat_stream_4 = ((nat_make_3) zero_4)
+def nat_stream_5 := ((nat_make_4) zero_4)
 
-def ok_5 = ((free_streamU_9) NULL nat_stream_4)
+def snat_stream_6 := ((stream_succ_3) nat_stream_5)
+
+def __7 := ((free_streamU_11) NULL snat_stream_6)
 
 -----------------------------------------
 

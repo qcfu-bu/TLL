@@ -26,8 +26,15 @@ def stream<s>(A : Type<s>) :=
     | false => unit
 
 def free_stream<s> ?{A : Type<s>} (st : stream A) : unit<U> :=
-  match st false with
-  | tt => tt
+  match st false with tt => tt
+
+def stream_succ (xs : stream nat) : stream nat :=
+  function
+  | true => (
+    match xs true with
+    | stream_nil => stream_nil
+    | stream_cons hd tl => stream_cons (succ hd) (stream_succ tl))
+  | false => xs false
 
 def nat_make (n : nat) : stream nat :=
   function
@@ -35,5 +42,6 @@ def nat_make (n : nat) : stream nat :=
   | false => tt
 
 def nat_stream := nat_make zero
+def snat_stream := stream_succ nat_stream
 
-def ok : _ := free_stream nat_stream
+def _ := free_stream snat_stream

@@ -89,7 +89,7 @@ let rec pp_dconstrs fmt = function
 
 let rec pp_dcl fmt = function
   | Definition { name; body } ->
-    pf fmt "@[def %a =@;<1 2>%a@]" Const.pp name pp_tm body
+    pf fmt "@[def %a :=@;<1 2>%a@]" Const.pp name pp_tm body
   | Inductive { name; body } ->
     pf fmt "@[<v 0>@[inductive %a where@]@;<1 0>@[%a@]@]" Ind.pp name
       pp_dconstrs body
