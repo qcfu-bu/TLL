@@ -65,7 +65,7 @@ and pp_tm fmt = function
     pf fmt "@[@[let* %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m
       pp_tm n
   (* erasure *)
-  | Null -> pf fmt "Null"
+  | NULL -> pf fmt "NULL"
   (* magic *)
   | Magic -> pf fmt "#magic"
 

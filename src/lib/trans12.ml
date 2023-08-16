@@ -424,7 +424,7 @@ module Program = struct
       match whnf env t with
       | Pi (N, s, a, bnd) ->
         Logical.check_tm ctx env n a;
-        Syntax2.(subst bnd n, _App (trans_sort s) m_elab _Null, usg1)
+        Syntax2.(subst bnd n, _App (trans_sort s) m_elab _NULL, usg1)
       | Pi (R, s, a, bnd) ->
         let n_elab, usg2 = check_tm ctx env n a in
         Syntax2.
@@ -438,7 +438,7 @@ module Program = struct
       let env = Env.add_var x m env in
       let b, n_elab, usg = infer_tm ctx env n in
       let usg = Usage.remove_var x usg N s in
-      Syntax2.(b, _Let _Null (bind_var (trans_var x) n_elab), usg)
+      Syntax2.(b, _Let _NULL (bind_var (trans_var x) n_elab), usg)
     | Let (R, m, bnd) ->
       let x, n = unbind bnd in
       let a, m_elab, usg1 = infer_tm ctx env m in
@@ -500,7 +500,7 @@ module Program = struct
       | n :: ns, TBind (N, a, bnd) ->
         Logical.check_tm ctx env n a;
         let b, ns_elab, usg = aux_tele ns (subst bnd n) in
-        Syntax2.(b, _Null :: ns_elab, usg)
+        Syntax2.(b, _NULL :: ns_elab, usg)
       | n :: ns, TBind (R, a, bnd) ->
         let n_elab, usg1 = check_tm ctx env n a in
         let b, ns_elab, usg2 = aux_tele ns (subst bnd n) in
@@ -515,7 +515,7 @@ module Program = struct
     | m :: ms, Pi (N, L, a, bnd) ->
       Logical.check_tm ctx env m a;
       let b, ms_elab, usg = infer_motive ctx env ms (subst bnd m) in
-      Syntax2.(b, _Null :: ms_elab, usg)
+      Syntax2.(b, _NULL :: ms_elab, usg)
     | m :: ms, Pi (R, L, a, bnd) ->
       let m_elab, usg1 = check_tm ctx env m a in
       let b, ms_elab, usg2 = infer_motive ctx env ms (subst bnd m) in
@@ -608,10 +608,10 @@ module Program = struct
       | (eqns, [], rhs) :: _ when can_split eqns -> (
         let relv, x, b = first_split eqns in
         let s = infer_demote ctx env b in
-        let usg1 =
+        let x_elab, usg1 =
           match relv with
-          | R -> Usage.var_singleton x (s, false)
-          | N -> Usage.empty
+          | R -> Syntax2.(_Var (trans_var x), Usage.var_singleton x (s, false))
+          | N -> Syntax2.(_NULL, Usage.empty)
         in
         match whnf env b with
         | Ind (d0, ss, ms, _) ->
@@ -661,9 +661,7 @@ module Program = struct
           let ctrees = box_rev_list ctrees in
           Syntax2.
             ( []
-            , _Match (trans_relv relv) (trans_sort s)
-                (_Var (trans_var x))
-                ctrees
+            , _Match (trans_relv relv) (trans_sort s) x_elab ctrees
             , Usage.merge usg1 usg2 )
         | _ -> failwith "trans12.Program.check_cls(Split(%a))" pp_tm b)
       (* absurd pattern *)

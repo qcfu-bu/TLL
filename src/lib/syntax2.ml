@@ -27,7 +27,7 @@ type tm =
   | Return of tm
   | MLet of tm * (tm, tm) binder
   (* erasure *)
-  | Null
+  | NULL
   (* magic *)
   | Magic
 
@@ -92,7 +92,7 @@ let _Return = box_apply (fun m -> Return m)
 let _MLet = box_apply2 (fun m n -> MLet (m, n))
 
 (* erasure *)
-let _Null = box Null
+let _NULL = box NULL
 
 (* magic *)
 let _Magic = box Magic
@@ -139,6 +139,6 @@ let rec lift_tm = function
   | Return m -> _Return (lift_tm m)
   | MLet (m, bnd) -> _MLet (lift_tm m) (box_binder lift_tm bnd)
   (* erasure *)
-  | Null -> _Null
+  | NULL -> _NULL
   (* magic *)
   | Magic -> _Magic
