@@ -484,7 +484,7 @@ module Program = struct
       | _ -> failwith "trans12.Program.infer_tm(MLet)")
     | Magic a ->
       let _ = Logical.infer_sort ctx env a in
-      Syntax2.(a, _Magic, Usage.empty)
+      Syntax2.(a, _Magic, Usage.of_ctx ctx)
 
   and infer_ptl ctx env ms ns ptl =
     let rec aux_param ms ptl =
