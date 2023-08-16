@@ -46,6 +46,10 @@ type dcl =
       ; relv : relv
       ; body : dconstrs
       }
+  | Extern of
+      { name : Const.t
+      ; relv : relv
+      }
 
 and dconstr = Constr.t * relv list
 and dconstrs = dconstr list

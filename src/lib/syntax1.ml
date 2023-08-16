@@ -75,6 +75,11 @@ type dcl =
       ; arity : tele param scheme
       ; dconstrs : dconstrs
       }
+  | Extern of
+      { name : Const.t
+      ; relv : relv
+      ; scheme : tm scheme
+      }
 
 and dcls = dcl list
 and dconstr = Constr.t * tele param scheme

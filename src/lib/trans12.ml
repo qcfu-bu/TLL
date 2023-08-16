@@ -822,6 +822,12 @@ let warn_constr x e =
     pr "@[@;<2 0>warning - pruned constructor %a@;<1 0>%s@]@." Constr.pp x s
   | _ -> raise e
 
+let warn_extern x e =
+  match e with
+  | Failure s ->
+    pr "@[@;<2 0>warning - pruned extern %a@;<1 0>%s@]@." Const.pp x s
+  | _ -> raise e
+
 let const_extend x ss =
   match ss with
   | [] -> x
@@ -954,6 +960,35 @@ let rec check_dcls ctx env = function
         Resolver.([], ctx)
     in
     let dcls_elab, usg = check_dcls ctx env dcls in
+    (dcl_elab @ dcls_elab, usg)
+  | Extern { name = x0; relv; scheme = sch } :: dcls ->
+    let sargs = mbinder_names sch in
+    let init = make_init sargs in
+    let dcl_elab, res, ctx, xs =
+      List.fold_right
+        (fun ss (dcl_elab, res, ctx_acc, xs) ->
+          let x1 = const_extend x0 ss in
+          try
+            let a = msubst sch (Array.of_list ss) in
+            let s = Logical.infer_sort ctx env a in
+            let relv = Program.trans_relv relv in
+            Resolver.
+              ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
+              , RMap.add ss x1 res
+              , Ctx.add_const x1 a s ctx_acc
+              , (x1, s) :: xs )
+          with
+          | e ->
+            warn_extern x1 e;
+            (dcl_elab, res, ctx_acc, xs))
+        init
+        Resolver.([], RMap.empty, ctx, [])
+    in
+    State.add_const x0 res;
+    let dcls_elab, usg = check_dcls ctx env dcls in
+    let usg =
+      List.fold_left (fun usg (x, s) -> Usage.remove_const x usg relv s) usg xs
+    in
     (dcl_elab @ dcls_elab, usg)
 
 and check_arity ctx env arity =

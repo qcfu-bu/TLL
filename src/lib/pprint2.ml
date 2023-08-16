@@ -99,5 +99,7 @@ let rec pp_dcl fmt = function
   | Inductive { name; relv; body } ->
     pf fmt "@[<v 0>@[@[<v 0>#[%a]@;<1 0>inductive@] %a where@]@;<1 0>%a@]"
       pp_modifier relv Ind.pp name pp_dconstrs body
+  | Extern { name; relv } ->
+    pf fmt "@[@[<v 0>#[%a]@;<1 0>extern@] %a@]" pp_modifier relv Const.pp name
 
 let pp_dcls fmt dcls = pf fmt "%a" (list ~sep:break pp_dcl) dcls

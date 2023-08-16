@@ -82,3 +82,4 @@ let rec trans_dcls = function
     Definition { name; relv; body = unbox body_elab } :: dcls_elab
   | Inductive { name; relv; body } :: dcls ->
     Inductive { name; relv; body } :: trans_dcls dcls
+  | Extern { name; relv } :: dcls -> Extern { name; relv } :: trans_dcls dcls

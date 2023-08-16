@@ -148,6 +148,7 @@ let modifier = [%sedlex.regexp? "#["]
 let dcl_def = [%sedlex.regexp? "def"]
 let dcl_inductive = [%sedlex.regexp? "inductive"]
 let dcl_where = [%sedlex.regexp? "where"]
+let dcl_extern = [%sedlex.regexp? "extern"]
 
 let rec filter buf =
   match%sedlex buf with
@@ -280,6 +281,7 @@ let rec tokenize buf =
   | dcl_def -> DCL_DEF
   | dcl_inductive -> DCL_INDUCTIVE
   | dcl_where -> DCL_WHERE
+  | dcl_extern -> DCL_EXTERN
   (* other *)
   | integer ->
     let i = int_of_string (Utf8.lexeme buf) in

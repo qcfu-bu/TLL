@@ -1,0 +1,45 @@
+#[logical]
+inductive eq<s> ?(A : Type‹s›) (m : A) : A -> U where
+  | refl : eq m m
+
+inductive unit : U where
+  | tt : unit
+
+inductive bool : L where
+  | true  : bool
+  | false : bool
+
+inductive nat : L where
+  | zero : nat
+  | succ (pred : nat) : nat
+
+inductive list<s,t> (A : Type<s>) : Type<t> where
+| nil : list A
+| cons (hd : A) (tl : list A) : list A
+
+inductive exists0<s,r> ?(A : Type<s>) (B : A -> Type<r>) : L where
+| ex0 {m : A} (n : B m) : @exists0 A B
+
+inductive exists1<s,r> ?(A : Type<s>) (B : A -> Type<r>) : L where
+| ex1 (m : A) (n : B m) : @exists1 A B
+
+#[logical] extern proto : U
+#[logical] extern Send0<s> ?(A : Type<s>) (B : A -> proto) : proto
+#[logical] extern Send1<s> ?(A : Type<s>) (B : A -> proto) : proto
+#[logical] extern Recv0<s> ?(A : Type<s>) (B : A -> proto) : proto
+#[logical] extern Recv1<s> ?(A : Type<s>) (B : A -> proto) : proto
+#[logical] extern Env : proto
+
+-- #[logical]
+-- inductive proto : U where
+-- | SEND ?(A : U) (B : A -> proto) : proto
+-- | RECV ?(A : U) (B : A -> proto) : proto
+-- | END : proto
+
+-- def ch : proto -> L := #magic
+
+-- def send
+--   ?{A : U}
+--   ?{B : A -> proto}
+--   (c : ch (SEND fn (x : A) => B x)) : forall (x : A) -> IO (ch (B x)) := #magic
+

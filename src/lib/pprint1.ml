@@ -211,6 +211,10 @@ let pp_dcl fmt = function
        <1 0>where@]@;\
        <1 0>%a@]" pp_modifier relv Ind.pp d pp_sargs (Array.to_list xs) pp_args
       args pp_arity tele (pp_dconstrs xs args) dconstrs
+  | Extern { name = x; relv; scheme = sch } ->
+    let xs, a = unmbind sch in
+    pf fmt "@[@[<v 0>#[%a]@;<1 0>extern@] %a‹%a› :@;<1 2>@[%a@]@]" pp_modifier
+      relv Const.pp x pp_sargs (Array.to_list xs) pp_tm a
 
 let pp_dcls fmt dcls =
   let break fmt _ = pf fmt "@.@." in

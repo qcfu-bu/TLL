@@ -493,6 +493,16 @@ let rec check_dcls ctx env dcls =
     let ctx = Ctx.add_ind ind (arity, cs) ctx in
     Debug.exec (fun () -> pr "----------------------------------@.@.");
     check_dcls ctx env dcls
+  | Extern { name = x; relv; scheme = sch } :: dcls ->
+    Debug.exec (fun () -> pr "definition-------------------------@.");
+    let ss, a = unmbind sch in
+    let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
+    assert_type ctx0 env a;
+    let meta_map = solve_delayed (State.get_delayed ()) in
+    let a_sch = bind_mvar ss (lift_tm (resolve_tm meta_map a)) in
+    let ctx = Ctx.add_const x (unbox a_sch) ctx in
+    Debug.exec (fun () -> pr "----------------------------------@.@.");
+    check_dcls ctx env dcls
   | [] -> State.solve_all ()
 
 and check_arity ctx env arity =

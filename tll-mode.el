@@ -20,7 +20,7 @@
 (setq tll-warning-regexp "\\(?:warning\\)")
 
 (setq tll-font-lock-keywords
-      `(("\\(\\<inductive\\>\\|\\<def\\>\\)\s*\\([[:graph:]]*\\)"
+      `(("\\(\\<inductive\\>\\|\\<def\\>\\|\\<extern\\>\\)\s*\\([[:graph:]]*\\)"
          (1 font-lock-keyword-face)
          (2 font-lock-variable-name-face))
         (,tll-magic-regexp . font-lock-warning-face)

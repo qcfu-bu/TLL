@@ -162,6 +162,7 @@
 %token DCL_DEF            // def
 %token DCL_INDUCTIVE      // inductive
 %token DCL_WHERE          // where
+%token DCL_EXTERN         // extern
 
 %{ open Syntax0 %}
 
@@ -783,10 +784,43 @@ let dcl_inductive :=
       let sch = Binder (sids, param) in
       Inductive { name = id; relv; body = sch; view } }
 
+// abstract
+/*
+#[logical]
+extern foo‹s› (x : A) (y : B) : C
+
+#[program]
+extern foo‹s› (x : A) : A -> B
+*/
+let dcl_extern_arg :=
+  | LPAREN; ids = iden+; COLON; a = tm; RPAREN;
+    { List.map (fun id -> (R, id, a, E)) ids }
+  | LBRACE; ids = iden+; COLON; a = tm; RBRACE;
+    { List.map (fun id -> (N, id, a, E)) ids }
+  | QLPAREN; ids = iden+; COLON; a = tm; RPAREN;
+    { List.map (fun id -> (R, id, a, I)) ids }
+  | QLBRACE; ids = iden+; COLON; a = tm; RBRACE;
+    { List.map (fun id -> (N, id, a, I)) ids }
+
+let dcl_extern_args :=
+  | args = dcl_extern_arg*; { List.concat args }
+
+let dcl_extern :=
+  | relv = dcl_modifier;
+    DCL_EXTERN; id_sids = dcl_iden; args = dcl_extern_args; COLON; b = tm;
+    { let id, sids = id_sids in
+      let a, view =
+        List.fold_right (fun (relv, id, a, v) (b, view) ->
+          (Pi (relv, U, a, Binder (id, b)), v :: view)) args (b, [])
+      in
+      let sch = Binder (sids, a) in
+      Extern { name = id; relv; body = sch; view } }
+
 // declarations
 let dcl :=
   | ~ = dcl_def; <>
   | ~ = dcl_inductive; <>
+  | ~ = dcl_extern; <>
 
 // main
 let main :=
