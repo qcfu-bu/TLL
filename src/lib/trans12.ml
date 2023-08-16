@@ -869,7 +869,8 @@ let rec check_dcls ctx env = function
             let s = Logical.infer_sort ctx env a in
             Logical.check_tm ctx env m a;
             Resolver.
-              ( Syntax2.(Definition { name = x1; body = NULL }) :: dcl_elab
+              ( Syntax2.(Definition { name = x1; relv = N; body = NULL })
+                :: dcl_elab
               , RMap.add ss x1 res
               , Ctx.add_const x1 a s ctx_acc
               , RMap.add ss m local
@@ -900,7 +901,7 @@ let rec check_dcls ctx env = function
             let s = Logical.infer_sort ctx env a in
             let m_elab, usg = Program.check_tm ctx env m a in
             Resolver.
-              ( Syntax2.(Definition { name = x1; body = unbox m_elab })
+              ( Syntax2.(Definition { name = x1; relv = R; body = unbox m_elab })
                 :: dcl_elab
               , RMap.add ss x1 res
               , Ctx.add_const x1 a s ctx_acc
@@ -938,7 +939,12 @@ let rec check_dcls ctx env = function
             in
             let ctx_acc = Ctx.add_ind d1 (arity, cs0) ctx_acc in
             Syntax2.
-              ( Inductive { name = d1; body = dconstrs_elab } :: dcl_elab
+              ( Inductive
+                  { name = d1
+                  ; relv = Program.trans_relv relv
+                  ; body = dconstrs_elab
+                  }
+                :: dcl_elab
               , ctx_acc )
           with
           | e ->

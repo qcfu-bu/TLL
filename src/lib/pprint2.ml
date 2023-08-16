@@ -93,10 +93,11 @@ let rec pp_dconstrs fmt = function
     pf fmt "%a@;<1 0>%a" pp_dconstr dconstr pp_dconstrs dconstrs
 
 let rec pp_dcl fmt = function
-  | Definition { name; body } ->
-    pf fmt "@[def %a :=@;<1 2>%a@]" Const.pp name pp_tm body
-  | Inductive { name; body } ->
-    pf fmt "@[<v 0>@[inductive %a where@]@;<1 0>@[%a@]@]" Ind.pp name
-      pp_dconstrs body
+  | Definition { name; relv; body } ->
+    pf fmt "@[@[<v 0>#[%a]@;<1 0>def@] %a :=@;<1 2>@[%a@]@]" pp_modifier relv
+      Const.pp name pp_tm body
+  | Inductive { name; relv; body } ->
+    pf fmt "@[<v 0>@[@[<v 0>#[%a]@;<1 0>inductive@] %a where@]@;<1 0>%a@]"
+      pp_modifier relv Ind.pp name pp_dconstrs body
 
 let pp_dcls fmt dcls = pf fmt "%a" (list ~sep:break pp_dcl) dcls

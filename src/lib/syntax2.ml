@@ -38,10 +38,12 @@ and cls = cl list
 type dcl =
   | Definition of
       { name : Const.t
+      ; relv : relv
       ; body : tm
       }
   | Inductive of
       { name : Ind.t
+      ; relv : relv
       ; body : dconstrs
       }
 

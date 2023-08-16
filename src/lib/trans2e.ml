@@ -76,9 +76,9 @@ let rec trans_tm = function
 
 let rec trans_dcls = function
   | [] -> []
-  | Definition { name; body } :: dcls ->
+  | Definition { name; relv; body } :: dcls ->
     let body_elab = trans_tm body in
     let dcls_elab = trans_dcls dcls in
-    Definition { name; body = unbox body_elab } :: dcls_elab
-  | Inductive { name; body } :: dcls ->
-    Inductive { name; body } :: trans_dcls dcls
+    Definition { name; relv; body = unbox body_elab } :: dcls_elab
+  | Inductive { name; relv; body } :: dcls ->
+    Inductive { name; relv; body } :: trans_dcls dcls
