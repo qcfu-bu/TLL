@@ -45,7 +45,7 @@ type dcl =
       ; body : dconstrs
       }
 
-and dconstr = Constr.t * int
+and dconstr = Constr.t * relv list
 and dconstrs = dconstr list
 
 module Var = struct

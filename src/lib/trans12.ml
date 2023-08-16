@@ -978,18 +978,18 @@ and check_dconstrs ss ctx env relv d0 dconstrs ctx_acc =
   and aux_tele ctx env relv d0 = function
     | TBase (Ind (d, _, _, _) as a) when Ind.equal d d0 ->
       let t = Logical.infer_sort ctx env a in
-      (0, t)
+      ([], t)
     | TBind (N, a, bnd) ->
       let x, b = unbind bnd in
       let s = Logical.infer_sort ctx env a in
-      let i, t = aux_tele (Ctx.add_var x a s ctx) env relv d0 b in
-      (i + 1, t)
+      let layout, t = aux_tele (Ctx.add_var x a s ctx) env relv d0 b in
+      Syntax2.(N :: layout, t)
     | TBind (R, a, bnd) ->
       let x, b = unbind bnd in
       let s = Logical.infer_sort ctx env a in
-      let i, t = aux_tele (Ctx.add_var x a s ctx) env relv d0 b in
+      let layout, t = aux_tele (Ctx.add_var x a s ctx) env relv d0 b in
       if relv = N || s <= t then
-        (i + 1, t)
+        Syntax2.(R :: layout, t)
       else
         failwith "trans12.check_dconstrs"
     | _ -> failwith "trans12.check_dconstrs"
@@ -1012,10 +1012,10 @@ and check_dconstrs ss ctx env relv d0 dconstrs ctx_acc =
       check_dconstrs ss ctx env relv d0 dconstrs ctx_acc
     in
     match opt with
-    | Some (i, param) ->
+    | Some (layout, param) ->
       State.add_constr c0 ss c1;
       let ctx_acc = Ctx.add_constr c1 (param, relv) ctx_acc in
-      ((c1, i) :: dconstrs_elab, ctx_acc, c0 :: cs0)
+      ((c1, layout) :: dconstrs_elab, ctx_acc, c0 :: cs0)
     | None -> (dconstrs_elab, ctx_acc, cs0))
 
 let trans_dcls dcls =

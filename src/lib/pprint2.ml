@@ -15,6 +15,10 @@ let rec pp_sorts fmt = function
   | [ s ] -> pp_sort fmt s
   | s :: ss -> pf fmt "%a,%a" pp_sort s pp_sorts ss
 
+let pp_relv fmt = function
+  | N -> pf fmt "N"
+  | R -> pf fmt "R"
+
 let pp_modifier fmt = function
   | R -> pf fmt "program"
   | N -> pf fmt "logical"
@@ -79,7 +83,8 @@ and pp_cls fmt = function
   | [ cl ] -> pp_cl fmt cl
   | cl :: cls -> pf fmt "%a@;<1 0>%a" pp_cl cl pp_cls cls
 
-let rec pp_dconstr fmt (c, i) = pf fmt "| @[%a of size(%d)@]" Constr.pp c i
+let rec pp_dconstr fmt (c, relvs) =
+  pf fmt "| @[%a of layout[%a]@]" Constr.pp c (list ~sep:comma pp_relv) relvs
 
 let rec pp_dconstrs fmt = function
   | [] -> ()
