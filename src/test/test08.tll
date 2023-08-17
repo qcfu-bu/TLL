@@ -1,45 +1,43 @@
 inductive unit<s> : Type<s> where
   | tt : unit
 
-inductive bool : U where
-  | true  : bool
-  | false : bool
-
 inductive nat : U where
   | zero : nat
   | succ (pred : nat) : nat
+
+inductive choice : L where
+  | next : choice
+  | free : choice
 
 inductive stream_node<s> (A : Type<s>) : L where
   | stream_nil : stream_node A
   | stream_cons
     (hd : A)
-    (tl : forall (b : bool) -o
-            match b with
-            | true => stream_node A
-            | false => unit) : stream_node A
+    (tl : forall (x : choice) -o
+            match x with
+            | next => stream_node A
+            | free => unit) : stream_node A
 
 #[logical]
 def stream<s>(A : Type<s>) :=
-  forall (b : bool) -o
-    match b with
-    | true => stream_node A
-    | false => unit
+  forall (x : choice) -o
+    match x with
+    | next => stream_node A
+    | free => unit
 
 def free_stream<s> ?{A : Type<s>} (st : stream A) : unit<U> :=
-  match st false with tt => tt
+  match st free with tt => tt
 
-def stream_succ (xs : stream nat) : stream nat :=
-  function
-  | true => (
-    match xs true with
-    | stream_nil => stream_nil
-    | stream_cons hd tl => stream_cons (succ hd) (stream_succ tl))
-  | false => xs false
+def stream_succ (xs : stream nat) : stream nat
+  | next =>
+    (match xs next with
+     | stream_nil => stream_nil
+     | stream_cons hd tl => stream_cons (succ hd) (stream_succ tl))
+  | free => xs free
 
-def nat_make (n : nat) : stream nat :=
-  function
-  | true => stream_cons n (nat_make (succ n))
-  | false => tt
+def nat_make (n : nat) : stream nat
+  | next => stream_cons n (nat_make (succ n))
+  | free => tt
 
 def nat_stream := nat_make zero
 def snat_stream := stream_succ nat_stream
