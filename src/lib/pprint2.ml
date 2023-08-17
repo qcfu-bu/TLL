@@ -93,6 +93,9 @@ let rec pp_dconstrs fmt = function
     pf fmt "%a@;<1 0>%a" pp_dconstr dconstr pp_dconstrs dconstrs
 
 let rec pp_dcl fmt = function
+  | Main { body } ->
+    pf fmt "@[@[<v 0>#[%a]@;<1 0>def@] main :=@;<1 2>@[%a@]@]" pp_modifier R
+      pp_tm body
   | Definition { name; relv; body } ->
     pf fmt "@[@[<v 0>#[%a]@;<1 0>def@] %a :=@;<1 2>@[%a@]@]" pp_modifier relv
       Const.pp name pp_tm body

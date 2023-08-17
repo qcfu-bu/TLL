@@ -5,11 +5,11 @@ inductive eq<s> ?(A : Type‹s›) (m : A) : A -> U where
 inductive unit : U where
   | tt : unit
 
-inductive bool : L where
+inductive bool : U where
   | true  : bool
   | false : bool
 
-inductive nat : L where
+inductive nat : U where
   | zero : nat
   | succ (pred : nat) : nat
 
@@ -23,20 +23,30 @@ inductive exists0<s,r> ?(A : Type<s>) (B : A -> Type<r>) : L where
 inductive exists1<s,r> ?(A : Type<s>) (B : A -> Type<r>) : L where
 | ex1 (m : A) (n : B m) : @exists1 A B
 
+def xor : bool -> bool -o bool
+  | true  true  => false
+  | false false => false
+  | _     _     => true
+
 #[logical] extern proto : U
-#[logical] extern Send0<s> ?(A : Type<s>) (B : A -> proto) : proto
-#[logical] extern Send1<s> ?(A : Type<s>) (B : A -> proto) : proto
-#[logical] extern Recv0<s> ?(A : Type<s>) (B : A -> proto) : proto
-#[logical] extern Recv1<s> ?(A : Type<s>) (B : A -> proto) : proto
-#[logical] extern Env : proto
+#[logical] extern act0<s> (b : bool) ?(A : Type<s>) (B : A -> proto) : proto
+#[logical] extern act1<s> (b : bool) ?(A : Type<s>) (B : A -> proto) : proto
+#[logical] extern endp : proto
+#[logical] extern ch : bool -> proto -> L
 
--- #[logical]
--- inductive proto : U where
--- | SEND ?(A : U) (B : A -> proto) : proto
--- | RECV ?(A : U) (B : A -> proto) : proto
--- | END : proto
+extern close ?{b : bool} : ch b endp -> IO unit 
+extern send0<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {eq (xor b1 b2) false} -> (ch b1 (act0 b2 B)) -> ∀ {x : A} -o IO (ch b1 (B x))
+extern send1<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {eq (xor b1 b2) false} -> (ch b1 (act1 b2 B)) -> ∀ (x : A) -o IO (ch b1 (B x))
+extern recv0<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {eq (xor b1 b2) false} -> (ch b1 (act0 b2 B)) -> IO (exists0 fn (x : A) => ch b1 (B x))
+extern recv1<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {eq (xor b1 b2) false} -> (ch b1 (act1 b2 B)) -> IO (exists1 fn (x : A) => ch b1 (B x))
 
--- def ch : proto -> L := #magic
+-- extern c : ch true (act1 true fn (x : nat) => endp)
+
+-- def main : IO unit :=
+--   let* c := send1 refl c zero in
+--   close c
+
+-- def _ : unit := #magic
 
 -- def send
 --   ?{A : U}

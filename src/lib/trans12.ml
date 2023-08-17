@@ -863,6 +863,18 @@ let make_init xs =
 
 let rec check_dcls ctx env = function
   | [] -> ([], Usage.empty)
+  | Definition { name = x0; relv = R; scheme = sch } :: _ when Const.is_main x0
+    -> (
+    let sargs, (m, a) = unmbind sch in
+    match (sargs, whnf env a) with
+    | [||], IO a0 -> (
+      let s = Logical.infer_sort ctx env a0 in
+      match s with
+      | U ->
+        let m_elab, usg = Program.check_tm ctx env m a in
+        Syntax2.([ Main { body = unbox m_elab } ], usg)
+      | _ -> failwith "trans.check_cls(Main)")
+    | _ -> failwith "trans12.check_dcls(Main)")
   | Definition { name = x0; relv = N; scheme = sch } :: dcls ->
     let sargs = mbinder_names sch in
     let init = make_init sargs in

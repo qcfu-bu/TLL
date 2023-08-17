@@ -596,16 +596,15 @@ let tm1 :=
   | m = tm0; ms = tm0*;
     { match ms with [] -> m | _ -> App (m :: ms) }
 
-let tm2 :=
-  | a = tm2; RIGHTARROW0; b = tm2; { Pi (R, U, a, Binder ("_", b)) }
-  | a = tm2; MULTIMAP; b = tm2; { Pi (R, L, a, Binder ("_", b)) }
-  | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm2; { Pi (N, U, a, Binder ("_", b)) }
-  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm2; { Pi (N, L, a, Binder ("_", b)) }
+let tm2_generic(p) :=
+  | a = tm1; RIGHTARROW0; b = tm2_generic(p); { Pi (R, U, a, Binder ("_", b)) }
+  | a = tm1; MULTIMAP; b = tm2_generic(p); { Pi (R, L, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm2_generic(p); { Pi (N, U, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm2_generic(p); { Pi (N, L, a, Binder ("_", b)) }
+  | ms = tm0*; m = tm_pi(p); { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ~ = tm1; <>
 
 let tm3_generic(p) :=
-  | ms = tm0*; m = tm_pi(p);
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_lam(p);
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_let(p);
@@ -616,7 +615,7 @@ let tm3_generic(p) :=
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_mlet(p);
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ~ = tm2; <>
+  | ~ = tm2_generic(p); <>
 
 let tm3_closed :=
   | ~ = tm3_generic(tm_closed); <>

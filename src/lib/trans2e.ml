@@ -76,6 +76,8 @@ let rec trans_tm = function
 
 let rec trans_dcls = function
   | [] -> []
+  | Main { body } :: [] -> Main { body = unbox (trans_tm body) } :: []
+  | Main _ :: _ -> failwith "trans12.trans_dcls(Main)"
   | Definition { name; relv; body } :: dcls ->
     let body_elab = trans_tm body in
     let dcls_elab = trans_dcls dcls in

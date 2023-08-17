@@ -36,6 +36,7 @@ and cl = Constr.t * (tm, tm) mbinder
 and cls = cl list
 
 type dcl =
+  | Main of { body : tm }
   | Definition of
       { name : Const.t
       ; relv : relv

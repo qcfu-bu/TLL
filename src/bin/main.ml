@@ -26,7 +26,7 @@ let _ =
     if Array.length Sys.argv < 1 then
       epr "input file expected@."
     else
-      (* let _ = Debug.enable () in *)
+      let _ = Debug.enable () in
       let src_name = Sys.argv.(1) in
       let src_ch = open_in src_name in
       let dcls0 = parse (Utf8.from_channel src_ch) in
