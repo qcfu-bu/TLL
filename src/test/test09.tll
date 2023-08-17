@@ -36,10 +36,10 @@ def proj1 ?{A : L} ?{B : A -> L} : @apair A B -> A
 
 def proj2 ?{A : L} ?{B : A -> L} : forall (x : @apair A B) -> B (proj1 x)
   | (apair_intro x select) => 
-    match {x} as x0 -- x is matched to introduce flex variable x0
-        , {select true} as a0 : sing x
-        , {sing_uniq (select true)} as _ : eq x0 (sing_elim a0)
-        , (select false) as _ : B x0
+    match {x}                       as x0 -- x is matched to introduce flex variable x0
+        , {select true}             as a0 : sing x
+        , {sing_uniq (select true)} as _  : eq x0 (sing_elim a0)
+        , select false              as _  : B x0
       in B (sing_elim a0)
     with
     | _, _, refl, b => b
