@@ -69,7 +69,7 @@ module Logical = struct
       let t = infer_sort ctx env a in
       let _ = infer_sort (Ctx.add_var x a t ctx) env b in
       Type s
-    | Fun (a, bnd) ->
+    | Fun (_, a, bnd) ->
       let x, cls = unbind bnd in
       let s = infer_sort ctx env a in
       check_cls (Ctx.add_var x a s ctx) env cls a;
@@ -97,7 +97,7 @@ module Logical = struct
       let c1 = State.find_constr c0 ss in
       let ptl, _ = Ctx.find_constr c1 ctx in
       infer_ptl ctx env ms ns ptl
-    | Match (ms, a, cls) ->
+    | Match (_, ms, a, cls) ->
       let b = infer_motive ctx env ms a in
       check_cls ctx env cls a;
       b
@@ -409,7 +409,7 @@ module Program = struct
       let a, s = Ctx.find_const x1 ctx in
       Syntax2.(a, _Const x1, Usage.const_singleton x1 (s, false))
     | Pi _ -> failwith "trans12.Program.infer_tm(Pi)"
-    | Fun (a, bnd) ->
+    | Fun (_, a, bnd) ->
       let x, cls = unbind bnd in
       let s = Logical.infer_sort ctx env a in
       let ctree, usg = check_cls (Ctx.add_var x a s ctx) env cls a in
@@ -460,7 +460,7 @@ module Program = struct
         let a, ns_elab, usg = infer_ptl ctx env ms ns ptl in
         Syntax2.(a, _Constr c1 (box_list ns_elab), usg)
       | _ -> failwith "trans12.Program.infer_tm(Constr)")
-    | Match (ms, a, cls) ->
+    | Match (_, ms, a, cls) ->
       let b, ms_elab, usg1 = infer_motive ctx env ms a in
       Debug.exec (fun () -> pr "Program.infer_motive_ok@.");
       let ctree, usg2 = check_cls ctx env cls a in

@@ -68,7 +68,7 @@ let resolve_tm (meta_map : meta_map) m =
       let a = aux_tm a in
       let b = lift_tm (aux_tm b) in
       Pi (relv, s, a, unbox (bind_var x b))
-    | Fun (a, bnd) ->
+    | Fun (guard, a, bnd) ->
       let x, cls = unbind bnd in
       let a = aux_tm a in
       let cls =
@@ -82,7 +82,7 @@ let resolve_tm (meta_map : meta_map) m =
           cls
       in
       let cls = box_list cls in
-      Fun (a, unbox (bind_var x cls))
+      Fun (guard, a, unbox (bind_var x cls))
     | App (m, n) -> App (aux_tm m, aux_tm n)
     | Let (relv, m, bnd) ->
       let x, n = unbind bnd in
@@ -94,7 +94,7 @@ let resolve_tm (meta_map : meta_map) m =
       Ind (d, List.map aux_sort ss, List.map aux_tm ms, List.map aux_tm ns)
     | Constr (c, ss, ms, ns) ->
       Constr (c, List.map aux_sort ss, List.map aux_tm ms, List.map aux_tm ns)
-    | Match (ms, a, cls) ->
+    | Match (guard, ms, a, cls) ->
       let ms = List.map aux_tm ms in
       let a = aux_tm a in
       let cls =
@@ -108,7 +108,7 @@ let resolve_tm (meta_map : meta_map) m =
           cls
       in
       let cls = box_list cls in
-      Match (ms, a, unbox cls)
+      Match (guard, ms, a, unbox cls)
     (* monad *)
     | IO a -> IO (aux_tm a)
     | Return m -> Return (aux_tm m)
@@ -199,7 +199,7 @@ let map_pmeta f m =
       let a = aux a in
       let b = lift_tm (aux b) in
       Pi (relv, s, a, unbox (bind_var x b))
-    | Fun (a, bnd) ->
+    | Fun (guard, a, bnd) ->
       let x, cls = unbind bnd in
       let a = aux a in
       let cls =
@@ -211,7 +211,7 @@ let map_pmeta f m =
           cls
       in
       let cls = box_list cls in
-      Fun (a, unbox (bind_var x cls))
+      Fun (guard, a, unbox (bind_var x cls))
     | App (m, n) -> App (aux m, aux n)
     | Let (relv, m, bnd) ->
       let x, n = unbind bnd in
@@ -221,7 +221,7 @@ let map_pmeta f m =
     (* inductive *)
     | Ind (d, ss, ms, ns) -> Ind (d, ss, List.map aux ms, List.map aux ns)
     | Constr (c, ss, ms, ns) -> Constr (c, ss, List.map aux ms, List.map aux ns)
-    | Match (ms, a, cls) ->
+    | Match (guard, ms, a, cls) ->
       let ms = List.map aux ms in
       let a = aux a in
       let cls =
@@ -233,7 +233,7 @@ let map_pmeta f m =
           cls
       in
       let cls = box_list cls in
-      Match (ms, a, unbox cls)
+      Match (guard, ms, a, unbox cls)
     (* monad *)
     | IO a -> IO (aux a)
     | Return m -> Return (aux m)
@@ -286,7 +286,7 @@ let occurs_tm x m =
     | Pi (_, _, a, bnd) ->
       let _, b = unbind bnd in
       aux a || aux b
-    | Fun (a, bnd) ->
+    | Fun (_, a, bnd) ->
       let _, cls = unbind bnd in
       aux a
       || List.exists
@@ -303,7 +303,7 @@ let occurs_tm x m =
     (* inductive *)
     | Ind (_, _, ms, ns) -> List.exists aux (ms @ ns)
     | Constr (_, _, ms, ns) -> List.exists aux (ms @ ns)
-    | Match (ms, a, cls) ->
+    | Match (_, ms, a, cls) ->
       List.exists aux ms || aux a
       || List.exists
            (fun (_, bnd) ->
@@ -323,19 +323,26 @@ let occurs_tm x m =
   in
   aux m
 
-let rec imeta_blocked = function
-  | App (IMeta _, _) -> true
-  | App (m, _) -> imeta_blocked m
-  | Match (ms, _, _) ->
+let imeta_blocked m =
+  let rec blocked_spine ms =
     List.exists
       (fun m ->
         match m with
         | IMeta _ -> true
-        | _ -> imeta_blocked m)
+        | _ -> blocked m)
       ms
-  | MLet (IMeta _, _) -> true
-  | MLet (m, _) -> imeta_blocked m
-  | _ -> false
+  and blocked = function
+    | App _ as m -> (
+      match unApps m with
+      | Fun _, ms -> blocked_spine ms
+      | IMeta _, _ -> true
+      | hd, _ -> blocked hd)
+    | Match (_, ms, _, _) -> blocked_spine ms
+    | MLet (IMeta _, _) -> true
+    | MLet (m, _) -> blocked m
+    | _ -> false
+  in
+  blocked m
 
 let rec simpl_iprbm ?(expand = false) eqn =
   let open IPrbm in
@@ -381,7 +388,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
       let eqns1 = simpl_iprbm (EqualTerm (env, a1, a2)) in
       let eqns2 = simpl_iprbm (EqualTerm (env, b1, b2)) in
       eqns0 @ eqns1 @ eqns2
-    | Fun (a1, bnd1), Fun (a2, bnd2) ->
+    | Fun (_, a1, bnd1), Fun (_, a2, bnd2) ->
       Debug.exec (fun () ->
           pr "@[simpl_function(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m1 pp_tm m2);
       let _, cls1, cls2 = unbind2 bnd1 bnd2 in
@@ -442,7 +449,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
         List.map2 (fun n1 n2 -> simpl_iprbm (EqualTerm (env, n1, n2))) ns1 ns2
       in
       List.concat eqns0 @ List.concat eqns1 @ List.concat eqns2
-    | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
+    | Match (_, ms1, a1, cls1), Match (_, ms2, a2, cls2) ->
       let eqns1 =
         List.map2 (fun m1 m2 -> simpl_iprbm (EqualTerm (env, m1, m2))) ms1 ms2
       in
@@ -574,7 +581,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
       let eqns1 = simpl_pprbm (EqualTerm (env, a1, a2)) in
       let eqns2 = simpl_pprbm (EqualTerm (env, b1, b2)) in
       eqns1 @ eqns2
-    | Fun (a1, bnd1), Fun (a2, bnd2) ->
+    | Fun (_, a1, bnd1), Fun (_, a2, bnd2) ->
       let _, cls1, cls2 = unbind2 bnd1 bnd2 in
       let eqns1 = simpl_pprbm (EqualTerm (env, a1, a2)) in
       let eqns2 =
@@ -625,7 +632,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
         List.map2 (fun n1 n2 -> simpl_pprbm (EqualTerm (env, n1, n2))) ns1 ns2
       in
       List.concat eqns1 @ List.concat eqns2
-    | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
+    | Match (_, ms1, a1, cls1), Match (_, ms2, a2, cls2) ->
       let eqns1 =
         List.map2 (fun m1 m2 -> simpl_pprbm (EqualTerm (env, m1, m2))) ms1 ms2
       in

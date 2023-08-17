@@ -23,7 +23,7 @@ let map_pmeta f m =
       let a = aux a in
       let b = lift_tm (aux b) in
       Pi (relv, s, a, unbox (bind_var x b))
-    | Fun (a, bnd) ->
+    | Fun (guard, a, bnd) ->
       let x, cls = unbind bnd in
       let a = aux a in
       let cls =
@@ -35,7 +35,7 @@ let map_pmeta f m =
           cls
       in
       let cls = box_list cls in
-      Fun (a, unbox (bind_var x cls))
+      Fun (guard, a, unbox (bind_var x cls))
     | App (m, n) -> App (aux m, aux n)
     | Let (relv, m, bnd) ->
       let x, n = unbind bnd in
@@ -45,7 +45,7 @@ let map_pmeta f m =
     (* inductive *)
     | Ind (d, ss, ms, ns) -> Ind (d, ss, List.map aux ms, List.map aux ns)
     | Constr (c, ss, ms, ns) -> Constr (c, ss, List.map aux ms, List.map aux ns)
-    | Match (ms, a, cls) ->
+    | Match (guard, ms, a, cls) ->
       let ms = List.map aux ms in
       let a = aux a in
       let cls =
@@ -57,7 +57,7 @@ let map_pmeta f m =
           cls
       in
       let cls = box_list cls in
-      Match (ms, a, unbox cls)
+      Match (guard, ms, a, unbox cls)
     (* monad *)
     | IO a -> IO (aux a)
     | Return m -> Return (aux m)
@@ -121,7 +121,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
       let eqns1 = simpl_pprbm (EqualTerm (env, a1, a2)) in
       let eqns2 = simpl_pprbm (EqualTerm (env, b1, b2)) in
       eqns1 @ eqns2
-    | Fun (a1, bnd1), Fun (a2, bnd2) ->
+    | Fun (_, a1, bnd1), Fun (_, a2, bnd2) ->
       let _, cls1, cls2 = unbind2 bnd1 bnd2 in
       let eqns1 = simpl_pprbm (EqualTerm (env, a1, a2)) in
       let eqns2 =
@@ -172,7 +172,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
         List.map2 (fun n1 n2 -> simpl_pprbm (EqualTerm (env, n1, n2))) ns1 ns2
       in
       List.concat eqns1 @ List.concat eqns2
-    | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
+    | Match (_, ms1, a1, cls1), Match (_, ms2, a2, cls2) ->
       let eqns1 =
         List.map2 (fun m1 m2 -> simpl_pprbm (EqualTerm (env, m1, m2))) ms1 ms2
       in

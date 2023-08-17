@@ -40,11 +40,11 @@ extern send1<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {eq (xor b1 b
 extern recv0<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {eq (xor b1 b2) false} -> (ch b1 (act0 b2 B)) -> IO (exists0 fn (x : A) => ch b1 (B x))
 extern recv1<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {eq (xor b1 b2) false} -> (ch b1 (act1 b2 B)) -> IO (exists1 fn (x : A) => ch b1 (B x))
 
--- extern c : ch true (act1 true fn (x : nat) => endp)
+extern c : ch true (act1 true fn (x : nat) => endp)
 
--- def main : IO unit :=
---   let* c := send1 refl c zero in
---   close c
+def main : IO unit :=
+  let* c := send1 refl c zero in
+  close c
 
 -- def _ : unit := #magic
 

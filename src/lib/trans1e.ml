@@ -130,7 +130,7 @@ and infer_tm ctx env m : tm =
     assert_type ctx env a;
     assert_type (Ctx.add_var x a ctx) env b;
     Type s
-  | Fun (a, bnd) ->
+  | Fun (_, a, bnd) ->
     let x, cls = unbind bnd in
     assert_type ctx env a;
     check_cls (Ctx.add_var x a ctx) env cls a;
@@ -156,7 +156,7 @@ and infer_tm ctx env m : tm =
     let sch = Ctx.find_constr c ctx in
     let ptl = msubst sch (Array.of_list ss) in
     infer_ptl ctx env ms ns ptl
-  | Match (ms, a, cls) ->
+  | Match (_, ms, a, cls) ->
     let b = infer_motive ctx env ms a in
     check_cls ctx env cls a;
     b
@@ -227,7 +227,7 @@ and check_tm ctx env m a : unit =
   match m with
   (* inference *)
   | IMeta (x, ss, xs) -> State.add_imeta ctx env x ss xs a
-  | Fun (b, bnd) ->
+  | Fun (_, b, bnd) ->
     let x, cls = unbind bnd in
     assert_type ctx env b;
     assert_equal1 env a b;

@@ -88,7 +88,7 @@ and pp_tm fmt = function
     let x, b = unbind bnd in
     pf fmt "@[@[forall‹%a›{%a :@;<1 2>%a},@]@;<1 2>%a@]" pp_sort s Var.pp x
       pp_tm a pp_tm b
-  | Fun (a, bnd) ->
+  | Fun (_, a, bnd) ->
     let x, cls = unbind bnd in
     pf fmt "@[<v 0>@[function %a :@;<1 2>@[%a@]@]@;<1 0>@[<v 0>%a@]@]" Var.pp x
       pp_tm a (pp_cls " ") cls
@@ -116,7 +116,7 @@ and pp_tm fmt = function
   | Constr (c, ss, _, ms) ->
     pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Constr.pp c pp_sorts ss
       (list ~sep:sp pp_tm) ms
-  | Match (ms, a, cls) ->
+  | Match (_, ms, a, cls) ->
     pf fmt "@[<v 0>@[match %a in@;<1 2>%a@;<1 0>with@]@;<1 0>@[<v 0>%a@]@]"
       (list ~sep:comma pp_tm) ms pp_tm a (pp_cls ", ") cls
   (* monad *)

@@ -21,9 +21,9 @@ let rec whnf ?(expand = true) (env : Env.t) = function
     let hd = whnf ~expand env hd in
     let ms = List.map (whnf ~expand env) ms in
     match hd with
-    | Fun (_, bnd) -> (
+    | Fun (guard, _, bnd) -> (
       let cls = subst bnd hd in
-      match match_cls cls ms with
+      match match_cls guard cls ms with
       | Some (Some rhs, rst) -> whnf ~expand env (mkApps rhs rst)
       | _ -> mkApps hd ms)
     | _ -> mkApps hd ms)
@@ -31,11 +31,11 @@ let rec whnf ?(expand = true) (env : Env.t) = function
     let m = whnf ~expand env m in
     whnf ~expand env (subst bnd m)
   (* inductive *)
-  | Match (ms, a, cls) -> (
+  | Match (guard, ms, a, cls) -> (
     let ms = List.map (whnf ~expand env) ms in
-    match match_cls cls ms with
+    match match_cls guard cls ms with
     | Some (Some rhs, []) -> whnf ~expand env rhs
-    | _ -> Match (ms, a, cls))
+    | _ -> Match (guard, ms, a, cls))
   (* monadic *)
   | MLet (m, bnd) -> (
     let m = whnf ~expand env m in
@@ -47,27 +47,28 @@ let rec whnf ?(expand = true) (env : Env.t) = function
   (* other *)
   | m -> m
 
-and match_cls cls ms =
-  let rec gather_args p0s ms =
-    match (p0s, ms) with
+and match_cls guard cls ms =
+  let rec check_guard guard ms =
+    match (guard, ms) with
+    | true :: guard, (Constr _ as m) :: ms ->
+      Option.map (fun (ms, ns) -> (m :: ms, ns)) (check_guard guard ms)
+    | true :: guard, _ -> None
+    | false :: guard, m :: ms ->
+      Option.map (fun (ms, ns) -> (m :: ms, ns)) (check_guard guard ms)
+    | false :: guard, [] -> None
     | [], ms -> Some ([], ms)
-    | p0s, [] -> None
-    | _ :: p0s, m :: ms -> (
-      match gather_args p0s ms with
-      | Some (ms, ns) -> Some (m :: ms, ns)
-      | None -> None)
   in
-  List.fold_left
-    (fun acc_opt ((p0s, bnd) as cl) ->
-      match acc_opt with
-      | Some _ -> acc_opt
-      | None -> (
-        match gather_args p0s ms with
-        | Some (ms, ns) -> (
+  match check_guard guard ms with
+  | Some (ms, ns) ->
+    List.fold_left
+      (fun acc_opt ((p0s, bnd) as cl) ->
+        match acc_opt with
+        | Some _ -> acc_opt
+        | None -> (
           try Some (psubst cl ms, ns) with
-          | _ -> None)
-        | None -> None))
-    None cls
+          | _ -> None))
+      None cls
+  | None -> None
 
 let rec aeq_tm m1 m2 =
   if m1 == m2 then
@@ -86,7 +87,7 @@ let rec aeq_tm m1 m2 =
     | Pi (relv1, s1, a1, bnd1), Pi (relv2, s2, a2, bnd2) ->
       relv1 = relv2 && eq_sort s1 s2 && aeq_tm a1 a2
       && eq_binder aeq_tm bnd1 bnd2
-    | Fun (a1, bnd1), Fun (a2, bnd2) ->
+    | Fun (_, a1, bnd1), Fun (_, a2, bnd2) ->
       aeq_tm a1 a2
       && eq_binder (List.equal (eq_pbinder (Option.equal aeq_tm))) bnd1 bnd2
     | App (m1, n1), App (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
@@ -99,7 +100,7 @@ let rec aeq_tm m1 m2 =
     | Constr (c1, ss1, ms1, ns1), Constr (c2, ss2, ms2, ns2) ->
       Constr.equal c1 c2 && List.equal eq_sort ss1 ss2
       && List.equal aeq_tm ms1 ms2 && List.equal aeq_tm ns1 ns2
-    | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
+    | Match (_, ms1, a1, cls1), Match (_, ms2, a2, cls2) ->
       List.equal aeq_tm ms1 ms2 && aeq_tm a1 a2
       && List.equal (eq_pbinder (Option.equal aeq_tm)) cls1 cls2
     (* monad *)
@@ -131,7 +132,7 @@ let rec eq_tm ?(expand = false) env m1 m2 =
       | Pi (relv1, s1, a1, bnd1), Pi (relv2, s2, a2, bnd2) ->
         relv1 = relv2 && eq_sort s1 s2 && equal a1 a2
         && eq_binder equal bnd1 bnd2
-      | Fun (a1, bnd1), Fun (a2, bnd2) ->
+      | Fun (_, a1, bnd1), Fun (_, a2, bnd2) ->
         equal a1 a2
         && eq_binder (List.equal (eq_pbinder (Option.equal equal))) bnd1 bnd2
       | App (m1, n1), App (m2, n2) -> equal m1 m2 && equal n1 n2
@@ -144,7 +145,7 @@ let rec eq_tm ?(expand = false) env m1 m2 =
       | Constr (c1, ss1, ms1, ns1), Constr (c2, ss2, ms2, ns2) ->
         Constr.equal c1 c2 && List.equal eq_sort ss1 ss2
         && List.equal equal ms1 ms2 && List.equal equal ns1 ns2
-      | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
+      | Match (_, ms1, a1, cls1), Match (_, ms2, a2, cls2) ->
         List.equal equal ms1 ms2 && equal a1 a2
         && List.equal (eq_pbinder (Option.equal equal)) cls1 cls2
       (* monad *)

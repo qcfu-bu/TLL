@@ -174,8 +174,8 @@ let rec trans_tm nspc = function
         (x, (id, EVar (x, view)) :: nspc)
       | None -> (Syntax1.(Var.mk ""), nspc)
     in
-    let cls = trans_cls nspc cls in
-    Syntax1.(_Fun a (bind_var x (box_list cls)))
+    let guard, cls = trans_cls nspc cls in
+    Syntax1.(_Fun guard a (bind_var x (box_list cls)))
   | App ms -> (
     match ms with
     | Id (id, E) :: ms -> (
@@ -272,8 +272,8 @@ let rec trans_tm nspc = function
         | None -> mk_meta nspc')
         args
     in
-    let cls = trans_cls nspc cls in
-    Syntax1.(_Match (box_list ms) a (box_list cls))
+    let guard, cls = trans_cls nspc cls in
+    Syntax1.(_Match guard (box_list ms) a (box_list cls))
   (* monad *)
   | IO a -> Syntax1.(_IO (trans_tm nspc a))
   | Return m -> Syntax1.(_Return (trans_tm nspc m))
@@ -285,12 +285,18 @@ let rec trans_tm nspc = function
   | Magic a -> Syntax1.(_Magic (trans_tm nspc a))
 
 and trans_cls nspc cls =
-  List.map
-    (fun (ps, opt) ->
+  let rec merge_guard xs ys =
+    match (xs, ys) with
+    | x :: xs, y :: ys -> (x || y) :: merge_guard xs ys
+    | [], _ -> ys
+    | _, [] -> xs
+  in
+  List.fold_left_map
+    (fun acc (ps, opt) ->
       match ps with
       | [] -> failwith "trans01.trans_cls"
       | _ ->
-        let args, ps = trans_ps nspc ps in
+        let args, ps, guard = trans_ps nspc ps in
         let nspc =
           List.fold_left
             (fun acc (id, x) -> (id, EVar (x, [])) :: acc)
@@ -298,32 +304,37 @@ and trans_cls nspc cls =
         in
         let xs = List.map (fun (_, x) -> x) args in
         let opt = Option.map (trans_tm nspc) opt in
-        box_pair (box_list ps) (bind_mvar (Array.of_list xs) (box_opt opt)))
-    cls
+        ( merge_guard guard acc
+        , box_pair (box_list ps) (bind_mvar (Array.of_list xs) (box_opt opt)) ))
+    [] cls
 
 and trans_p nspc p =
   match p with
-  | PId "_" -> Syntax1.([ ("", Var.mk "") ], _P0Rel)
+  | PId "_" -> Syntax1.([ ("", Var.mk "") ], _P0Rel, false)
   | PId id -> (
     Syntax1.(
       match find_constr id nspc with
-      | Some (c, _, _, _) -> ([], _P0Constr c (box []))
-      | _ -> ([ (id, Var.mk id) ], _P0Rel)))
-  | PAbsurd -> Syntax1.([], _P0Absurd)
+      | Some (c, _, _, _) -> ([], _P0Constr c (box []), true)
+      | _ -> ([ (id, Var.mk id) ], _P0Rel, false)))
+  | PAbsurd -> Syntax1.([], _P0Absurd, false)
   | PConstr (id, ps) -> (
     Syntax1.(
       match find_constr id nspc with
       | Some (c, _, _, _) ->
-        let xs, ps = trans_ps nspc ps in
-        (xs, _P0Constr c (box_list ps))
+        let xs, ps, _ = trans_ps nspc ps in
+        (xs, _P0Constr c (box_list ps), true)
       | _ -> failwith "trans01.trans_p.PMul"))
 
 and trans_ps nspc ps =
-  List.fold_left_map
-    (fun acc p ->
-      let xs, p = trans_p nspc p in
-      (acc @ xs, p))
-    [] ps
+  let xs, pg =
+    List.fold_left_map
+      (fun acc p ->
+        let xs, p, guard = trans_p nspc p in
+        (acc @ xs, (p, guard)))
+      [] ps
+  in
+  let ps, guard = List.split pg in
+  (xs, ps, guard)
 
 let rec trans_dcl nspc = function
   | Definition { name = id; relv; body = Binder (sids, (m, a)); view } ->
