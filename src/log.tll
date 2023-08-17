@@ -354,7 +354,7 @@
                                        (App
                                           [(Id ("xor", I)); (Id ("b1", I));
                                             (Id ("b2", I))]);
-                                       (Id ("false", I))]),
+                                       (Id ("true", I))]),
                                   (Binder ("_",
                                      (Pi (R, U,
                                         (App
@@ -423,7 +423,7 @@
                                        (App
                                           [(Id ("xor", I)); (Id ("b1", I));
                                             (Id ("b2", I))]);
-                                       (Id ("false", I))]),
+                                       (Id ("true", I))]),
                                   (Binder ("_",
                                      (Pi (R, U,
                                         (App
@@ -473,18 +473,34 @@
           ))
        ));
     view = [I; I; I; I]};
-  Extern {name = "c"; relv = R;
+  Extern {name = "fork"; relv = R;
     body =
     (Binder ([],
-       (App
-          [(Id ("ch", I)); (Id ("true", I));
-            (App
-               [(Id ("act1", I)); (Id ("true", I));
-                 (Fun ((Pi (R, U, (Id ("nat", I)), (Binder ("x", IMeta)))),
-                    (Binder (None, [([(PId "x")], (Some (Id ("endp", I))))])),
-                    []))
-                 ])
-            ])
+       (Pi (N, U, (Id ("proto", I)),
+          (Binder ("P",
+             (Pi (R, U,
+                (Pi (R, L,
+                   (App [(Id ("ch", I)); (Id ("false", I)); (Id ("P", I))]),
+                   (Binder ("_", (IO (Id ("unit", I))))))),
+                (Binder ("_",
+                   (IO
+                      (App [(Id ("ch", I)); (Id ("true", I)); (Id ("P", I))]))
+                   ))
+                ))
+             ))
+          ))
+       ));
+    view = [E]};
+  Definition {name = "myproto"; relv = N;
+    body =
+    (Binder ([],
+       ((App
+           [(Id ("act1", I)); (Id ("true", I));
+             (Fun ((Pi (R, U, (Id ("nat", I)), (Binder ("x", IMeta)))),
+                (Binder (None, [([(PId "x")], (Some (Id ("endp", I))))])), 
+                []))
+             ]),
+        IMeta)
        ));
     view = []};
   Definition {name = "main"; relv = R;
@@ -492,9 +508,38 @@
     (Binder ([],
        ((MLet (
            (App
-              [(Id ("send1", I)); (Id ("refl", I)); (Id ("c", I));
-                (Id ("zero", I))]),
-           (Binder ("c", (App [(Id ("close", I)); (Id ("c", I))]))))),
+              [(Id ("fork", I)); (Id ("myproto", I));
+                (Fun ((Pi (R, L, IMeta, (Binder ("c", IMeta)))),
+                   (Binder (None,
+                      [([(PId "c")],
+                        (Some (MLet (
+                                 (App
+                                    [(Id ("recv1", I)); (Id ("refl", I));
+                                      (Id ("c", I))]),
+                                 (Binder ("x",
+                                    (Match ([(R, (Id ("x", I)), None)], None,
+                                       [([(PConstr ("ex1",
+                                             [(PId "n"); (PId "c")]))
+                                           ],
+                                         (Some (App
+                                                  [(Id ("close", I));
+                                                    (Id ("c", I))])))
+                                         ]
+                                       ))
+                                    ))
+                                 ))))
+                        ]
+                      )),
+                   []))
+                ]),
+           (Binder ("c",
+              (MLet (
+                 (App
+                    [(Id ("send1", I)); (Id ("refl", I)); (Id ("c", I));
+                      (Id ("zero", I))]),
+                 (Binder ("c", (App [(Id ("close", I)); (Id ("c", I))])))))
+              ))
+           )),
         (IO (Id ("unit", I))))
        ));
     view = []}
@@ -503,10 +548,10 @@
 -----------------------------------------
 
 #[logical]
-inductive eq_1‹s_108› (A_109 : Type‹s_108›) (m_110 : A_109):
-  A_109 -> U
+inductive eq_1‹s_119› (A_120 : Type‹s_119›) (m_121 : A_120):
+  A_120 -> U
 where
-| refl_1 : (eq_1‹??_1› ?_1 m_110 m_110)
+| refl_1 : (eq_1‹??_1› ?_1 m_121 m_121)
 
 #[program]
 inductive unit_2‹› : U where
@@ -520,47 +565,47 @@ inductive bool_3‹› : U where
 #[program]
 inductive nat_4‹› : U where
 | zero_5 : nat_4
-| succ_6 (pred_112 : nat_4) : nat_4
+| succ_6 (pred_123 : nat_4) : nat_4
 
 #[program]
-inductive list_5‹s_113,t_114› (A_115 : Type‹s_113›): Type‹t_114›
+inductive list_5‹s_124,t_125› (A_126 : Type‹s_124›): Type‹t_125›
 where
-| nil_7 : (list_5‹??_2,??_3› A_115)
+| nil_7 : (list_5‹??_2,??_3› A_126)
 | cons_8
-    (hd_116 : A_115) (tl_117 : (list_5‹??_4,??_5› A_115))
-    : (list_5‹??_6,??_7› A_115)
+    (hd_127 : A_126) (tl_128 : (list_5‹??_4,??_5› A_126))
+    : (list_5‹??_6,??_7› A_126)
 
 #[program]
-inductive exists0_6‹s_118,r_119› (A_120 : Type‹s_118›) (B_121 : 
-A_120 -> Type‹r_119›): L where
+inductive exists0_6‹s_129,r_130› (A_131 : Type‹s_129›) (B_132 : 
+A_131 -> Type‹r_130›): L where
 | ex0_9
-    {m_123 : A_120} (n_124 : ((B_121) m_123))
-    : (exists0_6‹??_8,??_9› A_120 B_121)
+    {m_134 : A_131} (n_135 : ((B_132) m_134))
+    : (exists0_6‹??_8,??_9› A_131 B_132)
 
 #[program]
-inductive exists1_7‹s_125,r_126› (A_127 : Type‹s_125›) (B_128 : 
-A_127 -> Type‹r_126›): L where
+inductive exists1_7‹s_136,r_137› (A_138 : Type‹s_136›) (B_139 : 
+A_138 -> Type‹r_137›): L where
 | ex1_10
-    (m_130 : A_127) (n_131 : ((B_128) m_130))
-    : (exists1_7‹??_10,??_11› A_127 B_128)
+    (m_141 : A_138) (n_142 : ((B_139) m_141))
+    : (exists1_7‹??_10,??_11› A_138 B_139)
 
 #[program]
 def xor_1‹› : bool_3 -> bool_3 -o bool_3 :=
-  function xor_134 : bool_3 -> bool_3 -o bool_3
+  function xor_145 : bool_3 -> bool_3 -o bool_3
   | true_3 true_3 => false_4
   | false_4 false_4 => false_4
-  | _137 _138 => true_3
+  | _148 _149 => true_3
 
 #[logical]
 extern proto_2‹› : U
 
 #[logical]
-extern act0_3‹s_139› :
-  bool_3 -> ∀ (A_141 : Type‹s_139›) -> A_141 -> proto_2 -> proto_2
+extern act0_3‹s_150› :
+  bool_3 -> ∀ (A_152 : Type‹s_150›) -> A_152 -> proto_2 -> proto_2
 
 #[logical]
-extern act1_4‹s_144› :
-  bool_3 -> ∀ (A_146 : Type‹s_144›) -> A_146 -> proto_2 -> proto_2
+extern act1_4‹s_155› :
+  bool_3 -> ∀ (A_157 : Type‹s_155›) -> A_157 -> proto_2 -> proto_2
 
 #[logical]
 extern endp_5‹› : proto_2
@@ -570,82 +615,95 @@ extern ch_6‹› : bool_3 -> proto_2 -> L
 
 #[program]
 extern close_7‹› :
-  ∀ {b_151 : bool_3} -> ((ch_6) b_151 endp_5) -> IO unit_2
+  ∀ {b_162 : bool_3} -> ((ch_6) b_162 endp_5) -> IO unit_2
 
 #[program]
-extern send0_8‹s_153› :
-  ∀ {b1_154 : bool_3} ->
-    ∀ {b2_155 : bool_3} ->
-      ∀ {A_156 : Type‹s_153›} ->
-        ∀ {B_157 : A_156 -> proto_2} ->
-          ∀ {__159 :
-            (eq_1‹??_12› ?_2 ((xor_1) b1_154 b2_155) false_4)} ->
-            ((ch_6) b1_154 ((act0_3‹??_13›) b2_155 ?_3 B_157)) ->
-              ∀ {x_161 : A_156} -o IO ((ch_6) b1_154 ((B_157) x_161))
+extern send0_8‹s_164› :
+  ∀ {b1_165 : bool_3} ->
+    ∀ {b2_166 : bool_3} ->
+      ∀ {A_167 : Type‹s_164›} ->
+        ∀ {B_168 : A_167 -> proto_2} ->
+          ∀ {__170 :
+            (eq_1‹??_12› ?_2 ((xor_1) b1_165 b2_166) false_4)} ->
+            ((ch_6) b1_165 ((act0_3‹??_13›) b2_166 ?_3 B_168)) ->
+              ∀ {x_172 : A_167} -o IO ((ch_6) b1_165 ((B_168) x_172))
 
 #[program]
-extern send1_9‹s_162› :
-  ∀ {b1_163 : bool_3} ->
-    ∀ {b2_164 : bool_3} ->
-      ∀ {A_165 : Type‹s_162›} ->
-        ∀ {B_166 : A_165 -> proto_2} ->
-          ∀ {__168 :
-            (eq_1‹??_14› ?_4 ((xor_1) b1_163 b2_164) false_4)} ->
-            ((ch_6) b1_163 ((act1_4‹??_15›) b2_164 ?_5 B_166)) ->
-              ∀ (x_170 : A_165) -o IO ((ch_6) b1_163 ((B_166) x_170))
+extern send1_9‹s_173› :
+  ∀ {b1_174 : bool_3} ->
+    ∀ {b2_175 : bool_3} ->
+      ∀ {A_176 : Type‹s_173›} ->
+        ∀ {B_177 : A_176 -> proto_2} ->
+          ∀ {__179 :
+            (eq_1‹??_14› ?_4 ((xor_1) b1_174 b2_175) false_4)} ->
+            ((ch_6) b1_174 ((act1_4‹??_15›) b2_175 ?_5 B_177)) ->
+              ∀ (x_181 : A_176) -o IO ((ch_6) b1_174 ((B_177) x_181))
 
 #[program]
-extern recv0_10‹s_171› :
-  ∀ {b1_172 : bool_3} ->
-    ∀ {b2_173 : bool_3} ->
-      ∀ {A_174 : Type‹s_171›} ->
-        ∀ {B_175 : A_174 -> proto_2} ->
-          ∀ {__177 :
-            (eq_1‹??_16› ?_6 ((xor_1) b1_172 b2_173) false_4)} ->
-            ∀ (__178 :
-              ((ch_6) b1_172 ((act0_3‹??_17›) b2_173 ?_7 B_175))) ->
-              IO (exists0_6‹??_18,??_19›
-                   ?_9
-                   function _179 : ∀ (x_180 : A_174) -> ?_8
-                   | x_181 => ((ch_6) b1_172 ((B_175) x_181)))
-
-#[program]
-extern recv1_11‹s_182› :
+extern recv0_10‹s_182› :
   ∀ {b1_183 : bool_3} ->
     ∀ {b2_184 : bool_3} ->
       ∀ {A_185 : Type‹s_182›} ->
         ∀ {B_186 : A_185 -> proto_2} ->
           ∀ {__188 :
-            (eq_1‹??_20› ?_10 ((xor_1) b1_183 b2_184) false_4)} ->
+            (eq_1‹??_16› ?_6 ((xor_1) b1_183 b2_184) true_3)} ->
             ∀ (__189 :
-              ((ch_6) b1_183 ((act1_4‹??_21›) b2_184 ?_11 B_186))) ->
-              IO (exists1_7‹??_22,??_23›
-                   ?_13
-                   function _190 : ∀ (x_191 : A_185) -> ?_12
+              ((ch_6) b1_183 ((act0_3‹??_17›) b2_184 ?_7 B_186))) ->
+              IO (exists0_6‹??_18,??_19›
+                   ?_9
+                   function _190 : ∀ (x_191 : A_185) -> ?_8
                    | x_192 => ((ch_6) b1_183 ((B_186) x_192)))
 
 #[program]
-extern c_12‹› :
-  ((ch_6)
-    true_3
-    ((act1_4‹??_24›)
-      true_3 ?_15
-      function _193 : ∀ (x_194 : nat_4) -> ?_14
-      | x_195 => endp_5))
+extern recv1_11‹s_193› :
+  ∀ {b1_194 : bool_3} ->
+    ∀ {b2_195 : bool_3} ->
+      ∀ {A_196 : Type‹s_193›} ->
+        ∀ {B_197 : A_196 -> proto_2} ->
+          ∀ {__199 :
+            (eq_1‹??_20› ?_10 ((xor_1) b1_194 b2_195) true_3)} ->
+            ∀ (__200 :
+              ((ch_6) b1_194 ((act1_4‹??_21›) b2_195 ?_11 B_197))) ->
+              IO (exists1_7‹??_22,??_23›
+                   ?_13
+                   function _201 : ∀ (x_202 : A_196) -> ?_12
+                   | x_203 => ((ch_6) b1_194 ((B_197) x_203)))
 
 #[program]
-def main_13‹› : IO unit_2 :=
-  let* c_196 :=
-    ((send1_9‹??_26›) ?_21 ?_20 ?_19 ?_18 refl_1‹??_25› c_12 zero_5)
-  in ((close_7) ?_22 c_196)
+extern fork_12‹› :
+  ∀ {P_204 : proto_2} ->
+    ((ch_6) false_4 P_204) -o IO unit_2 -> IO ((ch_6) true_3 P_204)
+
+#[logical]
+def myproto_13‹› : ?_16 :=
+  ((act1_4‹??_24›)
+    true_3 ?_15 function _207 : ∀ (x_208 : nat_4) -> ?_14
+                | x_209 => endp_5)
+
+#[program]
+def main_14‹› : IO unit_2 :=
+  let* c_210 :=
+    ((fork_12)
+      myproto_13
+      function _211 : ∀ (c_212 : ?_17) -o ?_18
+      | c_213 =>
+        let* x_214 :=
+          ((recv1_11‹??_26›) ?_24 ?_23 ?_22 ?_21 refl_1‹??_25› c_213)
+        in
+        match x_214 in ∀ (_215 : ?_25) -o ?_26 with
+        | (ex1_10 n_216 c_217) => ((close_7) ?_27 c_217))
+  in
+  let* c_218 :=
+    ((send1_9‹??_28›) ?_33 ?_32 ?_31 ?_30 refl_1‹??_27› c_210 zero_5)
+  in ((close_7) ?_34 c_218)
 
 -----------------------------------------
 
 #[logical]
-inductive eq_1‹s_1176› (A_1177 : Type‹s_1176›) (m_1178 : A_1177):
-  A_1177 -> U
+inductive eq_1‹s_1641› (A_1642 : Type‹s_1641›) (m_1643 : A_1642):
+  A_1642 -> U
 where
-| refl_1 : (eq_1‹s_1176› A_1177 m_1178 m_1178)
+| refl_1 : (eq_1‹s_1641› A_1642 m_1643 m_1643)
 
 #[program]
 inductive unit_2‹› : U where
@@ -659,48 +717,48 @@ inductive bool_3‹› : U where
 #[program]
 inductive nat_4‹› : U where
 | zero_5 : nat_4
-| succ_6 (pred_1180 : nat_4) : nat_4
+| succ_6 (pred_1645 : nat_4) : nat_4
 
 #[program]
-inductive list_5‹s_1181,t_1182› (A_1183 : Type‹s_1181›):
-  Type‹t_1182›
+inductive list_5‹s_1646,t_1647› (A_1648 : Type‹s_1646›):
+  Type‹t_1647›
 where
-| nil_7 : (list_5‹s_1181,t_1182› A_1183)
+| nil_7 : (list_5‹s_1646,t_1647› A_1648)
 | cons_8
-    (hd_1184 : A_1183) (tl_1185 : (list_5‹s_1181,??_5› A_1183))
-    : (list_5‹s_1181,t_1182› A_1183)
+    (hd_1649 : A_1648) (tl_1650 : (list_5‹s_1646,??_5› A_1648))
+    : (list_5‹s_1646,t_1647› A_1648)
 
 #[program]
-inductive exists0_6‹s_1186,r_1187› (A_1188 : Type‹s_1186›) (B_1189 : 
-A_1188 -> Type‹r_1187›): L where
+inductive exists0_6‹s_1651,r_1652› (A_1653 : Type‹s_1651›) (B_1654 : 
+A_1653 -> Type‹r_1652›): L where
 | ex0_9
-    {m_1191 : A_1188} (n_1192 : ((B_1189) m_1191))
-    : (exists0_6‹s_1186,r_1187› A_1188 B_1189)
+    {m_1656 : A_1653} (n_1657 : ((B_1654) m_1656))
+    : (exists0_6‹s_1651,r_1652› A_1653 B_1654)
 
 #[program]
-inductive exists1_7‹s_1193,r_1194› (A_1195 : Type‹s_1193›) (B_1196 : 
-A_1195 -> Type‹r_1194›): L where
+inductive exists1_7‹s_1658,r_1659› (A_1660 : Type‹s_1658›) (B_1661 : 
+A_1660 -> Type‹r_1659›): L where
 | ex1_10
-    (m_1198 : A_1195) (n_1199 : ((B_1196) m_1198))
-    : (exists1_7‹s_1193,r_1194› A_1195 B_1196)
+    (m_1663 : A_1660) (n_1664 : ((B_1661) m_1663))
+    : (exists1_7‹s_1658,r_1659› A_1660 B_1661)
 
 #[program]
 def xor_1‹› : bool_3 -> bool_3 -o bool_3 :=
-  function xor_1202 : bool_3 -> bool_3 -o bool_3
+  function xor_1667 : bool_3 -> bool_3 -o bool_3
   | true_3 true_3 => false_4
   | false_4 false_4 => false_4
-  | _1205 _1206 => true_3
+  | _1670 _1671 => true_3
 
 #[logical]
 extern proto_2‹› : U
 
 #[logical]
-extern act0_3‹s_1207› :
-  bool_3 -> ∀ (A_1209 : Type‹s_1207›) -> A_1209 -> proto_2 -> proto_2
+extern act0_3‹s_1672› :
+  bool_3 -> ∀ (A_1674 : Type‹s_1672›) -> A_1674 -> proto_2 -> proto_2
 
 #[logical]
-extern act1_4‹s_1212› :
-  bool_3 -> ∀ (A_1214 : Type‹s_1212›) -> A_1214 -> proto_2 -> proto_2
+extern act1_4‹s_1677› :
+  bool_3 -> ∀ (A_1679 : Type‹s_1677›) -> A_1679 -> proto_2 -> proto_2
 
 #[logical]
 extern endp_5‹› : proto_2
@@ -710,70 +768,97 @@ extern ch_6‹› : bool_3 -> proto_2 -> L
 
 #[program]
 extern close_7‹› :
-  ∀ {b_1219 : bool_3} -> ((ch_6) b_1219 endp_5) -> IO unit_2
+  ∀ {b_1684 : bool_3} -> ((ch_6) b_1684 endp_5) -> IO unit_2
 
 #[program]
-extern send0_8‹s_1221› :
-  ∀ {b1_1222 : bool_3} ->
-    ∀ {b2_1223 : bool_3} ->
-      ∀ {A_1224 : Type‹s_1221›} ->
-        ∀ {B_1225 : A_1224 -> proto_2} ->
-          {(eq_1‹U› bool_3 ((xor_1) b1_1222 b2_1223) false_4)} ->
-            ((ch_6) b1_1222 ((act0_3‹s_1221›) b2_1223 A_1224 B_1225)) ->
-              ∀ {x_1229 : A_1224} -o IO ((ch_6) b1_1222 ((B_1225) x_1229))
+extern send0_8‹s_1686› :
+  ∀ {b1_1687 : bool_3} ->
+    ∀ {b2_1688 : bool_3} ->
+      ∀ {A_1689 : Type‹s_1686›} ->
+        ∀ {B_1690 : A_1689 -> proto_2} ->
+          {(eq_1‹U› bool_3 ((xor_1) b1_1687 b2_1688) false_4)} ->
+            ((ch_6) b1_1687 ((act0_3‹s_1686›) b2_1688 A_1689 B_1690)) ->
+              ∀ {x_1694 : A_1689} -o IO ((ch_6) b1_1687 ((B_1690) x_1694))
 
 #[program]
-extern send1_9‹s_1230› :
-  ∀ {b1_1231 : bool_3} ->
-    ∀ {b2_1232 : bool_3} ->
-      ∀ {A_1233 : Type‹s_1230›} ->
-        ∀ {B_1234 : A_1233 -> proto_2} ->
-          {(eq_1‹U› bool_3 ((xor_1) b1_1231 b2_1232) false_4)} ->
-            ((ch_6) b1_1231 ((act1_4‹s_1230›) b2_1232 A_1233 B_1234)) ->
-              ∀ (x_1238 : A_1233) -o IO ((ch_6) b1_1231 ((B_1234) x_1238))
+extern send1_9‹s_1695› :
+  ∀ {b1_1696 : bool_3} ->
+    ∀ {b2_1697 : bool_3} ->
+      ∀ {A_1698 : Type‹s_1695›} ->
+        ∀ {B_1699 : A_1698 -> proto_2} ->
+          {(eq_1‹U› bool_3 ((xor_1) b1_1696 b2_1697) false_4)} ->
+            ((ch_6) b1_1696 ((act1_4‹s_1695›) b2_1697 A_1698 B_1699)) ->
+              ∀ (x_1703 : A_1698) -o IO ((ch_6) b1_1696 ((B_1699) x_1703))
 
 #[program]
-extern recv0_10‹s_1239› :
-  ∀ {b1_1240 : bool_3} ->
-    ∀ {b2_1241 : bool_3} ->
-      ∀ {A_1242 : Type‹s_1239›} ->
-        ∀ {B_1243 : A_1242 -> proto_2} ->
-          {(eq_1‹U› bool_3 ((xor_1) b1_1240 b2_1241) false_4)} ->
-            ((ch_6) b1_1240 ((act0_3‹s_1239›) b2_1241 A_1242 B_1243)) ->
-              IO (exists0_6‹s_1239,L›
-                   A_1242
-                   function _1247 : A_1242 -> L
-                   | x_1249 => ((ch_6) b1_1240 ((B_1243) x_1249)))
+extern recv0_10‹s_1704› :
+  ∀ {b1_1705 : bool_3} ->
+    ∀ {b2_1706 : bool_3} ->
+      ∀ {A_1707 : Type‹s_1704›} ->
+        ∀ {B_1708 : A_1707 -> proto_2} ->
+          {(eq_1‹U› bool_3 ((xor_1) b1_1705 b2_1706) true_3)} ->
+            ((ch_6) b1_1705 ((act0_3‹s_1704›) b2_1706 A_1707 B_1708)) ->
+              IO (exists0_6‹s_1704,L›
+                   A_1707
+                   function _1712 : A_1707 -> L
+                   | x_1714 => ((ch_6) b1_1705 ((B_1708) x_1714)))
 
 #[program]
-extern recv1_11‹s_1250› :
-  ∀ {b1_1251 : bool_3} ->
-    ∀ {b2_1252 : bool_3} ->
-      ∀ {A_1253 : Type‹s_1250›} ->
-        ∀ {B_1254 : A_1253 -> proto_2} ->
-          {(eq_1‹U› bool_3 ((xor_1) b1_1251 b2_1252) false_4)} ->
-            ((ch_6) b1_1251 ((act1_4‹s_1250›) b2_1252 A_1253 B_1254)) ->
-              IO (exists1_7‹s_1250,L›
-                   A_1253
-                   function _1258 : A_1253 -> L
-                   | x_1260 => ((ch_6) b1_1251 ((B_1254) x_1260)))
+extern recv1_11‹s_1715› :
+  ∀ {b1_1716 : bool_3} ->
+    ∀ {b2_1717 : bool_3} ->
+      ∀ {A_1718 : Type‹s_1715›} ->
+        ∀ {B_1719 : A_1718 -> proto_2} ->
+          {(eq_1‹U› bool_3 ((xor_1) b1_1716 b2_1717) true_3)} ->
+            ((ch_6) b1_1716 ((act1_4‹s_1715›) b2_1717 A_1718 B_1719)) ->
+              IO (exists1_7‹s_1715,L›
+                   A_1718
+                   function _1723 : A_1718 -> L
+                   | x_1725 => ((ch_6) b1_1716 ((B_1719) x_1725)))
 
 #[program]
-extern c_12‹› :
-  ((ch_6)
-    true_3
-    ((act1_4‹U›)
-      true_3 nat_4 function _1261 : nat_4 -> proto_2
-                   | x_1263 => endp_5))
+extern fork_12‹› :
+  ∀ {P_1726 : proto_2} ->
+    ((ch_6) false_4 P_1726) -o IO unit_2 -> IO ((ch_6) true_3 P_1726)
+
+#[logical]
+def myproto_13‹› : proto_2 :=
+  ((act1_4‹U›)
+    true_3 nat_4 function _1729 : nat_4 -> proto_2
+                 | x_1731 => endp_5)
 
 #[program]
-def main_13‹› : IO unit_2 :=
-  let* c_1264 :=
+def main_14‹› : IO unit_2 :=
+  let* c_1732 :=
+    ((fork_12)
+      myproto_13
+      function _1733 : ((ch_6) false_4 myproto_13) -o IO unit_2
+      | c_1735 =>
+        let* x_1736 :=
+          ((recv1_11‹U›)
+            false_4 true_3 nat_4
+            function _1737 : nat_4 -> proto_2
+            | x_1739 => endp_5 refl_1‹U› c_1735)
+        in
+        match x_1736 in
+          (exists1_7‹U,L›
+            nat_4
+            function _1741 : nat_4 -> L
+            | x_1743 =>
+              ((ch_6)
+                false_4
+                ((function _1744 : nat_4 -> proto_2
+                  | x_1746 => endp_5) x_1743))) -o
+            IO unit_2
+        with
+        | (ex1_10 n_1747 c_1748) => ((close_7) false_4 c_1748))
+  in
+  let* c_1749 :=
     ((send1_9‹U›)
       true_3 true_3 nat_4
-      function _1265 : nat_4 -> proto_2
-      | x_1267 => endp_5 refl_1‹U› c_12 zero_5)
-  in ((close_7) true_3 c_1264)
+      function _1750 : nat_4 -> proto_2
+      | x_1752 => endp_5 refl_1‹U› c_1732 zero_5)
+  in ((close_7) true_3 c_1749)
 
 -----------------------------------------
 
@@ -853,14 +938,14 @@ inductive exists1LL_18 where
 
 #[program]
 def xor_1 :=
-  fun xor_1560 (__1561, __1562) =>
-    match __1561 with
+  fun xor_2429 (__2430, __2431) =>
+    match __2430 with
     | true_3  =>
-      match __1562 with
+      match __2431 with
       | true_3  => false_4 | false_4  => true_3
       end
     | false_4  =>
-      match __1562 with
+      match __2431 with
       | true_3  => true_3 | false_4  => false_4
       end
     end
@@ -869,16 +954,16 @@ def xor_1 :=
 extern proto_2
 
 #[logical]
-extern act0U_15
+extern act0U_16
 
 #[logical]
-extern act0L_14
+extern act0L_15
 
 #[logical]
-extern act1U_17
+extern act1U_18
 
 #[logical]
-extern act1L_16
+extern act1L_17
 
 #[logical]
 extern endp_5
@@ -890,36 +975,48 @@ extern ch_6
 extern close_7
 
 #[program]
-extern send0U_19
+extern send0U_20
 
 #[program]
-extern send0L_18
+extern send0L_19
 
 #[program]
-extern send1U_21
+extern send1U_22
 
 #[program]
-extern send1L_20
+extern send1L_21
 
 #[program]
-extern recv0U_23
+extern recv0U_24
 
 #[program]
-extern recv0L_22
+extern recv0L_23
 
 #[program]
-extern recv1U_25
+extern recv1U_26
 
 #[program]
-extern recv1L_24
+extern recv1L_25
 
 #[program]
-extern c_12
+extern fork_12
+
+#[logical]
+def myproto_13 := NULL
 
 #[program]
 def main :=
-  let* c_1563 := ((send1U_21) NULL NULL NULL NULL NULL c_12 zero_5) in
-  ((close_7) NULL c_1563)
+  let* c_2432 :=
+    ((fork_12)
+      NULL
+      fun _2433 (c_2434) =>
+        let* x_2435 := ((recv1U_26) NULL NULL NULL NULL NULL c_2434) in
+        match x_2435 with
+        | ex1UL_27 m_2436 n_2437 => ((close_7) NULL n_2437)
+        end)
+    in
+  let* c_2438 := ((send1U_22) NULL NULL NULL NULL NULL c_2432 zero_5) in
+  ((close_7) NULL c_2438)
 
 -----------------------------------------
 
@@ -995,14 +1092,14 @@ inductive exists1LL_18 where
 
 #[program]
 def xor_1 :=
-  fun xor_1568 (__1569, __1570) =>
-    match __1569 with
+  fun xor_2449 (__2450, __2451) =>
+    match __2450 with
     | true_3  =>
-      match __1570 with
+      match __2451 with
       | true_3  => false_4 | false_4  => true_3
       end
     | false_4  =>
-      match __1570 with
+      match __2451 with
       | true_3  => true_3 | false_4  => false_4
       end
     end
@@ -1011,16 +1108,16 @@ def xor_1 :=
 extern proto_2
 
 #[logical]
-extern act0U_15
+extern act0U_16
 
 #[logical]
-extern act0L_14
+extern act0L_15
 
 #[logical]
-extern act1U_17
+extern act1U_18
 
 #[logical]
-extern act1L_16
+extern act1L_17
 
 #[logical]
 extern endp_5
@@ -1032,36 +1129,48 @@ extern ch_6
 extern close_7
 
 #[program]
-extern send0U_19
+extern send0U_20
 
 #[program]
-extern send0L_18
+extern send0L_19
 
 #[program]
-extern send1U_21
+extern send1U_22
 
 #[program]
-extern send1L_20
+extern send1L_21
 
 #[program]
-extern recv0U_23
+extern recv0U_24
 
 #[program]
-extern recv0L_22
+extern recv0L_23
 
 #[program]
-extern recv1U_25
+extern recv1U_26
 
 #[program]
-extern recv1L_24
+extern recv1L_25
 
 #[program]
-extern c_12
+extern fork_12
+
+#[logical]
+def myproto_13 := NULL
 
 #[program]
 def main :=
-  let* c_1571 := ((send1U_21) NULL NULL NULL NULL NULL c_12 zero_5) in
-  ((close_7) NULL c_1571)
+  let* c_2452 :=
+    ((fork_12)
+      NULL
+      fun _2453 (c_2454) =>
+        let* x_2455 := ((recv1U_26) NULL NULL NULL NULL NULL c_2454) in
+        match x_2455 with
+        | ex1UL_27 m_2456 n_2457 => ((close_7) NULL n_2457)
+        end)
+    in
+  let* c_2458 := ((send1U_22) NULL NULL NULL NULL NULL c_2452 zero_5) in
+  ((close_7) NULL c_2458)
 
 -----------------------------------------
 
