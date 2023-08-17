@@ -11,7 +11,7 @@ inductive bool : U where
 
 inductive nat : U where
   | zero : nat
-  | succ (pred : nat) : nat
+  | succ (n : nat) : nat
 
 inductive list<s,t> (A : Type<s>) : Type<t> where
   | nil : list A
@@ -28,6 +28,41 @@ def xor : bool -> bool -o bool
   | false false => false
   | _     _     => true
 
+def lte : nat -> nat -> bool
+  | zero     _        => true
+  | _        zero     => false
+  | (succ x) (succ y) => lte x y
+
+def lt (x : nat) (y : nat) : bool := lte (succ x) y
+
+def pred : nat -> nat
+  | zero => zero
+  | (succ x) => x
+
+def add : nat -> nat -> nat
+  | zero     y => y 
+  | (succ x) y => succ (add x y)
+
+def sub : nat -> nat -> nat
+  | x zero     => x
+  | x (succ y) => sub (pred x) y
+
+def mul : nat -> nat -> nat
+  | zero     _ => zero
+  | (succ x) y => add y (mul x y)
+
+def div (x : nat) (y : nat) :=
+  match lt x y with
+  | true  => zero
+  | false => succ (div (sub x y) y)
+
+def rem (x : nat) (y : nat) :=
+  sub x (mul (div x y) y)
+
+def pow : nat -> nat -> nat
+  | _ zero     => succ zero
+  | x (succ y) => mul x (pow x y)
+
 #[logical] extern proto : U
 #[logical] extern act0<s> (b : bool) ?(A : Type<s>) (B : A -> proto) : proto
 #[logical] extern act1<s> (b : bool) ?(A : Type<s>) (B : A -> proto) : proto
@@ -42,21 +77,28 @@ extern recv1<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {eq (xor b1 b
 extern fork {P : proto} : (ch false P -o IO unit) -> IO (ch true P)
 
 #[logical]
-def myproto := act1 true fn (x : nat) => endp
+def DH (p g : nat) : proto :=
+  act0 true  fn (a : nat) => act1 true  fn (A : nat) => act0 true  fn (_ : eq A (rem (pow g a) p)) =>
+  act0 false fn (b : nat) => act1 false fn (B : nat) => act0 false fn (_ : eq B (rem (pow g b) p)) =>
+  endp
 
-def main : IO unit :=
-  let* c := fork myproto ln c =>
-    let* x := recv1 refl c in
-    match x with
-    | ex1 n c => close c
-  in
-  let* c := send1 refl c zero in
+#[logical] def DH_ch (p g : nat) := ch true  (DH p g)
+#[logical] def DH_hc (p g : nat) := ch false (DH p g)
+
+def alice (a : nat) (p g : nat) (c : DH_ch p g) : IO unit :=
+  let* c := send0 refl c a in 
+  let* c := send1 refl c (rem (pow g a) p) in
+  let* c := send0 refl c refl in
+  let* r := recv0 refl c in match r with ex0 b c =>
+  let* r := recv1 refl c in match r with ex1 B c =>
+  let* r := recv0 refl c in match r with ex0 pf c =>
   close c
 
--- def _ : unit := #magic
-
--- def send
---   ?{A : U}
---   ?{B : A -> proto}
---   (c : ch (SEND fn (x : A) => B x)) : forall (x : A) -> IO (ch (B x)) := #magic
-
+def bob (b : nat) (p g : nat) (c : DH_hc p g) : IO unit :=
+  let* r := recv0 refl c in match r with ex0 a c =>
+  let* r := recv1 refl c in match r with ex1 A c =>
+  let* r := recv0 refl c in match r with ex0 pf c =>
+  let* c := send0 refl c b in
+  let* c := send1 refl c (rem (pow g b) p) in
+  let* c := send0 refl c refl in
+  close c

@@ -807,25 +807,25 @@ end
 let warn_const x e =
   match e with
   | Failure s ->
-    pr "@[@;<2 0>warning - pruned constant %a@;<1 0>%s@]@." Const.pp x s
+    epr "@[@;<2 0>warning - pruned constant %a@;<1 0>%s@]@." Const.pp x s
   | _ -> raise e
 
 let warn_ind x e =
   match e with
   | Failure s ->
-    pr "@[@;<2 0>warning - pruned inductive %a@;<1 0>%s@]@." Ind.pp x s
+    epr "@[@;<2 0>warning - pruned inductive %a@;<1 0>%s@]@." Ind.pp x s
   | _ -> raise e
 
 let warn_constr x e =
   match e with
   | Failure s ->
-    pr "@[@;<2 0>warning - pruned constructor %a@;<1 0>%s@]@." Constr.pp x s
+    epr "@[@;<2 0>warning - pruned constructor %a@;<1 0>%s@]@." Constr.pp x s
   | _ -> raise e
 
 let warn_extern x e =
   match e with
   | Failure s ->
-    pr "@[@;<2 0>warning - pruned extern %a@;<1 0>%s@]@." Const.pp x s
+    epr "@[@;<2 0>warning - pruned extern %a@;<1 0>%s@]@." Const.pp x s
   | _ -> raise e
 
 let const_extend x ss =
