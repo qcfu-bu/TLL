@@ -11,65 +11,69 @@ let map_pmeta f m =
   let rec aux m =
     match m with
     (* inference *)
-    | Ann (m, a) -> Ann (aux m, aux a)
-    | IMeta (x, ss, ms) -> IMeta (x, ss, List.map aux ms)
+    | Ann (m, a) -> _Ann (aux m) (aux a)
+    | IMeta (x, ss, ms) ->
+      let ss = List.map lift_sort ss in
+      let ms = List.map aux ms in
+      _IMeta x (box_list ss) (box_list ms)
     | PMeta x -> f aux x
     (* core *)
-    | Type s -> Type s
-    | Var x -> Var x
-    | Const (x, ss) -> Const (x, ss)
+    | Type s -> _Type (lift_sort s)
+    | Var x -> _Var x
+    | Const (x, ss) ->
+      let ss = List.map lift_sort ss in
+      _Const x (box_list ss)
     | Pi (relv, s, a, bnd) ->
       let x, b = unbind bnd in
-      let a = aux a in
-      let b = lift_tm (aux b) in
-      Pi (relv, s, a, unbox (bind_var x b))
+      _Pi relv (lift_sort s) (aux a) (bind_var x (aux b))
     | Fun (guard, a, bnd) ->
       let x, cls = unbind bnd in
-      let a = aux a in
       let cls =
         List.map
           (fun cl ->
             let ps, rhs_opt = unbind_ps cl in
-            let rhs_opt = Option.map (fun rhs -> lift_tm (aux rhs)) rhs_opt in
+            let rhs_opt = Option.map (fun rhs -> aux rhs) rhs_opt in
             bind_ps ps (box_opt rhs_opt))
           cls
       in
       let cls = box_list cls in
-      Fun (guard, a, unbox (bind_var x cls))
-    | App (m, n) -> App (aux m, aux n)
+      _Fun guard (aux a) (bind_var x cls)
+    | App (m, n) -> _App (aux m) (aux n)
     | Let (relv, m, bnd) ->
       let x, n = unbind bnd in
-      let m = aux m in
-      let n = lift_tm (aux n) in
-      Let (relv, m, unbox (bind_var x n))
+      _Let relv (aux m) (bind_var x (aux n))
     (* inductive *)
-    | Ind (d, ss, ms, ns) -> Ind (d, ss, List.map aux ms, List.map aux ns)
-    | Constr (c, ss, ms, ns) -> Constr (c, ss, List.map aux ms, List.map aux ns)
+    | Ind (d, ss, ms, ns) ->
+      let ss = List.map lift_sort ss in
+      let ms = List.map aux ms in
+      let ns = List.map aux ns in
+      _Ind d (box_list ss) (box_list ms) (box_list ns)
+    | Constr (c, ss, ms, ns) ->
+      let ss = List.map lift_sort ss in
+      let ms = List.map aux ms in
+      let ns = List.map aux ns in
+      _Constr c (box_list ss) (box_list ms) (box_list ns)
     | Match (guard, ms, a, cls) ->
       let ms = List.map aux ms in
-      let a = aux a in
       let cls =
         List.map
           (fun cl ->
             let ps, rhs_opt = unbind_ps cl in
-            let rhs_opt = Option.map (fun rhs -> lift_tm (aux rhs)) rhs_opt in
+            let rhs_opt = Option.map (fun rhs -> aux rhs) rhs_opt in
             bind_ps ps (box_opt rhs_opt))
           cls
       in
-      let cls = box_list cls in
-      Match (guard, ms, a, unbox cls)
+      _Match guard (box_list ms) (aux a) (box_list cls)
     (* monad *)
-    | IO a -> IO (aux a)
-    | Return m -> Return (aux m)
+    | IO a -> _IO (aux a)
+    | Return m -> _Return (aux m)
     | MLet (m, bnd) ->
       let x, n = unbind bnd in
-      let m = aux m in
-      let n = lift_tm (aux n) in
-      MLet (m, unbox (bind_var x n))
+      _MLet (aux m) (bind_var x (aux n))
     (* magic *)
-    | Magic a -> Magic (aux a)
+    | Magic a -> _Magic (aux a)
   in
-  aux m
+  unbox (aux m)
 
 (* substitute pmeta variables *)
 let subst_pmeta var_map m =
@@ -77,11 +81,11 @@ let subst_pmeta var_map m =
     (fun self x ->
       match Var.Map.find_opt x var_map with
       | Some m -> self m
-      | None -> PMeta x)
+      | None -> _PMeta x)
     m
 
 (* demote pmeta variables *)
-let demote_pmeta m = map_pmeta (fun self x -> Var x) m
+let demote_pmeta m = map_pmeta (fun self x -> _Var x) m
 
 (* substitute and demote pmeta variables *)
 let resolve_pmeta var_map m =
@@ -89,7 +93,7 @@ let resolve_pmeta var_map m =
     (fun self x ->
       match Var.Map.find_opt x var_map with
       | Some m -> self m
-      | None -> Var x)
+      | None -> _Var x)
     m
 
 let rec simpl_pprbm ?(expand = false) eqn =
