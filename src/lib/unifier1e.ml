@@ -46,81 +46,74 @@ let rec resolve_sort (smeta_map : smeta_map) = function
 
 let resolve_tm (meta_map : meta_map) m =
   let smeta_map, imeta_map = meta_map in
-  let aux_sort = resolve_sort smeta_map in
+  let aux_sort s = lift_sort (resolve_sort smeta_map s) in
   let rec aux_tm = function
     (* inference *)
-    | Ann (m, a) -> Ann (aux_tm m, aux_tm a)
+    | Ann (m, a) -> _Ann (aux_tm m) (aux_tm a)
     | IMeta (x, ss, xs) as m -> (
       match IMeta.Map.find_opt x imeta_map with
       | Some bnd ->
         let bnd = msubst bnd (Array.of_list ss) in
         let m = msubst bnd (Array.of_list xs) in
         aux_tm m
-      | None -> m)
-    | PMeta x -> PMeta x
+      | None -> lift_tm m)
+    | PMeta x -> _PMeta x
     (* core *)
-    | Type s -> Type (aux_sort s)
-    | Var x -> Var x
-    | Const (x, ss) -> Const (x, List.map aux_sort ss)
+    | Type s -> _Type (aux_sort s)
+    | Var x -> _Var x
+    | Const (x, ss) ->
+      let ss = List.map aux_sort ss in
+      _Const x (box_list ss)
     | Pi (relv, s, a, bnd) ->
       let x, b = unbind bnd in
-      let s = aux_sort s in
-      let a = aux_tm a in
-      let b = lift_tm (aux_tm b) in
-      Pi (relv, s, a, unbox (bind_var x b))
+      _Pi relv (aux_sort s) (aux_tm a) (bind_var x (aux_tm b))
     | Fun (guard, a, bnd) ->
       let x, cls = unbind bnd in
-      let a = aux_tm a in
       let cls =
         List.map
           (fun cl ->
             let ps, rhs_opt = unbind_ps cl in
-            let rhs_opt =
-              Option.map (fun rhs -> lift_tm (aux_tm rhs)) rhs_opt
-            in
+            let rhs_opt = Option.map (fun rhs -> aux_tm rhs) rhs_opt in
             bind_ps ps (box_opt rhs_opt))
           cls
       in
-      let cls = box_list cls in
-      Fun (guard, a, unbox (bind_var x cls))
-    | App (m, n) -> App (aux_tm m, aux_tm n)
+      _Fun guard (aux_tm a) (bind_var x (box_list cls))
+    | App (m, n) -> _App (aux_tm m) (aux_tm n)
     | Let (relv, m, bnd) ->
       let x, n = unbind bnd in
-      let m = aux_tm m in
-      let n = lift_tm (aux_tm n) in
-      Let (relv, m, unbox (bind_var x n))
+      _Let relv (aux_tm m) (bind_var x (aux_tm n))
     (* inductive *)
     | Ind (d, ss, ms, ns) ->
-      Ind (d, List.map aux_sort ss, List.map aux_tm ms, List.map aux_tm ns)
+      let ss = List.map aux_sort ss in
+      let ms = List.map aux_tm ms in
+      let ns = List.map aux_tm ns in
+      _Ind d (box_list ss) (box_list ms) (box_list ns)
     | Constr (c, ss, ms, ns) ->
-      Constr (c, List.map aux_sort ss, List.map aux_tm ms, List.map aux_tm ns)
+      let ss = List.map aux_sort ss in
+      let ms = List.map aux_tm ms in
+      let ns = List.map aux_tm ns in
+      _Constr c (box_list ss) (box_list ms) (box_list ns)
     | Match (guard, ms, a, cls) ->
       let ms = List.map aux_tm ms in
-      let a = aux_tm a in
       let cls =
         List.map
           (fun cl ->
             let ps, rhs_opt = unbind_ps cl in
-            let rhs_opt =
-              Option.map (fun rhs -> lift_tm (aux_tm rhs)) rhs_opt
-            in
+            let rhs_opt = Option.map (fun rhs -> aux_tm rhs) rhs_opt in
             bind_ps ps (box_opt rhs_opt))
           cls
       in
-      let cls = box_list cls in
-      Match (guard, ms, a, unbox cls)
+      _Match guard (box_list ms) (aux_tm a) (box_list cls)
     (* monad *)
-    | IO a -> IO (aux_tm a)
-    | Return m -> Return (aux_tm m)
+    | IO a -> _IO (aux_tm a)
+    | Return m -> _Return (aux_tm m)
     | MLet (m, bnd) ->
       let x, n = unbind bnd in
-      let m = aux_tm m in
-      let n = lift_tm (aux_tm n) in
-      MLet (m, unbox (bind_var x n))
+      _MLet (aux_tm m) (bind_var x (aux_tm n))
     (* magic *)
-    | Magic a -> Magic (aux_tm a)
+    | Magic a -> _Magic (aux_tm a)
   in
-  aux_tm m
+  unbox (aux_tm m)
 
 let resolve_scheme lift resolve (meta_map : meta_map) sch =
   let xs, body = unmbind sch in
