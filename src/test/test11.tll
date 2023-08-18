@@ -2,6 +2,12 @@
 inductive eq<s> ?(A : Type<s>) (m : A) : A -> U where
   | refl : eq m m
 
+def rwl<s,r> ?{A : Type<s>} ?{m n : A} {B : A -> Type<r>} : {eq m n} -> B m -> B n
+  | refl x => x
+
+def rwr<s,r> ?{A : Type<s>} ?{m n : A} {B : A -> Type<r>} : {eq m n} -> B n -> B m
+  | refl x => x
+
 inductive sing<s> ?(A : Type<s>) : A -> Type<s> where
   | just (m : A) : sing m
 
@@ -38,12 +44,12 @@ def xor : bool -> bool -o bool
   | false false => false
   | _     _     => true
 
--- def lte : nat -> nat -> bool
---   | zero     _        => true
---   | _        zero     => false
---   | (succ x) (succ y) => lte x y
+def lte : nat -> nat -> bool
+  | zero     _        => true
+  | _        zero     => false
+  | (succ x) (succ y) => lte x y
 
--- def lt (x : nat) (y : nat) : bool := lte (succ x) y
+def lt (x : nat) (y : nat) : bool := lte (succ x) y
 
 -- def pred : nat -> nat
 --   | zero => zero
@@ -86,28 +92,27 @@ extern recv0<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {eq (xor b1 b
 extern recv1<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {eq (xor b1 b2) true} -> (ch b1 (act1 b2 B)) -> IO (exists1 fn (x : A) => ch b1 (B x))
 extern fork ?{b : bool} {P : proto} : (ch b P -o IO unit) -> IO (ch (not b) P)
 
--- def split<t> : list<_,t> nat -> prod1 (list<_,t> nat) (list<_,t> nat)
---   | nil                  => ex1 nil nil
---   | (cons x nil)         => ex1 (cons x nil) nil
---   | (cons x (cons y zs)) =>
---     match split zs with
---     | ex1 xs ys => ex1 (cons x xs) (cons y ys)
+def split<t> : list<_,t> nat -> prod1 (list<_,t> nat) (list<_,t> nat)
+  | nil                  => ex1 nil nil
+  | (cons x nil)         => ex1 (cons x nil) nil
+  | (cons x (cons y zs)) =>
+    match split zs with
+    | ex1 xs ys => ex1 (cons x xs) (cons y ys)
 
--- def merge<t> : list<_,t> nat -> list<_,t> nat -o list<_,t> nat
---   | nil         ys          => ys
---   | xs          nil         => xs
---   | (cons x xs) (cons y ys) =>
---     match lte x y with
---     | true  => cons x (merge xs (cons y ys))
---     | false => cons y (merge (cons x xs) ys)
+def merge<t> : list<_,t> nat -> list<_,t> nat -o list<_,t> nat
+  | nil         ys          => ys
+  | xs          nil         => xs
+  | (cons x xs) (cons y ys) =>
+    match lte x y with
+    | true  => cons x (merge xs (cons y ys))
+    | false => cons y (merge (cons x xs) ys)
 
--- def msort<t> : list<_,t> nat -> list<_,t> nat 
---   | nil          => nil
---   | (cons z nil) => cons z nil
---   | zs           =>
---     match split zs with
---     | ex1 xs ys => merge (msort xs) (msort ys)
-extern msort<t> : list<_,t> nat -> list<_,t> nat
+def msort<t> : list<_,t> nat -> list<_,t> nat 
+  | nil          => nil
+  | (cons z nil) => cons z nil
+  | zs           =>
+    match split zs with
+    | ex1 xs ys => merge (msort xs) (msort ys)
 
 #[logical]
 def cmsort_ch<t> (xs :  list<_,t> nat) : L :=
@@ -115,23 +120,25 @@ def cmsort_ch<t> (xs :  list<_,t> nat) : L :=
 
 def cmsort_worker<t> : nat -> forall (zs : list<_,t> nat) -> cmsort_ch<t> zs -o IO unit
   | zero     zs           c => let* c := send1 refl c (just (msort zs))   in close c
-  | _ _ _ => return #magic
-  -- | (succ n) nil          c => let* c := send1 refl c (just nil)          in close c
-  -- | (succ n) (cons z nil) c => let* c := send1 refl c (just (cons z nil)) in close c
-  -- | (succ n) zs           c => 
-  --   match split zs as h
-  --      , {refl} as _ : eq h h
-  --   with
-  --   | ex1 xs0 ys0, pf =>
-      -- let* r1 := fork _ (ln c1 => cmsort_worker n xs0 c1) in
-      -- let* r2 := fork _ (ln c2 => cmsort_worker n ys0 c2) in
-      -- let* r1 := recv1 refl r1 in match r1 with ex1 xs1 c1 =>
-      -- let* r2 := recv1 refl r2 in match r2 with ex1 ys1 c2 =>
-      -- let* _ := close c1 in
-      -- let* _ := close c2 in
-      -- return #magic
-      -- match xs1, ys1 with
-      -- | just xs1, just ys1 =>
-        -- let* c := send1 refl c (just (merge xs1 ys1)) in
-        -- return #magic
+  | (succ n) nil          c => let* c := send1 refl c (just nil)          in close c
+  | (succ n) (cons z nil) c => let* c := send1 refl c (just (cons z nil)) in close c
+  | (succ n) zs           c => 
+    match split zs as h1
+        , {refl}   as _ : eq (match h1 with ex1 xs ys => merge (msort xs) (msort ys))
+                             (match split zs with ex1 xs ys => merge (msort xs) (msort ys))
+    with
+    | ex1 xs0 ys0, pf =>
+      let* r1 := fork _ (ln c1 => cmsort_worker n xs0 c1) in
+      let* r2 := fork _ (ln c2 => cmsort_worker n ys0 c2) in
+      let* r1 := recv1 refl r1 in match r1 with ex1 xs1 c1 =>
+      let* r2 := recv1 refl r2 in match r2 with ex1 ys1 c2 =>
+      match xs1, ys1 with
+      | just xs1, just ys1 =>
+        let zs1 : sing (merge (msort xs0) (msort ys0)) := just (merge xs1 ys1) in
+        let zs1 : sing (msort zs) := rwl (fn x => sing x) pf zs1 in
+        let* c := send1 refl c zs1 in
+        let* _ := close c1 in
+        let* _ := close c2 in
+        let* _ := close c in
+        return tt
 
