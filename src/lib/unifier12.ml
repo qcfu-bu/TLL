@@ -97,6 +97,21 @@ let resolve_pmeta var_map m =
     m
 
 let rec simpl_pprbm ?(expand = false) eqn =
+  let rec is_value = function
+    | Ann (m, _) -> is_value m
+    | PMeta _ -> true
+    | Type _ -> true
+    | Var _ -> true
+    | Const _ -> true
+    | Pi _ -> true
+    | Fun _ -> true
+    | Ind _ -> true
+    | Constr _ -> true
+    | IO _ -> true
+    | Return _ -> true
+    | Magic _ -> true
+    | _ -> false
+  in
   match eqn with
   | EqualPat _ -> failwith "unifier1.simpl_pprbm(EqualPat)"
   | EqualTerm (env, m1, m2) -> (
@@ -203,9 +218,10 @@ let rec simpl_pprbm ?(expand = false) eqn =
     (* magic *)
     | Magic a1, Magic a2 -> simpl_pprbm (EqualTerm (env, a1, a2))
     | _ when not expand -> simpl_pprbm ~expand:true (EqualTerm (env, m1, m2))
-    | _ ->
+    | _ when is_value m1 && is_value m2 ->
       failwith "@[<v 0>unifier1.simpl_pprbm(@;<1 2>%a,@;<1 2>%a@;<1 0>)@]" pp_tm
-        m1 pp_tm m2)
+        m1 pp_tm m2
+    | _ -> [])
 
 let solve_pprbm map eqn =
   match eqn with
