@@ -19,7 +19,8 @@ type view =
   | I (* implicit *)
 [@@deriving show { with_path = false }]
 
-type ('a, 'b) binder = Binder of 'a * 'b [@@deriving show { with_path = false }]
+type ('a, 'b) binder = Binder of 'a * 'b
+[@@deriving show { with_path = false }]
 
 type tm =
   (* inference *)
@@ -66,6 +67,12 @@ type dcl =
       { name : id
       ; relv : relv
       ; body : (tele * dconstrs) param scheme
+      ; view : view list
+      }
+  | Extern of
+      { name : id
+      ; relv : relv
+      ; body : tm scheme
       ; view : view list
       }
 [@@deriving show { with_path = false }]

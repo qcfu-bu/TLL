@@ -162,6 +162,7 @@
 %token DCL_DEF            // def
 %token DCL_INDUCTIVE      // inductive
 %token DCL_WHERE          // where
+%token DCL_EXTERN         // extern
 
 %{ open Syntax0 %}
 
@@ -595,16 +596,15 @@ let tm1 :=
   | m = tm0; ms = tm0*;
     { match ms with [] -> m | _ -> App (m :: ms) }
 
-let tm2 :=
-  | a = tm2; RIGHTARROW0; b = tm2; { Pi (R, U, a, Binder ("_", b)) }
-  | a = tm2; MULTIMAP; b = tm2; { Pi (R, L, a, Binder ("_", b)) }
-  | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm2; { Pi (N, U, a, Binder ("_", b)) }
-  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm2; { Pi (N, L, a, Binder ("_", b)) }
+let tm2_generic(p) :=
+  | a = tm1; RIGHTARROW0; b = tm2_generic(p); { Pi (R, U, a, Binder ("_", b)) }
+  | a = tm1; MULTIMAP; b = tm2_generic(p); { Pi (R, L, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm2_generic(p); { Pi (N, U, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm2_generic(p); { Pi (N, L, a, Binder ("_", b)) }
+  | ms = tm0*; m = tm_pi(p); { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ~ = tm1; <>
 
 let tm3_generic(p) :=
-  | ms = tm0*; m = tm_pi(p);
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_lam(p);
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_let(p);
@@ -615,7 +615,7 @@ let tm3_generic(p) :=
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_mlet(p);
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ~ = tm2; <>
+  | ~ = tm2_generic(p); <>
 
 let tm3_closed :=
   | ~ = tm3_generic(tm_closed); <>
@@ -783,10 +783,43 @@ let dcl_inductive :=
       let sch = Binder (sids, param) in
       Inductive { name = id; relv; body = sch; view } }
 
+// abstract
+/*
+#[logical]
+extern foo‹s› (x : A) (y : B) : C
+
+#[program]
+extern foo‹s› (x : A) : A -> B
+*/
+let dcl_extern_arg :=
+  | LPAREN; ids = iden+; COLON; a = tm; RPAREN;
+    { List.map (fun id -> (R, id, a, E)) ids }
+  | LBRACE; ids = iden+; COLON; a = tm; RBRACE;
+    { List.map (fun id -> (N, id, a, E)) ids }
+  | QLPAREN; ids = iden+; COLON; a = tm; RPAREN;
+    { List.map (fun id -> (R, id, a, I)) ids }
+  | QLBRACE; ids = iden+; COLON; a = tm; RBRACE;
+    { List.map (fun id -> (N, id, a, I)) ids }
+
+let dcl_extern_args :=
+  | args = dcl_extern_arg*; { List.concat args }
+
+let dcl_extern :=
+  | relv = dcl_modifier;
+    DCL_EXTERN; id_sids = dcl_iden; args = dcl_extern_args; COLON; b = tm;
+    { let id, sids = id_sids in
+      let a, view =
+        List.fold_right (fun (relv, id, a, v) (b, view) ->
+          (Pi (relv, U, a, Binder (id, b)), v :: view)) args (b, [])
+      in
+      let sch = Binder (sids, a) in
+      Extern { name = id; relv; body = sch; view } }
+
 // declarations
 let dcl :=
   | ~ = dcl_def; <>
   | ~ = dcl_inductive; <>
+  | ~ = dcl_extern; <>
 
 // main
 let main :=

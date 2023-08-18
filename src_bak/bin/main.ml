@@ -38,8 +38,12 @@ let _ =
       let dcls1e = Trans1e.trans_dcls dcls1 in
       pr "%a" Pprint1.pp_dcls dcls1e;
       pr "@.@.-----------------------------------------@.@.";
+      let _ = Debug.disable () in
       let dcls2 = Trans12.trans_dcls dcls1e in
-      pr "%a" Pprint2.pp_dcls dcls2;
+      (* pr "%a" Pprint2.pp_dcls dcls2; *)
+      pr "@.@.-----------------------------------------@.@.";
+      let dcls2e = Trans2e.trans_dcls dcls2 in
+      (* pr "%a" Pprint2.pp_dcls dcls2e; *)
       pr "@.@.-----------------------------------------@.@."
   with
   | Failure s ->

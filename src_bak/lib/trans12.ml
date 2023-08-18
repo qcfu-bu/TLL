@@ -27,13 +27,6 @@ end = struct
   let find_constr c0 ss = Resolver.find_constr c0 ss !state
 end
 
-let has_failed f =
-  try
-    f ();
-    false
-  with
-  | _ -> true
-
 module Logical = struct
   let assert_sort = function
     | U -> ()
@@ -41,6 +34,7 @@ module Logical = struct
     | _ -> failwith "trans12.Logical.assert_sort"
 
   let assert_equal env m n =
+    Debug.exec (fun () -> pr "Logical.assert_equal(%a, %a)@." pp_tm m pp_tm n);
     if not (eq_tm env m n) then
       failwith "trans12.Logical.assert_equal(%a, %a)" pp_tm m pp_tm n
 
@@ -49,10 +43,10 @@ module Logical = struct
     match whnf env t with
     | Type U -> U
     | Type L -> L
-    | _ -> failwith "trans12.Logical.infer_sort(%a : %a)" pp_tm a pp_tm t
+    | _ -> failwith "trans12.Logical.assert_equal(%a : %a)" pp_tm a pp_tm t
 
-  and infer_tm ctx env m : tm =
-    Debug.exec (fun () -> pr "Logical.infer_tm(%a)@." pp_tm m);
+  and infer_tm ctx env m =
+    Debug.exec (fun () -> pr "@[Logical.infer_tm(%a)@]@." pp_tm m);
     match m with
     (* inference *)
     | Ann (m, a) ->
@@ -60,7 +54,7 @@ module Logical = struct
       check_tm ctx env m a;
       a
     | IMeta _ -> failwith "trans12.Logical.infer_tm(IMeta)"
-    | PMeta x -> fst (Ctx.find_var x ctx)
+    | PMeta _ -> failwith "trans12.Logical.infer_tm(PMeta)"
     (* core *)
     | Type s ->
       assert_sort s;
@@ -75,7 +69,7 @@ module Logical = struct
       let t = infer_sort ctx env a in
       let _ = infer_sort (Ctx.add_var x a t ctx) env b in
       Type s
-    | Fun (a, bnd) ->
+    | Fun (_, a, bnd) ->
       let x, cls = unbind bnd in
       let s = infer_sort ctx env a in
       check_cls (Ctx.add_var x a s ctx) env cls a;
@@ -103,7 +97,7 @@ module Logical = struct
       let c1 = State.find_constr c0 ss in
       let ptl, _ = Ctx.find_constr c1 ctx in
       infer_ptl ctx env ms ns ptl
-    | Match (ms, a, cls) ->
+    | Match (_, ms, a, cls) ->
       let b = infer_motive ctx env ms a in
       check_cls ctx env cls a;
       b
@@ -155,42 +149,41 @@ module Logical = struct
     | _ -> failwith "trans12.Logical.infer_motive"
 
   and check_tm ctx env m a =
-    Debug.exec (fun () -> pr "Logical.check_tm(%a, %a)@." pp_tm m pp_tm a);
-    match m with
-    | Fun (b, bnd) ->
-      let x, cls = unbind bnd in
-      let s = infer_sort ctx env b in
-      assert_equal env a b;
-      check_cls (Ctx.add_var x a s ctx) env cls a
-    | _ ->
-      let b = infer_tm ctx env m in
-      assert_equal env a b
+    Debug.exec (fun () ->
+        pr "@[Logical.check_tm(@;<1 2>@[%a@],@;<1 2>@[%a@]@;<1 0>)@]@." pp_tm m
+          pp_tm a);
+    let b = infer_tm ctx env m in
+    assert_equal env a b
 
-  and check_cls ctx env cls a : unit =
+  and check_cls ctx env cls a =
+    let infer_demote ctx env a =
+      let ctx = Ctx.map_var demote_pmeta ctx in
+      infer_sort ctx env (demote_pmeta a)
+    in
     let rec is_absurd eqns rhs =
       match (eqns, rhs) with
-      | PPrbm.EqualPat (_, _, PMeta _, PAbsurd, _) :: _, None -> true
-      | PPrbm.EqualPat (_, _, PMeta _, PAbsurd, _) :: _, Some _ ->
+      | EqualPat (_, _, PMeta _, PAbsurd, _) :: _, None -> true
+      | EqualPat (_, _, PMeta _, PAbsurd, _) :: _, Some _ ->
         failwith "trans12.Logical.is_absurd"
       | _ :: eqns, _ -> is_absurd eqns rhs
       | [], _ -> false
     in
     let rec get_absurd = function
-      | PPrbm.EqualPat (_, _, PMeta _, PAbsurd, a) :: _ -> a
+      | EqualPat (_, _, PMeta _, PAbsurd, a) :: _ -> a
       | _ :: eqns -> get_absurd eqns
       | [] -> failwith "trans12.Logical.get_absurd"
     in
     let rec can_split = function
-      | PPrbm.EqualPat (_, _, PMeta _, PConstr _, _) :: _ -> true
+      | EqualPat (_, _, PMeta _, PConstr _, _) :: _ -> true
       | _ :: eqns -> can_split eqns
       | [] -> false
     in
     let rec first_split = function
-      | PPrbm.EqualPat (_, _, PMeta x, PConstr _, a) :: _ -> (x, a)
+      | EqualPat (_, _, PMeta x, PConstr _, a) :: _ -> (x, a)
       | _ :: eqns -> first_split eqns
-      | [] -> failwith "trans1e.Logical.first_split"
+      | [] -> failwith "trans12.Logical.first_split"
     in
-    let fail_on_ind global ctx env d1 ss ms a =
+    let fail_on_ind global ctx d1 ss ms a =
       let _, cs0 = Ctx.find_ind d1 ctx in
       List.iter
         (fun c0 ->
@@ -198,22 +191,23 @@ module Logical = struct
           let param, _ = Ctx.find_constr c1 ctx in
           let tele = param_inst param ms in
           let _, t = unbind_tele tele in
-          let global = PPrbm.EqualTerm (env, a, t) :: global in
-          if not (has_failed (fun () -> unify_pprbm global)) then
-            failwith "trans12.Logical.fail_on_ind")
+          let global = EqualTerm (env, a, t) :: global in
+          if succeed_pprbm global then
+            failwith "trans12.Logical.fail_on_ind(%a)" Ind.pp d1)
         cs0
     in
-    let rec aux_prbm ctx env (prbm : PPrbm.t) a =
+    let rec aux_prbm ctx prbm a =
       match prbm.clause with
       (* empty *)
       | [] -> (
-        if not (has_failed (fun () -> unify_pprbm prbm.global)) then
+        Debug.exec (fun () -> pr "case_empty@.");
+        if succeed_pprbm prbm.global then
           match whnf env a with
           | Pi (_, _, a, _) -> (
             match whnf env a with
             | Ind (d0, ss, ms, ns) ->
               let d1 = State.find_ind d0 ss in
-              fail_on_ind prbm.global ctx env d1 ss ms a
+              fail_on_ind prbm.global ctx d1 ss ms a
             | _ -> failwith "trans12.Logical.check_cls(Empty)")
           | _ -> failwith "trans12.Logical.check_cls(Empty)")
       (* case intro *)
@@ -221,10 +215,10 @@ module Logical = struct
         match whnf env a with
         | Pi (relv, _, a, bnd) ->
           let x, b = unbind_pmeta bnd in
-          let s = infer_sort ctx env a in
+          let s = infer_demote ctx env a in
           let ctx = Ctx.add_var x a s ctx in
           let prbm = prbm_add env prbm x a relv in
-          aux_prbm ctx env prbm b
+          aux_prbm ctx prbm b
         | a ->
           failwith "trans12.Logical.check_cls(Intro(%a, %a))" pp_tm a
             (pp_ps " ") ps)
@@ -241,50 +235,53 @@ module Logical = struct
               let param, _ = Ctx.find_constr c1 ctx in
               let tele = param_inst param ms in
               let args, t = unbind_tele tele in
-              let ctx =
-                List.fold_left
+              let ctx, ns =
+                List.fold_left_map
                   (fun ctx (_, x, a) ->
-                    let s = infer_sort ctx env a in
-                    Ctx.add_var x a s ctx)
+                    let s = infer_demote ctx env a in
+                    (Ctx.add_var x a s ctx, PMeta x))
                   ctx args
               in
-              let m =
-                Constr (c0, ss, ms, List.map (fun (_, x, _) -> PMeta x) args)
-              in
+              let m = Constr (c0, ss, ms, ns) in
               let var_map = Var.Map.singleton x m in
               let a = subst_pmeta var_map a in
               let ctx = Ctx.map_var (subst_pmeta var_map) ctx in
-              let prbm = prbm_simpl ctx env var_map prbm in
+              let prbm = prbm_simpl ctx var_map prbm in
               let prbm =
-                PPrbm.
-                  { prbm with global = EqualTerm (env, b, t) :: prbm.global }
+                { prbm with global = EqualTerm (env, b, t) :: prbm.global }
               in
-              aux_prbm ctx env prbm a)
+              aux_prbm ctx prbm a)
             cs0
-        | _ -> failwith "trans12.Logical.check_cls(Split)")
+        | _ -> failwith "trans12.Logical.check_cls(Split(%a))" pp_tm b)
       (* absurd pattern *)
       | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> (
-        if not (has_failed (fun () -> unify_pprbm prbm.global)) then
+        Debug.exec (fun () -> pr "trans12.Logical.case_absurd@.");
+        if succeed_pprbm prbm.global then
           let a = get_absurd eqns in
           match whnf env a with
           | Ind (d0, ss, ms, ns) ->
             let d1 = State.find_ind d0 ss in
-            fail_on_ind prbm.global ctx env d1 ss ms a
+            fail_on_ind prbm.global ctx d1 ss ms a
           | _ -> failwith "trans12.Logical.check_cls(Absurd)")
       (* case coverage *)
       | (eqns, [], rhs) :: _ -> (
+        Debug.exec (fun () ->
+            pr "@[<v 0>case_coverage{|@;<1 2>%a@;<1 0>|}@]@." pp_pprbm prbm);
         match rhs with
-        | Some m ->
-          let var_map = unify_pprbm (prbm.global @ eqns) in
-          let a = resolve_pmeta var_map a in
-          let ctx = Ctx.map_var (resolve_pmeta var_map) ctx in
-          let rhs = resolve_pmeta var_map m in
+        | Some rhs ->
+          let local_map, global_map = unify_pprbm eqns prbm.global in
+          let a = resolve_pmeta global_map a in
+          let ctx = Ctx.map_var (resolve_pmeta global_map) ctx in
+          let env = Env.merge_var (Var.Map.map demote_pmeta global_map) env in
+          let rhs = resolve_pmeta local_map rhs in
+          Debug.exec (fun () ->
+              pr "@[case_coverage_ok(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm rhs pp_tm a);
           check_tm ctx env rhs a
         | None ->
-          if not (has_failed (fun () -> unify_pprbm prbm.global)) then
+          if succeed_pprbm prbm.global then
             failwith "trans12.Logical.check_cls(Cover)")
     in
-    aux_prbm ctx env (PPrbm.of_cls cls) a
+    aux_prbm ctx (of_cls cls) a
 
   and prbm_add env prbm x a relv =
     match prbm.clause with
@@ -292,21 +289,20 @@ module Logical = struct
     | (eqns, p :: ps, rhs) :: clause ->
       let prbm = prbm_add env { prbm with clause } x a relv in
       let clause =
-        (eqns @ [ PPrbm.EqualPat (relv, env, PMeta x, p, a) ], ps, rhs)
-        :: prbm.clause
+        (eqns @ [ EqualPat (relv, env, PMeta x, p, a) ], ps, rhs) :: prbm.clause
       in
       { prbm with clause }
     | _ -> failwith "trans12.Logical.prbm_add"
 
-  and prbm_simpl ctx env var_map prbm =
+  and prbm_simpl ctx var_map prbm =
     let rec aux_global = function
       | [] -> []
-      | PPrbm.EqualTerm (env, a, b) :: eqns ->
+      | EqualTerm (env, a, b) :: eqns ->
         let a = subst_pmeta var_map a in
         let b = subst_pmeta var_map b in
         let eqns = aux_global eqns in
-        PPrbm.EqualTerm (env, a, b) :: eqns
-      | PPrbm.EqualPat _ :: _ -> failwith "trans12.Logical.prbm_simpl(Global)"
+        EqualTerm (env, a, b) :: eqns
+      | EqualPat _ :: _ -> failwith "trans12.Logical.prbm_simpl(Global)"
     in
     let rec aux_clause = function
       | [] -> []
@@ -316,7 +312,7 @@ module Logical = struct
           List.fold_left
             (fun acc eqn ->
               match (acc, eqn) with
-              | Some acc, PPrbm.EqualPat (relv, env, l, r, a) -> (
+              | Some acc, EqualPat (relv, env, l, r, a) -> (
                 let l = subst_pmeta var_map l in
                 let a = subst_pmeta var_map a in
                 match p_simpl relv ctx env l r a with
@@ -348,16 +344,16 @@ module Logical = struct
         else
           None
       else
-        failwith "trans12.Logical.p_simpl(PMul)"
-    | Constr _, _, Ind _ -> Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
+        failwith "trans12.Logical.p_simpl"
+    | Constr _, _, Ind _ -> Some [ EqualPat (relv, env, m, p, a) ]
     | _, PConstr (c, _), Ind (d0, ss, _, _) ->
       let d1 = State.find_ind d0 ss in
       let _, cs0 = Ctx.find_ind d1 ctx in
       if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
-        Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
+        Some [ EqualPat (relv, env, m, p, a) ]
       else
-        failwith "trans12.Logical.p_simpl(PMul)"
-    | m, p, a -> Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
+        failwith "trans12.Logical.p_simpl"
+    | m, p, a -> Some [ EqualPat (relv, env, m, p, a) ]
 
   and ps_simpl relv0 ctx env ms ps tele =
     match (relv0, ms, ps, tele) with
@@ -394,7 +390,7 @@ module Program = struct
   let trans_mvar xs = Array.map trans_var xs
 
   let rec infer_tm ctx env m =
-    Debug.exec (fun () -> pr "Program.infer_tm(%a)@." pp_tm m);
+    Debug.exec (fun () -> pr "@[Program.infer_tm(%a)@]@." pp_tm m);
     match m with
     (* inference *)
     | Ann (m, a) ->
@@ -402,9 +398,7 @@ module Program = struct
       let m_elab, usg = check_tm ctx env m a in
       (a, m_elab, usg)
     | IMeta _ -> failwith "trans12.Program.infer_tm(IMeta)"
-    | PMeta x ->
-      let a, s = Ctx.find_var x ctx in
-      Syntax2.(a, _Var (trans_var x), Usage.var_singleton x (s, false))
+    | PMeta _ -> failwith "trans12.Program.infer_tm(PMeta)"
     (* core *)
     | Type _ -> failwith "trans12.Program.infer_tm(Type)"
     | Var x ->
@@ -415,25 +409,23 @@ module Program = struct
       let a, s = Ctx.find_const x1 ctx in
       Syntax2.(a, _Const x1, Usage.const_singleton x1 (s, false))
     | Pi _ -> failwith "trans12.Program.infer_tm(Pi)"
-    | Fun (a, bnd) ->
+    | Fun (_, a, bnd) ->
       let x, cls = unbind bnd in
       let s = Logical.infer_sort ctx env a in
-      let cls_elab, usg = check_cls (Ctx.add_var x a s ctx) env cls a in
+      let ctree, usg = check_cls (Ctx.add_var x a s ctx) env cls a in
       let usg =
         match s with
-        | U ->
-          let usg = Usage.remove_var x usg R U in
-          Usage.refine_pure usg
+        | U -> Usage.remove_var x usg R U
         | L -> Usage.remove_var x usg N L
         | _ -> failwith "trans12.Program.infer_tm(Fun)"
       in
-      Syntax2.(a, _Fun (bind_var (trans_var x) cls_elab), usg)
+      Syntax2.(a, _Fun (bind_var (trans_var x) ctree), usg)
     | App (m, n) -> (
       let t, m_elab, usg1 = infer_tm ctx env m in
       match whnf env t with
       | Pi (N, s, a, bnd) ->
         Logical.check_tm ctx env n a;
-        Syntax2.(subst bnd n, _App (trans_sort s) m_elab _Null, usg1)
+        Syntax2.(subst bnd n, _App (trans_sort s) m_elab _NULL, usg1)
       | Pi (R, s, a, bnd) ->
         let n_elab, usg2 = check_tm ctx env n a in
         Syntax2.
@@ -447,7 +439,7 @@ module Program = struct
       let env = Env.add_var x m env in
       let b, n_elab, usg = infer_tm ctx env n in
       let usg = Usage.remove_var x usg N s in
-      Syntax2.(b, _Let _Null (bind_var (trans_var x) n_elab), usg)
+      Syntax2.(b, n_elab, usg)
     | Let (R, m, bnd) ->
       let x, n = unbind bnd in
       let a, m_elab, usg1 = infer_tm ctx env m in
@@ -463,14 +455,18 @@ module Program = struct
       List.iter Logical.assert_sort ss;
       let c1 = State.find_constr c0 ss in
       let ptl, relv = Ctx.find_constr c1 ctx in
-      let a, ns_elab, usg = infer_ptl ctx env ms ns ptl in
       match relv with
-      | R -> Syntax2.(a, _Constr c1 (box_list ns_elab), usg)
+      | R ->
+        let a, ns_elab, usg = infer_ptl ctx env ms ns ptl in
+        Syntax2.(a, _Constr c1 (box_list ns_elab), usg)
       | _ -> failwith "trans12.Program.infer_tm(Constr)")
-    | Match (ms, a, cls) ->
+    | Match (_, ms, a, cls) ->
       let b, ms_elab, usg1 = infer_motive ctx env ms a in
-      let cls_elab, usg2 = check_cls ctx env cls a in
-      Syntax2.(b, _Match (box_list ms_elab) cls_elab, Usage.merge usg1 usg2)
+      Debug.exec (fun () -> pr "Program.infer_motive_ok@.");
+      let ctree, usg2 = check_cls ctx env cls a in
+      let ms_elab = box_array (Array.of_list ms_elab) in
+      let usg = Usage.merge usg1 usg2 in
+      Syntax2.(b, lift_tm (msubst (unbox ctree) (unbox ms_elab)), usg)
     | IO _ -> failwith "trans12.Program.infer_tm(IO)"
     | Return m ->
       let a, m_elab, usg = infer_tm ctx env m in
@@ -506,7 +502,7 @@ module Program = struct
       | n :: ns, TBind (N, a, bnd) ->
         Logical.check_tm ctx env n a;
         let b, ns_elab, usg = aux_tele ns (subst bnd n) in
-        Syntax2.(b, _Null :: ns_elab, usg)
+        Syntax2.(b, _NULL :: ns_elab, usg)
       | n :: ns, TBind (R, a, bnd) ->
         let n_elab, usg1 = check_tm ctx env n a in
         let b, ns_elab, usg2 = aux_tele ns (subst bnd n) in
@@ -519,46 +515,60 @@ module Program = struct
     match (ms, whnf env a) with
     | [], a -> (a, [], Usage.empty)
     | m :: ms, Pi (N, L, a, bnd) ->
+      Debug.exec (fun () ->
+          pr "Program.infer_motive_N(%a, %a)@." pp_tm m pp_tm a);
       Logical.check_tm ctx env m a;
+      Debug.exec (fun () ->
+          pr "Program.infer_motive_N_ok(%a, %a)@." pp_tm m pp_tm a);
       let b, ms_elab, usg = infer_motive ctx env ms (subst bnd m) in
-      Syntax2.(b, _Null :: ms_elab, usg)
+      Syntax2.(b, _NULL :: ms_elab, usg)
     | m :: ms, Pi (R, L, a, bnd) ->
+      Debug.exec (fun () ->
+          pr "Program.infer_motive_R(%a, %a)@." pp_tm m pp_tm a);
       let m_elab, usg1 = check_tm ctx env m a in
+      Debug.exec (fun () ->
+          pr "Program.infer_motive_R_ok(%a, %a)@." pp_tm m pp_tm a);
       let b, ms_elab, usg2 = infer_motive ctx env ms (subst bnd m) in
       Syntax2.(b, m_elab :: ms_elab, Usage.merge usg1 usg2)
     | _ -> failwith "trans12.Program.infer_motive"
 
   and check_tm ctx env m a =
-    Debug.exec (fun () -> pr "Program.check_tm(%a, %a)@." pp_tm m pp_tm a);
+    Debug.exec (fun () ->
+        pr "@[Program.check_tm(@;<1 2>@[%a@],@;<1 2>@[%a@]@;<1 0>)@]@." pp_tm m
+          pp_tm a);
     let b, m_elab, usg = infer_tm ctx env m in
     Logical.assert_equal env a b;
     (m_elab, usg)
 
   and check_cls ctx env cls a =
+    let infer_demote ctx env a =
+      let ctx = Ctx.map_var demote_pmeta ctx in
+      Logical.infer_sort ctx env (demote_pmeta a)
+    in
     let rec is_absurd eqns rhs =
       match (eqns, rhs) with
-      | PPrbm.EqualPat (_, _, PMeta _, PAbsurd, _) :: _, None -> true
-      | PPrbm.EqualPat (_, _, PMeta _, PAbsurd, _) :: _, Some _ ->
+      | EqualPat (_, _, PMeta _, PAbsurd, _) :: _, None -> true
+      | EqualPat (_, _, PMeta _, PAbsurd, _) :: _, Some _ ->
         failwith "trans12.Program.is_absurd"
       | _ :: eqns, _ -> is_absurd eqns rhs
       | [], _ -> false
     in
     let rec get_absurd = function
-      | PPrbm.EqualPat (_, _, PMeta _, PAbsurd, a) :: _ -> a
+      | EqualPat (_, _, PMeta _, PAbsurd, a) :: _ -> a
       | _ :: eqns -> get_absurd eqns
       | [] -> failwith "trans12.Program.get_absurd"
     in
     let rec can_split = function
-      | PPrbm.EqualPat (_, _, PMeta _, PConstr _, _) :: _ -> true
+      | EqualPat (_, _, PMeta _, PConstr _, _) :: _ -> true
       | _ :: eqns -> can_split eqns
       | [] -> false
     in
     let rec first_split = function
-      | PPrbm.EqualPat (relv, _, PMeta x, PConstr _, a) :: _ -> (relv, x, a)
+      | EqualPat (relv, _, PMeta x, PConstr _, a) :: _ -> (relv, x, a)
       | _ :: eqns -> first_split eqns
       | [] -> failwith "trans12.Program.first_split"
     in
-    let fail_on_ind global ctx env d1 ss ms a =
+    let fail_on_ind global ctx d1 ss ms a =
       let _, cs0 = Ctx.find_ind d1 ctx in
       List.iter
         (fun c0 ->
@@ -566,148 +576,144 @@ module Program = struct
           let param, _ = Ctx.find_constr c1 ctx in
           let tele = param_inst param ms in
           let _, t = unbind_tele tele in
-          let global = PPrbm.EqualTerm (env, a, t) :: global in
-          if not (has_failed (fun () -> unify_pprbm global)) then
-            failwith "trans12.Program.fail_on_ind")
-        cs0;
-      (Syntax2._Absurd, Usage.of_ctx ctx)
+          let global = EqualTerm (env, a, t) :: global in
+          if succeed_pprbm global then
+            failwith "trans12.Program.fail_on_ind(%a)" Ind.pp d1)
+        cs0
     in
-    let rec aux_prbm ctx env (prbm : PPrbm.t) a =
+    let rec aux_prbm ctx env prbm a =
       match prbm.clause with
       (* empty *)
-      | [] -> (
-        if has_failed (fun () -> unify_pprbm prbm.global) then
-          (Syntax2._Absurd, Usage.of_ctx ctx)
-        else
+      | [] ->
+        Debug.exec (fun () -> pr "case_empty@.");
+        if succeed_pprbm prbm.global then
           match whnf env a with
           | Pi (_, _, a, _) -> (
             match whnf env a with
             | Ind (d0, ss, ms, ns) ->
               let d1 = State.find_ind d0 ss in
-              fail_on_ind prbm.global ctx env d1 ss ms a
+              fail_on_ind prbm.global ctx d1 ss ms a;
+              Syntax2.([], _Absurd, Usage.of_ctx ctx)
             | _ -> failwith "trans12.Program.check_cls(Empty)")
-          | _ -> failwith "trans12.Program.check_cls(Empty)")
+          | _ -> failwith "trans12.Program.check_cls(Empty)"
+        else
+          Syntax2.([], _Absurd, Usage.of_ctx ctx)
       (* case intro *)
       | (eqns, p :: ps, rhs) :: clause -> (
         match whnf env a with
         | Pi (relv, s, a, bnd) -> (
+          Debug.exec (fun () -> pr "trans12.Program.case_intro(%a)@." pp_tm a);
           let x, b = unbind_pmeta bnd in
-          let t = Logical.infer_sort ctx env a in
+          let t = infer_demote ctx env a in
           let ctx = Ctx.add_var x a t ctx in
           let prbm = prbm_add env prbm x a relv in
-          let ctree, usg = aux_prbm ctx env prbm b in
+          let xs, ctree, usg = aux_prbm ctx env prbm b in
           let usg = Usage.remove_var x usg relv t in
+          Debug.exec (fun () -> pr "trans12.Program.case_introed(%a)@." pp_tm a);
           match s with
-          | U ->
-            let usg = Usage.refine_pure usg in
-            Syntax2.(_Lam (bind_var (trans_var x) ctree), usg)
-          | L -> Syntax2.(_Lam (bind_var (trans_var x) ctree), usg)
-          | _ -> failwith "trans12.Program.check_cls(Intro)")
-        | a ->
-          failwith "trans12.Program.check_cls(Intro(%a, %a))" pp_tm a
-            (pp_ps " ") ps)
-      (* case splitting *)
+          | U -> (trans_var x :: xs, ctree, Usage.refine_pure usg)
+          | L -> (trans_var x :: xs, ctree, usg)
+          | _ -> failwith "trans12.Program.check_cls(Intro(%a))" pp_tm a)
+        | a -> failwith "trans12.Program.check_cls(Intro(%a))" pp_tm a)
+      (* case split *)
       | (eqns, [], rhs) :: _ when can_split eqns -> (
         let relv, x, b = first_split eqns in
-        let s = Logical.infer_sort ctx env b in
+        let s = infer_demote ctx env b in
+        let x_elab, usg1 =
+          match relv with
+          | R -> Syntax2.(_Var (trans_var x), Usage.var_singleton x (s, false))
+          | N -> Syntax2.(_NULL, Usage.empty)
+        in
         match whnf env b with
         | Ind (d0, ss, ms, _) ->
           let d1 = State.find_ind d0 ss in
           let _, cs0 = Ctx.find_ind d1 ctx in
-          Debug.exec (fun () ->
-              pr "d1 := %a, cs0 := %a@." Ind.pp d1 (list ~sep:sp Constr.pp) cs0);
-          let cls_elab, usg =
+          let ctrees, usg2 =
             List.fold_left
-              (fun (cls_elab, usg_acc) c0 ->
+              (fun (ctrees, usg2) c0 ->
                 let c1 = State.find_constr c0 ss in
+                Debug.exec (fun () ->
+                    pr "trans12.Program.case_split(%a, %a)@." Ind.pp d1
+                      Constr.pp c1);
                 let param, _ = Ctx.find_constr c1 ctx in
                 let tele = param_inst param ms in
                 let args, t = unbind_tele tele in
                 let ctx, args =
                   List.fold_left_map
                     (fun ctx (relv, x, a) ->
-                      let s = Logical.infer_sort ctx env a in
+                      let s = infer_demote ctx env a in
                       (Ctx.add_var x a s ctx, (relv, x, s)))
                     ctx args
                 in
                 let m =
                   Constr (c0, ss, ms, List.map (fun (_, x, _) -> PMeta x) args)
                 in
-                Debug.exec (fun () -> pr "splitting_on(%a)@." Constr.pp c1);
-                Debug.exec (fun () -> pr "splitting_with(%a)@." pp_tm m);
                 let var_map = Var.Map.singleton x m in
                 let a = subst_pmeta var_map a in
                 let ctx = Ctx.map_var (subst_pmeta var_map) ctx in
-                let prbm = prbm_simpl ctx env var_map prbm in
+                let prbm = prbm_simpl ctx var_map prbm in
                 let prbm =
-                  PPrbm.
-                    { prbm with global = EqualTerm (env, b, t) :: prbm.global }
+                  { prbm with global = EqualTerm (env, b, t) :: prbm.global }
                 in
-                let ctree, usg = aux_prbm ctx env prbm a in
+                let _, ctree, usg = aux_prbm ctx env prbm a in
                 let usg =
                   List.fold_left
-                    (fun acc (relv0, x, s) ->
+                    (fun usg (relv0, x, s) ->
                       match relv with
-                      | N -> Usage.remove_var x acc N s
-                      | R -> Usage.remove_var x acc relv0 s)
+                      | N -> Usage.remove_var x usg N s
+                      | R -> Usage.remove_var x usg relv0 s)
                     usg args
                 in
-                Debug.exec (fun () -> pr "usg %a@." Usage.pp_var usg);
-                Debug.exec (fun () -> pr "usg_acc %a@." Usage.pp_var usg_acc);
                 let xs = List.map (fun (_, x, _) -> trans_var x) args in
-                let cl_elab =
+                let ctree =
                   Syntax2.(_PConstr c1 (bind_mvar (Array.of_list xs) ctree))
                 in
-                (cl_elab :: cls_elab, Usage.refine_equal usg_acc usg))
+                (ctree :: ctrees, Usage.refine_equal usg2 usg))
               ([], Usage.of_ctx ctx)
               cs0
           in
-          let usg =
-            match relv with
-            | R -> Usage.add_var x s false usg
-            | N -> usg
-          in
-          let cls_elab = box_list (List.rev cls_elab) in
+          let ctrees = box_rev_list ctrees in
           Syntax2.
-            ( _Case (trans_relv relv) (trans_sort s)
-                (_Var (trans_var x))
-                cls_elab
-            , usg )
-        | _ -> failwith "trans12.Program.check_cls(split)")
+            ( []
+            , _Match (trans_relv relv) (trans_sort s) x_elab ctrees
+            , Usage.merge usg1 usg2 )
+        | _ -> failwith "trans12.Program.check_cls(Split(%a))" pp_tm b)
       (* absurd pattern *)
-      | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> (
-        if has_failed (fun () -> unify_pprbm prbm.global) then
-          (Syntax2._Absurd, Usage.of_ctx ctx)
-        else
+      | (eqns, [], rhs) :: _ when is_absurd eqns rhs ->
+        Debug.exec (fun () -> pr "trans12.Program.case_absurd@.");
+        if succeed_pprbm prbm.global then
           let a = get_absurd eqns in
           match whnf env a with
           | Ind (d0, ss, ms, ns) ->
             let d1 = State.find_ind d0 ss in
-            fail_on_ind prbm.global ctx env d1 ss ms a
-          | _ -> failwith "trans12.Program.check_cls(Absurd)")
+            fail_on_ind prbm.global ctx d1 ss ms a;
+            Syntax2.([], _Absurd, Usage.of_ctx ctx)
+          | _ -> failwith "trans12.Program.check_cls(Absurd)"
+        else
+          Syntax2.([], _Absurd, Usage.of_ctx ctx)
       (* case coverage *)
       | (eqns, [], rhs) :: _ -> (
         Debug.exec (fun () ->
-            pr "@[<v 0>case_coverage{|@;<1 2>%a@;<1 0>|}@]@." PPrbm.pp prbm);
+            pr "@[<v 0>case_coverage{|@;<1 2>%a@;<1 0>|}@]@." pp_pprbm prbm);
         match rhs with
-        | Some m ->
-          let var_map0 = unify_pprbm eqns in
-          let var_map1 = unify_pprbm (prbm.global @ eqns) in
-          let a = resolve_pmeta var_map1 a in
-          let ctx = Ctx.map_var (resolve_pmeta var_map1) ctx in
-          let env = Env.merge_var var_map1 env in
-          let env = Env.map_var demote_pmeta env in
-          Debug.exec (fun () -> pr "%a@." Env.pp_var env);
-          let rhs = resolve_pmeta var_map0 m in
-          Debug.exec (fun () -> pr "rhs := %a@." pp_tm rhs);
-          check_tm ctx env rhs a
+        | Some rhs ->
+          let local_map, global_map = unify_pprbm eqns prbm.global in
+          let a = resolve_pmeta global_map a in
+          let ctx = Ctx.map_var (resolve_pmeta global_map) ctx in
+          let env = Env.merge_var (Var.Map.map demote_pmeta global_map) env in
+          let rhs = resolve_pmeta local_map rhs in
+          Debug.exec (fun () ->
+              pr "@[case_coverage_ok(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm rhs pp_tm a);
+          let rhs_elab, usg = check_tm ctx env rhs a in
+          ([], rhs_elab, usg)
         | None ->
-          if has_failed (fun () -> unify_pprbm prbm.global) then
-            (Syntax2._Absurd, Usage.of_ctx ctx)
+          if succeed_pprbm prbm.global then
+            failwith "trans12.Program.check_cls(Cover)"
           else
-            failwith "trans12.Program.check_cls(Cover)")
+            Syntax2.([], _Absurd, Usage.of_ctx ctx))
     in
-    aux_prbm ctx env (PPrbm.of_cls cls) a
+    let xs, ctree, usg = aux_prbm ctx env (of_cls cls) a in
+    (bind_mvar (Array.of_list xs) ctree, usg)
 
   and prbm_add env prbm x a relv =
     match prbm.clause with
@@ -715,21 +721,20 @@ module Program = struct
     | (eqns, p :: ps, rhs) :: clause ->
       let prbm = prbm_add env { prbm with clause } x a relv in
       let clause =
-        (eqns @ [ PPrbm.EqualPat (relv, env, PMeta x, p, a) ], ps, rhs)
-        :: prbm.clause
+        (eqns @ [ EqualPat (relv, env, PMeta x, p, a) ], ps, rhs) :: prbm.clause
       in
       { prbm with clause }
     | _ -> failwith "trans12.Program.prbm_add"
 
-  and prbm_simpl ctx env var_map prbm =
+  and prbm_simpl ctx var_map prbm =
     let rec aux_global = function
       | [] -> []
-      | PPrbm.EqualTerm (env, a, b) :: eqns ->
+      | EqualTerm (env, a, b) :: eqns ->
         let a = subst_pmeta var_map a in
         let b = subst_pmeta var_map b in
         let eqns = aux_global eqns in
-        PPrbm.EqualTerm (env, a, b) :: eqns
-      | PPrbm.EqualPat _ :: _ -> failwith "trans12.Program.prbm_simpl(Global)"
+        EqualTerm (env, a, b) :: eqns
+      | EqualPat _ :: _ -> failwith "trans12.Program.prbm_simpl(Global)"
     in
     let rec aux_clause = function
       | [] -> []
@@ -739,7 +744,7 @@ module Program = struct
           List.fold_left
             (fun acc eqn ->
               match (acc, eqn) with
-              | Some acc, PPrbm.EqualPat (relv, env, l, r, a) -> (
+              | Some acc, EqualPat (relv, env, l, r, a) -> (
                 let l = subst_pmeta var_map l in
                 let a = subst_pmeta var_map a in
                 match p_simpl relv ctx env l r a with
@@ -771,16 +776,16 @@ module Program = struct
         else
           None
       else
-        failwith "trans12.Program.p_simpl(Constr-PConstr)"
-    | Constr _, _, Ind _ -> Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
+        failwith "trans12.Program.p_simpl1(%a, %a, %a)" pp_tm m pp_p p pp_tm a
+    | Constr _, _, Ind _ -> Some [ EqualPat (relv, env, m, p, a) ]
     | _, PConstr (c, _), Ind (d0, ss, _, _) ->
       let d1 = State.find_ind d0 ss in
       let _, cs0 = Ctx.find_ind d1 ctx in
       if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
-        Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
+        Some [ EqualPat (relv, env, m, p, a) ]
       else
-        failwith "trans12.Program.p_simpl(PConstr)"
-    | m, p, a -> Some [ PPrbm.EqualPat (relv, env, m, p, a) ]
+        failwith "trans12.Program.p_simpl2(%a, %a, %a)" pp_tm m pp_p p pp_tm a
+    | m, p, a -> Some [ EqualPat (relv, env, m, p, a) ]
 
   and ps_simpl relv0 ctx env ms ps tele =
     match (relv0, ms, ps, tele) with
@@ -806,14 +811,26 @@ end
 let warn_const x e =
   match e with
   | Failure s ->
-    pr "@[@;<2 0>warning - pruned constant %a@;<1 0>%s@]@." Const.pp x s
+    epr "@[@;<2 0>warning - pruned constant %a@;<1 0>%s@]@." Const.pp x s
   | _ -> raise e
 
 let warn_ind x e =
-  pr "@[@;<2 0>warning - pruned inductive %a %a@]@." Ind.pp x exn e
+  match e with
+  | Failure s ->
+    epr "@[@;<2 0>warning - pruned inductive %a@;<1 0>%s@]@." Ind.pp x s
+  | _ -> raise e
 
 let warn_constr x e =
-  pr "@[@;<2 0>warning - pruned constructor %a %a@]@." Constr.pp x exn e
+  match e with
+  | Failure s ->
+    epr "@[@;<2 0>warning - pruned constructor %a@;<1 0>%s@]@." Constr.pp x s
+  | _ -> raise e
+
+let warn_extern x e =
+  match e with
+  | Failure s ->
+    epr "@[@;<2 0>warning - pruned extern %a@;<1 0>%s@]@." Const.pp x s
+  | _ -> raise e
 
 let const_extend x ss =
   match ss with
@@ -850,109 +867,163 @@ let make_init xs =
 
 let rec check_dcls ctx env = function
   | [] -> ([], Usage.empty)
+  | Definition { name = x0; relv = R; scheme = sch } :: _ when Const.is_main x0
+    -> (
+    let sargs, (m, a) = unmbind sch in
+    match (sargs, whnf env a) with
+    | [||], IO a0 -> (
+      let s = Logical.infer_sort ctx env a0 in
+      match s with
+      | U ->
+        let m_elab, usg = Program.check_tm ctx env m a in
+        Syntax2.([ Main { body = unbox m_elab } ], usg)
+      | _ -> failwith "trans.check_cls(Main)")
+    | _ -> failwith "trans12.check_dcls(Main)")
   | Definition { name = x0; relv = N; scheme = sch } :: dcls ->
-    let sargs, _ = unmbind sch in
+    let sargs = mbinder_names sch in
     let init = make_init sargs in
-    let res_acc, ctx, env_acc, xs =
+    let dcl_elab, res, ctx, local, xs =
       List.fold_right
-        (fun ss (res_acc, ctx_acc, env_acc, xs) ->
+        (fun ss (dcl_elab, res, ctx_acc, local, xs) ->
           let x1 = const_extend x0 ss in
           try
             let m, a = msubst sch (Array.of_list ss) in
             let s = Logical.infer_sort ctx env a in
             Logical.check_tm ctx env m a;
             Resolver.
-              ( RMap.add ss x1 res_acc
+              ( Syntax2.(Definition { name = x1; relv = N; body = NULL })
+                :: dcl_elab
+              , RMap.add ss x1 res
               , Ctx.add_const x1 a s ctx_acc
-              , RMap.add ss m env_acc
+              , RMap.add ss m local
               , (x1, s) :: xs )
           with
           | e ->
             warn_const x1 e;
-            (res_acc, ctx_acc, env_acc, xs))
+            (dcl_elab, res, ctx_acc, local, xs))
         init
-        Resolver.(RMap.empty, ctx, RMap.empty, [])
+        Resolver.([], RMap.empty, ctx, RMap.empty, [])
     in
-    State.add_const x0 res_acc;
-    let env = Env.add_const x0 (fun ss -> Resolver.RMap.find ss env_acc) env in
+    State.add_const x0 res;
+    let env = Env.add_const x0 (fun ss -> Resolver.RMap.find ss local) env in
     let dcls_elab, usg = check_dcls ctx env dcls in
     let usg =
       List.fold_left (fun usg (x, s) -> Usage.remove_const x usg N s) usg xs
     in
-    (dcls_elab, usg)
+    (dcl_elab @ dcls_elab, usg)
   | Definition { name = x0; relv = R; scheme = sch } :: dcls ->
-    let sargs, _ = unmbind sch in
+    let sargs = mbinder_names sch in
     let init = make_init sargs in
-    let def_elab, res_acc, ctx, env_acc, xs, usg1 =
+    let dcl_elab, res, ctx, local, xs, usg1 =
       List.fold_right
-        (fun ss (def_elab, res_acc, ctx_acc, env_acc, xs, usg_acc) ->
+        (fun ss (dcl_elab, res, ctx_acc, local, xs, usg1) ->
           let x1 = const_extend x0 ss in
           try
             let m, a = msubst sch (Array.of_list ss) in
             let s = Logical.infer_sort ctx env a in
             let m_elab, usg = Program.check_tm ctx env m a in
             Resolver.
-              ( Syntax2.(Definition { name = x1; body = unbox m_elab })
-                :: def_elab
-              , RMap.add ss x1 res_acc
+              ( Syntax2.(Definition { name = x1; relv = R; body = unbox m_elab })
+                :: dcl_elab
+              , RMap.add ss x1 res
               , Ctx.add_const x1 a s ctx_acc
-              , RMap.add ss m env_acc
+              , RMap.add ss m local
               , (x1, s) :: xs
-              , Usage.merge usg usg_acc )
+              , Usage.merge usg usg1 )
           with
           | e ->
             warn_const x1 e;
-            (def_elab, res_acc, ctx_acc, env_acc, xs, usg_acc))
+            (dcl_elab, res, ctx_acc, local, xs, usg1))
         init
         Resolver.([], RMap.empty, ctx, RMap.empty, [], Usage.empty)
     in
-    State.add_const x0 res_acc;
-    let env = Env.add_const x0 (fun ss -> Resolver.RMap.find ss env_acc) env in
+    State.add_const x0 res;
+    let env = Env.add_const x0 (fun ss -> Resolver.RMap.find ss local) env in
     let dcls_elab, usg2 = check_dcls ctx env dcls in
     let usg2 =
-      List.fold_left (fun acc (x, s) -> Usage.remove_const x acc R s) usg2 xs
+      List.fold_left (fun usg2 (x, s) -> Usage.remove_const x usg2 R s) usg2 xs
     in
-    (def_elab @ dcls_elab, Usage.merge usg1 usg2)
+    (dcl_elab @ dcls_elab, Usage.merge usg1 usg2)
   | Inductive { name = d0; relv; arity; dconstrs } :: dcls ->
-    let sargs, _ = unmbind arity in
+    let sargs = mbinder_names arity in
     let init = make_init sargs in
-    let ind_elab, ctx =
+    let dcl_elab, ctx =
       List.fold_right
-        (fun ss (ind_elab, ctx_acc) ->
+        (fun ss (dcl_elab, ctx_acc) ->
           let d1 = ind_extend d0 ss in
-          let arity = msubst arity (Array.of_list ss) in
-          check_arity ctx env arity;
-          State.add_ind d0 ss d1;
-          let ctx = Ctx.add_ind d1 (arity, []) ctx in
-          let dconstr_elab, ctx_acc, cs =
-            check_dconstrs ss ctx env relv d0 dconstrs ctx_acc
-          in
-          let ctx_acc = Ctx.add_ind d1 (arity, cs) ctx_acc in
-          Syntax2.
-            (Inductive { name = d1; body = dconstr_elab } :: ind_elab, ctx_acc))
+          try
+            let arity = msubst arity (Array.of_list ss) in
+            check_arity ctx env arity;
+            State.add_ind d0 ss d1;
+            let ctx = Ctx.add_ind d1 (arity, []) ctx in
+            let dconstrs_elab, ctx_acc, cs0 =
+              check_dconstrs ss ctx env relv d0 dconstrs ctx_acc
+            in
+            let ctx_acc = Ctx.add_ind d1 (arity, cs0) ctx_acc in
+            Syntax2.
+              ( Inductive
+                  { name = d1
+                  ; relv = Program.trans_relv relv
+                  ; body = dconstrs_elab
+                  }
+                :: dcl_elab
+              , ctx_acc )
+          with
+          | e ->
+            warn_ind d1 e;
+            (dcl_elab, ctx_acc))
         init
         Resolver.([], ctx)
     in
     let dcls_elab, usg = check_dcls ctx env dcls in
-    (ind_elab @ dcls_elab, usg)
+    (dcl_elab @ dcls_elab, usg)
+  | Extern { name = x0; relv; scheme = sch } :: dcls ->
+    let sargs = mbinder_names sch in
+    let init = make_init sargs in
+    let dcl_elab, res, ctx, xs =
+      List.fold_right
+        (fun ss (dcl_elab, res, ctx_acc, xs) ->
+          let x1 = const_extend x0 ss in
+          try
+            let a = msubst sch (Array.of_list ss) in
+            let s = Logical.infer_sort ctx env a in
+            let relv = Program.trans_relv relv in
+            Resolver.
+              ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
+              , RMap.add ss x1 res
+              , Ctx.add_const x1 a s ctx_acc
+              , (x1, s) :: xs )
+          with
+          | e ->
+            warn_extern x1 e;
+            (dcl_elab, res, ctx_acc, xs))
+        init
+        Resolver.([], RMap.empty, ctx, [])
+    in
+    State.add_const x0 res;
+    let dcls_elab, usg = check_dcls ctx env dcls in
+    let usg =
+      List.fold_left (fun usg (x, s) -> Usage.remove_const x usg relv s) usg xs
+    in
+    (dcl_elab @ dcls_elab, usg)
 
 and check_arity ctx env arity =
-  let rec aux_param ctx env = function
-    | PBase tele -> aux_tele ctx env tele
+  let rec aux_param ctx = function
+    | PBase tele -> aux_tele ctx tele
     | PBind (a, bnd) ->
       let x, b = unbind bnd in
       let s = Logical.infer_sort ctx env a in
-      aux_param (Ctx.add_var x a s ctx) env b
-  and aux_tele ctx env = function
+      aux_param (Ctx.add_var x a s ctx) b
+  and aux_tele ctx = function
     | TBase (Type U) -> ()
     | TBase (Type L) -> ()
     | TBind (R, a, bnd) ->
       let x, b = unbind bnd in
       let s = Logical.infer_sort ctx env a in
-      aux_tele (Ctx.add_var x a s ctx) env b
-    | _ -> failwith "trans12.check_arity(aux_tele)"
+      aux_tele (Ctx.add_var x a s ctx) b
+    | _ -> failwith "trans12.check_arity"
   in
-  aux_param ctx env arity
+  aux_param ctx arity
 
 and check_dconstrs ss ctx env relv d0 dconstrs ctx_acc =
   let rec aux_param ctx env relv d0 = function
@@ -964,18 +1035,18 @@ and check_dconstrs ss ctx env relv d0 dconstrs ctx_acc =
   and aux_tele ctx env relv d0 = function
     | TBase (Ind (d, _, _, _) as a) when Ind.equal d d0 ->
       let t = Logical.infer_sort ctx env a in
-      (0, t)
+      ([], t)
     | TBind (N, a, bnd) ->
       let x, b = unbind bnd in
       let s = Logical.infer_sort ctx env a in
-      let i, t = aux_tele (Ctx.add_var x a s ctx) env relv d0 b in
-      (i + 1, t)
+      let layout, t = aux_tele (Ctx.add_var x a s ctx) env relv d0 b in
+      Syntax2.(N :: layout, t)
     | TBind (R, a, bnd) ->
       let x, b = unbind bnd in
       let s = Logical.infer_sort ctx env a in
-      let i, t = aux_tele (Ctx.add_var x a s ctx) env relv d0 b in
+      let layout, t = aux_tele (Ctx.add_var x a s ctx) env relv d0 b in
       if relv = N || s <= t then
-        (i + 1, t)
+        Syntax2.(R :: layout, t)
       else
         failwith "trans12.check_dconstrs"
     | _ -> failwith "trans12.check_dconstrs"
@@ -994,15 +1065,15 @@ and check_dconstrs ss ctx env relv d0 dconstrs ctx_acc =
         warn_constr c1 e;
         None
     in
-    let dconstrs_elab, ctx_acc, cs =
+    let dconstrs_elab, ctx_acc, cs0 =
       check_dconstrs ss ctx env relv d0 dconstrs ctx_acc
     in
     match opt with
-    | Some (i, param) ->
+    | Some (layout, param) ->
       State.add_constr c0 ss c1;
       let ctx_acc = Ctx.add_constr c1 (param, relv) ctx_acc in
-      ((c1, i) :: dconstrs_elab, ctx_acc, c0 :: cs)
-    | None -> (dconstrs_elab, ctx_acc, cs))
+      ((c1, layout) :: dconstrs_elab, ctx_acc, c0 :: cs0)
+    | None -> (dconstrs_elab, ctx_acc, cs0))
 
 let trans_dcls dcls =
   let dcls, usg = check_dcls Ctx.empty Env.empty dcls in

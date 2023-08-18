@@ -25,6 +25,10 @@ let rec pp_sorts fmt = function
   | [ s ] -> pp_sort fmt s
   | s :: ss -> pf fmt "%a,%a" pp_sort s pp_sorts ss
 
+let pp_relv fmt = function
+  | N -> pf fmt "N"
+  | R -> pf fmt "R"
+
 let pp_modifier fmt = function
   | R -> pf fmt "program"
   | N -> pf fmt "logical"
@@ -78,42 +82,50 @@ and pp_tm fmt = function
       pf fmt "@[{%a} -o@;<1 2>%a@]" pp_tm a pp_tm b
   | Pi (R, s, a, bnd) ->
     let x, b = unbind bnd in
-    pf fmt "@[@[forall‹%a›(%a :@;<1 2>%a),@]@;<1 2>%a@]" pp_sort s Var.pp x pp_tm a pp_tm b
+    pf fmt "@[@[forall‹%a›(%a :@;<1 2>%a),@]@;<1 2>%a@]" pp_sort s Var.pp x
+      pp_tm a pp_tm b
   | Pi (N, s, a, bnd) ->
     let x, b = unbind bnd in
-    pf fmt "@[@[forall‹%a›{%a :@;<1 2>%a},@]@;<1 2>%a@]" pp_sort s Var.pp x pp_tm a pp_tm b
-  | Fun (a, bnd) ->
+    pf fmt "@[@[forall‹%a›{%a :@;<1 2>%a},@]@;<1 2>%a@]" pp_sort s Var.pp x
+      pp_tm a pp_tm b
+  | Fun (_, a, bnd) ->
     let x, cls = unbind bnd in
-    pf fmt "@[<v 0>@[function %a :@;<1 2>@[%a@]@]@;<1 0>@[<v 0>%a@]@]" Var.pp x pp_tm a (pp_cls " ")
-      cls
+    pf fmt "@[<v 0>@[function %a :@;<1 2>@[%a@]@]@;<1 0>@[<v 0>%a@]@]" Var.pp x
+      pp_tm a (pp_cls " ") cls
   | App _ as m ->
     let hd, ms = unApps m in
     pf fmt "@[((%a)@;<1 2>@[%a@])@]" pp_tm hd (list ~sep:sp pp_tm) ms
   | Let (R, m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
+    pf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm
+      n
   | Let (N, m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let {%a} :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
+    pf fmt "@[@[let {%a} :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m
+      pp_tm n
   (* inductive *)
   | Ind (d, [], [], []) -> pf fmt "%a" Ind.pp d
-  | Ind (d, [], ms, ns) -> pf fmt "@[(%a@;<1 2>@[%a@])@]" Ind.pp d (list ~sep:sp pp_tm) (ms @ ns)
+  | Ind (d, [], ms, ns) ->
+    pf fmt "@[(%a@;<1 2>@[%a@])@]" Ind.pp d (list ~sep:sp pp_tm) (ms @ ns)
   | Ind (d, ss, [], []) -> pf fmt "%a‹%a›" Ind.pp d pp_sorts ss
   | Ind (d, ss, ms, ns) ->
-    pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Ind.pp d pp_sorts ss (list ~sep:sp pp_tm) (ms @ ns)
-  | Constr (c, [], _, []) -> pf fmt "%a" Constr.pp c
-  | Constr (c, ss, _, []) -> pf fmt "%a‹%a›" Constr.pp c pp_sorts ss
-  | Constr (c, ss, _, ms) ->
-    pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Constr.pp c pp_sorts ss (list ~sep:sp pp_tm) ms
-  | Match (ms, a, cls) ->
-    pf fmt "@[<v 0>@[match %a in@;<1 2>%a@;<1 0>with@]@;<1 0>@[<v 0>%a@]@]" (list ~sep:comma pp_tm)
-      ms pp_tm a (pp_cls ", ") cls
+    pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Ind.pp d pp_sorts ss (list ~sep:sp pp_tm)
+      (ms @ ns)
+  | Constr (c, [], [], []) -> pf fmt "%a" Constr.pp c
+  | Constr (c, ss, [], []) -> pf fmt "%a‹%a›" Constr.pp c pp_sorts ss
+  | Constr (c, ss, ns, ms) ->
+    pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Constr.pp c pp_sorts ss
+      (list ~sep:sp pp_tm) (ns @ ms)
+  | Match (_, ms, a, cls) ->
+    pf fmt "@[<v 0>@[match %a in@;<1 2>%a@;<1 0>with@]@;<1 0>@[<v 0>%a@]@]"
+      (list ~sep:comma pp_tm) ms pp_tm a (pp_cls ", ") cls
   (* monad *)
   | IO a -> pf fmt "IO %a" pp_tm a
   | Return m -> pf fmt "return %a" pp_tm m
   | MLet (m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let* %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
+    pf fmt "@[@[let* %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m
+      pp_tm n
   (* magic *)
   | Magic a -> pf fmt "#magic[%a]" pp_tm a
 
@@ -180,20 +192,29 @@ let rec pp_dconstrs xs args fmt = function
   | [] -> ()
   | [ dconstr ] -> pp_dconstr xs args fmt dconstr
   | dconstr :: dconstrs ->
-    pf fmt "%a@;<1 0>%a" (pp_dconstr xs args) dconstr (pp_dconstrs xs args) dconstrs
+    pf fmt "%a@;<1 0>%a" (pp_dconstr xs args) dconstr (pp_dconstrs xs args)
+      dconstrs
 
 let pp_dcl fmt = function
   | Definition { name = x; relv; scheme = sch } ->
     let xs, (m, a) = unmbind sch in
-    pf fmt "@[@[<v 0>#[%a]@;<1 0>def@] %a‹%a› :@;<1 2>@[%a@]@;<1 0>:=@;<1 2>@[%a@]@]" pp_modifier
-      relv Const.pp x pp_sargs (Array.to_list xs) pp_tm a pp_tm m
+    pf fmt
+      "@[@[<v 0>#[%a]@;<1 0>def@] %a‹%a› :@;<1 2>@[%a@]@;<1 0>:=@;<1 2>@[%a@]@]"
+      pp_modifier relv Const.pp x pp_sargs (Array.to_list xs) pp_tm a pp_tm m
   | Inductive { name = d; relv; arity; dconstrs } ->
     let xs, param = unmbind arity in
     let args, tele = unpack_param param in
     pf fmt
-      "@[<v 0>@[@[<v 0>#[%a]@;<1 0>inductive@] %a‹%a› %a:@;<1 2>@[%a@]@;<1 0>where@]@;<1 0>%a@]"
-      pp_modifier relv Ind.pp d pp_sargs (Array.to_list xs) pp_args args pp_arity tele
-      (pp_dconstrs xs args) dconstrs
+      "@[<v 0>@[@[<v 0>#[%a]@;\
+       <1 0>inductive@] %a‹%a› %a:@;\
+       <1 2>@[%a@]@;\
+       <1 0>where@]@;\
+       <1 0>%a@]" pp_modifier relv Ind.pp d pp_sargs (Array.to_list xs) pp_args
+      args pp_arity tele (pp_dconstrs xs args) dconstrs
+  | Extern { name = x; relv; scheme = sch } ->
+    let xs, a = unmbind sch in
+    pf fmt "@[@[<v 0>#[%a]@;<1 0>extern@] %a‹%a› :@;<1 2>@[%a@]@]" pp_modifier
+      relv Const.pp x pp_sargs (Array.to_list xs) pp_tm a
 
 let pp_dcls fmt dcls =
   let break fmt _ = pf fmt "@.@." in

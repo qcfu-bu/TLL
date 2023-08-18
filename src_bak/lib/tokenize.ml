@@ -36,7 +36,7 @@ let qlparen = [%sedlex.regexp? "?("]
 let qlbrace = [%sedlex.regexp? "?{"]
 
 (* quantifiers *)
-let forall = [%sedlex.regexp? 8704] (* ∀ *)
+let forall = [%sedlex.regexp? "forall" | 8704] (* ∀ *)
 let exists = [%sedlex.regexp? 8707] (* ∃ *)
 let question = [%sedlex.regexp? "?"]
 
@@ -107,7 +107,9 @@ let prim_stdout = [%sedlex.regexp? "stdout"]
 let prim_stderr = [%sedlex.regexp? "stderr"]
 
 (* identifiers *)
-let identifier = [%sedlex.regexp? (letter | '_'), Star (letter | digit | '_' | '\'')]
+let identifier =
+  [%sedlex.regexp? (letter | '_'), Star (letter | digit | '_' | '\'')]
+
 let constant0 = [%sedlex.regexp? identifier, lt]
 let constant1 = [%sedlex.regexp? identifier, flq]
 let at_identifier = [%sedlex.regexp? "@", identifier]
@@ -146,6 +148,7 @@ let modifier = [%sedlex.regexp? "#["]
 let dcl_def = [%sedlex.regexp? "def"]
 let dcl_inductive = [%sedlex.regexp? "inductive"]
 let dcl_where = [%sedlex.regexp? "where"]
+let dcl_extern = [%sedlex.regexp? "extern"]
 
 let rec filter buf =
   match%sedlex buf with
@@ -278,6 +281,7 @@ let rec tokenize buf =
   | dcl_def -> DCL_DEF
   | dcl_inductive -> DCL_INDUCTIVE
   | dcl_where -> DCL_WHERE
+  | dcl_extern -> DCL_EXTERN
   (* other *)
   | integer ->
     let i = int_of_string (Utf8.lexeme buf) in

@@ -1,0 +1,68 @@
+#[logical]
+inductive eq<s> ?(A : Type‹s›) (m : A) : A -> U where
+  | refl : eq m m
+
+inductive unit<s> : Type<s> where
+  | tt : unit
+
+inductive bool : L where
+  | true  : bool
+  | false : bool
+
+inductive nat : L where
+  | zero : nat
+  | succ (pred : nat) : nat
+
+inductive sing ?(A : L) : A -> L where
+  | just (m : A) : sing m
+
+inductive apair ?(A : L) (B : A -> L) : L where
+  | apair_intro
+    ?{x : A}
+    (select : forall (b : bool) -o
+                match b with
+                | true  => sing x
+                | false => B x) : apair B
+
+def sing_elim ?{A : L} ?{x : A} : sing x -> A
+  | (just x) => x
+
+#[logical]
+def sing_uniq ?(A : L) ?(x0 : A) : forall (x : sing x0) -> eq x0 (sing_elim x)
+  | (just _) => refl
+
+def proj1 ?{A : L} ?{B : A -> L} : @apair A B -> A
+  | (apair_intro _ select) => sing_elim (select true)
+
+def proj2 ?{A : L} ?{B : A -> L} : forall (x : @apair A B) -> B (proj1 x)
+  | (apair_intro x select) => 
+    match {x}                       as x0 -- x is matched to introduce flex variable x0
+        , {select true}             as a0 : sing x
+        , {sing_uniq (select true)} as _  : eq x0 (sing_elim a0)
+        , select false              as _  : B x0
+      in B (sing_elim a0)
+    with
+    | _, _, refl, b => b
+
+def bool2nat : bool -> nat
+  | true  => succ zero
+  | false => zero
+
+def free_bool : bool -> unit<U>
+  | true  => tt
+  | false => tt
+
+def free_nat : nat -> unit<U>
+  | zero => tt
+  | (succ n) => free_nat n
+
+def my_apair : apair (fn (b : bool) => match b with true => unit<L> | false => nat) :=
+  let my_val := false in
+  apair_intro
+    (function  
+     | true  => just my_val
+     | false => bool2nat my_val)
+
+def _ : unit<U> := free_bool (proj1 my_apair)
+
+-- def _ : unit<U> := free_nat (proj2 my_apair)

@@ -26,13 +26,13 @@ type tm =
   | Var of tm var
   | Const of Const.t * sorts
   | Pi of relv * sort * tm * (tm, tm) binder
-  | Fun of tm * (tm, cls) binder
+  | Fun of guard * tm * (tm, cls) binder
   | App of tm * tm
   | Let of relv * tm * (tm, tm) binder
   (* inductive *)
   | Ind of Ind.t * sorts * tms * tms
   | Constr of Constr.t * sorts * tms * tms
-  | Match of tms * tm * cls
+  | Match of guard * tms * tm * cls
   (* monad *)
   | IO of tm
   | Return of tm
@@ -61,6 +61,7 @@ and p0s = p0 list
 (* clause *)
 and cl = p0s * (tm, tm option) mbinder
 and cls = cl list
+and guard = bool list
 
 (* declarations *)
 type dcl =
@@ -74,6 +75,11 @@ type dcl =
       ; relv : relv
       ; arity : tele param scheme
       ; dconstrs : dconstrs
+      }
+  | Extern of
+      { name : Const.t
+      ; relv : relv
+      ; scheme : tm scheme
       }
 
 and dcls = dcl list
@@ -146,14 +152,14 @@ let _Type = box_apply (fun s -> Type s)
 let _Var = box_var
 let _Const x = box_apply (fun ss -> Const (x, ss))
 let _Pi relv = box_apply3 (fun s a b -> Pi (relv, s, a, b))
-let _Fun = box_apply2 (fun a bnd -> Fun (a, bnd))
+let _Fun guard = box_apply2 (fun a bnd -> Fun (guard, a, bnd))
 let _App = box_apply2 (fun m n -> App (m, n))
 let _Let relv = box_apply2 (fun m n -> Let (relv, m, n))
 
 (* inductive *)
 let _Ind d = box_apply3 (fun ss ms ns -> Ind (d, ss, ms, ns))
 let _Constr c = box_apply3 (fun ss ms ns -> Constr (c, ss, ms, ns))
-let _Match = box_apply3 (fun ms a cls -> Match (ms, a, cls))
+let _Match guard = box_apply3 (fun ms a cls -> Match (guard, ms, a, cls))
 
 (* monad *)
 let _IO = box_apply (fun a -> IO a)
@@ -226,10 +232,11 @@ let rec lift_tm = function
   | Const (x, ss) ->
     let ss = List.map lift_sort ss in
     _Const x (box_list ss)
-  | Pi (relv, s, a, bnd) -> _Pi relv (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
-  | Fun (a, bnd) ->
+  | Pi (relv, s, a, bnd) ->
+    _Pi relv (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
+  | Fun (guard, a, bnd) ->
     let bnd = box_binder (fun cls -> lift_cls cls) bnd in
-    _Fun (lift_tm a) bnd
+    _Fun guard (lift_tm a) bnd
   | App (m, n) -> _App (lift_tm m) (lift_tm n)
   | Let (relv, m, bnd) -> _Let relv (lift_tm m) (box_binder lift_tm bnd)
   (* inductive *)
@@ -243,9 +250,9 @@ let rec lift_tm = function
     let ms = List.map lift_tm ms in
     let ns = List.map lift_tm ns in
     _Constr c (box_list ss) (box_list ms) (box_list ns)
-  | Match (ms, a, cls) ->
+  | Match (guard, ms, a, cls) ->
     let ms = List.map lift_tm ms in
-    _Match (box_list ms) (lift_tm a) (lift_cls cls)
+    _Match guard (box_list ms) (lift_tm a) (lift_cls cls)
   (* monad *)
   | IO a -> _IO (lift_tm a)
   | Return m -> _Return (lift_tm m)
@@ -258,7 +265,9 @@ and lift_cls cls =
     List.map
       (fun (p0s, mbnd) ->
         let p0s = List.map box_p0 p0s in
-        let mbnd = box_mbinder (fun opt -> opt |> Option.map lift_tm |> box_opt) mbnd in
+        let mbnd =
+          box_mbinder (fun opt -> opt |> Option.map lift_tm |> box_opt) mbnd
+        in
         box_pair (box_list p0s) mbnd)
       cls
   in
@@ -284,11 +293,14 @@ let rec eq_p0 p1 p2 =
   match (p1, p2) with
   | P0Rel, P0Rel -> true
   | P0Absurd, P0Absurd -> true
-  | P0Constr (c1, p0s1), P0Constr (c2, p0s2) -> Constr.equal c1 c2 && eq_p0s p0s1 p0s2
+  | P0Constr (c1, p0s1), P0Constr (c2, p0s2) ->
+    Constr.equal c1 c2 && eq_p0s p0s1 p0s2
   | _ -> false
 
 and eq_p0s ps1 ps2 = List.equal eq_p0 ps1 ps2
-and eq_pbinder eq (p0s1, bnd1) (p0s2, bnd2) = eq_p0s p0s1 p0s2 && eq_mbinder eq bnd1 bnd2
+
+and eq_pbinder eq (p0s1, bnd1) (p0s2, bnd2) =
+  eq_p0s p0s1 p0s2 && eq_mbinder eq bnd1 bnd2
 
 (* pattern binding *)
 let rec mvar_of_p p =
@@ -349,9 +361,12 @@ let psubst (p0s, bnd) ms =
   let rec match_p0 p0 m =
     match (p0, m) with
     | P0Rel, _ -> [ m ]
-    | P0Constr (c1, p0s), Constr (c2, _, _, ms) when Constr.equal c1 c2 -> match_p0s p0s ms
+    | P0Constr (c1, p0s), Constr (c2, _, _, ms) when Constr.equal c1 c2 ->
+      match_p0s p0s ms
     | _ -> failwith "binding1.match_p0"
-  and match_p0s p0s ms = List.fold_left2 (fun acc p0 m -> acc @ match_p0 p0 m) [] p0s ms in
+  and match_p0s p0s ms =
+    List.fold_left2 (fun acc p0 m -> acc @ match_p0 p0 m) [] p0s ms
+  in
   let ms = match_p0s p0s ms in
   msubst bnd (Array.of_list ms)
 

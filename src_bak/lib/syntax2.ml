@@ -16,20 +16,18 @@ type tm =
   (* core *)
   | Var of tm var
   | Const of Const.t
-  | Fun of (tm, tm) binder
-  | Lam of (tm, tm) binder
+  | Fun of (tm, (tm, tm) mbinder) binder
   | App of sort * tm * tm
   | Let of tm * (tm, tm) binder
   (* inductive *)
   | Constr of Constr.t * tms
-  | Case of relv * sort * tm * cls
-  | Match of tms * tm
+  | Match of relv * sort * tm * cls
   | Absurd
   (* monad *)
   | Return of tm
   | MLet of tm * (tm, tm) binder
   (* erasure *)
-  | Null
+  | NULL
   (* magic *)
   | Magic
 
@@ -38,16 +36,23 @@ and cl = Constr.t * (tm, tm) mbinder
 and cls = cl list
 
 type dcl =
+  | Main of { body : tm }
   | Definition of
       { name : Const.t
+      ; relv : relv
       ; body : tm
       }
   | Inductive of
       { name : Ind.t
+      ; relv : relv
       ; body : dconstrs
       }
+  | Extern of
+      { name : Const.t
+      ; relv : relv
+      }
 
-and dconstr = Constr.t * int
+and dconstr = Constr.t * relv list
 and dconstrs = dconstr list
 
 module Var = struct
@@ -81,14 +86,12 @@ let _R = box R
 let _Var = box_var
 let _Const x = box (Const x)
 let _Fun = box_apply (fun m -> Fun m)
-let _Lam = box_apply (fun m -> Lam m)
 let _App s = box_apply2 (fun m n -> App (s, m, n))
 let _Let = box_apply2 (fun m n -> Let (m, n))
 
 (* inductive *)
 let _Constr x = box_apply (fun ms -> Constr (x, ms))
-let _Case r s = box_apply2 (fun m cls -> Case (r, s, m, cls))
-let _Match = box_apply2 (fun m cls -> Match (m, cls))
+let _Match r s = box_apply2 (fun m cls -> Match (r, s, m, cls))
 let _Absurd = box Absurd
 
 (* monad *)
@@ -96,7 +99,7 @@ let _Return = box_apply (fun m -> Return m)
 let _MLet = box_apply2 (fun m n -> MLet (m, n))
 
 (* erasure *)
-let _Null = box Null
+let _NULL = box NULL
 
 (* magic *)
 let _Magic = box Magic
@@ -126,26 +129,23 @@ let rec lift_tm = function
   (* core *)
   | Var x -> _Var x
   | Const x -> _Const x
-  | Fun bnd -> _Fun (box_binder lift_tm bnd)
-  | Lam bnd -> _Lam (box_binder lift_tm bnd)
+  | Fun bnd -> _Fun (box_binder (box_mbinder lift_tm) bnd)
   | App (s, m, n) -> _App s (lift_tm m) (lift_tm n)
   | Let (m, bnd) -> _Let (lift_tm m) (box_binder lift_tm bnd)
   (* inductive *)
   | Constr (c, ms) ->
     let ms = List.map lift_tm ms in
     _Constr c (box_list ms)
-  | Case (relv, s, m, cls) ->
-    let cls = List.map (fun (c, bnd) -> _PConstr c (box_mbinder lift_tm bnd)) cls in
-    _Case relv s (lift_tm m) (box_list cls)
-  | Match (ms, cls) ->
-    let ms = List.map lift_tm ms in
-    let cls = lift_tm cls in
-    _Match (box_list ms) cls
+  | Match (relv, s, m, cls) ->
+    let cls =
+      List.map (fun (c, bnd) -> _PConstr c (box_mbinder lift_tm bnd)) cls
+    in
+    _Match relv s (lift_tm m) (box_list cls)
   | Absurd -> _Absurd
   (* monad *)
   | Return m -> _Return (lift_tm m)
   | MLet (m, bnd) -> _MLet (lift_tm m) (box_binder lift_tm bnd)
   (* erasure *)
-  | Null -> _Null
+  | NULL -> _NULL
   (* magic *)
   | Magic -> _Magic

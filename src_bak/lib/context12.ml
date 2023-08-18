@@ -235,7 +235,7 @@ module Usage = struct
     match (r, s) with
     | N, _ ->
       if Var.Map.exists (fun y (_, b) -> eq_vars x y && not b) usg.var then
-        failwith "remove_var(%a)" Var.pp x
+        failwith "irrelevant(%a, %a, %a)" Var.pp x pp_relv r pp_sort s
       else
         { usg with var = Var.Map.remove x usg.var }
     | R, U -> { usg with var = Var.Map.remove x usg.var }
@@ -243,8 +243,8 @@ module Usage = struct
       if Var.Map.exists (fun y _ -> eq_vars x y) usg.var then
         { usg with var = Var.Map.remove x usg.var }
       else
-        failwith "remove_var(%a)" Var.pp x
-    | _ -> failwith "remove_var(%a)" Var.pp x
+        failwith "remove_var(%a, %a, %a)" Var.pp x pp_relv r pp_sort s
+    | _ -> failwith "remove_var(%a, %a, %a)" Var.pp x pp_relv r pp_sort s
 
   let remove_const x usg r s =
     match (r, s) with
@@ -267,11 +267,17 @@ module Usage = struct
     ; const = Const.Map.map (fun (_, s) -> (s, true)) ctx.const
     }
 
-  let pp_var fmt usg =
-    let aux fmt map =
+  let pp fmt usg =
+    let aux_var fmt map =
       Var.Map.iter
-        (fun x (s, b) -> pf fmt "@[%a : %a := %b@]@;<1 0>" Var.pp x pp_sort s b)
+        (fun x (s, b) -> pf fmt "@[%a : %a, %b@]@;<1 0>" Var.pp x pp_sort s b)
         map
     in
-    pf fmt "@[<v 0>usg {|@;<1 2>%a@;<1 0>|}@]" aux usg.var
+    let aux_const fmt map =
+      Const.Map.iter
+        (fun x (s, b) -> pf fmt "@[%a : %a, %b@]@;<1 0>" Const.pp x pp_sort s b)
+        map
+    in
+    pf fmt "@[<v 0>usg {|@;<1 2>@[%a@]@;<1 2>@[%a@]@;<1 0>|}@]" aux_var usg.var
+      aux_const usg.const
 end

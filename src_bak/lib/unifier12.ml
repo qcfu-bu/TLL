@@ -11,65 +11,69 @@ let map_pmeta f m =
   let rec aux m =
     match m with
     (* inference *)
-    | Ann (m, a) -> Ann (aux m, aux a)
-    | IMeta (x, ss, ms) -> IMeta (x, ss, List.map aux ms)
+    | Ann (m, a) -> _Ann (aux m) (aux a)
+    | IMeta (x, ss, ms) ->
+      let ss = List.map lift_sort ss in
+      let ms = List.map aux ms in
+      _IMeta x (box_list ss) (box_list ms)
     | PMeta x -> f aux x
     (* core *)
-    | Type s -> Type s
-    | Var x -> Var x
-    | Const (x, ss) -> Const (x, ss)
+    | Type s -> _Type (lift_sort s)
+    | Var x -> _Var x
+    | Const (x, ss) ->
+      let ss = List.map lift_sort ss in
+      _Const x (box_list ss)
     | Pi (relv, s, a, bnd) ->
       let x, b = unbind bnd in
-      let a = aux a in
-      let b = lift_tm (aux b) in
-      Pi (relv, s, a, unbox (bind_var x b))
-    | Fun (a, bnd) ->
+      _Pi relv (lift_sort s) (aux a) (bind_var x (aux b))
+    | Fun (guard, a, bnd) ->
       let x, cls = unbind bnd in
-      let a = aux a in
       let cls =
         List.map
           (fun cl ->
             let ps, rhs_opt = unbind_ps cl in
-            let rhs_opt = Option.map (fun rhs -> lift_tm (aux rhs)) rhs_opt in
+            let rhs_opt = Option.map (fun rhs -> aux rhs) rhs_opt in
             bind_ps ps (box_opt rhs_opt))
           cls
       in
       let cls = box_list cls in
-      Fun (a, unbox (bind_var x cls))
-    | App (m, n) -> App (aux m, aux n)
+      _Fun guard (aux a) (bind_var x cls)
+    | App (m, n) -> _App (aux m) (aux n)
     | Let (relv, m, bnd) ->
       let x, n = unbind bnd in
-      let m = aux m in
-      let n = lift_tm (aux n) in
-      Let (relv, m, unbox (bind_var x n))
+      _Let relv (aux m) (bind_var x (aux n))
     (* inductive *)
-    | Ind (d, ss, ms, ns) -> Ind (d, ss, List.map aux ms, List.map aux ns)
-    | Constr (c, ss, ms, ns) -> Constr (c, ss, List.map aux ms, List.map aux ns)
-    | Match (ms, a, cls) ->
+    | Ind (d, ss, ms, ns) ->
+      let ss = List.map lift_sort ss in
       let ms = List.map aux ms in
-      let a = aux a in
+      let ns = List.map aux ns in
+      _Ind d (box_list ss) (box_list ms) (box_list ns)
+    | Constr (c, ss, ms, ns) ->
+      let ss = List.map lift_sort ss in
+      let ms = List.map aux ms in
+      let ns = List.map aux ns in
+      _Constr c (box_list ss) (box_list ms) (box_list ns)
+    | Match (guard, ms, a, cls) ->
+      let ms = List.map aux ms in
       let cls =
         List.map
           (fun cl ->
             let ps, rhs_opt = unbind_ps cl in
-            let rhs_opt = Option.map (fun rhs -> lift_tm (aux rhs)) rhs_opt in
+            let rhs_opt = Option.map (fun rhs -> aux rhs) rhs_opt in
             bind_ps ps (box_opt rhs_opt))
           cls
       in
-      let cls = box_list cls in
-      Match (ms, a, unbox cls)
+      _Match guard (box_list ms) (aux a) (box_list cls)
     (* monad *)
-    | IO a -> IO (aux a)
-    | Return m -> Return (aux m)
+    | IO a -> _IO (aux a)
+    | Return m -> _Return (aux m)
     | MLet (m, bnd) ->
       let x, n = unbind bnd in
-      let m = aux m in
-      let n = lift_tm (aux n) in
-      MLet (m, unbox (bind_var x n))
+      _MLet (aux m) (bind_var x (aux n))
     (* magic *)
-    | Magic a -> Magic (aux a)
+    | Magic a -> _Magic (aux a)
   in
-  aux m
+  unbox (aux m)
 
 (* substitute pmeta variables *)
 let subst_pmeta var_map m =
@@ -77,8 +81,11 @@ let subst_pmeta var_map m =
     (fun self x ->
       match Var.Map.find_opt x var_map with
       | Some m -> self m
-      | None -> PMeta x)
+      | None -> _PMeta x)
     m
+
+(* demote pmeta variables *)
+let demote_pmeta m = map_pmeta (fun self x -> _Var x) m
 
 (* substitute and demote pmeta variables *)
 let resolve_pmeta var_map m =
@@ -86,13 +93,10 @@ let resolve_pmeta var_map m =
     (fun self x ->
       match Var.Map.find_opt x var_map with
       | Some m -> self m
-      | None -> Var x)
+      | None -> _Var x)
     m
 
-let demote_pmeta m = map_pmeta (fun self x -> Var x) m
-
 let rec simpl_pprbm ?(expand = false) eqn =
-  let open PPrbm in
   match eqn with
   | EqualPat _ -> failwith "unifier1.simpl_pprbm(EqualPat)"
   | EqualTerm (env, m1, m2) -> (
@@ -121,7 +125,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
       let eqns1 = simpl_pprbm (EqualTerm (env, a1, a2)) in
       let eqns2 = simpl_pprbm (EqualTerm (env, b1, b2)) in
       eqns1 @ eqns2
-    | Fun (a1, bnd1), Fun (a2, bnd2) ->
+    | Fun (_, a1, bnd1), Fun (_, a2, bnd2) ->
       let _, cls1, cls2 = unbind2 bnd1 bnd2 in
       let eqns1 = simpl_pprbm (EqualTerm (env, a1, a2)) in
       let eqns2 =
@@ -172,7 +176,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
         List.map2 (fun n1 n2 -> simpl_pprbm (EqualTerm (env, n1, n2))) ns1 ns2
       in
       List.concat eqns1 @ List.concat eqns2
-    | Match (ms1, a1, cls1), Match (ms2, a2, cls2) ->
+    | Match (_, ms1, a1, cls1), Match (_, ms2, a2, cls2) ->
       let eqns1 =
         List.map2 (fun m1 m2 -> simpl_pprbm (EqualTerm (env, m1, m2))) ms1 ms2
       in
@@ -204,29 +208,19 @@ let rec simpl_pprbm ?(expand = false) eqn =
         m1 pp_tm m2)
 
 let solve_pprbm map eqn =
-  let open PPrbm in
   match eqn with
   | EqualTerm (_, m, PMeta x) ->
-    if occur x (lift_tm m) then
-      failwith "unifier.solve_pprbm(occurs)"
+    if occur x (lift_tm (demote_pmeta m)) then
+      map
     else
       Var.Map.add x m map
   | _ -> failwith "unifier1.solve_pprbm(solve)"
 
-let unify_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
-  let open PPrbm in
+let unify_pprbm local global =
   Debug.exec (fun () ->
-      pr "@[unify_pprbm(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns eqns);
-  let eqns =
-    List.map
-      (fun eqn ->
-        match eqn with
-        | EqualPat (_, env, m, PVar x, _) -> EqualTerm (env, m, PMeta x)
-        | EqualPat _ -> failwith "unifier1.solve_pprbm(unify)"
-        | EqualTerm _ -> eqn)
-      eqns
-  in
-  let eqns = List.concat_map simpl_pprbm eqns in
+      pr "@[unify_local(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns local);
+  Debug.exec (fun () ->
+      pr "@[unify_global(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns global);
   let rec aux_eqns var_map = function
     | [] -> var_map
     | EqualPat (_, env, m, PVar x, _) :: eqns -> (
@@ -237,7 +231,7 @@ let unify_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
       | eqn :: eqns0 ->
         let var_map = solve_pprbm var_map eqn in
         aux_eqns var_map (eqns0 @ eqns))
-    | EqualPat _ :: eqns -> failwith "unifier1.unify_pprbm"
+    | EqualPat _ :: eqns -> failwith "unifier12.unify_pprbm"
     | EqualTerm (env, m, n) :: eqns -> (
       let m = subst_pmeta var_map m in
       let n = subst_pmeta var_map n in
@@ -246,5 +240,20 @@ let unify_pprbm (eqns : PPrbm.eqns) : tm Var.Map.t =
       | eqn :: eqns0 ->
         let var_map = solve_pprbm var_map eqn in
         aux_eqns var_map (eqns0 @ eqns))
+  and flatten_eqn = function
+    | EqualPat (relv, env, m, PVar x, _) -> EqualTerm (env, m, PMeta x)
+    | EqualPat _ -> failwith "unifier12.solve_pprbm(unify)"
+    | eqn -> eqn
   in
-  aux_eqns Var.Map.empty eqns
+  let local = List.map flatten_eqn local in
+  let local_map = aux_eqns Var.Map.empty local in
+  let global = List.map flatten_eqn global in
+  let global_map = aux_eqns local_map global in
+  (local_map, global_map)
+
+let succeed_pprbm global =
+  try
+    let _ = unify_pprbm [] global in
+    true
+  with
+  | _ -> false
