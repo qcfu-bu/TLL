@@ -51,33 +51,33 @@ def lte : nat -> nat -> bool
 
 def lt (x : nat) (y : nat) : bool := lte (succ x) y
 
--- def pred : nat -> nat
---   | zero => zero
---   | (succ x) => x
+def pred : nat -> nat
+  | zero => zero
+  | (succ x) => x
 
--- def add : nat -> nat -> nat
---   | zero     y => y 
---   | (succ x) y => succ (add x y)
+def add : nat -> nat -> nat
+  | zero     y => y 
+  | (succ x) y => succ (add x y)
 
--- def sub : nat -> nat -> nat
---   | x zero     => x
---   | x (succ y) => sub (pred x) y
+def sub : nat -> nat -> nat
+  | x zero     => x
+  | x (succ y) => sub (pred x) y
 
--- def mul : nat -> nat -> nat
---   | zero     _ => zero
---   | (succ x) y => add y (mul x y)
+def mul : nat -> nat -> nat
+  | zero     _ => zero
+  | (succ x) y => add y (mul x y)
 
--- def div (x : nat) (y : nat) :=
---   match lt x y with
---   | true  => zero
---   | false => succ (div (sub x y) y)
+def div (x : nat) (y : nat) :=
+  match lt x y with
+  | true  => zero
+  | false => succ (div (sub x y) y)
 
--- def rem (x : nat) (y : nat) :=
---   sub x (mul (div x y) y)
+def rem (x : nat) (y : nat) :=
+  sub x (mul (div x y) y)
 
--- def pow : nat -> nat -> nat
---   | _ zero     => succ zero
---   | x (succ y) => mul x (pow x y)
+def pow : nat -> nat -> nat
+  | _ zero     => succ zero
+  | x (succ y) => mul x (pow x y)
 
 #[logical] extern proto : U
 #[logical] extern act0<s> (b : bool) ?(A : Type<s>) (B : A -> proto) : proto
@@ -127,7 +127,7 @@ def cmsort_worker<t> : nat -> forall (zs : list<_,t> nat) -> cmsort_ch<t> zs -o 
         , {refl}   as _ : eq (match h1 with ex1 xs ys => merge (msort xs) (msort ys))
                              (match split zs with ex1 xs ys => merge (msort xs) (msort ys))
     with
-    | ex1 xs0 ys0, pf =>
+    | ex1 xs0 ys0, pf => 
       let* r1 := fork _ (ln c1 => cmsort_worker n xs0 c1) in
       let* r2 := fork _ (ln c2 => cmsort_worker n ys0 c2) in
       let* r1 := recv1 refl r1 in match r1 with ex1 xs1 c1 =>
@@ -141,4 +141,3 @@ def cmsort_worker<t> : nat -> forall (zs : list<_,t> nat) -> cmsort_ch<t> zs -o 
         let* _ := close c2 in
         let* _ := close c in
         return tt
-

@@ -52,10 +52,17 @@ let resolve_tm (meta_map : meta_map) m =
     | Ann (m, a) -> _Ann (aux_tm m) (aux_tm a)
     | IMeta (x, ss, xs) as m -> (
       match IMeta.Map.find_opt x imeta_map with
-      | Some bnd ->
-        let bnd = msubst bnd (Array.of_list ss) in
-        let m = msubst bnd (Array.of_list xs) in
-        aux_tm m
+      | Some bnd -> (
+        let ss0, bnd0 = unmbind bnd in
+        let xs0, m0 = unmbind bnd0 in
+        try
+          let bnd = msubst bnd (Array.of_list ss) in
+          let m = msubst bnd (Array.of_list xs) in
+          aux_tm m
+        with
+        | _ ->
+          failwith "resolve_tm_failed(%a, [%a;%a] => %a)" pp_tm m
+            (array ~sep:sp SVar.pp) ss0 (array ~sep:sp Var.pp) xs0 pp_tm m0)
       | None -> lift_tm m)
     | PMeta x -> _PMeta x
     (* core *)
@@ -113,7 +120,12 @@ let resolve_tm (meta_map : meta_map) m =
     (* magic *)
     | Magic a -> _Magic (aux_tm a)
   in
-  unbox (aux_tm m)
+  Debug.exec (fun () -> pr "@[resolve_attempt(%a)@]@." pp_tm m);
+  let m_resolved = unbox (aux_tm m) in
+  Debug.exec (fun () ->
+      pr "@[resolve_tm(@;<1 2>@[%a@]@;<1 2>=>@;<1 2>@[%a@])@]@.@." pp_tm m pp_tm
+        m_resolved);
+  m_resolved
 
 let resolve_scheme lift resolve (meta_map : meta_map) sch =
   let xs, body = unmbind sch in

@@ -1,9 +1,17 @@
 inductive unit : U where
 | tt : unit
 
+inductive bool : U where
+| true  : bool
+| false : bool
+
 inductive nat : U where
 | zero : nat
 | succ (pred : nat) : nat
+
+inductive list (A : U) : U where
+| nil : list A
+| cons (hd : A) (tl : list A) : list A
 
 #[logical]
 inductive eq<s> ?(A : Type‹s›) (m : A) : A -> U where
@@ -18,7 +26,16 @@ inductive sing<s> ?(A : Type<s>) : A -> Type<s> where
 inductive prod<s,r,t> (A : Type<s>) (B : Type<r>) : Type<t> where
 | pair (m : A) (n : B) : prod A B
 
-def sing_double<s> {A : Type<s>} {m : A} : sing m -o sing (just m) -o prod<_,_,L>A A
-  | (just x) (just (just y)) =>
-    let {pf} : eq x y := refl in
-    pair x y
+def sing_double {A : U} : list A -o unit
+  | nil => tt
+  | (cons x nil) => tt
+  | xs =>
+    let {pf} : eq xs xs := @refl _ xs in
+    tt
+
+def sing_double {A : U} : list A -o unit
+  | nil => tt
+  | (cons x nil) => tt
+  | xs =>
+    let {pf} : eq xs xs := @refl _ _ in
+    tt
