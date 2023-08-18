@@ -518,12 +518,16 @@ module Program = struct
       Debug.exec (fun () ->
           pr "Program.infer_motive_N(%a, %a)@." pp_tm m pp_tm a);
       Logical.check_tm ctx env m a;
+      Debug.exec (fun () ->
+          pr "Program.infer_motive_N_ok(%a, %a)@." pp_tm m pp_tm a);
       let b, ms_elab, usg = infer_motive ctx env ms (subst bnd m) in
       Syntax2.(b, _NULL :: ms_elab, usg)
     | m :: ms, Pi (R, L, a, bnd) ->
       Debug.exec (fun () ->
           pr "Program.infer_motive_R(%a, %a)@." pp_tm m pp_tm a);
       let m_elab, usg1 = check_tm ctx env m a in
+      Debug.exec (fun () ->
+          pr "Program.infer_motive_R_ok(%a, %a)@." pp_tm m pp_tm a);
       let b, ms_elab, usg2 = infer_motive ctx env ms (subst bnd m) in
       Syntax2.(b, m_elab :: ms_elab, Usage.merge usg1 usg2)
     | _ -> failwith "trans12.Program.infer_motive"
@@ -772,7 +776,7 @@ module Program = struct
         else
           None
       else
-        failwith "trans12.Program.p_simpl"
+        failwith "trans12.Program.p_simpl1(%a, %a, %a)" pp_tm m pp_p p pp_tm a
     | Constr _, _, Ind _ -> Some [ EqualPat (relv, env, m, p, a) ]
     | _, PConstr (c, _), Ind (d0, ss, _, _) ->
       let d1 = State.find_ind d0 ss in
@@ -780,7 +784,7 @@ module Program = struct
       if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
         Some [ EqualPat (relv, env, m, p, a) ]
       else
-        failwith "trans12.Program.p_simpl"
+        failwith "trans12.Program.p_simpl2(%a, %a, %a)" pp_tm m pp_p p pp_tm a
     | m, p, a -> Some [ EqualPat (relv, env, m, p, a) ]
 
   and ps_simpl relv0 ctx env ms ps tele =

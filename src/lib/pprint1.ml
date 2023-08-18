@@ -111,11 +111,11 @@ and pp_tm fmt = function
   | Ind (d, ss, ms, ns) ->
     pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Ind.pp d pp_sorts ss (list ~sep:sp pp_tm)
       (ms @ ns)
-  | Constr (c, [], _, []) -> pf fmt "%a" Constr.pp c
-  | Constr (c, ss, _, []) -> pf fmt "%a‹%a›" Constr.pp c pp_sorts ss
-  | Constr (c, ss, _, ms) ->
+  | Constr (c, [], [], []) -> pf fmt "%a" Constr.pp c
+  | Constr (c, ss, [], []) -> pf fmt "%a‹%a›" Constr.pp c pp_sorts ss
+  | Constr (c, ss, ns, ms) ->
     pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Constr.pp c pp_sorts ss
-      (list ~sep:sp pp_tm) ms
+      (list ~sep:sp pp_tm) (ns @ ms)
   | Match (_, ms, a, cls) ->
     pf fmt "@[<v 0>@[match %a in@;<1 2>%a@;<1 0>with@]@;<1 0>@[<v 0>%a@]@]"
       (list ~sep:comma pp_tm) ms pp_tm a (pp_cls ", ") cls
