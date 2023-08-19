@@ -47,6 +47,16 @@ def sing_double<s,t> {A : Type<s>} {m : A} : sing m -> sing m -o prod<_,_,t> A A
     let {pf} : eq x y := refl in
     pair x y
 
+/- axiom_K is admissible because pattern matching assumes
+   that all variables introduced by the clauses are flexible.
+
+   axiom_K cannot be proven with standard eliminators because
+   eliminators introduce rigid variables which cannot be refined
+   by unification. -/
+#[logical]
+def axiom_K ?{A : U} ?{m : A} : forall (x : eq m m) -> eq x refl
+  | refl => refl
+
 def pattern_expansion {A : U} : list A -o unit
   | nil => tt
   | (cons x nil) => tt

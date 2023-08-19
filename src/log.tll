@@ -10,170 +10,186 @@ inductive bool_2‹› : U where
 #[program]
 inductive nat_3‹› : U where
 | zero_4 : nat_3
-| succ_5 (pred_138 : nat_3) : nat_3
+| succ_5 (pred_147 : nat_3) : nat_3
 
 #[program]
-inductive list_4‹› (A_139 : U): U where
-| nil_6 : (list_4 A_139)
-| cons_7 (hd_140 : A_139) (tl_141 : (list_4 A_139)) : (list_4 A_139)
+inductive list_4‹› (A_148 : U): U where
+| nil_6 : (list_4 A_148)
+| cons_7 (hd_149 : A_148) (tl_150 : (list_4 A_148)) : (list_4 A_148)
 
 #[logical]
-inductive eq_5‹s_142› (A_143 : Type‹s_142›) (m_144 : A_143):
-  A_143 -> U
+inductive eq_5‹s_151› (A_152 : Type‹s_151›) (m_153 : A_152):
+  A_152 -> U
 where
-| refl_8 : (eq_5‹??_1› ?_1[0;0] m_144 m_144)
+| refl_8 : (eq_5‹??_1› ?_1[0;0] m_153 m_153)
 
 #[program]
-inductive exists_6‹s_146,r_147,t_148› (A_149 : Type‹s_146›) (B_150 : 
-A_149 -> Type‹r_147›): Type‹t_148› where
+inductive exists_6‹s_155,r_156,t_157› (A_158 : Type‹s_155›) (B_159 : 
+A_158 -> Type‹r_156›): Type‹t_157› where
 | ex_9
-    (m_152 : A_149) {pf_153 : ((B_150) m_152)}
-    : (exists_6‹??_2,??_3,??_4› ?_2[0;0] B_150)
+    (m_161 : A_158) {pf_162 : ((B_159) m_161)}
+    : (exists_6‹??_2,??_3,??_4› ?_2[0;0] B_159)
 
 #[program]
-inductive sing_7‹s_154› (A_155 : Type‹s_154›):
-  A_155 -> Type‹s_154›
+inductive sing_7‹s_163› (A_164 : Type‹s_163›):
+  A_164 -> Type‹s_163›
 where
-| just_10 (m_157 : A_155) : (sing_7‹??_5› ?_3[0;0] m_157)
+| just_10 (m_166 : A_164) : (sing_7‹??_5› ?_3[0;0] m_166)
 
 #[program]
-inductive prod_8‹s_158,r_159,t_160› (A_161 : Type‹s_158›) (B_162 : Type‹r_159›):
-  Type‹t_160›
+inductive prod_8‹s_167,r_168,t_169› (A_170 : Type‹s_167›) (B_171 : Type‹r_168›):
+  Type‹t_169›
 where
 | pair_11
-    (m_163 : A_161) (n_164 : B_162)
-    : (prod_8‹??_6,??_7,??_8› A_161 B_162)
+    (m_172 : A_170) (n_173 : B_171)
+    : (prod_8‹??_6,??_7,??_8› A_170 B_171)
 
 #[program]
-def exists_sing_1‹s_165,t_166› :
-  ∀ {A_167 : Type‹s_165›} ->
-    ∀ {m_168 : A_167} ->
-      (exists_6‹??_14,??_15,t_166›
+def exists_sing_1‹s_174,t_175› :
+  ∀ {A_176 : Type‹s_174›} ->
+    ∀ {m_177 : A_176} ->
+      (exists_6‹??_14,??_15,t_175›
         ?_11[0;0]
-        function _170 : A_167 -> ?_9[0;0]
-        | a_172 => (eq_5‹??_16› ?_10[0;0] a_172 m_168)) ->
-        (sing_7‹??_17› ?_12[0;0] m_168)
+        function _179 : A_176 -> ?_9[0;0]
+        | a_181 => (eq_5‹??_16› ?_10[0;0] a_181 m_177)) ->
+        (sing_7‹??_17› ?_12[0;0] m_177)
 :=
-  function exists_sing_173 :
-    ∀ {A_174 : Type‹s_165›} ->
-      ∀ {m_175 : A_174} ->
-        (exists_6‹??_9,??_10,t_166›
+  function exists_sing_182 :
+    ∀ {A_183 : Type‹s_174›} ->
+      ∀ {m_184 : A_183} ->
+        (exists_6‹??_9,??_10,t_175›
           ?_6[0;0]
-          function _177 : A_174 -> ?_4[0;0]
-          | a_179 => (eq_5‹??_11› ?_5[0;0] a_179 m_175)) ->
-          (sing_7‹??_12› ?_7[0;0] m_175)
-  | A_180 m_181 (ex_9 x_182 refl_8) => (just_10‹??_13› ?_8[0;0] x_182)
+          function _186 : A_183 -> ?_4[0;0]
+          | a_188 => (eq_5‹??_11› ?_5[0;0] a_188 m_184)) ->
+          (sing_7‹??_12› ?_7[0;0] m_184)
+  | A_189 m_190 (ex_9 x_191 refl_8) => (just_10‹??_13› ?_8[0;0] x_191)
 
 #[program]
-def sing_exists_2‹s_183,t_184› :
-  ∀ {A_185 : Type‹s_183›} ->
-    ∀ {m_186 : A_185} ->
-      (sing_7‹??_26› ?_21[0;0] m_186) ->
-        (exists_6‹??_27,??_28,t_184›
+def sing_exists_2‹s_192,t_193› :
+  ∀ {A_194 : Type‹s_192›} ->
+    ∀ {m_195 : A_194} ->
+      (sing_7‹??_26› ?_21[0;0] m_195) ->
+        (exists_6‹??_27,??_28,t_193›
           ?_24[0;0]
-          function _188 : A_185 -> ?_22[0;0]
-          | a_190 => (eq_5‹??_29› ?_23[0;0] a_190 m_186))
+          function _197 : A_194 -> ?_22[0;0]
+          | a_199 => (eq_5‹??_29› ?_23[0;0] a_199 m_195))
 :=
-  function sing_exists_191 :
-    ∀ {A_192 : Type‹s_183›} ->
-      ∀ {m_193 : A_192} ->
-        (sing_7‹??_18› ?_13[0;0] m_193) ->
-          (exists_6‹??_19,??_20,t_184›
+  function sing_exists_200 :
+    ∀ {A_201 : Type‹s_192›} ->
+      ∀ {m_202 : A_201} ->
+        (sing_7‹??_18› ?_13[0;0] m_202) ->
+          (exists_6‹??_19,??_20,t_193›
             ?_16[0;0]
-            function _195 : A_192 -> ?_14[0;0]
-            | a_197 => (eq_5‹??_21› ?_15[0;0] a_197 m_193))
-  | A_198 m_199 (just_10 x_200) =>
+            function _204 : A_201 -> ?_14[0;0]
+            | a_206 => (eq_5‹??_21› ?_15[0;0] a_206 m_202))
+  | A_207 m_208 (just_10 x_209) =>
     (ex_9‹??_23,??_24,??_25›
-      ?_19[0;0] ?_20[0;0] x_200 (refl_8‹??_22› ?_17[0;0] ?_18[0;0]))
+      ?_19[0;0] ?_20[0;0] x_209 (refl_8‹??_22› ?_17[0;0] ?_18[0;0]))
 
 #[logical]
-def sing_exists_equiv1_3‹s_201,t_202› :
-  ∀ {A_203 : Type‹s_201›} ->
-    ∀ {m_204 : A_203} ->
-      ∀ (x_205 : (sing_7‹??_36› ?_33[0;0] m_204)) ->
+def sing_exists_equiv1_3‹s_210,t_211› :
+  ∀ {A_212 : Type‹s_210›} ->
+    ∀ {m_213 : A_212} ->
+      ∀ (x_214 : (sing_7‹??_36› ?_33[0;0] m_213)) ->
         (eq_5‹??_40›
           ?_38[0;0]
           ((exists_sing_1‹??_38,??_39›)
             ?_37[0;0] ?_36[0;0]
-            ((sing_exists_2‹??_37,t_202›) ?_35[0;0] ?_34[0;0] x_205))
-          x_205)
+            ((sing_exists_2‹??_37,t_211›) ?_35[0;0] ?_34[0;0] x_214))
+          x_214)
 :=
-  function sing_exists_equiv1_206 :
-    ∀ {A_207 : Type‹s_201›} ->
-      ∀ {m_208 : A_207} ->
-        ∀ (x_209 : (sing_7‹??_30› ?_25[0;0] m_208)) ->
+  function sing_exists_equiv1_215 :
+    ∀ {A_216 : Type‹s_210›} ->
+      ∀ {m_217 : A_216} ->
+        ∀ (x_218 : (sing_7‹??_30› ?_25[0;0] m_217)) ->
           (eq_5‹??_34›
             ?_30[0;0]
             ((exists_sing_1‹??_32,??_33›)
               ?_29[0;0] ?_28[0;0]
-              ((sing_exists_2‹??_31,t_202›) ?_27[0;0] ?_26[0;0] x_209))
-            x_209)
-  | A_210 m_211 (just_10 x_212) => (refl_8‹??_35› ?_31[0;0] ?_32[0;0])
+              ((sing_exists_2‹??_31,t_211›) ?_27[0;0] ?_26[0;0] x_218))
+            x_218)
+  | A_219 m_220 (just_10 x_221) => (refl_8‹??_35› ?_31[0;0] ?_32[0;0])
 
 #[logical]
-def sing_exists_equiv2_4‹s_213,t_214› :
-  ∀ {A_215 : Type‹s_213›} ->
-    ∀ {m_216 : A_215} ->
-      ∀ (x_217 :
-        (exists_6‹??_50,??_51,t_214›
+def sing_exists_equiv2_4‹s_222,t_223› :
+  ∀ {A_224 : Type‹s_222›} ->
+    ∀ {m_225 : A_224} ->
+      ∀ (x_226 :
+        (exists_6‹??_50,??_51,t_223›
           ?_51[0;0]
-          function _218 : A_215 -> ?_49[0;0]
-          | a_220 => (eq_5‹??_52› ?_50[0;0] a_220 m_216))) ->
+          function _227 : A_224 -> ?_49[0;0]
+          | a_229 => (eq_5‹??_52› ?_50[0;0] a_229 m_225))) ->
         (eq_5‹??_57›
           ?_56[0;0]
           ((sing_exists_2‹??_55,??_56›)
             ?_55[0;0] ?_54[0;0]
-            ((exists_sing_1‹??_53,??_54›) ?_53[0;0] ?_52[0;0] x_217))
-          x_217)
+            ((exists_sing_1‹??_53,??_54›) ?_53[0;0] ?_52[0;0] x_226))
+          x_226)
 :=
-  function sing_exists_equiv2_221 :
-    ∀ {A_222 : Type‹s_213›} ->
-      ∀ {m_223 : A_222} ->
-        ∀ (x_224 :
-          (exists_6‹??_41,??_42,t_214›
+  function sing_exists_equiv2_230 :
+    ∀ {A_231 : Type‹s_222›} ->
+      ∀ {m_232 : A_231} ->
+        ∀ (x_233 :
+          (exists_6‹??_41,??_42,t_223›
             ?_41[0;0]
-            function _225 : A_222 -> ?_39[0;0]
-            | a_227 => (eq_5‹??_43› ?_40[0;0] a_227 m_223))) ->
+            function _234 : A_231 -> ?_39[0;0]
+            | a_236 => (eq_5‹??_43› ?_40[0;0] a_236 m_232))) ->
           (eq_5‹??_48›
             ?_46[0;0]
             ((sing_exists_2‹??_46,??_47›)
               ?_45[0;0] ?_44[0;0]
-              ((exists_sing_1‹??_44,??_45›) ?_43[0;0] ?_42[0;0] x_224))
-            x_224)
-  | A_228 m_229 (ex_9 x_230 refl_8) =>
+              ((exists_sing_1‹??_44,??_45›) ?_43[0;0] ?_42[0;0] x_233))
+            x_233)
+  | A_237 m_238 (ex_9 x_239 refl_8) =>
     (refl_8‹??_49› ?_47[0;0] ?_48[0;0])
 
 #[program]
-def sing_double_5‹s_231,t_232› :
-  ∀ {A_233 : Type‹s_231›} ->
-    ∀ {m_234 : A_233} ->
-      (sing_7‹??_67› ?_64[0;0] m_234) ->
-        (sing_7‹??_68› ?_65[0;0] m_234) -o
-          (prod_8‹??_69,??_70,t_232› A_233 A_233)
+def sing_double_5‹s_240,t_241› :
+  ∀ {A_242 : Type‹s_240›} ->
+    ∀ {m_243 : A_242} ->
+      (sing_7‹??_67› ?_64[0;0] m_243) ->
+        (sing_7‹??_68› ?_65[0;0] m_243) -o
+          (prod_8‹??_69,??_70,t_241› A_242 A_242)
 :=
-  function sing_double_237 :
-    ∀ {A_238 : Type‹s_231›} ->
-      ∀ {m_239 : A_238} ->
-        (sing_7‹??_58› ?_57[0;0] m_239) ->
-          (sing_7‹??_59› ?_58[0;0] m_239) -o
-            (prod_8‹??_60,??_61,t_232› A_238 A_238)
-  | A_242 m_243 (just_10 x_244) (just_10 y_245) =>
-    let {pf_246} :=
+  function sing_double_246 :
+    ∀ {A_247 : Type‹s_240›} ->
+      ∀ {m_248 : A_247} ->
+        (sing_7‹??_58› ?_57[0;0] m_248) ->
+          (sing_7‹??_59› ?_58[0;0] m_248) -o
+            (prod_8‹??_60,??_61,t_241› A_247 A_247)
+  | A_251 m_252 (just_10 x_253) (just_10 y_254) =>
+    let {pf_255} :=
       ((refl_8‹??_62› ?_59[0;0] ?_60[0;0])
-        : (eq_5‹??_63› ?_61[0;0] x_244 y_245))
-    in (pair_11‹??_64,??_65,??_66› ?_62[0;0] ?_63[0;0] x_244 y_245)
+        : (eq_5‹??_63› ?_61[0;0] x_253 y_254))
+    in (pair_11‹??_64,??_65,??_66› ?_62[0;0] ?_63[0;0] x_253 y_254)
+
+#[logical]
+def axiom_K_6‹› :
+  ∀ {A_256 : U} ->
+    ∀ {m_257 : A_256} ->
+      ∀ (x_258 : (eq_5‹??_75› ?_72[0;0] m_257 m_257)) ->
+        (eq_5‹??_77›
+          ?_75[0;0] x_258 (refl_8‹??_76› ?_73[0;0] ?_74[0;0]))
+:=
+  function axiom_K_259 :
+    ∀ {A_260 : U} ->
+      ∀ {m_261 : A_260} ->
+        ∀ (x_262 : (eq_5‹??_71› ?_66[0;0] m_261 m_261)) ->
+          (eq_5‹??_73›
+            ?_69[0;0] x_262 (refl_8‹??_72› ?_67[0;0] ?_68[0;0]))
+  | A_263 m_264 refl_8 => (refl_8‹??_74› ?_70[0;0] ?_71[0;0])
 
 #[program]
-def pattern_expansion_6‹› : ∀ {A_247 : U} -> (list_4 A_247) -o unit_1
+def pattern_expansion_7‹› : ∀ {A_265 : U} -> (list_4 A_265) -o unit_1
 :=
-  function pattern_expansion_249 :
-    ∀ {A_250 : U} -> (list_4 A_250) -o unit_1
-  | A_252 nil_6 => tt_1
-  | A_253 (cons_7 x_254 nil_6) => tt_1
-  | A_255 xs_256 =>
-    let {pf_257} :=
-      ((refl_8‹??_71› ?_66[0;0] ?_67[0;0])
-        : (eq_5‹??_72› ?_68[0;0] xs_256 xs_256))
+  function pattern_expansion_267 :
+    ∀ {A_268 : U} -> (list_4 A_268) -o unit_1
+  | A_270 nil_6 => tt_1
+  | A_271 (cons_7 x_272 nil_6) => tt_1
+  | A_273 xs_274 =>
+    let {pf_275} :=
+      ((refl_8‹??_78› ?_76[0;0] ?_77[0;0])
+        : (eq_5‹??_79› ?_78[0;0] xs_274 xs_274))
     in tt_1
 
 -----------------------------------------
@@ -190,205 +206,225 @@ inductive bool_2‹› : U where
 #[program]
 inductive nat_3‹› : U where
 | zero_4 : nat_3
-| succ_5 (pred_4022 : nat_3) : nat_3
+| succ_5 (pred_4337 : nat_3) : nat_3
 
 #[program]
-inductive list_4‹› (A_4023 : U): U where
-| nil_6 : (list_4 A_4023)
-| cons_7 (hd_4024 : A_4023) (tl_4025 : (list_4 A_4023)) : (list_4 A_4023)
+inductive list_4‹› (A_4338 : U): U where
+| nil_6 : (list_4 A_4338)
+| cons_7 (hd_4339 : A_4338) (tl_4340 : (list_4 A_4338)) : (list_4 A_4338)
 
 #[logical]
-inductive eq_5‹s_4026› (A_4027 : Type‹s_4026›) (m_4028 : A_4027):
-  A_4027 -> U
+inductive eq_5‹s_4341› (A_4342 : Type‹s_4341›) (m_4343 : A_4342):
+  A_4342 -> U
 where
-| refl_8 : (eq_5‹s_4026› A_4027 m_4028 m_4028)
+| refl_8 : (eq_5‹s_4341› A_4342 m_4343 m_4343)
 
 #[program]
-inductive exists_6‹s_4030,r_4031,t_4032› (A_4033 : Type‹s_4030›) (B_4034 : 
-A_4033 -> Type‹r_4031›): Type‹t_4032› where
+inductive exists_6‹s_4345,r_4346,t_4347› (A_4348 : Type‹s_4345›) (B_4349 : 
+A_4348 -> Type‹r_4346›): Type‹t_4347› where
 | ex_9
-    (m_4036 : A_4033) {pf_4037 : ((B_4034) m_4036)}
-    : (exists_6‹s_4030,r_4031,t_4032› A_4033 B_4034)
+    (m_4351 : A_4348) {pf_4352 : ((B_4349) m_4351)}
+    : (exists_6‹s_4345,r_4346,t_4347› A_4348 B_4349)
 
 #[program]
-inductive sing_7‹s_4038› (A_4039 : Type‹s_4038›):
-  A_4039 -> Type‹s_4038›
+inductive sing_7‹s_4353› (A_4354 : Type‹s_4353›):
+  A_4354 -> Type‹s_4353›
 where
-| just_10 (m_4041 : A_4039) : (sing_7‹s_4038› A_4039 m_4041)
+| just_10 (m_4356 : A_4354) : (sing_7‹s_4353› A_4354 m_4356)
 
 #[program]
-inductive prod_8‹s_4042,r_4043,t_4044› (A_4045 : Type‹s_4042›) (B_4046 : Type‹r_4043›):
-  Type‹t_4044›
+inductive prod_8‹s_4357,r_4358,t_4359› (A_4360 : Type‹s_4357›) (B_4361 : Type‹r_4358›):
+  Type‹t_4359›
 where
 | pair_11
-    (m_4047 : A_4045) (n_4048 : B_4046)
-    : (prod_8‹s_4042,r_4043,t_4044› A_4045 B_4046)
+    (m_4362 : A_4360) (n_4363 : B_4361)
+    : (prod_8‹s_4357,r_4358,t_4359› A_4360 B_4361)
 
 #[program]
-def exists_sing_1‹s_4049,t_4050› :
-  ∀ {A_4051 : Type‹s_4049›} ->
-    ∀ {m_4052 : A_4051} ->
-      (exists_6‹s_4049,U,t_4050›
-        A_4051
-        function _4054 : A_4051 -> U
-        | __4056 => (eq_5‹s_4049› A_4051 __4056 m_4052)) ->
-        (sing_7‹s_4049› A_4051 m_4052)
+def exists_sing_1‹s_4364,t_4365› :
+  ∀ {A_4366 : Type‹s_4364›} ->
+    ∀ {m_4367 : A_4366} ->
+      (exists_6‹s_4364,U,t_4365›
+        A_4366
+        function _4369 : A_4366 -> U
+        | __4371 => (eq_5‹s_4364› A_4366 __4371 m_4367)) ->
+        (sing_7‹s_4364› A_4366 m_4367)
 :=
-  function exists_sing_4057 :
-    ∀ {A_4058 : Type‹s_4049›} ->
-      ∀ {m_4059 : A_4058} ->
-        (exists_6‹s_4049,U,t_4050›
-          A_4058
-          function _4061 : A_4058 -> U
-          | __4063 => (eq_5‹s_4049› A_4058 __4063 m_4059)) ->
-          (sing_7‹s_4049› A_4058 m_4059)
-  | A_4064 m_4065 (ex_9 m_4066 refl_8) => (just_10‹s_4049› A_4064 m_4066)
+  function exists_sing_4372 :
+    ∀ {A_4373 : Type‹s_4364›} ->
+      ∀ {m_4374 : A_4373} ->
+        (exists_6‹s_4364,U,t_4365›
+          A_4373
+          function _4376 : A_4373 -> U
+          | __4378 => (eq_5‹s_4364› A_4373 __4378 m_4374)) ->
+          (sing_7‹s_4364› A_4373 m_4374)
+  | A_4379 m_4380 (ex_9 m_4381 refl_8) => (just_10‹s_4364› A_4379 m_4381)
 
 #[program]
-def sing_exists_2‹s_4067,t_4068› :
-  ∀ {A_4069 : Type‹s_4067›} ->
-    ∀ {m_4070 : A_4069} ->
-      (sing_7‹s_4067› A_4069 m_4070) ->
-        (exists_6‹s_4067,U,t_4068›
-          A_4069
-          function _4072 : A_4069 -> U
-          | __4074 => (eq_5‹s_4067› A_4069 __4074 m_4070))
+def sing_exists_2‹s_4382,t_4383› :
+  ∀ {A_4384 : Type‹s_4382›} ->
+    ∀ {m_4385 : A_4384} ->
+      (sing_7‹s_4382› A_4384 m_4385) ->
+        (exists_6‹s_4382,U,t_4383›
+          A_4384
+          function _4387 : A_4384 -> U
+          | __4389 => (eq_5‹s_4382› A_4384 __4389 m_4385))
 :=
-  function sing_exists_4075 :
-    ∀ {A_4076 : Type‹s_4067›} ->
-      ∀ {m_4077 : A_4076} ->
-        (sing_7‹s_4067› A_4076 m_4077) ->
-          (exists_6‹s_4067,U,t_4068›
-            A_4076
-            function _4079 : A_4076 -> U
-            | __4081 => (eq_5‹s_4067› A_4076 __4081 m_4077))
-  | A_4082 m_4083 (just_10 m_4084) =>
-    (ex_9‹s_4067,U,t_4068›
-      A_4082
-      function _4085 : A_4082 -> U
-      | __4087 => (eq_5‹s_4067› A_4082 __4087 m_4084) m_4084
-      (refl_8‹s_4067› A_4082 m_4084))
+  function sing_exists_4390 :
+    ∀ {A_4391 : Type‹s_4382›} ->
+      ∀ {m_4392 : A_4391} ->
+        (sing_7‹s_4382› A_4391 m_4392) ->
+          (exists_6‹s_4382,U,t_4383›
+            A_4391
+            function _4394 : A_4391 -> U
+            | __4396 => (eq_5‹s_4382› A_4391 __4396 m_4392))
+  | A_4397 m_4398 (just_10 m_4399) =>
+    (ex_9‹s_4382,U,t_4383›
+      A_4397
+      function _4400 : A_4397 -> U
+      | __4402 => (eq_5‹s_4382› A_4397 __4402 m_4399) m_4399
+      (refl_8‹s_4382› A_4397 m_4399))
 
 #[logical]
-def sing_exists_equiv1_3‹s_4088,t_4089› :
-  ∀ {A_4090 : Type‹s_4088›} ->
-    ∀ {m_4091 : A_4090} ->
-      ∀ (x_4092 : (sing_7‹s_4088› A_4090 m_4091)) ->
-        (eq_5‹s_4088›
-          (sing_7‹s_4088› A_4090 m_4091)
-          ((exists_sing_1‹s_4088,t_4089›)
-            A_4090 m_4091
-            ((sing_exists_2‹s_4088,t_4089›) A_4090 m_4091 x_4092))
-          x_4092)
+def sing_exists_equiv1_3‹s_4403,t_4404› :
+  ∀ {A_4405 : Type‹s_4403›} ->
+    ∀ {m_4406 : A_4405} ->
+      ∀ (x_4407 : (sing_7‹s_4403› A_4405 m_4406)) ->
+        (eq_5‹s_4403›
+          (sing_7‹s_4403› A_4405 m_4406)
+          ((exists_sing_1‹s_4403,t_4404›)
+            A_4405 m_4406
+            ((sing_exists_2‹s_4403,t_4404›) A_4405 m_4406 x_4407))
+          x_4407)
 :=
-  function sing_exists_equiv1_4093 :
-    ∀ {A_4094 : Type‹s_4088›} ->
-      ∀ {m_4095 : A_4094} ->
-        ∀ (x_4096 : (sing_7‹s_4088› A_4094 m_4095)) ->
-          (eq_5‹s_4088›
-            (sing_7‹s_4088› A_4094 m_4095)
-            ((exists_sing_1‹s_4088,t_4089›)
-              A_4094 m_4095
-              ((sing_exists_2‹s_4088,t_4089›) A_4094 m_4095 x_4096))
-            x_4096)
-  | A_4097 m_4098 (just_10 m_4099) =>
-    (refl_8‹s_4088›
-      (sing_7‹s_4088› A_4097 m_4099)
-      ((exists_sing_1‹s_4088,t_4089›)
-        A_4097 m_4099
-        ((sing_exists_2‹s_4088,t_4089›)
-          A_4097 m_4099 (just_10‹s_4088› A_4097 m_4099))))
+  function sing_exists_equiv1_4408 :
+    ∀ {A_4409 : Type‹s_4403›} ->
+      ∀ {m_4410 : A_4409} ->
+        ∀ (x_4411 : (sing_7‹s_4403› A_4409 m_4410)) ->
+          (eq_5‹s_4403›
+            (sing_7‹s_4403› A_4409 m_4410)
+            ((exists_sing_1‹s_4403,t_4404›)
+              A_4409 m_4410
+              ((sing_exists_2‹s_4403,t_4404›) A_4409 m_4410 x_4411))
+            x_4411)
+  | A_4412 m_4413 (just_10 m_4414) =>
+    (refl_8‹s_4403›
+      (sing_7‹s_4403› A_4412 m_4414)
+      ((exists_sing_1‹s_4403,t_4404›)
+        A_4412 m_4414
+        ((sing_exists_2‹s_4403,t_4404›)
+          A_4412 m_4414 (just_10‹s_4403› A_4412 m_4414))))
 
 #[logical]
-def sing_exists_equiv2_4‹s_4100,t_4101› :
-  ∀ {A_4102 : Type‹s_4100›} ->
-    ∀ {m_4103 : A_4102} ->
-      ∀ (x_4104 :
-        (exists_6‹s_4100,U,t_4101›
-          A_4102
-          function _4105 : A_4102 -> U
-          | __4107 => (eq_5‹s_4100› A_4102 __4107 m_4103))) ->
-        (eq_5‹t_4101›
-          (exists_6‹s_4100,U,t_4101›
-            A_4102
-            function _4108 : A_4102 -> U
-            | __4110 => (eq_5‹s_4100› A_4102 __4110 m_4103))
-          ((sing_exists_2‹s_4100,t_4101›)
-            A_4102 m_4103
-            ((exists_sing_1‹s_4100,t_4101›) A_4102 m_4103 x_4104))
-          x_4104)
+def sing_exists_equiv2_4‹s_4415,t_4416› :
+  ∀ {A_4417 : Type‹s_4415›} ->
+    ∀ {m_4418 : A_4417} ->
+      ∀ (x_4419 :
+        (exists_6‹s_4415,U,t_4416›
+          A_4417
+          function _4420 : A_4417 -> U
+          | __4422 => (eq_5‹s_4415› A_4417 __4422 m_4418))) ->
+        (eq_5‹t_4416›
+          (exists_6‹s_4415,U,t_4416›
+            A_4417
+            function _4423 : A_4417 -> U
+            | __4425 => (eq_5‹s_4415› A_4417 __4425 m_4418))
+          ((sing_exists_2‹s_4415,t_4416›)
+            A_4417 m_4418
+            ((exists_sing_1‹s_4415,t_4416›) A_4417 m_4418 x_4419))
+          x_4419)
 :=
-  function sing_exists_equiv2_4111 :
-    ∀ {A_4112 : Type‹s_4100›} ->
-      ∀ {m_4113 : A_4112} ->
-        ∀ (x_4114 :
-          (exists_6‹s_4100,U,t_4101›
-            A_4112
-            function _4115 : A_4112 -> U
-            | __4117 => (eq_5‹s_4100› A_4112 __4117 m_4113))) ->
-          (eq_5‹t_4101›
-            (exists_6‹s_4100,U,t_4101›
-              A_4112
-              function _4118 : A_4112 -> U
-              | __4120 => (eq_5‹s_4100› A_4112 __4120 m_4113))
-            ((sing_exists_2‹s_4100,t_4101›)
-              A_4112 m_4113
-              ((exists_sing_1‹s_4100,t_4101›) A_4112 m_4113 x_4114))
-            x_4114)
-  | A_4121 m_4122 (ex_9 m_4123 refl_8) =>
-    (refl_8‹t_4101›
-      (exists_6‹s_4100,U,t_4101›
-        A_4121
-        function _4124 : A_4121 -> U
-        | __4126 => (eq_5‹s_4100› A_4121 __4126 m_4123))
-      ((sing_exists_2‹s_4100,t_4101›)
-        A_4121 m_4123
-        ((exists_sing_1‹s_4100,t_4101›)
-          A_4121 m_4123
-          (ex_9‹s_4100,U,t_4101›
-            A_4121
-            function _4127 : A_4121 -> U
-            | __4129 => (eq_5‹s_4100› A_4121 __4129 m_4123) m_4123
-            (refl_8‹s_4100› A_4121 m_4123)))))
+  function sing_exists_equiv2_4426 :
+    ∀ {A_4427 : Type‹s_4415›} ->
+      ∀ {m_4428 : A_4427} ->
+        ∀ (x_4429 :
+          (exists_6‹s_4415,U,t_4416›
+            A_4427
+            function _4430 : A_4427 -> U
+            | __4432 => (eq_5‹s_4415› A_4427 __4432 m_4428))) ->
+          (eq_5‹t_4416›
+            (exists_6‹s_4415,U,t_4416›
+              A_4427
+              function _4433 : A_4427 -> U
+              | __4435 => (eq_5‹s_4415› A_4427 __4435 m_4428))
+            ((sing_exists_2‹s_4415,t_4416›)
+              A_4427 m_4428
+              ((exists_sing_1‹s_4415,t_4416›) A_4427 m_4428 x_4429))
+            x_4429)
+  | A_4436 m_4437 (ex_9 m_4438 refl_8) =>
+    (refl_8‹t_4416›
+      (exists_6‹s_4415,U,t_4416›
+        A_4436
+        function _4439 : A_4436 -> U
+        | __4441 => (eq_5‹s_4415› A_4436 __4441 m_4438))
+      ((sing_exists_2‹s_4415,t_4416›)
+        A_4436 m_4438
+        ((exists_sing_1‹s_4415,t_4416›)
+          A_4436 m_4438
+          (ex_9‹s_4415,U,t_4416›
+            A_4436
+            function _4442 : A_4436 -> U
+            | __4444 => (eq_5‹s_4415› A_4436 __4444 m_4438) m_4438
+            (refl_8‹s_4415› A_4436 m_4438)))))
 
 #[program]
-def sing_double_5‹s_4130,t_4131› :
-  ∀ {A_4132 : Type‹s_4130›} ->
-    ∀ {m_4133 : A_4132} ->
-      (sing_7‹s_4130› A_4132 m_4133) ->
-        (sing_7‹s_4130› A_4132 m_4133) -o
-          (prod_8‹s_4130,s_4130,t_4131› A_4132 A_4132)
+def sing_double_5‹s_4445,t_4446› :
+  ∀ {A_4447 : Type‹s_4445›} ->
+    ∀ {m_4448 : A_4447} ->
+      (sing_7‹s_4445› A_4447 m_4448) ->
+        (sing_7‹s_4445› A_4447 m_4448) -o
+          (prod_8‹s_4445,s_4445,t_4446› A_4447 A_4447)
 :=
-  function sing_double_4136 :
-    ∀ {A_4137 : Type‹s_4130›} ->
-      ∀ {m_4138 : A_4137} ->
-        (sing_7‹s_4130› A_4137 m_4138) ->
-          (sing_7‹s_4130› A_4137 m_4138) -o
-            (prod_8‹s_4130,s_4130,t_4131› A_4137 A_4137)
-  | A_4141 m_4142 (just_10 m_4143) (just_10 m_4144) =>
-    let {pf_4145} :=
-      ((refl_8‹s_4130› A_4141 m_4143)
-        : (eq_5‹s_4130› A_4141 m_4143 m_4144))
-    in (pair_11‹s_4130,s_4130,t_4131› A_4141 A_4141 m_4143 m_4144)
+  function sing_double_4451 :
+    ∀ {A_4452 : Type‹s_4445›} ->
+      ∀ {m_4453 : A_4452} ->
+        (sing_7‹s_4445› A_4452 m_4453) ->
+          (sing_7‹s_4445› A_4452 m_4453) -o
+            (prod_8‹s_4445,s_4445,t_4446› A_4452 A_4452)
+  | A_4456 m_4457 (just_10 m_4458) (just_10 m_4459) =>
+    let {pf_4460} :=
+      ((refl_8‹s_4445› A_4456 m_4458)
+        : (eq_5‹s_4445› A_4456 m_4458 m_4459))
+    in (pair_11‹s_4445,s_4445,t_4446› A_4456 A_4456 m_4458 m_4459)
+
+#[logical]
+def axiom_K_6‹› :
+  ∀ {A_4461 : U} ->
+    ∀ {m_4462 : A_4461} ->
+      ∀ (x_4463 : (eq_5‹U› A_4461 m_4462 m_4462)) ->
+        (eq_5‹U›
+          (eq_5‹U› A_4461 m_4462 m_4462) x_4463
+          (refl_8‹U› A_4461 m_4462))
+:=
+  function axiom_K_4464 :
+    ∀ {A_4465 : U} ->
+      ∀ {m_4466 : A_4465} ->
+        ∀ (x_4467 : (eq_5‹U› A_4465 m_4466 m_4466)) ->
+          (eq_5‹U›
+            (eq_5‹U› A_4465 m_4466 m_4466) x_4467
+            (refl_8‹U› A_4465 m_4466))
+  | A_4468 m_4469 refl_8 =>
+    (refl_8‹U›
+      (eq_5‹U› A_4468 m_4469 m_4469) (refl_8‹U› A_4468 m_4469))
 
 #[program]
-def pattern_expansion_6‹› : ∀ {A_4146 : U} -> (list_4 A_4146) -o unit_1
+def pattern_expansion_7‹› : ∀ {A_4470 : U} -> (list_4 A_4470) -o unit_1
 :=
-  function pattern_expansion_4148 :
-    ∀ {A_4149 : U} -> (list_4 A_4149) -o unit_1
-  | A_4151 nil_6 => tt_1
-  | A_4152 (cons_7 hd_4153 nil_6) => tt_1
-  | A_4154 (cons_7 hd_4155 (cons_7 hd_4156 tl_4157)) =>
-    let {pf_4158} :=
+  function pattern_expansion_4472 :
+    ∀ {A_4473 : U} -> (list_4 A_4473) -o unit_1
+  | A_4475 nil_6 => tt_1
+  | A_4476 (cons_7 hd_4477 nil_6) => tt_1
+  | A_4478 (cons_7 hd_4479 (cons_7 hd_4480 tl_4481)) =>
+    let {pf_4482} :=
       ((refl_8‹U›
-         (list_4 A_4154)
-         (cons_7‹› A_4154 hd_4155 (cons_7‹› A_4154 hd_4156 tl_4157)))
+         (list_4 A_4478)
+         (cons_7‹› A_4478 hd_4479 (cons_7‹› A_4478 hd_4480 tl_4481)))
         : (eq_5‹U›
-            (list_4 A_4154)
+            (list_4 A_4478)
             (cons_7‹›
-              A_4154 hd_4155 (cons_7‹› A_4154 hd_4156 tl_4157))
+              A_4478 hd_4479 (cons_7‹› A_4478 hd_4480 tl_4481))
             (cons_7‹›
-              A_4154 hd_4155 (cons_7‹› A_4154 hd_4156 tl_4157))))
+              A_4478 hd_4479 (cons_7‹› A_4478 hd_4480 tl_4481))))
     in tt_1
 
 -----------------------------------------
@@ -493,118 +529,121 @@ inductive prodLLL_21 where
 | pairLLL_24 of layout[R, R]
 
 #[program]
-def exists_singUU_10 :=
-  fun exists_sing_7173 ({A_7174}, {m_7175}, __7176) =>
-    match __7176 with
-    | exUUU_21 m_7177 pf_7178 =>
+def exists_singUU_11 :=
+  fun exists_sing_7527 ({A_7528}, {m_7529}, __7530) =>
+    match __7530 with
+    | exUUU_21 m_7531 pf_7532 =>
       match {NULL} with
-      | reflU_13  => (justU_23 m_7177)
+      | reflU_13  => (justU_23 m_7531)
       end
     end
 
 #[program]
-def exists_singUL_9 :=
-  fun exists_sing_7179 ({A_7180}, {m_7181}, __7182) =>
-    match __7182 with
-    | exUUL_20 m_7183 pf_7184 =>
+def exists_singUL_10 :=
+  fun exists_sing_7533 ({A_7534}, {m_7535}, __7536) =>
+    match __7536 with
+    | exUUL_20 m_7537 pf_7538 =>
       match {NULL} with
-      | reflU_13  => (justU_23 m_7183)
+      | reflU_13  => (justU_23 m_7537)
       end
     end
 
 #[program]
-def exists_singLU_8 :=
-  fun exists_sing_7185 ({A_7186}, {m_7187}, __7188) => match __7188 with
+def exists_singLU_9 :=
+  fun exists_sing_7539 ({A_7540}, {m_7541}, __7542) => match __7542 with
                                                        
                                                        end
 
 #[program]
-def exists_singLL_7 :=
-  fun exists_sing_7189 ({A_7190}, {m_7191}, __7192) =>
-    match __7192 with
-    | exLUL_16 m_7193 pf_7194 =>
+def exists_singLL_8 :=
+  fun exists_sing_7543 ({A_7544}, {m_7545}, __7546) =>
+    match __7546 with
+    | exLUL_16 m_7547 pf_7548 =>
       match {NULL} with
-      | reflL_12  => (justL_22 m_7193)
+      | reflL_12  => (justL_22 m_7547)
       end
     end
 
 #[program]
-def sing_existsUU_14 :=
-  fun sing_exists_7195 ({A_7196}, {m_7197}, __7198) =>
-    match __7198 with
-    | justU_23 m_7199 => (exUUU_21 m_7199 NULL)
+def sing_existsUU_15 :=
+  fun sing_exists_7549 ({A_7550}, {m_7551}, __7552) =>
+    match __7552 with
+    | justU_23 m_7553 => (exUUU_21 m_7553 NULL)
     end
 
 #[program]
-def sing_existsUL_13 :=
-  fun sing_exists_7200 ({A_7201}, {m_7202}, __7203) =>
-    match __7203 with
-    | justU_23 m_7204 => (exUUL_20 m_7204 NULL)
+def sing_existsUL_14 :=
+  fun sing_exists_7554 ({A_7555}, {m_7556}, __7557) =>
+    match __7557 with
+    | justU_23 m_7558 => (exUUL_20 m_7558 NULL)
     end
 
 #[program]
-def sing_existsLL_11 :=
-  fun sing_exists_7205 ({A_7206}, {m_7207}, __7208) =>
-    match __7208 with
-    | justL_22 m_7209 => (exLUL_16 m_7209 NULL)
+def sing_existsLL_12 :=
+  fun sing_exists_7559 ({A_7560}, {m_7561}, __7562) =>
+    match __7562 with
+    | justL_22 m_7563 => (exLUL_16 m_7563 NULL)
     end
 
 #[logical]
-def sing_exists_equiv1UU_18 := NULL
+def sing_exists_equiv1UU_19 := NULL
 
 #[logical]
-def sing_exists_equiv1UL_17 := NULL
+def sing_exists_equiv1UL_18 := NULL
 
 #[logical]
-def sing_exists_equiv1LL_15 := NULL
+def sing_exists_equiv1LL_16 := NULL
 
 #[logical]
-def sing_exists_equiv2UU_22 := NULL
+def sing_exists_equiv2UU_23 := NULL
 
 #[logical]
-def sing_exists_equiv2UL_21 := NULL
+def sing_exists_equiv2UL_22 := NULL
 
 #[logical]
-def sing_exists_equiv2LL_19 := NULL
+def sing_exists_equiv2LL_20 := NULL
 
 #[program]
-def sing_doubleUU_26 :=
-  fun sing_double_7210 ({A_7211}, {m_7212}, __7213, __7214) =>
-    match __7213 with
-    | justU_23 m_7215 =>
-      match __7214 with
-      | justU_23 m_7216 => (pairUUU_31 m_7215 m_7216)
+def sing_doubleUU_27 :=
+  fun sing_double_7564 ({A_7565}, {m_7566}, __7567, __7568) =>
+    match __7567 with
+    | justU_23 m_7569 =>
+      match __7568 with
+      | justU_23 m_7570 => (pairUUU_31 m_7569 m_7570)
       end
     end
 
 #[program]
-def sing_doubleUL_25 :=
-  fun sing_double_7217 ({A_7218}, {m_7219}, __7220, __7221) =>
-    match __7220 with
-    | justU_23 m_7222 =>
-      match __7221 with
-      | justU_23 m_7223 => (pairUUL_30 m_7222 m_7223)
+def sing_doubleUL_26 :=
+  fun sing_double_7571 ({A_7572}, {m_7573}, __7574, __7575) =>
+    match __7574 with
+    | justU_23 m_7576 =>
+      match __7575 with
+      | justU_23 m_7577 => (pairUUL_30 m_7576 m_7577)
       end
     end
 
 #[program]
-def sing_doubleLL_23 :=
-  fun sing_double_7224 ({A_7225}, {m_7226}, __7227, __7228) =>
-    match __7227 with
-    | justL_22 m_7229 =>
-      match __7228 with
-      | justL_22 m_7230 => (pairLLL_24 m_7229 m_7230)
+def sing_doubleLL_24 :=
+  fun sing_double_7578 ({A_7579}, {m_7580}, __7581, __7582) =>
+    match __7581 with
+    | justL_22 m_7583 =>
+      match __7582 with
+      | justL_22 m_7584 => (pairLLL_24 m_7583 m_7584)
       end
     end
 
+#[logical]
+def axiom_K_6 := NULL
+
 #[program]
-def pattern_expansion_6 :=
-  fun pattern_expansion_7231 ({A_7232}, __7233) =>
-    match __7233 with
+def pattern_expansion_7 :=
+  fun pattern_expansion_7585 ({A_7586}, __7587) =>
+    match __7587 with
     | nil_6  => tt_1
-    | cons_7 hd_7234 tl_7235 =>
-      match tl_7235 with
-      | nil_6  => tt_1 | cons_7 hd_7236 tl_7237 => tt_1
+    | cons_7 hd_7588 tl_7589 =>
+      match tl_7589 with
+      | nil_6  => tt_1 | cons_7 hd_7590 tl_7591 => tt_1
       end
     end
 
@@ -710,107 +749,110 @@ inductive prodLLL_21 where
 | pairLLL_24 of layout[R, R]
 
 #[program]
-def exists_singUU_10 :=
-  fun exists_sing_7303 ({A_7304}, {m_7305}, __7306) =>
-    match __7306 with
-    | exUUU_21 m_7307 pf_7308 => (justU_23 m_7307)
+def exists_singUU_11 :=
+  fun exists_sing_7657 ({A_7658}, {m_7659}, __7660) =>
+    match __7660 with
+    | exUUU_21 m_7661 pf_7662 => (justU_23 m_7661)
     end
 
 #[program]
-def exists_singUL_9 :=
-  fun exists_sing_7309 ({A_7310}, {m_7311}, __7312) =>
-    match __7312 with
-    | exUUL_20 m_7313 pf_7314 => (justU_23 m_7313)
+def exists_singUL_10 :=
+  fun exists_sing_7663 ({A_7664}, {m_7665}, __7666) =>
+    match __7666 with
+    | exUUL_20 m_7667 pf_7668 => (justU_23 m_7667)
     end
 
 #[program]
-def exists_singLU_8 :=
-  fun exists_sing_7315 ({A_7316}, {m_7317}, __7318) => !!
+def exists_singLU_9 :=
+  fun exists_sing_7669 ({A_7670}, {m_7671}, __7672) => !!
 
 #[program]
-def exists_singLL_7 :=
-  fun exists_sing_7319 ({A_7320}, {m_7321}, __7322) =>
-    match __7322 with
-    | exLUL_16 m_7323 pf_7324 => (justL_22 m_7323)
+def exists_singLL_8 :=
+  fun exists_sing_7673 ({A_7674}, {m_7675}, __7676) =>
+    match __7676 with
+    | exLUL_16 m_7677 pf_7678 => (justL_22 m_7677)
     end
 
 #[program]
-def sing_existsUU_14 :=
-  fun sing_exists_7325 ({A_7326}, {m_7327}, __7328) =>
-    match __7328 with
-    | justU_23 m_7329 => (exUUU_21 m_7329 NULL)
+def sing_existsUU_15 :=
+  fun sing_exists_7679 ({A_7680}, {m_7681}, __7682) =>
+    match __7682 with
+    | justU_23 m_7683 => (exUUU_21 m_7683 NULL)
     end
 
 #[program]
-def sing_existsUL_13 :=
-  fun sing_exists_7330 ({A_7331}, {m_7332}, __7333) =>
-    match __7333 with
-    | justU_23 m_7334 => (exUUL_20 m_7334 NULL)
+def sing_existsUL_14 :=
+  fun sing_exists_7684 ({A_7685}, {m_7686}, __7687) =>
+    match __7687 with
+    | justU_23 m_7688 => (exUUL_20 m_7688 NULL)
     end
 
 #[program]
-def sing_existsLL_11 :=
-  fun sing_exists_7335 ({A_7336}, {m_7337}, __7338) =>
-    match __7338 with
-    | justL_22 m_7339 => (exLUL_16 m_7339 NULL)
+def sing_existsLL_12 :=
+  fun sing_exists_7689 ({A_7690}, {m_7691}, __7692) =>
+    match __7692 with
+    | justL_22 m_7693 => (exLUL_16 m_7693 NULL)
     end
 
 #[logical]
-def sing_exists_equiv1UU_18 := NULL
+def sing_exists_equiv1UU_19 := NULL
 
 #[logical]
-def sing_exists_equiv1UL_17 := NULL
+def sing_exists_equiv1UL_18 := NULL
 
 #[logical]
-def sing_exists_equiv1LL_15 := NULL
+def sing_exists_equiv1LL_16 := NULL
 
 #[logical]
-def sing_exists_equiv2UU_22 := NULL
+def sing_exists_equiv2UU_23 := NULL
 
 #[logical]
-def sing_exists_equiv2UL_21 := NULL
+def sing_exists_equiv2UL_22 := NULL
 
 #[logical]
-def sing_exists_equiv2LL_19 := NULL
+def sing_exists_equiv2LL_20 := NULL
 
 #[program]
-def sing_doubleUU_26 :=
-  fun sing_double_7340 ({A_7341}, {m_7342}, __7343, __7344) =>
-    match __7343 with
-    | justU_23 m_7345 =>
-      match __7344 with
-      | justU_23 m_7346 => (pairUUU_31 m_7345 m_7346)
+def sing_doubleUU_27 :=
+  fun sing_double_7694 ({A_7695}, {m_7696}, __7697, __7698) =>
+    match __7697 with
+    | justU_23 m_7699 =>
+      match __7698 with
+      | justU_23 m_7700 => (pairUUU_31 m_7699 m_7700)
       end
     end
 
 #[program]
-def sing_doubleUL_25 :=
-  fun sing_double_7347 ({A_7348}, {m_7349}, __7350, __7351) =>
-    match __7350 with
-    | justU_23 m_7352 =>
-      match __7351 with
-      | justU_23 m_7353 => (pairUUL_30 m_7352 m_7353)
+def sing_doubleUL_26 :=
+  fun sing_double_7701 ({A_7702}, {m_7703}, __7704, __7705) =>
+    match __7704 with
+    | justU_23 m_7706 =>
+      match __7705 with
+      | justU_23 m_7707 => (pairUUL_30 m_7706 m_7707)
       end
     end
 
 #[program]
-def sing_doubleLL_23 :=
-  fun sing_double_7354 ({A_7355}, {m_7356}, __7357, __7358) =>
-    match __7357 with
-    | justL_22 m_7359 =>
-      match __7358 with
-      | justL_22 m_7360 => (pairLLL_24 m_7359 m_7360)
+def sing_doubleLL_24 :=
+  fun sing_double_7708 ({A_7709}, {m_7710}, __7711, __7712) =>
+    match __7711 with
+    | justL_22 m_7713 =>
+      match __7712 with
+      | justL_22 m_7714 => (pairLLL_24 m_7713 m_7714)
       end
     end
 
+#[logical]
+def axiom_K_6 := NULL
+
 #[program]
-def pattern_expansion_6 :=
-  fun pattern_expansion_7361 ({A_7362}, __7363) =>
-    match __7363 with
+def pattern_expansion_7 :=
+  fun pattern_expansion_7715 ({A_7716}, __7717) =>
+    match __7717 with
     | nil_6  => tt_1
-    | cons_7 hd_7364 tl_7365 =>
-      match tl_7365 with
-      | nil_6  => tt_1 | cons_7 hd_7366 tl_7367 => tt_1
+    | cons_7 hd_7718 tl_7719 =>
+      match tl_7719 with
+      | nil_6  => tt_1 | cons_7 hd_7720 tl_7721 => tt_1
       end
     end
 
