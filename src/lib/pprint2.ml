@@ -25,24 +25,24 @@ let pp_modifier fmt = function
 
 let rec pp_rxs fmt = function
   | [] -> ()
-  | [ (r, x, a) ] -> (
+  | [ (r, x) ] -> (
     match r with
-    | N -> pf fmt "{%a : %a}" Var.pp x pp_tm a
-    | R -> pf fmt "(%a : %a)" Var.pp x pp_tm a)
-  | (r, x, a) :: rxs -> (
+    | N -> pf fmt "{%a}" Var.pp x
+    | R -> pf fmt "%a" Var.pp x)
+  | (r, x) :: rxs -> (
     match r with
-    | R -> pf fmt "(%a : %a)@;<1 0>%a" Var.pp x pp_tm a pp_rxs rxs
-    | N -> pf fmt "{%a : %a}@;<1 0>%a" Var.pp x pp_tm a pp_rxs rxs)
+    | N -> pf fmt "{%a},@;<1 0>%a" Var.pp x pp_rxs rxs
+    | R -> pf fmt "%a,@;<1 0>%a" Var.pp x pp_rxs rxs)
 
 and pp_tm fmt = function
   (* core *)
   | Var x -> Var.pp fmt x
   | Const x -> pf fmt "%a" Const.pp x
-  | Fun bnd ->
+  | Fun (relvs, bnd) ->
     let x, bnd = unbind bnd in
     let xs, m = unmbind bnd in
-    pf fmt "@[<v 0>@[fun %a (%a) =>@;<1 2>@[%a@]@]" Var.pp x
-      (array ~sep:comma Var.pp) xs pp_tm m
+    let rxs = List.combine relvs (Array.to_list xs) in
+    pf fmt "@[<v 0>@[fun %a (%a) =>@;<1 2>@[%a@]@]" Var.pp x pp_rxs rxs pp_tm m
   | App _ as m ->
     let hd, ms = unApps m in
     let ms = List.map fst ms in

@@ -11,12 +11,14 @@ type relv =
   | N
   | R
 
+and relvs = relv list
+
 (* terms *)
 type tm =
   (* core *)
   | Var of tm var
   | Const of Const.t
-  | Fun of (tm, (tm, tm) mbinder) binder
+  | Fun of relvs * (tm, (tm, tm) mbinder) binder
   | App of sort * tm * tm
   | Let of tm * (tm, tm) binder
   (* inductive *)
@@ -85,7 +87,7 @@ let _R = box R
 (* core *)
 let _Var = box_var
 let _Const x = box (Const x)
-let _Fun = box_apply (fun m -> Fun m)
+let _Fun relvs = box_apply (fun m -> Fun (relvs, m))
 let _App s = box_apply2 (fun m n -> App (s, m, n))
 let _Let = box_apply2 (fun m n -> Let (m, n))
 
@@ -129,7 +131,7 @@ let rec lift_tm = function
   (* core *)
   | Var x -> _Var x
   | Const x -> _Const x
-  | Fun bnd -> _Fun (box_binder (box_mbinder lift_tm) bnd)
+  | Fun (relvs, bnd) -> _Fun relvs (box_binder (box_mbinder lift_tm) bnd)
   | App (s, m, n) -> _App s (lift_tm m) (lift_tm n)
   | Let (m, bnd) -> _Let (lift_tm m) (box_binder lift_tm bnd)
   (* inductive *)

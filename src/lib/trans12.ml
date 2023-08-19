@@ -412,14 +412,14 @@ module Program = struct
     | Fun (_, a, bnd) ->
       let x, cls = unbind bnd in
       let s = Logical.infer_sort ctx env a in
-      let ctree, usg = check_cls (Ctx.add_var x a s ctx) env cls a in
+      let relvs, ctree, usg = check_cls (Ctx.add_var x a s ctx) env cls a in
       let usg =
         match s with
         | U -> Usage.remove_var x usg R U
         | L -> Usage.remove_var x usg N L
         | _ -> failwith "trans12.Program.infer_tm(Fun)"
       in
-      Syntax2.(a, _Fun (bind_var (trans_var x) ctree), usg)
+      Syntax2.(a, _Fun relvs (bind_var (trans_var x) ctree), usg)
     | App (m, n) -> (
       let t, m_elab, usg1 = infer_tm ctx env m in
       match whnf env t with
@@ -463,7 +463,7 @@ module Program = struct
     | Match (_, ms, a, cls) ->
       let b, ms_elab, usg1 = infer_motive ctx env ms a in
       Debug.exec (fun () -> pr "Program.infer_motive_ok@.");
-      let ctree, usg2 = check_cls ctx env cls a in
+      let _, ctree, usg2 = check_cls ctx env cls a in
       let ms_elab = box_array (Array.of_list ms_elab) in
       let usg = Usage.merge usg1 usg2 in
       Syntax2.(b, lift_tm (msubst (unbox ctree) (unbox ms_elab)), usg)
@@ -608,12 +608,13 @@ module Program = struct
           let t = infer_demote ctx env a in
           let ctx = Ctx.add_var x a t ctx in
           let prbm = prbm_add env prbm x a relv in
-          let xs, ctree, usg = aux_prbm ctx env prbm b in
+          let rxs, ctree, usg = aux_prbm ctx env prbm b in
           let usg = Usage.remove_var x usg relv t in
           Debug.exec (fun () -> pr "trans12.Program.case_introed(%a)@." pp_tm a);
           match s with
-          | U -> (trans_var x :: xs, ctree, Usage.refine_pure usg)
-          | L -> (trans_var x :: xs, ctree, usg)
+          | U ->
+            ((trans_relv relv, trans_var x) :: rxs, ctree, Usage.refine_pure usg)
+          | L -> ((trans_relv relv, trans_var x) :: rxs, ctree, usg)
           | _ -> failwith "trans12.Program.check_cls(Intro(%a))" pp_tm a)
         | a -> failwith "trans12.Program.check_cls(Intro(%a))" pp_tm a)
       (* case split *)
@@ -712,8 +713,9 @@ module Program = struct
           else
             Syntax2.([], _Absurd, Usage.of_ctx ctx))
     in
-    let xs, ctree, usg = aux_prbm ctx env (of_cls cls) a in
-    (bind_mvar (Array.of_list xs) ctree, usg)
+    let rxs, ctree, usg = aux_prbm ctx env (of_cls cls) a in
+    let relvs, xs = List.split rxs in
+    (relvs, bind_mvar (Array.of_list xs) ctree, usg)
 
   and prbm_add env prbm x a relv =
     match prbm.clause with
