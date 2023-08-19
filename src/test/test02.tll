@@ -26,16 +26,14 @@ inductive sing<s> ?(A : Type<s>) : A -> Type<s> where
 inductive prod<s,r,t> (A : Type<s>) (B : Type<r>) : Type<t> where
 | pair (m : A) (n : B) : prod A B
 
-def sing_double {A : U} : list A -o unit
-  | nil => tt
-  | (cons x nil) => tt
-  | xs =>
-    let {pf} : eq xs xs := @refl _ xs in
-    tt
+def sing_double<s,t> {A : Type<s>} {m : A} : sing m -> sing m -o prod<_,_,t> A A
+  | (just x) (just y) =>
+    let {pf} : eq x y := refl in
+    pair x y
 
-def sing_double {A : U} : list A -o unit
+def pattern_expansion {A : U} : list A -o unit
   | nil => tt
   | (cons x nil) => tt
   | xs =>
-    let {pf} : eq xs xs := @refl _ _ in
+    let {pf} : eq xs xs := refl in
     tt

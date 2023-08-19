@@ -26,7 +26,7 @@ let _ =
     if Array.length Sys.argv < 1 then
       epr "input file expected@."
     else
-      let _ = Debug.enable () in
+      (* let _ = Debug.enable () in *)
       let src_name = Sys.argv.(1) in
       let src_ch = open_in src_name in
       let dcls0 = parse (Utf8.from_channel src_ch) in
@@ -40,10 +40,10 @@ let _ =
       pr "@.@.-----------------------------------------@.@.";
       let _ = Debug.disable () in
       let dcls2 = Trans12.trans_dcls dcls1e in
-      (* pr "%a" Pprint2.pp_dcls dcls2; *)
+      pr "%a" Pprint2.pp_dcls dcls2;
       pr "@.@.-----------------------------------------@.@.";
       let dcls2e = Trans2e.trans_dcls dcls2 in
-      (* pr "%a" Pprint2.pp_dcls dcls2e; *)
+      pr "%a" Pprint2.pp_dcls dcls2e;
       pr "@.@.-----------------------------------------@.@."
   with
   | Failure s ->
