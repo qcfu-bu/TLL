@@ -33,8 +33,6 @@ let main =
     try
       let src_ch = open_in src_file in
       let dcls0 = parse (Utf8.from_channel src_ch) in
-      pr "%a" Syntax0.pp_dcls dcls0;
-      pr "@.@.-----------------------------------------@.@.";
       let _, dcls1 = Trans01.trans_dcls [] dcls0 in
       pr "%a" Pprint1.pp_dcls dcls1;
       pr "@.@.-----------------------------------------@.@.";
