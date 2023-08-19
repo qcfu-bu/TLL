@@ -192,7 +192,7 @@ module Logical = struct
           let tele = param_inst param ms in
           let _, t = unbind_tele tele in
           let global = EqualTerm (env, a, t) :: global in
-          if succeed_pprbm global then
+          if not (witness_distinct global) then
             failwith "trans12.Logical.fail_on_ind(%a)" Ind.pp d1)
         cs0
     in
@@ -201,7 +201,7 @@ module Logical = struct
       (* empty *)
       | [] -> (
         Debug.exec (fun () -> pr "case_empty@.");
-        if succeed_pprbm prbm.global then
+        if not (witness_distinct prbm.global) then
           match whnf env a with
           | Pi (_, _, a, _) -> (
             match whnf env a with
@@ -256,7 +256,7 @@ module Logical = struct
       (* absurd pattern *)
       | (eqns, [], rhs) :: _ when is_absurd eqns rhs -> (
         Debug.exec (fun () -> pr "trans12.Logical.case_absurd@.");
-        if succeed_pprbm prbm.global then
+        if not (witness_distinct prbm.global) then
           let a = get_absurd eqns in
           match whnf env a with
           | Ind (d0, ss, ms, ns) ->
@@ -278,7 +278,7 @@ module Logical = struct
               pr "@[case_coverage_ok(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm rhs pp_tm a);
           check_tm ctx env rhs a
         | None ->
-          if succeed_pprbm prbm.global then
+          if not (witness_distinct prbm.global) then
             failwith "trans12.Logical.check_cls(Cover)")
     in
     aux_prbm ctx (of_cls cls) a
@@ -577,7 +577,7 @@ module Program = struct
           let tele = param_inst param ms in
           let _, t = unbind_tele tele in
           let global = EqualTerm (env, a, t) :: global in
-          if succeed_pprbm global then
+          if not (witness_distinct global) then
             failwith "trans12.Program.fail_on_ind(%a)" Ind.pp d1)
         cs0
     in
@@ -586,7 +586,7 @@ module Program = struct
       (* empty *)
       | [] ->
         Debug.exec (fun () -> pr "case_empty@.");
-        if succeed_pprbm prbm.global then
+        if not (witness_distinct prbm.global) then
           match whnf env a with
           | Pi (_, _, a, _) -> (
             match whnf env a with
@@ -643,12 +643,11 @@ module Program = struct
                   List.fold_left_map
                     (fun ctx (relv, x, a) ->
                       let s = infer_demote ctx env a in
-                      (Ctx.add_var x a s ctx, (relv, x, s)))
+                      (Ctx.add_var x a s ctx, ((relv, x, s), PMeta x)))
                     ctx args
                 in
-                let m =
-                  Constr (c0, ss, ms, List.map (fun (_, x, _) -> PMeta x) args)
-                in
+                let args, ns = List.split args in
+                let m = Constr (c0, ss, ms, ns) in
                 let var_map = Var.Map.singleton x m in
                 let a = subst_pmeta var_map a in
                 let ctx = Ctx.map_var (subst_pmeta var_map) ctx in
@@ -682,7 +681,7 @@ module Program = struct
       (* absurd pattern *)
       | (eqns, [], rhs) :: _ when is_absurd eqns rhs ->
         Debug.exec (fun () -> pr "trans12.Program.case_absurd@.");
-        if succeed_pprbm prbm.global then
+        if not (witness_distinct prbm.global) then
           let a = get_absurd eqns in
           match whnf env a with
           | Ind (d0, ss, ms, ns) ->
@@ -708,7 +707,7 @@ module Program = struct
           let rhs_elab, usg = check_tm ctx env rhs a in
           ([], rhs_elab, usg)
         | None ->
-          if succeed_pprbm prbm.global then
+          if not (witness_distinct prbm.global) then
             failwith "trans12.Program.check_cls(Cover)"
           else
             Syntax2.([], _Absurd, Usage.of_ctx ctx))

@@ -321,7 +321,8 @@ and check_cls ctx env cls a : cls box =
         let tele = param_inst param ms in
         let _, t = unbind_tele tele in
         let global = PPrbm.EqualTerm (env, a, t) :: global in
-        if succeed_pprbm global then failwith "trans1e.fail_on_ind(%a)" Ind.pp d)
+        if not (witness_distinct global) then
+          failwith "trans1e.fail_on_ind(%a)" Ind.pp d)
       cs
   in
   let rec aux_prbm (ctx : Ctx.t) (prbm : PPrbm.t) a : cl box list =
@@ -329,7 +330,7 @@ and check_cls ctx env cls a : cls box =
     (* empty *)
     | [] ->
       Debug.exec (fun () -> pr "case_empty@.");
-      if succeed_pprbm prbm.global then
+      if not (witness_distinct prbm.global) then
         match whnf env a with
         | Pi (_, _, a, _) -> (
           match whnf env a with
@@ -387,7 +388,7 @@ and check_cls ctx env cls a : cls box =
       Debug.exec (fun () -> pr "case_absurd@.");
       let x, a = get_absurd eqns in
       let ps = expand_ps ps (Var.Map.singleton x PAbsurd) in
-      if succeed_pprbm prbm.global then
+      if not (witness_distinct prbm.global) then
         match whnf env a with
         | Ind (d, ss, ms, ns) ->
           fail_on_ind prbm.global ctx d ss ms a;
@@ -411,7 +412,7 @@ and check_cls ctx env cls a : cls box =
         let rhs_elab = check_tm ctx env rhs a in
         [ bind_ps ps (_Some rhs_elab) ]
       | None ->
-        if succeed_pprbm prbm.global then
+        if not (witness_distinct prbm.global) then
           failwith "trans1e.check_cls(Cover)"
         else
           [ bind_ps ps _None ])

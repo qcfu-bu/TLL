@@ -96,20 +96,19 @@ let resolve_pmeta var_map m =
       | None -> _Var x)
     m
 
+exception
+  DistinctConstr of
+    { lhs : (Constr.t * sorts)
+    ; rhs : (Constr.t * sorts)
+    }
+
 let rec simpl_pprbm ?(expand = false) eqn =
-  let rec is_value = function
-    | Ann (m, _) -> is_value m
-    | PMeta _ -> true
-    | Type _ -> true
-    | Var _ -> true
-    | Const _ -> true
-    | Pi _ -> true
-    | Fun _ -> true
-    | Ind _ -> true
-    | Constr _ -> true
-    | IO _ -> true
-    | Return _ -> true
-    | Magic _ -> true
+  let rec rigid_neq ss1 ss2 =
+    match (ss1, ss2) with
+    | U :: [], L :: [] -> true
+    | L :: [], U :: [] -> true
+    | U :: ss1, L :: ss2 -> rigid_neq ss1 ss2
+    | L :: ss1, U :: ss2 -> rigid_neq ss1 ss2
     | _ -> false
   in
   match eqn with
@@ -165,7 +164,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
         in
         eqns1 @ List.concat eqns2
       with
-      | _ when expand -> failwith "unifier1.solve_pprbm(App)"
+      | e when expand -> raise e
       | _ -> simpl_pprbm ~expand:true (EqualTerm (env, m1, m2)))
     | Let (relv1, m1, bnd1), Let (relv2, m2, bnd2) when relv1 = relv2 ->
       let _, n1, n2 = unbind2 bnd1 bnd2 in
@@ -191,6 +190,9 @@ let rec simpl_pprbm ?(expand = false) eqn =
         List.map2 (fun n1 n2 -> simpl_pprbm (EqualTerm (env, n1, n2))) ns1 ns2
       in
       List.concat eqns1 @ List.concat eqns2
+    | Constr (c1, ss1, _, _), Constr (c2, ss2, _, _)
+      when (not (Constr.equal c1 c2)) || rigid_neq ss1 ss2 ->
+      raise (DistinctConstr { lhs = (c1, ss1); rhs = (c2, ss2) })
     | Match (_, ms1, a1, cls1), Match (_, ms2, a2, cls2) ->
       let eqns1 =
         List.map2 (fun m1 m2 -> simpl_pprbm (EqualTerm (env, m1, m2))) ms1 ms2
@@ -218,10 +220,9 @@ let rec simpl_pprbm ?(expand = false) eqn =
     (* magic *)
     | Magic a1, Magic a2 -> simpl_pprbm (EqualTerm (env, a1, a2))
     | _ when not expand -> simpl_pprbm ~expand:true (EqualTerm (env, m1, m2))
-    | _ when is_value m1 && is_value m2 ->
-      failwith "@[<v 0>unifier1.simpl_pprbm(@;<1 2>%a,@;<1 2>%a@;<1 0>)@]" pp_tm
-        m1 pp_tm m2
-    | _ -> [])
+    | _ ->
+      failwith "@[<v 0>unifier.simpl_pprbm(@;<1 2>%a,@;<1 2>%a@;<1 0>)@]" pp_tm
+        m1 pp_tm m2)
 
 let solve_pprbm map eqn =
   match eqn with
@@ -267,9 +268,14 @@ let unify_pprbm local global =
   let global_map = aux_eqns local_map global in
   (local_map, global_map)
 
-let succeed_pprbm global =
+let witness_distinct global =
   try
     let _ = unify_pprbm [] global in
-    true
+    false
   with
+  | DistinctConstr { lhs = c1, ss1; rhs = c2, ss2 } ->
+    Debug.exec (fun () ->
+        pr "unifier1e.witnessed_distinct(%a, %a, %a, %a)" Constr.pp c1 pp_sorts
+          ss1 Constr.pp c2 pp_sorts ss2);
+    true
   | _ -> false
