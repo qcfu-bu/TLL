@@ -120,12 +120,7 @@ let resolve_tm (meta_map : meta_map) m =
     (* magic *)
     | Magic a -> _Magic (aux_tm a)
   in
-  Debug.exec (fun () -> pr "@[resolve_attempt(%a)@]@." pp_tm m);
-  let m_resolved = unbox (aux_tm m) in
-  Debug.exec (fun () ->
-      pr "@[resolve_tm(@;<1 2>@[%a@]@;<1 2>=>@;<1 2>@[%a@])@]@.@." pp_tm m pp_tm
-        m_resolved);
-  m_resolved
+  unbox (aux_tm m)
 
 let resolve_scheme lift resolve (meta_map : meta_map) sch =
   let xs, body = unmbind sch in

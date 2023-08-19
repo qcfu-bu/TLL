@@ -182,9 +182,6 @@ and infer_tm ctx env m : tm * tm box =
   | Match (guard, ms, a, cls) ->
     let b, ms_elab, a_elab = infer_motive ctx env ms a in
     let a = unbox a_elab in
-    Debug.exec (fun () -> pr "infer_motive_ok(%a)@." pp_tm a);
-    let a = State.resolve a in
-    Debug.exec (fun () -> pr "resolve_motive_ok(%a)@." pp_tm a);
     let cls_elab = check_cls ctx env cls a in
     (b, _Match guard ms_elab a_elab cls_elab)
   (* monad *)
@@ -237,33 +234,29 @@ and infer_ptl ctx env ms ns ptl : tm * tms box * tms box =
   let a, ms_elab, ns_elab = aux_param ms ptl in
   (a, box_list ms_elab, box_list ns_elab)
 
-and infer_motive ctx env ms a =
-  let rec aux_motive ctx ms a0 a1 =
-    (* ctx0: motive context
-       ctx1: discriminee context *)
+and infer_motive ctx1 env ms a =
+  (* a0: original motive
+     a1 : instantiated motive *)
+  let rec aux_motive ctx0 ms a0 a1 =
     match (ms, a0, a1) with
     | [], a0, a1 ->
-      let a0_elab = assert_type ctx env a0 in
-      let a1_elab = assert_type ctx env a1 in
+      let a0_elab = assert_type ctx0 env a0 in
+      let a1_elab = assert_type ctx1 env a1 in
       (unbox a1_elab, [], a0_elab)
     | m :: ms, Pi (relv, L, a0, bnd0), Pi (_, L, a1, bnd1) ->
-      Debug.exec (fun () ->
-          pr "infer_motive_begin(%a : %a : %a)@." pp_tm m pp_tm a0 pp_tm a1);
       let x, b0 = unbind bnd0 in
-      let a0_elab = assert_type ctx env a0 in
-      let a1_elab = assert_type ctx env a1 in
+      let a0_elab = assert_type ctx0 env a0 in
+      let a1_elab = assert_type ctx1 env a1 in
       let a0 = unbox a0_elab in
       let a1 = unbox a1_elab in
-      Debug.exec (fun () ->
-          pr "infer_motive_elab(%a : %a : %a)@." pp_tm m pp_tm a0 pp_tm a1);
-      let m_elab = check_tm ctx env m a1 in
+      let m_elab = check_tm ctx1 env m a1 in
       let t, ms_elab, b0_elab =
-        aux_motive (Ctx.add_var x a0 ctx) ms b0 (subst bnd1 m)
+        aux_motive (Ctx.add_var x a0 ctx0) ms b0 (subst bnd1 m)
       in
       (t, m_elab :: ms_elab, _Pi relv _L a0_elab (bind_var x b0_elab))
     | _ -> failwith "trans1e.infer_motive"
   in
-  let b, ms_elab, a_elab = aux_motive ctx ms a a in
+  let b, ms_elab, a_elab = aux_motive ctx1 ms a a in
   (b, box_list ms_elab, a_elab)
 
 and check_tm ctx env m a : tm box =
@@ -277,13 +270,11 @@ and check_tm ctx env m a : tm box =
     | Some (ss, xs, b) ->
       assert_equal1 env a b;
       let m_elab = _IMeta x ss xs in
-      Debug.exec (fun () -> pr "elab: %a@." pp_tm (unbox m_elab));
       m_elab
     | None ->
       let ss, xs = spine_of_ctx ctx in
       State.add_imeta ctx env x ss xs a;
       let m_elab = _IMeta x ss xs in
-      Debug.exec (fun () -> pr "elab: %a@." pp_tm (unbox m_elab));
       m_elab)
   | Fun (guard, b, bnd) ->
     let x, cls = unbind bnd in
@@ -351,18 +342,16 @@ and check_cls ctx env cls a : cls box =
         []
     (* case intro *)
     | (eqns, p :: ps, rhs, _) :: clause -> (
-      Debug.exec (fun () -> pr "case_intro@.");
       match whnf env a with
       | Pi (_, _, a, bnd) ->
         let x, b = unbind_pmeta bnd in
-        Debug.exec (fun () -> pr "case_introed(%a : %a)@." Var.pp x pp_tm a);
+        Debug.exec (fun () -> pr "case_intro(%a : %a)@." Var.pp x pp_tm a);
         let ctx = Ctx.add_var x a ctx in
         let prbm = prbm_add env prbm x a in
         aux_prbm ctx prbm b
       | a -> failwith "trans1e.check_cls(Intro(%a, %a))" pp_tm a (pp_ps " ") ps)
     (* case splitting *)
     | (eqns, [], rhs, ps) :: _ when can_split eqns -> (
-      Debug.exec (fun () -> pr "case_splitting@.");
       let x, b = first_split eqns in
       match whnf env b with
       | Ind (d, ss, ms, _) ->
@@ -392,7 +381,7 @@ and check_cls ctx env cls a : cls box =
             in
             aux_prbm ctx prbm a)
           cs
-      | b -> failwith "trans1e.check_cls(Split(%a))" pp_tm b)
+      | b -> failwith "trans1e.check_cls(Split(%a : %a))" Var.pp x pp_tm b)
     (* absurd pattern *)
     | (eqns, [], rhs, ps) :: _ when is_absurd eqns rhs ->
       Debug.exec (fun () -> pr "case_absurd@.");
@@ -551,17 +540,9 @@ let rec check_dcls ctx env dcls =
     let a = unbox a_elab in
     let m_elab = check_tm ctx0 env m a in
     let m = unbox m_elab in
-    Debug.exec (fun () ->
-        pr "@[initial_elab_ok(@;<1 2>@[%a@]:@;<1 2>@[%a@]@;<1 0>)@]@." pp_tm m
-          pp_tm a);
     let meta_map = solve_delayed (State.get_delayed ()) in
     let a_box = lift_tm (resolve_tm meta_map a) in
     let m_box = lift_tm (resolve_tm meta_map m) in
-    Debug.exec (fun () ->
-        let m = unbox m_box in
-        let a = unbox a_box in
-        pr "@[initial_resolve_ok(@;<1 2>@[%a@]:@;<1 2>@[%a@]@;<1 0>)@]@." pp_tm
-          m pp_tm a);
     let a_sch = bind_mvar ss a_box in
     let m_sch = bind_mvar ss m_box in
     let sch = bind_mvar ss (box_pair m_box a_box) in
@@ -577,19 +558,13 @@ let rec check_dcls ctx env dcls =
     let ctx0 = Ctx.add_ind ind (arity, []) ctx in
     let dconstrs_elab = check_dconstrs ind ctx0 env dconstrs in
     let dconstrs = unbox dconstrs_elab in
-    Debug.exec (fun () ->
-        pr "@[before_resolve :=@;<1 2>@[%a@]@]@." pp_dcl
-          (Inductive { name = ind; relv; arity; dconstrs }));
     let meta_map = solve_delayed (State.get_delayed ()) in
-    Debug.exec (fun () -> pr "delay_solved@.");
     let arity =
       resolve_scheme (lift_param lift_tele)
         (resolve_param lift_tele resolve_tele)
         meta_map arity
     in
-    Debug.exec (fun () -> pr "arity_resolved@.");
     let dconstrs = resolve_dconstrs meta_map dconstrs in
-    Debug.exec (fun () -> pr "dconstrs_resolved@.");
     let cs, ctx =
       List.fold_right
         (fun (c, sch) (acc, ctx) -> (c :: acc, Ctx.add_constr c sch ctx))
@@ -608,7 +583,7 @@ let rec check_dcls ctx env dcls =
     let meta_map = solve_delayed (State.get_delayed ()) in
     let a_sch = bind_mvar ss (lift_tm (resolve_tm meta_map a)) in
     let sch = unbox a_sch in
-    let ctx = Ctx.add_const x (unbox a_sch) ctx in
+    let ctx = Ctx.add_const x sch ctx in
     Debug.exec (fun () -> pr "----------------------------------@.@.");
     let dcls = check_dcls ctx env dcls in
     Extern { name = x; relv; scheme = sch } :: dcls

@@ -96,8 +96,7 @@ let trans_sort nspc = function
 let mk_smeta nspc =
   Syntax1.(_SMeta (SMeta.mk "") (box_list (sspine_of_nspc nspc)))
 
-let mk_meta nspc =
-  Syntax1.(_IMeta (IMeta.mk "") (box_list (sspine_of_nspc nspc)) (box []))
+let mk_meta nspc = Syntax1.(_IMeta (IMeta.mk "") (box []) (box []))
 
 let mk_inst nspc i =
   let ss = List.init i (fun _ -> mk_smeta nspc) in

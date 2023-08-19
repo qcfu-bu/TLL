@@ -602,8 +602,9 @@ module Program = struct
       | (eqns, p :: ps, rhs) :: clause -> (
         match whnf env a with
         | Pi (relv, s, a, bnd) -> (
-          Debug.exec (fun () -> pr "trans12.Program.case_intro(%a)@." pp_tm a);
           let x, b = unbind_pmeta bnd in
+          Debug.exec (fun () ->
+              pr "trans12.Program.case_intro(%a, %a)@." Var.pp x pp_tm a);
           let t = infer_demote ctx env a in
           let ctx = Ctx.add_var x a t ctx in
           let prbm = prbm_add env prbm x a relv in

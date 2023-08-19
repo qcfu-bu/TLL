@@ -374,7 +374,7 @@ let psubst (p0s, bnd) ms =
   let ms = match_p0s p0s ms in
   msubst bnd (Array.of_list ms)
 
-(* pattern unfold *)
+(* pattern expansion *)
 let expand_ps ps pvar_map =
   let rec aux_p = function
     | PVar x -> (
