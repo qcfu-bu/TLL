@@ -25,14 +25,18 @@ let pp_modifier fmt = function
 
 let rec pp_rxs fmt = function
   | [] -> ()
-  | [ (r, x) ] -> (
-    match r with
-    | N -> pf fmt "{%a}" Var.pp x
-    | R -> pf fmt "%a" Var.pp x)
-  | (r, x) :: rxs -> (
-    match r with
-    | N -> pf fmt "{%a},@;<1 0>%a" Var.pp x pp_rxs rxs
-    | R -> pf fmt "%a,@;<1 0>%a" Var.pp x pp_rxs rxs)
+  | [ ((r, s), x) ] -> (
+    match (r, s) with
+    | N, U -> pf fmt "{%a} ->" Var.pp x
+    | R, U -> pf fmt "(%a) ->" Var.pp x
+    | N, L -> pf fmt "{%a} -o" Var.pp x
+    | R, L -> pf fmt "(%a) -o" Var.pp x)
+  | ((r, s), x) :: rxs -> (
+    match (r, s) with
+    | N, U -> pf fmt "{%a} ->@;<1 0>%a" Var.pp x pp_rxs rxs
+    | R, U -> pf fmt "(%a) ->@;<1 0>%a" Var.pp x pp_rxs rxs
+    | N, L -> pf fmt "{%a} -o@;<1 0>%a" Var.pp x pp_rxs rxs
+    | R, L -> pf fmt "(%a) -o@;<1 0>%a" Var.pp x pp_rxs rxs)
 
 and pp_tm fmt = function
   (* core *)
@@ -42,7 +46,7 @@ and pp_tm fmt = function
     let x, bnd = unbind bnd in
     let xs, m = unmbind bnd in
     let rxs = List.combine relvs (Array.to_list xs) in
-    pf fmt "@[<v 0>@[fun %a (%a) =>@;<1 2>@[%a@]@]" Var.pp x pp_rxs rxs pp_tm m
+    pf fmt "@[<v 0>@[fun %a %a@;<1 2>@[%a@]@]" Var.pp x pp_rxs rxs pp_tm m
   | App _ as m ->
     let hd, ms = unApps m in
     let ms = List.map fst ms in

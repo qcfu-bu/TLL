@@ -1,860 +1,321 @@
 #[program]
-inductive unit_1‹› : U where
-| tt_1 : unit_1
+inductive unit_1‹s_42› : Type‹s_42› where
+| tt_1 : unit_1‹??_1›
 
 #[program]
-inductive bool_2‹› : U where
-| true_2 : bool_2
-| false_3 : bool_2
+inductive nat_2‹› : U where
+| zero_2 : nat_2
+| succ_3 (pred_43 : nat_2) : nat_2
 
 #[program]
-inductive nat_3‹› : U where
-| zero_4 : nat_3
-| succ_5 (pred_147 : nat_3) : nat_3
+inductive choice_3‹› : L where
+| next_4 : choice_3
+| free_5 : choice_3
 
 #[program]
-inductive list_4‹› (A_148 : U): U where
-| nil_6 : (list_4 A_148)
-| cons_7 (hd_149 : A_148) (tl_150 : (list_4 A_148)) : (list_4 A_148)
+inductive stream_node_4‹s_44› (A_45 : Type‹s_44›): L where
+| stream_nil_6 : (stream_node_4‹??_2› A_45)
+| stream_cons_7
+    (hd_46 : A_45)
+    (tl_47 : ∀ (x_48 : choice_3) -o
+               match x_48 in ?_1[0;0] -o ?_2[0;0] with
+               | next_4 => (stream_node_4‹??_3› A_45)
+               | free_5 => unit_1‹??_4›)
+    : (stream_node_4‹??_5› A_45)
 
 #[logical]
-inductive eq_5‹s_151› (A_152 : Type‹s_151›) (m_153 : A_152):
-  A_152 -> U
-where
-| refl_8 : (eq_5‹??_1› ?_1[0;0] m_153 m_153)
+def stream_1‹s_50› : Type‹s_50› -> ?_6[0;0] :=
+  function stream_52 : Type‹s_50› -> ?_3[0;0]
+  | A_54 =>
+    ∀ (x_55 : choice_3) -o
+      match x_55 in ?_4[0;0] -o ?_5[0;0] with
+      | next_4 => (stream_node_4‹??_6› A_54)
+      | free_5 => unit_1‹??_7›
 
 #[program]
-inductive exists_6‹s_155,r_156,t_157› (A_158 : Type‹s_155›) (B_159 : 
-A_158 -> Type‹r_156›): Type‹t_157› where
-| ex_9
-    (m_161 : A_158) {pf_162 : ((B_159) m_161)}
-    : (exists_6‹??_2,??_3,??_4› ?_2[0;0] B_159)
+def free_stream_2‹s_57› :
+  ∀ {A_58 : Type‹s_57›} ->
+    ((stream_1‹??_10›) A_58) -> unit_1‹U›
+:=
+  function free_stream_60 :
+    ∀ {A_61 : Type‹s_57›} ->
+      ((stream_1‹??_8›) A_61) -> unit_1‹U›
+  | A_63 st_64 =>
+    match ((st_64) free_5) in ?_7[0;0] -o ?_8[0;0] with
+    | tt_1 => tt_1‹??_9›
 
 #[program]
-inductive sing_7‹s_163› (A_164 : Type‹s_163›):
-  A_164 -> Type‹s_163›
-where
-| just_10 (m_166 : A_164) : (sing_7‹??_5› ?_3[0;0] m_166)
+def stream_succ_3‹› :
+  ((stream_1‹??_15›) nat_2) -> ((stream_1‹??_16›) nat_2)
+:=
+  function stream_succ_67 :
+    ((stream_1‹??_11›) nat_2) -> ((stream_1‹??_12›) nat_2)
+  | xs_69 next_4 =>
+    match ((xs_69) next_4) in ?_9[0;0] -o ?_10[0;0] with
+    | stream_nil_6 => (stream_nil_6‹??_13› ?_11[0;0])
+    | (stream_cons_7 hd_71 tl_72) =>
+      (stream_cons_7‹??_14›
+        ?_12[0;0] (succ_3‹› hd_71) ((stream_succ_67) tl_72))
+  | xs_73 free_5 => ((xs_73) free_5)
 
 #[program]
-inductive prod_8‹s_167,r_168,t_169› (A_170 : Type‹s_167›) (B_171 : Type‹r_168›):
-  Type‹t_169›
-where
-| pair_11
-    (m_172 : A_170) (n_173 : B_171)
-    : (prod_8‹??_6,??_7,??_8› A_170 B_171)
+def nat_make_4‹› : nat_2 -> ((stream_1‹??_20›) nat_2) :=
+  function nat_make_75 : nat_2 -> ((stream_1‹??_17›) nat_2)
+  | n_77 next_4 =>
+    (stream_cons_7‹??_18›
+      ?_13[0;0] n_77 ((nat_make_75) (succ_3‹› n_77)))
+  | n_78 free_5 => tt_1‹??_19›
 
 #[program]
-def exists_sing_1‹s_174,t_175› :
-  ∀ {A_176 : Type‹s_174›} ->
-    ∀ {m_177 : A_176} ->
-      (exists_6‹??_14,??_15,t_175›
-        ?_11[0;0]
-        function _179 : A_176 -> ?_9[0;0]
-        | a_181 => (eq_5‹??_16› ?_10[0;0] a_181 m_177)) ->
-        (sing_7‹??_17› ?_12[0;0] m_177)
-:=
-  function exists_sing_182 :
-    ∀ {A_183 : Type‹s_174›} ->
-      ∀ {m_184 : A_183} ->
-        (exists_6‹??_9,??_10,t_175›
-          ?_6[0;0]
-          function _186 : A_183 -> ?_4[0;0]
-          | a_188 => (eq_5‹??_11› ?_5[0;0] a_188 m_184)) ->
-          (sing_7‹??_12› ?_7[0;0] m_184)
-  | A_189 m_190 (ex_9 x_191 refl_8) => (just_10‹??_13› ?_8[0;0] x_191)
+def nat_stream_5‹› : ?_14[0;0] := ((nat_make_4) zero_2)
 
 #[program]
-def sing_exists_2‹s_192,t_193› :
-  ∀ {A_194 : Type‹s_192›} ->
-    ∀ {m_195 : A_194} ->
-      (sing_7‹??_26› ?_21[0;0] m_195) ->
-        (exists_6‹??_27,??_28,t_193›
-          ?_24[0;0]
-          function _197 : A_194 -> ?_22[0;0]
-          | a_199 => (eq_5‹??_29› ?_23[0;0] a_199 m_195))
-:=
-  function sing_exists_200 :
-    ∀ {A_201 : Type‹s_192›} ->
-      ∀ {m_202 : A_201} ->
-        (sing_7‹??_18› ?_13[0;0] m_202) ->
-          (exists_6‹??_19,??_20,t_193›
-            ?_16[0;0]
-            function _204 : A_201 -> ?_14[0;0]
-            | a_206 => (eq_5‹??_21› ?_15[0;0] a_206 m_202))
-  | A_207 m_208 (just_10 x_209) =>
-    (ex_9‹??_23,??_24,??_25›
-      ?_19[0;0] ?_20[0;0] x_209 (refl_8‹??_22› ?_17[0;0] ?_18[0;0]))
-
-#[logical]
-def sing_exists_equiv1_3‹s_210,t_211› :
-  ∀ {A_212 : Type‹s_210›} ->
-    ∀ {m_213 : A_212} ->
-      ∀ (x_214 : (sing_7‹??_36› ?_33[0;0] m_213)) ->
-        (eq_5‹??_40›
-          ?_38[0;0]
-          ((exists_sing_1‹??_38,??_39›)
-            ?_37[0;0] ?_36[0;0]
-            ((sing_exists_2‹??_37,t_211›) ?_35[0;0] ?_34[0;0] x_214))
-          x_214)
-:=
-  function sing_exists_equiv1_215 :
-    ∀ {A_216 : Type‹s_210›} ->
-      ∀ {m_217 : A_216} ->
-        ∀ (x_218 : (sing_7‹??_30› ?_25[0;0] m_217)) ->
-          (eq_5‹??_34›
-            ?_30[0;0]
-            ((exists_sing_1‹??_32,??_33›)
-              ?_29[0;0] ?_28[0;0]
-              ((sing_exists_2‹??_31,t_211›) ?_27[0;0] ?_26[0;0] x_218))
-            x_218)
-  | A_219 m_220 (just_10 x_221) => (refl_8‹??_35› ?_31[0;0] ?_32[0;0])
-
-#[logical]
-def sing_exists_equiv2_4‹s_222,t_223› :
-  ∀ {A_224 : Type‹s_222›} ->
-    ∀ {m_225 : A_224} ->
-      ∀ (x_226 :
-        (exists_6‹??_50,??_51,t_223›
-          ?_51[0;0]
-          function _227 : A_224 -> ?_49[0;0]
-          | a_229 => (eq_5‹??_52› ?_50[0;0] a_229 m_225))) ->
-        (eq_5‹??_57›
-          ?_56[0;0]
-          ((sing_exists_2‹??_55,??_56›)
-            ?_55[0;0] ?_54[0;0]
-            ((exists_sing_1‹??_53,??_54›) ?_53[0;0] ?_52[0;0] x_226))
-          x_226)
-:=
-  function sing_exists_equiv2_230 :
-    ∀ {A_231 : Type‹s_222›} ->
-      ∀ {m_232 : A_231} ->
-        ∀ (x_233 :
-          (exists_6‹??_41,??_42,t_223›
-            ?_41[0;0]
-            function _234 : A_231 -> ?_39[0;0]
-            | a_236 => (eq_5‹??_43› ?_40[0;0] a_236 m_232))) ->
-          (eq_5‹??_48›
-            ?_46[0;0]
-            ((sing_exists_2‹??_46,??_47›)
-              ?_45[0;0] ?_44[0;0]
-              ((exists_sing_1‹??_44,??_45›) ?_43[0;0] ?_42[0;0] x_233))
-            x_233)
-  | A_237 m_238 (ex_9 x_239 refl_8) =>
-    (refl_8‹??_49› ?_47[0;0] ?_48[0;0])
+def snat_stream_6‹› : ?_15[0;0] := ((stream_succ_3) nat_stream_5)
 
 #[program]
-def sing_double_5‹s_240,t_241› :
-  ∀ {A_242 : Type‹s_240›} ->
-    ∀ {m_243 : A_242} ->
-      (sing_7‹??_67› ?_64[0;0] m_243) ->
-        (sing_7‹??_68› ?_65[0;0] m_243) -o
-          (prod_8‹??_69,??_70,t_241› A_242 A_242)
-:=
-  function sing_double_246 :
-    ∀ {A_247 : Type‹s_240›} ->
-      ∀ {m_248 : A_247} ->
-        (sing_7‹??_58› ?_57[0;0] m_248) ->
-          (sing_7‹??_59› ?_58[0;0] m_248) -o
-            (prod_8‹??_60,??_61,t_241› A_247 A_247)
-  | A_251 m_252 (just_10 x_253) (just_10 y_254) =>
-    let {pf_255} :=
-      ((refl_8‹??_62› ?_59[0;0] ?_60[0;0])
-        : (eq_5‹??_63› ?_61[0;0] x_253 y_254))
-    in (pair_11‹??_64,??_65,??_66› ?_62[0;0] ?_63[0;0] x_253 y_254)
-
-#[logical]
-def axiom_K_6‹› :
-  ∀ {A_256 : U} ->
-    ∀ {m_257 : A_256} ->
-      ∀ (x_258 : (eq_5‹??_75› ?_72[0;0] m_257 m_257)) ->
-        (eq_5‹??_77›
-          ?_75[0;0] x_258 (refl_8‹??_76› ?_73[0;0] ?_74[0;0]))
-:=
-  function axiom_K_259 :
-    ∀ {A_260 : U} ->
-      ∀ {m_261 : A_260} ->
-        ∀ (x_262 : (eq_5‹??_71› ?_66[0;0] m_261 m_261)) ->
-          (eq_5‹??_73›
-            ?_69[0;0] x_262 (refl_8‹??_72› ?_67[0;0] ?_68[0;0]))
-  | A_263 m_264 refl_8 => (refl_8‹??_74› ?_70[0;0] ?_71[0;0])
-
-#[program]
-def pattern_expansion_7‹› : ∀ {A_265 : U} -> (list_4 A_265) -o unit_1
-:=
-  function pattern_expansion_267 :
-    ∀ {A_268 : U} -> (list_4 A_268) -o unit_1
-  | A_270 nil_6 => tt_1
-  | A_271 (cons_7 x_272 nil_6) => tt_1
-  | A_273 xs_274 =>
-    let {pf_275} :=
-      ((refl_8‹??_78› ?_76[0;0] ?_77[0;0])
-        : (eq_5‹??_79› ?_78[0;0] xs_274 xs_274))
-    in tt_1
+def __7‹› : ?_17[0;0] :=
+  ((free_stream_2‹??_21›) ?_16[0;0] snat_stream_6)
 
 -----------------------------------------
 
 #[program]
-inductive unit_1‹› : U where
-| tt_1 : unit_1
+inductive unit_1‹s_620› : Type‹s_620› where
+| tt_1 : unit_1‹s_620›
 
 #[program]
-inductive bool_2‹› : U where
-| true_2 : bool_2
-| false_3 : bool_2
+inductive nat_2‹› : U where
+| zero_2 : nat_2
+| succ_3 (pred_621 : nat_2) : nat_2
 
 #[program]
-inductive nat_3‹› : U where
-| zero_4 : nat_3
-| succ_5 (pred_4337 : nat_3) : nat_3
+inductive choice_3‹› : L where
+| next_4 : choice_3
+| free_5 : choice_3
 
 #[program]
-inductive list_4‹› (A_4338 : U): U where
-| nil_6 : (list_4 A_4338)
-| cons_7 (hd_4339 : A_4338) (tl_4340 : (list_4 A_4338)) : (list_4 A_4338)
+inductive stream_node_4‹s_622› (A_623 : Type‹s_622›): L where
+| stream_nil_6 : (stream_node_4‹s_622› A_623)
+| stream_cons_7
+    (hd_624 : A_623)
+    (tl_625 : ∀ (x_626 : choice_3) -o
+                match x_626 in choice_3 -o L with
+                | next_4 => (stream_node_4‹s_622› A_623)
+                | free_5 => unit_1‹L›)
+    : (stream_node_4‹s_622› A_623)
 
 #[logical]
-inductive eq_5‹s_4341› (A_4342 : Type‹s_4341›) (m_4343 : A_4342):
-  A_4342 -> U
-where
-| refl_8 : (eq_5‹s_4341› A_4342 m_4343 m_4343)
+def stream_1‹s_628› : Type‹s_628› -> L :=
+  function stream_630 : Type‹s_628› -> L
+  | A_632 =>
+    ∀ (x_633 : choice_3) -o
+      match x_633 in choice_3 -o L with
+      | next_4 => (stream_node_4‹s_628› A_632)
+      | free_5 => unit_1‹L›
 
 #[program]
-inductive exists_6‹s_4345,r_4346,t_4347› (A_4348 : Type‹s_4345›) (B_4349 : 
-A_4348 -> Type‹r_4346›): Type‹t_4347› where
-| ex_9
-    (m_4351 : A_4348) {pf_4352 : ((B_4349) m_4351)}
-    : (exists_6‹s_4345,r_4346,t_4347› A_4348 B_4349)
+def free_stream_2‹s_635› :
+  ∀ {A_636 : Type‹s_635›} ->
+    ((stream_1‹s_635›) A_636) -> unit_1‹U›
+:=
+  function free_stream_638 :
+    ∀ {A_639 : Type‹s_635›} ->
+      ((stream_1‹s_635›) A_639) -> unit_1‹U›
+  | A_641 st_642 =>
+    match ((st_642) free_5) in unit_1‹L› -o unit_1‹U› with
+    | tt_1 => tt_1‹U›
 
 #[program]
-inductive sing_7‹s_4353› (A_4354 : Type‹s_4353›):
-  A_4354 -> Type‹s_4353›
-where
-| just_10 (m_4356 : A_4354) : (sing_7‹s_4353› A_4354 m_4356)
+def stream_succ_3‹› :
+  ((stream_1‹U›) nat_2) -> ((stream_1‹U›) nat_2)
+:=
+  function stream_succ_645 :
+    ((stream_1‹U›) nat_2) -> ((stream_1‹U›) nat_2)
+  | xs_647 next_4 =>
+    match ((xs_647) next_4) in
+      (stream_node_4‹U› nat_2) -o (stream_node_4‹U› nat_2)
+    with
+    | stream_nil_6 => (stream_nil_6‹U› nat_2)
+    | (stream_cons_7 hd_649 tl_650) =>
+      (stream_cons_7‹U›
+        nat_2 (succ_3‹› hd_649) ((stream_succ_645) tl_650))
+  | xs_651 free_5 => ((xs_651) free_5)
 
 #[program]
-inductive prod_8‹s_4357,r_4358,t_4359› (A_4360 : Type‹s_4357›) (B_4361 : Type‹r_4358›):
-  Type‹t_4359›
-where
-| pair_11
-    (m_4362 : A_4360) (n_4363 : B_4361)
-    : (prod_8‹s_4357,r_4358,t_4359› A_4360 B_4361)
+def nat_make_4‹› : nat_2 -> ((stream_1‹U›) nat_2) :=
+  function nat_make_653 : nat_2 -> ((stream_1‹U›) nat_2)
+  | n_655 next_4 =>
+    (stream_cons_7‹U› nat_2 n_655 ((nat_make_653) (succ_3‹› n_655)))
+  | n_656 free_5 => tt_1‹L›
 
 #[program]
-def exists_sing_1‹s_4364,t_4365› :
-  ∀ {A_4366 : Type‹s_4364›} ->
-    ∀ {m_4367 : A_4366} ->
-      (exists_6‹s_4364,U,t_4365›
-        A_4366
-        function _4369 : A_4366 -> U
-        | __4371 => (eq_5‹s_4364› A_4366 __4371 m_4367)) ->
-        (sing_7‹s_4364› A_4366 m_4367)
-:=
-  function exists_sing_4372 :
-    ∀ {A_4373 : Type‹s_4364›} ->
-      ∀ {m_4374 : A_4373} ->
-        (exists_6‹s_4364,U,t_4365›
-          A_4373
-          function _4376 : A_4373 -> U
-          | __4378 => (eq_5‹s_4364› A_4373 __4378 m_4374)) ->
-          (sing_7‹s_4364› A_4373 m_4374)
-  | A_4379 m_4380 (ex_9 m_4381 refl_8) => (just_10‹s_4364› A_4379 m_4381)
+def nat_stream_5‹› : ((stream_1‹U›) nat_2) := ((nat_make_4) zero_2)
 
 #[program]
-def sing_exists_2‹s_4382,t_4383› :
-  ∀ {A_4384 : Type‹s_4382›} ->
-    ∀ {m_4385 : A_4384} ->
-      (sing_7‹s_4382› A_4384 m_4385) ->
-        (exists_6‹s_4382,U,t_4383›
-          A_4384
-          function _4387 : A_4384 -> U
-          | __4389 => (eq_5‹s_4382› A_4384 __4389 m_4385))
-:=
-  function sing_exists_4390 :
-    ∀ {A_4391 : Type‹s_4382›} ->
-      ∀ {m_4392 : A_4391} ->
-        (sing_7‹s_4382› A_4391 m_4392) ->
-          (exists_6‹s_4382,U,t_4383›
-            A_4391
-            function _4394 : A_4391 -> U
-            | __4396 => (eq_5‹s_4382› A_4391 __4396 m_4392))
-  | A_4397 m_4398 (just_10 m_4399) =>
-    (ex_9‹s_4382,U,t_4383›
-      A_4397
-      function _4400 : A_4397 -> U
-      | __4402 => (eq_5‹s_4382› A_4397 __4402 m_4399) m_4399
-      (refl_8‹s_4382› A_4397 m_4399))
-
-#[logical]
-def sing_exists_equiv1_3‹s_4403,t_4404› :
-  ∀ {A_4405 : Type‹s_4403›} ->
-    ∀ {m_4406 : A_4405} ->
-      ∀ (x_4407 : (sing_7‹s_4403› A_4405 m_4406)) ->
-        (eq_5‹s_4403›
-          (sing_7‹s_4403› A_4405 m_4406)
-          ((exists_sing_1‹s_4403,t_4404›)
-            A_4405 m_4406
-            ((sing_exists_2‹s_4403,t_4404›) A_4405 m_4406 x_4407))
-          x_4407)
-:=
-  function sing_exists_equiv1_4408 :
-    ∀ {A_4409 : Type‹s_4403›} ->
-      ∀ {m_4410 : A_4409} ->
-        ∀ (x_4411 : (sing_7‹s_4403› A_4409 m_4410)) ->
-          (eq_5‹s_4403›
-            (sing_7‹s_4403› A_4409 m_4410)
-            ((exists_sing_1‹s_4403,t_4404›)
-              A_4409 m_4410
-              ((sing_exists_2‹s_4403,t_4404›) A_4409 m_4410 x_4411))
-            x_4411)
-  | A_4412 m_4413 (just_10 m_4414) =>
-    (refl_8‹s_4403›
-      (sing_7‹s_4403› A_4412 m_4414)
-      ((exists_sing_1‹s_4403,t_4404›)
-        A_4412 m_4414
-        ((sing_exists_2‹s_4403,t_4404›)
-          A_4412 m_4414 (just_10‹s_4403› A_4412 m_4414))))
-
-#[logical]
-def sing_exists_equiv2_4‹s_4415,t_4416› :
-  ∀ {A_4417 : Type‹s_4415›} ->
-    ∀ {m_4418 : A_4417} ->
-      ∀ (x_4419 :
-        (exists_6‹s_4415,U,t_4416›
-          A_4417
-          function _4420 : A_4417 -> U
-          | __4422 => (eq_5‹s_4415› A_4417 __4422 m_4418))) ->
-        (eq_5‹t_4416›
-          (exists_6‹s_4415,U,t_4416›
-            A_4417
-            function _4423 : A_4417 -> U
-            | __4425 => (eq_5‹s_4415› A_4417 __4425 m_4418))
-          ((sing_exists_2‹s_4415,t_4416›)
-            A_4417 m_4418
-            ((exists_sing_1‹s_4415,t_4416›) A_4417 m_4418 x_4419))
-          x_4419)
-:=
-  function sing_exists_equiv2_4426 :
-    ∀ {A_4427 : Type‹s_4415›} ->
-      ∀ {m_4428 : A_4427} ->
-        ∀ (x_4429 :
-          (exists_6‹s_4415,U,t_4416›
-            A_4427
-            function _4430 : A_4427 -> U
-            | __4432 => (eq_5‹s_4415› A_4427 __4432 m_4428))) ->
-          (eq_5‹t_4416›
-            (exists_6‹s_4415,U,t_4416›
-              A_4427
-              function _4433 : A_4427 -> U
-              | __4435 => (eq_5‹s_4415› A_4427 __4435 m_4428))
-            ((sing_exists_2‹s_4415,t_4416›)
-              A_4427 m_4428
-              ((exists_sing_1‹s_4415,t_4416›) A_4427 m_4428 x_4429))
-            x_4429)
-  | A_4436 m_4437 (ex_9 m_4438 refl_8) =>
-    (refl_8‹t_4416›
-      (exists_6‹s_4415,U,t_4416›
-        A_4436
-        function _4439 : A_4436 -> U
-        | __4441 => (eq_5‹s_4415› A_4436 __4441 m_4438))
-      ((sing_exists_2‹s_4415,t_4416›)
-        A_4436 m_4438
-        ((exists_sing_1‹s_4415,t_4416›)
-          A_4436 m_4438
-          (ex_9‹s_4415,U,t_4416›
-            A_4436
-            function _4442 : A_4436 -> U
-            | __4444 => (eq_5‹s_4415› A_4436 __4444 m_4438) m_4438
-            (refl_8‹s_4415› A_4436 m_4438)))))
+def snat_stream_6‹› : ((stream_1‹U›) nat_2) :=
+  ((stream_succ_3) nat_stream_5)
 
 #[program]
-def sing_double_5‹s_4445,t_4446› :
-  ∀ {A_4447 : Type‹s_4445›} ->
-    ∀ {m_4448 : A_4447} ->
-      (sing_7‹s_4445› A_4447 m_4448) ->
-        (sing_7‹s_4445› A_4447 m_4448) -o
-          (prod_8‹s_4445,s_4445,t_4446› A_4447 A_4447)
-:=
-  function sing_double_4451 :
-    ∀ {A_4452 : Type‹s_4445›} ->
-      ∀ {m_4453 : A_4452} ->
-        (sing_7‹s_4445› A_4452 m_4453) ->
-          (sing_7‹s_4445› A_4452 m_4453) -o
-            (prod_8‹s_4445,s_4445,t_4446› A_4452 A_4452)
-  | A_4456 m_4457 (just_10 m_4458) (just_10 m_4459) =>
-    let {pf_4460} :=
-      ((refl_8‹s_4445› A_4456 m_4458)
-        : (eq_5‹s_4445› A_4456 m_4458 m_4459))
-    in (pair_11‹s_4445,s_4445,t_4446› A_4456 A_4456 m_4458 m_4459)
-
-#[logical]
-def axiom_K_6‹› :
-  ∀ {A_4461 : U} ->
-    ∀ {m_4462 : A_4461} ->
-      ∀ (x_4463 : (eq_5‹U› A_4461 m_4462 m_4462)) ->
-        (eq_5‹U›
-          (eq_5‹U› A_4461 m_4462 m_4462) x_4463
-          (refl_8‹U› A_4461 m_4462))
-:=
-  function axiom_K_4464 :
-    ∀ {A_4465 : U} ->
-      ∀ {m_4466 : A_4465} ->
-        ∀ (x_4467 : (eq_5‹U› A_4465 m_4466 m_4466)) ->
-          (eq_5‹U›
-            (eq_5‹U› A_4465 m_4466 m_4466) x_4467
-            (refl_8‹U› A_4465 m_4466))
-  | A_4468 m_4469 refl_8 =>
-    (refl_8‹U›
-      (eq_5‹U› A_4468 m_4469 m_4469) (refl_8‹U› A_4468 m_4469))
-
-#[program]
-def pattern_expansion_7‹› : ∀ {A_4470 : U} -> (list_4 A_4470) -o unit_1
-:=
-  function pattern_expansion_4472 :
-    ∀ {A_4473 : U} -> (list_4 A_4473) -o unit_1
-  | A_4475 nil_6 => tt_1
-  | A_4476 (cons_7 hd_4477 nil_6) => tt_1
-  | A_4478 (cons_7 hd_4479 (cons_7 hd_4480 tl_4481)) =>
-    let {pf_4482} :=
-      ((refl_8‹U›
-         (list_4 A_4478)
-         (cons_7‹› A_4478 hd_4479 (cons_7‹› A_4478 hd_4480 tl_4481)))
-        : (eq_5‹U›
-            (list_4 A_4478)
-            (cons_7‹›
-              A_4478 hd_4479 (cons_7‹› A_4478 hd_4480 tl_4481))
-            (cons_7‹›
-              A_4478 hd_4479 (cons_7‹› A_4478 hd_4480 tl_4481))))
-    in tt_1
+def __7‹› : unit_1‹U› := ((free_stream_2‹U›) nat_2 snat_stream_6)
 
 -----------------------------------------
 
 #[program]
-inductive unit_1 where
-| tt_1 of layout[]
+inductive unitU_6 where
+| ttU_9 of layout[]
 
 #[program]
-inductive bool_2 where
-| true_2 of layout[]
-| false_3 of layout[]
+inductive unitL_5 where
+| ttL_8 of layout[]
 
 #[program]
-inductive nat_3 where
-| zero_4 of layout[]
-| succ_5 of layout[R]
+inductive nat_2 where
+| zero_2 of layout[]
+| succ_3 of layout[R]
 
 #[program]
-inductive list_4 where
-| nil_6 of layout[]
-| cons_7 of layout[R, R]
+inductive choice_3 where
+| next_4 of layout[]
+| free_5 of layout[]
+
+#[program]
+inductive stream_nodeU_8 where
+| stream_nilU_12 of layout[]
+| stream_consU_13 of layout[R, R]
+
+#[program]
+inductive stream_nodeL_7 where
+| stream_nilL_10 of layout[]
+| stream_consL_11 of layout[R, R]
 
 #[logical]
-inductive eqU_10 where
-| reflU_13 of layout[]
+def streamU_9 := NULL
 
 #[logical]
-inductive eqL_9 where
-| reflL_12 of layout[]
+def streamL_8 := NULL
 
 #[program]
-inductive existsUUU_18 where
-| exUUU_21 of layout[R, N]
+def free_streamU_11 :=
+  fun free_stream_836 {A_837} -> (st_838) ->
+    match ((st_838) free_5) with
+    | ttL_8  => ttU_9
+    end
 
 #[program]
-inductive existsUUL_17 where
-| exUUL_20 of layout[R, N]
+def free_streamL_10 :=
+  fun free_stream_839 {A_840} -> (st_841) ->
+    match ((st_841) free_5) with
+    | ttL_8  => ttU_9
+    end
 
 #[program]
-inductive existsULU_16 where
-| exULU_19 of layout[R, N]
-
-#[program]
-inductive existsULL_15 where
-| exULL_18 of layout[R, N]
-
-#[program]
-inductive existsLUU_14 where
-
-
-#[program]
-inductive existsLUL_13 where
-| exLUL_16 of layout[R, N]
-
-#[program]
-inductive existsLLU_12 where
-
-
-#[program]
-inductive existsLLL_11 where
-| exLLL_14 of layout[R, N]
-
-#[program]
-inductive singU_20 where
-| justU_23 of layout[R]
-
-#[program]
-inductive singL_19 where
-| justL_22 of layout[R]
-
-#[program]
-inductive prodUUU_28 where
-| pairUUU_31 of layout[R, R]
-
-#[program]
-inductive prodUUL_27 where
-| pairUUL_30 of layout[R, R]
-
-#[program]
-inductive prodULU_26 where
-
-
-#[program]
-inductive prodULL_25 where
-| pairULL_28 of layout[R, R]
-
-#[program]
-inductive prodLUU_24 where
-
-
-#[program]
-inductive prodLUL_23 where
-| pairLUL_26 of layout[R, R]
-
-#[program]
-inductive prodLLU_22 where
-
-
-#[program]
-inductive prodLLL_21 where
-| pairLLL_24 of layout[R, R]
-
-#[program]
-def exists_singUU_11 :=
-  fun exists_sing_7527 ({A_7528}, {m_7529}, __7530) =>
-    match __7530 with
-    | exUUU_21 m_7531 pf_7532 =>
-      match {NULL} with
-      | reflU_13  => (justU_23 m_7531)
+def stream_succ_3 :=
+  fun stream_succ_842 (xs_843) -> (x_844) -o
+    match x_844 with
+    | next_4  =>
+      match ((xs_843) next_4) with
+      | stream_nilU_12  => stream_nilU_12
+      | stream_consU_13 hd_845 tl_846 =>
+        (stream_consU_13 (succ_3 hd_845) ((stream_succ_842) tl_846))
       end
+    | free_5  => ((xs_843) free_5)
     end
 
 #[program]
-def exists_singUL_10 :=
-  fun exists_sing_7533 ({A_7534}, {m_7535}, __7536) =>
-    match __7536 with
-    | exUUL_20 m_7537 pf_7538 =>
-      match {NULL} with
-      | reflU_13  => (justU_23 m_7537)
-      end
+def nat_make_4 :=
+  fun nat_make_847 (n_848) -> (x_849) -o
+    match x_849 with
+    | next_4  => (stream_consU_13 n_848 ((nat_make_847) (succ_3 n_848)))
+    | free_5  => ttL_8
     end
 
 #[program]
-def exists_singLU_9 :=
-  fun exists_sing_7539 ({A_7540}, {m_7541}, __7542) => match __7542 with
-                                                       
-                                                       end
+def nat_stream_5 := ((nat_make_4) zero_2)
 
 #[program]
-def exists_singLL_8 :=
-  fun exists_sing_7543 ({A_7544}, {m_7545}, __7546) =>
-    match __7546 with
-    | exLUL_16 m_7547 pf_7548 =>
-      match {NULL} with
-      | reflL_12  => (justL_22 m_7547)
-      end
-    end
+def snat_stream_6 := ((stream_succ_3) nat_stream_5)
 
 #[program]
-def sing_existsUU_15 :=
-  fun sing_exists_7549 ({A_7550}, {m_7551}, __7552) =>
-    match __7552 with
-    | justU_23 m_7553 => (exUUU_21 m_7553 NULL)
-    end
-
-#[program]
-def sing_existsUL_14 :=
-  fun sing_exists_7554 ({A_7555}, {m_7556}, __7557) =>
-    match __7557 with
-    | justU_23 m_7558 => (exUUL_20 m_7558 NULL)
-    end
-
-#[program]
-def sing_existsLL_12 :=
-  fun sing_exists_7559 ({A_7560}, {m_7561}, __7562) =>
-    match __7562 with
-    | justL_22 m_7563 => (exLUL_16 m_7563 NULL)
-    end
-
-#[logical]
-def sing_exists_equiv1UU_19 := NULL
-
-#[logical]
-def sing_exists_equiv1UL_18 := NULL
-
-#[logical]
-def sing_exists_equiv1LL_16 := NULL
-
-#[logical]
-def sing_exists_equiv2UU_23 := NULL
-
-#[logical]
-def sing_exists_equiv2UL_22 := NULL
-
-#[logical]
-def sing_exists_equiv2LL_20 := NULL
-
-#[program]
-def sing_doubleUU_27 :=
-  fun sing_double_7564 ({A_7565}, {m_7566}, __7567, __7568) =>
-    match __7567 with
-    | justU_23 m_7569 =>
-      match __7568 with
-      | justU_23 m_7570 => (pairUUU_31 m_7569 m_7570)
-      end
-    end
-
-#[program]
-def sing_doubleUL_26 :=
-  fun sing_double_7571 ({A_7572}, {m_7573}, __7574, __7575) =>
-    match __7574 with
-    | justU_23 m_7576 =>
-      match __7575 with
-      | justU_23 m_7577 => (pairUUL_30 m_7576 m_7577)
-      end
-    end
-
-#[program]
-def sing_doubleLL_24 :=
-  fun sing_double_7578 ({A_7579}, {m_7580}, __7581, __7582) =>
-    match __7581 with
-    | justL_22 m_7583 =>
-      match __7582 with
-      | justL_22 m_7584 => (pairLLL_24 m_7583 m_7584)
-      end
-    end
-
-#[logical]
-def axiom_K_6 := NULL
-
-#[program]
-def pattern_expansion_7 :=
-  fun pattern_expansion_7585 ({A_7586}, __7587) =>
-    match __7587 with
-    | nil_6  => tt_1
-    | cons_7 hd_7588 tl_7589 =>
-      match tl_7589 with
-      | nil_6  => tt_1 | cons_7 hd_7590 tl_7591 => tt_1
-      end
-    end
+def __7 := ((free_streamU_11) NULL snat_stream_6)
 
 -----------------------------------------
 
 #[program]
-inductive unit_1 where
-| tt_1 of layout[]
+inductive unitU_6 where
+| ttU_9 of layout[]
 
 #[program]
-inductive bool_2 where
-| true_2 of layout[]
-| false_3 of layout[]
+inductive unitL_5 where
+| ttL_8 of layout[]
 
 #[program]
-inductive nat_3 where
-| zero_4 of layout[]
-| succ_5 of layout[R]
+inductive nat_2 where
+| zero_2 of layout[]
+| succ_3 of layout[R]
 
 #[program]
-inductive list_4 where
-| nil_6 of layout[]
-| cons_7 of layout[R, R]
+inductive choice_3 where
+| next_4 of layout[]
+| free_5 of layout[]
+
+#[program]
+inductive stream_nodeU_8 where
+| stream_nilU_12 of layout[]
+| stream_consU_13 of layout[R, R]
+
+#[program]
+inductive stream_nodeL_7 where
+| stream_nilL_10 of layout[]
+| stream_consL_11 of layout[R, R]
 
 #[logical]
-inductive eqU_10 where
-| reflU_13 of layout[]
+def streamU_9 := NULL
 
 #[logical]
-inductive eqL_9 where
-| reflL_12 of layout[]
+def streamL_8 := NULL
 
 #[program]
-inductive existsUUU_18 where
-| exUUU_21 of layout[R, N]
-
-#[program]
-inductive existsUUL_17 where
-| exUUL_20 of layout[R, N]
-
-#[program]
-inductive existsULU_16 where
-| exULU_19 of layout[R, N]
-
-#[program]
-inductive existsULL_15 where
-| exULL_18 of layout[R, N]
-
-#[program]
-inductive existsLUU_14 where
-
-
-#[program]
-inductive existsLUL_13 where
-| exLUL_16 of layout[R, N]
-
-#[program]
-inductive existsLLU_12 where
-
-
-#[program]
-inductive existsLLL_11 where
-| exLLL_14 of layout[R, N]
-
-#[program]
-inductive singU_20 where
-| justU_23 of layout[R]
-
-#[program]
-inductive singL_19 where
-| justL_22 of layout[R]
-
-#[program]
-inductive prodUUU_28 where
-| pairUUU_31 of layout[R, R]
-
-#[program]
-inductive prodUUL_27 where
-| pairUUL_30 of layout[R, R]
-
-#[program]
-inductive prodULU_26 where
-
-
-#[program]
-inductive prodULL_25 where
-| pairULL_28 of layout[R, R]
-
-#[program]
-inductive prodLUU_24 where
-
-
-#[program]
-inductive prodLUL_23 where
-| pairLUL_26 of layout[R, R]
-
-#[program]
-inductive prodLLU_22 where
-
-
-#[program]
-inductive prodLLL_21 where
-| pairLLL_24 of layout[R, R]
-
-#[program]
-def exists_singUU_11 :=
-  fun exists_sing_7657 ({A_7658}, {m_7659}, __7660) =>
-    match __7660 with
-    | exUUU_21 m_7661 pf_7662 => (justU_23 m_7661)
+def free_streamU_11 :=
+  fun free_stream_864 {A_865} -> (st_866) ->
+    match ((st_866) free_5) with
+    | ttL_8  => ttU_9
     end
 
 #[program]
-def exists_singUL_10 :=
-  fun exists_sing_7663 ({A_7664}, {m_7665}, __7666) =>
-    match __7666 with
-    | exUUL_20 m_7667 pf_7668 => (justU_23 m_7667)
+def free_streamL_10 :=
+  fun free_stream_867 {A_868} -> (st_869) ->
+    match ((st_869) free_5) with
+    | ttL_8  => ttU_9
     end
 
 #[program]
-def exists_singLU_9 :=
-  fun exists_sing_7669 ({A_7670}, {m_7671}, __7672) => !!
-
-#[program]
-def exists_singLL_8 :=
-  fun exists_sing_7673 ({A_7674}, {m_7675}, __7676) =>
-    match __7676 with
-    | exLUL_16 m_7677 pf_7678 => (justL_22 m_7677)
-    end
-
-#[program]
-def sing_existsUU_15 :=
-  fun sing_exists_7679 ({A_7680}, {m_7681}, __7682) =>
-    match __7682 with
-    | justU_23 m_7683 => (exUUU_21 m_7683 NULL)
-    end
-
-#[program]
-def sing_existsUL_14 :=
-  fun sing_exists_7684 ({A_7685}, {m_7686}, __7687) =>
-    match __7687 with
-    | justU_23 m_7688 => (exUUL_20 m_7688 NULL)
-    end
-
-#[program]
-def sing_existsLL_12 :=
-  fun sing_exists_7689 ({A_7690}, {m_7691}, __7692) =>
-    match __7692 with
-    | justL_22 m_7693 => (exLUL_16 m_7693 NULL)
-    end
-
-#[logical]
-def sing_exists_equiv1UU_19 := NULL
-
-#[logical]
-def sing_exists_equiv1UL_18 := NULL
-
-#[logical]
-def sing_exists_equiv1LL_16 := NULL
-
-#[logical]
-def sing_exists_equiv2UU_23 := NULL
-
-#[logical]
-def sing_exists_equiv2UL_22 := NULL
-
-#[logical]
-def sing_exists_equiv2LL_20 := NULL
-
-#[program]
-def sing_doubleUU_27 :=
-  fun sing_double_7694 ({A_7695}, {m_7696}, __7697, __7698) =>
-    match __7697 with
-    | justU_23 m_7699 =>
-      match __7698 with
-      | justU_23 m_7700 => (pairUUU_31 m_7699 m_7700)
+def stream_succ_3 :=
+  fun stream_succ_870 (xs_871) -> (x_872) -o
+    match x_872 with
+    | next_4  =>
+      match ((xs_871) next_4) with
+      | stream_nilU_12  => stream_nilU_12
+      | stream_consU_13 hd_873 tl_874 =>
+        (stream_consU_13 (succ_3 hd_873) ((stream_succ_870) tl_874))
       end
+    | free_5  => ((xs_871) free_5)
     end
 
 #[program]
-def sing_doubleUL_26 :=
-  fun sing_double_7701 ({A_7702}, {m_7703}, __7704, __7705) =>
-    match __7704 with
-    | justU_23 m_7706 =>
-      match __7705 with
-      | justU_23 m_7707 => (pairUUL_30 m_7706 m_7707)
-      end
+def nat_make_4 :=
+  fun nat_make_875 (n_876) -> (x_877) -o
+    match x_877 with
+    | next_4  => (stream_consU_13 n_876 ((nat_make_875) (succ_3 n_876)))
+    | free_5  => ttL_8
     end
 
 #[program]
-def sing_doubleLL_24 :=
-  fun sing_double_7708 ({A_7709}, {m_7710}, __7711, __7712) =>
-    match __7711 with
-    | justL_22 m_7713 =>
-      match __7712 with
-      | justL_22 m_7714 => (pairLLL_24 m_7713 m_7714)
-      end
-    end
-
-#[logical]
-def axiom_K_6 := NULL
+def nat_stream_5 := ((nat_make_4) zero_2)
 
 #[program]
-def pattern_expansion_7 :=
-  fun pattern_expansion_7715 ({A_7716}, __7717) =>
-    match __7717 with
-    | nil_6  => tt_1
-    | cons_7 hd_7718 tl_7719 =>
-      match tl_7719 with
-      | nil_6  => tt_1 | cons_7 hd_7720 tl_7721 => tt_1
-      end
-    end
+def snat_stream_6 := ((stream_succ_3) nat_stream_5)
+
+#[program]
+def __7 := ((free_streamU_11) NULL snat_stream_6)
 
 -----------------------------------------
 

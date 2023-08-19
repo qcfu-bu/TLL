@@ -613,8 +613,11 @@ module Program = struct
           Debug.exec (fun () -> pr "trans12.Program.case_introed(%a)@." pp_tm a);
           match s with
           | U ->
-            ((trans_relv relv, trans_var x) :: rxs, ctree, Usage.refine_pure usg)
-          | L -> ((trans_relv relv, trans_var x) :: rxs, ctree, usg)
+            Syntax2.
+              ( ((trans_relv relv, U), trans_var x) :: rxs
+              , ctree
+              , Usage.refine_pure usg )
+          | L -> Syntax2.(((trans_relv relv, L), trans_var x) :: rxs, ctree, usg)
           | _ -> failwith "trans12.Program.check_cls(Intro(%a))" pp_tm a)
         | a -> failwith "trans12.Program.check_cls(Intro(%a))" pp_tm a)
       (* case split *)

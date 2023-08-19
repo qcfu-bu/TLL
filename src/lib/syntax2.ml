@@ -11,7 +11,7 @@ type relv =
   | N
   | R
 
-and relvs = relv list
+type relvs = (relv * sort) list
 
 (* terms *)
 type tm =
