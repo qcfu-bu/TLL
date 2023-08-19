@@ -9,11 +9,11 @@ let rec trans_tm = function
   (* core *)
   | Var x -> _Var x
   | Const x -> _Const x
-  | Fun bnd ->
+  | Fun (relvs, bnd) ->
     let x, bnd = unbind bnd in
     let xs, m = unmbind bnd in
     let m_elab = trans_tm m in
-    _Fun (bind_var x (bind_mvar xs m_elab))
+    _Fun relvs (bind_var x (bind_mvar xs m_elab))
   | App (s, m, n) ->
     let m_elab = trans_tm m in
     let n_elab = trans_tm n in

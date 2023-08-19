@@ -52,10 +52,17 @@ let resolve_tm (meta_map : meta_map) m =
     | Ann (m, a) -> _Ann (aux_tm m) (aux_tm a)
     | IMeta (x, ss, xs) as m -> (
       match IMeta.Map.find_opt x imeta_map with
-      | Some bnd ->
-        let bnd = msubst bnd (Array.of_list ss) in
-        let m = msubst bnd (Array.of_list xs) in
-        aux_tm m
+      | Some bnd -> (
+        let ss0, bnd0 = unmbind bnd in
+        let xs0, m0 = unmbind bnd0 in
+        try
+          let bnd = msubst bnd (Array.of_list ss) in
+          let m = msubst bnd (Array.of_list xs) in
+          aux_tm m
+        with
+        | _ ->
+          failwith "resolve_tm_failed(%a, [%a;%a] => %a)" pp_tm m
+            (array ~sep:sp SVar.pp) ss0 (array ~sep:sp Var.pp) xs0 pp_tm m0)
       | None -> lift_tm m)
     | PMeta x -> _PMeta x
     (* core *)
@@ -320,29 +327,29 @@ let occurs_tm x m =
   in
   aux m
 
-let imeta_blocked m =
-  let rec blocked_spine ms =
-    List.exists
-      (fun m ->
-        match m with
-        | IMeta _ -> true
-        | _ -> blocked m)
-      ms
-  and blocked = function
-    | App _ as m -> (
-      match unApps m with
-      | Fun _, ms -> blocked_spine ms
-      | IMeta _, _ -> true
-      | hd, _ -> blocked hd)
-    | Match (_, ms, _, _) -> blocked_spine ms
-    | MLet (IMeta _, _) -> true
-    | MLet (m, _) -> blocked m
-    | _ -> false
-  in
-  blocked m
-
 let rec simpl_iprbm ?(expand = false) eqn =
   let open IPrbm in
+  let imeta_blocked m =
+    let rec blocked_spine ms =
+      List.exists
+        (fun m ->
+          match m with
+          | IMeta _ -> true
+          | _ -> blocked m)
+        ms
+    and blocked = function
+      | App _ as m -> (
+        match unApps m with
+        | Fun _, ms -> blocked_spine ms
+        | IMeta _, _ -> true
+        | hd, _ -> blocked hd)
+      | Match (_, ms, _, _) -> blocked_spine ms
+      | MLet (IMeta _, _) -> true
+      | MLet (m, _) -> blocked m
+      | _ -> false
+    in
+    blocked m
+  in
   match eqn with
   | EqualSort (s1, s2) -> (
     if eq_sort s1 s2 then
@@ -548,8 +555,22 @@ let unify_iprbm meta_map (eqns : IPrbm.eqns) =
   in
   aux_eqns meta_map [] eqns
 
+exception
+  DistinctConstr of
+    { lhs : (Constr.t * sorts)
+    ; rhs : (Constr.t * sorts)
+    }
+
 let rec simpl_pprbm ?(expand = false) eqn =
   let open PPrbm in
+  let rec rigid_neq ss1 ss2 =
+    match (ss1, ss2) with
+    | U :: [], L :: [] -> true
+    | L :: [], U :: [] -> true
+    | U :: ss1, L :: ss2 -> rigid_neq ss1 ss2
+    | L :: ss1, U :: ss2 -> rigid_neq ss1 ss2
+    | _ -> false
+  in
   match eqn with
   | EqualPat _ -> failwith "unifier1.simpl_pprbm(EqualPat)"
   | EqualTerm (env, m1, m2) -> (
@@ -603,7 +624,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
         in
         eqns1 @ List.concat eqns2
       with
-      | _ when expand -> failwith "unifier1.solve_pprbm(App)"
+      | e when expand -> raise e
       | _ -> simpl_pprbm ~expand:true (EqualTerm (env, m1, m2)))
     | Let (relv1, m1, bnd1), Let (relv2, m2, bnd2) when relv1 = relv2 ->
       let _, n1, n2 = unbind2 bnd1 bnd2 in
@@ -629,6 +650,9 @@ let rec simpl_pprbm ?(expand = false) eqn =
         List.map2 (fun n1 n2 -> simpl_pprbm (EqualTerm (env, n1, n2))) ns1 ns2
       in
       List.concat eqns1 @ List.concat eqns2
+    | Constr (c1, ss1, _, _), Constr (c2, ss2, _, _)
+      when (not (Constr.equal c1 c2)) || rigid_neq ss1 ss2 ->
+      raise (DistinctConstr { lhs = (c1, ss1); rhs = (c2, ss2) })
     | Match (_, ms1, a1, cls1), Match (_, ms2, a2, cls2) ->
       let eqns1 =
         List.map2 (fun m1 m2 -> simpl_pprbm (EqualTerm (env, m1, m2))) ms1 ms2
@@ -641,7 +665,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
             match (rhs_opt1, rhs_opt2) with
             | Some rhs1, Some rhs2 -> simpl_pprbm (EqualTerm (env, rhs1, rhs2))
             | None, None -> []
-            | _ -> failwith "unifier.simpl_pprbm(Match)")
+            | _ -> failwith "unifier1e.simpl_pprbm(Match)")
           cls1 cls2
       in
       List.concat eqns1 @ eqns2 @ List.concat eqns3
@@ -656,9 +680,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
     (* magic *)
     | Magic a1, Magic a2 -> simpl_pprbm (EqualTerm (env, a1, a2))
     | _ when not expand -> simpl_pprbm ~expand:true (EqualTerm (env, m1, m2))
-    | _ ->
-      failwith "@[<v 0>unifier1.simpl_pprbm(@;<1 2>%a,@;<1 2>%a@;<1 0>)@]" pp_tm
-        m1 pp_tm m2)
+    | _ -> failwith "unifier1e.simpl_pprbm(%a, %a)" pp_tm m1 pp_tm m2)
 
 let solve_pprbm map eqn =
   let open PPrbm in
@@ -708,9 +730,14 @@ let unify_pprbm local global =
   Debug.exec (fun () -> pr "global_map solved@.");
   (local_map, global_map)
 
-let succeed_pprbm global =
+let witness_distinct global =
   try
     let _ = unify_pprbm [] global in
-    true
+    false
   with
+  | DistinctConstr { lhs = c1, ss1; rhs = c2, ss2 } ->
+    Debug.exec (fun () ->
+        pr "unifier1e.witnessed_distinct(%a, %a, %a, %a)" Constr.pp c1 pp_sorts
+          ss1 Constr.pp c2 pp_sorts ss2);
+    true
   | _ -> false

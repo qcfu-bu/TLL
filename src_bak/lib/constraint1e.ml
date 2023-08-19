@@ -37,7 +37,7 @@ module PPrbm = struct
 
   type t =
     { global : eqns
-    ; clause : (eqns * ps * tm option) list
+    ; clause : (eqns * ps * tm option * ps) list
     }
 
   let rec of_cls (cls : cls) : t =
@@ -47,7 +47,7 @@ module PPrbm = struct
       let xs, rhs = unmbind_pmeta bnd in
       let _, ps = ps_of_mvar (Array.to_list xs) p0s in
       let prbm = of_cls cls in
-      { prbm with clause = ([], ps, rhs) :: prbm.clause }
+      { prbm with clause = ([], ps, rhs, []) :: prbm.clause }
 
   let pp_eqn fmt = function
     | EqualPat (_, m, p, a) ->
@@ -64,7 +64,7 @@ module PPrbm = struct
     in
     pf fmt "@[<v 0>%a@]" aux eqns
 
-  let pp_clause fmt (prbms, ps, opt) =
+  let pp_clause fmt (prbms, ps, opt, _) =
     match opt with
     | Some rhs ->
       pf fmt "@[{| @[%a ::: [%a] =>?@;<1 2>%a@]@;<1 0>|}@]" pp_eqns prbms

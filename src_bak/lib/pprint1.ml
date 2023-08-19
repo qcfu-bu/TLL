@@ -47,7 +47,8 @@ let rec pp_rxs fmt = function
 and pp_tm fmt = function
   (* inference *)
   | Ann (m, a) -> pf fmt "@[(%a@;<1 2>: %a)@]" pp_tm m pp_tm a
-  | IMeta (x, _, _) -> pf fmt "?%a" IMeta.pp x
+  | IMeta (x, ss, xs) ->
+    pf fmt "?%a[%d;%d]" IMeta.pp x (List.length ss) (List.length xs)
   | PMeta x -> pf fmt "#%a" Var.pp x
   (* core *)
   | Type U -> pf fmt "U"

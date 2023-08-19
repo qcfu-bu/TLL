@@ -132,6 +132,10 @@ end
 let var x = Var x
 let svar x = SVar x
 
+(* option *)
+let _Some m = box_apply (fun m -> Some m) m
+let _None = box None
+
 (* sort *)
 let _U = box U
 let _L = box L
@@ -369,6 +373,18 @@ let psubst (p0s, bnd) ms =
   in
   let ms = match_p0s p0s ms in
   msubst bnd (Array.of_list ms)
+
+(* pattern expansion *)
+let expand_ps ps pvar_map =
+  let rec aux_p = function
+    | PVar x -> (
+      match Var.Map.find_opt x pvar_map with
+      | Some p -> aux_p p
+      | None -> PVar x)
+    | PAbsurd -> PAbsurd
+    | PConstr (c, ps) -> PConstr (c, aux_ps ps)
+  and aux_ps ps = List.map aux_p ps in
+  aux_ps ps
 
 (* param instantiation *)
 let rec param_inst param ms =

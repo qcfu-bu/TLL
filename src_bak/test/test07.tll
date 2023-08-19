@@ -22,7 +22,7 @@ inductive prod<s,r,t> (A : Type<s>) (B : Type<r>) : Type<t> where
 inductive sing<s> ?(A : Type<s>) : A -> Type<s> where
 | just (m : A) : sing m
 
-inductive list<s> (A : Type<s>) : U where
+inductive list<s> (A : Type<s>) : Type<s> where
 | nil : list A
 | cons (hd : A) (tl : list A) : list A
 
@@ -32,8 +32,9 @@ inductive vec<s> (A : Type<s>) : nat -> Type<s> where
 
 def uncons ?{A : U} : ∀ {n : nat} -> vec A (succ n) -> A
   | zero (vcons n hd _) => (
+    -- matches on irrlevant data are allowed if branches can be merged
     match {n} with
-    | zero => hd
+    | zero   => hd
     | succ _ => hd)
   | _ (vcons _ hd _) => hd
 

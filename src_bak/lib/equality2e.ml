@@ -7,7 +7,8 @@ let rec eq_tm m1 m2 =
   (* core *)
   | Var x1, Var x2 -> eq_vars x1 x2
   | Const x1, Const x2 -> Const.equal x1 x2
-  | Fun bnd1, Fun bnd2 -> eq_binder (eq_mbinder eq_tm) bnd1 bnd2
+  | Fun (relvs1, bnd1), Fun (relvs2, bnd2) ->
+    relvs1 = relvs2 && eq_binder (eq_mbinder eq_tm) bnd1 bnd2
   | App (s1, m1, n1), App (s2, m2, n2) -> s1 = s2 && eq_tm m1 m2 && eq_tm n1 n2
   | Let (m1, bnd1), Let (m2, bnd2) -> eq_tm m1 m2 && eq_binder eq_tm bnd1 bnd2
   (* inductive *)

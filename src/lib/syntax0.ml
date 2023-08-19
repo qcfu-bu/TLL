@@ -40,6 +40,10 @@ type tm =
   | IO of tm
   | Return of tm
   | MLet of tm * (id, tm) binder
+  (* custom *)
+  | UOpr of id * tm
+  | BOpr of id * tm * tm
+  | Hole of int
   (* magic *)
   | Magic of tm
 [@@deriving show { with_path = false }]
@@ -75,6 +79,10 @@ type dcl =
       ; body : tm scheme
       ; view : view list
       }
+  | Notation of
+      { name : id
+      ; body : tm
+      }
 [@@deriving show { with_path = false }]
 
 and dcls = dcl list
@@ -89,3 +97,42 @@ and 'a param =
 and tele =
   | TBase of tm
   | TBind of relv * tm * (id, tele) binder
+
+let subst_hole map m =
+  let rec aux = function
+    (* inference *)
+    | Ann (m, n) -> Ann (aux m, aux n)
+    | IMeta -> IMeta
+    (* core *)
+    | Type s -> Type s
+    | Id (id, view) -> Id (id, view)
+    | Inst (id, ss, view) -> Inst (id, ss, view)
+    | Pi (relv, s, a, Binder (id, b)) -> Pi (relv, s, aux a, Binder (id, aux b))
+    | Fun (a, Binder (id, cls), view) ->
+      let cls = List.map (fun (ps, rhs) -> (ps, Option.map aux rhs)) cls in
+      Fun (aux a, Binder (id, cls), view)
+    | App ms -> App (List.map aux ms)
+    | Let (relv, m, Binder (id, n)) -> Let (relv, aux m, Binder (id, aux n))
+    (* inductive *)
+    | Match (ms, a, cls) ->
+      let ms =
+        List.map
+          (fun (relv, m, a) ->
+            (relv, aux m, Option.map (fun (id, a) -> (id, aux a)) a))
+          ms
+      in
+      let a = Option.map aux a in
+      let cls = List.map (fun (ps, rhs) -> (ps, Option.map aux rhs)) cls in
+      Match (ms, a, cls)
+    (* monad *)
+    | IO a -> IO (aux a)
+    | Return m -> Return (aux m)
+    | MLet (m, Binder (id, n)) -> MLet (aux m, Binder (id, aux n))
+    (* custom *)
+    | UOpr (sym, m) -> UOpr (sym, aux m)
+    | BOpr (sym, m, n) -> BOpr (sym, aux m, aux n)
+    | Hole i -> map.(i - 1)
+    (* magic *)
+    | Magic a -> Magic (aux a)
+  in
+  aux m

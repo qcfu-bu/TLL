@@ -110,12 +110,15 @@ module MCtx : sig
   type t
 
   val empty : t
-  val add_imeta : Ctx.t -> Env.t -> IMeta.t -> sorts -> tms -> tm -> t -> t
-  val find_imeta : IMeta.t -> t -> tm option
+
+  val add_imeta :
+    Ctx.t -> Env.t -> IMeta.t -> sorts box -> tms box -> tm -> t -> t
+
+  val find_imeta : IMeta.t -> t -> (sorts box * tms box * tm) option
   val entries : t -> (Ctx.t * Env.t * tm * tm) list
   val pp : t Fmt.t
 end = struct
-  type t = (Ctx.t * Env.t * sorts * tms * tm) IMeta.Map.t
+  type t = (Ctx.t * Env.t * sorts box * tms box * tm) IMeta.Map.t
 
   let empty = IMeta.Map.empty
 
@@ -124,12 +127,13 @@ end = struct
 
   let find_imeta x (mctx : t) =
     match IMeta.Map.find_opt x mctx with
-    | Some (_, _, _, _, a) -> Some a
+    | Some (_, _, ss, ms, a) -> Some (ss, ms, a)
     | _ -> None
 
   let entries (mctx : t) =
     List.map
-      (fun (x, (ctx, env, ss, xs, a)) -> (ctx, env, IMeta (x, ss, xs), a))
+      (fun (x, (ctx, env, ss, xs, a)) ->
+        (ctx, env, IMeta (x, unbox ss, unbox xs), a))
       (IMeta.Map.bindings mctx)
 
   let pp fmt (mctx : t) =

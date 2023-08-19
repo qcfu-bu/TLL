@@ -84,14 +84,6 @@ let sspine_of_nspc nspc =
       | _ -> acc)
     nspc []
 
-let vspine_of_nspc nspc =
-  List.fold_right
-    (fun (_, entry) acc ->
-      match entry with
-      | EVar (x, _) -> Syntax1._Var x :: acc
-      | _ -> acc)
-    nspc []
-
 let trans_sort nspc = function
   | U -> Syntax1._U
   | L -> Syntax1._L
@@ -104,11 +96,7 @@ let trans_sort nspc = function
 let mk_smeta nspc =
   Syntax1.(_SMeta (SMeta.mk "") (box_list (sspine_of_nspc nspc)))
 
-let mk_meta nspc =
-  Syntax1.(
-    _IMeta (IMeta.mk "")
-      (box_list (sspine_of_nspc nspc))
-      (box_list (vspine_of_nspc nspc)))
+let mk_meta nspc = Syntax1.(_IMeta (IMeta.mk "") (box []) (box []))
 
 let mk_inst nspc i =
   let ss = List.init i (fun _ -> mk_smeta nspc) in

@@ -9,6 +9,7 @@ type nspc_entry =
   | EConst of Const.t * int * view list
   | EInd of Ind.t * int * int * view list
   | EConstr of Constr.t * int * int * view list
+  | ESymbol of tm
 
 type nspc = (string * nspc_entry) list
 
@@ -270,6 +271,16 @@ let rec trans_tm nspc = function
     let x = Syntax1.(Var.mk id) in
     let n = trans_tm ((id, EVar (x, [])) :: nspc) n in
     Syntax1.(_MLet m (bind_var x n))
+  (* custom *)
+  | UOpr (sym, m) -> (
+    match List.assoc_opt sym nspc with
+    | Some (ESymbol body) -> trans_tm nspc (subst_hole [| m |] body)
+    | _ -> failwith "trans01.trans_tm(UOpr %s)" sym)
+  | BOpr (sym, m, n) -> (
+    match List.assoc_opt sym nspc with
+    | Some (ESymbol body) -> trans_tm nspc (subst_hole [| m; n |] body)
+    | _ -> failwith "trans01.trans_tm(BOpr %s)" sym)
+  | Hole i -> failwith "trans01.trans_tm(Hole %%%d)" i
   | Magic a -> Syntax1.(_Magic (trans_tm nspc a))
 
 and trans_cls nspc cls =
@@ -339,7 +350,9 @@ let rec trans_dcl nspc = function
     let a = trans_tm local a in
     let sch = bind_mvar (Array.of_list xs) (box_pair m a) in
     Syntax1.
-      (nspc, Definition { name = x; relv = trans_relv relv; scheme = unbox sch })
+      ( nspc
+      , [ Definition { name = x; relv = trans_relv relv; scheme = unbox sch } ]
+      )
   | Inductive { name = id; relv; body = Binder (sids, param); view } ->
     let d = Ind.mk id in
     let args, tele, dconstrs = flatten_param param in
@@ -360,12 +373,13 @@ let rec trans_dcl nspc = function
     let dconstrs = box_list dconstrs in
     Syntax1.
       ( nspc
-      , Inductive
-          { name = d
-          ; relv = trans_relv relv
-          ; arity = unbox arity
-          ; dconstrs = unbox dconstrs
-          } )
+      , [ Inductive
+            { name = d
+            ; relv = trans_relv relv
+            ; arity = unbox arity
+            ; dconstrs = unbox dconstrs
+            }
+        ] )
   | Extern { name = id; relv; body = Binder (sids, a); view } ->
     let x = Const.mk id in
     let (local, i), xs =
@@ -379,14 +393,17 @@ let rec trans_dcl nspc = function
     let a = trans_tm local a in
     let sch = bind_mvar (Array.of_list xs) a in
     Syntax1.
-      (nspc, Extern { name = x; relv = trans_relv relv; scheme = unbox sch })
+      (nspc, [ Extern { name = x; relv = trans_relv relv; scheme = unbox sch } ])
+  | Notation { name = sym; body } ->
+    let nspc = (sym, ESymbol body) :: nspc in
+    Syntax1.(nspc, [])
 
 and trans_dcls nspc = function
   | [] -> (nspc, [])
   | dcl :: dcls ->
     let nspc, dcl = trans_dcl nspc dcl in
     let nspc, dcls = trans_dcls nspc dcls in
-    (nspc, dcl :: dcls)
+    (nspc, dcl @ dcls)
 
 and flatten_param = function
   | PBase (tele, dconstrs) -> ([], tele, dconstrs)

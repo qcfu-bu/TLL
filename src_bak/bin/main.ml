@@ -21,31 +21,30 @@ let pp_prbms fmt groups =
   in
   aux 0 fmt groups
 
-let _ =
-  try
-    if Array.length Sys.argv < 1 then
-      epr "input file expected@."
-    else
-      let _ = Debug.enable () in
-      let src_name = Sys.argv.(1) in
-      let src_ch = open_in src_name in
+let main =
+  let specs = [ ("-g", Arg.Unit Debug.enable, "Debug Mode") ] in
+  let usage = "[-g] <src>" in
+  let src_opt = ref None in
+  let anon str = src_opt := Some str in
+  Printexc.record_backtrace true;
+  Arg.parse specs anon usage;
+  match !src_opt with
+  | Some src_file -> (
+    try
+      let src_ch = open_in src_file in
       let dcls0 = parse (Utf8.from_channel src_ch) in
-      pr "%a" Syntax0.pp_dcls dcls0;
-      pr "@.@.-----------------------------------------@.@.";
       let _, dcls1 = Trans01.trans_dcls [] dcls0 in
       pr "%a" Pprint1.pp_dcls dcls1;
       pr "@.@.-----------------------------------------@.@.";
       let dcls1e = Trans1e.trans_dcls dcls1 in
       pr "%a" Pprint1.pp_dcls dcls1e;
       pr "@.@.-----------------------------------------@.@.";
-      let _ = Debug.disable () in
       let dcls2 = Trans12.trans_dcls dcls1e in
-      (* pr "%a" Pprint2.pp_dcls dcls2; *)
+      pr "%a" Pprint2.pp_dcls dcls2;
       pr "@.@.-----------------------------------------@.@.";
       let dcls2e = Trans2e.trans_dcls dcls2 in
-      (* pr "%a" Pprint2.pp_dcls dcls2e; *)
+      pr "%a" Pprint2.pp_dcls dcls2e;
       pr "@.@.-----------------------------------------@.@."
-  with
-  | Failure s ->
-    let _ = pr "error -----------------------------------@.@." in
-    pr "%s@." s
+    with
+    | e -> epr "%a" exn_backtrace (e, Printexc.get_raw_backtrace ()))
+  | None -> epr "input file expected@."

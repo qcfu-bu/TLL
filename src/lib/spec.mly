@@ -9,10 +9,14 @@
 %token RBRACE  // {
 %token LANGLE  // ⟨
 %token RANGLE  // ⟩
+%token LT      // <
+%token GT      // >
 %token FLQ     // ‹
 %token FRQ     // ›
 %token QLPAREN // ?(
 %token QLBRACE // ?{
+%left LT
+%left GT
 
 // quantifiers
 %token FORALL   // ∀
@@ -39,51 +43,48 @@
 // unit
 %token TOP
 
-// bool
-%token AND   // &&
-%token OR    // ||
-%left AND
-%left OR
-
-// nat
-%token ADD  // +
-%token SUB  // -
-%token MUL  // *
-%token DIV  // /
-%token REM  // %
-%token LTE  // <=
-%token GTE  // >=
-%token LT   // <
-%token GT   // >
-%token EQEQ // ==
-%token NEQ  // !=
-%left ADD
-%left SUB
-%left MUL
-%left DIV
-%left MOD
-%left LTE
-%left GTE
-%left LT
-%left GT
-%left EQEQ
-%left NEQ
+// operators
+%token<string> OP_ADD  // + infixl
+%token<string> OP_SUB  // - infixl
+%token<string> OP_MUL  // * infixl
+%token<string> OP_DIV  // / infixl
+%token<string> OP_REM  // % infixl
+%token<string> OP_LT   // < infixl
+%token<string> OP_GT   // > infixl
+%token<string> OP_EQ   // = infixl
+%token<string> OP_EX   // ! infixl
+%token<string> OP_AND  // & infixl
+%token<string> OP_OR   // | infixl
+%token<string> OP_SIM  // ~ prefix
+%token<string> OP_CAT  // ^ infixl
+%token<string> OP_COL  // : infixr
+%token<string> OP_AT   // @ infixr
+%token<string> OP_TIC  // ` prefix
+%left OP_ADD
+%left OP_SUB
+%left OP_MUL
+%left OP_DIV
+%left OP_REM
+%left OP_LT
+%left OP_GT
+%left OP_EQ
+%left OP_EX
+%left OP_AND
+%left OP_OR
+%nonassoc OP_SIM
+%left OP_CAT
+%right OP_COL
+%right OP_AT
+%nonassoc OP_TIC
 
 // string
 %token<int> CHAR
 %token<int list> STRING
-%token STR_CAT // ^
-%left STR_CAT
-
-// list
-%token LIST_CONS // ::
-%right LIST_CONS
 
 // bottom
 %token BOT // ⊥
 
-// equality
-%token EQUAL  // =
+// assign
 %token ASSIGN // :=
 %token EQUIV  // ≡
 %token NEGATE // ¬
@@ -102,11 +103,6 @@
 %token SORT_U // U
 %token SORT_L // L
 
-// prim
-%token PRIM_STDIN  // stdin
-%token PRIM_STDOUT // stdout
-%token PRIM_STDERR // stderr
-
 // identifier
 %token<int> INTEGER          // 123
 %token<string> IDENTIFIER    // foo
@@ -115,6 +111,7 @@
 %token<string> AT_IDENTIFIER // @foo
 %token<string> AT_CONSTANT0  // @foo<
 %token<string> AT_CONSTANT1  // @foo‹
+%token<int> HOLE             // %1
 
 // tm
 %token TM_TYPE0    // Type<
@@ -163,6 +160,7 @@
 %token DCL_INDUCTIVE      // inductive
 %token DCL_WHERE          // where
 %token DCL_EXTERN         // extern
+%token DCL_NOTATION       // notation
 
 %{ open Syntax0 %}
 
@@ -200,6 +198,11 @@ let sort :=
 let tm_id :=
   | id = iden; { if id = "_" then IMeta else Id (id, I) }
   | id = at_iden; { Id (id, E) }
+
+// notation hole
+/* %1 */
+let tm_hole :=
+  | i = HOLE; { Hole i }
 
 // instance
 /* X‹s,r,t› */
@@ -590,21 +593,43 @@ let tm0 :=
   | ~ = tm_magic; <>
   | ~ = tm_id; <>
   | ~ = tm_inst; <>
+  | ~ = tm_hole; <>
   | LPAREN; ~ = tm; RPAREN; <>
 
 let tm1 :=
   | m = tm0; ms = tm0*;
     { match ms with [] -> m | _ -> App (m :: ms) }
 
-let tm2_generic(p) :=
-  | a = tm1; RIGHTARROW0; b = tm2_generic(p); { Pi (R, U, a, Binder ("_", b)) }
-  | a = tm1; MULTIMAP; b = tm2_generic(p); { Pi (R, L, a, Binder ("_", b)) }
-  | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm2_generic(p); { Pi (N, U, a, Binder ("_", b)) }
-  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm2_generic(p); { Pi (N, L, a, Binder ("_", b)) }
-  | ms = tm0*; m = tm_pi(p); { match ms with [] -> m | _ -> App (ms @ [m]) }
+let tm2 :=
+  | m = tm2; s = OP_MUL; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; s = OP_DIV; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; s = OP_REM; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; s = OP_ADD; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; s = OP_SUB; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; LT; n = tm2; { BOpr ("<", m, n) }
+  | m = tm2; GT; n = tm2; { BOpr (">", m, n) }
+  | m = tm2; s = OP_LT; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; s = OP_GT; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; s = OP_EQ; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; s = OP_EX; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; s = OP_AND; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; s = OP_OR; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; s = OP_CAT; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; s = OP_COL; n = tm2; { BOpr (s, m, n) }
+  | m = tm2; s = OP_AT; n = tm2; { BOpr (s, m, n) }
+  | s = OP_SIM; m = tm2; { UOpr (s, m) }
+  | s = OP_TIC; m = tm2; { UOpr (s, m) }
   | ~ = tm1; <>
 
 let tm3_generic(p) :=
+  | a = tm2; RIGHTARROW0; b = tm3_generic(p); { Pi (R, U, a, Binder ("_", b)) }
+  | a = tm2; MULTIMAP; b = tm3_generic(p); { Pi (R, L, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm3_generic(p); { Pi (N, U, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm3_generic(p); { Pi (N, L, a, Binder ("_", b)) }
+  | ms = tm0*; m = tm_pi(p); { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ~ = tm2; <>
+
+let tm4_generic(p) :=
   | ms = tm0*; m = tm_lam(p);
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_let(p);
@@ -615,23 +640,23 @@ let tm3_generic(p) :=
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_mlet(p);
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ~ = tm2_generic(p); <>
+  | ~ = tm3_generic(p); <>
 
-let tm3_closed :=
-  | ~ = tm3_generic(tm_closed); <>
+let tm4_closed :=
+  | ~ = tm4_generic(tm_closed); <>
 
-let tm3 :=
+let tm4 :=
   | ms = tm0*; m = tm_fun;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_match;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ~ = tm3_generic(tm); <>
+  | ~ = tm4_generic(tm); <>
 
 let tm_closed :=
-  | ~ = tm3_closed; <>
+  | ~ = tm4_closed; <>
 
 let tm :=
-  | ~ = tm3; <>
+  | ~ = tm4; <>
 
 // dcl modifier
 let dcl_modifier :=
@@ -783,7 +808,7 @@ let dcl_inductive :=
       let sch = Binder (sids, param) in
       Inductive { name = id; relv; body = sch; view } }
 
-// abstract
+// external
 /*
 #[logical]
 extern foo‹s› (x : A) (y : B) : C
@@ -815,11 +840,41 @@ let dcl_extern :=
       let sch = Binder (sids, a) in
       Extern { name = id; relv; body = sch; view } }
 
+// notations
+/*
+notation  _ = _ := eq %1 %2
+*/
+
+let dcl_notation_symbol :=
+  | ~ = OP_MUL; <>
+  | ~ = OP_DIV; <>
+  | ~ = OP_REM; <>
+  | ~ = OP_ADD; <>
+  | ~ = OP_SUB; <>
+  | LT; { "<" }
+  | GT; { ">" }
+  | ~ = OP_LT; <>
+  | ~ = OP_GT; <>
+  | ~ = OP_EQ; <>
+  | ~ = OP_EX; <>
+  | ~ = OP_AND; <>
+  | ~ = OP_OR; <>
+  | ~ = OP_CAT; <>
+  | ~ = OP_COL; <>
+  | ~ = OP_AT; <>
+  | ~ = OP_SIM; <>
+  | ~ = OP_TIC; <>
+
+let dcl_notation :=
+  | DCL_NOTATION; LPAREN; s = dcl_notation_symbol; RPAREN; ASSIGN; m = tm;
+    { Notation { name = s; body = m } }
+
 // declarations
 let dcl :=
   | ~ = dcl_def; <>
   | ~ = dcl_inductive; <>
   | ~ = dcl_extern; <>
+  | ~ = dcl_notation; <>
 
 // main
 let main :=
