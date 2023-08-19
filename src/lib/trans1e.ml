@@ -103,7 +103,9 @@ let assert_equal1 env m1 m2 =
     State.add_eqn (EqualTerm (env, m1, m2))
 
 let rec assert_type ctx env a : tm box =
+  Debug.exec (fun () -> pr "assert_type(%a)@." pp_tm a);
   let t, a_elab = infer_tm ctx env a in
+  Debug.exec (fun () -> pr "assert_type_ok(%a, %a)@." pp_tm a pp_tm t);
   let t = State.resolve t in
   match whnf env t with
   | Type _ -> a_elab

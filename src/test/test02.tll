@@ -26,6 +26,22 @@ inductive sing<s> ?(A : Type<s>) : A -> Type<s> where
 inductive prod<s,r,t> (A : Type<s>) (B : Type<r>) : Type<t> where
 | pair (m : A) (n : B) : prod A B
 
+def exists_sing<s,t> ?{A : Type<s>} ?{m : A} : exists<_,_,t> (fn (a : A) => eq a m) -> sing m
+  | (ex x refl) => just x
+
+def sing_exists<s,t> ?{A : Type<s>} ?{m : A} : sing m -> exists<_,_,t> (fn (a : A) => eq a m)
+  | (just x) => ex x refl
+
+#[logical]
+def sing_exists_equiv1<s,t> {A : Type<s>} {m : A} :
+  forall (x : sing m) -> eq (exists_sing (sing_exists<_,t> x)) x
+  | (just x) => refl
+
+#[logical]
+def sing_exists_equiv2<s,t> {A : Type<s>} {m : A} :
+  forall (x : exists<_,_,t> fn (a : A) => eq a m) -> eq (sing_exists (exists_sing x)) x
+  | (ex x refl) => refl
+
 def sing_double<s,t> {A : Type<s>} {m : A} : sing m -> sing m -o prod<_,_,t> A A
   | (just x) (just y) =>
     let {pf} : eq x y := refl in

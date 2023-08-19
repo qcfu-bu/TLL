@@ -128,24 +128,33 @@ module Resolver = struct
     | Some rmap -> (
       match RMap.find_opt ss rmap with
       | Some x1 -> x1
-      | None -> failwith "context12.Resolver.find_const(%a)" Const.pp x0)
-    | None -> failwith "context12.Resolver.find_const(%a)" Const.pp x0
+      | None ->
+        failwith "context12.Resolver.find_const(%a, [%a])" Const.pp x0 pp_sorts
+          ss)
+    | None ->
+      failwith "context12.Resolver.find_const(%a, [%a])" Const.pp x0 pp_sorts ss
 
   let find_ind d0 ss (res : t) : Ind.t =
     match Ind.Map.find_opt d0 res.ind with
     | Some rmap -> (
       match RMap.find_opt ss rmap with
       | Some d1 -> d1
-      | None -> failwith "context12.Resolver.find_ind(%a)" Ind.pp d0)
-    | None -> failwith "context12.Resolver.find_ind(%a)" Ind.pp d0
+      | None ->
+        failwith "context12.Resolver.find_ind(%a, [%a])" Ind.pp d0 pp_sorts ss)
+    | None ->
+      failwith "context12.Resolver.find_ind(%a, [%a])" Ind.pp d0 pp_sorts ss
 
   let find_constr c0 ss (res : t) : Constr.t =
     match Constr.Map.find_opt c0 res.constr with
     | Some rmap -> (
       match RMap.find_opt ss rmap with
       | Some d1 -> d1
-      | None -> failwith "context12.Resolver.find_constr(%a)" Constr.pp c0)
-    | None -> failwith "context12.Resolver.find_constr(%a)" Constr.pp c0
+      | None ->
+        failwith "context12.Resolver.find_constr(%a, [%a])" Constr.pp c0
+          pp_sorts ss)
+    | None ->
+      failwith "context12.Resolver.find_constr(%a, [%a])" Constr.pp c0 pp_sorts
+        ss
 end
 
 module Usage = struct
