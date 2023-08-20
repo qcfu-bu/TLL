@@ -230,11 +230,21 @@ let rec trans_tm nspc = function
       let ms = List.map (trans_tm nspc) ms in
       Syntax1.(_mkApps m ms)
     | _ -> failwith "trans01.trans_tm.App")
-  | Let (relv, m, Binder (id, n)) ->
+  | Let (relv, m, Binder (p0, n)) -> (
     let m = trans_tm nspc m in
-    let x = Syntax1.(Var.mk id) in
-    let n = trans_tm ((id, EVar (x, [])) :: nspc) n in
-    Syntax1.(_Let (trans_relv relv) m (bind_var x n))
+    let _, p, _ = trans_p nspc p0 in
+    let r = trans_relv relv in
+    match (p0, unbox p) with
+    | PId id, Syntax1.P0Rel ->
+      let x = Syntax1.(Var.mk id) in
+      let n = trans_tm ((id, EVar (x, [])) :: nspc) n in
+      Syntax1.(_Let r m (bind_var x n))
+    | _ ->
+      let x = Syntax1.Var.mk "" in
+      let ms = box_list [ Syntax1._Var x ] in
+      let guard, cls = trans_cls nspc [ ([ p0 ], Some n) ] in
+      let a = Syntax1.(_Pi r _L (mk_meta nspc) (bind_var x (mk_meta nspc))) in
+      Syntax1.(_Let r m (bind_var x (_Match guard ms a (box_list cls)))))
   (* inductive *)
   | Match (rms, opt, cls) ->
     let ms = List.map (fun (_, m, _) -> trans_tm nspc m) rms in
@@ -268,12 +278,11 @@ let rec trans_tm nspc = function
   | Return m -> Syntax1.(_Return (trans_tm nspc m))
   | MLet (m, Binder (p0, n)) -> (
     let m = trans_tm nspc m in
-    let xs, p, _ = trans_p nspc p0 in
+    let _, p, _ = trans_p nspc p0 in
     match (p0, unbox p) with
     | PId id, Syntax1.P0Rel ->
       let x = Syntax1.Var.mk id in
-      let nspc = (id, EVar (x, [])) :: nspc in
-      let n = trans_tm nspc n in
+      let n = trans_tm ((id, EVar (x, [])) :: nspc) n in
       Syntax1.(_MLet m (bind_var x n))
     | _ ->
       let x = Syntax1.Var.mk "" in

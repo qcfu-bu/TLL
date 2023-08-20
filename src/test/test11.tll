@@ -138,8 +138,8 @@ def msort<t> : list<_,t> nat -> list<_,t> nat
   | nil        => nil
   | (z :: nil) => z :: nil
   | zs         =>
-    match split zs with
-    | ex1 xs ys => merge (msort xs) (msort ys)
+    let ex1 xs ys := split zs in
+    merge (msort xs) (msort ys)
 
 #[logical]
 def cmsort_ch<t> (xs :  list<_,t> nat) : L :=

@@ -33,7 +33,7 @@ type tm =
   | Pi of relv * sort * tm * (id, tm) binder
   | Fun of tm * (id option, cls) binder * view list
   | App of tms
-  | Let of relv * tm * (id, tm) binder
+  | Let of relv * tm * (p, tm) binder
   (* inductive *)
   | Match of (relv * tm * (id * tm) option) list * tm option * cls
   (* monad *)
