@@ -330,7 +330,7 @@ and trans_p nspc p =
       | Some (c, _, _, _) ->
         let xs, ps, _ = trans_ps nspc ps in
         (xs, _P0Constr c (box_list ps), true)
-      | _ -> failwith "trans01.trans_p(Constr)"))
+      | _ -> failwith "trans01.trans_p(Constr(%a))" pp_p p))
   | PBOpr (sym, p1, p2) -> (
     match List.assoc_opt sym nspc with
     | Some (ESymbol body) ->

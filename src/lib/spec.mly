@@ -186,8 +186,9 @@ let at_const0 ==
 let at_const1 ==
   | ~ = AT_CONSTANT1; <>
 
-// binary operators
-let bin_op ==
+// operators
+let infix_op ==
+  | ~ = OP_CAT; <>
   | ~ = OP_MUL; <>
   | ~ = OP_DIV; <>
   | ~ = OP_REM; <>
@@ -201,11 +202,10 @@ let bin_op ==
   | ~ = OP_EX; <>
   | ~ = OP_AND; <>
   | ~ = OP_OR; <>
-  | ~ = OP_CAT; <>
   | ~ = OP_COL; <>
   | ~ = OP_AT; <>
 
-let uni_op ==
+let prefix_op ==
   | ~ = OP_SIM; <>
   | ~ = OP_TIC; <>
 
@@ -238,8 +238,8 @@ let tm_pattern0s :=
   | ~ = tm_pattern0+; <>
 
 let tm_pattern0i :=
-  | p1 = tm_pattern0i; s = bin_op; p2 = tm_pattern0i; { PBOpr (s, p1, p2) }
-  | s = uni_op; p = tm_pattern0i; { PUOpr (s, p) }
+  | p1 = tm_pattern0i; s = infix_op; p2 = tm_pattern0i; { PBOpr (s, p1, p2) }
+  | s = prefix_op; p = tm_pattern0i; { PUOpr (s, p) }
   | ~ = tm_pattern0; <>
 
 let tm_pattern1 :=
@@ -249,8 +249,8 @@ let tm_pattern1 :=
   | LPAREN; ~ = tm_pattern1; RPAREN; <>
 
 let tm_pattern1i :=
-  | p1 = tm_pattern1i; s = bin_op; p2 = tm_pattern1i; { PBOpr (s, p1, p2) }
-  | s = uni_op; p = tm_pattern1i; { PUOpr (s, p) }
+  | p1 = tm_pattern1i; s = infix_op; p2 = tm_pattern1i; { PBOpr (s, p1, p2) }
+  | s = prefix_op; p = tm_pattern1i; { PUOpr (s, p) }
   | ~ = tm_pattern1; <>
 
 // instance
@@ -624,8 +624,8 @@ let tm1 :=
     { match ms with [] -> m | _ -> App (m :: ms) }
 
 let tm2 :=
-  | m = tm2; s = bin_op; n = tm2; { BOpr (s, m, n) }
-  | s = uni_op; m = tm2; { UOpr (s, m) }
+  | m = tm2; s = infix_op; n = tm2; { BOpr (s, m, n) }
+  | s = prefix_op; m = tm2; { UOpr (s, m) }
   | ~ = tm1; <>
 
 let tm3_generic(p) :=
@@ -841,10 +841,9 @@ let dcl_extern :=
 /*
 notation  _ = _ := eq %1 %2
 */
-
 let dcl_notation_symbol :=
-  | ~ = bin_op; <>
-  | ~ = uni_op; <>
+  | ~ = infix_op; <>
+  | ~ = prefix_op; <>
 
 let dcl_notation :=
   | DCL_NOTATION; LPAREN; s = dcl_notation_symbol; RPAREN; ASSIGN; m = tm;

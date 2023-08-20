@@ -1,6 +1,26 @@
+notation ( |> ) := (%2 %1)
+notation ( @@ ) := (%1 %2)
+notation ( = ) := eq %1 %2
+notation ( ` ) := sing %1
+notation ( && ) := and
+notation ( || ) := or
+notation ( + ) := add %1 %2
+notation ( - ) := sub %1 %2
+notation ( * ) := mul %1 %2
+notation ( / ) := div %1 %2
+notation ( % ) := rem %1 %2
+notation ( ^ ) := pow %1 %2
+notation ( < ) := lt %1 %2
+notation ( > ) := gt %1 %2
+notation ( <= ) := lte %1 %2
+notation ( >= ) := gte %1 %2
+notation ( ** ) := prod1 %1 %2
+notation ( :: ) := cons %1 %2
+
+
 #[logical]
 inductive eq<s> ?(A : Type‹s›) (m : A) : A -> U where
-  | refl : eq m m
+  | refl : m = m
 
 inductive unit<s> : Type<s> where
   | tt : unit
@@ -14,21 +34,21 @@ inductive nat : L where
   | succ (pred : nat) : nat
 
 inductive sing ?(A : L) : A -> L where
-  | just (m : A) : sing m
+  | just (m : A) : `m
 
 inductive apair ?(A : L) (B : A -> L) : L where
   | apair_intro
     ?{x : A}
     (select : forall (b : bool) -o
                 match b with
-                | true  => sing x
+                | true  => `x
                 | false => B x) : apair B
 
-def sing_elim ?{A : L} ?{x : A} : sing x -> A
+def sing_elim ?{A : L} ?{x : A} : `x -> A
   | (just x) => x
 
 #[logical]
-def sing_uniq ?(A : L) ?(x0 : A) : forall (x : sing x0) -> eq x0 (sing_elim x)
+def sing_uniq ?(A : L) ?(x0 : A) : forall (x : `x0) -> x0 = sing_elim x
   | (just _) => refl
 
 def proj1 ?{A : L} ?{B : A -> L} : @apair A B -> A
@@ -37,8 +57,8 @@ def proj1 ?{A : L} ?{B : A -> L} : @apair A B -> A
 def proj2 ?{A : L} ?{B : A -> L} : forall (x : @apair A B) -> B (proj1 x)
   | (apair_intro x select) => 
     match {x}                       as x0 -- x is matched to introduce flex variable x0
-        , {select true}             as a0 : sing x
-        , {sing_uniq (select true)} as _  : eq x0 (sing_elim a0)
+        , {select true}             as a0 : `x
+        , {sing_uniq (select true)} as _  : x0 = sing_elim a0
         , select false              as _  : B x0
       in B (sing_elim a0)
     with
