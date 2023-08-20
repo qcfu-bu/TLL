@@ -277,6 +277,64 @@ let rec occurs_sort x = function
   | SMeta (y, ss) -> SMeta.equal x y || List.exists (occurs_sort x) ss
   | _ -> false
 
+let rec imeta_of_tm m =
+  let open IMeta.Set in
+  let imeta_of_tms ms =
+    List.fold_left (fun acc x -> union acc (imeta_of_tm x)) empty ms
+  in
+  match m with
+  (* inference *)
+  | Ann (m, a) -> union (imeta_of_tm m) (imeta_of_tm a)
+  | IMeta (y, _, _) -> singleton y
+  | PMeta _ -> empty
+  (* core *)
+  | Type _ -> empty
+  | Var _ -> empty
+  | Const _ -> empty
+  | Pi (_, _, a, bnd) ->
+    let _, b = unbind bnd in
+    union (imeta_of_tm a) (imeta_of_tm b)
+  | Fun (_, a, bnd) ->
+    let _, cls = unbind bnd in
+    List.fold_left
+      (fun acc (_, bnd) ->
+        let _, rhs_opt = unmbind bnd in
+        match rhs_opt with
+        | Some rhs -> union acc (imeta_of_tm rhs)
+        | None -> acc)
+      (imeta_of_tm a) cls
+  | App (m, n) -> union (imeta_of_tm m) (imeta_of_tm n)
+  | Let (_, m, bnd) ->
+    let _, n = unbind bnd in
+    union (imeta_of_tm m) (imeta_of_tm n)
+  (* inductive *)
+  | Ind (_, _, ms, ns) ->
+    let imeta1 = imeta_of_tms ms in
+    let imeta2 = imeta_of_tms ns in
+    union imeta1 imeta2
+  | Constr (_, _, ms, ns) ->
+    let imeta1 = imeta_of_tms ms in
+    let imeta2 = imeta_of_tms ns in
+    union imeta1 imeta2
+  | Match (_, ms, a, cls) ->
+    let imeta1 = imeta_of_tms ms in
+    let imeta2 = imeta_of_tm a in
+    List.fold_left
+      (fun acc (_, bnd) ->
+        let _, rhs_opt = unmbind bnd in
+        match rhs_opt with
+        | Some rhs -> union acc (imeta_of_tm rhs)
+        | None -> acc)
+      (union imeta1 imeta2) cls
+  (* monad *)
+  | IO a -> imeta_of_tm a
+  | Return m -> imeta_of_tm m
+  | MLet (m, bnd) ->
+    let _, n = unbind bnd in
+    union (imeta_of_tm m) (imeta_of_tm n)
+  (* magic *)
+  | Magic a -> imeta_of_tm a
+
 let occurs_tm x m =
   let rec aux = function
     (* inference *)
@@ -350,6 +408,9 @@ let rec simpl_iprbm ?(expand = false) eqn =
     in
     blocked m
   in
+  let imeta_pattern sp =
+    List.for_all (fun m -> IMeta.Set.is_empty (imeta_of_tm m)) sp
+  in
   match eqn with
   | EqualSort (s1, s2) -> (
     if eq_sort s1 s2 then
@@ -413,11 +474,17 @@ let rec simpl_iprbm ?(expand = false) eqn =
       try
         let hd1, sp1 = unApps m1 in
         let hd2, sp2 = unApps m2 in
-        let eqns1 = simpl_iprbm (EqualTerm (env, hd1, hd2)) in
-        let eqns2 =
-          List.map2 (fun m n -> simpl_iprbm (EqualTerm (env, m, n))) sp1 sp2
-        in
-        eqns1 @ List.concat eqns2
+        match (hd1, hd2) with
+        (* delay non-pattern fragment *)
+        | IMeta _, _ when not (imeta_pattern sp1) -> [ eqn ]
+        | _, IMeta _ when not (imeta_pattern sp2) -> [ eqn ]
+        (* attempt pattern fragment *)
+        | _ ->
+          let eqns1 = simpl_iprbm (EqualTerm (env, hd1, hd2)) in
+          let eqns2 =
+            List.map2 (fun m n -> simpl_iprbm (EqualTerm (env, m, n))) sp1 sp2
+          in
+          eqns1 @ List.concat eqns2
       with
       | _ when not expand -> simpl_iprbm ~expand:true (EqualTerm (env, m1, m2))
       | _ when imeta_blocked m1 || imeta_blocked m2 -> [ eqn ]

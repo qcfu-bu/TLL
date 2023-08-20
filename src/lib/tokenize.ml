@@ -227,24 +227,6 @@ let rec tokenize buf =
   | comma -> COMMA
   | semi -> SEMI
   | bullet -> BULLET
-  (* operators *)
-  | op_add -> OP_ADD (Utf8.lexeme buf)
-  | op_sub -> OP_SUB (Utf8.lexeme buf)
-  | op_mul -> OP_MUL (Utf8.lexeme buf)
-  | op_div -> OP_DIV (Utf8.lexeme buf)
-  | op_rem -> OP_REM (Utf8.lexeme buf)
-  | op_lt -> OP_LT (Utf8.lexeme buf)
-  | op_gt -> OP_GT (Utf8.lexeme buf)
-  | op_eq -> OP_EQ (Utf8.lexeme buf)
-  | op_ex -> OP_EX (Utf8.lexeme buf)
-  | op_and -> OP_AND (Utf8.lexeme buf)
-  | op_or -> OP_OR (Utf8.lexeme buf)
-  | op_sim -> OP_SIM (Utf8.lexeme buf)
-  | op_cat -> OP_CAT (Utf8.lexeme buf)
-  | op_colon -> OP_COLON (Utf8.lexeme buf)
-  | op_semi -> OP_SEMI (Utf8.lexeme buf)
-  | op_at -> OP_AT (Utf8.lexeme buf)
-  | op_tic -> OP_TIC (Utf8.lexeme buf)
   (* sort *)
   | sort_u -> SORT_U
   | sort_l -> SORT_L
@@ -280,6 +262,24 @@ let rec tokenize buf =
   | dcl_where -> DCL_WHERE
   | dcl_extern -> DCL_EXTERN
   | dcl_notation -> DCL_NOTATION
+  (* operators *)
+  | op_add -> OP_ADD (Utf8.lexeme buf)
+  | op_sub -> OP_SUB (Utf8.lexeme buf)
+  | op_mul -> OP_MUL (Utf8.lexeme buf)
+  | op_div -> OP_DIV (Utf8.lexeme buf)
+  | op_rem -> OP_REM (Utf8.lexeme buf)
+  | op_lt -> OP_LT (Utf8.lexeme buf)
+  | op_gt -> OP_GT (Utf8.lexeme buf)
+  | op_eq -> OP_EQ (Utf8.lexeme buf)
+  | op_ex -> OP_EX (Utf8.lexeme buf)
+  | op_and -> OP_AND (Utf8.lexeme buf)
+  | op_or -> OP_OR (Utf8.lexeme buf)
+  | op_sim -> OP_SIM (Utf8.lexeme buf)
+  | op_cat -> OP_CAT (Utf8.lexeme buf)
+  | op_colon -> OP_COLON (Utf8.lexeme buf)
+  | op_semi -> OP_SEMI (Utf8.lexeme buf)
+  | op_at -> OP_AT (Utf8.lexeme buf)
+  | op_tic -> OP_TIC (Utf8.lexeme buf)
   (* other *)
   | integer ->
     let i = int_of_string (Utf8.lexeme buf) in
