@@ -170,6 +170,9 @@
 
 %%
 // basics
+let trivial :=
+  | { () }
+
 let iden ==
   | ~ = IDENTIFIER; <>
 
@@ -207,6 +210,14 @@ let infix_op ==
   | ~ = OP_COLON; <>
   | ~ = OP_AT; <>
 
+let delim_op(P1,P2) ==
+  | LPAREN; p1 = P1; COMMA; p2 = P2; RPAREN; { ("(,)", p1, p2) }
+  | LANGLE; p1 = P1; COMMA; p2 = P2; RANGLE; { ("⟨,⟩", p1, p2) }
+  | LPAREN; LBRACE; p1 = P1; RBRACE; COMMA; p2 = P2; RPAREN; { ("({},)", p1, p2) }
+  | LPAREN; p1 = P1; COMMA; LBRACE; p2 = P2; RBRACE; RPAREN; { ("(,{})", p1, p2) }
+  | LANGLE; LBRACE; p1 = P1; RBRACE; COMMA; p2 = P2; RANGLE; { ("⟨{},⟩", p1, p2) }
+  | LANGLE; p1 = P1; COMMA; LBRACE; p2 = P2; RBRACE; RANGLE; { ("⟨,{}⟩", p1, p2) }
+
 let weakfix_op ==
   | ~ = OP_SEMI; <>
   | SEMI; { ";" }
@@ -238,6 +249,7 @@ let tm_pattern0 :=
   | id = iden; { PId id }
   | TM_ABSURD; { PAbsurd }
   | LPAREN; id = iden; args = tm_pattern0s; RPAREN; { PConstr (id, args) }
+  | p = delim_op(tm_pattern0i,tm_pattern0i); { let (s, p1, p2) = p in PBOpr (s, p1, p2) }
   | LPAREN; ~ = tm_pattern0i; RPAREN; <>
 
 let tm_pattern0s :=
@@ -252,6 +264,7 @@ let tm_pattern1 :=
   | id = iden; { PId id }
   | TM_ABSURD; { PAbsurd }
   | id = iden; ps = tm_pattern0s; { PConstr (id, ps) }
+  | p = delim_op(tm_pattern1i,tm_pattern1i); { let (s, p1, p2) = p in PBOpr (s, p1, p2) }
   | LPAREN; ~ = tm_pattern1; RPAREN; <>
 
 let tm_pattern1i :=
@@ -623,6 +636,7 @@ let tm0 :=
   | ~ = tm_id; <>
   | ~ = tm_inst; <>
   | ~ = tm_hole; <>
+  | m = delim_op(tm,tm); { let (s, m1, m2) = m in BOpr (s, m1, m2) }
   | LPAREN; ~ = tm; RPAREN; <>
 
 let tm1 :=
@@ -847,12 +861,13 @@ let dcl_extern :=
 
 // notations
 /*
-notation  _ = _ := eq %1 %2
+notation ( = ) := eq %1 %2
 */
 let dcl_notation_symbol :=
   | ~ = infix_op; <>
   | ~ = prefix_op; <>
   | ~ = weakfix_op; <>
+  | p = delim_op(trivial,trivial); { let (s, _, _) = p in s }
 
 let dcl_notation :=
   | DCL_NOTATION; LPAREN; s = dcl_notation_symbol; RPAREN; ASSIGN; m = tm;

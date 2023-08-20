@@ -16,6 +16,9 @@ notation ( <= ) := lte %1 %2
 notation ( >= ) := gte %1 %2
 notation ( ** ) := prod1 %1 %2
 notation ( :: ) := cons %1 %2
+notation ( ; ) := let* _ := %1 in %2
+notation ( ⟨{ }, ⟩ ) := ex0 %1 %2
+notation ( ⟨ , ⟩ ) := ex1 %1 %2
 
 
 #[logical]
@@ -113,15 +116,15 @@ def alice (a : nat) (p g : nat) (c : DH_ch p g) : IO unit :=
   let* c := send0 refl c a in 
   let* c := send1 refl c (g ^ a % p) in
   let* c := send0 refl c refl in
-  let* r := recv0 refl c in match r with ex0 b c =>
-  let* r := recv1 refl c in match r with ex1 B c =>
-  let* r := recv0 refl c in match r with ex0 pf c =>
+  let* ⟨{b}, c⟩ := recv0 refl c in
+  let* ⟨B, c⟩ := recv1 refl c in
+  let* ⟨{pf}, c⟩ := recv0 refl c in
   close c
 
 def bob (b : nat) (p g : nat) (c : DH_hc p g) : IO unit :=
-  let* r := recv0 refl c in match r with ex0 a c =>
-  let* r := recv1 refl c in match r with ex1 A c =>
-  let* r := recv0 refl c in match r with ex0 pf c =>
+  let* ⟨{a}, c⟩ := recv0 refl c in
+  let* ⟨A, c⟩ := recv1 refl c in
+  let* ⟨{pf}, c⟩ := recv0 refl c in
   let* c := send0 refl c b in
   let* c := send1 refl c (g ^ b % p) in
   let* c := send0 refl c refl in

@@ -17,6 +17,8 @@ notation ( >= ) := gte %1 %2
 notation ( ** ) := prod1 %1 %2
 notation ( :: ) := cons %1 %2
 notation ( ; ) := let* _ := %1 in %2
+notation ( ⟨{ }, ⟩ ) := ex0 %1 %2
+notation ( ⟨ , ⟩ ) := ex1 %1 %2
 
 #[logical]
 inductive eq<s> ?(A : Type<s>) (m : A) : A -> U where
@@ -121,11 +123,11 @@ extern recv1<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {xor b1 b2 = 
 extern fork ?{b : bool} {P : proto} : (ch b P -o IO unit) -> IO (ch (not b) P)
 
 def split<t> : list<_,t> nat -> list<_,t> nat ** list<_,t> nat
-  | nil            => ex1 nil nil
-  | (x :: nil)     => ex1 (x :: nil) nil
+  | nil            => ⟨nil, nil⟩
+  | (x :: nil)     => ⟨x :: nil, nil⟩
   | (x :: y :: zs) =>
-    let (ex1 xs ys) := split zs in
-    ex1 (x :: xs) (y :: ys)
+    let ⟨xs, ys⟩ := split zs in
+    ⟨x :: xs, y :: ys⟩
 
 def merge<t> : list<_,t> nat -> list<_,t> nat -o list<_,t> nat
   | nil       ys        => ys
@@ -139,7 +141,7 @@ def msort<t> : list<_,t> nat -> list<_,t> nat
   | nil        => nil
   | (z :: nil) => z :: nil
   | zs         =>
-    let (ex1 xs ys) := split zs in
+    let ⟨xs, ys⟩ := split zs in
     merge (msort xs) (msort ys)
 
 #[logical]
@@ -152,14 +154,14 @@ def cmsort_worker<t> : nat -> forall (zs : list<_,t> nat) -> cmsort_ch<t> zs -o 
   | (succ n) (z :: nil) c => let* c := send1 refl c (just (z :: nil)) in close c
   | (succ n) zs         c => 
     match split zs as h1
-        , {refl}   as _ : (let (ex1 xs ys) := h1 in merge (msort xs) (msort ys)) =
-                          (let (ex1 xs ys) := split zs in merge (msort xs) (msort ys))
+        , {refl}   as _ : (let ⟨xs, ys⟩ := h1 in merge (msort xs) (msort ys)) =
+                          (let ⟨xs, ys⟩ := split zs in merge (msort xs) (msort ys))
     with
-    | ex1 xs0 ys0, pf => 
+    | ⟨xs0, ys0⟩, pf => 
       let* r1 := fork _ (ln c1 => cmsort_worker n xs0 c1) in
       let* r2 := fork _ (ln c2 => cmsort_worker n ys0 c2) in
-      let* (ex1 xs1 c1) := recv1 refl r1 in
-      let* (ex1 ys1 c2) := recv1 refl r2 in
+      let* ⟨xs1, c1⟩ := recv1 refl r1 in
+      let* ⟨ys1, c2⟩ := recv1 refl r2 in
       match xs1, ys1 with
       | just xs1, just ys1 =>
         let zs1 : `merge (msort xs0) (msort ys0) := just (merge xs1 ys1) in
