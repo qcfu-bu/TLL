@@ -102,7 +102,7 @@ inductive apair<s,r,t> ?(A : Type<s>) (B : A -> Type<r>) : Type<t> where
                 | true  => sing<_,L>x
                 | false => boxed (B x)) : apair B
 
-notation ( ( , ) ) :=
+notation ( { , } ) :=
   apair_intro
     (function  
      | true  => just %1
@@ -129,14 +129,14 @@ def proj2<s,r,t> ?{A : Type<s>} ?{B : A -> Type<r>} : forall (x : @apair<s,r,t> 
 def my_apair0 : apair<_,_,U> (fn (n : nat) => match n with zero => stream nat | succ _ => unit<L>) :=
   -- different type modalities are allowed in components as long
   -- as resource usage are equal
-  (zero, nat_make zero)
+  {zero, nat_make zero}
 
 def my_apair1 : apair<_,_,L> (fn (n : nat) => match n with zero => stream nat | succ _ => unit<L>) :=
   let nat_stream := nat_make zero in
   -- additive pair allows usage of nat_stream in both components
-  ( let ⟨hd, tl⟩ := uncons_stream nat_stream in
+  { let ⟨hd, tl⟩ := uncons_stream nat_stream in
     let _ := free_stream tl in hd
-  , nat_stream )
+  , nat_stream }
 
 -- def _ : nat := proj1 my_apair1
 
