@@ -136,7 +136,7 @@ def merge<t> : list<_,t> nat -> list<_,t> nat -o list<_,t> nat
 
 def msort<t> : list<_,t> nat -> list<_,t> nat 
   | nil        => nil
-  | (z :: nil) => cons z nil
+  | (z :: nil) => z :: nil
   | zs         =>
     match split zs with
     | ex1 xs ys => merge (msort xs) (msort ys)
@@ -162,7 +162,7 @@ def cmsort_worker<t> : nat -> forall (zs : list<_,t> nat) -> cmsort_ch<t> zs -o 
       match xs1, ys1 with
       | just xs1, just ys1 =>
         let zs1 : `merge (msort xs0) (msort ys0) := just (merge xs1 ys1) in
-        let zs1 : `msort zs := rwl (fn x => sing x) pf zs1 in
+        let zs1 : `msort zs := rwl (fn x => `x) pf zs1 in
         let* c := send1 refl c zs1 in
         let* _ := close c1 in
         let* _ := close c2 in
