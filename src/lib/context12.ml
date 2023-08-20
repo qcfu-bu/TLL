@@ -84,9 +84,11 @@ end
 
 module Resolver = struct
   module Sorts = struct
+    open Hashtbl
+
     type t = sorts
 
-    let compare ss1 ss2 = List.compare (fun s1 s2 -> compare s1 s2) ss1 ss2
+    let compare ss1 ss2 = Int.compare (hash ss1) (hash ss2)
   end
 
   module RMap = Map.Make (Sorts)
