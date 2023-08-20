@@ -133,7 +133,8 @@ let tm_if = [%sedlex.regexp? "if"]
 let tm_then = [%sedlex.regexp? "then"]
 let tm_else = [%sedlex.regexp? "else"]
 let tm_absurd = [%sedlex.regexp? "!!"]
-let tm_magic = [%sedlex.regexp? "#magic"]
+let tm_magic0 = [%sedlex.regexp? "#magic"]
+let tm_magic1 = [%sedlex.regexp? "#magic["]
 let tm_io = [%sedlex.regexp? "IO"]
 let tm_return = [%sedlex.regexp? "return"]
 let tm_mlet = [%sedlex.regexp? "let*"]
@@ -248,7 +249,8 @@ let rec tokenize buf =
   | tm_then -> TM_THEN
   | tm_else -> TM_ELSE
   | tm_absurd -> TM_ABSURD
-  | tm_magic -> TM_MAGIC
+  | tm_magic0 -> TM_MAGIC0
+  | tm_magic1 -> TM_MAGIC1
   | tm_io -> TM_IO
   | tm_return -> TM_RETURN
   | tm_mlet -> TM_MLET

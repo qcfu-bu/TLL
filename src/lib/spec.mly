@@ -135,7 +135,8 @@
 %token TM_ELSE     // else
 %token TM_REFL     // refl
 %token TM_ABSURD   // !!
-%token TM_MAGIC    // #magic
+%token TM_MAGIC0   // #magic
+%token TM_MAGIC1   // #magic[
 %token TM_REW      // rew
 %token TM_IO       // IO
 %token TM_RETURN   // return
@@ -212,11 +213,21 @@ let infix_op ==
 
 let delim_op(P1,P2) ==
   | LPAREN; p1 = P1; COMMA; p2 = P2; RPAREN; { ("(,)", p1, p2) }
+  | LBRACK; p1 = P1; COMMA; p2 = P2; RBRACK; { ("[,]", p1, p2) }
   | LANGLE; p1 = P1; COMMA; p2 = P2; RANGLE; { ("⟨,⟩", p1, p2) }
+  | LBRACE; p1 = P1; COMMA; p2 = P2; RBRACE; { ("{,}", p1, p2) }
+//
   | LPAREN; LBRACE; p1 = P1; RBRACE; COMMA; p2 = P2; RPAREN; { ("({},)", p1, p2) }
   | LPAREN; p1 = P1; COMMA; LBRACE; p2 = P2; RBRACE; RPAREN; { ("(,{})", p1, p2) }
+//
+  | LBRACK; LBRACE; p1 = P1; RBRACE; COMMA; p2 = P2; RBRACK; { ("[{},]", p1, p2) }
+  | LBRACK; p1 = P1; COMMA; LBRACE; p2 = P2; RBRACE; RBRACK; { ("[,{}]", p1, p2) }
+//
   | LANGLE; LBRACE; p1 = P1; RBRACE; COMMA; p2 = P2; RANGLE; { ("⟨{},⟩", p1, p2) }
   | LANGLE; p1 = P1; COMMA; LBRACE; p2 = P2; RBRACE; RANGLE; { ("⟨,{}⟩", p1, p2) }
+//
+  | LBRACE; LBRACE; p1 = P1; RBRACE; COMMA; p2 = P2; RBRACE; { ("{{},}", p1, p2) }
+  | LBRACE; p1 = P1; COMMA; LBRACE; p2 = P2; RBRACE; RBRACE; { ("{,{}}", p1, p2) }
 
 let weakfix_op ==
   | ~ = OP_SEMI; <>
@@ -623,8 +634,8 @@ let tm_mlet(P) :=
 #magic[A]
 */
 let tm_magic :=
-  | TM_MAGIC; { Magic IMeta }
-  | TM_MAGIC; LBRACK; a = tm; RBRACK; { Magic a }
+  | TM_MAGIC0; { Magic IMeta }
+  | TM_MAGIC1; a = tm; RBRACK; { Magic a }
 
 // terms
 let tm0 :=
