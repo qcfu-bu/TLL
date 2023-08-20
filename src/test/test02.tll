@@ -21,6 +21,12 @@ inductive eq<s> ?(A : Type‹s›) (m : A) : A -> U where
 
 notation ( = ) := (eq %1 %2)
 
+def len ?{A : U} : list A -> nat
+  | nil => zero
+  | (x :: tl) => len tl
+
+
+/-
 inductive exists<s,r,t> ?(A : Type‹s›) (B : A -> Type<r>) : Type<t> where
 | ex (m : A) {pf : B m} : exists B
 
@@ -64,3 +70,4 @@ def sing_double<s> {A : Type<s>} {m : A} : `m -> `m -o A ** A
 #[logical]
 def axiom_K ?{A : U} ?{m : A} : forall (x : m = m) -> x = refl
   | refl => refl
+-/

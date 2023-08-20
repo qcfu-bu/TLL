@@ -1,15 +1,18 @@
+notation ( = ) := eq %1 %2
+notation ( ` ) := sing %1
+
 #[logical]
 inductive eq<s> ?(A : Type<s>) (m : A) : A -> U where
-  | refl : eq m m
+  | refl : m = m
 
-def rwl<s,r> ?{A : Type<s>} ?{m n : A} {B : A -> Type<r>} : {eq m n} -> B m -> B n
+def rwl<s,r> ?{A : Type<s>} ?{m n : A} {B : A -> Type<r>} : {m = n} -> B m -> B n
   | refl x => x
 
-def rwr<s,r> ?{A : Type<s>} ?{m n : A} {B : A -> Type<r>} : {eq m n} -> B n -> B m
+def rwr<s,r> ?{A : Type<s>} ?{m n : A} {B : A -> Type<r>} : {m = n} -> B n -> B m
   | refl x => x
 
 inductive sing<s> ?(A : Type<s>) : A -> Type<s> where
-  | just (m : A) : sing m
+  | just (m : A) : `m
 
 inductive unit : U where
   | tt : unit

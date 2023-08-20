@@ -54,6 +54,8 @@ and p =
   | PId of id
   | PAbsurd
   | PConstr of id * ps
+  | PBOpr of id * p * p
+  | PUOpr of id * p
 [@@deriving show { with_path = false }]
 
 and ps = p list

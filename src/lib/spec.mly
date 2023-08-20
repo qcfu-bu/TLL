@@ -167,7 +167,7 @@
 %start <dcl list> main
 
 %%
-// baiscs
+// basics
 let iden ==
   | ~ = IDENTIFIER; <>
 
@@ -186,6 +186,29 @@ let at_const0 ==
 let at_const1 ==
   | ~ = AT_CONSTANT1; <>
 
+// binary operators
+let bin_op ==
+  | ~ = OP_MUL; <>
+  | ~ = OP_DIV; <>
+  | ~ = OP_REM; <>
+  | ~ = OP_ADD; <>
+  | ~ = OP_SUB; <>
+  | LT; { "<" }
+  | GT; { ">" }
+  | ~ = OP_LT; <>
+  | ~ = OP_GT; <>
+  | ~ = OP_EQ; <>
+  | ~ = OP_EX; <>
+  | ~ = OP_AND; <>
+  | ~ = OP_OR; <>
+  | ~ = OP_CAT; <>
+  | ~ = OP_COL; <>
+  | ~ = OP_AT; <>
+
+let uni_op ==
+  | ~ = OP_SIM; <>
+  | ~ = OP_TIC; <>
+
 // sorts
 /* U L Type<s> */
 let sort :=
@@ -203,6 +226,32 @@ let tm_id :=
 /* %1 */
 let tm_hole :=
   | i = HOLE; { Hole i }
+
+// patterns
+let tm_pattern0 :=
+  | id = iden; { PId id }
+  | TM_ABSURD; { PAbsurd }
+  | LPAREN; id = iden; args = tm_pattern0s; RPAREN; { PConstr (id, args) }
+  | LPAREN; ~ = tm_pattern0i; RPAREN; <>
+
+let tm_pattern0s :=
+  | ~ = tm_pattern0+; <>
+
+let tm_pattern0i :=
+  | p1 = tm_pattern0i; s = bin_op; p2 = tm_pattern0i; { PBOpr (s, p1, p2) }
+  | s = uni_op; p = tm_pattern0i; { PUOpr (s, p) }
+  | ~ = tm_pattern0; <>
+
+let tm_pattern1 :=
+  | id = iden; { PId id }
+  | TM_ABSURD; { PAbsurd }
+  | id = iden; ps = tm_pattern0s; { PConstr (id, ps) }
+  | LPAREN; ~ = tm_pattern1; RPAREN; <>
+
+let tm_pattern1i :=
+  | p1 = tm_pattern1i; s = bin_op; p2 = tm_pattern1i; { PBOpr (s, p1, p2) }
+  | s = uni_op; p = tm_pattern1i; { PUOpr (s, p) }
+  | ~ = tm_pattern1; <>
 
 // instance
 /* X‹s,r,t› */
@@ -344,18 +393,8 @@ let tm_fun_arg :=
 let tm_fun_args :=
   | args = tm_fun_arg*; { List.concat args }
 
-let tm_fun_p :=
-  | id = iden; { PId id }
-  | TM_ABSURD; { PAbsurd }
-  | LPAREN; id = iden; args = tm_fun_ps; RPAREN;
-    { PConstr (id, args) }
-  | LPAREN; ~ = tm_fun_p; RPAREN; <>
-
-let tm_fun_ps :=
-  | ~ = tm_fun_p+; <>
-
 let tm_fun_cl(p) :=
-  | PIPE; ps = tm_fun_ps; RIGHTARROW1; rhs = p?; { (ps, rhs) }
+  | PIPE; ps = tm_pattern0s; RIGHTARROW1; rhs = p?; { (ps, rhs) }
 
 let tm_fun_cls :=
   | cl = tm_fun_cl(tm); { [cl] }
@@ -514,27 +553,11 @@ let tm_match_arg :=
 let tm_match_args :=
   | ~ = separated_list(COMMA, tm_match_arg); <>
 
-let tm_match_p0 :=
-  | id = iden; { PId id }
-  | TM_ABSURD; { PAbsurd }
-  | LPAREN; id = iden; args = tm_match_p0s; RPAREN;
-    { PConstr (id, args) }
-  | LPAREN; ~ = tm_match_p0; RPAREN; <>
-
-let tm_match_p0s :=
-  | ~ = tm_match_p0+; <>
-
-let tm_match_p :=
-  | id = iden; { PId id }
-  | TM_ABSURD; { PAbsurd }
-  | id = iden; ps = tm_match_p0s; { PConstr (id, ps) }
-  | LPAREN; ~ = tm_match_p; RPAREN; <>
-
 let tm_match_cl0(p) :=
-  | ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = p?; { (ps, rhs) }
+  | ps = separated_list(COMMA, tm_pattern1i); RIGHTARROW1; rhs = p?; { (ps, rhs) }
 
 let tm_match_cl1(p) :=
-  | PIPE; ps = separated_list(COMMA, tm_match_p); RIGHTARROW1; rhs = p?; { (ps, rhs) }
+  | PIPE; ps = separated_list(COMMA, tm_pattern1i); RIGHTARROW1; rhs = p?; { (ps, rhs) }
 
 let tm_match_cls0 :=
   | cl = tm_match_cl1(tm); { [cl] }
@@ -601,24 +624,8 @@ let tm1 :=
     { match ms with [] -> m | _ -> App (m :: ms) }
 
 let tm2 :=
-  | m = tm2; s = OP_MUL; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; s = OP_DIV; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; s = OP_REM; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; s = OP_ADD; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; s = OP_SUB; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; LT; n = tm2; { BOpr ("<", m, n) }
-  | m = tm2; GT; n = tm2; { BOpr (">", m, n) }
-  | m = tm2; s = OP_LT; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; s = OP_GT; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; s = OP_EQ; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; s = OP_EX; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; s = OP_AND; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; s = OP_OR; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; s = OP_CAT; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; s = OP_COL; n = tm2; { BOpr (s, m, n) }
-  | m = tm2; s = OP_AT; n = tm2; { BOpr (s, m, n) }
-  | s = OP_SIM; m = tm2; { UOpr (s, m) }
-  | s = OP_TIC; m = tm2; { UOpr (s, m) }
+  | m = tm2; s = bin_op; n = tm2; { BOpr (s, m, n) }
+  | s = uni_op; m = tm2; { UOpr (s, m) }
   | ~ = tm1; <>
 
 let tm3_generic(p) :=
@@ -692,21 +699,11 @@ let dcl_def_arg :=
 let dcl_def_args :=
   | args = dcl_def_arg*; { List.concat args }
 
-let dcl_def_p :=
-  | id = iden; { PId id }
-  | TM_ABSURD; { PAbsurd }
-  | LPAREN; id = iden; args = dcl_def_ps; RPAREN;
-    { PConstr (id, args) }
-  | LPAREN; ~ = dcl_def_p; RPAREN; <>
-
-let dcl_def_ps :=
-  | ~ = dcl_def_p+; <>
-
 let dcl_def_closed :=
-  | PIPE; ps = dcl_def_ps; RIGHTARROW1; rhs = tm_closed?; { (ps, rhs) }
+  | PIPE; ps = tm_pattern0s; RIGHTARROW1; rhs = tm_closed?; { (ps, rhs) }
 
 let dcl_def_open :=
-  | PIPE; ps = dcl_def_ps; RIGHTARROW1; rhs = tm?; { (ps, rhs) }
+  | PIPE; ps = tm_pattern0s; RIGHTARROW1; rhs = tm?; { (ps, rhs) }
 
 let dcl_def_cls :=
   | cl = dcl_def_open; { [cl] }
@@ -846,24 +843,8 @@ notation  _ = _ := eq %1 %2
 */
 
 let dcl_notation_symbol :=
-  | ~ = OP_MUL; <>
-  | ~ = OP_DIV; <>
-  | ~ = OP_REM; <>
-  | ~ = OP_ADD; <>
-  | ~ = OP_SUB; <>
-  | LT; { "<" }
-  | GT; { ">" }
-  | ~ = OP_LT; <>
-  | ~ = OP_GT; <>
-  | ~ = OP_EQ; <>
-  | ~ = OP_EX; <>
-  | ~ = OP_AND; <>
-  | ~ = OP_OR; <>
-  | ~ = OP_CAT; <>
-  | ~ = OP_COL; <>
-  | ~ = OP_AT; <>
-  | ~ = OP_SIM; <>
-  | ~ = OP_TIC; <>
+  | ~ = bin_op; <>
+  | ~ = uni_op; <>
 
 let dcl_notation :=
   | DCL_NOTATION; LPAREN; s = dcl_notation_symbol; RPAREN; ASSIGN; m = tm;
