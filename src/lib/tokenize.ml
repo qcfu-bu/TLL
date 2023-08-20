@@ -59,7 +59,7 @@ let at = [%sedlex.regexp? "@"]
 let op_symbol =
   [%sedlex.regexp?
     ( '+' | '-' | '*' | '/' | '\\' | '%' | '<' | '>' | '=' | '!' | '&' | '~'
-    | '^' | '|' | ':' | '@' | '`' )]
+    | '^' | '|' | ':' | ';' | '@' | '`' )]
 
 let op_add = [%sedlex.regexp? '+', Star op_symbol]
 let op_sub = [%sedlex.regexp? '-', Star op_symbol]
@@ -74,7 +74,8 @@ let op_and = [%sedlex.regexp? "&", Star op_symbol]
 let op_sim = [%sedlex.regexp? "~", Star op_symbol]
 let op_cat = [%sedlex.regexp? '^', Star op_symbol]
 let op_or = [%sedlex.regexp? "|", Plus op_symbol]
-let op_col = [%sedlex.regexp? ":", Plus op_symbol]
+let op_colon = [%sedlex.regexp? ":", Plus op_symbol]
+let op_semi = [%sedlex.regexp? ";", Plus op_symbol]
 let op_at = [%sedlex.regexp? "@", Plus op_symbol]
 let op_tic = [%sedlex.regexp? "`", Star op_symbol]
 
@@ -240,7 +241,8 @@ let rec tokenize buf =
   | op_or -> OP_OR (Utf8.lexeme buf)
   | op_sim -> OP_SIM (Utf8.lexeme buf)
   | op_cat -> OP_CAT (Utf8.lexeme buf)
-  | op_col -> OP_COL (Utf8.lexeme buf)
+  | op_colon -> OP_COLON (Utf8.lexeme buf)
+  | op_semi -> OP_SEMI (Utf8.lexeme buf)
   | op_at -> OP_AT (Utf8.lexeme buf)
   | op_tic -> OP_TIC (Utf8.lexeme buf)
   (* sort *)

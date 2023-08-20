@@ -44,22 +44,23 @@
 %token TOP
 
 // operators
-%token<string> OP_ADD  // + infixl
-%token<string> OP_SUB  // - infixl
-%token<string> OP_MUL  // * infixl
-%token<string> OP_DIV  // / infixl
-%token<string> OP_REM  // % infixl
-%token<string> OP_LT   // < infixl
-%token<string> OP_GT   // > infixl
-%token<string> OP_EQ   // = infixl
-%token<string> OP_EX   // ! infixl
-%token<string> OP_AND  // & infixl
-%token<string> OP_OR   // | infixl
-%token<string> OP_SIM  // ~ prefix
-%token<string> OP_CAT  // ^ infixl
-%token<string> OP_COL  // : infixr
-%token<string> OP_AT   // @ infixr
-%token<string> OP_TIC  // ` prefix
+%token<string> OP_ADD   // + infixl
+%token<string> OP_SUB   // - infixl
+%token<string> OP_MUL   // * infixl
+%token<string> OP_DIV   // / infixl
+%token<string> OP_REM   // % infixl
+%token<string> OP_LT    // < infixl
+%token<string> OP_GT    // > infixl
+%token<string> OP_EQ    // = infixl
+%token<string> OP_EX    // ! infixl
+%token<string> OP_AND   // & infixl
+%token<string> OP_OR    // | infixl
+%token<string> OP_SIM   // ~ prefix
+%token<string> OP_CAT   // ^ infixl
+%token<string> OP_COLON // : infixr
+%token<string> OP_SEMI  // : infixr
+%token<string> OP_AT    // @ infixr
+%token<string> OP_TIC   // ` prefix
 %left OP_ADD
 %left OP_SUB
 %left OP_MUL
@@ -73,7 +74,8 @@
 %left OP_OR
 %nonassoc OP_SIM
 %left OP_CAT
-%right OP_COL
+%right OP_COLON
+%right OP_SEMI
 %right OP_AT
 %nonassoc OP_TIC
 
@@ -202,8 +204,12 @@ let infix_op ==
   | ~ = OP_EX; <>
   | ~ = OP_AND; <>
   | ~ = OP_OR; <>
-  | ~ = OP_COL; <>
+  | ~ = OP_COLON; <>
   | ~ = OP_AT; <>
+
+let weakfix_op ==
+  | ~ = OP_SEMI; <>
+  | SEMI; { ";" }
 
 let prefix_op ==
   | ~ = OP_SIM; <>
@@ -650,6 +656,7 @@ let tm4_generic(P) :=
   | ~ = tm3_generic(P); <>
 
 let tm4_closed :=
+  | m = tm2; s = weakfix_op; n = tm4_closed; { BOpr (s, m, n) }
   | ~ = tm4_generic(tm_closed); <>
 
 let tm4 :=
@@ -657,6 +664,7 @@ let tm4 :=
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm0*; m = tm_match;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | m = tm2; s = weakfix_op; n = tm4; { BOpr (s, m, n) }
   | ~ = tm4_generic(tm); <>
 
 let tm_closed :=
@@ -844,6 +852,7 @@ notation  _ = _ := eq %1 %2
 let dcl_notation_symbol :=
   | ~ = infix_op; <>
   | ~ = prefix_op; <>
+  | ~ = weakfix_op; <>
 
 let dcl_notation :=
   | DCL_NOTATION; LPAREN; s = dcl_notation_symbol; RPAREN; ASSIGN; m = tm;
