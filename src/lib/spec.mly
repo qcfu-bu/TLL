@@ -590,13 +590,13 @@ let tm_return :=
 // mlet
 /* let* x := m in n */
 let tm_mlet(p) :=
-  | TM_MLET; id = iden; opt = tm_ann_open; ASSIGN; m = tm; TM_IN; n = p;
+  | TM_MLET; p0 = tm_pattern1i; opt = tm_ann_open; ASSIGN; m = tm; TM_IN; n = p;
     { let m =
         match opt with
         | None -> m
         | Some a -> Ann (m, IO a)
       in
-      MLet (m, Binder (id, n)) }
+      MLet (m, Binder (p0, n)) }
 
 // magic
 /*

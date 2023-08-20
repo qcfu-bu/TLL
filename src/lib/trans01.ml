@@ -266,11 +266,21 @@ let rec trans_tm nspc = function
   (* monad *)
   | IO a -> Syntax1.(_IO (trans_tm nspc a))
   | Return m -> Syntax1.(_Return (trans_tm nspc m))
-  | MLet (m, Binder (id, n)) ->
+  | MLet (m, Binder (p0, n)) -> (
     let m = trans_tm nspc m in
-    let x = Syntax1.(Var.mk id) in
-    let n = trans_tm ((id, EVar (x, [])) :: nspc) n in
-    Syntax1.(_MLet m (bind_var x n))
+    let xs, p, _ = trans_p nspc p0 in
+    match (p0, unbox p) with
+    | PId id, Syntax1.P0Rel ->
+      let x = Syntax1.Var.mk id in
+      let nspc = (id, EVar (x, [])) :: nspc in
+      let n = trans_tm nspc n in
+      Syntax1.(_MLet m (bind_var x n))
+    | _ ->
+      let x = Syntax1.Var.mk "" in
+      let ms = box_list [ Syntax1._Var x ] in
+      let guard, cls = trans_cls nspc [ ([ p0 ], Some n) ] in
+      let a = Syntax1.(_Pi R _L (mk_meta nspc) (bind_var x (mk_meta nspc))) in
+      Syntax1.(_MLet m (bind_var x (_Match guard ms a (box_list cls)))))
   (* custom *)
   | UOpr (sym, m) -> (
     match List.assoc_opt sym nspc with

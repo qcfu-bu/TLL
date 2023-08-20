@@ -39,7 +39,7 @@ type tm =
   (* monad *)
   | IO of tm
   | Return of tm
-  | MLet of tm * (id, tm) binder
+  | MLet of tm * (p, tm) binder
   (* custom *)
   | UOpr of id * tm
   | BOpr of id * tm * tm

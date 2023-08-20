@@ -157,8 +157,8 @@ def cmsort_worker<t> : nat -> forall (zs : list<_,t> nat) -> cmsort_ch<t> zs -o 
     | ex1 xs0 ys0, pf => 
       let* r1 := fork _ (ln c1 => cmsort_worker n xs0 c1) in
       let* r2 := fork _ (ln c2 => cmsort_worker n ys0 c2) in
-      let* r1 := recv1 refl r1 in match r1 with ex1 xs1 c1 =>
-      let* r2 := recv1 refl r2 in match r2 with ex1 ys1 c2 =>
+      let* (ex1 xs1 c1) := recv1 refl r1 in
+      let* (ex1 ys1 c2) := recv1 refl r2 in
       match xs1, ys1 with
       | just xs1, just ys1 =>
         let zs1 : `merge (msort xs0) (msort ys0) := just (merge xs1 ys1) in
