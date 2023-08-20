@@ -277,64 +277,6 @@ let rec occurs_sort x = function
   | SMeta (y, ss) -> SMeta.equal x y || List.exists (occurs_sort x) ss
   | _ -> false
 
-let rec imeta_of_tm m =
-  let open IMeta.Set in
-  let imeta_of_tms ms =
-    List.fold_left (fun acc x -> union acc (imeta_of_tm x)) empty ms
-  in
-  match m with
-  (* inference *)
-  | Ann (m, a) -> union (imeta_of_tm m) (imeta_of_tm a)
-  | IMeta (y, _, _) -> singleton y
-  | PMeta _ -> empty
-  (* core *)
-  | Type _ -> empty
-  | Var _ -> empty
-  | Const _ -> empty
-  | Pi (_, _, a, bnd) ->
-    let _, b = unbind bnd in
-    union (imeta_of_tm a) (imeta_of_tm b)
-  | Fun (_, a, bnd) ->
-    let _, cls = unbind bnd in
-    List.fold_left
-      (fun acc (_, bnd) ->
-        let _, rhs_opt = unmbind bnd in
-        match rhs_opt with
-        | Some rhs -> union acc (imeta_of_tm rhs)
-        | None -> acc)
-      (imeta_of_tm a) cls
-  | App (m, n) -> union (imeta_of_tm m) (imeta_of_tm n)
-  | Let (_, m, bnd) ->
-    let _, n = unbind bnd in
-    union (imeta_of_tm m) (imeta_of_tm n)
-  (* inductive *)
-  | Ind (_, _, ms, ns) ->
-    let imeta1 = imeta_of_tms ms in
-    let imeta2 = imeta_of_tms ns in
-    union imeta1 imeta2
-  | Constr (_, _, ms, ns) ->
-    let imeta1 = imeta_of_tms ms in
-    let imeta2 = imeta_of_tms ns in
-    union imeta1 imeta2
-  | Match (_, ms, a, cls) ->
-    let imeta1 = imeta_of_tms ms in
-    let imeta2 = imeta_of_tm a in
-    List.fold_left
-      (fun acc (_, bnd) ->
-        let _, rhs_opt = unmbind bnd in
-        match rhs_opt with
-        | Some rhs -> union acc (imeta_of_tm rhs)
-        | None -> acc)
-      (union imeta1 imeta2) cls
-  (* monad *)
-  | IO a -> imeta_of_tm a
-  | Return m -> imeta_of_tm m
-  | MLet (m, bnd) ->
-    let _, n = unbind bnd in
-    union (imeta_of_tm m) (imeta_of_tm n)
-  (* magic *)
-  | Magic a -> imeta_of_tm a
-
 let occurs_tm x m =
   let rec aux = function
     (* inference *)
@@ -409,7 +351,13 @@ let rec simpl_iprbm ?(expand = false) eqn =
     blocked m
   in
   let imeta_pattern sp =
-    List.for_all (fun m -> IMeta.Set.is_empty (imeta_of_tm m)) sp
+    (* pattern fragment check *)
+    List.for_all
+      (function
+        | PMeta _ -> true
+        | Var _ -> true
+        | _ -> false)
+      sp
   in
   match eqn with
   | EqualSort (s1, s2) -> (
