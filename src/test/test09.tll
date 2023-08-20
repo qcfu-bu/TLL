@@ -17,7 +17,6 @@ notation ( >= ) := gte %1 %2
 notation ( ** ) := prod1 %1 %2
 notation ( :: ) := cons %1 %2
 
-
 #[logical]
 inductive eq<s> ?(A : Type‹s›) (m : A) : A -> U where
   | refl : m = m
@@ -36,6 +35,17 @@ inductive nat : L where
 inductive sing ?(A : L) : A -> L where
   | just (m : A) : `m
 
+def sing_elim ?{A : L} ?{x : A} : `x -> A
+  | (just x) => x
+
+#[logical]
+def sing_uniq ?(A : L) ?(x0 : A) : forall (x : `x0) -> x0 = sing_elim x
+  | (just _) => refl
+
+
+
+
+-- dependent additive pair
 inductive apair ?(A : L) (B : A -> L) : L where
   | apair_intro
     ?{x : A}
@@ -44,12 +54,11 @@ inductive apair ?(A : L) (B : A -> L) : L where
                 | true  => `x
                 | false => B x) : apair B
 
-def sing_elim ?{A : L} ?{x : A} : `x -> A
-  | (just x) => x
-
-#[logical]
-def sing_uniq ?(A : L) ?(x0 : A) : forall (x : `x0) -> x0 = sing_elim x
-  | (just _) => refl
+notation ( ( , ) ) :=
+  apair_intro
+    (function  
+     | true  => just %1
+     | false => %2)
 
 def proj1 ?{A : L} ?{B : A -> L} : @apair A B -> A
   | (apair_intro _ select) => sing_elim (select true)
@@ -63,6 +72,9 @@ def proj2 ?{A : L} ?{B : A -> L} : forall (x : @apair A B) -> B (proj1 x)
       in B (sing_elim a0)
     with
     | _, _, refl, b => b
+
+
+
 
 def bool2nat : bool -> nat
   | true  => succ zero
@@ -78,10 +90,7 @@ def free_nat : nat -> unit<U>
 
 def my_apair : apair (fn (b : bool) => match b with true => unit<L> | false => nat) :=
   let my_val := false in
-  apair_intro
-    (function  
-     | true  => just my_val
-     | false => bool2nat my_val)
+  (my_val, bool2nat my_val)
 
 def _ : unit<U> := free_bool (proj1 my_apair)
 
