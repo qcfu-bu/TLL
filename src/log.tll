@@ -1038,19 +1038,17 @@
                 ([(PBOpr ("::", (PId "x"),
                      (PBOpr ("::", (PId "y"), (PId "zs")))))
                    ],
-                 (Some (Match (
-                          [(R, (App [(Id ("split", I)); (Id ("zs", I))]),
-                            None)],
-                          None,
-                          [([(PConstr ("ex1", [(PId "xs"); (PId "ys")]))],
-                            (Some (App
-                                     [(Id ("ex1", I));
-                                       (BOpr ("::", (Id ("x", I)),
-                                          (Id ("xs", I))));
-                                       (BOpr ("::", (Id ("y", I)),
-                                          (Id ("ys", I))))
-                                       ])))
-                            ]
+                 (Some (Let (R, (App [(Id ("split", I)); (Id ("zs", I))]),
+                          (Binder (
+                             (PConstr ("ex1", [(PId "xs"); (PId "ys")])),
+                             (App
+                                [(Id ("ex1", I));
+                                  (BOpr ("::", (Id ("x", I)), (Id ("xs", I))
+                                     ));
+                                  (BOpr ("::", (Id ("y", I)), (Id ("ys", I))
+                                     ))
+                                  ])
+                             ))
                           ))))
                 ]
               )),
@@ -1281,42 +1279,38 @@
                             (N, (Id ("refl", I)),
                              (Some ("_",
                                     (BOpr ("=",
-                                       (Match ([(R, (Id ("h1", I)), None)],
-                                          None,
-                                          [([(PConstr ("ex1",
-                                                [(PId "xs"); (PId "ys")]))
-                                              ],
-                                            (Some (App
-                                                     [(Id ("merge", I));
-                                                       (App
-                                                          [(Id ("msort", I));
-                                                            (Id ("xs", I))]);
-                                                       (App
-                                                          [(Id ("msort", I));
-                                                            (Id ("ys", I))])
-                                                       ])))
-                                            ]
+                                       (Let (R, (Id ("h1", I)),
+                                          (Binder (
+                                             (PConstr ("ex1",
+                                                [(PId "xs"); (PId "ys")])),
+                                             (App
+                                                [(Id ("merge", I));
+                                                  (App
+                                                     [(Id ("msort", I));
+                                                       (Id ("xs", I))]);
+                                                  (App
+                                                     [(Id ("msort", I));
+                                                       (Id ("ys", I))])
+                                                  ])
+                                             ))
                                           )),
-                                       (Match (
-                                          [(R,
-                                            (App
-                                               [(Id ("split", I));
-                                                 (Id ("zs", I))]),
-                                            None)],
-                                          None,
-                                          [([(PConstr ("ex1",
-                                                [(PId "xs"); (PId "ys")]))
-                                              ],
-                                            (Some (App
-                                                     [(Id ("merge", I));
-                                                       (App
-                                                          [(Id ("msort", I));
-                                                            (Id ("xs", I))]);
-                                                       (App
-                                                          [(Id ("msort", I));
-                                                            (Id ("ys", I))])
-                                                       ])))
-                                            ]
+                                       (Let (R,
+                                          (App
+                                             [(Id ("split", I));
+                                               (Id ("zs", I))]),
+                                          (Binder (
+                                             (PConstr ("ex1",
+                                                [(PId "xs"); (PId "ys")])),
+                                             (App
+                                                [(Id ("merge", I));
+                                                  (App
+                                                     [(Id ("msort", I));
+                                                       (Id ("xs", I))]);
+                                                  (App
+                                                     [(Id ("msort", I));
+                                                       (Id ("ys", I))])
+                                                  ])
+                                             ))
                                           ))
                                        )))))
                             ],
@@ -1583,52 +1577,52 @@
 -----------------------------------------
 
 #[logical]
-inductive eq_1‹s_383› (A_384 : Type‹s_383›) (m_385 : A_384):
-  A_384 -> U
+inductive eq_1‹s_389› (A_390 : Type‹s_389›) (m_391 : A_390):
+  A_390 -> U
 where
-| refl_1 : (eq_1‹??_1› ?_1[0;0] m_385 m_385)
+| refl_1 : (eq_1‹??_1› ?_1[0;0] m_391 m_391)
 
 #[program]
-def rwl_1‹s_387,r_388› :
-  ∀ {A_389 : Type‹s_387›} ->
-    ∀ {m_390 : A_389} ->
-      ∀ {n_391 : A_389} ->
-        ∀ {B_392 : A_389 -> Type‹r_388›} ->
-          {(eq_1‹??_3› ?_3[0;0] m_390 n_391)} ->
-            ((B_392) m_390) -> ((B_392) n_391)
+def rwl_1‹s_393,r_394› :
+  ∀ {A_395 : Type‹s_393›} ->
+    ∀ {m_396 : A_395} ->
+      ∀ {n_397 : A_395} ->
+        ∀ {B_398 : A_395 -> Type‹r_394›} ->
+          {(eq_1‹??_3› ?_3[0;0] m_396 n_397)} ->
+            ((B_398) m_396) -> ((B_398) n_397)
 :=
-  function rwl_396 :
-    ∀ {A_397 : Type‹s_387›} ->
-      ∀ {m_398 : A_397} ->
-        ∀ {n_399 : A_397} ->
-          ∀ {B_400 : A_397 -> Type‹r_388›} ->
-            {(eq_1‹??_2› ?_2[0;0] m_398 n_399)} ->
-              ((B_400) m_398) -> ((B_400) n_399)
-  | A_404 m_405 n_406 B_407 refl_1 x_408 => x_408
+  function rwl_402 :
+    ∀ {A_403 : Type‹s_393›} ->
+      ∀ {m_404 : A_403} ->
+        ∀ {n_405 : A_403} ->
+          ∀ {B_406 : A_403 -> Type‹r_394›} ->
+            {(eq_1‹??_2› ?_2[0;0] m_404 n_405)} ->
+              ((B_406) m_404) -> ((B_406) n_405)
+  | A_410 m_411 n_412 B_413 refl_1 x_414 => x_414
 
 #[program]
-def rwr_2‹s_409,r_410› :
-  ∀ {A_411 : Type‹s_409›} ->
-    ∀ {m_412 : A_411} ->
-      ∀ {n_413 : A_411} ->
-        ∀ {B_414 : A_411 -> Type‹r_410›} ->
-          {(eq_1‹??_5› ?_5[0;0] m_412 n_413)} ->
-            ((B_414) n_413) -> ((B_414) m_412)
+def rwr_2‹s_415,r_416› :
+  ∀ {A_417 : Type‹s_415›} ->
+    ∀ {m_418 : A_417} ->
+      ∀ {n_419 : A_417} ->
+        ∀ {B_420 : A_417 -> Type‹r_416›} ->
+          {(eq_1‹??_5› ?_5[0;0] m_418 n_419)} ->
+            ((B_420) n_419) -> ((B_420) m_418)
 :=
-  function rwr_418 :
-    ∀ {A_419 : Type‹s_409›} ->
-      ∀ {m_420 : A_419} ->
-        ∀ {n_421 : A_419} ->
-          ∀ {B_422 : A_419 -> Type‹r_410›} ->
-            {(eq_1‹??_4› ?_4[0;0] m_420 n_421)} ->
-              ((B_422) n_421) -> ((B_422) m_420)
-  | A_426 m_427 n_428 B_429 refl_1 x_430 => x_430
+  function rwr_424 :
+    ∀ {A_425 : Type‹s_415›} ->
+      ∀ {m_426 : A_425} ->
+        ∀ {n_427 : A_425} ->
+          ∀ {B_428 : A_425 -> Type‹r_416›} ->
+            {(eq_1‹??_4› ?_4[0;0] m_426 n_427)} ->
+              ((B_428) n_427) -> ((B_428) m_426)
+  | A_432 m_433 n_434 B_435 refl_1 x_436 => x_436
 
 #[program]
-inductive sing_2‹s_431› (A_432 : Type‹s_431›):
-  A_432 -> Type‹s_431›
+inductive sing_2‹s_437› (A_438 : Type‹s_437›):
+  A_438 -> Type‹s_437›
 where
-| just_2 (m_434 : A_432) : (sing_2‹??_6› ?_6[0;0] m_434)
+| just_2 (m_440 : A_438) : (sing_2‹??_6› ?_6[0;0] m_440)
 
 #[program]
 inductive unit_3‹› : U where
@@ -1642,140 +1636,140 @@ inductive bool_4‹› : U where
 #[program]
 inductive nat_5‹› : U where
 | zero_6 : nat_5
-| succ_7 (n_435 : nat_5) : nat_5
+| succ_7 (n_441 : nat_5) : nat_5
 
 #[program]
-inductive list_6‹s_436,t_437› (A_438 : Type‹s_436›): Type‹t_437›
+inductive list_6‹s_442,t_443› (A_444 : Type‹s_442›): Type‹t_443›
 where
-| nil_8 : (list_6‹??_7,??_8› A_438)
+| nil_8 : (list_6‹??_7,??_8› A_444)
 | cons_9
-    (hd_439 : A_438) (tl_440 : (list_6‹??_9,t_437› A_438))
-    : (list_6‹??_10,??_11› A_438)
+    (hd_445 : A_444) (tl_446 : (list_6‹??_9,t_443› A_444))
+    : (list_6‹??_10,??_11› A_444)
 
 #[program]
-inductive exists0_7‹s_441,r_442› (A_443 : Type‹s_441›) (B_444 : 
-A_443 -> Type‹r_442›): L where
+inductive exists0_7‹s_447,r_448› (A_449 : Type‹s_447›) (B_450 : 
+A_449 -> Type‹r_448›): L where
 | ex0_10
-    {m_446 : A_443} (n_447 : ((B_444) m_446))
-    : (exists0_7‹??_12,??_13› A_443 B_444)
+    {m_452 : A_449} (n_453 : ((B_450) m_452))
+    : (exists0_7‹??_12,??_13› A_449 B_450)
 
 #[program]
-inductive exists1_8‹s_448,r_449› (A_450 : Type‹s_448›) (B_451 : 
-A_450 -> Type‹r_449›): L where
+inductive exists1_8‹s_454,r_455› (A_456 : Type‹s_454›) (B_457 : 
+A_456 -> Type‹r_455›): L where
 | ex1_11
-    (m_453 : A_450) (n_454 : ((B_451) m_453))
-    : (exists1_8‹??_14,??_15› A_450 B_451)
+    (m_459 : A_456) (n_460 : ((B_457) m_459))
+    : (exists1_8‹??_14,??_15› A_456 B_457)
 
 #[logical]
-def prod0_3‹s_455,r_456› :
-  Type‹s_455› -> Type‹r_456› -> ?_10[0;0]
+def prod0_3‹s_461,r_462› :
+  Type‹s_461› -> Type‹r_462› -> ?_10[0;0]
 :=
-  function prod0_459 : Type‹s_455› -> Type‹r_456› -> ?_7[0;0]
-  | A_462 B_463 =>
+  function prod0_465 : Type‹s_461› -> Type‹r_462› -> ?_7[0;0]
+  | A_468 B_469 =>
     (exists0_7‹??_16,??_17›
-      A_462 function _464 : ?_8[0;0] -> ?_9[0;0]
-            | _466 => B_463)
+      A_468 function _470 : ?_8[0;0] -> ?_9[0;0]
+            | _472 => B_469)
 
 #[logical]
-def prod1_4‹s_467,r_468› :
-  Type‹s_467› -> Type‹r_468› -> ?_14[0;0]
+def prod1_4‹s_473,r_474› :
+  Type‹s_473› -> Type‹r_474› -> ?_14[0;0]
 :=
-  function prod1_471 : Type‹s_467› -> Type‹r_468› -> ?_11[0;0]
-  | A_474 B_475 =>
+  function prod1_477 : Type‹s_473› -> Type‹r_474› -> ?_11[0;0]
+  | A_480 B_481 =>
     (exists1_8‹??_18,??_19›
-      A_474 function _476 : ?_12[0;0] -> ?_13[0;0]
-            | _478 => B_475)
+      A_480 function _482 : ?_12[0;0] -> ?_13[0;0]
+            | _484 => B_481)
 
 #[program]
 def not_5‹› : bool_4 -> bool_4 :=
-  function not_480 : bool_4 -> bool_4
+  function not_486 : bool_4 -> bool_4
   | true_4 => false_5
   | false_5 => true_4
 
 #[program]
 def and_6‹› : bool_4 -> bool_4 -> bool_4 :=
-  function and_484 : bool_4 -> bool_4 -> bool_4
+  function and_490 : bool_4 -> bool_4 -> bool_4
   | true_4 true_4 => true_4
-  | _487 _488 => false_5
+  | _493 _494 => false_5
 
 #[program]
 def or_7‹› : bool_4 -> bool_4 -> bool_4 :=
-  function or_491 : bool_4 -> bool_4 -> bool_4
+  function or_497 : bool_4 -> bool_4 -> bool_4
   | false_5 false_5 => false_5
-  | _494 _495 => true_4
+  | _500 _501 => true_4
 
 #[program]
 def xor_8‹› : bool_4 -> bool_4 -o bool_4 :=
-  function xor_498 : bool_4 -> bool_4 -o bool_4
+  function xor_504 : bool_4 -> bool_4 -o bool_4
   | true_4 true_4 => false_5
   | false_5 false_5 => false_5
-  | _501 _502 => true_4
+  | _507 _508 => true_4
 
 #[program]
 def lte_9‹› : nat_5 -> nat_5 -> bool_4 :=
-  function lte_505 : nat_5 -> nat_5 -> bool_4
-  | zero_6 _508 => true_4
-  | _509 zero_6 => false_5
-  | (succ_7 x_510) (succ_7 y_511) => ((lte_505) x_510 y_511)
+  function lte_511 : nat_5 -> nat_5 -> bool_4
+  | zero_6 _514 => true_4
+  | _515 zero_6 => false_5
+  | (succ_7 x_516) (succ_7 y_517) => ((lte_511) x_516 y_517)
 
 #[program]
 def lt_10‹› : nat_5 -> nat_5 -> bool_4 :=
-  function lt_514 : nat_5 -> nat_5 -> bool_4
-  | x_517 y_518 => ((lte_9) (succ_7‹› x_517) y_518)
+  function lt_520 : nat_5 -> nat_5 -> bool_4
+  | x_523 y_524 => ((lte_9) (succ_7‹› x_523) y_524)
 
 #[program]
 def pred_11‹› : nat_5 -> nat_5 :=
-  function pred_520 : nat_5 -> nat_5
+  function pred_526 : nat_5 -> nat_5
   | zero_6 => zero_6
-  | (succ_7 x_522) => x_522
+  | (succ_7 x_528) => x_528
 
 #[program]
 def add_12‹› : nat_5 -> nat_5 -> nat_5 :=
-  function add_525 : nat_5 -> nat_5 -> nat_5
-  | zero_6 y_528 => y_528
-  | (succ_7 x_529) y_530 => (succ_7‹› ((add_525) x_529 y_530))
+  function add_531 : nat_5 -> nat_5 -> nat_5
+  | zero_6 y_534 => y_534
+  | (succ_7 x_535) y_536 => (succ_7‹› ((add_531) x_535 y_536))
 
 #[program]
 def sub_13‹› : nat_5 -> nat_5 -> nat_5 :=
-  function sub_533 : nat_5 -> nat_5 -> nat_5
-  | x_536 zero_6 => x_536
-  | x_537 (succ_7 y_538) => ((sub_533) ((pred_11) x_537) y_538)
+  function sub_539 : nat_5 -> nat_5 -> nat_5
+  | x_542 zero_6 => x_542
+  | x_543 (succ_7 y_544) => ((sub_539) ((pred_11) x_543) y_544)
 
 #[program]
 def mul_14‹› : nat_5 -> nat_5 -> nat_5 :=
-  function mul_541 : nat_5 -> nat_5 -> nat_5
-  | zero_6 _544 => zero_6
-  | (succ_7 x_545) y_546 => ((add_12) y_546 ((mul_541) x_545 y_546))
+  function mul_547 : nat_5 -> nat_5 -> nat_5
+  | zero_6 _550 => zero_6
+  | (succ_7 x_551) y_552 => ((add_12) y_552 ((mul_547) x_551 y_552))
 
 #[program]
 def div_15‹› : nat_5 -> nat_5 -> ?_18[0;0] :=
-  function div_549 : nat_5 -> nat_5 -> ?_15[0;0]
-  | x_552 y_553 =>
-    match ((lt_10) x_552 y_553) in ?_16[0;0] -o ?_17[0;0] with
+  function div_555 : nat_5 -> nat_5 -> ?_15[0;0]
+  | x_558 y_559 =>
+    match ((lt_10) x_558 y_559) in ?_16[0;0] -o ?_17[0;0] with
     | true_4 => zero_6
-    | false_5 => (succ_7‹› ((div_549) ((sub_13) x_552 y_553) y_553))
+    | false_5 => (succ_7‹› ((div_555) ((sub_13) x_558 y_559) y_559))
 
 #[program]
 def rem_16‹› : nat_5 -> nat_5 -> ?_20[0;0] :=
-  function rem_557 : nat_5 -> nat_5 -> ?_19[0;0]
-  | x_560 y_561 => ((sub_13) x_560 ((mul_14) ((div_15) x_560 y_561) y_561))
+  function rem_563 : nat_5 -> nat_5 -> ?_19[0;0]
+  | x_566 y_567 => ((sub_13) x_566 ((mul_14) ((div_15) x_566 y_567) y_567))
 
 #[program]
 def pow_17‹› : nat_5 -> nat_5 -> nat_5 :=
-  function pow_564 : nat_5 -> nat_5 -> nat_5
-  | _567 zero_6 => (succ_7‹› zero_6)
-  | x_568 (succ_7 y_569) => ((mul_14) x_568 ((pow_564) x_568 y_569))
+  function pow_570 : nat_5 -> nat_5 -> nat_5
+  | _573 zero_6 => (succ_7‹› zero_6)
+  | x_574 (succ_7 y_575) => ((mul_14) x_574 ((pow_570) x_574 y_575))
 
 #[logical]
 extern proto_18‹› : U
 
 #[logical]
-extern act0_19‹s_570› :
-  bool_4 -> ∀ (A_572 : Type‹s_570›) -> A_572 -> proto_18 -> proto_18
+extern act0_19‹s_576› :
+  bool_4 -> ∀ (A_578 : Type‹s_576›) -> A_578 -> proto_18 -> proto_18
 
 #[logical]
-extern act1_20‹s_575› :
-  bool_4 -> ∀ (A_577 : Type‹s_575›) -> A_577 -> proto_18 -> proto_18
+extern act1_20‹s_581› :
+  bool_4 -> ∀ (A_583 : Type‹s_581›) -> A_583 -> proto_18 -> proto_18
 
 #[logical]
 extern endp_21‹› : proto_18
@@ -1785,297 +1779,296 @@ extern ch_22‹› : bool_4 -> proto_18 -> L
 
 #[program]
 extern close_23‹› :
-  ∀ {b_582 : bool_4} -> ((ch_22) b_582 endp_21) -> IO unit_3
+  ∀ {b_588 : bool_4} -> ((ch_22) b_588 endp_21) -> IO unit_3
 
 #[program]
-extern send0_24‹s_584› :
-  ∀ {b1_585 : bool_4} ->
-    ∀ {b2_586 : bool_4} ->
-      ∀ {A_587 : Type‹s_584›} ->
-        ∀ {B_588 : A_587 -> proto_18} ->
-          {(eq_1‹??_20› ?_21[0;0] ((xor_8) b1_585 b2_586) false_5)} ->
-            ((ch_22) b1_585 ((act0_19‹??_21›) b2_586 ?_22[0;0] B_588)) ->
-              ∀ {x_592 : A_587} -o IO ((ch_22) b1_585 ((B_588) x_592))
+extern send0_24‹s_590› :
+  ∀ {b1_591 : bool_4} ->
+    ∀ {b2_592 : bool_4} ->
+      ∀ {A_593 : Type‹s_590›} ->
+        ∀ {B_594 : A_593 -> proto_18} ->
+          {(eq_1‹??_20› ?_21[0;0] ((xor_8) b1_591 b2_592) false_5)} ->
+            ((ch_22) b1_591 ((act0_19‹??_21›) b2_592 ?_22[0;0] B_594)) ->
+              ∀ {x_598 : A_593} -o IO ((ch_22) b1_591 ((B_594) x_598))
 
 #[program]
-extern send1_25‹s_593› :
-  ∀ {b1_594 : bool_4} ->
-    ∀ {b2_595 : bool_4} ->
-      ∀ {A_596 : Type‹s_593›} ->
-        ∀ {B_597 : A_596 -> proto_18} ->
-          {(eq_1‹??_22› ?_23[0;0] ((xor_8) b1_594 b2_595) false_5)} ->
-            ((ch_22) b1_594 ((act1_20‹??_23›) b2_595 ?_24[0;0] B_597)) ->
-              ∀ (x_601 : A_596) -o IO ((ch_22) b1_594 ((B_597) x_601))
+extern send1_25‹s_599› :
+  ∀ {b1_600 : bool_4} ->
+    ∀ {b2_601 : bool_4} ->
+      ∀ {A_602 : Type‹s_599›} ->
+        ∀ {B_603 : A_602 -> proto_18} ->
+          {(eq_1‹??_22› ?_23[0;0] ((xor_8) b1_600 b2_601) false_5)} ->
+            ((ch_22) b1_600 ((act1_20‹??_23›) b2_601 ?_24[0;0] B_603)) ->
+              ∀ (x_607 : A_602) -o IO ((ch_22) b1_600 ((B_603) x_607))
 
 #[program]
-extern recv0_26‹s_602› :
-  ∀ {b1_603 : bool_4} ->
-    ∀ {b2_604 : bool_4} ->
-      ∀ {A_605 : Type‹s_602›} ->
-        ∀ {B_606 : A_605 -> proto_18} ->
-          {(eq_1‹??_24› ?_25[0;0] ((xor_8) b1_603 b2_604) true_4)} ->
-            ((ch_22) b1_603 ((act0_19‹??_25›) b2_604 ?_26[0;0] B_606)) ->
+extern recv0_26‹s_608› :
+  ∀ {b1_609 : bool_4} ->
+    ∀ {b2_610 : bool_4} ->
+      ∀ {A_611 : Type‹s_608›} ->
+        ∀ {B_612 : A_611 -> proto_18} ->
+          {(eq_1‹??_24› ?_25[0;0] ((xor_8) b1_609 b2_610) true_4)} ->
+            ((ch_22) b1_609 ((act0_19‹??_25›) b2_610 ?_26[0;0] B_612)) ->
               IO (exists0_7‹??_26,??_27›
                    ?_28[0;0]
-                   function _610 : A_605 -> ?_27[0;0]
-                   | x_612 => ((ch_22) b1_603 ((B_606) x_612)))
+                   function _616 : A_611 -> ?_27[0;0]
+                   | x_618 => ((ch_22) b1_609 ((B_612) x_618)))
 
 #[program]
-extern recv1_27‹s_613› :
-  ∀ {b1_614 : bool_4} ->
-    ∀ {b2_615 : bool_4} ->
-      ∀ {A_616 : Type‹s_613›} ->
-        ∀ {B_617 : A_616 -> proto_18} ->
-          {(eq_1‹??_28› ?_29[0;0] ((xor_8) b1_614 b2_615) true_4)} ->
-            ((ch_22) b1_614 ((act1_20‹??_29›) b2_615 ?_30[0;0] B_617)) ->
+extern recv1_27‹s_619› :
+  ∀ {b1_620 : bool_4} ->
+    ∀ {b2_621 : bool_4} ->
+      ∀ {A_622 : Type‹s_619›} ->
+        ∀ {B_623 : A_622 -> proto_18} ->
+          {(eq_1‹??_28› ?_29[0;0] ((xor_8) b1_620 b2_621) true_4)} ->
+            ((ch_22) b1_620 ((act1_20‹??_29›) b2_621 ?_30[0;0] B_623)) ->
               IO (exists1_8‹??_30,??_31›
                    ?_32[0;0]
-                   function _621 : A_616 -> ?_31[0;0]
-                   | x_623 => ((ch_22) b1_614 ((B_617) x_623)))
+                   function _627 : A_622 -> ?_31[0;0]
+                   | x_629 => ((ch_22) b1_620 ((B_623) x_629)))
 
 #[program]
 extern fork_28‹› :
-  ∀ {b_624 : bool_4} ->
-    ∀ {P_625 : proto_18} ->
-      ((ch_22) b_624 P_625) -o IO unit_3 ->
-        IO ((ch_22) ((not_5) b_624) P_625)
+  ∀ {b_630 : bool_4} ->
+    ∀ {P_631 : proto_18} ->
+      ((ch_22) b_630 P_631) -o IO unit_3 ->
+        IO ((ch_22) ((not_5) b_630) P_631)
 
 #[program]
-def split_29‹t_628› :
-  (list_6‹??_57,t_628› nat_5) ->
+def split_29‹t_634› :
+  (list_6‹??_57,t_634› nat_5) ->
     ((prod1_4‹??_60,??_61›)
-      (list_6‹??_58,t_628› nat_5) (list_6‹??_59,t_628› nat_5))
+      (list_6‹??_58,t_634› nat_5) (list_6‹??_59,t_634› nat_5))
 :=
-  function split_630 :
-    (list_6‹??_32,t_628› nat_5) ->
+  function split_636 :
+    (list_6‹??_32,t_634› nat_5) ->
       ((prod1_4‹??_35,??_36›)
-        (list_6‹??_33,t_628› nat_5) (list_6‹??_34,t_628› nat_5))
+        (list_6‹??_33,t_634› nat_5) (list_6‹??_34,t_634› nat_5))
   | nil_8 =>
     (ex1_11‹??_41,??_42›
       ?_35[0;0] ?_36[0;0] (nil_8‹??_37,??_38› ?_33[0;0])
       (nil_8‹??_39,??_40› ?_34[0;0]))
-  | (cons_9 x_632 nil_8) =>
+  | (cons_9 x_638 nil_8) =>
     (ex1_11‹??_49,??_50›
       ?_40[0;0] ?_41[0;0]
       (cons_9‹??_45,??_46›
-        ?_38[0;0] x_632 (nil_8‹??_43,??_44› ?_37[0;0]))
+        ?_38[0;0] x_638 (nil_8‹??_43,??_44› ?_37[0;0]))
       (nil_8‹??_47,??_48› ?_39[0;0]))
-  | (cons_9 x_633 (cons_9 y_634 zs_635)) =>
-    match ((split_630) zs_635) in ?_42[0;0] -o ?_43[0;0] with
-    | (ex1_11 xs_637 ys_638) =>
+  | (cons_9 x_639 (cons_9 y_640 zs_641)) =>
+    match ((split_636) zs_641) in ?_47[0;0] -o ?_46[0;0] with
+    | (ex1_11 xs_643 ys_644) =>
       (ex1_11‹??_55,??_56›
-        ?_46[0;0] ?_47[0;0] (cons_9‹??_51,??_52› ?_44[0;0] x_633 xs_637)
-        (cons_9‹??_53,??_54› ?_45[0;0] y_634 ys_638))
+        ?_44[0;0] ?_45[0;0] (cons_9‹??_51,??_52› ?_42[0;0] x_639 xs_643)
+        (cons_9‹??_53,??_54› ?_43[0;0] y_640 ys_644))
 
 #[program]
-def merge_30‹t_639› :
-  (list_6‹??_73,t_639› nat_5) ->
-    (list_6‹??_74,t_639› nat_5) -o (list_6‹??_75,t_639› nat_5)
+def merge_30‹t_645› :
+  (list_6‹??_73,t_645› nat_5) ->
+    (list_6‹??_74,t_645› nat_5) -o (list_6‹??_75,t_645› nat_5)
 :=
-  function merge_642 :
-    (list_6‹??_62,t_639› nat_5) ->
-      (list_6‹??_63,t_639› nat_5) -o (list_6‹??_64,t_639› nat_5)
-  | nil_8 ys_645 => ys_645
-  | xs_646 nil_8 => xs_646
-  | (cons_9 x_647 xs_648) (cons_9 y_649 ys_650) =>
-    match ((lte_9) x_647 y_649) in ?_48[0;0] -o ?_49[0;0] with
+  function merge_648 :
+    (list_6‹??_62,t_645› nat_5) ->
+      (list_6‹??_63,t_645› nat_5) -o (list_6‹??_64,t_645› nat_5)
+  | nil_8 ys_651 => ys_651
+  | xs_652 nil_8 => xs_652
+  | (cons_9 x_653 xs_654) (cons_9 y_655 ys_656) =>
+    match ((lte_9) x_653 y_655) in ?_48[0;0] -o ?_49[0;0] with
     | true_4 =>
       (cons_9‹??_67,??_68›
-        ?_51[0;0] x_647
-        ((merge_642) xs_648 (cons_9‹??_65,??_66› ?_50[0;0] y_649 ys_650)))
+        ?_51[0;0] x_653
+        ((merge_648) xs_654 (cons_9‹??_65,??_66› ?_50[0;0] y_655 ys_656)))
     | false_5 =>
       (cons_9‹??_71,??_72›
-        ?_53[0;0] y_649
-        ((merge_642) (cons_9‹??_69,??_70› ?_52[0;0] x_647 xs_648) ys_650))
+        ?_53[0;0] y_655
+        ((merge_648) (cons_9‹??_69,??_70› ?_52[0;0] x_653 xs_654) ys_656))
 
 #[program]
-def msort_31‹t_652› :
-  (list_6‹??_86,t_652› nat_5) -> (list_6‹??_87,t_652› nat_5)
+def msort_31‹t_658› :
+  (list_6‹??_86,t_658› nat_5) -> (list_6‹??_87,t_658› nat_5)
 :=
-  function msort_654 :
-    (list_6‹??_76,t_652› nat_5) -> (list_6‹??_77,t_652› nat_5)
+  function msort_660 :
+    (list_6‹??_76,t_658› nat_5) -> (list_6‹??_77,t_658› nat_5)
   | nil_8 => (nil_8‹??_78,??_79› ?_54[0;0])
-  | (cons_9 z_656 nil_8) =>
+  | (cons_9 z_662 nil_8) =>
     (cons_9‹??_82,??_83›
-      ?_56[0;0] z_656 (nil_8‹??_80,??_81› ?_55[0;0]))
-  | zs_657 =>
-    let _658 := ((split_29‹??_84›) zs_657) in
-    match _658 in ?_58[0;0] -o ?_57[0;0] with
-    | (ex1_11 xs_660 ys_661) =>
-      ((merge_30‹??_85›) ((msort_654) xs_660) ((msort_654) ys_661))
+      ?_56[0;0] z_662 (nil_8‹??_80,??_81› ?_55[0;0]))
+  | zs_663 =>
+    match ((split_29‹??_84›) zs_663) in ?_58[0;0] -o ?_57[0;0] with
+    | (ex1_11 xs_665 ys_666) =>
+      ((merge_30‹??_85›) ((msort_660) xs_665) ((msort_660) ys_666))
 
 #[logical]
-def cmsort_ch_32‹t_662› : (list_6‹??_92,t_662› nat_5) -> L :=
-  function cmsort_ch_664 : (list_6‹??_88,t_662› nat_5) -> L
-  | xs_666 =>
+def cmsort_ch_32‹t_667› : (list_6‹??_92,t_667› nat_5) -> L :=
+  function cmsort_ch_669 : (list_6‹??_88,t_667› nat_5) -> L
+  | xs_671 =>
     ((ch_22)
       true_4
       ((act1_20‹??_91›)
         true_4 ?_61[0;0]
-        function _667 :
-          (sing_2‹??_90› ?_59[0;0] ((msort_31‹??_89›) xs_666)) ->
+        function _672 :
+          (sing_2‹??_90› ?_59[0;0] ((msort_31‹??_89›) xs_671)) ->
             ?_60[0;0]
-        | _669 => endp_21))
+        | _674 => endp_21))
 
 #[program]
-def cmsort_worker_33‹t_670› :
+def cmsort_worker_33‹t_675› :
   nat_5 ->
-    ∀ (zs_672 : (list_6‹??_137,t_670› nat_5)) ->
-      ((cmsort_ch_32‹t_670›) zs_672) -o IO unit_3
+    ∀ (zs_677 : (list_6‹??_137,t_675› nat_5)) ->
+      ((cmsort_ch_32‹t_675›) zs_677) -o IO unit_3
 :=
-  function cmsort_worker_674 :
+  function cmsort_worker_679 :
     nat_5 ->
-      ∀ (zs_676 : (list_6‹??_93,t_670› nat_5)) ->
-        ((cmsort_ch_32‹t_670›) zs_676) -o IO unit_3
-  | zero_6 zs_678 c_679 =>
-    let* c_680 :=
+      ∀ (zs_681 : (list_6‹??_93,t_675› nat_5)) ->
+        ((cmsort_ch_32‹t_675›) zs_681) -o IO unit_3
+  | zero_6 zs_683 c_684 =>
+    let* c_685 :=
       ((send1_25‹??_97›)
         ?_68[0;0] ?_67[0;0] ?_66[0;0] ?_65[0;0]
-        (refl_1‹??_94› ?_62[0;0] ?_63[0;0]) c_679
-        (just_2‹??_96› ?_64[0;0] ((msort_31‹??_95›) zs_678)))
-    in ((close_23) ?_69[0;0] c_680)
-  | (succ_7 n_681) nil_8 c_682 =>
-    let* c_683 :=
+        (refl_1‹??_94› ?_62[0;0] ?_63[0;0]) c_684
+        (just_2‹??_96› ?_64[0;0] ((msort_31‹??_95›) zs_683)))
+    in ((close_23) ?_69[0;0] c_685)
+  | (succ_7 n_686) nil_8 c_687 =>
+    let* c_688 :=
       ((send1_25‹??_102›)
         ?_77[0;0] ?_76[0;0] ?_75[0;0] ?_74[0;0]
-        (refl_1‹??_98› ?_70[0;0] ?_71[0;0]) c_682
+        (refl_1‹??_98› ?_70[0;0] ?_71[0;0]) c_687
         (just_2‹??_101› ?_73[0;0] (nil_8‹??_99,??_100› ?_72[0;0])))
-    in ((close_23) ?_78[0;0] c_683)
-  | (succ_7 n_684) (cons_9 z_685 nil_8) c_686 =>
-    let* c_687 :=
+    in ((close_23) ?_78[0;0] c_688)
+  | (succ_7 n_689) (cons_9 z_690 nil_8) c_691 =>
+    let* c_692 :=
       ((send1_25‹??_109›)
         ?_87[0;0] ?_86[0;0] ?_85[0;0] ?_84[0;0]
-        (refl_1‹??_103› ?_79[0;0] ?_80[0;0]) c_686
+        (refl_1‹??_103› ?_79[0;0] ?_80[0;0]) c_691
         (just_2‹??_108›
           ?_83[0;0]
           (cons_9‹??_106,??_107›
-            ?_82[0;0] z_685 (nil_8‹??_104,??_105› ?_81[0;0]))))
-    in ((close_23) ?_88[0;0] c_687)
-  | (succ_7 n_688) zs_689 c_690 =>
-    match ((split_29‹??_110›) zs_689),
+            ?_82[0;0] z_690 (nil_8‹??_104,??_105› ?_81[0;0]))))
+    in ((close_23) ?_88[0;0] c_692)
+  | (succ_7 n_693) zs_694 c_695 =>
+    match ((split_29‹??_110›) zs_694),
     (refl_1‹??_111› ?_89[0;0] ?_90[0;0]) in
-      ∀ (h1_691 : ?_91[0;0]) -o
+      ∀ (h1_696 : ?_91[0;0]) -o
         {(eq_1‹??_119›
            ?_96[0;0]
-           match h1_691 in ?_92[0;0] -o ?_93[0;0] with
-           | (ex1_11 xs_694 ys_695) =>
+           match h1_696 in ?_93[0;0] -o ?_92[0;0] with
+           | (ex1_11 xs_699 ys_700) =>
              ((merge_30‹??_114›)
-               ((msort_31‹??_112›) xs_694)
-               ((msort_31‹??_113›) ys_695))
-           match ((split_29‹??_115›) zs_689) in ?_94[0;0] -o ?_95[0;0]
+               ((msort_31‹??_112›) xs_699)
+               ((msort_31‹??_113›) ys_700))
+           match ((split_29‹??_115›) zs_694) in ?_95[0;0] -o ?_94[0;0]
            with
-           | (ex1_11 xs_697 ys_698) =>
+           | (ex1_11 xs_702 ys_703) =>
              ((merge_30‹??_118›)
-               ((msort_31‹??_116›) xs_697)
-               ((msort_31‹??_117›) ys_698)))} -o
+               ((msort_31‹??_116›) xs_702)
+               ((msort_31‹??_117›) ys_703)))} -o
           ?_97[0;0]
     with
-    | (ex1_11 xs0_699 ys0_700), pf_701 =>
-      let* r1_702 :=
+    | (ex1_11 xs0_704 ys0_705), pf_706 =>
+      let* r1_707 :=
         ((fork_28)
           ?_101[0;0] ?_98[0;0]
-          function _703 : ?_99[0;0] -o ?_100[0;0]
-          | c1_705 => ((cmsort_worker_674) n_688 xs0_699 c1_705))
+          function _708 : ?_99[0;0] -o ?_100[0;0]
+          | c1_710 => ((cmsort_worker_679) n_693 xs0_704 c1_710))
       in
-      let* r2_706 :=
+      let* r2_711 :=
         ((fork_28)
           ?_105[0;0] ?_102[0;0]
-          function _707 : ?_103[0;0] -o ?_104[0;0]
-          | c2_709 => ((cmsort_worker_674) n_688 ys0_700 c2_709))
+          function _712 : ?_103[0;0] -o ?_104[0;0]
+          | c2_714 => ((cmsort_worker_679) n_693 ys0_705 c2_714))
       in
-      let* _710 :=
+      let* _715 :=
         ((recv1_27‹??_121›)
           ?_111[0;0] ?_110[0;0] ?_109[0;0] ?_108[0;0]
-          (refl_1‹??_120› ?_106[0;0] ?_107[0;0]) r1_702)
+          (refl_1‹??_120› ?_106[0;0] ?_107[0;0]) r1_707)
       in
-      match _710 in ?_142[0;0] -o ?_141[0;0] with
-      | (ex1_11 xs1_712 c1_713) =>
-        let* _714 :=
+      match _715 in ?_142[0;0] -o ?_141[0;0] with
+      | (ex1_11 xs1_717 c1_718) =>
+        let* _719 :=
           ((recv1_27‹??_123›)
             ?_117[0;0] ?_116[0;0] ?_115[0;0] ?_114[0;0]
-            (refl_1‹??_122› ?_112[0;0] ?_113[0;0]) r2_706)
+            (refl_1‹??_122› ?_112[0;0] ?_113[0;0]) r2_711)
         in
-        match _714 in ?_140[0;0] -o ?_139[0;0] with
-        | (ex1_11 ys1_716 c2_717) =>
-          match xs1_712, ys1_716 in ?_118[0;0] -o ?_119[0;0] -o ?_120[0;0]
+        match _719 in ?_140[0;0] -o ?_139[0;0] with
+        | (ex1_11 ys1_721 c2_722) =>
+          match xs1_717, ys1_721 in ?_118[0;0] -o ?_119[0;0] -o ?_120[0;0]
           with
-          | (just_2 xs1_720), (just_2 ys1_721) =>
-            let zs1_722 :=
+          | (just_2 xs1_725), (just_2 ys1_726) =>
+            let zs1_727 :=
               ((just_2‹??_125›
-                 ?_121[0;0] ((merge_30‹??_124›) xs1_720 ys1_721))
+                 ?_121[0;0] ((merge_30‹??_124›) xs1_725 ys1_726))
                 : (sing_2‹??_129›
                     ?_122[0;0]
                     ((merge_30‹??_128›)
-                      ((msort_31‹??_126›) xs0_699)
-                      ((msort_31‹??_127›) ys0_700))))
+                      ((msort_31‹??_126›) xs0_704)
+                      ((msort_31‹??_127›) ys0_705))))
             in
-            let zs1_723 :=
+            let zs1_728 :=
               (((rwl_1‹??_131,??_132›)
                  ?_128[0;0] ?_127[0;0] ?_126[0;0]
-                 function _724 : ?_123[0;0] -> ?_124[0;0]
-                 | x_726 => (sing_2‹??_130› ?_125[0;0] x_726) pf_701
-                 zs1_722)
+                 function _729 : ?_123[0;0] -> ?_124[0;0]
+                 | x_731 => (sing_2‹??_130› ?_125[0;0] x_731) pf_706
+                 zs1_727)
                 : (sing_2‹??_134›
-                    ?_129[0;0] ((msort_31‹??_133›) zs_689)))
+                    ?_129[0;0] ((msort_31‹??_133›) zs_694)))
             in
-            let* c_727 :=
+            let* c_732 :=
               ((send1_25‹??_136›)
                 ?_135[0;0] ?_134[0;0] ?_133[0;0] ?_132[0;0]
-                (refl_1‹??_135› ?_130[0;0] ?_131[0;0]) c_690 zs1_723)
+                (refl_1‹??_135› ?_130[0;0] ?_131[0;0]) c_695 zs1_728)
             in
-            let* __728 := ((close_23) ?_136[0;0] c1_713) in
-            let* __729 := ((close_23) ?_137[0;0] c2_717) in
-            let* __730 := ((close_23) ?_138[0;0] c_727) in return tt_3
+            let* __733 := ((close_23) ?_136[0;0] c1_718) in
+            let* __734 := ((close_23) ?_137[0;0] c2_722) in
+            let* __735 := ((close_23) ?_138[0;0] c_732) in return tt_3
 
 -----------------------------------------
 
 #[logical]
-inductive eq_1‹s_19260› (A_19261 : Type‹s_19260›) (m_19262 : A_19261):
-  A_19261 -> U
+inductive eq_1‹s_19243› (A_19244 : Type‹s_19243›) (m_19245 : A_19244):
+  A_19244 -> U
 where
-| refl_1 : (eq_1‹s_19260› A_19261 m_19262 m_19262)
+| refl_1 : (eq_1‹s_19243› A_19244 m_19245 m_19245)
 
 #[program]
-def rwl_1‹s_19264,r_19265› :
-  ∀ {A_19266 : Type‹s_19264›} ->
-    ∀ {m_19267 : A_19266} ->
-      ∀ {n_19268 : A_19266} ->
-        ∀ {B_19269 : A_19266 -> Type‹r_19265›} ->
-          {(eq_1‹s_19264› A_19266 m_19267 n_19268)} ->
-            ((B_19269) m_19267) -> ((B_19269) n_19268)
+def rwl_1‹s_19247,r_19248› :
+  ∀ {A_19249 : Type‹s_19247›} ->
+    ∀ {m_19250 : A_19249} ->
+      ∀ {n_19251 : A_19249} ->
+        ∀ {B_19252 : A_19249 -> Type‹r_19248›} ->
+          {(eq_1‹s_19247› A_19249 m_19250 n_19251)} ->
+            ((B_19252) m_19250) -> ((B_19252) n_19251)
 :=
-  function rwl_19273 :
-    ∀ {A_19274 : Type‹s_19264›} ->
-      ∀ {m_19275 : A_19274} ->
-        ∀ {n_19276 : A_19274} ->
-          ∀ {B_19277 : A_19274 -> Type‹r_19265›} ->
-            {(eq_1‹s_19264› A_19274 m_19275 n_19276)} ->
-              ((B_19277) m_19275) -> ((B_19277) n_19276)
-  | A_19281 m_19282 n_19283 B_19284 refl_1 __19285 => __19285
+  function rwl_19256 :
+    ∀ {A_19257 : Type‹s_19247›} ->
+      ∀ {m_19258 : A_19257} ->
+        ∀ {n_19259 : A_19257} ->
+          ∀ {B_19260 : A_19257 -> Type‹r_19248›} ->
+            {(eq_1‹s_19247› A_19257 m_19258 n_19259)} ->
+              ((B_19260) m_19258) -> ((B_19260) n_19259)
+  | A_19264 m_19265 n_19266 B_19267 refl_1 __19268 => __19268
 
 #[program]
-def rwr_2‹s_19286,r_19287› :
-  ∀ {A_19288 : Type‹s_19286›} ->
-    ∀ {m_19289 : A_19288} ->
-      ∀ {n_19290 : A_19288} ->
-        ∀ {B_19291 : A_19288 -> Type‹r_19287›} ->
-          {(eq_1‹s_19286› A_19288 m_19289 n_19290)} ->
-            ((B_19291) n_19290) -> ((B_19291) m_19289)
+def rwr_2‹s_19269,r_19270› :
+  ∀ {A_19271 : Type‹s_19269›} ->
+    ∀ {m_19272 : A_19271} ->
+      ∀ {n_19273 : A_19271} ->
+        ∀ {B_19274 : A_19271 -> Type‹r_19270›} ->
+          {(eq_1‹s_19269› A_19271 m_19272 n_19273)} ->
+            ((B_19274) n_19273) -> ((B_19274) m_19272)
 :=
-  function rwr_19295 :
-    ∀ {A_19296 : Type‹s_19286›} ->
-      ∀ {m_19297 : A_19296} ->
-        ∀ {n_19298 : A_19296} ->
-          ∀ {B_19299 : A_19296 -> Type‹r_19287›} ->
-            {(eq_1‹s_19286› A_19296 m_19297 n_19298)} ->
-              ((B_19299) n_19298) -> ((B_19299) m_19297)
-  | A_19303 m_19304 n_19305 B_19306 refl_1 __19307 => __19307
+  function rwr_19278 :
+    ∀ {A_19279 : Type‹s_19269›} ->
+      ∀ {m_19280 : A_19279} ->
+        ∀ {n_19281 : A_19279} ->
+          ∀ {B_19282 : A_19279 -> Type‹r_19270›} ->
+            {(eq_1‹s_19269› A_19279 m_19280 n_19281)} ->
+              ((B_19282) n_19281) -> ((B_19282) m_19280)
+  | A_19286 m_19287 n_19288 B_19289 refl_1 __19290 => __19290
 
 #[program]
-inductive sing_2‹s_19308› (A_19309 : Type‹s_19308›):
-  A_19309 -> Type‹s_19308›
+inductive sing_2‹s_19291› (A_19292 : Type‹s_19291›):
+  A_19292 -> Type‹s_19291›
 where
-| just_2 (m_19311 : A_19309) : (sing_2‹s_19308› A_19309 m_19311)
+| just_2 (m_19294 : A_19292) : (sing_2‹s_19291› A_19292 m_19294)
 
 #[program]
 inductive unit_3‹› : U where
@@ -2089,76 +2082,76 @@ inductive bool_4‹› : U where
 #[program]
 inductive nat_5‹› : U where
 | zero_6 : nat_5
-| succ_7 (n_19312 : nat_5) : nat_5
+| succ_7 (n_19295 : nat_5) : nat_5
 
 #[program]
-inductive list_6‹s_19313,t_19314› (A_19315 : Type‹s_19313›):
-  Type‹t_19314›
+inductive list_6‹s_19296,t_19297› (A_19298 : Type‹s_19296›):
+  Type‹t_19297›
 where
-| nil_8 : (list_6‹s_19313,t_19314› A_19315)
+| nil_8 : (list_6‹s_19296,t_19297› A_19298)
 | cons_9
-    (hd_19316 : A_19315) (tl_19317 : (list_6‹s_19313,t_19314› A_19315))
-    : (list_6‹s_19313,t_19314› A_19315)
+    (hd_19299 : A_19298) (tl_19300 : (list_6‹s_19296,t_19297› A_19298))
+    : (list_6‹s_19296,t_19297› A_19298)
 
 #[program]
-inductive exists0_7‹s_19318,r_19319› (A_19320 : Type‹s_19318›) (B_19321 : 
-A_19320 -> Type‹r_19319›): L where
+inductive exists0_7‹s_19301,r_19302› (A_19303 : Type‹s_19301›) (B_19304 : 
+A_19303 -> Type‹r_19302›): L where
 | ex0_10
-    {m_19323 : A_19320} (n_19324 : ((B_19321) m_19323))
-    : (exists0_7‹s_19318,r_19319› A_19320 B_19321)
+    {m_19306 : A_19303} (n_19307 : ((B_19304) m_19306))
+    : (exists0_7‹s_19301,r_19302› A_19303 B_19304)
 
 #[program]
-inductive exists1_8‹s_19325,r_19326› (A_19327 : Type‹s_19325›) (B_19328 : 
-A_19327 -> Type‹r_19326›): L where
+inductive exists1_8‹s_19308,r_19309› (A_19310 : Type‹s_19308›) (B_19311 : 
+A_19310 -> Type‹r_19309›): L where
 | ex1_11
-    (m_19330 : A_19327) (n_19331 : ((B_19328) m_19330))
-    : (exists1_8‹s_19325,r_19326› A_19327 B_19328)
+    (m_19313 : A_19310) (n_19314 : ((B_19311) m_19313))
+    : (exists1_8‹s_19308,r_19309› A_19310 B_19311)
 
 #[logical]
-def prod0_3‹s_19332,r_19333› :
-  Type‹s_19332› -> Type‹r_19333› -> L
+def prod0_3‹s_19315,r_19316› :
+  Type‹s_19315› -> Type‹r_19316› -> L
 :=
-  function prod0_19336 : Type‹s_19332› -> Type‹r_19333› -> L
-  | A_19339 B_19340 =>
-    (exists0_7‹s_19332,r_19333›
-      A_19339
-      function _19341 : A_19339 -> Type‹r_19333›
-      | __19343 => B_19340)
+  function prod0_19319 : Type‹s_19315› -> Type‹r_19316› -> L
+  | A_19322 B_19323 =>
+    (exists0_7‹s_19315,r_19316›
+      A_19322
+      function _19324 : A_19322 -> Type‹r_19316›
+      | __19326 => B_19323)
 
 #[logical]
-def prod1_4‹s_19344,r_19345› :
-  Type‹s_19344› -> Type‹r_19345› -> L
+def prod1_4‹s_19327,r_19328› :
+  Type‹s_19327› -> Type‹r_19328› -> L
 :=
-  function prod1_19348 : Type‹s_19344› -> Type‹r_19345› -> L
-  | A_19351 B_19352 =>
-    (exists1_8‹s_19344,r_19345›
-      A_19351
-      function _19353 : A_19351 -> Type‹r_19345›
-      | __19355 => B_19352)
+  function prod1_19331 : Type‹s_19327› -> Type‹r_19328› -> L
+  | A_19334 B_19335 =>
+    (exists1_8‹s_19327,r_19328›
+      A_19334
+      function _19336 : A_19334 -> Type‹r_19328›
+      | __19338 => B_19335)
 
 #[program]
 def not_5‹› : bool_4 -> bool_4 :=
-  function not_19357 : bool_4 -> bool_4
+  function not_19340 : bool_4 -> bool_4
   | true_4 => false_5
   | false_5 => true_4
 
 #[program]
 def and_6‹› : bool_4 -> bool_4 -> bool_4 :=
-  function and_19361 : bool_4 -> bool_4 -> bool_4
+  function and_19344 : bool_4 -> bool_4 -> bool_4
   | true_4 true_4 => true_4
   | true_4 false_5 => false_5
-  | false_5 __19364 => false_5
+  | false_5 __19347 => false_5
 
 #[program]
 def or_7‹› : bool_4 -> bool_4 -> bool_4 :=
-  function or_19367 : bool_4 -> bool_4 -> bool_4
-  | true_4 __19370 => true_4
+  function or_19350 : bool_4 -> bool_4 -> bool_4
+  | true_4 __19353 => true_4
   | false_5 true_4 => true_4
   | false_5 false_5 => false_5
 
 #[program]
 def xor_8‹› : bool_4 -> bool_4 -o bool_4 :=
-  function xor_19373 : bool_4 -> bool_4 -o bool_4
+  function xor_19356 : bool_4 -> bool_4 -o bool_4
   | true_4 true_4 => false_5
   | true_4 false_5 => true_4
   | false_5 true_4 => true_4
@@ -2166,75 +2159,75 @@ def xor_8‹› : bool_4 -> bool_4 -o bool_4 :=
 
 #[program]
 def lte_9‹› : nat_5 -> nat_5 -> bool_4 :=
-  function lte_19378 : nat_5 -> nat_5 -> bool_4
-  | zero_6 __19381 => true_4
-  | (succ_7 n_19382) zero_6 => false_5
-  | (succ_7 n_19383) (succ_7 n_19384) => ((lte_19378) n_19383 n_19384)
+  function lte_19361 : nat_5 -> nat_5 -> bool_4
+  | zero_6 __19364 => true_4
+  | (succ_7 n_19365) zero_6 => false_5
+  | (succ_7 n_19366) (succ_7 n_19367) => ((lte_19361) n_19366 n_19367)
 
 #[program]
 def lt_10‹› : nat_5 -> nat_5 -> bool_4 :=
-  function lt_19387 : nat_5 -> nat_5 -> bool_4
-  | x_19390 y_19391 => ((lte_9) (succ_7‹› x_19390) y_19391)
+  function lt_19370 : nat_5 -> nat_5 -> bool_4
+  | x_19373 y_19374 => ((lte_9) (succ_7‹› x_19373) y_19374)
 
 #[program]
 def pred_11‹› : nat_5 -> nat_5 :=
-  function pred_19393 : nat_5 -> nat_5
+  function pred_19376 : nat_5 -> nat_5
   | zero_6 => zero_6
-  | (succ_7 n_19395) => n_19395
+  | (succ_7 n_19378) => n_19378
 
 #[program]
 def add_12‹› : nat_5 -> nat_5 -> nat_5 :=
-  function add_19398 : nat_5 -> nat_5 -> nat_5
-  | zero_6 __19401 => __19401
-  | (succ_7 n_19402) __19403 => (succ_7‹› ((add_19398) n_19402 __19403))
+  function add_19381 : nat_5 -> nat_5 -> nat_5
+  | zero_6 __19384 => __19384
+  | (succ_7 n_19385) __19386 => (succ_7‹› ((add_19381) n_19385 __19386))
 
 #[program]
 def sub_13‹› : nat_5 -> nat_5 -> nat_5 :=
-  function sub_19406 : nat_5 -> nat_5 -> nat_5
-  | __19409 zero_6 => __19409
-  | __19410 (succ_7 n_19411) => ((sub_19406) ((pred_11) __19410) n_19411)
+  function sub_19389 : nat_5 -> nat_5 -> nat_5
+  | __19392 zero_6 => __19392
+  | __19393 (succ_7 n_19394) => ((sub_19389) ((pred_11) __19393) n_19394)
 
 #[program]
 def mul_14‹› : nat_5 -> nat_5 -> nat_5 :=
-  function mul_19414 : nat_5 -> nat_5 -> nat_5
-  | zero_6 __19417 => zero_6
-  | (succ_7 n_19418) __19419 =>
-    ((add_12) __19419 ((mul_19414) n_19418 __19419))
+  function mul_19397 : nat_5 -> nat_5 -> nat_5
+  | zero_6 __19400 => zero_6
+  | (succ_7 n_19401) __19402 =>
+    ((add_12) __19402 ((mul_19397) n_19401 __19402))
 
 #[program]
 def div_15‹› : nat_5 -> nat_5 -> nat_5 :=
-  function div_19422 : nat_5 -> nat_5 -> nat_5
-  | x_19425 y_19426 =>
-    match ((lt_10) x_19425 y_19426) in bool_4 -o nat_5 with
+  function div_19405 : nat_5 -> nat_5 -> nat_5
+  | x_19408 y_19409 =>
+    match ((lt_10) x_19408 y_19409) in bool_4 -o nat_5 with
     | true_4 => zero_6
     | false_5 =>
-      (succ_7‹› ((div_19422) ((sub_13) x_19425 y_19426) y_19426))
+      (succ_7‹› ((div_19405) ((sub_13) x_19408 y_19409) y_19409))
 
 #[program]
 def rem_16‹› : nat_5 -> nat_5 -> nat_5 :=
-  function rem_19430 : nat_5 -> nat_5 -> nat_5
-  | x_19433 y_19434 =>
-    ((sub_13) x_19433 ((mul_14) ((div_15) x_19433 y_19434) y_19434))
+  function rem_19413 : nat_5 -> nat_5 -> nat_5
+  | x_19416 y_19417 =>
+    ((sub_13) x_19416 ((mul_14) ((div_15) x_19416 y_19417) y_19417))
 
 #[program]
 def pow_17‹› : nat_5 -> nat_5 -> nat_5 :=
-  function pow_19437 : nat_5 -> nat_5 -> nat_5
-  | __19440 zero_6 => (succ_7‹› zero_6)
-  | __19441 (succ_7 n_19442) =>
-    ((mul_14) __19441 ((pow_19437) __19441 n_19442))
+  function pow_19420 : nat_5 -> nat_5 -> nat_5
+  | __19423 zero_6 => (succ_7‹› zero_6)
+  | __19424 (succ_7 n_19425) =>
+    ((mul_14) __19424 ((pow_19420) __19424 n_19425))
 
 #[logical]
 extern proto_18‹› : U
 
 #[logical]
-extern act0_19‹s_19443› :
+extern act0_19‹s_19426› :
   bool_4 ->
-    ∀ (A_19445 : Type‹s_19443›) -> A_19445 -> proto_18 -> proto_18
+    ∀ (A_19428 : Type‹s_19426›) -> A_19428 -> proto_18 -> proto_18
 
 #[logical]
-extern act1_20‹s_19448› :
+extern act1_20‹s_19431› :
   bool_4 ->
-    ∀ (A_19450 : Type‹s_19448›) -> A_19450 -> proto_18 -> proto_18
+    ∀ (A_19433 : Type‹s_19431›) -> A_19433 -> proto_18 -> proto_18
 
 #[logical]
 extern endp_21‹› : proto_18
@@ -2244,473 +2237,470 @@ extern ch_22‹› : bool_4 -> proto_18 -> L
 
 #[program]
 extern close_23‹› :
-  ∀ {b_19455 : bool_4} -> ((ch_22) b_19455 endp_21) -> IO unit_3
+  ∀ {b_19438 : bool_4} -> ((ch_22) b_19438 endp_21) -> IO unit_3
 
 #[program]
-extern send0_24‹s_19457› :
-  ∀ {b1_19458 : bool_4} ->
-    ∀ {b2_19459 : bool_4} ->
-      ∀ {A_19460 : Type‹s_19457›} ->
-        ∀ {B_19461 : A_19460 -> proto_18} ->
-          {(eq_1‹U› bool_4 ((xor_8) b1_19458 b2_19459) false_5)} ->
+extern send0_24‹s_19440› :
+  ∀ {b1_19441 : bool_4} ->
+    ∀ {b2_19442 : bool_4} ->
+      ∀ {A_19443 : Type‹s_19440›} ->
+        ∀ {B_19444 : A_19443 -> proto_18} ->
+          {(eq_1‹U› bool_4 ((xor_8) b1_19441 b2_19442) false_5)} ->
             ((ch_22)
-              b1_19458 ((act0_19‹s_19457›) b2_19459 A_19460 B_19461)) ->
-              ∀ {x_19465 : A_19460} -o
-                IO ((ch_22) b1_19458 ((B_19461) x_19465))
+              b1_19441 ((act0_19‹s_19440›) b2_19442 A_19443 B_19444)) ->
+              ∀ {x_19448 : A_19443} -o
+                IO ((ch_22) b1_19441 ((B_19444) x_19448))
 
 #[program]
-extern send1_25‹s_19466› :
-  ∀ {b1_19467 : bool_4} ->
-    ∀ {b2_19468 : bool_4} ->
-      ∀ {A_19469 : Type‹s_19466›} ->
-        ∀ {B_19470 : A_19469 -> proto_18} ->
-          {(eq_1‹U› bool_4 ((xor_8) b1_19467 b2_19468) false_5)} ->
+extern send1_25‹s_19449› :
+  ∀ {b1_19450 : bool_4} ->
+    ∀ {b2_19451 : bool_4} ->
+      ∀ {A_19452 : Type‹s_19449›} ->
+        ∀ {B_19453 : A_19452 -> proto_18} ->
+          {(eq_1‹U› bool_4 ((xor_8) b1_19450 b2_19451) false_5)} ->
             ((ch_22)
-              b1_19467 ((act1_20‹s_19466›) b2_19468 A_19469 B_19470)) ->
-              ∀ (x_19474 : A_19469) -o
-                IO ((ch_22) b1_19467 ((B_19470) x_19474))
+              b1_19450 ((act1_20‹s_19449›) b2_19451 A_19452 B_19453)) ->
+              ∀ (x_19457 : A_19452) -o
+                IO ((ch_22) b1_19450 ((B_19453) x_19457))
 
 #[program]
-extern recv0_26‹s_19475› :
-  ∀ {b1_19476 : bool_4} ->
-    ∀ {b2_19477 : bool_4} ->
-      ∀ {A_19478 : Type‹s_19475›} ->
-        ∀ {B_19479 : A_19478 -> proto_18} ->
-          {(eq_1‹U› bool_4 ((xor_8) b1_19476 b2_19477) true_4)} ->
+extern recv0_26‹s_19458› :
+  ∀ {b1_19459 : bool_4} ->
+    ∀ {b2_19460 : bool_4} ->
+      ∀ {A_19461 : Type‹s_19458›} ->
+        ∀ {B_19462 : A_19461 -> proto_18} ->
+          {(eq_1‹U› bool_4 ((xor_8) b1_19459 b2_19460) true_4)} ->
             ((ch_22)
-              b1_19476 ((act0_19‹s_19475›) b2_19477 A_19478 B_19479)) ->
-              IO (exists0_7‹s_19475,L›
-                   A_19478
-                   function _19483 : A_19478 -> L
-                   | __19485 => ((ch_22) b1_19476 ((B_19479) __19485)))
+              b1_19459 ((act0_19‹s_19458›) b2_19460 A_19461 B_19462)) ->
+              IO (exists0_7‹s_19458,L›
+                   A_19461
+                   function _19466 : A_19461 -> L
+                   | __19468 => ((ch_22) b1_19459 ((B_19462) __19468)))
 
 #[program]
-extern recv1_27‹s_19486› :
-  ∀ {b1_19487 : bool_4} ->
-    ∀ {b2_19488 : bool_4} ->
-      ∀ {A_19489 : Type‹s_19486›} ->
-        ∀ {B_19490 : A_19489 -> proto_18} ->
-          {(eq_1‹U› bool_4 ((xor_8) b1_19487 b2_19488) true_4)} ->
+extern recv1_27‹s_19469› :
+  ∀ {b1_19470 : bool_4} ->
+    ∀ {b2_19471 : bool_4} ->
+      ∀ {A_19472 : Type‹s_19469›} ->
+        ∀ {B_19473 : A_19472 -> proto_18} ->
+          {(eq_1‹U› bool_4 ((xor_8) b1_19470 b2_19471) true_4)} ->
             ((ch_22)
-              b1_19487 ((act1_20‹s_19486›) b2_19488 A_19489 B_19490)) ->
-              IO (exists1_8‹s_19486,L›
-                   A_19489
-                   function _19494 : A_19489 -> L
-                   | __19496 => ((ch_22) b1_19487 ((B_19490) __19496)))
+              b1_19470 ((act1_20‹s_19469›) b2_19471 A_19472 B_19473)) ->
+              IO (exists1_8‹s_19469,L›
+                   A_19472
+                   function _19477 : A_19472 -> L
+                   | __19479 => ((ch_22) b1_19470 ((B_19473) __19479)))
 
 #[program]
 extern fork_28‹› :
-  ∀ {b_19497 : bool_4} ->
-    ∀ {P_19498 : proto_18} ->
-      ((ch_22) b_19497 P_19498) -o IO unit_3 ->
-        IO ((ch_22) ((not_5) b_19497) P_19498)
+  ∀ {b_19480 : bool_4} ->
+    ∀ {P_19481 : proto_18} ->
+      ((ch_22) b_19480 P_19481) -o IO unit_3 ->
+        IO ((ch_22) ((not_5) b_19480) P_19481)
 
 #[program]
-def split_29‹t_19501› :
-  (list_6‹U,t_19501› nat_5) ->
-    ((prod1_4‹t_19501,t_19501›)
-      (list_6‹U,t_19501› nat_5) (list_6‹U,t_19501› nat_5))
+def split_29‹t_19484› :
+  (list_6‹U,t_19484› nat_5) ->
+    ((prod1_4‹t_19484,t_19484›)
+      (list_6‹U,t_19484› nat_5) (list_6‹U,t_19484› nat_5))
 :=
-  function split_19503 :
-    (list_6‹U,t_19501› nat_5) ->
-      ((prod1_4‹t_19501,t_19501›)
-        (list_6‹U,t_19501› nat_5) (list_6‹U,t_19501› nat_5))
+  function split_19486 :
+    (list_6‹U,t_19484› nat_5) ->
+      ((prod1_4‹t_19484,t_19484›)
+        (list_6‹U,t_19484› nat_5) (list_6‹U,t_19484› nat_5))
   | nil_8 =>
-    (ex1_11‹t_19501,t_19501›
-      (list_6‹U,t_19501› nat_5)
-      function _19505 : (list_6‹U,t_19501› nat_5) -> Type‹t_19501›
-      | __19507 => (list_6‹U,t_19501› nat_5) (nil_8‹U,t_19501› nat_5)
-      (nil_8‹U,t_19501› nat_5))
-  | (cons_9 hd_19508 nil_8) =>
-    (ex1_11‹t_19501,t_19501›
-      (list_6‹U,t_19501› nat_5)
-      function _19509 : (list_6‹U,t_19501› nat_5) -> Type‹t_19501›
-      | __19511 => (list_6‹U,t_19501› nat_5)
-      (cons_9‹U,t_19501› nat_5 hd_19508 (nil_8‹U,t_19501› nat_5))
-      (nil_8‹U,t_19501› nat_5))
-  | (cons_9 hd_19512 (cons_9 hd_19513 tl_19514)) =>
-    match ((split_19503) tl_19514) in
-      ((prod1_4‹t_19501,t_19501›)
-        (list_6‹U,t_19501› nat_5) (list_6‹U,t_19501› nat_5)) -o
-        ((prod1_4‹t_19501,t_19501›)
-          (list_6‹U,t_19501› nat_5) (list_6‹U,t_19501› nat_5))
+    (ex1_11‹t_19484,t_19484›
+      (list_6‹U,t_19484› nat_5)
+      function _19488 : (list_6‹U,t_19484› nat_5) -> Type‹t_19484›
+      | __19490 => (list_6‹U,t_19484› nat_5) (nil_8‹U,t_19484› nat_5)
+      (nil_8‹U,t_19484› nat_5))
+  | (cons_9 hd_19491 nil_8) =>
+    (ex1_11‹t_19484,t_19484›
+      (list_6‹U,t_19484› nat_5)
+      function _19492 : (list_6‹U,t_19484› nat_5) -> Type‹t_19484›
+      | __19494 => (list_6‹U,t_19484› nat_5)
+      (cons_9‹U,t_19484› nat_5 hd_19491 (nil_8‹U,t_19484› nat_5))
+      (nil_8‹U,t_19484› nat_5))
+  | (cons_9 hd_19495 (cons_9 hd_19496 tl_19497)) =>
+    match ((split_19486) tl_19497) in
+      ((prod1_4‹t_19484,t_19484›)
+        (list_6‹U,t_19484› nat_5) (list_6‹U,t_19484› nat_5)) -o
+        ((prod1_4‹t_19484,t_19484›)
+          (list_6‹U,t_19484› nat_5) (list_6‹U,t_19484› nat_5))
     with
-    | (ex1_11 m_19516 n_19517) =>
-      (ex1_11‹t_19501,t_19501›
-        (list_6‹U,t_19501› nat_5)
-        function _19518 : (list_6‹U,t_19501› nat_5) -> Type‹t_19501›
-        | __19520 => (list_6‹U,t_19501› nat_5)
-        (cons_9‹U,t_19501› nat_5 hd_19512 m_19516)
-        (cons_9‹U,t_19501› nat_5 hd_19513 n_19517))
+    | (ex1_11 m_19499 n_19500) =>
+      (ex1_11‹t_19484,t_19484›
+        (list_6‹U,t_19484› nat_5)
+        function _19501 : (list_6‹U,t_19484› nat_5) -> Type‹t_19484›
+        | __19503 => (list_6‹U,t_19484› nat_5)
+        (cons_9‹U,t_19484› nat_5 hd_19495 m_19499)
+        (cons_9‹U,t_19484› nat_5 hd_19496 n_19500))
 
 #[program]
-def merge_30‹t_19521› :
-  (list_6‹U,t_19521› nat_5) ->
-    (list_6‹U,t_19521› nat_5) -o (list_6‹U,t_19521› nat_5)
+def merge_30‹t_19504› :
+  (list_6‹U,t_19504› nat_5) ->
+    (list_6‹U,t_19504› nat_5) -o (list_6‹U,t_19504› nat_5)
 :=
-  function merge_19524 :
-    (list_6‹U,t_19521› nat_5) ->
-      (list_6‹U,t_19521› nat_5) -o (list_6‹U,t_19521› nat_5)
-  | nil_8 __19527 => __19527
-  | (cons_9 hd_19528 tl_19529) nil_8 =>
-    (cons_9‹U,t_19521› nat_5 hd_19528 tl_19529)
-  | (cons_9 hd_19530 tl_19531) (cons_9 hd_19532 tl_19533) =>
-    match ((lte_9) hd_19530 hd_19532) in
-      bool_4 -o (list_6‹U,t_19521› nat_5)
+  function merge_19507 :
+    (list_6‹U,t_19504› nat_5) ->
+      (list_6‹U,t_19504› nat_5) -o (list_6‹U,t_19504› nat_5)
+  | nil_8 __19510 => __19510
+  | (cons_9 hd_19511 tl_19512) nil_8 =>
+    (cons_9‹U,t_19504› nat_5 hd_19511 tl_19512)
+  | (cons_9 hd_19513 tl_19514) (cons_9 hd_19515 tl_19516) =>
+    match ((lte_9) hd_19513 hd_19515) in
+      bool_4 -o (list_6‹U,t_19504› nat_5)
     with
     | true_4 =>
-      (cons_9‹U,t_19521›
-        nat_5 hd_19530
-        ((merge_19524)
-          tl_19531 (cons_9‹U,t_19521› nat_5 hd_19532 tl_19533)))
+      (cons_9‹U,t_19504›
+        nat_5 hd_19513
+        ((merge_19507)
+          tl_19514 (cons_9‹U,t_19504› nat_5 hd_19515 tl_19516)))
     | false_5 =>
-      (cons_9‹U,t_19521›
-        nat_5 hd_19532
-        ((merge_19524)
-          (cons_9‹U,t_19521› nat_5 hd_19530 tl_19531) tl_19533))
+      (cons_9‹U,t_19504›
+        nat_5 hd_19515
+        ((merge_19507)
+          (cons_9‹U,t_19504› nat_5 hd_19513 tl_19514) tl_19516))
 
 #[program]
-def msort_31‹t_19535› :
-  (list_6‹U,t_19535› nat_5) -> (list_6‹U,t_19535› nat_5)
+def msort_31‹t_19518› :
+  (list_6‹U,t_19518› nat_5) -> (list_6‹U,t_19518› nat_5)
 :=
-  function msort_19537 :
-    (list_6‹U,t_19535› nat_5) -> (list_6‹U,t_19535› nat_5)
-  | nil_8 => (nil_8‹U,t_19535› nat_5)
-  | (cons_9 hd_19539 nil_8) =>
-    (cons_9‹U,t_19535› nat_5 hd_19539 (nil_8‹U,t_19535› nat_5))
-  | (cons_9 hd_19540 (cons_9 hd_19541 tl_19542)) =>
-    let _19543 :=
-      ((split_29‹t_19535›)
-        (cons_9‹U,t_19535›
-          nat_5 hd_19540 (cons_9‹U,t_19535› nat_5 hd_19541 tl_19542)))
-    in
-    match _19543 in
-      ((prod1_4‹t_19535,t_19535›)
-        (list_6‹U,t_19535› nat_5) (list_6‹U,t_19535› nat_5)) -o
-        (list_6‹U,t_19535› nat_5)
+  function msort_19520 :
+    (list_6‹U,t_19518› nat_5) -> (list_6‹U,t_19518› nat_5)
+  | nil_8 => (nil_8‹U,t_19518› nat_5)
+  | (cons_9 hd_19522 nil_8) =>
+    (cons_9‹U,t_19518› nat_5 hd_19522 (nil_8‹U,t_19518› nat_5))
+  | (cons_9 hd_19523 (cons_9 hd_19524 tl_19525)) =>
+    match ((split_29‹t_19518›)
+            (cons_9‹U,t_19518›
+              nat_5 hd_19523 (cons_9‹U,t_19518› nat_5 hd_19524 tl_19525))) in
+      ((prod1_4‹t_19518,t_19518›)
+        (list_6‹U,t_19518› nat_5) (list_6‹U,t_19518› nat_5)) -o
+        (list_6‹U,t_19518› nat_5)
     with
-    | (ex1_11 m_19545 n_19546) =>
-      ((merge_30‹t_19535›)
-        ((msort_19537) m_19545) ((msort_19537) n_19546))
+    | (ex1_11 m_19527 n_19528) =>
+      ((merge_30‹t_19518›)
+        ((msort_19520) m_19527) ((msort_19520) n_19528))
 
 #[logical]
-def cmsort_ch_32‹t_19547› : (list_6‹U,t_19547› nat_5) -> L :=
-  function cmsort_ch_19549 : (list_6‹U,t_19547› nat_5) -> L
-  | xs_19551 =>
+def cmsort_ch_32‹t_19529› : (list_6‹U,t_19529› nat_5) -> L :=
+  function cmsort_ch_19531 : (list_6‹U,t_19529› nat_5) -> L
+  | xs_19533 =>
     ((ch_22)
       true_4
-      ((act1_20‹t_19547›)
+      ((act1_20‹t_19529›)
         true_4
-        (sing_2‹t_19547›
-          (list_6‹U,t_19547› nat_5) ((msort_31‹t_19547›) xs_19551))
-        function _19552 :
-          (sing_2‹t_19547›
-            (list_6‹U,t_19547› nat_5) ((msort_31‹t_19547›) xs_19551)) ->
+        (sing_2‹t_19529›
+          (list_6‹U,t_19529› nat_5) ((msort_31‹t_19529›) xs_19533))
+        function _19534 :
+          (sing_2‹t_19529›
+            (list_6‹U,t_19529› nat_5) ((msort_31‹t_19529›) xs_19533)) ->
             proto_18
-        | __19554 => endp_21))
+        | __19536 => endp_21))
 
 #[program]
-def cmsort_worker_33‹t_19555› :
+def cmsort_worker_33‹t_19537› :
   nat_5 ->
-    ∀ (zs_19557 : (list_6‹U,t_19555› nat_5)) ->
-      ((cmsort_ch_32‹t_19555›) zs_19557) -o IO unit_3
+    ∀ (zs_19539 : (list_6‹U,t_19537› nat_5)) ->
+      ((cmsort_ch_32‹t_19537›) zs_19539) -o IO unit_3
 :=
-  function cmsort_worker_19559 :
+  function cmsort_worker_19541 :
     nat_5 ->
-      ∀ (zs_19561 : (list_6‹U,t_19555› nat_5)) ->
-        ((cmsort_ch_32‹t_19555›) zs_19561) -o IO unit_3
-  | zero_6 zs_19563 __19564 =>
-    let* c_19565 :=
-      ((send1_25‹t_19555›)
+      ∀ (zs_19543 : (list_6‹U,t_19537› nat_5)) ->
+        ((cmsort_ch_32‹t_19537›) zs_19543) -o IO unit_3
+  | zero_6 zs_19545 __19546 =>
+    let* c_19547 :=
+      ((send1_25‹t_19537›)
         true_4 true_4
-        (sing_2‹t_19555›
-          (list_6‹U,t_19555› nat_5) ((msort_31‹t_19555›) zs_19563))
-        function _19566 :
-          (sing_2‹t_19555›
-            (list_6‹U,t_19555› nat_5) ((msort_31‹t_19555›) zs_19563)) ->
+        (sing_2‹t_19537›
+          (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) zs_19545))
+        function _19548 :
+          (sing_2‹t_19537›
+            (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) zs_19545)) ->
             proto_18
-        | __19568 => endp_21 (refl_1‹U› bool_4 ((xor_8) true_4 true_4))
-        __19564
-        (just_2‹t_19555›
-          (list_6‹U,t_19555› nat_5) ((msort_31‹t_19555›) zs_19563)))
-    in ((close_23) true_4 c_19565)
-  | (succ_7 n_19569) nil_8 __19570 =>
-    let* c_19571 :=
-      ((send1_25‹t_19555›)
+        | __19550 => endp_21 (refl_1‹U› bool_4 ((xor_8) true_4 true_4))
+        __19546
+        (just_2‹t_19537›
+          (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) zs_19545)))
+    in ((close_23) true_4 c_19547)
+  | (succ_7 n_19551) nil_8 __19552 =>
+    let* c_19553 :=
+      ((send1_25‹t_19537›)
         true_4 true_4
-        (sing_2‹t_19555›
-          (list_6‹U,t_19555› nat_5)
-          ((msort_31‹t_19555›) (nil_8‹U,t_19555› nat_5)))
-        function _19572 :
-          (sing_2‹t_19555›
-            (list_6‹U,t_19555› nat_5)
-            ((msort_31‹t_19555›) (nil_8‹U,t_19555› nat_5))) ->
+        (sing_2‹t_19537›
+          (list_6‹U,t_19537› nat_5)
+          ((msort_31‹t_19537›) (nil_8‹U,t_19537› nat_5)))
+        function _19554 :
+          (sing_2‹t_19537›
+            (list_6‹U,t_19537› nat_5)
+            ((msort_31‹t_19537›) (nil_8‹U,t_19537› nat_5))) ->
             proto_18
-        | __19574 => endp_21 (refl_1‹U› bool_4 ((xor_8) true_4 true_4))
-        __19570
-        (just_2‹t_19555›
-          (list_6‹U,t_19555› nat_5) (nil_8‹U,t_19555› nat_5)))
-    in ((close_23) true_4 c_19571)
-  | (succ_7 n_19575) (cons_9 hd_19576 nil_8) __19577 =>
-    let* c_19578 :=
-      ((send1_25‹t_19555›)
+        | __19556 => endp_21 (refl_1‹U› bool_4 ((xor_8) true_4 true_4))
+        __19552
+        (just_2‹t_19537›
+          (list_6‹U,t_19537› nat_5) (nil_8‹U,t_19537› nat_5)))
+    in ((close_23) true_4 c_19553)
+  | (succ_7 n_19557) (cons_9 hd_19558 nil_8) __19559 =>
+    let* c_19560 :=
+      ((send1_25‹t_19537›)
         true_4 true_4
-        (sing_2‹t_19555›
-          (list_6‹U,t_19555› nat_5)
-          ((msort_31‹t_19555›)
-            (cons_9‹U,t_19555›
-              nat_5 hd_19576 (nil_8‹U,t_19555› nat_5))))
-        function _19579 :
-          (sing_2‹t_19555›
-            (list_6‹U,t_19555› nat_5)
-            ((msort_31‹t_19555›)
-              (cons_9‹U,t_19555›
-                nat_5 hd_19576 (nil_8‹U,t_19555› nat_5)))) ->
+        (sing_2‹t_19537›
+          (list_6‹U,t_19537› nat_5)
+          ((msort_31‹t_19537›)
+            (cons_9‹U,t_19537›
+              nat_5 hd_19558 (nil_8‹U,t_19537› nat_5))))
+        function _19561 :
+          (sing_2‹t_19537›
+            (list_6‹U,t_19537› nat_5)
+            ((msort_31‹t_19537›)
+              (cons_9‹U,t_19537›
+                nat_5 hd_19558 (nil_8‹U,t_19537› nat_5)))) ->
             proto_18
-        | __19581 => endp_21 (refl_1‹U› bool_4 ((xor_8) true_4 true_4))
-        __19577
-        (just_2‹t_19555›
-          (list_6‹U,t_19555› nat_5)
-          (cons_9‹U,t_19555› nat_5 hd_19576 (nil_8‹U,t_19555› nat_5))))
-    in ((close_23) true_4 c_19578)
-  | (succ_7 n_19582) (cons_9 hd_19583 (cons_9 hd_19584 tl_19585)) __19586 =>
-    match ((split_29‹t_19555›)
-            (cons_9‹U,t_19555›
-              nat_5 hd_19583 (cons_9‹U,t_19555› nat_5 hd_19584 tl_19585))),
-    (refl_1‹t_19555›
-      (list_6‹U,t_19555› nat_5)
-      match ((split_29‹t_19555›)
-              (cons_9‹U,t_19555›
-                nat_5 hd_19583
-                (cons_9‹U,t_19555› nat_5 hd_19584 tl_19585))) in
-        ((prod1_4‹t_19555,t_19555›)
-          (list_6‹U,t_19555› nat_5) (list_6‹U,t_19555› nat_5)) -o
-          (list_6‹U,t_19555› nat_5)
+        | __19563 => endp_21 (refl_1‹U› bool_4 ((xor_8) true_4 true_4))
+        __19559
+        (just_2‹t_19537›
+          (list_6‹U,t_19537› nat_5)
+          (cons_9‹U,t_19537› nat_5 hd_19558 (nil_8‹U,t_19537› nat_5))))
+    in ((close_23) true_4 c_19560)
+  | (succ_7 n_19564) (cons_9 hd_19565 (cons_9 hd_19566 tl_19567)) __19568 =>
+    match ((split_29‹t_19537›)
+            (cons_9‹U,t_19537›
+              nat_5 hd_19565 (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567))),
+    (refl_1‹t_19537›
+      (list_6‹U,t_19537› nat_5)
+      match ((split_29‹t_19537›)
+              (cons_9‹U,t_19537›
+                nat_5 hd_19565
+                (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567))) in
+        ((prod1_4‹t_19537,t_19537›)
+          (list_6‹U,t_19537› nat_5) (list_6‹U,t_19537› nat_5)) -o
+          (list_6‹U,t_19537› nat_5)
       with
-      | (ex1_11 m_19588 n_19589) =>
-        ((merge_30‹t_19555›)
-          ((msort_31‹t_19555›) m_19588) ((msort_31‹t_19555›) n_19589))) in
-      ∀ (h1_19590 :
-        ((prod1_4‹t_19555,t_19555›)
-          (list_6‹U,t_19555› nat_5) (list_6‹U,t_19555› nat_5))) -o
-        {(eq_1‹t_19555›
-           (list_6‹U,t_19555› nat_5)
-           match h1_19590 in
-             ((prod1_4‹t_19555,t_19555›)
-               (list_6‹U,t_19555› nat_5) (list_6‹U,t_19555› nat_5)) -o
-               (list_6‹U,t_19555› nat_5)
+      | (ex1_11 m_19570 n_19571) =>
+        ((merge_30‹t_19537›)
+          ((msort_31‹t_19537›) m_19570) ((msort_31‹t_19537›) n_19571))) in
+      ∀ (h1_19572 :
+        ((prod1_4‹t_19537,t_19537›)
+          (list_6‹U,t_19537› nat_5) (list_6‹U,t_19537› nat_5))) -o
+        {(eq_1‹t_19537›
+           (list_6‹U,t_19537› nat_5)
+           match h1_19572 in
+             ((prod1_4‹t_19537,t_19537›)
+               (list_6‹U,t_19537› nat_5) (list_6‹U,t_19537› nat_5)) -o
+               (list_6‹U,t_19537› nat_5)
            with
-           | (ex1_11 m_19593 n_19594) =>
-             ((merge_30‹t_19555›)
-               ((msort_31‹t_19555›) m_19593)
-               ((msort_31‹t_19555›) n_19594))
-           match ((split_29‹t_19555›)
-                   (cons_9‹U,t_19555›
-                     nat_5 hd_19583
-                     (cons_9‹U,t_19555› nat_5 hd_19584 tl_19585))) in
-             ((prod1_4‹t_19555,t_19555›)
-               (list_6‹U,t_19555› nat_5) (list_6‹U,t_19555› nat_5)) -o
-               (list_6‹U,t_19555› nat_5)
+           | (ex1_11 m_19575 n_19576) =>
+             ((merge_30‹t_19537›)
+               ((msort_31‹t_19537›) m_19575)
+               ((msort_31‹t_19537›) n_19576))
+           match ((split_29‹t_19537›)
+                   (cons_9‹U,t_19537›
+                     nat_5 hd_19565
+                     (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567))) in
+             ((prod1_4‹t_19537,t_19537›)
+               (list_6‹U,t_19537› nat_5) (list_6‹U,t_19537› nat_5)) -o
+               (list_6‹U,t_19537› nat_5)
            with
-           | (ex1_11 m_19596 n_19597) =>
-             ((merge_30‹t_19555›)
-               ((msort_31‹t_19555›) m_19596)
-               ((msort_31‹t_19555›) n_19597)))} -o
+           | (ex1_11 m_19578 n_19579) =>
+             ((merge_30‹t_19537›)
+               ((msort_31‹t_19537›) m_19578)
+               ((msort_31‹t_19537›) n_19579)))} -o
           IO unit_3
     with
-    | (ex1_11 m_19598 n_19599), __19600 =>
-      let* r1_19601 :=
+    | (ex1_11 m_19580 n_19581), __19582 =>
+      let* r1_19583 :=
         ((fork_28)
           true_4
-          ((act1_20‹t_19555›)
+          ((act1_20‹t_19537›)
             true_4
-            (sing_2‹t_19555›
-              (list_6‹U,t_19555› nat_5) ((msort_31‹t_19555›) m_19598))
-            function _19602 :
-              (sing_2‹t_19555›
-                (list_6‹U,t_19555› nat_5)
-                ((msort_31‹t_19555›) m_19598)) -> proto_18
-            | __19604 => endp_21)
-          function _19605 :
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) m_19580))
+            function _19584 :
+              (sing_2‹t_19537›
+                (list_6‹U,t_19537› nat_5)
+                ((msort_31‹t_19537›) m_19580)) -> proto_18
+            | __19586 => endp_21)
+          function _19587 :
             ((ch_22)
               true_4
-              ((act1_20‹t_19555›)
+              ((act1_20‹t_19537›)
                 true_4
-                (sing_2‹t_19555›
-                  (list_6‹U,t_19555› nat_5)
-                  ((msort_31‹t_19555›) m_19598))
-                function _19607 :
-                  (sing_2‹t_19555›
-                    (list_6‹U,t_19555› nat_5)
-                    ((msort_31‹t_19555›) m_19598)) -> proto_18
-                | __19609 => endp_21)) -o
+                (sing_2‹t_19537›
+                  (list_6‹U,t_19537› nat_5)
+                  ((msort_31‹t_19537›) m_19580))
+                function _19589 :
+                  (sing_2‹t_19537›
+                    (list_6‹U,t_19537› nat_5)
+                    ((msort_31‹t_19537›) m_19580)) -> proto_18
+                | __19591 => endp_21)) -o
               IO unit_3
-          | __19610 => ((cmsort_worker_19559) n_19582 m_19598 __19610))
+          | __19592 => ((cmsort_worker_19541) n_19564 m_19580 __19592))
       in
-      let* r2_19611 :=
+      let* r2_19593 :=
         ((fork_28)
           true_4
-          ((act1_20‹t_19555›)
+          ((act1_20‹t_19537›)
             true_4
-            (sing_2‹t_19555›
-              (list_6‹U,t_19555› nat_5) ((msort_31‹t_19555›) n_19599))
-            function _19612 :
-              (sing_2‹t_19555›
-                (list_6‹U,t_19555› nat_5)
-                ((msort_31‹t_19555›) n_19599)) -> proto_18
-            | __19614 => endp_21)
-          function _19615 :
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) n_19581))
+            function _19594 :
+              (sing_2‹t_19537›
+                (list_6‹U,t_19537› nat_5)
+                ((msort_31‹t_19537›) n_19581)) -> proto_18
+            | __19596 => endp_21)
+          function _19597 :
             ((ch_22)
               true_4
-              ((act1_20‹t_19555›)
+              ((act1_20‹t_19537›)
                 true_4
-                (sing_2‹t_19555›
-                  (list_6‹U,t_19555› nat_5)
-                  ((msort_31‹t_19555›) n_19599))
-                function _19617 :
-                  (sing_2‹t_19555›
-                    (list_6‹U,t_19555› nat_5)
-                    ((msort_31‹t_19555›) n_19599)) -> proto_18
-                | __19619 => endp_21)) -o
+                (sing_2‹t_19537›
+                  (list_6‹U,t_19537› nat_5)
+                  ((msort_31‹t_19537›) n_19581))
+                function _19599 :
+                  (sing_2‹t_19537›
+                    (list_6‹U,t_19537› nat_5)
+                    ((msort_31‹t_19537›) n_19581)) -> proto_18
+                | __19601 => endp_21)) -o
               IO unit_3
-          | __19620 => ((cmsort_worker_19559) n_19582 n_19599 __19620))
+          | __19602 => ((cmsort_worker_19541) n_19564 n_19581 __19602))
       in
-      let* _19621 :=
-        ((recv1_27‹t_19555›)
+      let* _19603 :=
+        ((recv1_27‹t_19537›)
           ((not_5) true_4) true_4
-          (sing_2‹t_19555›
-            (list_6‹U,t_19555› nat_5) ((msort_31‹t_19555›) m_19598))
-          function _19622 :
-            (sing_2‹t_19555›
-              (list_6‹U,t_19555› nat_5) ((msort_31‹t_19555›) m_19598)) ->
+          (sing_2‹t_19537›
+            (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) m_19580))
+          function _19604 :
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) m_19580)) ->
               proto_18
-          | __19624 => endp_21
-          (refl_1‹U› bool_4 ((xor_8) ((not_5) true_4) true_4)) r1_19601)
+          | __19606 => endp_21
+          (refl_1‹U› bool_4 ((xor_8) ((not_5) true_4) true_4)) r1_19583)
       in
-      match _19621 in
-        (exists1_8‹t_19555,L›
-          (sing_2‹t_19555›
-            (list_6‹U,t_19555› nat_5) ((msort_31‹t_19555›) m_19598))
-          function _19626 :
-            (sing_2‹t_19555›
-              (list_6‹U,t_19555› nat_5) ((msort_31‹t_19555›) m_19598)) ->
+      match _19603 in
+        (exists1_8‹t_19537,L›
+          (sing_2‹t_19537›
+            (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) m_19580))
+          function _19608 :
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) m_19580)) ->
               L
-          | __19628 =>
+          | __19610 =>
             ((ch_22)
               ((not_5) true_4)
-              ((function _19629 :
-                  (sing_2‹t_19555›
-                    (list_6‹U,t_19555› nat_5)
-                    ((msort_31‹t_19555›) m_19598)) -> proto_18
-                | __19631 => endp_21) __19628))) -o
+              ((function _19611 :
+                  (sing_2‹t_19537›
+                    (list_6‹U,t_19537› nat_5)
+                    ((msort_31‹t_19537›) m_19580)) -> proto_18
+                | __19613 => endp_21) __19610))) -o
           IO unit_3
       with
-      | (ex1_11 m_19632 n_19633) =>
-        let* _19634 :=
-          ((recv1_27‹t_19555›)
+      | (ex1_11 m_19614 n_19615) =>
+        let* _19616 :=
+          ((recv1_27‹t_19537›)
             ((not_5) true_4) true_4
-            (sing_2‹t_19555›
-              (list_6‹U,t_19555› nat_5) ((msort_31‹t_19555›) n_19599))
-            function _19635 :
-              (sing_2‹t_19555›
-                (list_6‹U,t_19555› nat_5)
-                ((msort_31‹t_19555›) n_19599)) -> proto_18
-            | __19637 => endp_21
-            (refl_1‹U› bool_4 ((xor_8) ((not_5) true_4) true_4)) r2_19611)
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) n_19581))
+            function _19617 :
+              (sing_2‹t_19537›
+                (list_6‹U,t_19537› nat_5)
+                ((msort_31‹t_19537›) n_19581)) -> proto_18
+            | __19619 => endp_21
+            (refl_1‹U› bool_4 ((xor_8) ((not_5) true_4) true_4)) r2_19593)
         in
-        match _19634 in
-          (exists1_8‹t_19555,L›
-            (sing_2‹t_19555›
-              (list_6‹U,t_19555› nat_5) ((msort_31‹t_19555›) n_19599))
-            function _19639 :
-              (sing_2‹t_19555›
-                (list_6‹U,t_19555› nat_5)
-                ((msort_31‹t_19555›) n_19599)) -> L
-            | __19641 =>
+        match _19616 in
+          (exists1_8‹t_19537,L›
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) n_19581))
+            function _19621 :
+              (sing_2‹t_19537›
+                (list_6‹U,t_19537› nat_5)
+                ((msort_31‹t_19537›) n_19581)) -> L
+            | __19623 =>
               ((ch_22)
                 ((not_5) true_4)
-                ((function _19642 :
-                    (sing_2‹t_19555›
-                      (list_6‹U,t_19555› nat_5)
-                      ((msort_31‹t_19555›) n_19599)) -> proto_18
-                  | __19644 => endp_21) __19641))) -o
+                ((function _19624 :
+                    (sing_2‹t_19537›
+                      (list_6‹U,t_19537› nat_5)
+                      ((msort_31‹t_19537›) n_19581)) -> proto_18
+                  | __19626 => endp_21) __19623))) -o
             IO unit_3
         with
-        | (ex1_11 m_19645 n_19646) =>
-          match m_19632, m_19645 in
-            (sing_2‹t_19555›
-              (list_6‹U,t_19555› nat_5) ((msort_31‹t_19555›) m_19598)) -o
-              (sing_2‹t_19555›
-                (list_6‹U,t_19555› nat_5)
-                ((msort_31‹t_19555›) n_19599)) -o IO unit_3
+        | (ex1_11 m_19627 n_19628) =>
+          match m_19614, m_19627 in
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) m_19580)) -o
+              (sing_2‹t_19537›
+                (list_6‹U,t_19537› nat_5)
+                ((msort_31‹t_19537›) n_19581)) -o IO unit_3
           with
-          | (just_2 m_19649), (just_2 m_19650) =>
-            let zs1_19651 :=
-              ((just_2‹t_19555›
-                 (list_6‹U,t_19555› nat_5)
-                 ((merge_30‹t_19555›) m_19649 m_19650))
-                : (sing_2‹t_19555›
-                    (list_6‹U,t_19555› nat_5)
-                    ((merge_30‹t_19555›)
-                      ((msort_31‹t_19555›) m_19598)
-                      ((msort_31‹t_19555›) n_19599))))
+          | (just_2 m_19631), (just_2 m_19632) =>
+            let zs1_19633 :=
+              ((just_2‹t_19537›
+                 (list_6‹U,t_19537› nat_5)
+                 ((merge_30‹t_19537›) m_19631 m_19632))
+                : (sing_2‹t_19537›
+                    (list_6‹U,t_19537› nat_5)
+                    ((merge_30‹t_19537›)
+                      ((msort_31‹t_19537›) m_19580)
+                      ((msort_31‹t_19537›) n_19581))))
             in
-            let zs1_19652 :=
-              (((rwl_1‹t_19555,t_19555›)
-                 (list_6‹U,t_19555› nat_5)
-                 ((merge_30‹t_19555›)
-                   ((msort_31‹t_19555›) m_19598)
-                   ((msort_31‹t_19555›) n_19599))
-                 match ((split_29‹t_19555›)
-                         (cons_9‹U,t_19555›
-                           nat_5 hd_19583
-                           (cons_9‹U,t_19555› nat_5 hd_19584 tl_19585))) in
-                   ((prod1_4‹t_19555,t_19555›)
-                     (list_6‹U,t_19555› nat_5)
-                     (list_6‹U,t_19555› nat_5)) -o
-                     (list_6‹U,t_19555› nat_5)
+            let zs1_19634 :=
+              (((rwl_1‹t_19537,t_19537›)
+                 (list_6‹U,t_19537› nat_5)
+                 ((merge_30‹t_19537›)
+                   ((msort_31‹t_19537›) m_19580)
+                   ((msort_31‹t_19537›) n_19581))
+                 match ((split_29‹t_19537›)
+                         (cons_9‹U,t_19537›
+                           nat_5 hd_19565
+                           (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567))) in
+                   ((prod1_4‹t_19537,t_19537›)
+                     (list_6‹U,t_19537› nat_5)
+                     (list_6‹U,t_19537› nat_5)) -o
+                     (list_6‹U,t_19537› nat_5)
                  with
-                 | (ex1_11 m_19654 n_19655) =>
-                   ((merge_30‹t_19555›)
-                     ((msort_31‹t_19555›) m_19654)
-                     ((msort_31‹t_19555›) n_19655))
-                 function _19656 :
-                   (list_6‹U,t_19555› nat_5) -> Type‹t_19555›
-                 | __19658 =>
-                   (sing_2‹t_19555›
-                     (list_6‹U,t_19555› nat_5) __19658)
-                 __19600 zs1_19651)
-                : (sing_2‹t_19555›
-                    (list_6‹U,t_19555› nat_5)
-                    ((msort_31‹t_19555›)
-                      (cons_9‹U,t_19555›
-                        nat_5 hd_19583
-                        (cons_9‹U,t_19555› nat_5 hd_19584 tl_19585)))))
+                 | (ex1_11 m_19636 n_19637) =>
+                   ((merge_30‹t_19537›)
+                     ((msort_31‹t_19537›) m_19636)
+                     ((msort_31‹t_19537›) n_19637))
+                 function _19638 :
+                   (list_6‹U,t_19537› nat_5) -> Type‹t_19537›
+                 | __19640 =>
+                   (sing_2‹t_19537›
+                     (list_6‹U,t_19537› nat_5) __19640)
+                 __19582 zs1_19633)
+                : (sing_2‹t_19537›
+                    (list_6‹U,t_19537› nat_5)
+                    ((msort_31‹t_19537›)
+                      (cons_9‹U,t_19537›
+                        nat_5 hd_19565
+                        (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567)))))
             in
-            let* c_19659 :=
-              ((send1_25‹t_19555›)
+            let* c_19641 :=
+              ((send1_25‹t_19537›)
                 true_4 true_4
-                (sing_2‹t_19555›
-                  (list_6‹U,t_19555› nat_5)
-                  ((msort_31‹t_19555›)
-                    (cons_9‹U,t_19555›
-                      nat_5 hd_19583
-                      (cons_9‹U,t_19555› nat_5 hd_19584 tl_19585))))
-                function _19660 :
-                  (sing_2‹t_19555›
-                    (list_6‹U,t_19555› nat_5)
-                    ((msort_31‹t_19555›)
-                      (cons_9‹U,t_19555›
-                        nat_5 hd_19583
-                        (cons_9‹U,t_19555› nat_5 hd_19584 tl_19585)))) ->
+                (sing_2‹t_19537›
+                  (list_6‹U,t_19537› nat_5)
+                  ((msort_31‹t_19537›)
+                    (cons_9‹U,t_19537›
+                      nat_5 hd_19565
+                      (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567))))
+                function _19642 :
+                  (sing_2‹t_19537›
+                    (list_6‹U,t_19537› nat_5)
+                    ((msort_31‹t_19537›)
+                      (cons_9‹U,t_19537›
+                        nat_5 hd_19565
+                        (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567)))) ->
                     proto_18
-                | __19662 => endp_21
-                (refl_1‹U› bool_4 ((xor_8) true_4 true_4)) __19586
-                zs1_19652)
+                | __19644 => endp_21
+                (refl_1‹U› bool_4 ((xor_8) true_4 true_4)) __19568
+                zs1_19634)
             in
-            let* __19663 := ((close_23) ((not_5) true_4) n_19633) in
-            let* __19664 := ((close_23) ((not_5) true_4) n_19646) in
-            let* __19665 := ((close_23) true_4 c_19659) in return tt_3
+            let* __19645 := ((close_23) ((not_5) true_4) n_19615) in
+            let* __19646 := ((close_23) ((not_5) true_4) n_19628) in
+            let* __19647 := ((close_23) true_4 c_19641) in return tt_3
 
 -----------------------------------------
 
@@ -2724,58 +2714,58 @@ inductive eqL_9 where
 
 #[program]
 def rwlUU_37 :=
-  fun rwl_31307 {A_31308} -> {m_31309} -> {n_31310} -> {B_31311} ->
-  {__31312} -> (__31313) -> match {NULL} with
-                            | reflU_13  => __31313
+  fun rwl_31285 {A_31286} -> {m_31287} -> {n_31288} -> {B_31289} ->
+  {__31290} -> (__31291) -> match {NULL} with
+                            | reflU_13  => __31291
                             end
 
 #[program]
 def rwlUL_36 :=
-  fun rwl_31314 {A_31315} -> {m_31316} -> {n_31317} -> {B_31318} ->
-  {__31319} -> (__31320) -> match {NULL} with
-                            | reflU_13  => __31320
+  fun rwl_31292 {A_31293} -> {m_31294} -> {n_31295} -> {B_31296} ->
+  {__31297} -> (__31298) -> match {NULL} with
+                            | reflU_13  => __31298
                             end
 
 #[program]
 def rwlLU_35 :=
-  fun rwl_31321 {A_31322} -> {m_31323} -> {n_31324} -> {B_31325} ->
-  {__31326} -> (__31327) -> match {NULL} with
-                            | reflL_12  => __31327
+  fun rwl_31299 {A_31300} -> {m_31301} -> {n_31302} -> {B_31303} ->
+  {__31304} -> (__31305) -> match {NULL} with
+                            | reflL_12  => __31305
                             end
 
 #[program]
 def rwlLL_34 :=
-  fun rwl_31328 {A_31329} -> {m_31330} -> {n_31331} -> {B_31332} ->
-  {__31333} -> (__31334) -> match {NULL} with
-                            | reflL_12  => __31334
+  fun rwl_31306 {A_31307} -> {m_31308} -> {n_31309} -> {B_31310} ->
+  {__31311} -> (__31312) -> match {NULL} with
+                            | reflL_12  => __31312
                             end
 
 #[program]
 def rwrUU_41 :=
-  fun rwr_31335 {A_31336} -> {m_31337} -> {n_31338} -> {B_31339} ->
-  {__31340} -> (__31341) -> match {NULL} with
-                            | reflU_13  => __31341
+  fun rwr_31313 {A_31314} -> {m_31315} -> {n_31316} -> {B_31317} ->
+  {__31318} -> (__31319) -> match {NULL} with
+                            | reflU_13  => __31319
                             end
 
 #[program]
 def rwrUL_40 :=
-  fun rwr_31342 {A_31343} -> {m_31344} -> {n_31345} -> {B_31346} ->
-  {__31347} -> (__31348) -> match {NULL} with
-                            | reflU_13  => __31348
+  fun rwr_31320 {A_31321} -> {m_31322} -> {n_31323} -> {B_31324} ->
+  {__31325} -> (__31326) -> match {NULL} with
+                            | reflU_13  => __31326
                             end
 
 #[program]
 def rwrLU_39 :=
-  fun rwr_31349 {A_31350} -> {m_31351} -> {n_31352} -> {B_31353} ->
-  {__31354} -> (__31355) -> match {NULL} with
-                            | reflL_12  => __31355
+  fun rwr_31327 {A_31328} -> {m_31329} -> {n_31330} -> {B_31331} ->
+  {__31332} -> (__31333) -> match {NULL} with
+                            | reflL_12  => __31333
                             end
 
 #[program]
 def rwrLL_38 :=
-  fun rwr_31356 {A_31357} -> {m_31358} -> {n_31359} -> {B_31360} ->
-  {__31361} -> (__31362) -> match {NULL} with
-                            | reflL_12  => __31362
+  fun rwr_31334 {A_31335} -> {m_31336} -> {n_31337} -> {B_31338} ->
+  {__31339} -> (__31340) -> match {NULL} with
+                            | reflL_12  => __31340
                             end
 
 #[program]
@@ -2877,112 +2867,112 @@ def prod1LL_46 := NULL
 
 #[program]
 def not_5 :=
-  fun not_31363 (__31364) ->
+  fun not_31341 (__31342) ->
+    match __31342 with
+    | true_4  => false_5 | false_5  => true_4
+    end
+
+#[program]
+def and_6 :=
+  fun and_31343 (__31344) -> (__31345) ->
+    match __31344 with
+    | true_4  =>
+      match __31345 with
+      | true_4  => true_4 | false_5  => false_5
+      end
+    | false_5  => false_5
+    end
+
+#[program]
+def or_7 :=
+  fun or_31346 (__31347) -> (__31348) ->
+    match __31347 with
+    | true_4  => true_4
+    | false_5  =>
+      match __31348 with
+      | true_4  => true_4 | false_5  => false_5
+      end
+    end
+
+#[program]
+def xor_8 :=
+  fun xor_31349 (__31350) -> (__31351) -o
+    match __31350 with
+    | true_4  =>
+      match __31351 with
+      | true_4  => false_5 | false_5  => true_4
+      end
+    | false_5  =>
+      match __31351 with
+      | true_4  => true_4 | false_5  => false_5
+      end
+    end
+
+#[program]
+def lte_9 :=
+  fun lte_31352 (__31353) -> (__31354) ->
+    match __31353 with
+    | zero_6  => true_4
+    | succ_7 n_31355 =>
+      match __31354 with
+      | zero_6  => false_5 | succ_7 n_31356 => ((lte_31352) n_31355 n_31356)
+      end
+    end
+
+#[program]
+def lt_10 :=
+  fun lt_31357 (x_31358) -> (y_31359) -> ((lte_9) (succ_7 x_31358) y_31359)
+
+#[program]
+def pred_11 :=
+  fun pred_31360 (__31361) ->
+    match __31361 with
+    | zero_6  => zero_6 | succ_7 n_31362 => n_31362
+    end
+
+#[program]
+def add_12 :=
+  fun add_31363 (__31364) -> (__31365) ->
     match __31364 with
-    | true_4  => false_5 | false_5  => true_4
-    end
-
-#[program]
-def and_6 :=
-  fun and_31365 (__31366) -> (__31367) ->
-    match __31366 with
-    | true_4  =>
-      match __31367 with
-      | true_4  => true_4 | false_5  => false_5
-      end
-    | false_5  => false_5
-    end
-
-#[program]
-def or_7 :=
-  fun or_31368 (__31369) -> (__31370) ->
-    match __31369 with
-    | true_4  => true_4
-    | false_5  =>
-      match __31370 with
-      | true_4  => true_4 | false_5  => false_5
-      end
-    end
-
-#[program]
-def xor_8 :=
-  fun xor_31371 (__31372) -> (__31373) -o
-    match __31372 with
-    | true_4  =>
-      match __31373 with
-      | true_4  => false_5 | false_5  => true_4
-      end
-    | false_5  =>
-      match __31373 with
-      | true_4  => true_4 | false_5  => false_5
-      end
-    end
-
-#[program]
-def lte_9 :=
-  fun lte_31374 (__31375) -> (__31376) ->
-    match __31375 with
-    | zero_6  => true_4
-    | succ_7 n_31377 =>
-      match __31376 with
-      | zero_6  => false_5 | succ_7 n_31378 => ((lte_31374) n_31377 n_31378)
-      end
-    end
-
-#[program]
-def lt_10 :=
-  fun lt_31379 (x_31380) -> (y_31381) -> ((lte_9) (succ_7 x_31380) y_31381)
-
-#[program]
-def pred_11 :=
-  fun pred_31382 (__31383) ->
-    match __31383 with
-    | zero_6  => zero_6 | succ_7 n_31384 => n_31384
-    end
-
-#[program]
-def add_12 :=
-  fun add_31385 (__31386) -> (__31387) ->
-    match __31386 with
-    | zero_6  => __31387
-    | succ_7 n_31388 => (succ_7 ((add_31385) n_31388 __31387))
+    | zero_6  => __31365
+    | succ_7 n_31366 => (succ_7 ((add_31363) n_31366 __31365))
     end
 
 #[program]
 def sub_13 :=
-  fun sub_31389 (__31390) -> (__31391) ->
-    match __31391 with
-    | zero_6  => __31390
-    | succ_7 n_31392 => ((sub_31389) ((pred_11) __31390) n_31392)
+  fun sub_31367 (__31368) -> (__31369) ->
+    match __31369 with
+    | zero_6  => __31368
+    | succ_7 n_31370 => ((sub_31367) ((pred_11) __31368) n_31370)
     end
 
 #[program]
 def mul_14 :=
-  fun mul_31393 (__31394) -> (__31395) ->
-    match __31394 with
+  fun mul_31371 (__31372) -> (__31373) ->
+    match __31372 with
     | zero_6  => zero_6
-    | succ_7 n_31396 => ((add_12) __31395 ((mul_31393) n_31396 __31395))
+    | succ_7 n_31374 => ((add_12) __31373 ((mul_31371) n_31374 __31373))
     end
 
 #[program]
 def div_15 :=
-  fun div_31397 (x_31398) -> (y_31399) ->
-    match ((lt_10) x_31398 y_31399) with
+  fun div_31375 (x_31376) -> (y_31377) ->
+    match ((lt_10) x_31376 y_31377) with
     | true_4  => zero_6
-    | false_5  => (succ_7 ((div_31397) ((sub_13) x_31398 y_31399) y_31399))
+    | false_5  => (succ_7 ((div_31375) ((sub_13) x_31376 y_31377) y_31377))
     end
 
 #[program]
 def rem_16 :=
-  fun rem_31400 (x_31401) -> (y_31402) ->
-    ((sub_13) x_31401 ((mul_14) ((div_15) x_31401 y_31402) y_31402))
+  fun rem_31378 (x_31379) -> (y_31380) ->
+    ((sub_13) x_31379 ((mul_14) ((div_15) x_31379 y_31380) y_31380))
 
 #[program]
 def pow_17 :=
-  fun pow_31403 (__31404) -> (__31405) ->
-    match __31405 with
+  fun pow_31381 (__31382) -> (__31383) ->
+    match __31383 with
     | zero_6  => (succ_7 zero_6)
-    | succ_7 n_31406 => ((mul_14) __31404 ((pow_31403) __31404 n_31406))
+    | succ_7 n_31384 => ((mul_14) __31382 ((pow_31381) __31382 n_31384))
     end
 
 #[logical]
@@ -3038,112 +3028,108 @@ extern fork_28
 
 #[program]
 def splitU_63 :=
-  fun split_31407 (__31408) ->
-    match __31408 with
+  fun split_31385 (__31386) ->
+    match __31386 with
     | nilUU_22  => (ex1UU_31 nilUU_22 nilUU_22)
-    | consUU_23 hd_31409 tl_31410 =>
-      match tl_31410 with
-      | nilUU_22  => (ex1UU_31 (consUU_23 hd_31409 nilUU_22) nilUU_22)
-      | consUU_23 hd_31411 tl_31412 =>
-        match ((split_31407) tl_31412) with
-        | ex1UU_31 m_31413 n_31414 =>
+    | consUU_23 hd_31387 tl_31388 =>
+      match tl_31388 with
+      | nilUU_22  => (ex1UU_31 (consUU_23 hd_31387 nilUU_22) nilUU_22)
+      | consUU_23 hd_31389 tl_31390 =>
+        match ((split_31385) tl_31390) with
+        | ex1UU_31 m_31391 n_31392 =>
           (ex1UU_31
-            (consUU_23 hd_31409 m_31413) (consUU_23 hd_31411 n_31414))
+            (consUU_23 hd_31387 m_31391) (consUU_23 hd_31389 n_31392))
         end
       end
     end
 
 #[program]
 def splitL_62 :=
-  fun split_31415 (__31416) ->
-    match __31416 with
+  fun split_31393 (__31394) ->
+    match __31394 with
     | nilUL_20  => (ex1LL_28 nilUL_20 nilUL_20)
-    | consUL_21 hd_31417 tl_31418 =>
-      match tl_31418 with
-      | nilUL_20  => (ex1LL_28 (consUL_21 hd_31417 nilUL_20) nilUL_20)
-      | consUL_21 hd_31419 tl_31420 =>
-        match ((split_31415) tl_31420) with
-        | ex1LL_28 m_31421 n_31422 =>
+    | consUL_21 hd_31395 tl_31396 =>
+      match tl_31396 with
+      | nilUL_20  => (ex1LL_28 (consUL_21 hd_31395 nilUL_20) nilUL_20)
+      | consUL_21 hd_31397 tl_31398 =>
+        match ((split_31393) tl_31398) with
+        | ex1LL_28 m_31399 n_31400 =>
           (ex1LL_28
-            (consUL_21 hd_31417 m_31421) (consUL_21 hd_31419 n_31422))
+            (consUL_21 hd_31395 m_31399) (consUL_21 hd_31397 n_31400))
         end
       end
     end
 
 #[program]
 def mergeU_65 :=
-  fun merge_31423 (__31424) -> (__31425) -o
-    match __31424 with
-    | nilUU_22  => __31425
-    | consUU_23 hd_31426 tl_31427 =>
-      match __31425 with
-      | nilUU_22  => (consUU_23 hd_31426 tl_31427)
-      | consUU_23 hd_31428 tl_31429 =>
-        match ((lte_9) hd_31426 hd_31428) with
+  fun merge_31401 (__31402) -> (__31403) -o
+    match __31402 with
+    | nilUU_22  => __31403
+    | consUU_23 hd_31404 tl_31405 =>
+      match __31403 with
+      | nilUU_22  => (consUU_23 hd_31404 tl_31405)
+      | consUU_23 hd_31406 tl_31407 =>
+        match ((lte_9) hd_31404 hd_31406) with
         | true_4  =>
           (consUU_23
-            hd_31426 ((merge_31423) tl_31427 (consUU_23 hd_31428 tl_31429)))
+            hd_31404 ((merge_31401) tl_31405 (consUU_23 hd_31406 tl_31407)))
         | false_5  =>
           (consUU_23
-            hd_31428 ((merge_31423) (consUU_23 hd_31426 tl_31427) tl_31429))
+            hd_31406 ((merge_31401) (consUU_23 hd_31404 tl_31405) tl_31407))
         end
       end
     end
 
 #[program]
 def mergeL_64 :=
-  fun merge_31430 (__31431) -> (__31432) -o
-    match __31431 with
-    | nilUL_20  => __31432
-    | consUL_21 hd_31433 tl_31434 =>
-      match __31432 with
-      | nilUL_20  => (consUL_21 hd_31433 tl_31434)
-      | consUL_21 hd_31435 tl_31436 =>
-        match ((lte_9) hd_31433 hd_31435) with
+  fun merge_31408 (__31409) -> (__31410) -o
+    match __31409 with
+    | nilUL_20  => __31410
+    | consUL_21 hd_31411 tl_31412 =>
+      match __31410 with
+      | nilUL_20  => (consUL_21 hd_31411 tl_31412)
+      | consUL_21 hd_31413 tl_31414 =>
+        match ((lte_9) hd_31411 hd_31413) with
         | true_4  =>
           (consUL_21
-            hd_31433 ((merge_31430) tl_31434 (consUL_21 hd_31435 tl_31436)))
+            hd_31411 ((merge_31408) tl_31412 (consUL_21 hd_31413 tl_31414)))
         | false_5  =>
           (consUL_21
-            hd_31435 ((merge_31430) (consUL_21 hd_31433 tl_31434) tl_31436))
+            hd_31413 ((merge_31408) (consUL_21 hd_31411 tl_31412) tl_31414))
         end
       end
     end
 
 #[program]
 def msortU_67 :=
-  fun msort_31437 (__31438) ->
-    match __31438 with
+  fun msort_31415 (__31416) ->
+    match __31416 with
     | nilUU_22  => nilUU_22
-    | consUU_23 hd_31439 tl_31440 =>
-      match tl_31440 with
-      | nilUU_22  => (consUU_23 hd_31439 nilUU_22)
-      | consUU_23 hd_31441 tl_31442 =>
-        let _31443 :=
-          ((splitU_63) (consUU_23 hd_31439 (consUU_23 hd_31441 tl_31442)))
-        in
-        match _31443 with
-        | ex1UU_31 m_31444 n_31445 =>
-          ((mergeU_65) ((msort_31437) m_31444) ((msort_31437) n_31445))
+    | consUU_23 hd_31417 tl_31418 =>
+      match tl_31418 with
+      | nilUU_22  => (consUU_23 hd_31417 nilUU_22)
+      | consUU_23 hd_31419 tl_31420 =>
+        match ((splitU_63)
+                (consUU_23 hd_31417 (consUU_23 hd_31419 tl_31420))) with
+        | ex1UU_31 m_31421 n_31422 =>
+          ((mergeU_65) ((msort_31415) m_31421) ((msort_31415) n_31422))
         end
       end
     end
 
 #[program]
 def msortL_66 :=
-  fun msort_31446 (__31447) ->
-    match __31447 with
+  fun msort_31423 (__31424) ->
+    match __31424 with
     | nilUL_20  => nilUL_20
-    | consUL_21 hd_31448 tl_31449 =>
-      match tl_31449 with
-      | nilUL_20  => (consUL_21 hd_31448 nilUL_20)
-      | consUL_21 hd_31450 tl_31451 =>
-        let _31452 :=
-          ((splitL_62) (consUL_21 hd_31448 (consUL_21 hd_31450 tl_31451)))
-        in
-        match _31452 with
-        | ex1LL_28 m_31453 n_31454 =>
-          ((mergeL_64) ((msort_31446) m_31453) ((msort_31446) n_31454))
+    | consUL_21 hd_31425 tl_31426 =>
+      match tl_31426 with
+      | nilUL_20  => (consUL_21 hd_31425 nilUL_20)
+      | consUL_21 hd_31427 tl_31428 =>
+        match ((splitL_62)
+                (consUL_21 hd_31425 (consUL_21 hd_31427 tl_31428))) with
+        | ex1LL_28 m_31429 n_31430 =>
+          ((mergeL_64) ((msort_31423) m_31429) ((msort_31423) n_31430))
         end
       end
     end
@@ -3156,66 +3142,66 @@ def cmsort_chL_68 := NULL
 
 #[program]
 def cmsort_workerU_71 :=
-  fun cmsort_worker_31455 (__31456) -> (zs_31457) -> (__31458) -o
-    match __31456 with
+  fun cmsort_worker_31431 (__31432) -> (zs_31433) -> (__31434) -o
+    match __31432 with
     | zero_6  =>
-      let* c_31459 :=
+      let* c_31435 :=
         ((send1U_57)
-          NULL NULL NULL NULL NULL __31458 (justU_15 ((msortU_67) zs_31457)))
-      in ((close_23) NULL c_31459)
-    | succ_7 n_31460 =>
-      match zs_31457 with
+          NULL NULL NULL NULL NULL __31434 (justU_15 ((msortU_67) zs_31433)))
+      in ((close_23) NULL c_31435)
+    | succ_7 n_31436 =>
+      match zs_31433 with
       | nilUU_22  =>
-        let* c_31461 :=
-          ((send1U_57) NULL NULL NULL NULL NULL __31458 (justU_15 nilUU_22))
-        in ((close_23) NULL c_31461)
-      | consUU_23 hd_31462 tl_31463 =>
-        match tl_31463 with
+        let* c_31437 :=
+          ((send1U_57) NULL NULL NULL NULL NULL __31434 (justU_15 nilUU_22))
+        in ((close_23) NULL c_31437)
+      | consUU_23 hd_31438 tl_31439 =>
+        match tl_31439 with
         | nilUU_22  =>
-          let* c_31464 :=
+          let* c_31440 :=
             ((send1U_57)
-              NULL NULL NULL NULL NULL __31458
-              (justU_15 (consUU_23 hd_31462 nilUU_22)))
-          in ((close_23) NULL c_31464)
-        | consUU_23 hd_31465 tl_31466 =>
+              NULL NULL NULL NULL NULL __31434
+              (justU_15 (consUU_23 hd_31438 nilUU_22)))
+          in ((close_23) NULL c_31440)
+        | consUU_23 hd_31441 tl_31442 =>
           match ((splitU_63)
-                  (consUU_23 hd_31462 (consUU_23 hd_31465 tl_31466))) with
-          | ex1UU_31 m_31467 n_31468 =>
-            let* r1_31469 :=
+                  (consUU_23 hd_31438 (consUU_23 hd_31441 tl_31442))) with
+          | ex1UU_31 m_31443 n_31444 =>
+            let* r1_31445 :=
               ((fork_28)
                 NULL NULL
-                fun _31470 (c1_31471) -o
-                  ((cmsort_worker_31455) n_31460 m_31467 c1_31471))
+                fun _31446 (c1_31447) -o
+                  ((cmsort_worker_31431) n_31436 m_31443 c1_31447))
               in
-            let* r2_31472 :=
+            let* r2_31448 :=
               ((fork_28)
                 NULL NULL
-                fun _31473 (c2_31474) -o
-                  ((cmsort_worker_31455) n_31460 n_31468 c2_31474))
+                fun _31449 (c2_31450) -o
+                  ((cmsort_worker_31431) n_31436 n_31444 c2_31450))
               in
-            let* _31475 := ((recv1U_61) NULL NULL NULL NULL NULL r1_31469) in
-            match _31475 with
-            | ex1UL_30 m_31476 n_31477 =>
-              let* _31478 := ((recv1U_61) NULL NULL NULL NULL NULL r2_31472)
+            let* _31451 := ((recv1U_61) NULL NULL NULL NULL NULL r1_31445) in
+            match _31451 with
+            | ex1UL_30 m_31452 n_31453 =>
+              let* _31454 := ((recv1U_61) NULL NULL NULL NULL NULL r2_31448)
               in
-              match _31478 with
-              | ex1UL_30 m_31479 n_31480 =>
-                match m_31476 with
-                | justU_15 m_31481 =>
-                  match m_31479 with
-                  | justU_15 m_31482 =>
-                    let zs1_31483 := (justU_15 ((mergeU_65) m_31481 m_31482))
+              match _31454 with
+              | ex1UL_30 m_31455 n_31456 =>
+                match m_31452 with
+                | justU_15 m_31457 =>
+                  match m_31455 with
+                  | justU_15 m_31458 =>
+                    let zs1_31459 := (justU_15 ((mergeU_65) m_31457 m_31458))
                     in
-                    let zs1_31484 :=
-                      ((rwlUU_37) NULL NULL NULL NULL NULL zs1_31483)
+                    let zs1_31460 :=
+                      ((rwlUU_37) NULL NULL NULL NULL NULL zs1_31459)
                     in
-                    let* c_31485 :=
+                    let* c_31461 :=
                       ((send1U_57)
-                        NULL NULL NULL NULL NULL __31458 zs1_31484)
+                        NULL NULL NULL NULL NULL __31434 zs1_31460)
                     in
-                    let* __31486 := ((close_23) NULL n_31477) in
-                    let* __31487 := ((close_23) NULL n_31480) in
-                    let* __31488 := ((close_23) NULL c_31485) in return tt_3
+                    let* __31462 := ((close_23) NULL n_31453) in
+                    let* __31463 := ((close_23) NULL n_31456) in
+                    let* __31464 := ((close_23) NULL c_31461) in return tt_3
                   end
                 end
               end
@@ -3226,66 +3212,66 @@ def cmsort_workerU_71 :=
 
 #[program]
 def cmsort_workerL_70 :=
-  fun cmsort_worker_31489 (__31490) -> (zs_31491) -> (__31492) -o
-    match __31490 with
+  fun cmsort_worker_31465 (__31466) -> (zs_31467) -> (__31468) -o
+    match __31466 with
     | zero_6  =>
-      let* c_31493 :=
+      let* c_31469 :=
         ((send1L_56)
-          NULL NULL NULL NULL NULL __31492 (justL_14 ((msortL_66) zs_31491)))
-      in ((close_23) NULL c_31493)
-    | succ_7 n_31494 =>
-      match zs_31491 with
+          NULL NULL NULL NULL NULL __31468 (justL_14 ((msortL_66) zs_31467)))
+      in ((close_23) NULL c_31469)
+    | succ_7 n_31470 =>
+      match zs_31467 with
       | nilUL_20  =>
-        let* c_31495 :=
-          ((send1L_56) NULL NULL NULL NULL NULL __31492 (justL_14 nilUL_20))
-        in ((close_23) NULL c_31495)
-      | consUL_21 hd_31496 tl_31497 =>
-        match tl_31497 with
+        let* c_31471 :=
+          ((send1L_56) NULL NULL NULL NULL NULL __31468 (justL_14 nilUL_20))
+        in ((close_23) NULL c_31471)
+      | consUL_21 hd_31472 tl_31473 =>
+        match tl_31473 with
         | nilUL_20  =>
-          let* c_31498 :=
+          let* c_31474 :=
             ((send1L_56)
-              NULL NULL NULL NULL NULL __31492
-              (justL_14 (consUL_21 hd_31496 nilUL_20)))
-          in ((close_23) NULL c_31498)
-        | consUL_21 hd_31499 tl_31500 =>
+              NULL NULL NULL NULL NULL __31468
+              (justL_14 (consUL_21 hd_31472 nilUL_20)))
+          in ((close_23) NULL c_31474)
+        | consUL_21 hd_31475 tl_31476 =>
           match ((splitL_62)
-                  (consUL_21 hd_31496 (consUL_21 hd_31499 tl_31500))) with
-          | ex1LL_28 m_31501 n_31502 =>
-            let* r1_31503 :=
+                  (consUL_21 hd_31472 (consUL_21 hd_31475 tl_31476))) with
+          | ex1LL_28 m_31477 n_31478 =>
+            let* r1_31479 :=
               ((fork_28)
                 NULL NULL
-                fun _31504 (c1_31505) -o
-                  ((cmsort_worker_31489) n_31494 m_31501 c1_31505))
+                fun _31480 (c1_31481) -o
+                  ((cmsort_worker_31465) n_31470 m_31477 c1_31481))
               in
-            let* r2_31506 :=
+            let* r2_31482 :=
               ((fork_28)
                 NULL NULL
-                fun _31507 (c2_31508) -o
-                  ((cmsort_worker_31489) n_31494 n_31502 c2_31508))
+                fun _31483 (c2_31484) -o
+                  ((cmsort_worker_31465) n_31470 n_31478 c2_31484))
               in
-            let* _31509 := ((recv1L_60) NULL NULL NULL NULL NULL r1_31503) in
-            match _31509 with
-            | ex1LL_28 m_31510 n_31511 =>
-              let* _31512 := ((recv1L_60) NULL NULL NULL NULL NULL r2_31506)
+            let* _31485 := ((recv1L_60) NULL NULL NULL NULL NULL r1_31479) in
+            match _31485 with
+            | ex1LL_28 m_31486 n_31487 =>
+              let* _31488 := ((recv1L_60) NULL NULL NULL NULL NULL r2_31482)
               in
-              match _31512 with
-              | ex1LL_28 m_31513 n_31514 =>
-                match m_31510 with
-                | justL_14 m_31515 =>
-                  match m_31513 with
-                  | justL_14 m_31516 =>
-                    let zs1_31517 := (justL_14 ((mergeL_64) m_31515 m_31516))
+              match _31488 with
+              | ex1LL_28 m_31489 n_31490 =>
+                match m_31486 with
+                | justL_14 m_31491 =>
+                  match m_31489 with
+                  | justL_14 m_31492 =>
+                    let zs1_31493 := (justL_14 ((mergeL_64) m_31491 m_31492))
                     in
-                    let zs1_31518 :=
-                      ((rwlLL_34) NULL NULL NULL NULL NULL zs1_31517)
+                    let zs1_31494 :=
+                      ((rwlLL_34) NULL NULL NULL NULL NULL zs1_31493)
                     in
-                    let* c_31519 :=
+                    let* c_31495 :=
                       ((send1L_56)
-                        NULL NULL NULL NULL NULL __31492 zs1_31518)
+                        NULL NULL NULL NULL NULL __31468 zs1_31494)
                     in
-                    let* __31520 := ((close_23) NULL n_31511) in
-                    let* __31521 := ((close_23) NULL n_31514) in
-                    let* __31522 := ((close_23) NULL c_31519) in return tt_3
+                    let* __31496 := ((close_23) NULL n_31487) in
+                    let* __31497 := ((close_23) NULL n_31490) in
+                    let* __31498 := ((close_23) NULL c_31495) in return tt_3
                   end
                 end
               end
@@ -3306,43 +3292,43 @@ inductive eqL_9 where
 
 #[program]
 def rwlUU_37 :=
-  fun rwl_31739 {A_31740} -> {m_31741} -> {n_31742} -> {B_31743} ->
-  {__31744} -> (__31745) -> __31745
+  fun rwl_31713 {A_31714} -> {m_31715} -> {n_31716} -> {B_31717} ->
+  {__31718} -> (__31719) -> __31719
 
 #[program]
 def rwlUL_36 :=
-  fun rwl_31746 {A_31747} -> {m_31748} -> {n_31749} -> {B_31750} ->
-  {__31751} -> (__31752) -> __31752
+  fun rwl_31720 {A_31721} -> {m_31722} -> {n_31723} -> {B_31724} ->
+  {__31725} -> (__31726) -> __31726
 
 #[program]
 def rwlLU_35 :=
-  fun rwl_31753 {A_31754} -> {m_31755} -> {n_31756} -> {B_31757} ->
-  {__31758} -> (__31759) -> __31759
+  fun rwl_31727 {A_31728} -> {m_31729} -> {n_31730} -> {B_31731} ->
+  {__31732} -> (__31733) -> __31733
 
 #[program]
 def rwlLL_34 :=
-  fun rwl_31760 {A_31761} -> {m_31762} -> {n_31763} -> {B_31764} ->
-  {__31765} -> (__31766) -> __31766
+  fun rwl_31734 {A_31735} -> {m_31736} -> {n_31737} -> {B_31738} ->
+  {__31739} -> (__31740) -> __31740
 
 #[program]
 def rwrUU_41 :=
-  fun rwr_31767 {A_31768} -> {m_31769} -> {n_31770} -> {B_31771} ->
-  {__31772} -> (__31773) -> __31773
+  fun rwr_31741 {A_31742} -> {m_31743} -> {n_31744} -> {B_31745} ->
+  {__31746} -> (__31747) -> __31747
 
 #[program]
 def rwrUL_40 :=
-  fun rwr_31774 {A_31775} -> {m_31776} -> {n_31777} -> {B_31778} ->
-  {__31779} -> (__31780) -> __31780
+  fun rwr_31748 {A_31749} -> {m_31750} -> {n_31751} -> {B_31752} ->
+  {__31753} -> (__31754) -> __31754
 
 #[program]
 def rwrLU_39 :=
-  fun rwr_31781 {A_31782} -> {m_31783} -> {n_31784} -> {B_31785} ->
-  {__31786} -> (__31787) -> __31787
+  fun rwr_31755 {A_31756} -> {m_31757} -> {n_31758} -> {B_31759} ->
+  {__31760} -> (__31761) -> __31761
 
 #[program]
 def rwrLL_38 :=
-  fun rwr_31788 {A_31789} -> {m_31790} -> {n_31791} -> {B_31792} ->
-  {__31793} -> (__31794) -> __31794
+  fun rwr_31762 {A_31763} -> {m_31764} -> {n_31765} -> {B_31766} ->
+  {__31767} -> (__31768) -> __31768
 
 #[program]
 inductive singU_12 where
@@ -3443,17 +3429,17 @@ def prod1LL_46 := NULL
 
 #[program]
 def not_5 :=
-  fun not_31795 (__31796) ->
-    match __31796 with
+  fun not_31769 (__31770) ->
+    match __31770 with
     | true_4  => false_5 | false_5  => true_4
     end
 
 #[program]
 def and_6 :=
-  fun and_31797 (__31798) -> (__31799) ->
-    match __31798 with
+  fun and_31771 (__31772) -> (__31773) ->
+    match __31772 with
     | true_4  =>
-      match __31799 with
+      match __31773 with
       | true_4  => true_4 | false_5  => false_5
       end
     | false_5  => false_5
@@ -3461,94 +3447,94 @@ def and_6 :=
 
 #[program]
 def or_7 :=
-  fun or_31800 (__31801) -> (__31802) ->
-    match __31801 with
+  fun or_31774 (__31775) -> (__31776) ->
+    match __31775 with
     | true_4  => true_4
     | false_5  =>
-      match __31802 with
+      match __31776 with
       | true_4  => true_4 | false_5  => false_5
       end
     end
 
 #[program]
 def xor_8 :=
-  fun xor_31803 (__31804) -> (__31805) -o
-    match __31804 with
+  fun xor_31777 (__31778) -> (__31779) -o
+    match __31778 with
     | true_4  =>
-      match __31805 with
+      match __31779 with
       | true_4  => false_5 | false_5  => true_4
       end
     | false_5  =>
-      match __31805 with
+      match __31779 with
       | true_4  => true_4 | false_5  => false_5
       end
     end
 
 #[program]
 def lte_9 :=
-  fun lte_31806 (__31807) -> (__31808) ->
-    match __31807 with
+  fun lte_31780 (__31781) -> (__31782) ->
+    match __31781 with
     | zero_6  => true_4
-    | succ_7 n_31809 =>
-      match __31808 with
-      | zero_6  => false_5 | succ_7 n_31810 => ((lte_31806) n_31809 n_31810)
+    | succ_7 n_31783 =>
+      match __31782 with
+      | zero_6  => false_5 | succ_7 n_31784 => ((lte_31780) n_31783 n_31784)
       end
     end
 
 #[program]
 def lt_10 :=
-  fun lt_31811 (x_31812) -> (y_31813) -> ((lte_9) (succ_7 x_31812) y_31813)
+  fun lt_31785 (x_31786) -> (y_31787) -> ((lte_9) (succ_7 x_31786) y_31787)
 
 #[program]
 def pred_11 :=
-  fun pred_31814 (__31815) ->
-    match __31815 with
-    | zero_6  => zero_6 | succ_7 n_31816 => n_31816
+  fun pred_31788 (__31789) ->
+    match __31789 with
+    | zero_6  => zero_6 | succ_7 n_31790 => n_31790
     end
 
 #[program]
 def add_12 :=
-  fun add_31817 (__31818) -> (__31819) ->
-    match __31818 with
-    | zero_6  => __31819
-    | succ_7 n_31820 => (succ_7 ((add_31817) n_31820 __31819))
+  fun add_31791 (__31792) -> (__31793) ->
+    match __31792 with
+    | zero_6  => __31793
+    | succ_7 n_31794 => (succ_7 ((add_31791) n_31794 __31793))
     end
 
 #[program]
 def sub_13 :=
-  fun sub_31821 (__31822) -> (__31823) ->
-    match __31823 with
-    | zero_6  => __31822
-    | succ_7 n_31824 => ((sub_31821) ((pred_11) __31822) n_31824)
+  fun sub_31795 (__31796) -> (__31797) ->
+    match __31797 with
+    | zero_6  => __31796
+    | succ_7 n_31798 => ((sub_31795) ((pred_11) __31796) n_31798)
     end
 
 #[program]
 def mul_14 :=
-  fun mul_31825 (__31826) -> (__31827) ->
-    match __31826 with
+  fun mul_31799 (__31800) -> (__31801) ->
+    match __31800 with
     | zero_6  => zero_6
-    | succ_7 n_31828 => ((add_12) __31827 ((mul_31825) n_31828 __31827))
+    | succ_7 n_31802 => ((add_12) __31801 ((mul_31799) n_31802 __31801))
     end
 
 #[program]
 def div_15 :=
-  fun div_31829 (x_31830) -> (y_31831) ->
-    match ((lt_10) x_31830 y_31831) with
+  fun div_31803 (x_31804) -> (y_31805) ->
+    match ((lt_10) x_31804 y_31805) with
     | true_4  => zero_6
-    | false_5  => (succ_7 ((div_31829) ((sub_13) x_31830 y_31831) y_31831))
+    | false_5  => (succ_7 ((div_31803) ((sub_13) x_31804 y_31805) y_31805))
     end
 
 #[program]
 def rem_16 :=
-  fun rem_31832 (x_31833) -> (y_31834) ->
-    ((sub_13) x_31833 ((mul_14) ((div_15) x_31833 y_31834) y_31834))
+  fun rem_31806 (x_31807) -> (y_31808) ->
+    ((sub_13) x_31807 ((mul_14) ((div_15) x_31807 y_31808) y_31808))
 
 #[program]
 def pow_17 :=
-  fun pow_31835 (__31836) -> (__31837) ->
-    match __31837 with
+  fun pow_31809 (__31810) -> (__31811) ->
+    match __31811 with
     | zero_6  => (succ_7 zero_6)
-    | succ_7 n_31838 => ((mul_14) __31836 ((pow_31835) __31836 n_31838))
+    | succ_7 n_31812 => ((mul_14) __31810 ((pow_31809) __31810 n_31812))
     end
 
 #[logical]
@@ -3604,112 +3590,108 @@ extern fork_28
 
 #[program]
 def splitU_63 :=
-  fun split_31839 (__31840) ->
-    match __31840 with
+  fun split_31813 (__31814) ->
+    match __31814 with
     | nilUU_22  => (ex1UU_31 nilUU_22 nilUU_22)
-    | consUU_23 hd_31841 tl_31842 =>
-      match tl_31842 with
-      | nilUU_22  => (ex1UU_31 (consUU_23 hd_31841 nilUU_22) nilUU_22)
-      | consUU_23 hd_31843 tl_31844 =>
-        match ((split_31839) tl_31844) with
-        | ex1UU_31 m_31845 n_31846 =>
+    | consUU_23 hd_31815 tl_31816 =>
+      match tl_31816 with
+      | nilUU_22  => (ex1UU_31 (consUU_23 hd_31815 nilUU_22) nilUU_22)
+      | consUU_23 hd_31817 tl_31818 =>
+        match ((split_31813) tl_31818) with
+        | ex1UU_31 m_31819 n_31820 =>
           (ex1UU_31
-            (consUU_23 hd_31841 m_31845) (consUU_23 hd_31843 n_31846))
+            (consUU_23 hd_31815 m_31819) (consUU_23 hd_31817 n_31820))
         end
       end
     end
 
 #[program]
 def splitL_62 :=
-  fun split_31847 (__31848) ->
-    match __31848 with
+  fun split_31821 (__31822) ->
+    match __31822 with
     | nilUL_20  => (ex1LL_28 nilUL_20 nilUL_20)
-    | consUL_21 hd_31849 tl_31850 =>
-      match tl_31850 with
-      | nilUL_20  => (ex1LL_28 (consUL_21 hd_31849 nilUL_20) nilUL_20)
-      | consUL_21 hd_31851 tl_31852 =>
-        match ((split_31847) tl_31852) with
-        | ex1LL_28 m_31853 n_31854 =>
+    | consUL_21 hd_31823 tl_31824 =>
+      match tl_31824 with
+      | nilUL_20  => (ex1LL_28 (consUL_21 hd_31823 nilUL_20) nilUL_20)
+      | consUL_21 hd_31825 tl_31826 =>
+        match ((split_31821) tl_31826) with
+        | ex1LL_28 m_31827 n_31828 =>
           (ex1LL_28
-            (consUL_21 hd_31849 m_31853) (consUL_21 hd_31851 n_31854))
+            (consUL_21 hd_31823 m_31827) (consUL_21 hd_31825 n_31828))
         end
       end
     end
 
 #[program]
 def mergeU_65 :=
-  fun merge_31855 (__31856) -> (__31857) -o
-    match __31856 with
-    | nilUU_22  => __31857
-    | consUU_23 hd_31858 tl_31859 =>
-      match __31857 with
-      | nilUU_22  => (consUU_23 hd_31858 tl_31859)
-      | consUU_23 hd_31860 tl_31861 =>
-        match ((lte_9) hd_31858 hd_31860) with
+  fun merge_31829 (__31830) -> (__31831) -o
+    match __31830 with
+    | nilUU_22  => __31831
+    | consUU_23 hd_31832 tl_31833 =>
+      match __31831 with
+      | nilUU_22  => (consUU_23 hd_31832 tl_31833)
+      | consUU_23 hd_31834 tl_31835 =>
+        match ((lte_9) hd_31832 hd_31834) with
         | true_4  =>
           (consUU_23
-            hd_31858 ((merge_31855) tl_31859 (consUU_23 hd_31860 tl_31861)))
+            hd_31832 ((merge_31829) tl_31833 (consUU_23 hd_31834 tl_31835)))
         | false_5  =>
           (consUU_23
-            hd_31860 ((merge_31855) (consUU_23 hd_31858 tl_31859) tl_31861))
+            hd_31834 ((merge_31829) (consUU_23 hd_31832 tl_31833) tl_31835))
         end
       end
     end
 
 #[program]
 def mergeL_64 :=
-  fun merge_31862 (__31863) -> (__31864) -o
-    match __31863 with
-    | nilUL_20  => __31864
-    | consUL_21 hd_31865 tl_31866 =>
-      match __31864 with
-      | nilUL_20  => (consUL_21 hd_31865 tl_31866)
-      | consUL_21 hd_31867 tl_31868 =>
-        match ((lte_9) hd_31865 hd_31867) with
+  fun merge_31836 (__31837) -> (__31838) -o
+    match __31837 with
+    | nilUL_20  => __31838
+    | consUL_21 hd_31839 tl_31840 =>
+      match __31838 with
+      | nilUL_20  => (consUL_21 hd_31839 tl_31840)
+      | consUL_21 hd_31841 tl_31842 =>
+        match ((lte_9) hd_31839 hd_31841) with
         | true_4  =>
           (consUL_21
-            hd_31865 ((merge_31862) tl_31866 (consUL_21 hd_31867 tl_31868)))
+            hd_31839 ((merge_31836) tl_31840 (consUL_21 hd_31841 tl_31842)))
         | false_5  =>
           (consUL_21
-            hd_31867 ((merge_31862) (consUL_21 hd_31865 tl_31866) tl_31868))
+            hd_31841 ((merge_31836) (consUL_21 hd_31839 tl_31840) tl_31842))
         end
       end
     end
 
 #[program]
 def msortU_67 :=
-  fun msort_31869 (__31870) ->
-    match __31870 with
+  fun msort_31843 (__31844) ->
+    match __31844 with
     | nilUU_22  => nilUU_22
-    | consUU_23 hd_31871 tl_31872 =>
-      match tl_31872 with
-      | nilUU_22  => (consUU_23 hd_31871 nilUU_22)
-      | consUU_23 hd_31873 tl_31874 =>
-        let _31875 :=
-          ((splitU_63) (consUU_23 hd_31871 (consUU_23 hd_31873 tl_31874)))
-        in
-        match _31875 with
-        | ex1UU_31 m_31876 n_31877 =>
-          ((mergeU_65) ((msort_31869) m_31876) ((msort_31869) n_31877))
+    | consUU_23 hd_31845 tl_31846 =>
+      match tl_31846 with
+      | nilUU_22  => (consUU_23 hd_31845 nilUU_22)
+      | consUU_23 hd_31847 tl_31848 =>
+        match ((splitU_63)
+                (consUU_23 hd_31845 (consUU_23 hd_31847 tl_31848))) with
+        | ex1UU_31 m_31849 n_31850 =>
+          ((mergeU_65) ((msort_31843) m_31849) ((msort_31843) n_31850))
         end
       end
     end
 
 #[program]
 def msortL_66 :=
-  fun msort_31878 (__31879) ->
-    match __31879 with
+  fun msort_31851 (__31852) ->
+    match __31852 with
     | nilUL_20  => nilUL_20
-    | consUL_21 hd_31880 tl_31881 =>
-      match tl_31881 with
-      | nilUL_20  => (consUL_21 hd_31880 nilUL_20)
-      | consUL_21 hd_31882 tl_31883 =>
-        let _31884 :=
-          ((splitL_62) (consUL_21 hd_31880 (consUL_21 hd_31882 tl_31883)))
-        in
-        match _31884 with
-        | ex1LL_28 m_31885 n_31886 =>
-          ((mergeL_64) ((msort_31878) m_31885) ((msort_31878) n_31886))
+    | consUL_21 hd_31853 tl_31854 =>
+      match tl_31854 with
+      | nilUL_20  => (consUL_21 hd_31853 nilUL_20)
+      | consUL_21 hd_31855 tl_31856 =>
+        match ((splitL_62)
+                (consUL_21 hd_31853 (consUL_21 hd_31855 tl_31856))) with
+        | ex1LL_28 m_31857 n_31858 =>
+          ((mergeL_64) ((msort_31851) m_31857) ((msort_31851) n_31858))
         end
       end
     end
@@ -3722,66 +3704,66 @@ def cmsort_chL_68 := NULL
 
 #[program]
 def cmsort_workerU_71 :=
-  fun cmsort_worker_31887 (__31888) -> (zs_31889) -> (__31890) -o
-    match __31888 with
+  fun cmsort_worker_31859 (__31860) -> (zs_31861) -> (__31862) -o
+    match __31860 with
     | zero_6  =>
-      let* c_31891 :=
+      let* c_31863 :=
         ((send1U_57)
-          NULL NULL NULL NULL NULL __31890 (justU_15 ((msortU_67) zs_31889)))
-      in ((close_23) NULL c_31891)
-    | succ_7 n_31892 =>
-      match zs_31889 with
+          NULL NULL NULL NULL NULL __31862 (justU_15 ((msortU_67) zs_31861)))
+      in ((close_23) NULL c_31863)
+    | succ_7 n_31864 =>
+      match zs_31861 with
       | nilUU_22  =>
-        let* c_31893 :=
-          ((send1U_57) NULL NULL NULL NULL NULL __31890 (justU_15 nilUU_22))
-        in ((close_23) NULL c_31893)
-      | consUU_23 hd_31894 tl_31895 =>
-        match tl_31895 with
+        let* c_31865 :=
+          ((send1U_57) NULL NULL NULL NULL NULL __31862 (justU_15 nilUU_22))
+        in ((close_23) NULL c_31865)
+      | consUU_23 hd_31866 tl_31867 =>
+        match tl_31867 with
         | nilUU_22  =>
-          let* c_31896 :=
+          let* c_31868 :=
             ((send1U_57)
-              NULL NULL NULL NULL NULL __31890
-              (justU_15 (consUU_23 hd_31894 nilUU_22)))
-          in ((close_23) NULL c_31896)
-        | consUU_23 hd_31897 tl_31898 =>
+              NULL NULL NULL NULL NULL __31862
+              (justU_15 (consUU_23 hd_31866 nilUU_22)))
+          in ((close_23) NULL c_31868)
+        | consUU_23 hd_31869 tl_31870 =>
           match ((splitU_63)
-                  (consUU_23 hd_31894 (consUU_23 hd_31897 tl_31898))) with
-          | ex1UU_31 m_31899 n_31900 =>
-            let* r1_31901 :=
+                  (consUU_23 hd_31866 (consUU_23 hd_31869 tl_31870))) with
+          | ex1UU_31 m_31871 n_31872 =>
+            let* r1_31873 :=
               ((fork_28)
                 NULL NULL
-                fun _31902 (c1_31903) -o
-                  ((cmsort_worker_31887) n_31892 m_31899 c1_31903))
+                fun _31874 (c1_31875) -o
+                  ((cmsort_worker_31859) n_31864 m_31871 c1_31875))
               in
-            let* r2_31904 :=
+            let* r2_31876 :=
               ((fork_28)
                 NULL NULL
-                fun _31905 (c2_31906) -o
-                  ((cmsort_worker_31887) n_31892 n_31900 c2_31906))
+                fun _31877 (c2_31878) -o
+                  ((cmsort_worker_31859) n_31864 n_31872 c2_31878))
               in
-            let* _31907 := ((recv1U_61) NULL NULL NULL NULL NULL r1_31901) in
-            match _31907 with
-            | ex1UL_30 m_31908 n_31909 =>
-              let* _31910 := ((recv1U_61) NULL NULL NULL NULL NULL r2_31904)
+            let* _31879 := ((recv1U_61) NULL NULL NULL NULL NULL r1_31873) in
+            match _31879 with
+            | ex1UL_30 m_31880 n_31881 =>
+              let* _31882 := ((recv1U_61) NULL NULL NULL NULL NULL r2_31876)
               in
-              match _31910 with
-              | ex1UL_30 m_31911 n_31912 =>
-                match m_31908 with
-                | justU_15 m_31913 =>
-                  match m_31911 with
-                  | justU_15 m_31914 =>
-                    let zs1_31915 := (justU_15 ((mergeU_65) m_31913 m_31914))
+              match _31882 with
+              | ex1UL_30 m_31883 n_31884 =>
+                match m_31880 with
+                | justU_15 m_31885 =>
+                  match m_31883 with
+                  | justU_15 m_31886 =>
+                    let zs1_31887 := (justU_15 ((mergeU_65) m_31885 m_31886))
                     in
-                    let zs1_31916 :=
-                      ((rwlUU_37) NULL NULL NULL NULL NULL zs1_31915)
+                    let zs1_31888 :=
+                      ((rwlUU_37) NULL NULL NULL NULL NULL zs1_31887)
                     in
-                    let* c_31917 :=
+                    let* c_31889 :=
                       ((send1U_57)
-                        NULL NULL NULL NULL NULL __31890 zs1_31916)
+                        NULL NULL NULL NULL NULL __31862 zs1_31888)
                     in
-                    let* __31918 := ((close_23) NULL n_31909) in
-                    let* __31919 := ((close_23) NULL n_31912) in
-                    let* __31920 := ((close_23) NULL c_31917) in return tt_3
+                    let* __31890 := ((close_23) NULL n_31881) in
+                    let* __31891 := ((close_23) NULL n_31884) in
+                    let* __31892 := ((close_23) NULL c_31889) in return tt_3
                   end
                 end
               end
@@ -3792,66 +3774,66 @@ def cmsort_workerU_71 :=
 
 #[program]
 def cmsort_workerL_70 :=
-  fun cmsort_worker_31921 (__31922) -> (zs_31923) -> (__31924) -o
-    match __31922 with
+  fun cmsort_worker_31893 (__31894) -> (zs_31895) -> (__31896) -o
+    match __31894 with
     | zero_6  =>
-      let* c_31925 :=
+      let* c_31897 :=
         ((send1L_56)
-          NULL NULL NULL NULL NULL __31924 (justL_14 ((msortL_66) zs_31923)))
-      in ((close_23) NULL c_31925)
-    | succ_7 n_31926 =>
-      match zs_31923 with
+          NULL NULL NULL NULL NULL __31896 (justL_14 ((msortL_66) zs_31895)))
+      in ((close_23) NULL c_31897)
+    | succ_7 n_31898 =>
+      match zs_31895 with
       | nilUL_20  =>
-        let* c_31927 :=
-          ((send1L_56) NULL NULL NULL NULL NULL __31924 (justL_14 nilUL_20))
-        in ((close_23) NULL c_31927)
-      | consUL_21 hd_31928 tl_31929 =>
-        match tl_31929 with
+        let* c_31899 :=
+          ((send1L_56) NULL NULL NULL NULL NULL __31896 (justL_14 nilUL_20))
+        in ((close_23) NULL c_31899)
+      | consUL_21 hd_31900 tl_31901 =>
+        match tl_31901 with
         | nilUL_20  =>
-          let* c_31930 :=
+          let* c_31902 :=
             ((send1L_56)
-              NULL NULL NULL NULL NULL __31924
-              (justL_14 (consUL_21 hd_31928 nilUL_20)))
-          in ((close_23) NULL c_31930)
-        | consUL_21 hd_31931 tl_31932 =>
+              NULL NULL NULL NULL NULL __31896
+              (justL_14 (consUL_21 hd_31900 nilUL_20)))
+          in ((close_23) NULL c_31902)
+        | consUL_21 hd_31903 tl_31904 =>
           match ((splitL_62)
-                  (consUL_21 hd_31928 (consUL_21 hd_31931 tl_31932))) with
-          | ex1LL_28 m_31933 n_31934 =>
-            let* r1_31935 :=
+                  (consUL_21 hd_31900 (consUL_21 hd_31903 tl_31904))) with
+          | ex1LL_28 m_31905 n_31906 =>
+            let* r1_31907 :=
               ((fork_28)
                 NULL NULL
-                fun _31936 (c1_31937) -o
-                  ((cmsort_worker_31921) n_31926 m_31933 c1_31937))
+                fun _31908 (c1_31909) -o
+                  ((cmsort_worker_31893) n_31898 m_31905 c1_31909))
               in
-            let* r2_31938 :=
+            let* r2_31910 :=
               ((fork_28)
                 NULL NULL
-                fun _31939 (c2_31940) -o
-                  ((cmsort_worker_31921) n_31926 n_31934 c2_31940))
+                fun _31911 (c2_31912) -o
+                  ((cmsort_worker_31893) n_31898 n_31906 c2_31912))
               in
-            let* _31941 := ((recv1L_60) NULL NULL NULL NULL NULL r1_31935) in
-            match _31941 with
-            | ex1LL_28 m_31942 n_31943 =>
-              let* _31944 := ((recv1L_60) NULL NULL NULL NULL NULL r2_31938)
+            let* _31913 := ((recv1L_60) NULL NULL NULL NULL NULL r1_31907) in
+            match _31913 with
+            | ex1LL_28 m_31914 n_31915 =>
+              let* _31916 := ((recv1L_60) NULL NULL NULL NULL NULL r2_31910)
               in
-              match _31944 with
-              | ex1LL_28 m_31945 n_31946 =>
-                match m_31942 with
-                | justL_14 m_31947 =>
-                  match m_31945 with
-                  | justL_14 m_31948 =>
-                    let zs1_31949 := (justL_14 ((mergeL_64) m_31947 m_31948))
+              match _31916 with
+              | ex1LL_28 m_31917 n_31918 =>
+                match m_31914 with
+                | justL_14 m_31919 =>
+                  match m_31917 with
+                  | justL_14 m_31920 =>
+                    let zs1_31921 := (justL_14 ((mergeL_64) m_31919 m_31920))
                     in
-                    let zs1_31950 :=
-                      ((rwlLL_34) NULL NULL NULL NULL NULL zs1_31949)
+                    let zs1_31922 :=
+                      ((rwlLL_34) NULL NULL NULL NULL NULL zs1_31921)
                     in
-                    let* c_31951 :=
+                    let* c_31923 :=
                       ((send1L_56)
-                        NULL NULL NULL NULL NULL __31924 zs1_31950)
+                        NULL NULL NULL NULL NULL __31896 zs1_31922)
                     in
-                    let* __31952 := ((close_23) NULL n_31943) in
-                    let* __31953 := ((close_23) NULL n_31946) in
-                    let* __31954 := ((close_23) NULL c_31951) in return tt_3
+                    let* __31924 := ((close_23) NULL n_31915) in
+                    let* __31925 := ((close_23) NULL n_31918) in
+                    let* __31926 := ((close_23) NULL c_31923) in return tt_3
                   end
                 end
               end

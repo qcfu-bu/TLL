@@ -123,8 +123,8 @@ def split<t> : list<_,t> nat -> list<_,t> nat ** list<_,t> nat
   | nil            => ex1 nil nil
   | (x :: nil)     => ex1 (x :: nil) nil
   | (x :: y :: zs) =>
-    match split zs with
-    | ex1 xs ys => ex1 (x :: xs) (y :: ys)
+    let (ex1 xs ys) := split zs in
+    ex1 (x :: xs) (y :: ys)
 
 def merge<t> : list<_,t> nat -> list<_,t> nat -o list<_,t> nat
   | nil       ys        => ys
@@ -138,7 +138,7 @@ def msort<t> : list<_,t> nat -> list<_,t> nat
   | nil        => nil
   | (z :: nil) => z :: nil
   | zs         =>
-    let ex1 xs ys := split zs in
+    let (ex1 xs ys) := split zs in
     merge (msort xs) (msort ys)
 
 #[logical]
@@ -151,8 +151,8 @@ def cmsort_worker<t> : nat -> forall (zs : list<_,t> nat) -> cmsort_ch<t> zs -o 
   | (succ n) (z :: nil) c => let* c := send1 refl c (just (z :: nil)) in close c
   | (succ n) zs         c => 
     match split zs as h1
-        , {refl}   as _ : (match h1 with ex1 xs ys => merge (msort xs) (msort ys)) =
-                          (match split zs with ex1 xs ys => merge (msort xs) (msort ys))
+        , {refl}   as _ : (let (ex1 xs ys) := h1 in merge (msort xs) (msort ys)) =
+                          (let (ex1 xs ys) := split zs in merge (msort xs) (msort ys))
     with
     | ex1 xs0 ys0, pf => 
       let* r1 := fork _ (ln c1 => cmsort_worker n xs0 c1) in

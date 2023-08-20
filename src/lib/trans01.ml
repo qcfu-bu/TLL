@@ -241,10 +241,9 @@ let rec trans_tm nspc = function
       Syntax1.(_Let r m (bind_var x n))
     | _ ->
       let x = Syntax1.Var.mk "" in
-      let ms = box_list [ Syntax1._Var x ] in
       let guard, cls = trans_cls nspc [ ([ p0 ], Some n) ] in
       let a = Syntax1.(_Pi r _L (mk_meta nspc) (bind_var x (mk_meta nspc))) in
-      Syntax1.(_Let r m (bind_var x (_Match guard ms a (box_list cls)))))
+      Syntax1.(_Match guard (box_list [ m ]) a (box_list cls)))
   (* inductive *)
   | Match (rms, opt, cls) ->
     let ms = List.map (fun (_, m, _) -> trans_tm nspc m) rms in
