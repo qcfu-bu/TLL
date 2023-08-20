@@ -54,8 +54,9 @@ and p =
   | PId of id
   | PAbsurd
   | PConstr of id * ps
-  | PBOpr of id * p * p
   | PUOpr of id * p
+  | PBOpr of id * p * p
+  | PHole of int
 [@@deriving show { with_path = false }]
 
 and ps = p list
@@ -99,6 +100,17 @@ and 'a param =
 and tele =
   | TBase of tm
   | TBind of relv * tm * (id, tele) binder
+
+let subst_phole map p =
+  let rec aux = function
+    | PId x -> PId x
+    | PAbsurd -> PAbsurd
+    | PConstr (id, ps) -> PConstr (id, List.map aux ps)
+    | PUOpr (id, p) -> PUOpr (id, aux p)
+    | PBOpr (id, p1, p2) -> PBOpr (id, aux p1, aux p2)
+    | PHole i -> map.(i - 1)
+  in
+  aux p
 
 let subst_hole map m =
   let rec aux = function

@@ -308,6 +308,14 @@ and trans_cls nspc cls =
     [] cls
 
 and trans_p nspc p =
+  let rec p_of_tm = function
+    | App (Id (id, _) :: ms) -> PConstr (id, List.map p_of_tm ms)
+    | App (Inst (id, _, _) :: ms) -> PConstr (id, List.map p_of_tm ms)
+    | Hole i -> PHole i
+    | UOpr (sym, m) -> PUOpr (sym, p_of_tm m)
+    | BOpr (sym, m, n) -> PBOpr (sym, p_of_tm m, p_of_tm n)
+    | m -> failwith "trans01.p_of_tm(%a)" pp_tm m
+  in
   match p with
   | PId "_" -> Syntax1.([ ("", Var.mk "") ], _P0Rel, false)
   | PId id -> (
@@ -322,7 +330,20 @@ and trans_p nspc p =
       | Some (c, _, _, _) ->
         let xs, ps, _ = trans_ps nspc ps in
         (xs, _P0Constr c (box_list ps), true)
-      | _ -> failwith "trans01.trans_p.PMul"))
+      | _ -> failwith "trans01.trans_p(Constr)"))
+  | PBOpr (sym, p1, p2) -> (
+    match List.assoc_opt sym nspc with
+    | Some (ESymbol body) ->
+      let p0 = p_of_tm body in
+      trans_p nspc (subst_phole [| p1; p2 |] p0)
+    | _ -> failwith "trans01.trans_p(PBOpr(%s))" sym)
+  | PUOpr (sym, p1) -> (
+    match List.assoc_opt sym nspc with
+    | Some (ESymbol body) ->
+      let p0 = p_of_tm body in
+      trans_p nspc (subst_phole [| p1 |] p0)
+    | _ -> failwith "trans01.trans_p(PBOpr(%s))" sym)
+  | PHole i -> failwith "trans01.trans_p(PHole %%%d)" i
 
 and trans_ps nspc ps =
   let xs, pg =
