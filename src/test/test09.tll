@@ -125,13 +125,17 @@ def proj2<s,r,t> ?{A : Type<s>} ?{B : A -> Type<r>} : forall (x : @apair<s,r,t> 
 
 
 -- examples
+#[logical]
+def nat_dep_t : nat -> Type<L>
+  | zero   => stream nat
+  | (succ _) => unit<L>
 
-def my_apair0 : apair<_,_,U> (fn (n : nat) => match n with zero => stream nat | succ _ => unit<L>) :=
+def my_apair0 : apair<_,_,U> nat_dep_t :=
   -- different type modalities are allowed in components as long
   -- as resource usage are equal
   {zero, nat_make zero}
 
-def my_apair1 : apair<_,_,L> (fn (n : nat) => match n with zero => stream nat | succ _ => unit<L>) :=
+def my_apair1 : apair<_,_,L> nat_dep_t :=
   let nat_stream := nat_make zero in
   -- additive pair allows usage of nat_stream in both components
   { let ⟨hd, tl⟩ := uncons_stream nat_stream in
