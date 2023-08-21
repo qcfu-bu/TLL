@@ -10,31 +10,31 @@ inductive nat : U where
 | succ (pred : nat) : nat
 
 #[logical]
-inductive eq<s> ?(A : Type<s>) (m : A) : A -> U where
+inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
 | refl : eq m m
 
-inductive exists<s,r> ?(A : Type<s>) (B : A -> Type<r>) : U where
+inductive exists‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : U where
 | ex (m : A) {pf : B m} : @exists A B
 
-inductive sing‹s› ?(A : Type‹s›) : A -> Type<s> where
+inductive sing‹s› ?(A : Type‹s›) : A -> Type‹s› where
 | just (m : A) : sing m
 
-inductive list<s> (A : Type<s>) : Type<s> where
+inductive list‹s› (A : Type‹s›) : Type‹s› where
 | nil : list A
 | cons (hd : A) (tl : list A) : list A
 
-inductive vec<s> (A : Type<s>) : nat -> Type<s> where
+inductive vec‹s› (A : Type‹s›) : nat -> Type‹s› where
 | vnil : vec A zero
-| vcons ?{n : nat} (hd : A) (tl : vec<s> A n) : vec A (succ n)
+| vcons ?{n : nat} (hd : A) (tl : vec‹s› A n) : vec A (succ n)
 
-def rwl<s,r> ?{A : Type<s>} ?{m n : A} {B : A -> Type<r>} : {eq m n} -> B m -> B n
+def rwl‹s,r› ?{A : Type‹s›} ?{m n : A} {B : A -> Type‹r›} : {eq m n} -> B m -> B n
   | refl x => x
 
-def rwr<s,r> ?{A : Type<s>} ?{m n : A} {B : A -> Type<r>} : {eq m n} -> B n -> B m
+def rwr‹s,r› ?{A : Type‹s›} ?{m n : A} {B : A -> Type‹r›} : {eq m n} -> B n -> B m
   | refl x => x
 
 #[logical]
-def congr<s,r,t> ?(A : Type<s>) ?(B : Type<r>) ?(m n : A) (f : forall<t>(_ : A), B)
+def congr‹s,r,t› ?(A : Type‹s›) ?(B : Type‹r›) ?(m n : A) (f : forall‹t›(_ : A), B)
 : eq m n -> eq (f m) (f n)
   | refl => refl
 

@@ -47,7 +47,7 @@
 (setq tll-keywords-regexp (regexp-opt tll-keywords 'symbols))
 (setq tll-lambda-regexp (regexp-opt tll-lambda 'symbols))
 (setq tll-builtin-regexp (regexp-opt tll-builtin 'symbols))
-(setq tll-quantifier-regexp (regexp-opt tll-quantifier nil))
+(setq tll-quantifier-regexp (regexp-opt tll-quantifier 'symbols))
 (setq tll-highlights-regexp (regexp-opt tll-highlights nil))
 (setq tll-intense-regexp (regexp-opt tll-intense nil))
 

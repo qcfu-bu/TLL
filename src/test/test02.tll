@@ -14,7 +14,7 @@ notation ( < ) := lt %1 %2
 notation ( > ) := gt %1 %2
 notation ( <= ) := lte %1 %2
 notation ( >= ) := gte %1 %2
-notation ( ⊗ ) := (prod<_,_,L> %1 %2)
+notation ( ⊗ ) := (prod‹_,_,L› %1 %2)
 notation ( :: ) := cons %1 %2
 notation ( ; ) := let* _ := %1 in %2
 notation ( ( , ) ) := pair %1 %2
@@ -37,35 +37,35 @@ inductive list (A : U) : U where
 | cons (hd : A) (tl : list A) : list A
 
 #[logical]
-inductive eq<s> ?(A : Type‹s›) (m : A) : A -> U where
+inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
 | refl : eq m m
 
-inductive exists<s,r,t> ?(A : Type‹s›) (B : A -> Type<r>) : Type<t> where
+inductive exists‹s,r,t› ?(A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
 | ex (m : A) {pf : B m} : exists B
 
-inductive sing<s> ?(A : Type<s>) : A -> Type<s> where
+inductive sing‹s› ?(A : Type‹s›) : A -> Type‹s› where
 | just (m : A) : sing m
 
-inductive prod<s,r,t> (A : Type<s>) (B : Type<r>) : Type<t> where
+inductive prod‹s,r,t› (A : Type‹s›) (B : Type‹r›) : Type‹t› where
 | pair (m : A) (n : B) : prod A B
 
-def exists_sing<s,t> ?{A : Type<s>} ?{m : A} : exists<_,_,t> (fn (a : A) => a = m) -> `m
+def exists_sing‹s,t› ?{A : Type‹s›} ?{m : A} : exists‹_,_,t› (fn (a : A) => a = m) -> `m
   | ⟨x, {refl}⟩ => just x
 
-def sing_exists<s,t> ?{A : Type<s>} ?{m : A} : `m -> exists<_,_,t> (fn (a : A) => a = m)
+def sing_exists‹s,t› ?{A : Type‹s›} ?{m : A} : `m -> exists‹_,_,t› (fn (a : A) => a = m)
   | (just x) => ⟨x, {refl}⟩
 
 #[logical]
-def sing_exists_equiv1<s,t> {A : Type<s>} {m : A} :
-  forall (x : `m) -> exists_sing (sing_exists<_,t> x) = x
+def sing_exists_equiv1‹s,t› {A : Type‹s›} {m : A} :
+  forall (x : `m) -> exists_sing (sing_exists‹_,t› x) = x
   | (just x) => refl
 
 #[logical]
-def sing_exists_equiv2<s,t> {A : Type<s>} {m : A} :
-  forall (x : exists<_,_,t> fn (a : A) => a = m) -> sing_exists (exists_sing x) = x
+def sing_exists_equiv2‹s,t› {A : Type‹s›} {m : A} :
+  forall (x : exists‹_,_,t› fn (a : A) => a = m) -> sing_exists (exists_sing x) = x
   | ⟨x, {refl}⟩ => refl
 
-def sing_double<s> {A : Type<s>} {m : A} : `m -> `m -o A ⊗ A
+def sing_double‹s› {A : Type‹s›} {m : A} : `m -> `m -o A ⊗ A
   | (just x) (just y) =>
     let {pf} : x = y := refl in
     (x, y)
