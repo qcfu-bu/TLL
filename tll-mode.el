@@ -1,41 +1,57 @@
 ;;; tll-mode.el --- major mode for tll -*- lexical-binding: t; -*-
+
+;;;; font lock for syntax
+(setq tll-start '("#" "\?" "!"))
+(setq tll-pragma '("program" "logical" "hint"))
+(setq tll-sorts '("U" "L" "Type"))
 (setq tll-keywords '("of" "layout"))
 (setq tll-lambda '("fn" "ln" "fun" "function" "val" "main" "where"))
 (setq tll-builtin '("let" "let*" "in" "rew" "match" "as" "with" "end"
                     "if" "then" "else" "fork" "return"
                     "open" "send" "recv" "close"))
+(setq tll-quantifier '("∀" "forall" "∃" "exists"))
+(setq tll-highlights '("→" "->" "⊸" "-o" "≔" ":=" "⇒" "=>" ":"))
+(setq tll-intense '("#magic" "!!") )
 
-(setq tll-pragma-start-regexp "\\(?:#\\)")
-(setq tll-pragma-regexp "\\(?:program\\|logical\\|multiplicative\\|additive\\)")
-(setq tll-sorts-regexp "\\(?:\\_<U\\_>\\|\\_<L\\_>\\)")
+(setq tll-start-regexp (regexp-opt tll-start nil))
+(setq tll-pragma-regexp (regexp-opt tll-pragma 'symbols))
+(setq tll-sorts-regexp (regexp-opt tll-sorts 'symbols))
 (setq tll-keywords-regexp (regexp-opt tll-keywords 'symbols))
 (setq tll-lambda-regexp (regexp-opt tll-lambda 'symbols))
 (setq tll-builtin-regexp (regexp-opt tll-builtin 'symbols))
-(setq tll-quantifier-regexp "\\(?:∀\\|forall\\|∃\\|exists\\|⇑\\|⇓\\|•\\)")
-(setq tll-magic-regexp "\\(?:#magic\\)")
-(setq tll-absurd-regexp "\\(?:!!\\)")
-(setq tll-infer-regexp "\\(?:infer_tm\\)")
-(setq tll-check-regexp "\\(?:check_tm\\)")
-(setq tll-assert-regexp "\\(?:assert_equal\\)")
-(setq tll-warning-regexp "\\(?:warning\\)")
+(setq tll-quantifier-regexp (regexp-opt tll-quantifier nil))
+(setq tll-highlights-regexp (regexp-opt tll-highlights nil))
+(setq tll-intense-regexp (regexp-opt tll-intense nil))
+
+;;;; font lock for log messages
+(setq tll-log-group1 '("infer_tm"))
+(setq tll-log-group2 '("check_tm"))
+(setq tll-log-group3 '("assert_equal" "simpl_iprbm" "simpl_pprbm"))
+
+(setq tll-log-group1-regexp (regexp-opt tll-log-group1 nil))
+(setq tll-log-group2-regexp (regexp-opt tll-log-group2 nil))
+(setq tll-log-group3-regexp (regexp-opt tll-log-group3 nil))
+
 
 (setq tll-font-lock-keywords
-      `(("\\(\\<inductive\\>\\|\\<def\\>\\|\\<extern\\>\\|\\<notation\\>\\)\s*\\([[:graph:]]*\\)"
+      `(;; top level declarations
+        ("\\(\\<inductive\\>\\|\\<def\\>\\|\\<extern\\>\\|\\<notation\\>\\)\s*\\([[:graph:]]*\\)"
          (1 font-lock-keyword-face)
          (2 font-lock-variable-name-face))
-        (,tll-magic-regexp . font-lock-warning-face)
-        (,tll-absurd-regexp . font-lock-warning-face)
-        (,tll-pragma-start-regexp . font-lock-keyword-face)
+        ;; expression syntax
+        (,tll-intense-regexp . font-lock-warning-face)
+        (,tll-start-regexp . font-lock-keyword-face)
         (,tll-pragma-regexp . font-lock-keyword-face)
         (,tll-sorts-regexp . font-lock-constant-face)
         (,tll-keywords-regexp . font-lock-keyword-face)
         (,tll-lambda-regexp . font-lock-keyword-face)
         (,tll-builtin-regexp . font-lock-builtin-face)
         (,tll-quantifier-regexp . font-lock-constant-face)
-        (,tll-infer-regexp . font-lock-string-face)
-        (,tll-check-regexp . font-lock-warning-face)
-        (,tll-assert-regexp . font-lock-doc-face)
-        (,tll-warning-regexp (1 '(:foreground "red")))
+        (,tll-highlights-regexp . font-lock-type-face)
+        ;; log file messages
+        (,tll-log-group1-regexp . font-lock-string-face)
+        (,tll-log-group2-regexp . font-lock-warning-face)
+        (,tll-log-group3-regexp . font-lock-doc-face)
         ))
 
 (defvar tll-mode-syntax-table nil "syntax table for tll-mode")
