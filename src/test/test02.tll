@@ -14,7 +14,7 @@ notation ( < ) := lt %1 %2
 notation ( > ) := gt %1 %2
 notation ( <= ) := lte %1 %2
 notation ( >= ) := gte %1 %2
-notation ( ** ) := (prod<_,_,L> %1 %2)
+notation ( ⊗ ) := (prod<_,_,L> %1 %2)
 notation ( :: ) := cons %1 %2
 notation ( ; ) := let* _ := %1 in %2
 notation ( ( , ) ) := pair %1 %2
@@ -65,7 +65,7 @@ def sing_exists_equiv2<s,t> {A : Type<s>} {m : A} :
   forall (x : exists<_,_,t> fn (a : A) => a = m) -> sing_exists (exists_sing x) = x
   | ⟨x, {refl}⟩ => refl
 
-def sing_double<s> {A : Type<s>} {m : A} : `m -> `m -o A ** A
+def sing_double<s> {A : Type<s>} {m : A} : `m -> `m -o A ⊗ A
   | (just x) (just y) =>
     let {pf} : x = y := refl in
     (x, y)

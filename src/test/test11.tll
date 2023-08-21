@@ -14,7 +14,7 @@ notation ( < ) := lt %1 %2
 notation ( > ) := gt %1 %2
 notation ( <= ) := lte %1 %2
 notation ( >= ) := gte %1 %2
-notation ( ** ) := prod1 %1 %2
+notation ( × ) := prod1 %1 %2
 notation ( :: ) := cons %1 %2
 notation ( ; ) := let* _ := %1 in %2
 notation ( ⟨{ }, ⟩ ) := ex0 %1 %2
@@ -122,7 +122,7 @@ extern recv0<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {xor b1 b2 = 
 extern recv1<s> ?{b1 b2 : bool} ?{A : Type<s>} ?{B : A -> proto} : {xor b1 b2 = true} -> (ch b1 (act1 b2 B)) -> IO (exists1 fn (x : A) => ch b1 (B x))
 extern fork ?{b : bool} {P : proto} : (ch b P -o IO unit) -> IO (ch (not b) P)
 
-def split<t> : list<_,t> nat -> list<_,t> nat ** list<_,t> nat
+def split<t> : list<_,t> nat -> list<_,t> nat × list<_,t> nat
   | nil            => ⟨nil, nil⟩
   | (x :: nil)     => ⟨x :: nil, nil⟩
   | (x :: y :: zs) =>

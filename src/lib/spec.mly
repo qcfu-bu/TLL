@@ -33,9 +33,6 @@
 %right RIGHTARROW0
 %right MULTIMAP
 
-// products
-%token TIMES  // ×
-%token OTIMES // ⊗
 %token AT     // @
 %right TIMES
 %right OTIMES
@@ -44,28 +41,32 @@
 %token TOP
 
 // operators
-%token<string> OP_ADD   // + infixl
-%token<string> OP_SUB   // - infixl
-%token<string> OP_MUL   // * infixl
-%token<string> OP_DIV   // / infixl
-%token<string> OP_REM   // % infixl
-%token<string> OP_LT    // < infixl
-%token<string> OP_GT    // > infixl
-%token<string> OP_EQ    // = infixl
-%token<string> OP_EX    // ! infixl
-%token<string> OP_AND   // & infixl
-%token<string> OP_OR    // | infixl
-%token<string> OP_SIM   // ~ prefix
-%token<string> OP_CAT   // ^ infixl
-%token<string> OP_COLON // : infixr
-%token<string> OP_SEMI  // : infixr
-%token<string> OP_AT    // @ infixr
-%token<string> OP_TIC   // ` prefix
-%left OP_ADD
-%left OP_SUB
+%token<string> OP_MUL    // * infixl
+%token<string> OP_TIMES  // × infixr
+%token<string> OP_OTIMES // ⊗ infixr
+%token<string> OP_DIV    // / infixl
+%token<string> OP_REM    // % infixl
+%token<string> OP_ADD    // + infixl
+%token<string> OP_SUB    // - infixl
+%token<string> OP_LT     // < infixl
+%token<string> OP_GT     // > infixl
+%token<string> OP_EQ     // = infixl
+%token<string> OP_EX     // ! infixl
+%token<string> OP_AND    // & infixl
+%token<string> OP_OR     // | infixl
+%token<string> OP_SIM    // ~ prefix
+%token<string> OP_CAT    // ^ infixl
+%token<string> OP_COLON  // : infixr
+%token<string> OP_SEMI   // : infixr
+%token<string> OP_AT     // @ infixr
+%token<string> OP_TIC    // ` prefix
 %left OP_MUL
 %left OP_DIV
+%right OP_TIMES
+%right OP_OTIMES
 %left OP_REM
+%left OP_ADD
+%left OP_SUB
 %left OP_LT
 %left OP_GT
 %left OP_EQ
@@ -196,6 +197,8 @@ let at_const1 ==
 let infix_op ==
   | ~ = OP_CAT; <>
   | ~ = OP_MUL; <>
+  | ~ = OP_TIMES; <>
+  | ~ = OP_OTIMES; <>
   | ~ = OP_DIV; <>
   | ~ = OP_REM; <>
   | ~ = OP_ADD; <>

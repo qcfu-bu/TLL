@@ -50,22 +50,19 @@ let multimap = [%sedlex.regexp? "-o" | 8888] (* ⊸ *)
 let uparrow1 = [%sedlex.regexp? 8657] (* ⇑ *)
 let downarrow1 = [%sedlex.regexp? 8659] (* ⇓ *)
 
-(* products *)
-let times = [%sedlex.regexp? 215] (* × *)
-let otimes = [%sedlex.regexp? 8855] (* ⊗ *)
-let at = [%sedlex.regexp? "@"]
-
 (* operators *)
 let op_symbol =
   [%sedlex.regexp?
     ( '+' | '-' | '*' | '/' | '\\' | '%' | '<' | '>' | '=' | '!' | '&' | '~'
-    | '^' | '|' | ':' | ';' | '@' | '`' )]
+    | '^' | '|' | ':' | ';' | '@' | '`' | 215 | 8855 )]
 
-let op_add = [%sedlex.regexp? '+', Star op_symbol]
-let op_sub = [%sedlex.regexp? '-', Star op_symbol]
 let op_mul = [%sedlex.regexp? '*', Star op_symbol]
+let op_times = [%sedlex.regexp? 215, Star op_symbol] (* × *)
+let op_otimes = [%sedlex.regexp? 8855, Star op_symbol] (* ⊗ *)
 let op_div = [%sedlex.regexp? '/', Star op_symbol]
 let op_rem = [%sedlex.regexp? '%', Star op_symbol]
+let op_add = [%sedlex.regexp? '+', Star op_symbol]
+let op_sub = [%sedlex.regexp? '-', Star op_symbol]
 let op_lt = [%sedlex.regexp? "<", Plus op_symbol]
 let op_gt = [%sedlex.regexp? ">", Plus op_symbol]
 let op_eq = [%sedlex.regexp? "=", Star op_symbol]
@@ -76,7 +73,7 @@ let op_cat = [%sedlex.regexp? '^', Star op_symbol]
 let op_or = [%sedlex.regexp? "|", Plus op_symbol]
 let op_colon = [%sedlex.regexp? ":", Plus op_symbol]
 let op_semi = [%sedlex.regexp? ";", Plus op_symbol]
-let op_at = [%sedlex.regexp? "@", Plus op_symbol]
+let op_at = [%sedlex.regexp? "@", Star op_symbol]
 let op_tic = [%sedlex.regexp? "`", Star op_symbol]
 
 (* string *)
@@ -208,9 +205,6 @@ let rec tokenize buf =
   | multimap -> MULTIMAP
   | uparrow1 -> UPARROW1
   | downarrow1 -> DOWNARROW1
-  (* products *)
-  | times -> TIMES
-  | otimes -> OTIMES
   (* string *)
   | quote0 -> CHAR (tokenize_char buf)
   | quote1 -> STRING (tokenize_string buf)
@@ -265,11 +259,13 @@ let rec tokenize buf =
   | dcl_extern -> DCL_EXTERN
   | dcl_notation -> DCL_NOTATION
   (* operators *)
-  | op_add -> OP_ADD (Utf8.lexeme buf)
-  | op_sub -> OP_SUB (Utf8.lexeme buf)
   | op_mul -> OP_MUL (Utf8.lexeme buf)
+  | op_times -> OP_TIMES (Utf8.lexeme buf)
+  | op_otimes -> OP_OTIMES (Utf8.lexeme buf)
   | op_div -> OP_DIV (Utf8.lexeme buf)
   | op_rem -> OP_REM (Utf8.lexeme buf)
+  | op_add -> OP_ADD (Utf8.lexeme buf)
+  | op_sub -> OP_SUB (Utf8.lexeme buf)
   | op_lt -> OP_LT (Utf8.lexeme buf)
   | op_gt -> OP_GT (Utf8.lexeme buf)
   | op_eq -> OP_EQ (Utf8.lexeme buf)
