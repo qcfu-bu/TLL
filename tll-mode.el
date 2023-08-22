@@ -33,7 +33,7 @@
 (setq tll-pragma '("program" "logical" "hint"))
 (setq tll-sorts '("U" "L" "Type"))
 (setq tll-keywords '("of" "layout"))
-(setq tll-lambda '("fn" "ln" "fun" "function" "val" "main" "where"))
+(setq tll-lambda '("fn" "ln" "fun" "function" "lam" "val" "main" "where"))
 (setq tll-builtin '("let" "let*" "in" "rew" "match" "as" "with" "end"
                     "if" "then" "else" "fork" "return"
                     "open" "send" "recv" "close"))
