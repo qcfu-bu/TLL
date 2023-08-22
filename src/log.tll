@@ -14,72 +14,20 @@
   Notation {name = ">"; body = (App [(Id ("gt", I)); (Hole 1); (Hole 2)])};
   Notation {name = "<="; body = (App [(Id ("lte", I)); (Hole 1); (Hole 2)])};
   Notation {name = ">="; body = (App [(Id ("gte", I)); (Hole 1); (Hole 2)])};
-  Notation {name = "\195\151";
-    body = (App [(Id ("prod1", I)); (Hole 1); (Hole 2)])};
+  Notation {name = "\226\138\151";
+    body =
+    (App [(Inst ("prod", [(SId "_"); (SId "_"); L], I)); (Hole 1); (Hole 2)])};
   Notation {name = "::"; body = (App [(Id ("cons", I)); (Hole 1); (Hole 2)])};
-  Notation {name = "\226\159\168,\226\159\169";
-    body = (App [(Id ("pair", I)); (Hole 1); (Hole 2)])};
-  Inductive {name = "eq"; relv = N;
-    body =
-    (Binder (["s"],
-       (PBind ((Type (SId "s")),
-          (Binder ("A",
-             (PBind ((Id ("A", I)),
-                (Binder ("m",
-                   (PBase
-                      ((TBind (R, (Id ("A", I)),
-                          (Binder ("_", (TBase (Type U)))))),
-                       [(DConstr ("refl",
-                           (TBase (BOpr ("=", (Id ("m", I)), (Id ("m", I))))),
-                           []))
-                         ]))
-                   ))
-                ))
-             ))
-          ))
-       ));
-    view = [I; E]};
-  Inductive {name = "boxed"; relv = R;
-    body =
-    (Binder (["s"],
-       (PBind ((Type (SId "s")),
-          (Binder ("A",
-             (PBase
-                ((TBase (Type L)),
-                 [(DConstr ("box",
-                     (TBind (R, (Id ("A", I)),
-                        (Binder ("m",
-                           (TBase (App [(Id ("boxed", I)); (Id ("A", I))]))))
-                        )),
-                     [E]))
-                   ]))
-             ))
-          ))
-       ));
-    view = [E]};
-  Inductive {name = "sing"; relv = R;
-    body =
-    (Binder (["s"; "t"],
-       (PBind ((Type (SId "s")),
-          (Binder ("A",
-             (PBase
-                ((TBind (R, (Id ("A", I)),
-                    (Binder ("_", (TBase (Type (SId "t"))))))),
-                 [(DConstr ("just",
-                     (TBind (R, (Id ("A", I)),
-                        (Binder ("m", (TBase (UOpr ("`", (Id ("m", I))))))))),
-                     [E]))
-                   ]))
-             ))
-          ))
-       ));
-    view = [I]};
+  Notation {name = ";";
+    body = (MLet ((Hole 1), (Binder ((PId "_"), (Hole 2)))))};
+  Notation {name = "(,)"; body = (App [(Id ("pair", I)); (Hole 1); (Hole 2)])};
+  Notation {name = "\226\159\168,{}\226\159\169";
+    body = (App [(Id ("ex", I)); (Hole 1); (Hole 2)])};
   Inductive {name = "unit"; relv = R;
     body =
-    (Binder (["s"],
+    (Binder ([],
        (PBase
-          ((TBase (Type (SId "s"))),
-           [(DConstr ("tt", (TBase (Id ("unit", I))), []))]))
+          ((TBase (Type U)), [(DConstr ("tt", (TBase (Id ("unit", I))), []))]))
        ));
     view = []};
   Inductive {name = "bool"; relv = R;
@@ -91,15 +39,121 @@
              (DConstr ("false", (TBase (Id ("bool", I))), []))]))
        ));
     view = []};
-  Inductive {name = "choice"; relv = R;
+  Inductive {name = "nat"; relv = R;
     body =
     (Binder ([],
        (PBase
-          ((TBase (Type L)),
-           [(DConstr ("next", (TBase (Id ("choice", I))), []));
-             (DConstr ("free", (TBase (Id ("choice", I))), []))]))
+          ((TBase (Type U)),
+           [(DConstr ("zero", (TBase (Id ("nat", I))), []));
+             (DConstr ("succ",
+                (TBind (R, (Id ("nat", I)),
+                   (Binder ("pred", (TBase (Id ("nat", I))))))),
+                [E]))
+             ]))
        ));
     view = []};
+  Inductive {name = "list"; relv = R;
+    body =
+    (Binder ([],
+       (PBind ((Type U),
+          (Binder ("A",
+             (PBase
+                ((TBase (Type U)),
+                 [(DConstr ("nil",
+                     (TBase (App [(Id ("list", I)); (Id ("A", I))])), 
+                     []));
+                   (DConstr ("cons",
+                      (TBind (R, (Id ("A", I)),
+                         (Binder ("hd",
+                            (TBind (R,
+                               (App [(Id ("list", I)); (Id ("A", I))]),
+                               (Binder ("tl",
+                                  (TBase
+                                     (App [(Id ("list", I)); (Id ("A", I))]))
+                                  ))
+                               ))
+                            ))
+                         )),
+                      [E; E]))
+                   ]))
+             ))
+          ))
+       ));
+    view = [E]};
+  Inductive {name = "eq"; relv = N;
+    body =
+    (Binder (["s"],
+       (PBind ((Type (SId "s")),
+          (Binder ("A",
+             (PBind ((Id ("A", I)),
+                (Binder ("m",
+                   (PBase
+                      ((TBind (R, (Id ("A", I)),
+                          (Binder ("_", (TBase (Type U)))))),
+                       [(DConstr ("refl",
+                           (TBase
+                              (App
+                                 [(Id ("eq", I)); (Id ("m", I));
+                                   (Id ("m", I))])),
+                           []))
+                         ]))
+                   ))
+                ))
+             ))
+          ))
+       ));
+    view = [I; E]};
+  Inductive {name = "exists"; relv = R;
+    body =
+    (Binder (["s"; "r"; "t"],
+       (PBind ((Type (SId "s")),
+          (Binder ("A",
+             (PBind (
+                (Pi (R, U, (Id ("A", I)), (Binder ("_", (Type (SId "r")))))),
+                (Binder ("B",
+                   (PBase
+                      ((TBase (Type (SId "t"))),
+                       [(DConstr ("ex",
+                           (TBind (R, (Id ("A", I)),
+                              (Binder ("m",
+                                 (TBind (N,
+                                    (App [(Id ("B", I)); (Id ("m", I))]),
+                                    (Binder ("pf",
+                                       (TBase
+                                          (App
+                                             [(Id ("exists", I));
+                                               (Id ("B", I))]))
+                                       ))
+                                    ))
+                                 ))
+                              )),
+                           [E; E]))
+                         ]))
+                   ))
+                ))
+             ))
+          ))
+       ));
+    view = [I; E]};
+  Inductive {name = "sing"; relv = R;
+    body =
+    (Binder (["s"],
+       (PBind ((Type (SId "s")),
+          (Binder ("A",
+             (PBase
+                ((TBind (R, (Id ("A", I)),
+                    (Binder ("_", (TBase (Type (SId "s"))))))),
+                 [(DConstr ("just",
+                     (TBind (R, (Id ("A", I)),
+                        (Binder ("m",
+                           (TBase (App [(Id ("sing", I)); (Id ("m", I))]))))
+                        )),
+                     [E]))
+                   ]))
+             ))
+          ))
+       ));
+    view = [I]};
   Inductive {name = "prod"; relv = R;
     body =
     (Binder (["s"; "r"; "t"],
@@ -130,71 +184,282 @@
           ))
        ));
     view = [E; E]};
-  Inductive {name = "nat"; relv = R;
-    body =
-    (Binder ([],
-       (PBase
-          ((TBase (Type U)),
-           [(DConstr ("zero", (TBase (Id ("nat", I))), []));
-             (DConstr ("succ",
-                (TBind (R, (Id ("nat", I)),
-                   (Binder ("_", (TBase (Id ("nat", I))))))),
-                [E]))
-             ]))
-       ));
-    view = []};
-  Definition {name = "sing_elim"; relv = R;
+  Definition {name = "exists_sing"; relv = R;
     body =
     (Binder (["s"; "t"],
        ((Fun (
            (Pi (N, U, (Type (SId "s")),
               (Binder ("A",
                  (Pi (N, U, (Id ("A", I)),
-                    (Binder ("x",
+                    (Binder ("m",
                        (Pi (R, U,
                           (App
-                             [(Inst ("sing", [(SId "s"); (SId "t")], I));
-                               (Id ("x", I))]),
-                          (Binder ("_", (Id ("A", I))))))
+                             [(Inst ("exists",
+                                 [(SId "_"); (SId "_"); (SId "t")], I));
+                               (Fun (
+                                  (Pi (R, U, (Id ("A", I)),
+                                     (Binder ("a", IMeta)))),
+                                  (Binder (None,
+                                     [([(PId "a")],
+                                       (Some (BOpr ("=", (Id ("a", I)),
+                                                (Id ("m", I))))))
+                                       ]
+                                     )),
+                                  []))
+                               ]),
+                          (Binder ("_", (UOpr ("`", (Id ("m", I))))))))
                        ))
                     ))
                  ))
               )),
-           (Binder ((Some "sing_elim"),
-              [([(PId "A"); (PId "x"); (PConstr ("just", [(PId "x")]))],
-                (Some (Id ("x", I))))]
+           (Binder ((Some "exists_sing"),
+              [([(PId "A"); (PId "m");
+                  (PBOpr ("\226\159\168,{}\226\159\169", (PId "x"),
+                     (PId "refl")))
+                  ],
+                (Some (App [(Id ("just", I)); (Id ("x", I))])))]
               )),
            [I; I])),
         (Pi (N, U, (Type (SId "s")),
            (Binder ("A",
               (Pi (N, U, (Id ("A", I)),
-                 (Binder ("x",
+                 (Binder ("m",
                     (Pi (R, U,
                        (App
-                          [(Inst ("sing", [(SId "s"); (SId "t")], I));
-                            (Id ("x", I))]),
-                       (Binder ("_", (Id ("A", I))))))
+                          [(Inst ("exists",
+                              [(SId "_"); (SId "_"); (SId "t")], I));
+                            (Fun (
+                               (Pi (R, U, (Id ("A", I)),
+                                  (Binder ("a", IMeta)))),
+                               (Binder (None,
+                                  [([(PId "a")],
+                                    (Some (BOpr ("=", (Id ("a", I)),
+                                             (Id ("m", I))))))
+                                    ]
+                                  )),
+                               []))
+                            ]),
+                       (Binder ("_", (UOpr ("`", (Id ("m", I))))))))
                     ))
                  ))
               ))
            )))
        ));
     view = [I; I]};
-  Definition {name = "sing_uniq"; relv = N;
+  Definition {name = "sing_exists"; relv = R;
     body =
     (Binder (["s"; "t"],
        ((Fun (
-           (Pi (R, U, (Type (SId "s")),
+           (Pi (N, U, (Type (SId "s")),
               (Binder ("A",
-                 (Pi (R, U, (Id ("A", I)),
-                    (Binder ("x0",
+                 (Pi (N, U, (Id ("A", I)),
+                    (Binder ("m",
+                       (Pi (R, U, (UOpr ("`", (Id ("m", I)))),
+                          (Binder ("_",
+                             (App
+                                [(Inst ("exists",
+                                    [(SId "_"); (SId "_"); (SId "t")], I));
+                                  (Fun (
+                                     (Pi (R, U, (Id ("A", I)),
+                                        (Binder ("a", IMeta)))),
+                                     (Binder (None,
+                                        [([(PId "a")],
+                                          (Some (BOpr ("=", (Id ("a", I)),
+                                                   (Id ("m", I))))))
+                                          ]
+                                        )),
+                                     []))
+                                  ])
+                             ))
+                          ))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "sing_exists"),
+              [([(PId "A"); (PId "m"); (PConstr ("just", [(PId "x")]))],
+                (Some (BOpr ("\226\159\168,{}\226\159\169", (Id ("x", I)),
+                         (Id ("refl", I))))))
+                ]
+              )),
+           [I; I])),
+        (Pi (N, U, (Type (SId "s")),
+           (Binder ("A",
+              (Pi (N, U, (Id ("A", I)),
+                 (Binder ("m",
+                    (Pi (R, U, (UOpr ("`", (Id ("m", I)))),
+                       (Binder ("_",
+                          (App
+                             [(Inst ("exists",
+                                 [(SId "_"); (SId "_"); (SId "t")], I));
+                               (Fun (
+                                  (Pi (R, U, (Id ("A", I)),
+                                     (Binder ("a", IMeta)))),
+                                  (Binder (None,
+                                     [([(PId "a")],
+                                       (Some (BOpr ("=", (Id ("a", I)),
+                                                (Id ("m", I))))))
+                                       ]
+                                     )),
+                                  []))
+                               ])
+                          ))
+                       ))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I]};
+  Definition {name = "sing_exists_equiv1"; relv = N;
+    body =
+    (Binder (["s"; "t"],
+       ((Fun (
+           (Pi (N, U, (Type (SId "s")),
+              (Binder ("A",
+                 (Pi (N, U, (Id ("A", I)),
+                    (Binder ("m",
+                       (Pi (R, U, (UOpr ("`", (Id ("m", I)))),
+                          (Binder ("x",
+                             (BOpr ("=",
+                                (App
+                                   [(Id ("exists_sing", I));
+                                     (App
+                                        [(Inst ("sing_exists",
+                                            [(SId "_"); (SId "t")], I));
+                                          (Id ("x", I))])
+                                     ]),
+                                (Id ("x", I))))
+                             ))
+                          ))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "sing_exists_equiv1"),
+              [([(PId "A"); (PId "m"); (PConstr ("just", [(PId "x")]))],
+                (Some (Id ("refl", I))))]
+              )),
+           [E; E])),
+        (Pi (N, U, (Type (SId "s")),
+           (Binder ("A",
+              (Pi (N, U, (Id ("A", I)),
+                 (Binder ("m",
+                    (Pi (R, U, (UOpr ("`", (Id ("m", I)))),
+                       (Binder ("x",
+                          (BOpr ("=",
+                             (App
+                                [(Id ("exists_sing", I));
+                                  (App
+                                     [(Inst ("sing_exists",
+                                         [(SId "_"); (SId "t")], I));
+                                       (Id ("x", I))])
+                                  ]),
+                             (Id ("x", I))))
+                          ))
+                       ))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [E; E]};
+  Definition {name = "sing_exists_equiv2"; relv = N;
+    body =
+    (Binder (["s"; "t"],
+       ((Fun (
+           (Pi (N, U, (Type (SId "s")),
+              (Binder ("A",
+                 (Pi (N, U, (Id ("A", I)),
+                    (Binder ("m",
                        (Pi (R, U,
                           (App
-                             [(Inst ("sing", [(SId "s"); (SId "t")], I));
-                               (Id ("x0", I))]),
+                             [(Inst ("exists",
+                                 [(SId "_"); (SId "_"); (SId "t")], I));
+                               (Fun (
+                                  (Pi (R, U, (Id ("A", I)),
+                                     (Binder ("a", IMeta)))),
+                                  (Binder (None,
+                                     [([(PId "a")],
+                                       (Some (BOpr ("=", (Id ("a", I)),
+                                                (Id ("m", I))))))
+                                       ]
+                                     )),
+                                  []))
+                               ]),
                           (Binder ("x",
-                             (BOpr ("=", (Id ("x0", I)),
-                                (App [(Id ("sing_elim", I)); (Id ("x", I))])
+                             (BOpr ("=",
+                                (App
+                                   [(Id ("sing_exists", I));
+                                     (App
+                                        [(Id ("exists_sing", I));
+                                          (Id ("x", I))])
+                                     ]),
+                                (Id ("x", I))))
+                             ))
+                          ))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "sing_exists_equiv2"),
+              [([(PId "A"); (PId "m");
+                  (PBOpr ("\226\159\168,{}\226\159\169", (PId "x"),
+                     (PId "refl")))
+                  ],
+                (Some (Id ("refl", I))))]
+              )),
+           [E; E])),
+        (Pi (N, U, (Type (SId "s")),
+           (Binder ("A",
+              (Pi (N, U, (Id ("A", I)),
+                 (Binder ("m",
+                    (Pi (R, U,
+                       (App
+                          [(Inst ("exists",
+                              [(SId "_"); (SId "_"); (SId "t")], I));
+                            (Fun (
+                               (Pi (R, U, (Id ("A", I)),
+                                  (Binder ("a", IMeta)))),
+                               (Binder (None,
+                                  [([(PId "a")],
+                                    (Some (BOpr ("=", (Id ("a", I)),
+                                             (Id ("m", I))))))
+                                    ]
+                                  )),
+                               []))
+                            ]),
+                       (Binder ("x",
+                          (BOpr ("=",
+                             (App
+                                [(Id ("sing_exists", I));
+                                  (App
+                                     [(Id ("exists_sing", I)); (Id ("x", I))])
+                                  ]),
+                             (Id ("x", I))))
+                          ))
+                       ))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [E; E]};
+  Definition {name = "sing_double"; relv = R;
+    body =
+    (Binder (["s"],
+       ((Fun (
+           (Pi (N, U, (Type (SId "s")),
+              (Binder ("A",
+                 (Pi (N, U, (Id ("A", I)),
+                    (Binder ("m",
+                       (Pi (R, U, (UOpr ("`", (Id ("m", I)))),
+                          (Binder ("_",
+                             (Pi (R, L, (UOpr ("`", (Id ("m", I)))),
+                                (Binder ("_",
+                                   (BOpr ("\226\138\151", (Id ("A", I)),
+                                      (Id ("A", I))))
+                                   ))
                                 ))
                              ))
                           ))
@@ -202,966 +467,582 @@
                     ))
                  ))
               )),
-           (Binder ((Some "sing_uniq"),
-              [([(PId "A"); (PId "x0"); (PConstr ("just", [(PId "_")]))],
-                (Some (Id ("refl", I))))]
-              )),
-           [I; I])),
-        (Pi (R, U, (Type (SId "s")),
-           (Binder ("A",
-              (Pi (R, U, (Id ("A", I)),
-                 (Binder ("x0",
-                    (Pi (R, U,
-                       (App
-                          [(Inst ("sing", [(SId "s"); (SId "t")], I));
-                            (Id ("x0", I))]),
-                       (Binder ("x",
-                          (BOpr ("=", (Id ("x0", I)),
-                             (App [(Id ("sing_elim", I)); (Id ("x", I))])))
-                          ))
-                       ))
-                    ))
-                 ))
-              ))
-           )))
-       ));
-    view = [I; I]};
-  Inductive {name = "stream_node"; relv = R;
-    body =
-    (Binder (["s"],
-       (PBind ((Type (SId "s")),
-          (Binder ("A",
-             (PBase
-                ((TBase (Type L)),
-                 [(DConstr ("stream_cons",
-                     (TBind (R, (Id ("A", I)),
-                        (Binder ("hd",
-                           (TBind (R,
-                              (Pi (R, L, (Id ("choice", I)),
-                                 (Binder ("x",
-                                    (Match ([(R, (Id ("x", I)), None)], None,
-                                       [([(PId "next")],
-                                         (Some (App
-                                                  [(Id ("stream_node", I));
-                                                    (Id ("A", I))])));
-                                         ([(PId "free")],
-                                          (Some (Id ("unit", I))))
-                                         ]
-                                       ))
-                                    ))
-                                 )),
-                              (Binder ("tl",
-                                 (TBase
-                                    (App
-                                       [(Id ("stream_node", I));
-                                         (Id ("A", I))]))
-                                 ))
-                              ))
-                           ))
-                        )),
-                     [E; E]))
-                   ]))
-             ))
-          ))
-       ));
-    view = [E]};
-  Definition {name = "stream"; relv = N;
-    body =
-    (Binder (["s"],
-       ((Fun ((Pi (R, U, (Type (SId "s")), (Binder ("A", IMeta)))),
-           (Binder ((Some "stream"),
-              [([(PId "A")],
-                (Some (Pi (R, L, (Id ("choice", I)),
-                         (Binder ("x",
-                            (Match ([(R, (Id ("x", I)), None)], None,
-                               [([(PId "next")],
-                                 (Some (App
-                                          [(Id ("stream_node", I));
-                                            (Id ("A", I))])));
-                                 ([(PId "free")], (Some (Id ("unit", I))))]
-                               ))
-                            ))
+           (Binder ((Some "sing_double"),
+              [([(PId "A"); (PId "m"); (PConstr ("just", [(PId "x")]));
+                  (PConstr ("just", [(PId "y")]))],
+                (Some (Let (N,
+                         (Ann ((Id ("refl", I)),
+                            (BOpr ("=", (Id ("x", I)), (Id ("y", I)))))),
+                         (Binder ((PId "pf"),
+                            (BOpr ("(,)", (Id ("x", I)), (Id ("y", I))))))
                          ))))
                 ]
               )),
-           [E])),
-        (Pi (R, U, (Type (SId "s")), (Binder ("A", IMeta)))))
-       ));
-    view = [E]};
-  Definition {name = "free_stream"; relv = R;
-    body =
-    (Binder (["s"],
-       ((Fun (
-           (Pi (N, U, (Type (SId "s")),
-              (Binder ("A",
-                 (Pi (R, U, (App [(Id ("stream", I)); (Id ("A", I))]),
-                    (Binder ("st", (Inst ("unit", [U], I))))))
-                 ))
-              )),
-           (Binder ((Some "free_stream"),
-              [([(PId "A"); (PId "st")],
-                (Some (Match (
-                         [(R, (App [(Id ("st", I)); (Id ("free", I))]), None)
-                           ],
-                         None, [([(PId "tt")], (Some (Id ("tt", I))))]))))
-                ]
-              )),
-           [I; E])),
+           [E; E])),
         (Pi (N, U, (Type (SId "s")),
            (Binder ("A",
-              (Pi (R, U, (App [(Id ("stream", I)); (Id ("A", I))]),
-                 (Binder ("st", (Inst ("unit", [U], I))))))
-              ))
-           )))
-       ));
-    view = [I; E]};
-  Definition {name = "uncons_stream"; relv = R;
-    body =
-    (Binder (["s"],
-       ((Fun (
-           (Pi (N, U, (Type (SId "s")),
-              (Binder ("A",
-                 (Pi (R, U, (App [(Id ("stream", I)); (Id ("A", I))]),
-                    (Binder ("st",
-                       (App
-                          [(Inst ("prod", [(SId "_"); (SId "_"); L], I));
-                            (Id ("A", I));
-                            (App [(Id ("stream", I)); (Id ("A", I))])])
-                       ))
-                    ))
-                 ))
-              )),
-           (Binder ((Some "uncons_stream"),
-              [([(PId "A"); (PId "st")],
-                (Some (Let (R, (App [(Id ("st", I)); (Id ("next", I))]),
-                         (Binder (
-                            (PConstr ("stream_cons", [(PId "hd"); (PId "tl")]
-                               )),
-                            (BOpr ("\226\159\168,\226\159\169",
-                               (Id ("hd", I)), (Id ("tl", I))))
-                            ))
-                         ))))
-                ]
-              )),
-           [I; E])),
-        (Pi (N, U, (Type (SId "s")),
-           (Binder ("A",
-              (Pi (R, U, (App [(Id ("stream", I)); (Id ("A", I))]),
-                 (Binder ("st",
-                    (App
-                       [(Inst ("prod", [(SId "_"); (SId "_"); L], I));
-                         (Id ("A", I));
-                         (App [(Id ("stream", I)); (Id ("A", I))])])
-                    ))
-                 ))
-              ))
-           )))
-       ));
-    view = [I; E]};
-  Definition {name = "nat_make"; relv = R;
-    body =
-    (Binder ([],
-       ((Fun (
-           (Pi (R, U, (Id ("nat", I)),
-              (Binder ("n", (App [(Id ("stream", I)); (Id ("nat", I))]))))),
-           (Binder ((Some "nat_make"),
-              [([(PId "n"); (PId "next")],
-                (Some (App
-                         [(Id ("stream_cons", I)); (Id ("n", I));
-                           (App
-                              [(Id ("nat_make", I));
-                                (App [(Id ("succ", I)); (Id ("n", I))])])
-                           ])));
-                ([(PId "n"); (PId "free")], (Some (Id ("tt", I))))]
-              )),
-           [E])),
-        (Pi (R, U, (Id ("nat", I)),
-           (Binder ("n", (App [(Id ("stream", I)); (Id ("nat", I))]))))))
-       ));
-    view = [E]};
-  Inductive {name = "apair"; relv = R;
-    body =
-    (Binder (["s"; "r"; "t"],
-       (PBind ((Type (SId "s")),
-          (Binder ("A",
-             (PBind (
-                (Pi (R, U, (Id ("A", I)), (Binder ("_", (Type (SId "r")))))),
-                (Binder ("B",
-                   (PBase
-                      ((TBase (Type (SId "t"))),
-                       [(DConstr ("apair_intro",
-                           (TBind (N, (Id ("A", I)),
-                              (Binder ("x",
-                                 (TBind (R,
-                                    (Pi (R, (SId "t"), (Id ("bool", I)),
-                                       (Binder ("b",
-                                          (Match ([(R, (Id ("b", I)), None)],
-                                             None,
-                                             [([(PId "true")],
-                                               (Some (App
-                                                        [(Inst ("sing",
-                                                            [(SId "_"); L], I
-                                                            ));
-                                                          (Id ("x", I))])));
-                                               ([(PId "false")],
-                                                (Some (App
-                                                         [(Id ("boxed", I));
-                                                           (App
-                                                              [(Id ("B", I));
-                                                                (Id ("x", I))
-                                                                ])
-                                                           ])))
-                                               ]
-                                             ))
-                                          ))
-                                       )),
-                                    (Binder ("select",
-                                       (TBase
-                                          (App
-                                             [(Id ("apair", I));
-                                               (Id ("B", I))]))
-                                       ))
-                                    ))
-                                 ))
-                              )),
-                           [I; E]))
-                         ]))
-                   ))
-                ))
-             ))
-          ))
-       ));
-    view = [I; E]};
-  Notation {name = "{,}";
-    body =
-    (App
-       [(Id ("apair_intro", I));
-         (Fun (IMeta,
-            (Binder (None,
-               [([(PId "true")], (Some (App [(Id ("just", I)); (Hole 1)])));
-                 ([(PId "false")], (Some (App [(Id ("box", I)); (Hole 2)])))]
-               )),
-            []))
-         ])};
-  Definition {name = "proj1"; relv = R;
-    body =
-    (Binder (["s"; "r"; "t"],
-       ((Fun (
-           (Pi (N, U, (Type (SId "s")),
-              (Binder ("A",
-                 (Pi (N, U,
-                    (Pi (R, U, (Id ("A", I)),
-                       (Binder ("_", (Type (SId "r")))))),
-                    (Binder ("B",
-                       (Pi (R, U,
-                          (App
-                             [(Inst ("apair",
-                                 [(SId "s"); (SId "r"); (SId "t")], E));
-                               (Id ("A", I)); (Id ("B", I))]),
-                          (Binder ("_", (Id ("A", I))))))
-                       ))
-                    ))
-                 ))
-              )),
-           (Binder ((Some "proj1"),
-              [([(PId "A"); (PId "B");
-                  (PConstr ("apair_intro", [(PId "_"); (PId "select")]))],
-                (Some (App
-                         [(Id ("sing_elim", I));
-                           (App [(Id ("select", I)); (Id ("true", I))])])))
-                ]
-              )),
-           [I; I])),
-        (Pi (N, U, (Type (SId "s")),
-           (Binder ("A",
-              (Pi (N, U,
-                 (Pi (R, U, (Id ("A", I)), (Binder ("_", (Type (SId "r")))))),
-                 (Binder ("B",
-                    (Pi (R, U,
-                       (App
-                          [(Inst ("apair", [(SId "s"); (SId "r"); (SId "t")],
-                              E));
-                            (Id ("A", I)); (Id ("B", I))]),
-                       (Binder ("_", (Id ("A", I))))))
-                    ))
-                 ))
-              ))
-           )))
-       ));
-    view = [I; I]};
-  Definition {name = "proj2"; relv = R;
-    body =
-    (Binder (["s"; "r"; "t"],
-       ((Fun (
-           (Pi (N, U, (Type (SId "s")),
-              (Binder ("A",
-                 (Pi (N, U,
-                    (Pi (R, U, (Id ("A", I)),
-                       (Binder ("_", (Type (SId "r")))))),
-                    (Binder ("B",
-                       (Pi (R, U,
-                          (App
-                             [(Inst ("apair",
-                                 [(SId "s"); (SId "r"); (SId "t")], E));
-                               (Id ("A", I)); (Id ("B", I))]),
-                          (Binder ("x",
-                             (App
-                                [(Id ("B", I));
-                                  (App [(Id ("proj1", I)); (Id ("x", I))])])
+              (Pi (N, U, (Id ("A", I)),
+                 (Binder ("m",
+                    (Pi (R, U, (UOpr ("`", (Id ("m", I)))),
+                       (Binder ("_",
+                          (Pi (R, L, (UOpr ("`", (Id ("m", I)))),
+                             (Binder ("_",
+                                (BOpr ("\226\138\151", (Id ("A", I)),
+                                   (Id ("A", I))))
+                                ))
                              ))
                           ))
                        ))
                     ))
                  ))
+              ))
+           )))
+       ));
+    view = [E; E]};
+  Definition {name = "my_sing"; relv = R;
+    body = (Binder ([], ((App [(Id ("just", I)); (Id ("true", I))]), IMeta)));
+    view = []};
+  Definition {name = "my_exists"; relv = R;
+    body =
+    (Binder ([],
+       ((App [(Id ("sing_exists", I)); (Id ("my_sing", I))]),
+        (App
+           [(Inst ("exists", [(SId "_"); (SId "_"); U], I));
+             (Fun ((Pi (R, U, (Id ("bool", I)), (Binder ("x", IMeta)))),
+                (Binder (None,
+                   [([(PId "x")],
+                     (Some (BOpr ("=", (Id ("x", I)), (Id ("true", I))))))]
+                   )),
+                []))
+             ]))
+       ));
+    view = []};
+  Definition {name = "axiom_K"; relv = N;
+    body =
+    (Binder ([],
+       ((Fun (
+           (Pi (N, U, (Type U),
+              (Binder ("A",
+                 (Pi (N, U, (Id ("A", I)),
+                    (Binder ("m",
+                       (Pi (R, U, (BOpr ("=", (Id ("m", I)), (Id ("m", I)))),
+                          (Binder ("x",
+                             (BOpr ("=", (Id ("x", I)), (Id ("refl", I))))))
+                          ))
+                       ))
+                    ))
+                 ))
               )),
-           (Binder ((Some "proj2"),
-              [([(PId "A"); (PId "B");
-                  (PConstr ("apair_intro", [(PId "x"); (PId "select")]))],
-                (Some (Match (
-                         [(N, (Id ("x", I)), (Some ("x0", IMeta)));
-                           (N, (App [(Id ("select", I)); (Id ("true", I))]),
-                            (Some ("a0", (UOpr ("`", (Id ("x", I)))))));
-                           (N,
-                            (App
-                               [(Id ("sing_uniq", I));
-                                 (App [(Id ("select", I)); (Id ("true", I))])
-                                 ]),
-                            (Some ("_",
-                                   (BOpr ("=", (Id ("x0", I)),
-                                      (App
-                                         [(Id ("sing_elim", I));
-                                           (Id ("a0", I))])
-                                      )))));
-                           (R, (App [(Id ("select", I)); (Id ("false", I))]),
-                            (Some ("_",
-                                   (App
-                                      [(Id ("boxed", I));
-                                        (App [(Id ("B", I)); (Id ("x0", I))])
-                                        ]))))
-                           ],
-                         (Some (App
-                                  [(Id ("B", I));
-                                    (App
-                                       [(Id ("sing_elim", I)); (Id ("a0", I))
-                                         ])
-                                    ])),
-                         [([(PId "_"); (PId "_"); (PId "refl");
-                             (PConstr ("box", [(PId "b")]))],
-                           (Some (Id ("b", I))))]
-                         ))))
+           (Binder ((Some "axiom_K"),
+              [([(PId "A"); (PId "m"); (PId "refl")], (Some (Id ("refl", I))))
                 ]
               )),
            [I; I])),
-        (Pi (N, U, (Type (SId "s")),
+        (Pi (N, U, (Type U),
            (Binder ("A",
-              (Pi (N, U,
-                 (Pi (R, U, (Id ("A", I)), (Binder ("_", (Type (SId "r")))))),
-                 (Binder ("B",
-                    (Pi (R, U,
-                       (App
-                          [(Inst ("apair", [(SId "s"); (SId "r"); (SId "t")],
-                              E));
-                            (Id ("A", I)); (Id ("B", I))]),
+              (Pi (N, U, (Id ("A", I)),
+                 (Binder ("m",
+                    (Pi (R, U, (BOpr ("=", (Id ("m", I)), (Id ("m", I)))),
                        (Binder ("x",
-                          (App
-                             [(Id ("B", I));
-                               (App [(Id ("proj1", I)); (Id ("x", I))])])
-                          ))
+                          (BOpr ("=", (Id ("x", I)), (Id ("refl", I))))))
                        ))
                     ))
                  ))
               ))
            )))
        ));
-    view = [I; I]};
-  Definition {name = "nat_dep_t"; relv = N;
-    body =
-    (Binder ([],
-       ((Fun ((Pi (R, U, (Id ("nat", I)), (Binder ("_", (Type L))))),
-           (Binder ((Some "nat_dep_t"),
-              [([(PId "zero")],
-                (Some (App [(Id ("stream", I)); (Id ("nat", I))])));
-                ([(PConstr ("succ", [(PId "_")]))],
-                 (Some (Inst ("unit", [L], I))))
-                ]
-              )),
-           [])),
-        (Pi (R, U, (Id ("nat", I)), (Binder ("_", (Type L))))))
-       ));
-    view = []};
-  Definition {name = "my_apair0"; relv = R;
-    body =
-    (Binder ([],
-       ((BOpr ("{,}", (Id ("zero", I)),
-           (App [(Id ("nat_make", I)); (Id ("zero", I))]))),
-        (App
-           [(Inst ("apair", [(SId "_"); (SId "_"); U], I));
-             (Id ("nat_dep_t", I))]))
-       ));
-    view = []};
-  Definition {name = "my_apair1"; relv = R;
-    body =
-    (Binder ([],
-       ((Let (R, (App [(Id ("nat_make", I)); (Id ("zero", I))]),
-           (Binder ((PId "nat_stream"),
-              (BOpr ("{,}",
-                 (Let (R,
-                    (App [(Id ("uncons_stream", I)); (Id ("nat_stream", I))]),
-                    (Binder (
-                       (PBOpr ("\226\159\168,\226\159\169", (PId "hd"),
-                          (PId "tl"))),
-                       (Let (R,
-                          (App [(Id ("free_stream", I)); (Id ("tl", I))]),
-                          (Binder ((PId "_"), (Id ("hd", I))))))
-                       ))
-                    )),
-                 (Id ("nat_stream", I))))
-              ))
-           )),
-        (App
-           [(Inst ("apair", [(SId "_"); (SId "_"); L], I));
-             (Id ("nat_dep_t", I))]))
-       ));
-    view = []};
-  Definition {name = "_"; relv = R;
-    body =
-    (Binder ([],
-       ((App
-           [(Id ("free_stream", I));
-             (App [(Id ("proj2", I)); (Id ("my_apair1", I))])]),
-        (Id ("unit", I)))
-       ));
-    view = []}
+    view = [I; I]}
   ]
 
 -----------------------------------------
 
+#[program]
+inductive unit_1‹› : U where
+| tt_1 : unit_1
+
+#[program]
+inductive bool_2‹› : U where
+| true_2 : bool_2
+| false_3 : bool_2
+
+#[program]
+inductive nat_3‹› : U where
+| zero_4 : nat_3
+| succ_5 (pred_139 : nat_3) : nat_3
+
+#[program]
+inductive list_4‹› (A_140 : U): U where
+| nil_6 : (list_4 A_140)
+| cons_7 (hd_141 : A_140) (tl_142 : (list_4 A_140)) : (list_4 A_140)
+
 #[logical]
-inductive eq_1‹s_171› (A_172 : Type‹s_171›) (m_173 : A_172):
-  A_172 -> U
+inductive eq_5‹s_143› (A_144 : Type‹s_143›) (m_145 : A_144):
+  A_144 -> U
 where
-| refl_1 : (eq_1‹??_1› ?_1[0;0] m_173 m_173)
+| refl_8 : (eq_5‹??_1› ?_1[0;0] m_145 m_145)
 
 #[program]
-inductive boxed_2‹s_175› (A_176 : Type‹s_175›): L where
-| box_2 (m_177 : A_176) : (boxed_2‹??_2› A_176)
+inductive exists_6‹s_147,r_148,t_149› (A_150 : Type‹s_147›) (B_151 : 
+A_150 -> Type‹r_148›): Type‹t_149› where
+| ex_9
+    (m_153 : A_150) {pf_154 : ((B_151) m_153)}
+    : (exists_6‹??_2,??_3,??_4› ?_2[0;0] B_151)
 
 #[program]
-inductive sing_3‹s_178,t_179› (A_180 : Type‹s_178›):
-  A_180 -> Type‹t_179›
+inductive sing_7‹s_155› (A_156 : Type‹s_155›):
+  A_156 -> Type‹s_155›
 where
-| just_3 (m_182 : A_180) : (sing_3‹??_3,??_4› ?_2[0;0] m_182)
+| just_10 (m_158 : A_156) : (sing_7‹??_5› ?_3[0;0] m_158)
 
 #[program]
-inductive unit_4‹s_183› : Type‹s_183› where
-| tt_4 : unit_4‹??_5›
-
-#[program]
-inductive bool_5‹› : U where
-| true_5 : bool_5
-| false_6 : bool_5
-
-#[program]
-inductive choice_6‹› : L where
-| next_7 : choice_6
-| free_8 : choice_6
-
-#[program]
-inductive prod_7‹s_184,r_185,t_186› (A_187 : Type‹s_184›) (B_188 : Type‹r_185›):
-  Type‹t_186›
+inductive prod_8‹s_159,r_160,t_161› (A_162 : Type‹s_159›) (B_163 : Type‹r_160›):
+  Type‹t_161›
 where
-| pair_9
-    (m_189 : A_187) (n_190 : B_188)
-    : (prod_7‹??_6,??_7,??_8› A_187 B_188)
+| pair_11
+    (m_164 : A_162) (n_165 : B_163)
+    : (prod_8‹??_6,??_7,??_8› A_162 B_163)
 
 #[program]
-inductive nat_8‹› : U where
-| zero_10 : nat_8
-| succ_11 (__191 : nat_8) : nat_8
-
-#[program]
-def sing_elim_1‹s_192,t_193› :
-  ∀ {A_194 : Type‹s_192›} ->
-    ∀ {x_195 : A_194} -> (sing_3‹s_192,t_193› ?_4[0;0] x_195) -> A_194
+def exists_sing_1‹s_166,t_167› :
+  ∀ {A_168 : Type‹s_166›} ->
+    ∀ {m_169 : A_168} ->
+      (exists_6‹??_14,??_15,t_167›
+        ?_11[0;0]
+        function _171 : A_168 -> ?_9[0;0]
+        | a_173 => (eq_5‹??_16› ?_10[0;0] a_173 m_169)) ->
+        (sing_7‹??_17› ?_12[0;0] m_169)
 :=
-  function sing_elim_197 :
-    ∀ {A_198 : Type‹s_192›} ->
-      ∀ {x_199 : A_198} ->
-        (sing_3‹s_192,t_193› ?_3[0;0] x_199) -> A_198
-  | A_201 x_202 (just_3 x_203) => x_203
+  function exists_sing_174 :
+    ∀ {A_175 : Type‹s_166›} ->
+      ∀ {m_176 : A_175} ->
+        (exists_6‹??_9,??_10,t_167›
+          ?_6[0;0]
+          function _178 : A_175 -> ?_4[0;0]
+          | a_180 => (eq_5‹??_11› ?_5[0;0] a_180 m_176)) ->
+          (sing_7‹??_12› ?_7[0;0] m_176)
+  | A_181 m_182 (ex_9 x_183 refl_8) => (just_10‹??_13› ?_8[0;0] x_183)
+
+#[program]
+def sing_exists_2‹s_184,t_185› :
+  ∀ {A_186 : Type‹s_184›} ->
+    ∀ {m_187 : A_186} ->
+      (sing_7‹??_26› ?_21[0;0] m_187) ->
+        (exists_6‹??_27,??_28,t_185›
+          ?_24[0;0]
+          function _189 : A_186 -> ?_22[0;0]
+          | a_191 => (eq_5‹??_29› ?_23[0;0] a_191 m_187))
+:=
+  function sing_exists_192 :
+    ∀ {A_193 : Type‹s_184›} ->
+      ∀ {m_194 : A_193} ->
+        (sing_7‹??_18› ?_13[0;0] m_194) ->
+          (exists_6‹??_19,??_20,t_185›
+            ?_16[0;0]
+            function _196 : A_193 -> ?_14[0;0]
+            | a_198 => (eq_5‹??_21› ?_15[0;0] a_198 m_194))
+  | A_199 m_200 (just_10 x_201) =>
+    (ex_9‹??_23,??_24,??_25›
+      ?_19[0;0] ?_20[0;0] x_201 (refl_8‹??_22› ?_17[0;0] ?_18[0;0]))
 
 #[logical]
-def sing_uniq_2‹s_204,t_205› :
-  ∀ (A_206 : Type‹s_204›) ->
-    ∀ (x0_207 : A_206) ->
-      ∀ (x_208 : (sing_3‹s_204,t_205› ?_11[0;0] x0_207)) ->
-        (eq_1‹??_15›
-          ?_14[0;0] x0_207
-          ((sing_elim_1‹??_13,??_14›) ?_13[0;0] ?_12[0;0] x_208))
+def sing_exists_equiv1_3‹s_202,t_203› :
+  ∀ {A_204 : Type‹s_202›} ->
+    ∀ {m_205 : A_204} ->
+      ∀ (x_206 : (sing_7‹??_36› ?_33[0;0] m_205)) ->
+        (eq_5‹??_40›
+          ?_38[0;0]
+          ((exists_sing_1‹??_38,??_39›)
+            ?_37[0;0] ?_36[0;0]
+            ((sing_exists_2‹??_37,t_203›) ?_35[0;0] ?_34[0;0] x_206))
+          x_206)
 :=
-  function sing_uniq_209 :
-    ∀ (A_210 : Type‹s_204›) ->
-      ∀ (x0_211 : A_210) ->
-        ∀ (x_212 : (sing_3‹s_204,t_205› ?_5[0;0] x0_211)) ->
-          (eq_1‹??_11›
-            ?_8[0;0] x0_211
-            ((sing_elim_1‹??_9,??_10›) ?_7[0;0] ?_6[0;0] x_212))
-  | A_213 x0_214 (just_3 _215) => (refl_1‹??_12› ?_9[0;0] ?_10[0;0])
-
-#[program]
-inductive stream_node_9‹s_216› (A_217 : Type‹s_216›): L where
-| stream_cons_12
-    (hd_218 : A_217)
-    (tl_219 : ∀ (x_220 : choice_6) -o
-                match x_220 in ?_15[0;0] -o ?_16[0;0] with
-                | next_7 => (stream_node_9‹??_16› A_217)
-                | free_8 => unit_4‹??_17›)
-    : (stream_node_9‹??_18› A_217)
+  function sing_exists_equiv1_207 :
+    ∀ {A_208 : Type‹s_202›} ->
+      ∀ {m_209 : A_208} ->
+        ∀ (x_210 : (sing_7‹??_30› ?_25[0;0] m_209)) ->
+          (eq_5‹??_34›
+            ?_30[0;0]
+            ((exists_sing_1‹??_32,??_33›)
+              ?_29[0;0] ?_28[0;0]
+              ((sing_exists_2‹??_31,t_203›) ?_27[0;0] ?_26[0;0] x_210))
+            x_210)
+  | A_211 m_212 (just_10 x_213) => (refl_8‹??_35› ?_31[0;0] ?_32[0;0])
 
 #[logical]
-def stream_3‹s_222› : Type‹s_222› -> ?_20[0;0] :=
-  function stream_224 : Type‹s_222› -> ?_17[0;0]
-  | A_226 =>
-    ∀ (x_227 : choice_6) -o
-      match x_227 in ?_18[0;0] -o ?_19[0;0] with
-      | next_7 => (stream_node_9‹??_19› A_226)
-      | free_8 => unit_4‹??_20›
-
-#[program]
-def free_stream_4‹s_229› :
-  ∀ {A_230 : Type‹s_229›} ->
-    ((stream_3‹??_23›) A_230) -> unit_4‹U›
+def sing_exists_equiv2_4‹s_214,t_215› :
+  ∀ {A_216 : Type‹s_214›} ->
+    ∀ {m_217 : A_216} ->
+      ∀ (x_218 :
+        (exists_6‹??_50,??_51,t_215›
+          ?_51[0;0]
+          function _219 : A_216 -> ?_49[0;0]
+          | a_221 => (eq_5‹??_52› ?_50[0;0] a_221 m_217))) ->
+        (eq_5‹??_57›
+          ?_56[0;0]
+          ((sing_exists_2‹??_55,??_56›)
+            ?_55[0;0] ?_54[0;0]
+            ((exists_sing_1‹??_53,??_54›) ?_53[0;0] ?_52[0;0] x_218))
+          x_218)
 :=
-  function free_stream_232 :
-    ∀ {A_233 : Type‹s_229›} ->
-      ((stream_3‹??_21›) A_233) -> unit_4‹U›
-  | A_235 st_236 =>
-    match ((st_236) free_8) in ?_21[0;0] -o ?_22[0;0] with
-    | tt_4 => tt_4‹??_22›
+  function sing_exists_equiv2_222 :
+    ∀ {A_223 : Type‹s_214›} ->
+      ∀ {m_224 : A_223} ->
+        ∀ (x_225 :
+          (exists_6‹??_41,??_42,t_215›
+            ?_41[0;0]
+            function _226 : A_223 -> ?_39[0;0]
+            | a_228 => (eq_5‹??_43› ?_40[0;0] a_228 m_224))) ->
+          (eq_5‹??_48›
+            ?_46[0;0]
+            ((sing_exists_2‹??_46,??_47›)
+              ?_45[0;0] ?_44[0;0]
+              ((exists_sing_1‹??_44,??_45›) ?_43[0;0] ?_42[0;0] x_225))
+            x_225)
+  | A_229 m_230 (ex_9 x_231 refl_8) =>
+    (refl_8‹??_49› ?_47[0;0] ?_48[0;0])
 
 #[program]
-def uncons_stream_5‹s_238› :
-  ∀ {A_239 : Type‹s_238›} ->
-    ((stream_3‹??_31›) A_239) ->
-      (prod_7‹??_32,??_33,L› A_239 ((stream_3‹??_34›) A_239))
+def sing_double_5‹s_232› :
+  ∀ {A_233 : Type‹s_232›} ->
+    ∀ {m_234 : A_233} ->
+      (sing_7‹??_67› ?_64[0;0] m_234) ->
+        (sing_7‹??_68› ?_65[0;0] m_234) -o
+          (prod_8‹??_69,??_70,L› A_233 A_233)
 :=
-  function uncons_stream_241 :
-    ∀ {A_242 : Type‹s_238›} ->
-      ((stream_3‹??_24›) A_242) ->
-        (prod_7‹??_25,??_26,L› A_242 ((stream_3‹??_27›) A_242))
-  | A_244 st_245 =>
-    match ((st_245) next_7) in ?_26[0;0] -o ?_25[0;0] with
-    | (stream_cons_12 hd_247 tl_248) =>
-      (pair_9‹??_28,??_29,??_30› ?_23[0;0] ?_24[0;0] hd_247 tl_248)
+  function sing_double_237 :
+    ∀ {A_238 : Type‹s_232›} ->
+      ∀ {m_239 : A_238} ->
+        (sing_7‹??_58› ?_57[0;0] m_239) ->
+          (sing_7‹??_59› ?_58[0;0] m_239) -o
+            (prod_8‹??_60,??_61,L› A_238 A_238)
+  | A_242 m_243 (just_10 x_244) (just_10 y_245) =>
+    let {pf_246} :=
+      ((refl_8‹??_62› ?_59[0;0] ?_60[0;0])
+        : (eq_5‹??_63› ?_61[0;0] x_244 y_245))
+    in (pair_11‹??_64,??_65,??_66› ?_62[0;0] ?_63[0;0] x_244 y_245)
 
 #[program]
-def nat_make_6‹› : nat_8 -> ((stream_3‹??_38›) nat_8) :=
-  function nat_make_250 : nat_8 -> ((stream_3‹??_35›) nat_8)
-  | n_252 next_7 =>
-    (stream_cons_12‹??_36›
-      ?_27[0;0] n_252 ((nat_make_250) (succ_11‹› n_252)))
-  | n_253 free_8 => tt_4‹??_37›
+def my_sing_6‹› : ?_67[0;0] := (just_10‹??_71› ?_66[0;0] true_2)
 
 #[program]
-inductive apair_10‹s_254,r_255,t_256› (A_257 : Type‹s_254›) (B_258 : 
-A_257 -> Type‹r_255›): Type‹t_256› where
-| apair_intro_13
-    {x_260 : A_257}
-    (select_261 : forall‹t_256›(b_262 : bool_5),
-                    match b_262 in ?_28[0;0] -o ?_29[0;0] with
-                    | true_5 => (sing_3‹??_39,L› ?_30[0;0] x_260)
-                    | false_6 => (boxed_2‹??_40› ((B_258) x_260)))
-    : (apair_10‹??_41,??_42,??_43› ?_31[0;0] B_258)
-
-#[program]
-def proj1_7‹s_264,r_265,t_266› :
-  ∀ {A_267 : Type‹s_264›} ->
-    ∀ {B_268 : A_267 -> Type‹r_265›} ->
-      (apair_10‹s_264,r_265,t_266› A_267 B_268) -> A_267
-:=
-  function proj1_271 :
-    ∀ {A_272 : Type‹s_264›} ->
-      ∀ {B_273 : A_272 -> Type‹r_265›} ->
-        (apair_10‹s_264,r_265,t_266› A_272 B_273) -> A_272
-  | A_276 B_277 (apair_intro_13 _278 select_279) =>
-    ((sing_elim_1‹??_44,??_45›)
-      ?_33[0;0] ?_32[0;0] ((select_279) true_5))
-
-#[program]
-def proj2_8‹s_280,r_281,t_282› :
-  ∀ {A_283 : Type‹s_280›} ->
-    ∀ {B_284 : A_283 -> Type‹r_281›} ->
-      ∀ (x_286 : (apair_10‹s_280,r_281,t_282› A_283 B_284)) ->
-        ((B_284)
-          ((proj1_7‹??_59,??_60,??_61›) ?_46[0;0] ?_45[0;0] x_286))
-:=
-  function proj2_287 :
-    ∀ {A_288 : Type‹s_280›} ->
-      ∀ {B_289 : A_288 -> Type‹r_281›} ->
-        ∀ (x_291 : (apair_10‹s_280,r_281,t_282› A_288 B_289)) ->
-          ((B_289)
-            ((proj1_7‹??_46,??_47,??_48›) ?_35[0;0] ?_34[0;0] x_291))
-  | A_292 B_293 (apair_intro_13 x_294 select_295) =>
-    match x_294, ((select_295) true_5),
-    ((sing_uniq_2‹??_49,??_50›)
-      ?_37[0;0] ?_36[0;0] ((select_295) true_5)),
-    ((select_295) false_6) in
-      ∀ {x0_296 : ?_38[0;0]} -o
-        ∀ {a0_297 : (sing_3‹??_51,??_52› ?_39[0;0] x_294)} -o
-          {(eq_1‹??_55›
-             ?_42[0;0] x0_296
-             ((sing_elim_1‹??_53,??_54›) ?_41[0;0] ?_40[0;0] a0_297))} -o
-            (boxed_2‹??_56› ((B_293) x0_296)) -o
-              ((B_293)
-                ((sing_elim_1‹??_57,??_58›) ?_44[0;0] ?_43[0;0] a0_297))
-    with
-    | _300, _301, refl_1, (box_2 b_302) => b_302
+def my_exists_7‹› :
+  (exists_6‹??_74,??_75,U›
+    ?_72[0;0]
+    function _247 : bool_2 -> ?_70[0;0]
+    | x_249 => (eq_5‹??_76› ?_71[0;0] x_249 true_2))
+:= ((sing_exists_2‹??_72,??_73›) ?_69[0;0] ?_68[0;0] my_sing_6)
 
 #[logical]
-def nat_dep_t_9‹› : nat_8 -> L :=
-  function nat_dep_t_304 : nat_8 -> L
-  | zero_10 => ((stream_3‹??_62›) nat_8)
-  | (succ_11 _306) => unit_4‹L›
-
-#[program]
-def my_apair0_10‹› : (apair_10‹??_69,??_70,U› ?_53[0;0] nat_dep_t_9)
+def axiom_K_8‹› :
+  ∀ {A_250 : U} ->
+    ∀ {m_251 : A_250} ->
+      ∀ (x_252 : (eq_5‹??_81› ?_79[0;0] m_251 m_251)) ->
+        (eq_5‹??_83›
+          ?_82[0;0] x_252 (refl_8‹??_82› ?_80[0;0] ?_81[0;0]))
 :=
-  (apair_intro_13‹??_66,??_67,??_68›
-    ?_51[0;0] ?_52[0;0] ?_50[0;0]
-    function _307 : ?_47[0;0]
-    | true_5 => (just_3‹??_63,??_64› ?_48[0;0] zero_10)
-    | false_6 => (box_2‹??_65› ?_49[0;0] ((nat_make_6) zero_10)))
-
-#[program]
-def my_apair1_11‹› : (apair_10‹??_79,??_80,L› ?_64[0;0] nat_dep_t_9)
-:=
-  let nat_stream_308 := ((nat_make_6) zero_10) in
-  (apair_intro_13‹??_76,??_77,??_78›
-    ?_62[0;0] ?_63[0;0] ?_61[0;0]
-    function _309 : ?_54[0;0]
-    | true_5 =>
-      (just_3‹??_73,??_74›
-        ?_59[0;0]
-        match ((uncons_stream_5‹??_71›) ?_55[0;0] nat_stream_308) in
-          ?_58[0;0] -o ?_57[0;0]
-        with
-        | (pair_9 hd_311 tl_312) =>
-          let __313 := ((free_stream_4‹??_72›) ?_56[0;0] tl_312) in
-          hd_311)
-    | false_6 => (box_2‹??_75› ?_60[0;0] nat_stream_308))
-
-#[program]
-def __12‹› : unit_4‹??_85› :=
-  ((free_stream_4‹??_84›)
-    ?_67[0;0]
-    ((proj2_8‹??_81,??_82,??_83›) ?_66[0;0] ?_65[0;0] my_apair1_11))
+  function axiom_K_253 :
+    ∀ {A_254 : U} ->
+      ∀ {m_255 : A_254} ->
+        ∀ (x_256 : (eq_5‹??_77› ?_73[0;0] m_255 m_255)) ->
+          (eq_5‹??_79›
+            ?_76[0;0] x_256 (refl_8‹??_78› ?_74[0;0] ?_75[0;0]))
+  | A_257 m_258 refl_8 => (refl_8‹??_80› ?_77[0;0] ?_78[0;0])
 
 -----------------------------------------
 
+#[program]
+inductive unit_1‹› : U where
+| tt_1 : unit_1
+
+#[program]
+inductive bool_2‹› : U where
+| true_2 : bool_2
+| false_3 : bool_2
+
+#[program]
+inductive nat_3‹› : U where
+| zero_4 : nat_3
+| succ_5 (pred_4193 : nat_3) : nat_3
+
+#[program]
+inductive list_4‹› (A_4194 : U): U where
+| nil_6 : (list_4 A_4194)
+| cons_7 (hd_4195 : A_4194) (tl_4196 : (list_4 A_4194)) : (list_4 A_4194)
+
 #[logical]
-inductive eq_1‹s_3918› (A_3919 : Type‹s_3918›) (m_3920 : A_3919):
-  A_3919 -> U
+inductive eq_5‹s_4197› (A_4198 : Type‹s_4197›) (m_4199 : A_4198):
+  A_4198 -> U
 where
-| refl_1 : (eq_1‹s_3918› A_3919 m_3920 m_3920)
+| refl_8 : (eq_5‹s_4197› A_4198 m_4199 m_4199)
 
 #[program]
-inductive boxed_2‹s_3922› (A_3923 : Type‹s_3922›): L where
-| box_2 (m_3924 : A_3923) : (boxed_2‹s_3922› A_3923)
+inductive exists_6‹s_4201,r_4202,t_4203› (A_4204 : Type‹s_4201›) (B_4205 : 
+A_4204 -> Type‹r_4202›): Type‹t_4203› where
+| ex_9
+    (m_4207 : A_4204) {pf_4208 : ((B_4205) m_4207)}
+    : (exists_6‹s_4201,r_4202,t_4203› A_4204 B_4205)
 
 #[program]
-inductive sing_3‹s_3925,t_3926› (A_3927 : Type‹s_3925›):
-  A_3927 -> Type‹t_3926›
+inductive sing_7‹s_4209› (A_4210 : Type‹s_4209›):
+  A_4210 -> Type‹s_4209›
 where
-| just_3 (m_3929 : A_3927) : (sing_3‹s_3925,t_3926› A_3927 m_3929)
+| just_10 (m_4212 : A_4210) : (sing_7‹s_4209› A_4210 m_4212)
 
 #[program]
-inductive unit_4‹s_3930› : Type‹s_3930› where
-| tt_4 : unit_4‹s_3930›
-
-#[program]
-inductive bool_5‹› : U where
-| true_5 : bool_5
-| false_6 : bool_5
-
-#[program]
-inductive choice_6‹› : L where
-| next_7 : choice_6
-| free_8 : choice_6
-
-#[program]
-inductive prod_7‹s_3931,r_3932,t_3933› (A_3934 : Type‹s_3931›) (B_3935 : Type‹r_3932›):
-  Type‹t_3933›
+inductive prod_8‹s_4213,r_4214,t_4215› (A_4216 : Type‹s_4213›) (B_4217 : Type‹r_4214›):
+  Type‹t_4215›
 where
-| pair_9
-    (m_3936 : A_3934) (n_3937 : B_3935)
-    : (prod_7‹s_3931,r_3932,t_3933› A_3934 B_3935)
+| pair_11
+    (m_4218 : A_4216) (n_4219 : B_4217)
+    : (prod_8‹s_4213,r_4214,t_4215› A_4216 B_4217)
 
 #[program]
-inductive nat_8‹› : U where
-| zero_10 : nat_8
-| succ_11 (__3938 : nat_8) : nat_8
-
-#[program]
-def sing_elim_1‹s_3939,t_3940› :
-  ∀ {A_3941 : Type‹s_3939›} ->
-    ∀ {x_3942 : A_3941} ->
-      (sing_3‹s_3939,t_3940› A_3941 x_3942) -> A_3941
+def exists_sing_1‹s_4220,t_4221› :
+  ∀ {A_4222 : Type‹s_4220›} ->
+    ∀ {m_4223 : A_4222} ->
+      (exists_6‹s_4220,U,t_4221›
+        A_4222
+        function _4225 : A_4222 -> U
+        | __4227 => (eq_5‹s_4220› A_4222 __4227 m_4223)) ->
+        (sing_7‹s_4220› A_4222 m_4223)
 :=
-  function sing_elim_3944 :
-    ∀ {A_3945 : Type‹s_3939›} ->
-      ∀ {x_3946 : A_3945} ->
-        (sing_3‹s_3939,t_3940› A_3945 x_3946) -> A_3945
-  | A_3948 x_3949 (just_3 m_3950) => m_3950
+  function exists_sing_4228 :
+    ∀ {A_4229 : Type‹s_4220›} ->
+      ∀ {m_4230 : A_4229} ->
+        (exists_6‹s_4220,U,t_4221›
+          A_4229
+          function _4232 : A_4229 -> U
+          | __4234 => (eq_5‹s_4220› A_4229 __4234 m_4230)) ->
+          (sing_7‹s_4220› A_4229 m_4230)
+  | A_4235 m_4236 (ex_9 m_4237 refl_8) => (just_10‹s_4220› A_4235 m_4237)
+
+#[program]
+def sing_exists_2‹s_4238,t_4239› :
+  ∀ {A_4240 : Type‹s_4238›} ->
+    ∀ {m_4241 : A_4240} ->
+      (sing_7‹s_4238› A_4240 m_4241) ->
+        (exists_6‹s_4238,U,t_4239›
+          A_4240
+          function _4243 : A_4240 -> U
+          | __4245 => (eq_5‹s_4238› A_4240 __4245 m_4241))
+:=
+  function sing_exists_4246 :
+    ∀ {A_4247 : Type‹s_4238›} ->
+      ∀ {m_4248 : A_4247} ->
+        (sing_7‹s_4238› A_4247 m_4248) ->
+          (exists_6‹s_4238,U,t_4239›
+            A_4247
+            function _4250 : A_4247 -> U
+            | __4252 => (eq_5‹s_4238› A_4247 __4252 m_4248))
+  | A_4253 m_4254 (just_10 m_4255) =>
+    (ex_9‹s_4238,U,t_4239›
+      A_4253
+      function _4256 : A_4253 -> U
+      | __4258 => (eq_5‹s_4238› A_4253 __4258 m_4255) m_4255
+      (refl_8‹s_4238› A_4253 m_4255))
 
 #[logical]
-def sing_uniq_2‹s_3951,t_3952› :
-  ∀ (A_3953 : Type‹s_3951›) ->
-    ∀ (x0_3954 : A_3953) ->
-      ∀ (x_3955 : (sing_3‹s_3951,t_3952› A_3953 x0_3954)) ->
-        (eq_1‹s_3951›
-          A_3953 x0_3954
-          ((sing_elim_1‹s_3951,t_3952›) A_3953 x0_3954 x_3955))
+def sing_exists_equiv1_3‹s_4259,t_4260› :
+  ∀ {A_4261 : Type‹s_4259›} ->
+    ∀ {m_4262 : A_4261} ->
+      ∀ (x_4263 : (sing_7‹s_4259› A_4261 m_4262)) ->
+        (eq_5‹s_4259›
+          (sing_7‹s_4259› A_4261 m_4262)
+          ((exists_sing_1‹s_4259,t_4260›)
+            A_4261 m_4262
+            ((sing_exists_2‹s_4259,t_4260›) A_4261 m_4262 x_4263))
+          x_4263)
 :=
-  function sing_uniq_3956 :
-    ∀ (A_3957 : Type‹s_3951›) ->
-      ∀ (x0_3958 : A_3957) ->
-        ∀ (x_3959 : (sing_3‹s_3951,t_3952› A_3957 x0_3958)) ->
-          (eq_1‹s_3951›
-            A_3957 x0_3958
-            ((sing_elim_1‹s_3951,t_3952›) A_3957 x0_3958 x_3959))
-  | A_3960 x0_3961 (just_3 m_3962) => (refl_1‹s_3951› A_3960 m_3962)
-
-#[program]
-inductive stream_node_9‹s_3963› (A_3964 : Type‹s_3963›): L where
-| stream_cons_12
-    (hd_3965 : A_3964)
-    (tl_3966 : ∀ (x_3967 : choice_6) -o
-                 match x_3967 in choice_6 -o L with
-                 | next_7 => (stream_node_9‹s_3963› A_3964)
-                 | free_8 => unit_4‹L›)
-    : (stream_node_9‹s_3963› A_3964)
+  function sing_exists_equiv1_4264 :
+    ∀ {A_4265 : Type‹s_4259›} ->
+      ∀ {m_4266 : A_4265} ->
+        ∀ (x_4267 : (sing_7‹s_4259› A_4265 m_4266)) ->
+          (eq_5‹s_4259›
+            (sing_7‹s_4259› A_4265 m_4266)
+            ((exists_sing_1‹s_4259,t_4260›)
+              A_4265 m_4266
+              ((sing_exists_2‹s_4259,t_4260›) A_4265 m_4266 x_4267))
+            x_4267)
+  | A_4268 m_4269 (just_10 m_4270) =>
+    (refl_8‹s_4259›
+      (sing_7‹s_4259› A_4268 m_4270)
+      ((exists_sing_1‹s_4259,t_4260›)
+        A_4268 m_4270
+        ((sing_exists_2‹s_4259,t_4260›)
+          A_4268 m_4270 (just_10‹s_4259› A_4268 m_4270))))
 
 #[logical]
-def stream_3‹s_3969› : Type‹s_3969› -> L :=
-  function stream_3971 : Type‹s_3969› -> L
-  | A_3973 =>
-    ∀ (x_3974 : choice_6) -o
-      match x_3974 in choice_6 -o L with
-      | next_7 => (stream_node_9‹s_3969› A_3973)
-      | free_8 => unit_4‹L›
-
-#[program]
-def free_stream_4‹s_3976› :
-  ∀ {A_3977 : Type‹s_3976›} ->
-    ((stream_3‹s_3976›) A_3977) -> unit_4‹U›
+def sing_exists_equiv2_4‹s_4271,t_4272› :
+  ∀ {A_4273 : Type‹s_4271›} ->
+    ∀ {m_4274 : A_4273} ->
+      ∀ (x_4275 :
+        (exists_6‹s_4271,U,t_4272›
+          A_4273
+          function _4276 : A_4273 -> U
+          | __4278 => (eq_5‹s_4271› A_4273 __4278 m_4274))) ->
+        (eq_5‹t_4272›
+          (exists_6‹s_4271,U,t_4272›
+            A_4273
+            function _4279 : A_4273 -> U
+            | __4281 => (eq_5‹s_4271› A_4273 __4281 m_4274))
+          ((sing_exists_2‹s_4271,t_4272›)
+            A_4273 m_4274
+            ((exists_sing_1‹s_4271,t_4272›) A_4273 m_4274 x_4275))
+          x_4275)
 :=
-  function free_stream_3979 :
-    ∀ {A_3980 : Type‹s_3976›} ->
-      ((stream_3‹s_3976›) A_3980) -> unit_4‹U›
-  | A_3982 st_3983 =>
-    match ((st_3983) free_8) in unit_4‹L› -o unit_4‹U› with
-    | tt_4 => tt_4‹U›
+  function sing_exists_equiv2_4282 :
+    ∀ {A_4283 : Type‹s_4271›} ->
+      ∀ {m_4284 : A_4283} ->
+        ∀ (x_4285 :
+          (exists_6‹s_4271,U,t_4272›
+            A_4283
+            function _4286 : A_4283 -> U
+            | __4288 => (eq_5‹s_4271› A_4283 __4288 m_4284))) ->
+          (eq_5‹t_4272›
+            (exists_6‹s_4271,U,t_4272›
+              A_4283
+              function _4289 : A_4283 -> U
+              | __4291 => (eq_5‹s_4271› A_4283 __4291 m_4284))
+            ((sing_exists_2‹s_4271,t_4272›)
+              A_4283 m_4284
+              ((exists_sing_1‹s_4271,t_4272›) A_4283 m_4284 x_4285))
+            x_4285)
+  | A_4292 m_4293 (ex_9 m_4294 refl_8) =>
+    (refl_8‹t_4272›
+      (exists_6‹s_4271,U,t_4272›
+        A_4292
+        function _4295 : A_4292 -> U
+        | __4297 => (eq_5‹s_4271› A_4292 __4297 m_4294))
+      ((sing_exists_2‹s_4271,t_4272›)
+        A_4292 m_4294
+        ((exists_sing_1‹s_4271,t_4272›)
+          A_4292 m_4294
+          (ex_9‹s_4271,U,t_4272›
+            A_4292
+            function _4298 : A_4292 -> U
+            | __4300 => (eq_5‹s_4271› A_4292 __4300 m_4294) m_4294
+            (refl_8‹s_4271› A_4292 m_4294)))))
 
 #[program]
-def uncons_stream_5‹s_3985› :
-  ∀ {A_3986 : Type‹s_3985›} ->
-    ((stream_3‹s_3985›) A_3986) ->
-      (prod_7‹s_3985,L,L› A_3986 ((stream_3‹s_3985›) A_3986))
+def sing_double_5‹s_4301› :
+  ∀ {A_4302 : Type‹s_4301›} ->
+    ∀ {m_4303 : A_4302} ->
+      (sing_7‹s_4301› A_4302 m_4303) ->
+        (sing_7‹s_4301› A_4302 m_4303) -o
+          (prod_8‹s_4301,s_4301,L› A_4302 A_4302)
 :=
-  function uncons_stream_3988 :
-    ∀ {A_3989 : Type‹s_3985›} ->
-      ((stream_3‹s_3985›) A_3989) ->
-        (prod_7‹s_3985,L,L› A_3989 ((stream_3‹s_3985›) A_3989))
-  | A_3991 st_3992 =>
-    match ((st_3992) next_7) in
-      (stream_node_9‹s_3985› A_3991) -o
-        (prod_7‹s_3985,L,L› A_3991 ((stream_3‹s_3985›) A_3991))
-    with
-    | (stream_cons_12 hd_3994 tl_3995) =>
-      (pair_9‹s_3985,L,L›
-        A_3991 ((stream_3‹s_3985›) A_3991) hd_3994 tl_3995)
+  function sing_double_4306 :
+    ∀ {A_4307 : Type‹s_4301›} ->
+      ∀ {m_4308 : A_4307} ->
+        (sing_7‹s_4301› A_4307 m_4308) ->
+          (sing_7‹s_4301› A_4307 m_4308) -o
+            (prod_8‹s_4301,s_4301,L› A_4307 A_4307)
+  | A_4311 m_4312 (just_10 m_4313) (just_10 m_4314) =>
+    let {pf_4315} :=
+      ((refl_8‹s_4301› A_4311 m_4313)
+        : (eq_5‹s_4301› A_4311 m_4313 m_4314))
+    in (pair_11‹s_4301,s_4301,L› A_4311 A_4311 m_4313 m_4314)
 
 #[program]
-def nat_make_6‹› : nat_8 -> ((stream_3‹U›) nat_8) :=
-  function nat_make_3997 : nat_8 -> ((stream_3‹U›) nat_8)
-  | n_3999 next_7 =>
-    (stream_cons_12‹U›
-      nat_8 n_3999 ((nat_make_3997) (succ_11‹› n_3999)))
-  | n_4000 free_8 => tt_4‹L›
+def my_sing_6‹› : (sing_7‹U› bool_2 true_2) :=
+  (just_10‹U› bool_2 true_2)
 
 #[program]
-inductive apair_10‹s_4001,r_4002,t_4003› (A_4004 : Type‹s_4001›) (B_4005 : 
-A_4004 -> Type‹r_4002›): Type‹t_4003› where
-| apair_intro_13
-    {x_4007 : A_4004}
-    (select_4008 : forall‹t_4003›(b_4009 : bool_5),
-                     match b_4009 in bool_5 -o L with
-                     | true_5 => (sing_3‹s_4001,L› A_4004 x_4007)
-                     | false_6 => (boxed_2‹r_4002› ((B_4005) x_4007)))
-    : (apair_10‹s_4001,r_4002,t_4003› A_4004 B_4005)
-
-#[program]
-def proj1_7‹s_4011,r_4012,t_4013› :
-  ∀ {A_4014 : Type‹s_4011›} ->
-    ∀ {B_4015 : A_4014 -> Type‹r_4012›} ->
-      (apair_10‹s_4011,r_4012,t_4013› A_4014 B_4015) -> A_4014
-:=
-  function proj1_4018 :
-    ∀ {A_4019 : Type‹s_4011›} ->
-      ∀ {B_4020 : A_4019 -> Type‹r_4012›} ->
-        (apair_10‹s_4011,r_4012,t_4013› A_4019 B_4020) -> A_4019
-  | A_4023 B_4024 (apair_intro_13 x_4025 select_4026) =>
-    ((sing_elim_1‹s_4011,L›) A_4023 x_4025 ((select_4026) true_5))
-
-#[program]
-def proj2_8‹s_4027,r_4028,t_4029› :
-  ∀ {A_4030 : Type‹s_4027›} ->
-    ∀ {B_4031 : A_4030 -> Type‹r_4028›} ->
-      ∀ (x_4033 : (apair_10‹s_4027,r_4028,t_4029› A_4030 B_4031)) ->
-        ((B_4031) ((proj1_7‹s_4027,r_4028,t_4029›) A_4030 B_4031 x_4033))
-:=
-  function proj2_4034 :
-    ∀ {A_4035 : Type‹s_4027›} ->
-      ∀ {B_4036 : A_4035 -> Type‹r_4028›} ->
-        ∀ (x_4038 : (apair_10‹s_4027,r_4028,t_4029› A_4035 B_4036)) ->
-          ((B_4036)
-            ((proj1_7‹s_4027,r_4028,t_4029›) A_4035 B_4036 x_4038))
-  | A_4039 B_4040 (apair_intro_13 x_4041 select_4042) =>
-    match x_4041, ((select_4042) true_5),
-    ((sing_uniq_2‹s_4027,L›) A_4039 x_4041 ((select_4042) true_5)),
-    ((select_4042) false_6) in
-      ∀ {x0_4043 : A_4039} -o
-        ∀ {a0_4044 : (sing_3‹s_4027,L› A_4039 x_4041)} -o
-          {(eq_1‹s_4027›
-             A_4039 x0_4043
-             ((sing_elim_1‹s_4027,L›) A_4039 x_4041 a0_4044))} -o
-            (boxed_2‹r_4028› ((B_4040) x0_4043)) -o
-              ((B_4040) ((sing_elim_1‹s_4027,L›) A_4039 x_4041 a0_4044))
-    with
-    | x0_4047, a0_4048, refl_1, (box_2 m_4049) => m_4049
+def my_exists_7‹› :
+  (exists_6‹U,U,U›
+    bool_2
+    function _4316 : bool_2 -> U
+    | __4318 => (eq_5‹U› bool_2 __4318 true_2))
+:= ((sing_exists_2‹U,U›) bool_2 true_2 my_sing_6)
 
 #[logical]
-def nat_dep_t_9‹› : nat_8 -> L :=
-  function nat_dep_t_4051 : nat_8 -> L
-  | zero_10 => ((stream_3‹U›) nat_8)
-  | (succ_11 __4053) => unit_4‹L›
-
-#[program]
-def my_apair0_10‹› : (apair_10‹U,L,U› nat_8 nat_dep_t_9) :=
-  (apair_intro_13‹U,L,U›
-    nat_8 nat_dep_t_9 zero_10
-    function _4054 :
-      ∀ (b_4055 : bool_5) ->
-        match b_4055 in bool_5 -o L with
-        | true_5 => (sing_3‹U,L› nat_8 zero_10)
-        | false_6 => (boxed_2‹L› ((nat_dep_t_9) zero_10))
-    | true_5 => (just_3‹U,L› nat_8 zero_10)
-    | false_6 =>
-      (box_2‹L› ((nat_dep_t_9) zero_10) ((nat_make_6) zero_10)))
-
-#[program]
-def my_apair1_11‹› : (apair_10‹U,L,L› nat_8 nat_dep_t_9) :=
-  let nat_stream_4057 := ((nat_make_6) zero_10) in
-  (apair_intro_13‹U,L,L›
-    nat_8 nat_dep_t_9
-    match ((uncons_stream_5‹U›) nat_8 nat_stream_4057) in
-      (prod_7‹U,L,L› nat_8 ((stream_3‹U›) nat_8)) -o nat_8
-    with
-    | (pair_9 m_4059 n_4060) =>
-      let __4061 := ((free_stream_4‹U›) nat_8 n_4060) in m_4059
-    function _4062 :
-      ∀ (b_4063 : bool_5) -o
-        match b_4063 in bool_5 -o L with
-        | true_5 =>
-          (sing_3‹U,L›
-            nat_8
-            match ((uncons_stream_5‹U›) nat_8 nat_stream_4057) in
-              (prod_7‹U,L,L› nat_8 ((stream_3‹U›) nat_8)) -o nat_8
-            with
-            | (pair_9 m_4066 n_4067) =>
-              let __4068 := ((free_stream_4‹U›) nat_8 n_4067) in m_4066)
-        | false_6 =>
-          (boxed_2‹L›
-            ((nat_dep_t_9)
-              match ((uncons_stream_5‹U›) nat_8 nat_stream_4057) in
-                (prod_7‹U,L,L› nat_8 ((stream_3‹U›) nat_8)) -o nat_8
-              with
-              | (pair_9 m_4070 n_4071) =>
-                let __4072 := ((free_stream_4‹U›) nat_8 n_4071) in m_4070))
-    | true_5 =>
-      (just_3‹U,L›
-        nat_8
-        match ((uncons_stream_5‹U›) nat_8 nat_stream_4057) in
-          (prod_7‹U,L,L› nat_8 ((stream_3‹U›) nat_8)) -o nat_8
-        with
-        | (pair_9 m_4074 n_4075) =>
-          let __4076 := ((free_stream_4‹U›) nat_8 n_4075) in m_4074)
-    | false_6 =>
-      (box_2‹L›
-        ((nat_dep_t_9)
-          match ((uncons_stream_5‹U›) nat_8 nat_stream_4057) in
-            (prod_7‹U,L,L› nat_8 ((stream_3‹U›) nat_8)) -o nat_8
-          with
-          | (pair_9 m_4078 n_4079) =>
-            let __4080 := ((free_stream_4‹U›) nat_8 n_4079) in m_4078)
-        nat_stream_4057))
-
-#[program]
-def __12‹› : unit_4‹U› :=
-  ((free_stream_4‹U›)
-    nat_8 ((proj2_8‹U,L,L›) nat_8 nat_dep_t_9 my_apair1_11))
+def axiom_K_8‹› :
+  ∀ {A_4319 : U} ->
+    ∀ {m_4320 : A_4319} ->
+      ∀ (x_4321 : (eq_5‹U› A_4319 m_4320 m_4320)) ->
+        (eq_5‹U›
+          (eq_5‹U› A_4319 m_4320 m_4320) x_4321
+          (refl_8‹U› A_4319 m_4320))
+:=
+  function axiom_K_4322 :
+    ∀ {A_4323 : U} ->
+      ∀ {m_4324 : A_4323} ->
+        ∀ (x_4325 : (eq_5‹U› A_4323 m_4324 m_4324)) ->
+          (eq_5‹U›
+            (eq_5‹U› A_4323 m_4324 m_4324) x_4325
+            (refl_8‹U› A_4323 m_4324))
+  | A_4326 m_4327 refl_8 =>
+    (refl_8‹U›
+      (eq_5‹U› A_4326 m_4327 m_4327) (refl_8‹U› A_4326 m_4327))
 
 -----------------------------------------
 
+#[program]
+inductive unit_1 where
+| tt_1 of layout[]
+
+#[program]
+inductive bool_2 where
+| true_2 of layout[]
+| false_3 of layout[]
+
+#[program]
+inductive nat_3 where
+| zero_4 of layout[]
+| succ_5 of layout[R]
+
+#[program]
+inductive list_4 where
+| nil_6 of layout[]
+| cons_7 of layout[R, R]
+
 #[logical]
-inductive eqU_12 where
-| reflU_15 of layout[]
+inductive eqU_10 where
+| reflU_13 of layout[]
 
 #[logical]
-inductive eqL_11 where
-| reflL_14 of layout[]
+inductive eqL_9 where
+| reflL_12 of layout[]
 
 #[program]
-inductive boxedU_14 where
-| boxU_17 of layout[R]
+inductive existsUUU_18 where
+| exUUU_21 of layout[R, N]
 
 #[program]
-inductive boxedL_13 where
-| boxL_16 of layout[R]
+inductive existsUUL_17 where
+| exUUL_20 of layout[R, N]
 
 #[program]
-inductive singUU_18 where
-| justUU_21 of layout[R]
+inductive existsULU_16 where
+| exULU_19 of layout[R, N]
 
 #[program]
-inductive singUL_17 where
-| justUL_20 of layout[R]
+inductive existsULL_15 where
+| exULL_18 of layout[R, N]
 
 #[program]
-inductive singLU_16 where
+inductive existsLUU_14 where
 
 
 #[program]
-inductive singLL_15 where
-| justLL_18 of layout[R]
+inductive existsLUL_13 where
+| exLUL_16 of layout[R, N]
 
 #[program]
-inductive unitU_20 where
-| ttU_23 of layout[]
+inductive existsLLU_12 where
+
 
 #[program]
-inductive unitL_19 where
-| ttL_22 of layout[]
+inductive existsLLL_11 where
+| exLLL_14 of layout[R, N]
 
 #[program]
-inductive bool_5 where
-| true_5 of layout[]
-| false_6 of layout[]
+inductive singU_20 where
+| justU_23 of layout[R]
 
 #[program]
-inductive choice_6 where
-| next_7 of layout[]
-| free_8 of layout[]
+inductive singL_19 where
+| justL_22 of layout[R]
 
 #[program]
 inductive prodUUU_28 where
@@ -1196,383 +1077,178 @@ inductive prodLLL_21 where
 | pairLLL_24 of layout[R, R]
 
 #[program]
-inductive nat_8 where
-| zero_10 of layout[]
-| succ_11 of layout[R]
-
-#[program]
-def sing_elimUU_16 :=
-  fun sing_elim_7402 {A_7403} -> {x_7404} -> (__7405) ->
-    match __7405 with
-    | justUU_21 m_7406 => m_7406
+def exists_singUU_12 :=
+  fun exists_sing_7196 {A_7197} -> {m_7198} -> (__7199) ->
+    match __7199 with
+    | exUUU_21 m_7200 pf_7201 =>
+      match {NULL} with
+      | reflU_13  => (justU_23 m_7200)
+      end
     end
 
 #[program]
-def sing_elimUL_15 :=
-  fun sing_elim_7407 {A_7408} -> {x_7409} -> (__7410) ->
-    match __7410 with
-    | justUL_20 m_7411 => m_7411
+def exists_singUL_11 :=
+  fun exists_sing_7202 {A_7203} -> {m_7204} -> (__7205) ->
+    match __7205 with
+    | exUUL_20 m_7206 pf_7207 =>
+      match {NULL} with
+      | reflU_13  => (justU_23 m_7206)
+      end
     end
 
 #[program]
-def sing_elimLU_14 :=
-  fun sing_elim_7412 {A_7413} -> {x_7414} -> (__7415) ->
-    match __7415 with
+def exists_singLU_10 :=
+  fun exists_sing_7208 {A_7209} -> {m_7210} -> (__7211) ->
+    match __7211 with
     
     end
 
 #[program]
-def sing_elimLL_13 :=
-  fun sing_elim_7416 {A_7417} -> {x_7418} -> (__7419) ->
-    match __7419 with
-    | justLL_18 m_7420 => m_7420
+def exists_singLL_9 :=
+  fun exists_sing_7212 {A_7213} -> {m_7214} -> (__7215) ->
+    match __7215 with
+    | exLUL_16 m_7216 pf_7217 =>
+      match {NULL} with
+      | reflL_12  => (justL_22 m_7216)
+      end
+    end
+
+#[program]
+def sing_existsUU_16 :=
+  fun sing_exists_7218 {A_7219} -> {m_7220} -> (__7221) ->
+    match __7221 with
+    | justU_23 m_7222 => (exUUU_21 m_7222 NULL)
+    end
+
+#[program]
+def sing_existsUL_15 :=
+  fun sing_exists_7223 {A_7224} -> {m_7225} -> (__7226) ->
+    match __7226 with
+    | justU_23 m_7227 => (exUUL_20 m_7227 NULL)
+    end
+
+#[program]
+def sing_existsLL_13 :=
+  fun sing_exists_7228 {A_7229} -> {m_7230} -> (__7231) ->
+    match __7231 with
+    | justL_22 m_7232 => (exLUL_16 m_7232 NULL)
     end
 
 #[logical]
-def sing_uniqUU_20 := NULL
+def sing_exists_equiv1UU_20 := NULL
 
 #[logical]
-def sing_uniqUL_19 := NULL
+def sing_exists_equiv1UL_19 := NULL
 
 #[logical]
-def sing_uniqLU_18 := NULL
+def sing_exists_equiv1LL_17 := NULL
 
 #[logical]
-def sing_uniqLL_17 := NULL
-
-#[program]
-inductive stream_nodeU_30 where
-| stream_consU_33 of layout[R, R]
-
-#[program]
-inductive stream_nodeL_29 where
-| stream_consL_32 of layout[R, R]
+def sing_exists_equiv2UU_24 := NULL
 
 #[logical]
-def streamU_22 := NULL
+def sing_exists_equiv2UL_23 := NULL
 
 #[logical]
-def streamL_21 := NULL
+def sing_exists_equiv2LL_21 := NULL
 
 #[program]
-def free_streamU_24 :=
-  fun free_stream_7421 {A_7422} -> (st_7423) ->
-    match ((st_7423) free_8) with
-    | ttL_22  => ttU_23
-    end
-
-#[program]
-def free_streamL_23 :=
-  fun free_stream_7424 {A_7425} -> (st_7426) ->
-    match ((st_7426) free_8) with
-    | ttL_22  => ttU_23
-    end
-
-#[program]
-def uncons_streamU_26 :=
-  fun uncons_stream_7427 {A_7428} -> (st_7429) ->
-    match ((st_7429) next_7) with
-    | stream_consU_33 hd_7430 tl_7431 => (pairULL_28 hd_7430 tl_7431)
-    end
-
-#[program]
-def uncons_streamL_25 :=
-  fun uncons_stream_7432 {A_7433} -> (st_7434) ->
-    match ((st_7434) next_7) with
-    | stream_consL_32 hd_7435 tl_7436 => (pairLLL_24 hd_7435 tl_7436)
-    end
-
-#[program]
-def nat_make_6 :=
-  fun nat_make_7437 (n_7438) -> (x_7439) -o
-    match x_7439 with
-    | next_7  => (stream_consU_33 n_7438 ((nat_make_7437) (succ_11 n_7438)))
-    | free_8  => ttL_22
-    end
-
-#[program]
-inductive apairUUU_38 where
-| apair_introUUU_41 of layout[N, R]
-
-#[program]
-inductive apairUUL_37 where
-| apair_introUUL_40 of layout[N, R]
-
-#[program]
-inductive apairULU_36 where
-| apair_introULU_39 of layout[N, R]
-
-#[program]
-inductive apairULL_35 where
-| apair_introULL_38 of layout[N, R]
-
-#[program]
-inductive apairLUU_34 where
-| apair_introLUU_37 of layout[N, R]
-
-#[program]
-inductive apairLUL_33 where
-| apair_introLUL_36 of layout[N, R]
-
-#[program]
-inductive apairLLU_32 where
-| apair_introLLU_35 of layout[N, R]
-
-#[program]
-inductive apairLLL_31 where
-| apair_introLLL_34 of layout[N, R]
-
-#[program]
-def proj1UUU_34 :=
-  fun proj1_7440 {A_7441} -> {B_7442} -> (__7443) ->
-    match __7443 with
-    | apair_introUUU_41 x_7444 select_7445 =>
-      ((sing_elimUL_15) NULL NULL ((select_7445) true_5))
-    end
-
-#[program]
-def proj1UUL_33 :=
-  fun proj1_7446 {A_7447} -> {B_7448} -> (__7449) ->
-    match __7449 with
-    | apair_introUUL_40 x_7450 select_7451 =>
-      ((sing_elimUL_15) NULL NULL ((select_7451) true_5))
-    end
-
-#[program]
-def proj1ULU_32 :=
-  fun proj1_7452 {A_7453} -> {B_7454} -> (__7455) ->
-    match __7455 with
-    | apair_introULU_39 x_7456 select_7457 =>
-      ((sing_elimUL_15) NULL NULL ((select_7457) true_5))
-    end
-
-#[program]
-def proj1ULL_31 :=
-  fun proj1_7458 {A_7459} -> {B_7460} -> (__7461) ->
-    match __7461 with
-    | apair_introULL_38 x_7462 select_7463 =>
-      ((sing_elimUL_15) NULL NULL ((select_7463) true_5))
-    end
-
-#[program]
-def proj1LUU_30 :=
-  fun proj1_7464 {A_7465} -> {B_7466} -> (__7467) ->
-    match __7467 with
-    | apair_introLUU_37 x_7468 select_7469 =>
-      ((sing_elimLL_13) NULL NULL ((select_7469) true_5))
-    end
-
-#[program]
-def proj1LUL_29 :=
-  fun proj1_7470 {A_7471} -> {B_7472} -> (__7473) ->
-    match __7473 with
-    | apair_introLUL_36 x_7474 select_7475 =>
-      ((sing_elimLL_13) NULL NULL ((select_7475) true_5))
-    end
-
-#[program]
-def proj1LLU_28 :=
-  fun proj1_7476 {A_7477} -> {B_7478} -> (__7479) ->
-    match __7479 with
-    | apair_introLLU_35 x_7480 select_7481 =>
-      ((sing_elimLL_13) NULL NULL ((select_7481) true_5))
-    end
-
-#[program]
-def proj1LLL_27 :=
-  fun proj1_7482 {A_7483} -> {B_7484} -> (__7485) ->
-    match __7485 with
-    | apair_introLLL_34 x_7486 select_7487 =>
-      ((sing_elimLL_13) NULL NULL ((select_7487) true_5))
-    end
-
-#[program]
-def proj2UUU_42 :=
-  fun proj2_7488 {A_7489} -> {B_7490} -> (x_7491) ->
-    match x_7491 with
-    | apair_introUUU_41 x_7492 select_7493 =>
-      match {NULL} with
-      | reflU_15  =>
-        match ((select_7493) false_6) with
-        | boxU_17 m_7494 => m_7494
-        end
+def sing_doubleU_26 :=
+  fun sing_double_7233 {A_7234} -> {m_7235} -> (__7236) -> (__7237) -o
+    match __7236 with
+    | justU_23 m_7238 =>
+      match __7237 with
+      | justU_23 m_7239 => (pairUUL_30 m_7238 m_7239)
       end
     end
 
 #[program]
-def proj2UUL_41 :=
-  fun proj2_7495 {A_7496} -> {B_7497} -> (x_7498) ->
-    match x_7498 with
-    | apair_introUUL_40 x_7499 select_7500 =>
-      match {NULL} with
-      | reflU_15  =>
-        match ((select_7500) false_6) with
-        | boxU_17 m_7501 => m_7501
-        end
+def sing_doubleL_25 :=
+  fun sing_double_7240 {A_7241} -> {m_7242} -> (__7243) -> (__7244) -o
+    match __7243 with
+    | justL_22 m_7245 =>
+      match __7244 with
+      | justL_22 m_7246 => (pairLLL_24 m_7245 m_7246)
       end
     end
 
 #[program]
-def proj2ULU_40 :=
-  fun proj2_7502 {A_7503} -> {B_7504} -> (x_7505) ->
-    match x_7505 with
-    | apair_introULU_39 x_7506 select_7507 =>
-      match {NULL} with
-      | reflU_15  =>
-        match ((select_7507) false_6) with
-        | boxL_16 m_7508 => m_7508
-        end
-      end
-    end
+def my_sing_6 := (justU_23 true_2)
 
 #[program]
-def proj2ULL_39 :=
-  fun proj2_7509 {A_7510} -> {B_7511} -> (x_7512) ->
-    match x_7512 with
-    | apair_introULL_38 x_7513 select_7514 =>
-      match {NULL} with
-      | reflU_15  =>
-        match ((select_7514) false_6) with
-        | boxL_16 m_7515 => m_7515
-        end
-      end
-    end
-
-#[program]
-def proj2LUU_38 :=
-  fun proj2_7516 {A_7517} -> {B_7518} -> (x_7519) ->
-    match x_7519 with
-    | apair_introLUU_37 x_7520 select_7521 =>
-      match {NULL} with
-      | reflL_14  =>
-        match ((select_7521) false_6) with
-        | boxU_17 m_7522 => m_7522
-        end
-      end
-    end
-
-#[program]
-def proj2LUL_37 :=
-  fun proj2_7523 {A_7524} -> {B_7525} -> (x_7526) ->
-    match x_7526 with
-    | apair_introLUL_36 x_7527 select_7528 =>
-      match {NULL} with
-      | reflL_14  =>
-        match ((select_7528) false_6) with
-        | boxU_17 m_7529 => m_7529
-        end
-      end
-    end
-
-#[program]
-def proj2LLU_36 :=
-  fun proj2_7530 {A_7531} -> {B_7532} -> (x_7533) ->
-    match x_7533 with
-    | apair_introLLU_35 x_7534 select_7535 =>
-      match {NULL} with
-      | reflL_14  =>
-        match ((select_7535) false_6) with
-        | boxL_16 m_7536 => m_7536
-        end
-      end
-    end
-
-#[program]
-def proj2LLL_35 :=
-  fun proj2_7537 {A_7538} -> {B_7539} -> (x_7540) ->
-    match x_7540 with
-    | apair_introLLL_34 x_7541 select_7542 =>
-      match {NULL} with
-      | reflL_14  =>
-        match ((select_7542) false_6) with
-        | boxL_16 m_7543 => m_7543
-        end
-      end
-    end
+def my_exists_7 := ((sing_existsUU_16) NULL NULL my_sing_6)
 
 #[logical]
-def nat_dep_t_9 := NULL
-
-#[program]
-def my_apair0_10 :=
-  (apair_introULU_39
-    NULL
-    fun _7544 (b_7545) ->
-      match b_7545 with
-      | true_5  => (justUL_20 zero_10)
-      | false_6  => (boxL_16 ((nat_make_6) zero_10))
-      end)
-
-#[program]
-def my_apair1_11 :=
-  let nat_stream_7546 := ((nat_make_6) zero_10) in
-  (apair_introULL_38
-    NULL
-    fun _7547 (b_7548) -o
-      match b_7548 with
-      | true_5  =>
-        (justUL_20
-          match ((uncons_streamU_26) NULL nat_stream_7546) with
-          | pairULL_28 m_7549 n_7550 =>
-            let __7551 := ((free_streamU_24) NULL n_7550) in m_7549
-          end)
-      | false_6  => (boxL_16 nat_stream_7546)
-      end)
-
-#[program]
-def __12 := ((free_streamU_24) NULL ((proj2ULL_39) NULL NULL my_apair1_11))
+def axiom_K_8 := NULL
 
 -----------------------------------------
 
+#[program]
+inductive unit_1 where
+| tt_1 of layout[]
+
+#[program]
+inductive bool_2 where
+| true_2 of layout[]
+| false_3 of layout[]
+
+#[program]
+inductive nat_3 where
+| zero_4 of layout[]
+| succ_5 of layout[R]
+
+#[program]
+inductive list_4 where
+| nil_6 of layout[]
+| cons_7 of layout[R, R]
+
 #[logical]
-inductive eqU_12 where
-| reflU_15 of layout[]
+inductive eqU_10 where
+| reflU_13 of layout[]
 
 #[logical]
-inductive eqL_11 where
-| reflL_14 of layout[]
+inductive eqL_9 where
+| reflL_12 of layout[]
 
 #[program]
-inductive boxedU_14 where
-| boxU_17 of layout[R]
+inductive existsUUU_18 where
+| exUUU_21 of layout[R, N]
 
 #[program]
-inductive boxedL_13 where
-| boxL_16 of layout[R]
+inductive existsUUL_17 where
+| exUUL_20 of layout[R, N]
 
 #[program]
-inductive singUU_18 where
-| justUU_21 of layout[R]
+inductive existsULU_16 where
+| exULU_19 of layout[R, N]
 
 #[program]
-inductive singUL_17 where
-| justUL_20 of layout[R]
+inductive existsULL_15 where
+| exULL_18 of layout[R, N]
 
 #[program]
-inductive singLU_16 where
+inductive existsLUU_14 where
 
 
 #[program]
-inductive singLL_15 where
-| justLL_18 of layout[R]
+inductive existsLUL_13 where
+| exLUL_16 of layout[R, N]
 
 #[program]
-inductive unitU_20 where
-| ttU_23 of layout[]
+inductive existsLLU_12 where
+
 
 #[program]
-inductive unitL_19 where
-| ttL_22 of layout[]
+inductive existsLLL_11 where
+| exLLL_14 of layout[R, N]
 
 #[program]
-inductive bool_5 where
-| true_5 of layout[]
-| false_6 of layout[]
+inductive singU_20 where
+| justU_23 of layout[R]
 
 #[program]
-inductive choice_6 where
-| next_7 of layout[]
-| free_8 of layout[]
+inductive singL_19 where
+| justL_22 of layout[R]
 
 #[program]
 inductive prodUUU_28 where
@@ -1607,414 +1283,126 @@ inductive prodLLL_21 where
 | pairLLL_24 of layout[R, R]
 
 #[program]
-inductive nat_8 where
-| zero_10 of layout[]
-| succ_11 of layout[R]
-
-#[program]
-def sing_elimUU_16 :=
-  fun sing_elim_7702 {A_7703} -> {x_7704} -> (__7705) ->
-    match __7705 with
-    | justUU_21 m_7706 => m_7706
+def exists_singUU_12 :=
+  fun exists_sing_7298 {A_7299} -> {m_7300} -> (__7301) ->
+    match __7301 with
+    | exUUU_21 m_7302 pf_7303 => (justU_23 m_7302)
     end
 
 #[program]
-def sing_elimUL_15 :=
-  fun sing_elim_7707 {A_7708} -> {x_7709} -> (__7710) ->
-    match __7710 with
-    | justUL_20 m_7711 => m_7711
+def exists_singUL_11 :=
+  fun exists_sing_7304 {A_7305} -> {m_7306} -> (__7307) ->
+    match __7307 with
+    | exUUL_20 m_7308 pf_7309 => (justU_23 m_7308)
     end
 
 #[program]
-def sing_elimLU_14 :=
-  fun sing_elim_7712 {A_7713} -> {x_7714} -> (__7715) ->
+def exists_singLU_10 :=
+  fun exists_sing_7310 {A_7311} -> {m_7312} -> (__7313) ->
     !!
 
 #[program]
-def sing_elimLL_13 :=
-  fun sing_elim_7716 {A_7717} -> {x_7718} -> (__7719) ->
-    match __7719 with
-    | justLL_18 m_7720 => m_7720
+def exists_singLL_9 :=
+  fun exists_sing_7314 {A_7315} -> {m_7316} -> (__7317) ->
+    match __7317 with
+    | exLUL_16 m_7318 pf_7319 => (justL_22 m_7318)
+    end
+
+#[program]
+def sing_existsUU_16 :=
+  fun sing_exists_7320 {A_7321} -> {m_7322} -> (__7323) ->
+    match __7323 with
+    | justU_23 m_7324 => (exUUU_21 m_7324 NULL)
+    end
+
+#[program]
+def sing_existsUL_15 :=
+  fun sing_exists_7325 {A_7326} -> {m_7327} -> (__7328) ->
+    match __7328 with
+    | justU_23 m_7329 => (exUUL_20 m_7329 NULL)
+    end
+
+#[program]
+def sing_existsLL_13 :=
+  fun sing_exists_7330 {A_7331} -> {m_7332} -> (__7333) ->
+    match __7333 with
+    | justL_22 m_7334 => (exLUL_16 m_7334 NULL)
     end
 
 #[logical]
-def sing_uniqUU_20 := NULL
+def sing_exists_equiv1UU_20 := NULL
 
 #[logical]
-def sing_uniqUL_19 := NULL
+def sing_exists_equiv1UL_19 := NULL
 
 #[logical]
-def sing_uniqLU_18 := NULL
+def sing_exists_equiv1LL_17 := NULL
 
 #[logical]
-def sing_uniqLL_17 := NULL
-
-#[program]
-inductive stream_nodeU_30 where
-| stream_consU_33 of layout[R, R]
-
-#[program]
-inductive stream_nodeL_29 where
-| stream_consL_32 of layout[R, R]
+def sing_exists_equiv2UU_24 := NULL
 
 #[logical]
-def streamU_22 := NULL
+def sing_exists_equiv2UL_23 := NULL
 
 #[logical]
-def streamL_21 := NULL
+def sing_exists_equiv2LL_21 := NULL
 
 #[program]
-def free_streamU_24 :=
-  fun free_stream_7721 {A_7722} -> (st_7723) ->
-    match ((st_7723) free_8) with
-    | ttL_22  => ttU_23
-    end
-
-#[program]
-def free_streamL_23 :=
-  fun free_stream_7724 {A_7725} -> (st_7726) ->
-    match ((st_7726) free_8) with
-    | ttL_22  => ttU_23
-    end
-
-#[program]
-def uncons_streamU_26 :=
-  fun uncons_stream_7727 {A_7728} -> (st_7729) ->
-    match ((st_7729) next_7) with
-    | stream_consU_33 hd_7730 tl_7731 => (pairULL_28 hd_7730 tl_7731)
-    end
-
-#[program]
-def uncons_streamL_25 :=
-  fun uncons_stream_7732 {A_7733} -> (st_7734) ->
-    match ((st_7734) next_7) with
-    | stream_consL_32 hd_7735 tl_7736 => (pairLLL_24 hd_7735 tl_7736)
-    end
-
-#[program]
-def nat_make_6 :=
-  fun nat_make_7737 (n_7738) -> (x_7739) -o
-    match x_7739 with
-    | next_7  => (stream_consU_33 n_7738 ((nat_make_7737) (succ_11 n_7738)))
-    | free_8  => ttL_22
-    end
-
-#[program]
-inductive apairUUU_38 where
-| apair_introUUU_41 of layout[N, R]
-
-#[program]
-inductive apairUUL_37 where
-| apair_introUUL_40 of layout[N, R]
-
-#[program]
-inductive apairULU_36 where
-| apair_introULU_39 of layout[N, R]
-
-#[program]
-inductive apairULL_35 where
-| apair_introULL_38 of layout[N, R]
-
-#[program]
-inductive apairLUU_34 where
-| apair_introLUU_37 of layout[N, R]
-
-#[program]
-inductive apairLUL_33 where
-| apair_introLUL_36 of layout[N, R]
-
-#[program]
-inductive apairLLU_32 where
-| apair_introLLU_35 of layout[N, R]
-
-#[program]
-inductive apairLLL_31 where
-| apair_introLLL_34 of layout[N, R]
-
-#[program]
-def proj1UUU_34 :=
-  fun proj1_7740 {A_7741} -> {B_7742} -> (__7743) ->
-    match __7743 with
-    | apair_introUUU_41 x_7744 select_7745 =>
-      ((sing_elimUL_15) NULL NULL ((select_7745) true_5))
-    end
-
-#[program]
-def proj1UUL_33 :=
-  fun proj1_7746 {A_7747} -> {B_7748} -> (__7749) ->
-    match __7749 with
-    | apair_introUUL_40 x_7750 select_7751 =>
-      ((sing_elimUL_15) NULL NULL ((select_7751) true_5))
-    end
-
-#[program]
-def proj1ULU_32 :=
-  fun proj1_7752 {A_7753} -> {B_7754} -> (__7755) ->
-    match __7755 with
-    | apair_introULU_39 x_7756 select_7757 =>
-      ((sing_elimUL_15) NULL NULL ((select_7757) true_5))
-    end
-
-#[program]
-def proj1ULL_31 :=
-  fun proj1_7758 {A_7759} -> {B_7760} -> (__7761) ->
-    match __7761 with
-    | apair_introULL_38 x_7762 select_7763 =>
-      ((sing_elimUL_15) NULL NULL ((select_7763) true_5))
-    end
-
-#[program]
-def proj1LUU_30 :=
-  fun proj1_7764 {A_7765} -> {B_7766} -> (__7767) ->
-    match __7767 with
-    | apair_introLUU_37 x_7768 select_7769 =>
-      ((sing_elimLL_13) NULL NULL ((select_7769) true_5))
-    end
-
-#[program]
-def proj1LUL_29 :=
-  fun proj1_7770 {A_7771} -> {B_7772} -> (__7773) ->
-    match __7773 with
-    | apair_introLUL_36 x_7774 select_7775 =>
-      ((sing_elimLL_13) NULL NULL ((select_7775) true_5))
-    end
-
-#[program]
-def proj1LLU_28 :=
-  fun proj1_7776 {A_7777} -> {B_7778} -> (__7779) ->
-    match __7779 with
-    | apair_introLLU_35 x_7780 select_7781 =>
-      ((sing_elimLL_13) NULL NULL ((select_7781) true_5))
-    end
-
-#[program]
-def proj1LLL_27 :=
-  fun proj1_7782 {A_7783} -> {B_7784} -> (__7785) ->
-    match __7785 with
-    | apair_introLLL_34 x_7786 select_7787 =>
-      ((sing_elimLL_13) NULL NULL ((select_7787) true_5))
-    end
-
-#[program]
-def proj2UUU_42 :=
-  fun proj2_7788 {A_7789} -> {B_7790} -> (x_7791) ->
-    match x_7791 with
-    | apair_introUUU_41 x_7792 select_7793 =>
-      match ((select_7793) false_6) with
-      | boxU_17 m_7794 => m_7794
+def sing_doubleU_26 :=
+  fun sing_double_7335 {A_7336} -> {m_7337} -> (__7338) -> (__7339) -o
+    match __7338 with
+    | justU_23 m_7340 =>
+      match __7339 with
+      | justU_23 m_7341 => (pairUUL_30 m_7340 m_7341)
       end
     end
 
 #[program]
-def proj2UUL_41 :=
-  fun proj2_7795 {A_7796} -> {B_7797} -> (x_7798) ->
-    match x_7798 with
-    | apair_introUUL_40 x_7799 select_7800 =>
-      match ((select_7800) false_6) with
-      | boxU_17 m_7801 => m_7801
+def sing_doubleL_25 :=
+  fun sing_double_7342 {A_7343} -> {m_7344} -> (__7345) -> (__7346) -o
+    match __7345 with
+    | justL_22 m_7347 =>
+      match __7346 with
+      | justL_22 m_7348 => (pairLLL_24 m_7347 m_7348)
       end
     end
 
 #[program]
-def proj2ULU_40 :=
-  fun proj2_7802 {A_7803} -> {B_7804} -> (x_7805) ->
-    match x_7805 with
-    | apair_introULU_39 x_7806 select_7807 =>
-      match ((select_7807) false_6) with
-      | boxL_16 m_7808 => m_7808
-      end
-    end
+def my_sing_6 := (justU_23 true_2)
 
 #[program]
-def proj2ULL_39 :=
-  fun proj2_7809 {A_7810} -> {B_7811} -> (x_7812) ->
-    match x_7812 with
-    | apair_introULL_38 x_7813 select_7814 =>
-      match ((select_7814) false_6) with
-      | boxL_16 m_7815 => m_7815
-      end
-    end
-
-#[program]
-def proj2LUU_38 :=
-  fun proj2_7816 {A_7817} -> {B_7818} -> (x_7819) ->
-    match x_7819 with
-    | apair_introLUU_37 x_7820 select_7821 =>
-      match ((select_7821) false_6) with
-      | boxU_17 m_7822 => m_7822
-      end
-    end
-
-#[program]
-def proj2LUL_37 :=
-  fun proj2_7823 {A_7824} -> {B_7825} -> (x_7826) ->
-    match x_7826 with
-    | apair_introLUL_36 x_7827 select_7828 =>
-      match ((select_7828) false_6) with
-      | boxU_17 m_7829 => m_7829
-      end
-    end
-
-#[program]
-def proj2LLU_36 :=
-  fun proj2_7830 {A_7831} -> {B_7832} -> (x_7833) ->
-    match x_7833 with
-    | apair_introLLU_35 x_7834 select_7835 =>
-      match ((select_7835) false_6) with
-      | boxL_16 m_7836 => m_7836
-      end
-    end
-
-#[program]
-def proj2LLL_35 :=
-  fun proj2_7837 {A_7838} -> {B_7839} -> (x_7840) ->
-    match x_7840 with
-    | apair_introLLL_34 x_7841 select_7842 =>
-      match ((select_7842) false_6) with
-      | boxL_16 m_7843 => m_7843
-      end
-    end
+def my_exists_7 := ((sing_existsUU_16) NULL NULL my_sing_6)
 
 #[logical]
-def nat_dep_t_9 := NULL
-
-#[program]
-def my_apair0_10 :=
-  (apair_introULU_39
-    NULL
-    fun _7844 (b_7845) ->
-      match b_7845 with
-      | true_5  => (justUL_20 zero_10)
-      | false_6  => (boxL_16 ((nat_make_6) zero_10))
-      end)
-
-#[program]
-def my_apair1_11 :=
-  let nat_stream_7846 := ((nat_make_6) zero_10) in
-  (apair_introULL_38
-    NULL
-    fun _7847 (b_7848) -o
-      match b_7848 with
-      | true_5  =>
-        (justUL_20
-          match ((uncons_streamU_26) NULL nat_stream_7846) with
-          | pairULL_28 m_7849 n_7850 =>
-            let __7851 := ((free_streamU_24) NULL n_7850) in m_7849
-          end)
-      | false_6  => (boxL_16 nat_stream_7846)
-      end)
-
-#[program]
-def __12 := ((free_streamU_24) NULL ((proj2ULL_39) NULL NULL my_apair1_11))
+def axiom_K_8 := NULL
 
 -----------------------------------------
 
-def sing_elimUU_16 := fun sing_elim_8002 () -> () -> (__8003) -> __8003
+def exists_singUU_12 := fun exists_sing_7400 () -> () -> (__7401) -> __7401
 
-def sing_elimUL_15 := fun sing_elim_8004 () -> () -> (__8005) -> __8005
+def exists_singUL_11 := fun exists_sing_7402 () -> () -> (__7403) -> __7403
 
-def sing_elimLU_14 := fun sing_elim_8006 () -> () -> (__8007) -> !!
+def exists_singLU_10 := fun exists_sing_7404 () -> () -> (__7405) -> !!
 
-def sing_elimLL_13 := fun sing_elim_8008 () -> () -> (__8009) -> __8009
+def exists_singLL_9 := fun exists_sing_7406 () -> () -> (__7407) -> __7407
 
-def free_streamU_24 :=
-  fun free_stream_8010 () -> (st_8011) ->
-    match ((st_8011) free_8) with
-    | ttL_22 => ttU_23
-    end
+def sing_existsUU_16 := fun sing_exists_7408 () -> () -> (__7409) -> __7409
 
-def free_streamL_23 :=
-  fun free_stream_8012 () -> (st_8013) ->
-    match ((st_8013) free_8) with
-    | ttL_22 => ttU_23
-    end
+def sing_existsUL_15 := fun sing_exists_7410 () -> () -> (__7411) -> __7411
 
-def uncons_streamU_26 :=
-  fun uncons_stream_8014 () -> (st_8015) ->
-    match ((st_8015) next_7) with
-    | stream_consU_33 hd_8016 tl_8017 => (pairULL_28 hd_8016 tl_8017)
-    end
+def sing_existsLL_13 := fun sing_exists_7412 () -> () -> (__7413) -> __7413
 
-def uncons_streamL_25 :=
-  fun uncons_stream_8018 () -> (st_8019) ->
-    match ((st_8019) next_7) with
-    | stream_consL_32 hd_8020 tl_8021 => (pairLLL_24 hd_8020 tl_8021)
-    end
+def sing_doubleU_26 :=
+  fun sing_double_7414 () -> () -> (__7415) -> (__7416) -o
+    (pairUUL_30 __7415 __7416)
 
-def nat_make_6 :=
-  fun nat_make_8022 (n_8023) -> (x_8024) -o
-    match x_8024 with
-    | next_7 => (stream_consU_33 n_8023 ((nat_make_8022) (succ_11 n_8023)))
-    | free_8 => ttL_22
-    end
+def sing_doubleL_25 :=
+  fun sing_double_7417 () -> () -> (__7418) -> (__7419) -o
+    (pairLLL_24 __7418 __7419)
 
-def proj1UUU_34 :=
-  fun proj1_8025 () -> () -> (__8026) ->
-    ((sing_elimUL_15) () () ((__8026) true_5))
+def my_sing_6 := true_2
 
-def proj1UUL_33 :=
-  fun proj1_8027 () -> () -> (__8028) ->
-    ((sing_elimUL_15) () () ((__8028) true_5))
-
-def proj1ULU_32 :=
-  fun proj1_8029 () -> () -> (__8030) ->
-    ((sing_elimUL_15) () () ((__8030) true_5))
-
-def proj1ULL_31 :=
-  fun proj1_8031 () -> () -> (__8032) ->
-    ((sing_elimUL_15) () () ((__8032) true_5))
-
-def proj1LUU_30 :=
-  fun proj1_8033 () -> () -> (__8034) ->
-    ((sing_elimLL_13) () () ((__8034) true_5))
-
-def proj1LUL_29 :=
-  fun proj1_8035 () -> () -> (__8036) ->
-    ((sing_elimLL_13) () () ((__8036) true_5))
-
-def proj1LLU_28 :=
-  fun proj1_8037 () -> () -> (__8038) ->
-    ((sing_elimLL_13) () () ((__8038) true_5))
-
-def proj1LLL_27 :=
-  fun proj1_8039 () -> () -> (__8040) ->
-    ((sing_elimLL_13) () () ((__8040) true_5))
-
-def proj2UUU_42 := fun proj2_8041 () -> () -> (x_8042) -> ((x_8042) false_6)
-
-def proj2UUL_41 := fun proj2_8043 () -> () -> (x_8044) -> ((x_8044) false_6)
-
-def proj2ULU_40 := fun proj2_8045 () -> () -> (x_8046) -> ((x_8046) false_6)
-
-def proj2ULL_39 := fun proj2_8047 () -> () -> (x_8048) -> ((x_8048) false_6)
-
-def proj2LUU_38 := fun proj2_8049 () -> () -> (x_8050) -> ((x_8050) false_6)
-
-def proj2LUL_37 := fun proj2_8051 () -> () -> (x_8052) -> ((x_8052) false_6)
-
-def proj2LLU_36 := fun proj2_8053 () -> () -> (x_8054) -> ((x_8054) false_6)
-
-def proj2LLL_35 := fun proj2_8055 () -> () -> (x_8056) -> ((x_8056) false_6)
-
-def my_apair0_10 :=
-  fun _8057 (b_8058) ->
-    match b_8058 with
-    | true_5 => (zero_10 ) | false_6 => ((nat_make_6) (zero_10 ))
-    end
-
-def my_apair1_11 :=
-  let nat_stream_8059 := ((nat_make_6) (zero_10 )) in
-  fun _8060 (b_8061) -o
-    match b_8061 with
-    | true_5 =>
-      match ((uncons_streamU_26) () nat_stream_8059) with
-      | pairULL_28 m_8062 n_8063 =>
-        let __8064 := ((free_streamU_24) () n_8063) in m_8062
-      end
-    | false_6 => nat_stream_8059
-    end
-
-def __12 := ((free_streamU_24) () ((proj2ULL_39) () () my_apair1_11))
+def my_exists_7 := ((sing_existsUU_16) () () my_sing_6)
 
 -----------------------------------------
 
