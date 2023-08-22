@@ -33,6 +33,9 @@ let main =
       pr "@.@.-----------------------------------------@.@.";
       let dcls2e = Trans2e.trans_dcls dcls2 in
       pr "%a" Pprint2.pp_dcls dcls2e;
+      pr "@.@.-----------------------------------------@.@.";
+      let dcls3 = Trans23.trans_dcls dcls2e in
+      pr "%a" Pprint3.pp_dcls dcls3;
       pr "@.@.-----------------------------------------@.@."
     with
     | Failure s -> epr "%s@." s
