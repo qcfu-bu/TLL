@@ -26,7 +26,7 @@ module Ctx = struct
         inductive exists (A : Type) (B : A -> Type) : Type where
         | ex (m : A) {n : B m} : exists A B
 
-     Other inductive declaration must remain boxed. *)
+     Other inductive declarations must remain boxed. *)
   type entry =
     { layout : relv list
     ; unbox : bool
