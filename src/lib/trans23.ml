@@ -83,7 +83,9 @@ let rec trans_tm ctx = function
         cls
     in
     match cls with
-    | [ (c, [ x ], rhs, true) ] -> Syntax3.(_Let m (bind_var x rhs))
+    | [ (c, [ x ], rhs, true) ] ->
+      let bnd = unbox (bind_var x rhs) in
+      Syntax3.(lift_tm (subst bnd (unbox m)))
     | _ when List.for_all (fun (_, xs, _, unbox) -> xs = [] && unbox) cls ->
       let cls = List.map (fun (c, _, rhs, _) -> _PConstr c rhs) cls in
       Syntax3.(_Match0 m (box_list cls))
