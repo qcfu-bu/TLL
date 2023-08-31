@@ -713,16 +713,8 @@ let dcl_iden :=
   | id = const1; sargs = separated_list(COMMA, iden); FRQ; { (id, sargs) }
   | id = iden; { (id, []) }
 
-// def
-/*
-#[logical]
-def foo‹s› (x : A) (y : B) : C := m
-
-#[program]
-def foo‹s› (x : A) : A -> B
-  | P x => n
-*/
-let dcl_def_arg :=
+// dcl arguments
+let dcl_arg :=
   | LPAREN; ids = iden+; COLON; a = tm; RPAREN;
     { List.map (fun id -> (R, id, a, E)) ids }
   | LBRACE; ids = iden+; COLON; a = tm; RBRACE;
@@ -732,23 +724,32 @@ let dcl_def_arg :=
   | QLBRACE; ids = iden+; COLON; a = tm; RBRACE;
     { List.map (fun id -> (N, id, a, I)) ids }
 
-let dcl_def_args :=
-  | args = dcl_def_arg*; { List.concat args }
+let dcl_args :=
+  | args = dcl_arg*; { List.concat args }
 
-let dcl_def_closed :=
+// dcl clauses
+let dcl_cls_closed :=
   | PIPE; ps = tm_pattern0s; RIGHTARROW1; rhs = tm_closed?; { (ps, rhs) }
 
-let dcl_def_open :=
+let dcl_cls_open :=
   | PIPE; ps = tm_pattern0s; RIGHTARROW1; rhs = tm?; { (ps, rhs) }
 
-let dcl_def_cls :=
-  | cl = dcl_def_open; { [cl] }
-  | cl = dcl_def_closed; cls = dcl_def_cls; { cl :: cls }
+let dcl_cls :=
+  | cl = dcl_cls_open; { [cl] }
+  | cl = dcl_cls_closed; cls = dcl_cls; { cl :: cls }
 
+// def
+/*
+#[logical]
+def foo‹s› (x : A) (y : B) : C := m
+
+#[program]
+def foo‹s› (x : A) : A -> B
+  | P x => n
+*/
 let dcl_def :=
   | relv = dcl_modifier;
-    DCL_DEF; id_sids = dcl_iden; args = dcl_def_args; COLON; b = tm_closed;
-    cls = dcl_def_cls;
+    DCL_DEF; id_sids = dcl_iden; args = dcl_args; COLON; b = tm_closed; cls = dcl_cls;
     { let id, sids = id_sids in
       let a, view =
         List.fold_right (fun (relv, id, a, v) (b, view) ->
@@ -760,8 +761,7 @@ let dcl_def :=
       let sch = Binder (sids, (m, a)) in
       Definition { name = id; relv; body = sch; view } }
   | relv = dcl_modifier;
-    DCL_DEF; id_sids = dcl_iden; args = dcl_def_args; opt = tm_ann_open;
-    ASSIGN; m = tm;
+    DCL_DEF; id_sids = dcl_iden; args = dcl_args; opt = tm_ann_open; ASSIGN; m = tm;
     { let id, sids = id_sids in
       let b =
         match opt with
@@ -848,29 +848,53 @@ extern foo‹s› (x : A) (y : B) : C
 
 #[program]
 extern foo‹s› (x : A) : A -> B
+
+#[program]
+extern foo‹s› (x : A) : A -> B := m
 */
-let dcl_extern_arg :=
-  | LPAREN; ids = iden+; COLON; a = tm; RPAREN;
-    { List.map (fun id -> (R, id, a, E)) ids }
-  | LBRACE; ids = iden+; COLON; a = tm; RBRACE;
-    { List.map (fun id -> (N, id, a, E)) ids }
-  | QLPAREN; ids = iden+; COLON; a = tm; RPAREN;
-    { List.map (fun id -> (R, id, a, I)) ids }
-  | QLBRACE; ids = iden+; COLON; a = tm; RBRACE;
-    { List.map (fun id -> (N, id, a, I)) ids }
-
-let dcl_extern_args :=
-  | args = dcl_extern_arg*; { List.concat args }
-
 let dcl_extern :=
   | relv = dcl_modifier;
-    DCL_EXTERN; id_sids = dcl_iden; args = dcl_extern_args; COLON; b = tm;
+    DCL_EXTERN; id_sids = dcl_iden; args = dcl_args; COLON; b = tm;
     { let id, sids = id_sids in
       let a, view =
         List.fold_right (fun (relv, id, a, v) (b, view) ->
           (Pi (relv, U, a, Binder (id, b)), v :: view)) args (b, [])
       in
-      let sch = Binder (sids, a) in
+      let sch = Binder (sids, (None, a)) in
+      Extern { name = id; relv; body = sch; view } }
+  | relv = dcl_modifier;
+    DCL_EXTERN; id_sids = dcl_iden; args = dcl_args; COLON; b = tm_closed; cls = dcl_cls;
+    { let id, sids = id_sids in
+      let a, view =
+        List.fold_right (fun (relv, id, a, v) (b, view) ->
+          (Pi (relv, U, a, Binder (id, b)), v :: view)) args (b, [])
+      in
+      let ps = List.map (fun (_, id, _, _) -> PId id) args in
+      let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
+      let m = Fun (a, Binder (Some id, cls), view) in
+      let sch = Binder (sids, (Some m, a)) in
+      Extern { name = id; relv; body = sch; view } }
+  | relv = dcl_modifier;
+    DCL_EXTERN; id_sids = dcl_iden; args = dcl_args; opt = tm_ann_open;
+    ASSIGN; m = tm;
+    { let id, sids = id_sids in
+      let b =
+        match opt with
+        | Some b -> b
+        | None -> IMeta
+      in
+      let a, view =
+        List.fold_right (fun (relv, id, a, v) (b, view) ->
+          (Pi (relv, U, a, Binder (id, b)), v :: view)) args (b, [])
+      in
+      let m =
+        match args with
+        | [] -> m
+        | _ ->
+          let ps = List.map (fun (_, id, _, _) -> PId id) args in
+          Fun (a, Binder (Some id, [(ps, Some m)]), view)
+      in
+      let sch = Binder (sids, (Some m, a)) in
       Extern { name = id; relv; body = sch; view } }
 
 // notations

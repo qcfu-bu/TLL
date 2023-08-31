@@ -79,7 +79,7 @@ type dcl =
   | Extern of
       { name : id
       ; relv : relv
-      ; body : tm scheme
+      ; body : (tm option * tm) scheme
       ; view : view list
       }
   | Notation of

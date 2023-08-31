@@ -95,14 +95,34 @@ def sub : nat -> nat -> nat
   | x zero     => x
   | x (succ y) => (pred x) - y
 
+-- FIXME: OPERATOR PRECENDENCE IS PARSED WRONG!
 def mul : nat -> nat -> nat
   | zero     _ => zero
-  | (succ x) y => y + x * y
+  | (succ x) y => y + (x * y)
 
 def div (x : nat) (y : nat) :=
   match lt x y with
   | true  => zero
-  | false => succ ((x - y) / y)
+  | false =>
+    let function loop (x y : nat) :=
+      match x - (pred y) with
+      | zero => zero
+      | succ x => succ (loop x y)
+    in
+    loop x y
+
+def one := succ zero
+def two := succ one
+def three := succ two
+def four := succ three
+def five := succ four
+def six := succ five
+def seven := succ six
+def eight := succ seven
+def nine := succ eight
+def ten := succ nine
+#[logical]
+def test : (one * three) = six := refl
 
 def rem (x : nat) (y : nat) :=
   x - ((x / y) * y)
@@ -113,44 +133,60 @@ def pow : nat -> nat -> nat
 
 -- end of stdlib
 
+
+
+
 -- define locations
 #[logical]def loc : U := nat
 
-notation ( @ ) := (at %2 %1)
+-- the capability A@l states that a value of type A is stored at location l
 #[logical]
-inductive at‹s› (l : loc) (A : Type‹s›) : L where
-| at_intro (m : A) : A @ l
+inductive at‹s› (A : Type‹s›) (l : loc) : L where
+| at_intro (m : A) : at A l
 
--- reference creation lives in IO because the location is generated out of thin air
+notation ( @ ) := (at %1 %2)
+
+
+
+
+-- at_intro cannot be used relevantly, so the only way to obtain relevant capabilities
+-- is to call alloc which is completely abstract.
+-- alloc is monadic because a fresh location is generated from thin air.
 extern alloc (_ : unit) : IO (exists1 fn l => unit @ l)  
 
--- TODO: (concrete logical) + (abstract program)
--- NOTE: body is logically checked and name is relevant 
+
+
+
+-- The following declarations are "semi-external". They have relevant names with
+-- irrlevant bodies. During compilation, external code is emitted instead of the
+-- irrlevant body. We must ensure that the semantics of the external code is
+-- consistent with the semantics of the irrelevant body.
+
 -- non-linear get can retrieve values without removal 
-#[logical]def getU ?{A : U} (l : loc) (pf : A @ l) : prod1 A (A @ l) :=
+extern getU ?{A : U} (l : loc) (pf : A @ l) : prod1 A (A @ l) :=
   match pf with
   | at_intro v => ⟨v, pf⟩
 
 -- linear get must retrieve values with removal 
-#[logical]def getL ?{A : L} (l : loc) (pf : A @ l) : prod1 A (unit @ l) :=
+extern getL ?{A : L} (l : loc) (pf : A @ l) : prod1 A (unit @ l) :=
   match pf with
   | at_intro v => ⟨v, at_intro tt⟩
 
--- NOTE: a single template should be offered to unite getU and getL
-
 -- set can override previous stored value
-#[logical]def set‹s› ?{A : U} ?{B : Type‹s›} (l : loc) (m : B) (pf : A @ l) : B @ l :=
+extern set‹s› ?{A : U} ?{B : Type‹s›} (l : loc) (m : B) (pf : A @ l) : B @ l :=
   match pf with
   | at_intro _ => at_intro m
 
 -- free deallocates references with non-linear values inside
 -- to free references with linear values, the linear values must first be removed 
-#[logical]def free‹s› ?{A : U} (l : loc) (pf : A @ l) : unit :=
+extern free ?{A : U} (l : loc) (pf : A @ l) : unit :=
   match pf with
   | at_intro _ => tt
 
 
 
+
+-- State laws can be proven by simple induction on capabilities.
 #[logical]
 def set_get_law‹s› ?(A : U) (l : loc) (pf : A @ l) (v0 : A) : 
   let pf := set l v0 pf in
@@ -164,3 +200,13 @@ def set_get_law‹s› ?(A : U) (l : loc) (pf : A @ l) (v0 : A) :
         v0 = v1
   with 
   | at_intro v => refl
+
+
+
+
+-- Capabilities are linear, references enjoy unique ownership.
+def main : IO unit :=
+  let* ⟨l, pf⟩ := alloc tt in
+  let pf := set l zero pf in
+  let _ := free l pf in
+  return tt

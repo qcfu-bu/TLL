@@ -427,7 +427,7 @@ let rec trans_dcl nspc = function
             ; dconstrs = unbox dconstrs
             }
         ] )
-  | Extern { name = id; relv; body = Binder (sids, a); view } ->
+  | Extern { name = id; relv; body = Binder (sids, (m_opt, a)); view } ->
     let x = Const.mk id in
     let (local, i), xs =
       List.fold_left_map
@@ -437,8 +437,9 @@ let rec trans_dcl nspc = function
         (nspc, 0) sids
     in
     let nspc = nspc_push id (EConst (x, i, view)) nspc in
+    let m_opt = box_opt (Option.map (trans_tm local) m_opt) in
     let a = trans_tm local a in
-    let sch = bind_mvar (Array.of_list xs) a in
+    let sch = bind_mvar (Array.of_list xs) (box_pair m_opt a) in
     Syntax1.
       (nspc, [ Extern { name = x; relv = trans_relv relv; scheme = unbox sch } ])
   | Notation { name = sym; body } ->

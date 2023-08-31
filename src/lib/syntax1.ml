@@ -79,7 +79,7 @@ type dcl =
   | Extern of
       { name : Const.t
       ; relv : relv
-      ; scheme : tm scheme
+      ; scheme : (tm option * tm) scheme
       }
 
 and dcls = dcl list

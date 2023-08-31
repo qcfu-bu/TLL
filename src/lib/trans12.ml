@@ -985,27 +985,39 @@ let rec check_dcls ctx env = function
   | Extern { name = x0; relv; scheme = sch } :: dcls ->
     let sargs = mbinder_names sch in
     let init = make_init sargs in
-    let dcl_elab, res, ctx, xs =
+    let dcl_elab, res, ctx, local, xs =
       List.fold_right
-        (fun ss (dcl_elab, res, ctx_acc, xs) ->
+        (fun ss (dcl_elab, res, ctx_acc, local, xs) ->
           let x1 = const_extend x0 ss in
           try
-            let a = msubst sch (Array.of_list ss) in
+            let m_opt, a = msubst sch (Array.of_list ss) in
             let s = Logical.infer_sort ctx env a in
             let relv = Program.trans_relv relv in
-            Resolver.
-              ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
-              , RMap.add ss x1 res
-              , Ctx.add_const x1 a s ctx_acc
-              , (x1, s) :: xs )
+            match m_opt with
+            | Some m ->
+              Logical.check_tm ctx env m a;
+              Resolver.
+                ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
+                , RMap.add ss x1 res
+                , Ctx.add_const x1 a s ctx_acc
+                , RMap.add ss m local
+                , (x1, s) :: xs )
+            | None ->
+              Resolver.
+                ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
+                , RMap.add ss x1 res
+                , Ctx.add_const x1 a s ctx_acc
+                , local
+                , (x1, s) :: xs )
           with
           | e ->
             warn_extern x1 e;
-            (dcl_elab, res, ctx_acc, xs))
+            (dcl_elab, res, ctx_acc, local, xs))
         init
-        Resolver.([], RMap.empty, ctx, [])
+        Resolver.([], RMap.empty, ctx, RMap.empty, [])
     in
     State.add_const x0 res;
+    let env = Env.add_const x0 (fun ss -> Resolver.RMap.find ss local) env in
     let dcls_elab, usg = check_dcls ctx env dcls in
     let usg =
       List.fold_left (fun usg (x, s) -> Usage.remove_const x usg relv s) usg xs

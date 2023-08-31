@@ -178,7 +178,15 @@ let resolve_dcl (meta_map : meta_map) = function
     let dconstrs = resolve_dconstrs meta_map dconstrs in
     Inductive { name; relv; arity; dconstrs }
   | Extern { name; relv; scheme = sch } ->
-    let sch = resolve_scheme lift_tm resolve_tm meta_map sch in
+    let sch =
+      resolve_scheme
+        (fun (m_opt, a) ->
+          let m_opt = m_opt |> Option.map lift_tm |> box_opt in
+          box_pair m_opt (lift_tm a))
+        (fun meta_map (m_opt, a) ->
+          (Option.map (resolve_tm meta_map) m_opt, resolve_tm meta_map a))
+        meta_map sch
+    in
     Extern { name; relv; scheme = sch }
 
 let resolve_dcls meta_map dcls = List.map (resolve_dcl meta_map) dcls
