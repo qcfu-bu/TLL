@@ -2,19 +2,120 @@
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "TLL",
 	"patterns": [
-		{
-			"include": "#keywords"
-		},
-		{
-			"include": "#strings"
-		}
+		{ "include": "#comments"     },
+		{ "include": "#modifiers"    },
+		{ "include": "#declarations" },
+		{ "include": "#keywords"     },
+		{ "include": "#symbols"      },
+		{ "include": "#strings"      }
 	],
 	"repository": {
+		"lineComment": {
+			"patterns": [
+				{
+					"name": "comment.line.double-dash",
+					"begin": "--",
+					"end": "$"
+				}
+			]
+		},
+		"blockComment": {
+			"patterns": [
+				{
+					"name": "comment.block",
+					"begin": "/-",
+					"end": "-/",
+					"patterns": [
+						{
+							"include": "#blockComment"
+						}
+					]
+				}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{ "include": "#lineComment"  },
+				{ "include": "#blockComment" }
+			]
+		},
+		"modifiers": {
+			"patterns": [
+				{
+					"name": "storage.modifier",
+					"match": "#\\[[^\\]]*\\]"
+				}
+			]
+		},
+		"declarations": {
+			"patterns": [
+				{
+					"comment": "declaration",
+					"match": "\\b(def|extern|inductive)\\b\\s+([[:word:]_']+)",
+					"captures": {
+						"1": { "name": "storage.type"  },
+						"2": { "name": "entity.name.function" }
+					}
+				},
+				{
+					"comment": "notation",
+					"match": "\\b(notation)\\b",
+					"name": "storage.type"
+				},
+				{
+					"comment": "notation holes",
+					"match": "%\\w+",
+					"name": "variable.other"
+				},
+				{
+					"comment": "where",
+					"match": "\\b(where)\\b",
+					"name": "storage.type"
+				}
+			]
+		},
 		"keywords": {
-			"patterns": [{
-				"name": "keyword.control.tll",
-				"match": "\\b(if|while|for|return)\\b"
-			}]
+			"patterns": [
+				{
+					"comment": "builtin types",
+					"name": "entity.name.type",
+					"match": "\\b(U|L|Type|forall|exists|IO)\\b"
+				},
+				{
+					"comment": "let binding",
+					"name": "keyword.control.tll",
+					"match": "\\b(let[*]?|in\\b)"
+				},
+				{
+					"comment": "functions",
+					"name": "storage.type",
+					"match": "\\b(function|fn|ln)\\b"
+				},
+				{
+					"comment": "pattern matching",
+					"name": "keyword.control.tll",
+					"match": "\\b(match|as|in|with)\\b"
+				},
+				{
+					"comment": "absurd pattern",
+					"name": "invalid.illegal",
+					"match": "(!!)"
+				},
+				{
+					"comment": "monad return",
+					"name": "keyword.control.tll",
+					"match": "\\b(return)\\b"
+				}
+			]
+		},
+		"symbols": {
+			"patterns": [
+				{
+					"comment": "builtin symbols",
+					"name": "constant.language",
+					"match": "(->|→|-o|⊸|=>|⇒|:=|≔|\\?)"
+				}
+			]
 		},
 		"strings": {
 			"name": "string.quoted.double.tll",
