@@ -15,8 +15,6 @@
 %token FRQ     // ›
 %token QLPAREN // ?(
 %token QLBRACE // ?{
-%left LT
-%left GT
 
 // quantifiers
 %token FORALL   // ∀
@@ -60,25 +58,19 @@
 %token<string> OP_SEMI   // : infixr
 %token<string> OP_AT     // @ infixr
 %token<string> OP_TIC    // ` prefix
-%left OP_MUL
-%left OP_DIV
-%right OP_TIMES
-%right OP_OTIMES
-%left OP_REM
-%left OP_ADD
-%left OP_SUB
-%left OP_LT
-%left OP_GT
-%left OP_EQ
-%left OP_EX
-%left OP_AND
-%left OP_OR
-%nonassoc OP_SIM
-%left OP_CAT
-%right OP_COLON
+
 %right OP_SEMI
 %right OP_AT
-%nonassoc OP_TIC
+%right OP_COLON
+%left OP_OR
+%left OP_AND
+%left OP_EQ OP_EX
+%left OP_LT OP_GT LT GT
+%left OP_ADD OP_SUB
+%left OP_MUL OP_DIV OP_REM
+%right OP_TIMES OP_OTIMES
+%left OP_CAT
+%nonassoc OP_SIM OP_TIC
 
 // string
 %token<int> CHAR
