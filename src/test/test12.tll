@@ -95,7 +95,6 @@ def sub : nat -> nat -> nat
   | x zero     => x
   | x (succ y) => (pred x) - y
 
--- FIXME: OPERATOR PRECENDENCE IS PARSED WRONG!
 def mul : nat -> nat -> nat
   | zero     _ => zero
   | (succ x) y => y + (x * y)
@@ -110,19 +109,6 @@ def div (x : nat) (y : nat) :=
       | succ x => succ (loop x y)
     in
     loop x y
-
-def one := succ zero
-def two := succ one
-def three := succ two
-def four := succ three
-def five := succ four
-def six := succ five
-def seven := succ six
-def eight := succ seven
-def nine := succ eight
-def ten := succ nine
-#[logical]
-def test : (two * (two + one)) = six := refl
 
 def rem (x : nat) (y : nat) :=
   x - ((x / y) * y)
