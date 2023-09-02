@@ -103,10 +103,9 @@ inductive apair‹s,r,t› ?(A : Type‹s›) (B : A -> Type‹r›) : Type‹t�
                 | false => boxed (B x)) : apair B
 
 notation ( { , } ) :=
-  apair_intro
-    (function  
-     | true  => just %1
-     | false => box %2)
+  apair_intro fun
+    | true  => just %1
+    | false => box %2
 
 def proj1‹s,r,t› ?{A : Type‹s›} ?{B : A -> Type‹r›} : @apair‹s,r,t› A B -> A
   | (apair_intro _ select) => sing_elim (select true)

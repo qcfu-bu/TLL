@@ -114,8 +114,8 @@
 %token TM_FORALL0  // forall<
 %token TM_FORALL1  // forall‹
 %token TM_FN       // fn
-%token TM_LN       // fn
-%token TM_FUNCTION // function
+%token TM_LN       // ln
+%token TM_FUN      // fun
 %token TM_LET      // let
 %token TM_IN       // in
 %token TM_EXISTS   // exists
@@ -395,18 +395,18 @@ let tm_lam(P) :=
       let ps = List.map (fun (_, id, _) -> PId id) args in
       Fun (a, Binder (None, [(ps, Some m)]), []) }
 
-// pattern function
+// pattern fun
 /*
-function 
+fun 
 | P => m
 
-function f
+fun f
 | P => m
 
-function : A -> B
+fun : A -> B
 | P => m
 
-function f : A -> B
+fun f : A -> B
 | P => m
 */
 let tm_fun_arg :=
@@ -426,7 +426,7 @@ let tm_fun_cls :=
   | cl = tm_fun_cl(tm_closed); cls = tm_fun_cls; { cl :: cls }
 
 let tm_fun :=
-  | TM_FUNCTION; id = iden?; args = tm_fun_args; opt = tm_ann_closed; cls = tm_fun_cls;
+  | TM_FUN; id = iden?; args = tm_fun_args; opt = tm_ann_closed; cls = tm_fun_cls;
     { let b =
         match opt with
         | None -> IMeta
@@ -465,24 +465,24 @@ let tm_let(P) :=
 
 // let clauses
 /*
-let function f (x : A)
+let fun f (x : A)
   | P => m
 in n
 
-let function f (x : A) : A -> B
+let fun f (x : A) : A -> B
   | P => m
 in n
 
-let function {f} (x : A)
+let fun {f} (x : A)
   | P => m
 in n
 
-let function {f} (x : A) : A -> B
+let fun {f} (x : A) : A -> B
   | P => m
 in n
 */
 let tm_letcls(P) :=
-  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args; opt = tm_ann_closed;
+  | TM_LET; TM_FUN; id = iden; args = tm_fun_args; opt = tm_ann_closed;
     cls = tm_fun_cls; TM_IN; m = P;
     { let b =
         match opt with
@@ -496,7 +496,7 @@ let tm_letcls(P) :=
       let ps = List.map (fun (_, id, _) -> PId id) args in
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
       Let (R, Fun (a, Binder (Some id, cls), []), Binder (PId id, m)) }
-  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_closed;
+  | TM_LET; TM_FUN; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_closed;
     cls = tm_fun_cls; TM_IN; m = P;
     { let b =
         match opt with
@@ -511,22 +511,22 @@ let tm_letcls(P) :=
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
       Let (N, Fun (a, Binder (Some id, cls), []), Binder (PId id, m)) }
 
-// let function
+// let fun
 /*
-let function f (x : A) := m
+let fun f (x : A) := m
 in n
 
-let function f (x : A) : B := m
+let fun f (x : A) : B := m
 in n
 
-let function {f} (x : A) := m
+let fun {f} (x : A) := m
 in n
 
-let function {f} (x : A) : B := m
+let fun {f} (x : A) : B := m
 in n
 */
 let tm_letfun(P) :=
-  | TM_LET; TM_FUNCTION; id = iden; args = tm_fun_args; opt = tm_ann_open;
+  | TM_LET; TM_FUN; id = iden; args = tm_fun_args; opt = tm_ann_open;
     ASSIGN; m = tm; TM_IN; n = P;
     { let b =
         match opt with
@@ -539,7 +539,7 @@ let tm_letfun(P) :=
       in
       let ps = List.map (fun (_, id, _) -> PId id) args in
       Let (R, Fun (a, Binder (Some id, [(ps, Some m)]), []), Binder (PId id, n)) }
-  | TM_LET; TM_FUNCTION; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_open;
+  | TM_LET; TM_FUN; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_open;
     ASSIGN; m = tm; TM_IN; n = P;
     { let b =
         match opt with

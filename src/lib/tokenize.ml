@@ -119,7 +119,7 @@ let tm_forall0 = [%sedlex.regexp? "forall", lt]
 let tm_forall1 = [%sedlex.regexp? "forall", flq]
 let tm_fn = [%sedlex.regexp? "fn"]
 let tm_ln = [%sedlex.regexp? "ln"]
-let tm_function = [%sedlex.regexp? "function"]
+let tm_fun = [%sedlex.regexp? "fun"]
 let tm_let = [%sedlex.regexp? "let"]
 let tm_in = [%sedlex.regexp? "in"]
 let tm_tup = [%sedlex.regexp? "tup"]
@@ -232,7 +232,7 @@ let rec tokenize buf =
   | tm_forall1 -> TM_FORALL1
   | tm_fn -> TM_FN
   | tm_ln -> TM_LN
-  | tm_function -> TM_FUNCTION
+  | tm_fun -> TM_FUN
   | tm_let -> TM_LET
   | tm_in -> TM_IN
   | tm_tup -> TM_TUP
