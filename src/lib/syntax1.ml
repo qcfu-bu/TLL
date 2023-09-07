@@ -25,6 +25,7 @@ type tm =
   | Type of sort
   | Var of tm var
   | Const of Const.t * sorts
+  | TName of TName.t * sorts
   | Pi of relv * sort * tm * (tm, tm) binder
   | Fun of guard * tm * (tm, cls) binder
   | App of tm * tm
@@ -75,6 +76,17 @@ type dcl =
       ; relv : relv
       ; arity : tele param scheme
       ; dconstrs : dconstrs
+      }
+  | Template of
+      { name : TName.t
+      ; relv : relv
+      ; scheme : tm scheme
+      }
+  | Implement of 
+      { name : Const.t
+      ; relv : relv
+      ; tmpl : TName.t
+      ; scheme : (tm * tm) scheme
       }
   | Extern of
       { name : Const.t

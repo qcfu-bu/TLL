@@ -145,6 +145,8 @@ let modifier = [%sedlex.regexp? "#["]
 let dcl_def = [%sedlex.regexp? "def"]
 let dcl_inductive = [%sedlex.regexp? "inductive"]
 let dcl_where = [%sedlex.regexp? "where"]
+let dcl_tmpl = [%sedlex.regexp? "tmpl"]
+let dcl_impl = [%sedlex.regexp? "impl"]
 let dcl_extern = [%sedlex.regexp? "extern"]
 let dcl_notation = [%sedlex.regexp? "notation"]
 
@@ -256,6 +258,8 @@ let rec tokenize buf =
   | dcl_def -> DCL_DEF
   | dcl_inductive -> DCL_INDUCTIVE
   | dcl_where -> DCL_WHERE
+  | dcl_tmpl -> DCL_TMPL
+  | dcl_impl -> DCL_IMPL
   | dcl_extern -> DCL_EXTERN
   | dcl_notation -> DCL_NOTATION
   (* operators *)
