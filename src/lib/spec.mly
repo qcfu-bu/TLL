@@ -271,12 +271,29 @@ let tm_pattern1 :=
   | TM_ABSURD; { PAbsurd }
   | id = iden; ps = tm_pattern0s; { PConstr (id, ps) }
   | p = delim_op(tm_pattern1i,tm_pattern1i); { let (s, p1, p2) = p in PBOpr (s, p1, p2) }
-  | LPAREN; ~ = tm_pattern1; RPAREN; <>
+  | LPAREN; ~ = tm_pattern1i; RPAREN; <>
 
 let tm_pattern1i :=
   | p1 = tm_pattern1i; s = infix_op; p2 = tm_pattern1i; { PBOpr (s, p1, p2) }
   | s = prefix_op; p = tm_pattern1i; { PUOpr (s, p) }
   | ~ = tm_pattern1; <>
+
+// clauses
+let tm_cl0(P) :=
+  | ps = separated_list(COMMA, tm_pattern1i); RIGHTARROW1; rhs = P?; { (ps, rhs) }
+
+let tm_cl1(P) :=
+  | PIPE; ps = separated_list(COMMA, tm_pattern1i); RIGHTARROW1; rhs = P?; { (ps, rhs) }
+
+let tm_cls0 :=
+  | cl = tm_cl1(tm); { [cl] }
+  | cl = tm_cl1(tm_closed); cls = tm_cls0; { cl :: cls }
+
+let tm_cls1 :=
+  | cl = tm_cl0(tm); { [cl] }
+  | cl = tm_cl0(tm_closed); cls = tm_cls0; { cl :: cls }
+  | opt = option(tm_cls0);
+    { match opt with Some cls -> cls | None -> [] }
 
 // instance
 /* X‹s,r,t› */
@@ -418,15 +435,8 @@ let tm_fun_arg :=
 let tm_fun_args :=
   | args = tm_fun_arg*; { List.concat args }
 
-let tm_fun_cl(P) :=
-  | PIPE; ps = tm_pattern0s; RIGHTARROW1; rhs = P?; { (ps, rhs) }
-
-let tm_fun_cls :=
-  | cl = tm_fun_cl(tm); { [cl] }
-  | cl = tm_fun_cl(tm_closed); cls = tm_fun_cls; { cl :: cls }
-
 let tm_fun :=
-  | TM_FUN; id = iden?; args = tm_fun_args; opt = tm_ann_closed; cls = tm_fun_cls;
+  | TM_FUN; id = iden?; args = tm_fun_args; opt = tm_ann_closed; cls = tm_cls0;
     { let b =
         match opt with
         | None -> IMeta
@@ -483,7 +493,7 @@ in n
 */
 let tm_letcls(P) :=
   | TM_LET; TM_FUN; id = iden; args = tm_fun_args; opt = tm_ann_closed;
-    cls = tm_fun_cls; TM_IN; m = P;
+    cls = tm_cls0; TM_IN; m = P;
     { let b =
         match opt with
         | None -> IMeta
@@ -497,7 +507,7 @@ let tm_letcls(P) :=
       let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
       Let (R, Fun (a, Binder (Some id, cls), []), Binder (PId id, m)) }
   | TM_LET; TM_FUN; LBRACE; id = iden; RBRACE; args = tm_fun_args; opt = tm_ann_closed;
-    cls = tm_fun_cls; TM_IN; m = P;
+    cls = tm_cls0; TM_IN; m = P;
     { let b =
         match opt with
         | None -> IMeta
@@ -578,28 +588,10 @@ let tm_match_arg :=
 let tm_match_args :=
   | ~ = separated_list(COMMA, tm_match_arg); <>
 
-let tm_match_cl0(P) :=
-  | ps = separated_list(COMMA, tm_pattern1i); RIGHTARROW1; rhs = P?; { (ps, rhs) }
-
-let tm_match_cl1(P) :=
-  | PIPE; ps = separated_list(COMMA, tm_pattern1i); RIGHTARROW1; rhs = P?; { (ps, rhs) }
-
-let tm_match_cls0 :=
-  | cl = tm_match_cl1(tm); { [cl] }
-  | cl = tm_match_cl1(tm_closed); cls = tm_match_cls0; { cl :: cls }
-
-let tm_match_cls :=
-  | cl = tm_match_cl0(tm); { [cl] }
-  | cl = tm_match_cl0(tm_closed); cls = tm_match_cls0; { cl :: cls }
-  | opt = option(tm_match_cls0);
-    { match opt with
-      | Some cls -> cls
-      | None -> [] }
-
 let tm_match :=
-  | TM_MATCH; args = tm_match_args; TM_WITH; cls = tm_match_cls;
+  | TM_MATCH; args = tm_match_args; TM_WITH; cls = tm_cls1;
     { Match (args, None, cls) }
-  | TM_MATCH; args = tm_match_args; TM_IN; a = tm; TM_WITH; cls = tm_match_cls;
+  | TM_MATCH; args = tm_match_args; TM_IN; a = tm; TM_WITH; cls = tm_cls1;
     { Match (args, Some a, cls) }
 
 // io
@@ -719,17 +711,6 @@ let dcl_arg :=
 let dcl_args :=
   | args = dcl_arg*; { List.concat args }
 
-// dcl clauses
-let dcl_cls_closed :=
-  | PIPE; ps = tm_pattern0s; RIGHTARROW1; rhs = tm_closed?; { (ps, rhs) }
-
-let dcl_cls_open :=
-  | PIPE; ps = tm_pattern0s; RIGHTARROW1; rhs = tm?; { (ps, rhs) }
-
-let dcl_cls :=
-  | cl = dcl_cls_open; { [cl] }
-  | cl = dcl_cls_closed; cls = dcl_cls; { cl :: cls }
-
 // def
 /*
 #[logical]
@@ -741,7 +722,7 @@ def foo‹s› (x : A) : A -> B
 */
 let dcl_def :=
   | relv = dcl_modifier;
-    DCL_DEF; id_sids = dcl_iden; args = dcl_args; COLON; b = tm_closed; cls = dcl_cls;
+    DCL_DEF; id_sids = dcl_iden; args = dcl_args; COLON; b = tm_closed; cls = tm_cls0;
     { let id, sids = id_sids in
       let a, view =
         List.fold_right (fun (relv, id, a, v) (b, view) ->
@@ -855,7 +836,7 @@ let dcl_extern :=
       let sch = Binder (sids, (None, a)) in
       Extern { name = id; relv; body = sch; view } }
   | relv = dcl_modifier;
-    DCL_EXTERN; id_sids = dcl_iden; args = dcl_args; COLON; b = tm_closed; cls = dcl_cls;
+    DCL_EXTERN; id_sids = dcl_iden; args = dcl_args; COLON; b = tm_closed; cls = tm_cls0;
     { let id, sids = id_sids in
       let a, view =
         List.fold_right (fun (relv, id, a, v) (b, view) ->

@@ -896,28 +896,21 @@ let rec check_dcls ctx env = function
             let m, a = msubst sch (Array.of_list ss) in
             let s = Logical.infer_sort ctx env a in
             Logical.check_tm ctx env m a;
-            Resolver.
-              ( Syntax2.(Definition { name = x1; relv = N; body = NULL })
-                :: dcl_elab
-              , RMap.add ss x1 res
-              , Ctx.add_const x1 a s ctx_acc
-              , RMap.add ss m local
-              , (x1, s) :: xs )
+            ( Syntax2.(Definition { name = x1; relv = N; body = NULL })
+              :: dcl_elab
+            , RMap.add ss x1 res
+            , Ctx.add_const x1 a s ctx_acc
+            , RMap.add ss m local
+            , (x1, s) :: xs )
           with
           | e ->
             warn_const x1 e;
             (dcl_elab, res, ctx_acc, local, xs))
         init
-        Resolver.([], RMap.empty, ctx, RMap.empty, [])
+        ([], RMap.empty, ctx, RMap.empty, [])
     in
     State.add_const x0 res;
-    let env =
-      Env.add_const x0
-        (fun ss ->
-          try Resolver.RMap.find ss local with
-          | _ -> failwith "RMap.find_const(%a)" Const.pp x0)
-        env
-    in
+    let env = Env.add_const x0 (fun ss -> RMap.find_opt ss local) env in
     let dcls_elab, usg = check_dcls ctx env dcls in
     let usg =
       List.fold_left (fun usg (x, s) -> Usage.remove_const x usg N s) usg xs
@@ -934,29 +927,22 @@ let rec check_dcls ctx env = function
             let m, a = msubst sch (Array.of_list ss) in
             let s = Logical.infer_sort ctx env a in
             let m_elab, usg = Program.check_tm ctx env m a in
-            Resolver.
-              ( Syntax2.(Definition { name = x1; relv = R; body = unbox m_elab })
-                :: dcl_elab
-              , RMap.add ss x1 res
-              , Ctx.add_const x1 a s ctx_acc
-              , RMap.add ss m local
-              , (x1, s) :: xs
-              , Usage.merge usg usg1 )
+            ( Syntax2.(Definition { name = x1; relv = R; body = unbox m_elab })
+              :: dcl_elab
+            , RMap.add ss x1 res
+            , Ctx.add_const x1 a s ctx_acc
+            , RMap.add ss m local
+            , (x1, s) :: xs
+            , Usage.merge usg usg1 )
           with
           | e ->
             warn_const x1 e;
             (dcl_elab, res, ctx_acc, local, xs, usg1))
         init
-        Resolver.([], RMap.empty, ctx, RMap.empty, [], Usage.empty)
+        ([], RMap.empty, ctx, RMap.empty, [], Usage.empty)
     in
     State.add_const x0 res;
-    let env =
-      Env.add_const x0
-        (fun ss ->
-          try Resolver.RMap.find ss local with
-          | _ -> failwith "RMap.find_const(%a)" Const.pp x0)
-        env
-    in
+    let env = Env.add_const x0 (fun ss -> RMap.find_opt ss local) env in
     let dcls_elab, usg2 = check_dcls ctx env dcls in
     let usg2 =
       List.fold_left (fun usg2 (x, s) -> Usage.remove_const x usg2 R s) usg2 xs
@@ -990,8 +976,7 @@ let rec check_dcls ctx env = function
           | e ->
             warn_ind d1 e;
             (dcl_elab, ctx_acc))
-        init
-        Resolver.([], ctx)
+        init ([], ctx)
     in
     let dcls_elab, usg = check_dcls ctx env dcls in
     (dcl_elab @ dcls_elab, usg)
@@ -1009,33 +994,26 @@ let rec check_dcls ctx env = function
             match m_opt with
             | Some m ->
               Logical.check_tm ctx env m a;
-              Resolver.
-                ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
-                , RMap.add ss x1 res
-                , Ctx.add_const x1 a s ctx_acc
-                , RMap.add ss m local
-                , (x1, s) :: xs )
+              ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
+              , RMap.add ss x1 res
+              , Ctx.add_const x1 a s ctx_acc
+              , RMap.add ss m local
+              , (x1, s) :: xs )
             | None ->
-              Resolver.
-                ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
-                , RMap.add ss x1 res
-                , Ctx.add_const x1 a s ctx_acc
-                , local
-                , (x1, s) :: xs )
+              ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
+              , RMap.add ss x1 res
+              , Ctx.add_const x1 a s ctx_acc
+              , local
+              , (x1, s) :: xs )
           with
           | e ->
             warn_extern x1 e;
             (dcl_elab, res, ctx_acc, local, xs))
         init
-        Resolver.([], RMap.empty, ctx, RMap.empty, [])
+        ([], RMap.empty, ctx, RMap.empty, [])
     in
     State.add_const x0 res;
-    let env =
-      if Resolver.RMap.is_empty local then
-        env
-      else
-        Env.add_const x0 (fun ss -> Resolver.RMap.find ss local) env
-    in
+    let env = Env.add_const x0 (fun ss -> RMap.find_opt ss local) env in
     let dcls_elab, usg = check_dcls ctx env dcls in
     let usg =
       List.fold_left (fun usg (x, s) -> Usage.remove_const x usg relv s) usg xs
