@@ -770,6 +770,7 @@ module Program = struct
     let a = whnf env a in
     match (m, p, a) with
     | Constr (c0, _, _, ns), PConstr (c, ps), Ind (d0, ss, ms, _) ->
+      Debug.exec (fun () -> pr "%a@." Constr.pp c0);
       let d1 = State.find_ind d0 ss in
       let _, cs0 = Ctx.find_ind d1 ctx in
       if List.exists (fun c0 -> Constr.equal c0 c) cs0 then
@@ -910,7 +911,13 @@ let rec check_dcls ctx env = function
         Resolver.([], RMap.empty, ctx, RMap.empty, [])
     in
     State.add_const x0 res;
-    let env = Env.add_const x0 (fun ss -> Resolver.RMap.find ss local) env in
+    let env =
+      Env.add_const x0
+        (fun ss ->
+          try Resolver.RMap.find ss local with
+          | _ -> failwith "RMap.find_const(%a)" Const.pp x0)
+        env
+    in
     let dcls_elab, usg = check_dcls ctx env dcls in
     let usg =
       List.fold_left (fun usg (x, s) -> Usage.remove_const x usg N s) usg xs
@@ -943,7 +950,13 @@ let rec check_dcls ctx env = function
         Resolver.([], RMap.empty, ctx, RMap.empty, [], Usage.empty)
     in
     State.add_const x0 res;
-    let env = Env.add_const x0 (fun ss -> Resolver.RMap.find ss local) env in
+    let env =
+      Env.add_const x0
+        (fun ss ->
+          try Resolver.RMap.find ss local with
+          | _ -> failwith "RMap.find_const(%a)" Const.pp x0)
+        env
+    in
     let dcls_elab, usg2 = check_dcls ctx env dcls in
     let usg2 =
       List.fold_left (fun usg2 (x, s) -> Usage.remove_const x usg2 R s) usg2 xs
@@ -1017,7 +1030,12 @@ let rec check_dcls ctx env = function
         Resolver.([], RMap.empty, ctx, RMap.empty, [])
     in
     State.add_const x0 res;
-    let env = Env.add_const x0 (fun ss -> Resolver.RMap.find ss local) env in
+    let env =
+      if Resolver.RMap.is_empty local then
+        env
+      else
+        Env.add_const x0 (fun ss -> Resolver.RMap.find ss local) env
+    in
     let dcls_elab, usg = check_dcls ctx env dcls in
     let usg =
       List.fold_left (fun usg (x, s) -> Usage.remove_const x usg relv s) usg xs

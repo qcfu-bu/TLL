@@ -618,58 +618,13 @@
                          None,
                          [([(PId "true")], (Some (Id ("zero", I))));
                            ([(PId "false")],
-                            (Some (Let (R,
-                                     (Fun (
-                                        (Pi (R, U, (Id ("nat", I)),
-                                           (Binder ("x",
-                                              (Pi (R, U, (Id ("nat", I)),
-                                                 (Binder ("y", IMeta))))
-                                              ))
-                                           )),
-                                        (Binder ((Some "loop"),
-                                           [([(PId "x"); (PId "y")],
-                                             (Some (Match (
-                                                      [(R,
-                                                        (BOpr ("-",
-                                                           (Id ("x", I)),
-                                                           (App
-                                                              [(Id ("pred", I
-                                                                  ));
-                                                                (Id ("y", I))
-                                                                ])
-                                                           )),
-                                                        None)],
-                                                      None,
-                                                      [([(PId "zero")],
-                                                        (Some (Id ("zero", I
-                                                                 ))));
-                                                        ([(PConstr ("succ",
-                                                             [(PId "x")]))
-                                                           ],
-                                                         (Some (App
-                                                                  [(Id (
-                                                                    "succ", I
-                                                                    ));
-                                                                    (
-                                                                    App
-                                                                    [(Id (
-                                                                    "loop", I
-                                                                    ));
-                                                                    (Id ("x",
-                                                                    I));
-                                                                    (Id ("y",
-                                                                    I))])])))
-                                                        ]
-                                                      ))))
-                                             ]
-                                           )),
-                                        [])),
-                                     (Binder ((PId "loop"),
-                                        (App
-                                           [(Id ("loop", I)); (Id ("x", I));
-                                             (Id ("y", I))])
-                                        ))
-                                     ))))
+                            (Some (App
+                                     [(Id ("succ", I));
+                                       (BOpr ("/",
+                                          (BOpr ("-", (Id ("x", I)),
+                                             (Id ("y", I)))),
+                                          (Id ("y", I))))
+                                       ])))
                            ]
                          ))))
                 ]
@@ -730,291 +685,110 @@
            )))
        ));
     view = []};
-  Definition {name = "loc"; relv = N;
-    body = (Binder ([], ((Id ("nat", I)), (Type U)))); view = []};
-  Inductive {name = "at"; relv = N;
+  Extern {name = "proto"; relv = N; body = (Binder ([], (None, (Type U))));
+    view = []};
+  Extern {name = "act0"; relv = N;
     body =
     (Binder (["s"],
-       (PBind ((Type (SId "s")),
-          (Binder ("A",
-             (PBind ((Id ("loc", I)),
-                (Binder ("l",
-                   (PBase
-                      ((TBase (Type L)),
-                       [(DConstr ("at_intro",
-                           (TBind (R, (Id ("A", I)),
-                              (Binder ("m",
-                                 (TBase
-                                    (App
-                                       [(Id ("at", I)); (Id ("A", I));
-                                         (Id ("l", I))]))
-                                 ))
-                              )),
-                           [E]))
-                         ]))
-                   ))
-                ))
-             ))
-          ))
+       (None,
+        (Pi (R, U, (Id ("bool", I)),
+           (Binder ("b",
+              (Pi (R, U, (Type (SId "s")),
+                 (Binder ("A",
+                    (Pi (R, U,
+                       (Pi (R, U, (Id ("A", I)),
+                          (Binder ("_", (Id ("proto", I)))))),
+                       (Binder ("B", (Id ("proto", I))))))
+                    ))
+                 ))
+              ))
+           )))
        ));
-    view = [E; E]};
-  Notation {name = "@"; body = (App [(Id ("at", I)); (Hole 1); (Hole 2)])};
-  Extern {name = "alloc"; relv = R;
+    view = [E; I; E]};
+  Extern {name = "act1"; relv = N;
+    body =
+    (Binder (["s"],
+       (None,
+        (Pi (R, U, (Id ("bool", I)),
+           (Binder ("b",
+              (Pi (R, U, (Type (SId "s")),
+                 (Binder ("A",
+                    (Pi (R, U,
+                       (Pi (R, U, (Id ("A", I)),
+                          (Binder ("_", (Id ("proto", I)))))),
+                       (Binder ("B", (Id ("proto", I))))))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [E; I; E]};
+  Extern {name = "endp"; relv = N;
+    body = (Binder ([], (None, (Id ("proto", I))))); view = []};
+  Extern {name = "ch"; relv = N;
     body =
     (Binder ([],
        (None,
-        (Pi (R, U, (Id ("unit", I)),
+        (Pi (R, U, (Id ("bool", I)),
            (Binder ("_",
-              (IO
-                 (App
-                    [(Id ("exists1", I));
-                      (Fun ((Pi (R, U, IMeta, (Binder ("l", IMeta)))),
-                         (Binder (None,
-                            [([(PId "l")],
-                              (Some (BOpr ("@", (Id ("unit", I)),
-                                       (Id ("l", I))))))
-                              ]
-                            )),
-                         []))
-                      ]))
-              ))
+              (Pi (R, U, (Id ("proto", I)), (Binder ("_", (Type L)))))))
            )))
        ));
-    view = [E]};
-  Extern {name = "getU"; relv = R;
+    view = []};
+  Extern {name = "close"; relv = R;
     body =
     (Binder ([],
-       ((Some (Fun (
-                 (Pi (N, U, (Type U),
-                    (Binder ("A",
-                       (Pi (R, U, (Id ("loc", I)),
-                          (Binder ("l",
-                             (Pi (R, U,
-                                (BOpr ("@", (Id ("A", I)), (Id ("l", I)))),
-                                (Binder ("pf",
-                                   (App
-                                      [(Id ("prod1", I)); (Id ("A", I));
-                                        (BOpr ("@", (Id ("A", I)),
-                                           (Id ("l", I))))
-                                        ])
-                                   ))
-                                ))
-                             ))
-                          ))
-                       ))
-                    )),
-                 (Binder ((Some "getU"),
-                    [([(PId "A"); (PId "l"); (PId "pf")],
-                      (Some (Match ([(R, (Id ("pf", I)), None)], None,
-                               [([(PConstr ("at_intro", [(PId "v")]))],
-                                 (Some (BOpr ("\226\159\168,\226\159\169",
-                                          (Id ("v", I)), (Id ("pf", I))))))
-                                 ]
-                               ))))
-                      ]
-                    )),
-                 [I; E; E]))),
-        (Pi (N, U, (Type U),
-           (Binder ("A",
-              (Pi (R, U, (Id ("loc", I)),
-                 (Binder ("l",
-                    (Pi (R, U, (BOpr ("@", (Id ("A", I)), (Id ("l", I)))),
-                       (Binder ("pf",
-                          (App
-                             [(Id ("prod1", I)); (Id ("A", I));
-                               (BOpr ("@", (Id ("A", I)), (Id ("l", I))))])
-                          ))
-                       ))
-                    ))
-                 ))
+       (None,
+        (Pi (N, U, (Id ("bool", I)),
+           (Binder ("b",
+              (Pi (R, U,
+                 (App [(Id ("ch", I)); (Id ("b", I)); (Id ("endp", I))]),
+                 (Binder ("_", (IO (Id ("unit", I)))))))
               ))
            )))
        ));
-    view = [I; E; E]};
-  Extern {name = "getL"; relv = R;
-    body =
-    (Binder ([],
-       ((Some (Fun (
-                 (Pi (N, U, (Type L),
-                    (Binder ("A",
-                       (Pi (R, U, (Id ("loc", I)),
-                          (Binder ("l",
-                             (Pi (R, U,
-                                (BOpr ("@", (Id ("A", I)), (Id ("l", I)))),
-                                (Binder ("pf",
-                                   (App
-                                      [(Id ("prod1", I)); (Id ("A", I));
-                                        (BOpr ("@", (Id ("unit", I)),
-                                           (Id ("l", I))))
-                                        ])
-                                   ))
-                                ))
-                             ))
-                          ))
-                       ))
-                    )),
-                 (Binder ((Some "getL"),
-                    [([(PId "A"); (PId "l"); (PId "pf")],
-                      (Some (Match ([(R, (Id ("pf", I)), None)], None,
-                               [([(PConstr ("at_intro", [(PId "v")]))],
-                                 (Some (BOpr ("\226\159\168,\226\159\169",
-                                          (Id ("v", I)),
-                                          (App
-                                             [(Id ("at_intro", I));
-                                               (Id ("tt", I))])
-                                          ))))
-                                 ]
-                               ))))
-                      ]
-                    )),
-                 [I; E; E]))),
-        (Pi (N, U, (Type L),
-           (Binder ("A",
-              (Pi (R, U, (Id ("loc", I)),
-                 (Binder ("l",
-                    (Pi (R, U, (BOpr ("@", (Id ("A", I)), (Id ("l", I)))),
-                       (Binder ("pf",
-                          (App
-                             [(Id ("prod1", I)); (Id ("A", I));
-                               (BOpr ("@", (Id ("unit", I)), (Id ("l", I))))])
-                          ))
-                       ))
-                    ))
-                 ))
-              ))
-           )))
-       ));
-    view = [I; E; E]};
-  Extern {name = "set"; relv = R;
+    view = [I]};
+  Extern {name = "send0"; relv = R;
     body =
     (Binder (["s"],
-       ((Some (Fun (
-                 (Pi (N, U, (Type U),
-                    (Binder ("A",
-                       (Pi (N, U, (Type (SId "s")),
-                          (Binder ("B",
-                             (Pi (R, U, (Id ("loc", I)),
-                                (Binder ("l",
-                                   (Pi (R, U, (Id ("B", I)),
-                                      (Binder ("m",
-                                         (Pi (R, U,
-                                            (BOpr ("@", (Id ("A", I)),
-                                               (Id ("l", I)))),
-                                            (Binder ("pf",
-                                               (BOpr ("@", (Id ("B", I)),
-                                                  (Id ("l", I))))
-                                               ))
-                                            ))
-                                         ))
-                                      ))
-                                   ))
-                                ))
-                             ))
-                          ))
-                       ))
-                    )),
-                 (Binder ((Some "set"),
-                    [([(PId "A"); (PId "B"); (PId "l"); (PId "m"); (PId "pf")
-                        ],
-                      (Some (Match ([(R, (Id ("pf", I)), None)], None,
-                               [([(PConstr ("at_intro", [(PId "_")]))],
-                                 (Some (App
-                                          [(Id ("at_intro", I));
-                                            (Id ("m", I))])))
-                                 ]
-                               ))))
-                      ]
-                    )),
-                 [I; I; E; E; E]))),
-        (Pi (N, U, (Type U),
-           (Binder ("A",
-              (Pi (N, U, (Type (SId "s")),
-                 (Binder ("B",
-                    (Pi (R, U, (Id ("loc", I)),
-                       (Binder ("l",
-                          (Pi (R, U, (Id ("B", I)),
-                             (Binder ("m",
-                                (Pi (R, U,
-                                   (BOpr ("@", (Id ("A", I)), (Id ("l", I)))),
-                                   (Binder ("pf",
-                                      (BOpr ("@", (Id ("B", I)),
-                                         (Id ("l", I))))
-                                      ))
-                                   ))
-                                ))
-                             ))
-                          ))
-                       ))
-                    ))
-                 ))
-              ))
-           )))
-       ));
-    view = [I; I; E; E; E]};
-  Extern {name = "free"; relv = R;
-    body =
-    (Binder ([],
-       ((Some (Fun (
-                 (Pi (N, U, (Type U),
-                    (Binder ("A",
-                       (Pi (R, U, (Id ("loc", I)),
-                          (Binder ("l",
-                             (Pi (R, U,
-                                (BOpr ("@", (Id ("A", I)), (Id ("l", I)))),
-                                (Binder ("pf", (Id ("unit", I))))))
-                             ))
-                          ))
-                       ))
-                    )),
-                 (Binder ((Some "free"),
-                    [([(PId "A"); (PId "l"); (PId "pf")],
-                      (Some (Match ([(R, (Id ("pf", I)), None)], None,
-                               [([(PConstr ("at_intro", [(PId "_")]))],
-                                 (Some (Id ("tt", I))))]
-                               ))))
-                      ]
-                    )),
-                 [I; E; E]))),
-        (Pi (N, U, (Type U),
-           (Binder ("A",
-              (Pi (R, U, (Id ("loc", I)),
-                 (Binder ("l",
-                    (Pi (R, U, (BOpr ("@", (Id ("A", I)), (Id ("l", I)))),
-                       (Binder ("pf", (Id ("unit", I))))))
-                    ))
-                 ))
-              ))
-           )))
-       ));
-    view = [I; E; E]};
-  Definition {name = "set_get_law"; relv = N;
-    body =
-    (Binder (["s"],
-       ((Fun (
-           (Pi (R, U, (Type U),
-              (Binder ("A",
-                 (Pi (R, U, (Id ("loc", I)),
-                    (Binder ("l",
-                       (Pi (R, U, (BOpr ("@", (Id ("A", I)), (Id ("l", I)))),
-                          (Binder ("pf",
+       (None,
+        (Pi (N, U, (Id ("bool", I)),
+           (Binder ("b1",
+              (Pi (N, U, (Id ("bool", I)),
+                 (Binder ("b2",
+                    (Pi (N, U, (Type (SId "s")),
+                       (Binder ("A",
+                          (Pi (N, U,
                              (Pi (R, U, (Id ("A", I)),
-                                (Binder ("v0",
-                                   (Let (R,
+                                (Binder ("_", (Id ("proto", I)))))),
+                             (Binder ("B",
+                                (Pi (N, U,
+                                   (BOpr ("=",
                                       (App
-                                         [(Id ("set", I)); (Id ("l", I));
-                                           (Id ("v0", I)); (Id ("pf", I))]),
-                                      (Binder ((PId "pf"),
-                                         (Let (R,
-                                            (App
-                                               [(Id ("getU", I));
-                                                 (Id ("l", I));
-                                                 (Id ("pf", I))]),
-                                            (Binder (
-                                               (PBOpr (
-                                                  "\226\159\168,\226\159\169",
-                                                  (PId "v1"), (PId "pf"))),
-                                               (BOpr ("=", (Id ("v0", I)),
-                                                  (Id ("v1", I))))
+                                         [(Id ("xor", I)); (Id ("b1", I));
+                                           (Id ("b2", I))]),
+                                      (Id ("false", I)))),
+                                   (Binder ("_",
+                                      (Pi (R, U,
+                                         (App
+                                            [(Id ("ch", I)); (Id ("b1", I));
+                                              (App
+                                                 [(Id ("act0", I));
+                                                   (Id ("b2", I));
+                                                   (Id ("B", I))])
+                                              ]),
+                                         (Binder ("_",
+                                            (Pi (N, L, (Id ("A", I)),
+                                               (Binder ("x",
+                                                  (IO
+                                                     (App
+                                                        [(Id ("ch", I));
+                                                          (Id ("b1", I));
+                                                          (App
+                                                             [(Id ("B", I));
+                                                               (Id ("x", I))])
+                                                          ]))
+                                                  ))
                                                ))
                                             ))
                                          ))
@@ -1024,93 +798,796 @@
                              ))
                           ))
                        ))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I; I; I]};
+  Extern {name = "send1"; relv = R;
+    body =
+    (Binder (["s"],
+       (None,
+        (Pi (N, U, (Id ("bool", I)),
+           (Binder ("b1",
+              (Pi (N, U, (Id ("bool", I)),
+                 (Binder ("b2",
+                    (Pi (N, U, (Type (SId "s")),
+                       (Binder ("A",
+                          (Pi (N, U,
+                             (Pi (R, U, (Id ("A", I)),
+                                (Binder ("_", (Id ("proto", I)))))),
+                             (Binder ("B",
+                                (Pi (N, U,
+                                   (BOpr ("=",
+                                      (App
+                                         [(Id ("xor", I)); (Id ("b1", I));
+                                           (Id ("b2", I))]),
+                                      (Id ("false", I)))),
+                                   (Binder ("_",
+                                      (Pi (R, U,
+                                         (App
+                                            [(Id ("ch", I)); (Id ("b1", I));
+                                              (App
+                                                 [(Id ("act1", I));
+                                                   (Id ("b2", I));
+                                                   (Id ("B", I))])
+                                              ]),
+                                         (Binder ("_",
+                                            (Pi (R, L, (Id ("A", I)),
+                                               (Binder ("x",
+                                                  (IO
+                                                     (App
+                                                        [(Id ("ch", I));
+                                                          (Id ("b1", I));
+                                                          (App
+                                                             [(Id ("B", I));
+                                                               (Id ("x", I))])
+                                                          ]))
+                                                  ))
+                                               ))
+                                            ))
+                                         ))
+                                      ))
+                                   ))
+                                ))
+                             ))
+                          ))
+                       ))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I; I; I]};
+  Extern {name = "recv0"; relv = R;
+    body =
+    (Binder (["s"],
+       (None,
+        (Pi (N, U, (Id ("bool", I)),
+           (Binder ("b1",
+              (Pi (N, U, (Id ("bool", I)),
+                 (Binder ("b2",
+                    (Pi (N, U, (Type (SId "s")),
+                       (Binder ("A",
+                          (Pi (N, U,
+                             (Pi (R, U, (Id ("A", I)),
+                                (Binder ("_", (Id ("proto", I)))))),
+                             (Binder ("B",
+                                (Pi (N, U,
+                                   (BOpr ("=",
+                                      (App
+                                         [(Id ("xor", I)); (Id ("b1", I));
+                                           (Id ("b2", I))]),
+                                      (Id ("true", I)))),
+                                   (Binder ("_",
+                                      (Pi (R, U,
+                                         (App
+                                            [(Id ("ch", I)); (Id ("b1", I));
+                                              (App
+                                                 [(Id ("act0", I));
+                                                   (Id ("b2", I));
+                                                   (Id ("B", I))])
+                                              ]),
+                                         (Binder ("_",
+                                            (IO
+                                               (App
+                                                  [(Id ("exists0", I));
+                                                    (Fun (
+                                                       (Pi (R, U,
+                                                          (Id ("A", I)),
+                                                          (Binder ("x", IMeta
+                                                             ))
+                                                          )),
+                                                       (Binder (None,
+                                                          [([(PId "x")],
+                                                            (Some (App
+                                                                    [(Id (
+                                                                    "ch", I));
+                                                                    (Id (
+                                                                    "b1", I));
+                                                                    (App
+                                                                    [(Id (
+                                                                    "B", I));
+                                                                    (Id ("x",
+                                                                    I))])])))
+                                                            ]
+                                                          )),
+                                                       []))
+                                                    ]))
+                                            ))
+                                         ))
+                                      ))
+                                   ))
+                                ))
+                             ))
+                          ))
+                       ))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I; I; I]};
+  Extern {name = "recv1"; relv = R;
+    body =
+    (Binder (["s"],
+       (None,
+        (Pi (N, U, (Id ("bool", I)),
+           (Binder ("b1",
+              (Pi (N, U, (Id ("bool", I)),
+                 (Binder ("b2",
+                    (Pi (N, U, (Type (SId "s")),
+                       (Binder ("A",
+                          (Pi (N, U,
+                             (Pi (R, U, (Id ("A", I)),
+                                (Binder ("_", (Id ("proto", I)))))),
+                             (Binder ("B",
+                                (Pi (N, U,
+                                   (BOpr ("=",
+                                      (App
+                                         [(Id ("xor", I)); (Id ("b1", I));
+                                           (Id ("b2", I))]),
+                                      (Id ("true", I)))),
+                                   (Binder ("_",
+                                      (Pi (R, U,
+                                         (App
+                                            [(Id ("ch", I)); (Id ("b1", I));
+                                              (App
+                                                 [(Id ("act1", I));
+                                                   (Id ("b2", I));
+                                                   (Id ("B", I))])
+                                              ]),
+                                         (Binder ("_",
+                                            (IO
+                                               (App
+                                                  [(Id ("exists1", I));
+                                                    (Fun (
+                                                       (Pi (R, U,
+                                                          (Id ("A", I)),
+                                                          (Binder ("x", IMeta
+                                                             ))
+                                                          )),
+                                                       (Binder (None,
+                                                          [([(PId "x")],
+                                                            (Some (App
+                                                                    [(Id (
+                                                                    "ch", I));
+                                                                    (Id (
+                                                                    "b1", I));
+                                                                    (App
+                                                                    [(Id (
+                                                                    "B", I));
+                                                                    (Id ("x",
+                                                                    I))])])))
+                                                            ]
+                                                          )),
+                                                       []))
+                                                    ]))
+                                            ))
+                                         ))
+                                      ))
+                                   ))
+                                ))
+                             ))
+                          ))
+                       ))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I; I; I]};
+  Extern {name = "fork"; relv = R;
+    body =
+    (Binder ([],
+       (None,
+        (Pi (N, U, (Id ("bool", I)),
+           (Binder ("b",
+              (Pi (N, U, (Id ("proto", I)),
+                 (Binder ("P",
+                    (Pi (R, U,
+                       (Pi (R, L,
+                          (App [(Id ("ch", I)); (Id ("b", I)); (Id ("P", I))]),
+                          (Binder ("_", (IO (Id ("unit", I))))))),
+                       (Binder ("_",
+                          (IO
+                             (App
+                                [(Id ("ch", I));
+                                  (App [(Id ("not", I)); (Id ("b", I))]);
+                                  (Id ("P", I))]))
+                          ))
+                       ))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I]};
+  Definition {name = "split"; relv = R;
+    body =
+    (Binder (["t"],
+       ((Fun (
+           (Pi (R, U,
+              (App
+                 [(Inst ("list", [(SId "_"); (SId "t")], I)); (Id ("nat", I))
+                   ]),
+              (Binder ("_",
+                 (BOpr ("\195\151",
+                    (App
+                       [(Inst ("list", [(SId "_"); (SId "t")], I));
+                         (Id ("nat", I))]),
+                    (App
+                       [(Inst ("list", [(SId "_"); (SId "t")], I));
+                         (Id ("nat", I))])
                     ))
                  ))
               )),
-           (Binder ((Some "set_get_law"),
-              [([(PId "A"); (PId "l"); (PId "pf"); (PId "v0")],
-                (Some (Match ([(R, (Id ("pf", I)), (Some ("pf0", IMeta)))],
-                         (Some (Let (R,
-                                  (App
-                                     [(Id ("set", I)); (Id ("l", I));
-                                       (Id ("v0", I)); (Id ("pf0", I))]),
-                                  (Binder ((PId "pf0"),
-                                     (Let (R,
-                                        (App
-                                           [(Id ("getU", I)); (Id ("l", I));
-                                             (Id ("pf0", I))]),
-                                        (Binder (
-                                           (PBOpr (
-                                              "\226\159\168,\226\159\169",
-                                              (PId "v1"), (PId "pf0"))),
-                                           (BOpr ("=", (Id ("v0", I)),
-                                              (Id ("v1", I))))
-                                           ))
-                                        ))
-                                     ))
-                                  ))),
-                         [([(PConstr ("at_intro", [(PId "v")]))],
-                           (Some (Id ("refl", I))))]
-                         ))))
+           (Binder ((Some "split"),
+              [([(PId "nil")],
+                (Some (BOpr ("\226\159\168,\226\159\169", (Id ("nil", I)),
+                         (Id ("nil", I))))));
+                ([(PBOpr ("::", (PId "x"), (PId "nil")))],
+                 (Some (BOpr ("\226\159\168,\226\159\169",
+                          (BOpr ("::", (Id ("x", I)), (Id ("nil", I)))),
+                          (Id ("nil", I))))));
+                ([(PBOpr ("::", (PId "x"),
+                     (PBOpr ("::", (PId "y"), (PId "zs")))))
+                   ],
+                 (Some (Let (R, (App [(Id ("split", I)); (Id ("zs", I))]),
+                          (Binder (
+                             (PBOpr ("\226\159\168,\226\159\169", (PId "xs"),
+                                (PId "ys"))),
+                             (BOpr ("\226\159\168,\226\159\169",
+                                (BOpr ("::", (Id ("x", I)), (Id ("xs", I)))),
+                                (BOpr ("::", (Id ("y", I)), (Id ("ys", I))))
+                                ))
+                             ))
+                          ))))
                 ]
               )),
-           [I; E; E; E])),
-        (Pi (R, U, (Type U),
-           (Binder ("A",
-              (Pi (R, U, (Id ("loc", I)),
-                 (Binder ("l",
-                    (Pi (R, U, (BOpr ("@", (Id ("A", I)), (Id ("l", I)))),
-                       (Binder ("pf",
-                          (Pi (R, U, (Id ("A", I)),
-                             (Binder ("v0",
-                                (Let (R,
-                                   (App
-                                      [(Id ("set", I)); (Id ("l", I));
-                                        (Id ("v0", I)); (Id ("pf", I))]),
-                                   (Binder ((PId "pf"),
-                                      (Let (R,
-                                         (App
-                                            [(Id ("getU", I)); (Id ("l", I));
-                                              (Id ("pf", I))]),
-                                         (Binder (
-                                            (PBOpr (
-                                               "\226\159\168,\226\159\169",
-                                               (PId "v1"), (PId "pf"))),
-                                            (BOpr ("=", (Id ("v0", I)),
-                                               (Id ("v1", I))))
-                                            ))
-                                         ))
-                                      ))
-                                   ))
-                                ))
-                             ))
-                          ))
+           [])),
+        (Pi (R, U,
+           (App [(Inst ("list", [(SId "_"); (SId "t")], I)); (Id ("nat", I))]),
+           (Binder ("_",
+              (BOpr ("\195\151",
+                 (App
+                    [(Inst ("list", [(SId "_"); (SId "t")], I));
+                      (Id ("nat", I))]),
+                 (App
+                    [(Inst ("list", [(SId "_"); (SId "t")], I));
+                      (Id ("nat", I))])
+                 ))
+              ))
+           )))
+       ));
+    view = []};
+  Definition {name = "merge"; relv = R;
+    body =
+    (Binder (["t"],
+       ((Fun (
+           (Pi (R, U,
+              (App
+                 [(Inst ("list", [(SId "_"); (SId "t")], I)); (Id ("nat", I))
+                   ]),
+              (Binder ("_",
+                 (Pi (R, L,
+                    (App
+                       [(Inst ("list", [(SId "_"); (SId "t")], I));
+                         (Id ("nat", I))]),
+                    (Binder ("_",
+                       (App
+                          [(Inst ("list", [(SId "_"); (SId "t")], I));
+                            (Id ("nat", I))])
                        ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "merge"),
+              [([(PId "nil"); (PId "ys")], (Some (Id ("ys", I))));
+                ([(PId "xs"); (PId "nil")], (Some (Id ("xs", I))));
+                ([(PBOpr ("::", (PId "x"), (PId "xs")));
+                   (PBOpr ("::", (PId "y"), (PId "ys")))],
+                 (Some (Match (
+                          [(R, (BOpr ("<=", (Id ("x", I)), (Id ("y", I)))),
+                            None)],
+                          None,
+                          [([(PId "true")],
+                            (Some (BOpr ("::", (Id ("x", I)),
+                                     (App
+                                        [(Id ("merge", I)); (Id ("xs", I));
+                                          (BOpr ("::", (Id ("y", I)),
+                                             (Id ("ys", I))))
+                                          ])
+                                     ))));
+                            ([(PId "false")],
+                             (Some (BOpr ("::", (Id ("y", I)),
+                                      (App
+                                         [(Id ("merge", I));
+                                           (BOpr ("::", (Id ("x", I)),
+                                              (Id ("xs", I))));
+                                           (Id ("ys", I))])
+                                      ))))
+                            ]
+                          ))))
+                ]
+              )),
+           [])),
+        (Pi (R, U,
+           (App [(Inst ("list", [(SId "_"); (SId "t")], I)); (Id ("nat", I))]),
+           (Binder ("_",
+              (Pi (R, L,
+                 (App
+                    [(Inst ("list", [(SId "_"); (SId "t")], I));
+                      (Id ("nat", I))]),
+                 (Binder ("_",
+                    (App
+                       [(Inst ("list", [(SId "_"); (SId "t")], I));
+                         (Id ("nat", I))])
                     ))
                  ))
               ))
            )))
        ));
-    view = [I; E; E; E]};
-  Definition {name = "main"; relv = R;
+    view = []};
+  Definition {name = "msort"; relv = R;
     body =
-    (Binder ([],
-       ((MLet ((App [(Id ("alloc", I)); (Id ("tt", I))]),
-           (Binder (
-              (PBOpr ("\226\159\168,\226\159\169", (PId "l"), (PId "pf"))),
-              (Let (R,
+    (Binder (["t"],
+       ((Fun (
+           (Pi (R, U,
+              (App
+                 [(Inst ("list", [(SId "_"); (SId "t")], I)); (Id ("nat", I))
+                   ]),
+              (Binder ("_",
                  (App
-                    [(Id ("set", I)); (Id ("l", I)); (Id ("zero", I));
-                      (Id ("pf", I))]),
-                 (Binder ((PId "pf"),
-                    (Let (R,
-                       (App [(Id ("free", I)); (Id ("l", I)); (Id ("pf", I))]),
-                       (Binder ((PId "_"), (Return (Id ("tt", I)))))))
+                    [(Inst ("list", [(SId "_"); (SId "t")], I));
+                      (Id ("nat", I))])
+                 ))
+              )),
+           (Binder ((Some "msort"),
+              [([(PId "nil")], (Some (Id ("nil", I))));
+                ([(PBOpr ("::", (PId "z"), (PId "nil")))],
+                 (Some (BOpr ("::", (Id ("z", I)), (Id ("nil", I))))));
+                ([(PId "zs")],
+                 (Some (Let (R, (App [(Id ("split", I)); (Id ("zs", I))]),
+                          (Binder (
+                             (PBOpr ("\226\159\168,\226\159\169", (PId "xs"),
+                                (PId "ys"))),
+                             (App
+                                [(Id ("merge", I));
+                                  (App [(Id ("msort", I)); (Id ("xs", I))]);
+                                  (App [(Id ("msort", I)); (Id ("ys", I))])])
+                             ))
+                          ))))
+                ]
+              )),
+           [])),
+        (Pi (R, U,
+           (App [(Inst ("list", [(SId "_"); (SId "t")], I)); (Id ("nat", I))]),
+           (Binder ("_",
+              (App
+                 [(Inst ("list", [(SId "_"); (SId "t")], I)); (Id ("nat", I))
+                   ])
+              ))
+           )))
+       ));
+    view = []};
+  Definition {name = "cmsort_ch"; relv = N;
+    body =
+    (Binder (["t"],
+       ((Fun (
+           (Pi (R, U,
+              (App
+                 [(Inst ("list", [(SId "_"); (SId "t")], I)); (Id ("nat", I))
+                   ]),
+              (Binder ("xs", (Type L))))),
+           (Binder ((Some "cmsort_ch"),
+              [([(PId "xs")],
+                (Some (App
+                         [(Id ("ch", I)); (Id ("true", I));
+                           (App
+                              [(Id ("act1", I)); (Id ("true", I));
+                                (Fun (
+                                   (Pi (R, U,
+                                      (UOpr ("`",
+                                         (App
+                                            [(Id ("msort", I));
+                                              (Id ("xs", I))])
+                                         )),
+                                      (Binder ("_", IMeta)))),
+                                   (Binder (None,
+                                      [([(PId "_")], (Some (Id ("endp", I))))
+                                        ]
+                                      )),
+                                   []))
+                                ])
+                           ])))
+                ]
+              )),
+           [E])),
+        (Pi (R, U,
+           (App [(Inst ("list", [(SId "_"); (SId "t")], I)); (Id ("nat", I))]),
+           (Binder ("xs", (Type L))))))
+       ));
+    view = [E]};
+  Definition {name = "cmsort_worker"; relv = R;
+    body =
+    (Binder (["t"],
+       ((Fun (
+           (Pi (R, U, (Id ("nat", I)),
+              (Binder ("_",
+                 (Pi (R, U,
+                    (App
+                       [(Inst ("list", [(SId "_"); (SId "t")], I));
+                         (Id ("nat", I))]),
+                    (Binder ("zs",
+                       (Pi (R, L,
+                          (App
+                             [(Inst ("cmsort_ch", [(SId "t")], I));
+                               (Id ("zs", I))]),
+                          (Binder ("_", (IO (Id ("unit", I)))))))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "cmsort_worker"),
+              [([(PId "zero"); (PId "zs"); (PId "c")],
+                (Some (MLet (
+                         (App
+                            [(Id ("send1", I)); (Id ("refl", I));
+                              (Id ("c", I));
+                              (App
+                                 [(Id ("just", I));
+                                   (App [(Id ("msort", I)); (Id ("zs", I))])])
+                              ]),
+                         (Binder ((PId "c"),
+                            (App [(Id ("close", I)); (Id ("c", I))])))
+                         ))));
+                ([(PConstr ("succ", [(PId "n")])); (PId "nil"); (PId "c")],
+                 (Some (MLet (
+                          (App
+                             [(Id ("send1", I)); (Id ("refl", I));
+                               (Id ("c", I));
+                               (App [(Id ("just", I)); (Id ("nil", I))])]),
+                          (Binder ((PId "c"),
+                             (App [(Id ("close", I)); (Id ("c", I))])))
+                          ))));
+                ([(PConstr ("succ", [(PId "n")]));
+                   (PBOpr ("::", (PId "z"), (PId "nil"))); (PId "c")],
+                 (Some (MLet (
+                          (App
+                             [(Id ("send1", I)); (Id ("refl", I));
+                               (Id ("c", I));
+                               (App
+                                  [(Id ("just", I));
+                                    (BOpr ("::", (Id ("z", I)),
+                                       (Id ("nil", I))))
+                                    ])
+                               ]),
+                          (Binder ((PId "c"),
+                             (App [(Id ("close", I)); (Id ("c", I))])))
+                          ))));
+                ([(PConstr ("succ", [(PId "n")])); (PId "zs"); (PId "c")],
+                 (Some (Match (
+                          [(R, (App [(Id ("split", I)); (Id ("zs", I))]),
+                            (Some ("h1", IMeta)));
+                            (N, (Id ("refl", I)),
+                             (Some ("_",
+                                    (BOpr ("=",
+                                       (Let (R, (Id ("h1", I)),
+                                          (Binder (
+                                             (PBOpr (
+                                                "\226\159\168,\226\159\169",
+                                                (PId "xs"), (PId "ys"))),
+                                             (App
+                                                [(Id ("merge", I));
+                                                  (App
+                                                     [(Id ("msort", I));
+                                                       (Id ("xs", I))]);
+                                                  (App
+                                                     [(Id ("msort", I));
+                                                       (Id ("ys", I))])
+                                                  ])
+                                             ))
+                                          )),
+                                       (Let (R,
+                                          (App
+                                             [(Id ("split", I));
+                                               (Id ("zs", I))]),
+                                          (Binder (
+                                             (PBOpr (
+                                                "\226\159\168,\226\159\169",
+                                                (PId "xs"), (PId "ys"))),
+                                             (App
+                                                [(Id ("merge", I));
+                                                  (App
+                                                     [(Id ("msort", I));
+                                                       (Id ("xs", I))]);
+                                                  (App
+                                                     [(Id ("msort", I));
+                                                       (Id ("ys", I))])
+                                                  ])
+                                             ))
+                                          ))
+                                       )))))
+                            ],
+                          None,
+                          [([(PBOpr ("\226\159\168,\226\159\169",
+                                (PId "xs0"), (PId "ys0")));
+                              (PId "pf")],
+                            (Some (MLet (
+                                     (App
+                                        [(Id ("fork", I));
+                                          (Fun (
+                                             (Pi (R, L, IMeta,
+                                                (Binder ("c1", IMeta)))),
+                                             (Binder (None,
+                                                [([(PId "c1")],
+                                                  (Some (App
+                                                           [(Id (
+                                                               "cmsort_worker",
+                                                               I));
+                                                             (Id ("n", I));
+                                                             (Id ("xs0", I));
+                                                             (Id ("c1", I))])))
+                                                  ]
+                                                )),
+                                             []))
+                                          ]),
+                                     (Binder ((PId "r1"),
+                                        (MLet (
+                                           (App
+                                              [(Id ("fork", I));
+                                                (Fun (
+                                                   (Pi (R, L, IMeta,
+                                                      (Binder ("c2", IMeta))
+                                                      )),
+                                                   (Binder (None,
+                                                      [([(PId "c2")],
+                                                        (Some (App
+                                                                 [(Id (
+                                                                    "cmsort_worker",
+                                                                    I));
+                                                                   (Id ("n",
+                                                                    I));
+                                                                   (Id (
+                                                                    "ys0", I
+                                                                    ));
+                                                                   (Id ("c2",
+                                                                    I))
+                                                                   ])))
+                                                        ]
+                                                      )),
+                                                   []))
+                                                ]),
+                                           (Binder ((PId "r2"),
+                                              (MLet (
+                                                 (App
+                                                    [(Id ("recv1", I));
+                                                      (Id ("refl", I));
+                                                      (Id ("r1", I))]),
+                                                 (Binder (
+                                                    (PBOpr (
+                                                       "\226\159\168,\226\159\169",
+                                                       (PId "xs1"),
+                                                       (PId "c1"))),
+                                                    (MLet (
+                                                       (App
+                                                          [(Id ("recv1", I));
+                                                            (Id ("refl", I));
+                                                            (Id ("r2", I))]),
+                                                       (Binder (
+                                                          (PBOpr (
+                                                             "\226\159\168,\226\159\169",
+                                                             (PId "ys1"),
+                                                             (PId "c2"))),
+                                                          (Match (
+                                                             [(R,
+                                                               (Id ("xs1", I
+                                                                  )),
+                                                               None);
+                                                               (R,
+                                                                (Id ("ys1", I
+                                                                   )),
+                                                                None)
+                                                               ],
+                                                             None,
+                                                             [([(PConstr (
+                                                                   "just",
+                                                                   [(PId
+                                                                    "xs1")]
+                                                                   ));
+                                                                 (PConstr (
+                                                                    "just",
+                                                                    [(PId
+                                                                    "ys1")]))
+                                                                 ],
+                                                               (Some (
+                                                               Let (R,
+                                                                 (Ann (
+                                                                    (
+                                                                    App
+                                                                    [(Id (
+                                                                    "just", I
+                                                                    ));
+                                                                    (App
+                                                                    [(Id (
+                                                                    "merge",
+                                                                    I));
+                                                                    (Id (
+                                                                    "xs1", I
+                                                                    ));
+                                                                    (Id (
+                                                                    "ys1", I
+                                                                    ))])]),
+                                                                    (
+                                                                    UOpr (
+                                                                    "`",
+                                                                    (App
+                                                                    [(Id (
+                                                                    "merge",
+                                                                    I));
+                                                                    (App
+                                                                    [(Id (
+                                                                    "msort",
+                                                                    I));
+                                                                    (Id (
+                                                                    "xs0", I
+                                                                    ))]);
+                                                                    (App
+                                                                    [(Id (
+                                                                    "msort",
+                                                                    I));
+                                                                    (Id (
+                                                                    "ys0", I
+                                                                    ))])])))
+                                                                    )),
+                                                                 (Binder (
+                                                                    (
+                                                                    PId "zs1"),
+                                                                    (
+                                                                    Let (R,
+                                                                    (Ann (
+                                                                    (App
+                                                                    [(Id (
+                                                                    "rwl", I
+                                                                    ));
+                                                                    (Fun (
+                                                                    (Pi (R,
+                                                                    U, IMeta,
+                                                                    (Binder (
+                                                                    "x",
+                                                                    IMeta)))),
+                                                                    (Binder (
+                                                                    None,
+                                                                    [([(PId
+                                                                    "x")],
+                                                                    (Some (
+                                                                    UOpr (
+                                                                    "`",
+                                                                    (Id ("x",
+                                                                    I))))))]
+                                                                    )), 
+                                                                    []));
+                                                                    (Id (
+                                                                    "pf", I));
+                                                                    (Id (
+                                                                    "zs1", I
+                                                                    ))]),
+                                                                    (UOpr (
+                                                                    "`",
+                                                                    (App
+                                                                    [(Id (
+                                                                    "msort",
+                                                                    I));
+                                                                    (Id (
+                                                                    "zs", I))
+                                                                    ]))))),
+                                                                    (Binder (
+                                                                    (PId
+                                                                    "zs1"),
+                                                                    (MLet (
+                                                                    (App
+                                                                    [(Id (
+                                                                    "send1",
+                                                                    I));
+                                                                    (Id (
+                                                                    "refl", I
+                                                                    ));
+                                                                    (Id ("c",
+                                                                    I));
+                                                                    (Id (
+                                                                    "zs1", I
+                                                                    ))]),
+                                                                    (Binder (
+                                                                    (PId "c"),
+                                                                    (MLet (
+                                                                    (App
+                                                                    [(Id (
+                                                                    "close",
+                                                                    I));
+                                                                    (Id (
+                                                                    "c1", I))
+                                                                    ]),
+                                                                    (Binder (
+                                                                    (PId "_"),
+                                                                    (MLet (
+                                                                    (App
+                                                                    [(Id (
+                                                                    "close",
+                                                                    I));
+                                                                    (Id (
+                                                                    "c2", I))
+                                                                    ]),
+                                                                    (Binder (
+                                                                    (PId "_"),
+                                                                    (MLet (
+                                                                    (App
+                                                                    [(Id (
+                                                                    "close",
+                                                                    I));
+                                                                    (Id ("c",
+                                                                    I))]),
+                                                                    (Binder (
+                                                                    (PId "_"),
+                                                                    (Return
+                                                                    (Id (
+                                                                    "tt", I)))
+                                                                    ))))))))
+                                                                    ))))))))
+                                                                    ))))))
+                                                                 ))))
+                                                               ]
+                                                             ))
+                                                          ))
+                                                       ))
+                                                    ))
+                                                 ))
+                                              ))
+                                           ))
+                                        ))
+                                     ))))
+                            ]
+                          ))))
+                ]
+              )),
+           [])),
+        (Pi (R, U, (Id ("nat", I)),
+           (Binder ("_",
+              (Pi (R, U,
+                 (App
+                    [(Inst ("list", [(SId "_"); (SId "t")], I));
+                      (Id ("nat", I))]),
+                 (Binder ("zs",
+                    (Pi (R, L,
+                       (App
+                          [(Inst ("cmsort_ch", [(SId "t")], I));
+                            (Id ("zs", I))]),
+                       (Binder ("_", (IO (Id ("unit", I)))))))
                     ))
                  ))
               ))
-           )),
-        (IO (Id ("unit", I))))
+           )))
        ));
     view = []}
   ]
@@ -1118,52 +1595,52 @@
 -----------------------------------------
 
 #[logical]
-inductive eq_1‹s_329› (A_330 : Type‹s_329›) (m_331 : A_330):
-  A_330 -> U
+inductive eq_1‹s_389› (A_390 : Type‹s_389›) (m_391 : A_390):
+  A_390 -> U
 where
-| refl_1 : (eq_1‹??_1› ?_1[0;0] m_331 m_331)
+| refl_1 : (eq_1‹??_1› ?_1[0;0] m_391 m_391)
 
 #[program]
-def rwl_1‹s_333,r_334› :
-  ∀ {A_335 : Type‹s_333›} ->
-    ∀ {m_336 : A_335} ->
-      ∀ {n_337 : A_335} ->
-        ∀ {B_338 : A_335 -> Type‹r_334›} ->
-          {(eq_1‹??_3› ?_3[0;0] m_336 n_337)} ->
-            ((B_338) m_336) -> ((B_338) n_337)
+def rwl_1‹s_393,r_394› :
+  ∀ {A_395 : Type‹s_393›} ->
+    ∀ {m_396 : A_395} ->
+      ∀ {n_397 : A_395} ->
+        ∀ {B_398 : A_395 -> Type‹r_394›} ->
+          {(eq_1‹??_3› ?_3[0;0] m_396 n_397)} ->
+            ((B_398) m_396) -> ((B_398) n_397)
 :=
-  function rwl_342 :
-    ∀ {A_343 : Type‹s_333›} ->
-      ∀ {m_344 : A_343} ->
-        ∀ {n_345 : A_343} ->
-          ∀ {B_346 : A_343 -> Type‹r_334›} ->
-            {(eq_1‹??_2› ?_2[0;0] m_344 n_345)} ->
-              ((B_346) m_344) -> ((B_346) n_345)
-  | A_350 m_351 n_352 B_353 refl_1 x_354 => x_354
+  function rwl_402 :
+    ∀ {A_403 : Type‹s_393›} ->
+      ∀ {m_404 : A_403} ->
+        ∀ {n_405 : A_403} ->
+          ∀ {B_406 : A_403 -> Type‹r_394›} ->
+            {(eq_1‹??_2› ?_2[0;0] m_404 n_405)} ->
+              ((B_406) m_404) -> ((B_406) n_405)
+  | A_410 m_411 n_412 B_413 refl_1 x_414 => x_414
 
 #[program]
-def rwr_2‹s_355,r_356› :
-  ∀ {A_357 : Type‹s_355›} ->
-    ∀ {m_358 : A_357} ->
-      ∀ {n_359 : A_357} ->
-        ∀ {B_360 : A_357 -> Type‹r_356›} ->
-          {(eq_1‹??_5› ?_5[0;0] m_358 n_359)} ->
-            ((B_360) n_359) -> ((B_360) m_358)
+def rwr_2‹s_415,r_416› :
+  ∀ {A_417 : Type‹s_415›} ->
+    ∀ {m_418 : A_417} ->
+      ∀ {n_419 : A_417} ->
+        ∀ {B_420 : A_417 -> Type‹r_416›} ->
+          {(eq_1‹??_5› ?_5[0;0] m_418 n_419)} ->
+            ((B_420) n_419) -> ((B_420) m_418)
 :=
-  function rwr_364 :
-    ∀ {A_365 : Type‹s_355›} ->
-      ∀ {m_366 : A_365} ->
-        ∀ {n_367 : A_365} ->
-          ∀ {B_368 : A_365 -> Type‹r_356›} ->
-            {(eq_1‹??_4› ?_4[0;0] m_366 n_367)} ->
-              ((B_368) n_367) -> ((B_368) m_366)
-  | A_372 m_373 n_374 B_375 refl_1 x_376 => x_376
+  function rwr_424 :
+    ∀ {A_425 : Type‹s_415›} ->
+      ∀ {m_426 : A_425} ->
+        ∀ {n_427 : A_425} ->
+          ∀ {B_428 : A_425 -> Type‹r_416›} ->
+            {(eq_1‹??_4› ?_4[0;0] m_426 n_427)} ->
+              ((B_428) n_427) -> ((B_428) m_426)
+  | A_432 m_433 n_434 B_435 refl_1 x_436 => x_436
 
 #[program]
-inductive sing_2‹s_377› (A_378 : Type‹s_377›):
-  A_378 -> Type‹s_377›
+inductive sing_2‹s_437› (A_438 : Type‹s_437›):
+  A_438 -> Type‹s_437›
 where
-| just_2 (m_380 : A_378) : (sing_2‹??_6› ?_6[0;0] m_380)
+| just_2 (m_440 : A_438) : (sing_2‹??_6› ?_6[0;0] m_440)
 
 #[program]
 inductive unit_3‹› : U where
@@ -1177,319 +1654,439 @@ inductive bool_4‹› : U where
 #[program]
 inductive nat_5‹› : U where
 | zero_6 : nat_5
-| succ_7 (n_381 : nat_5) : nat_5
+| succ_7 (n_441 : nat_5) : nat_5
 
 #[program]
-inductive list_6‹s_382,t_383› (A_384 : Type‹s_382›): Type‹t_383›
+inductive list_6‹s_442,t_443› (A_444 : Type‹s_442›): Type‹t_443›
 where
-| nil_8 : (list_6‹??_7,??_8› A_384)
+| nil_8 : (list_6‹??_7,??_8› A_444)
 | cons_9
-    (hd_385 : A_384) (tl_386 : (list_6‹??_9,t_383› A_384))
-    : (list_6‹??_10,??_11› A_384)
+    (hd_445 : A_444) (tl_446 : (list_6‹??_9,t_443› A_444))
+    : (list_6‹??_10,??_11› A_444)
 
 #[program]
-inductive exists0_7‹s_387,r_388› (A_389 : Type‹s_387›) (B_390 : 
-A_389 -> Type‹r_388›): L where
+inductive exists0_7‹s_447,r_448› (A_449 : Type‹s_447›) (B_450 : 
+A_449 -> Type‹r_448›): L where
 | ex0_10
-    {m_392 : A_389} (n_393 : ((B_390) m_392))
-    : (exists0_7‹??_12,??_13› A_389 B_390)
+    {m_452 : A_449} (n_453 : ((B_450) m_452))
+    : (exists0_7‹??_12,??_13› A_449 B_450)
 
 #[program]
-inductive exists1_8‹s_394,r_395› (A_396 : Type‹s_394›) (B_397 : 
-A_396 -> Type‹r_395›): L where
+inductive exists1_8‹s_454,r_455› (A_456 : Type‹s_454›) (B_457 : 
+A_456 -> Type‹r_455›): L where
 | ex1_11
-    (m_399 : A_396) (n_400 : ((B_397) m_399))
-    : (exists1_8‹??_14,??_15› A_396 B_397)
+    (m_459 : A_456) (n_460 : ((B_457) m_459))
+    : (exists1_8‹??_14,??_15› A_456 B_457)
 
 #[logical]
-def prod0_3‹s_401,r_402› :
-  Type‹s_401› -> Type‹r_402› -> ?_10[0;0]
+def prod0_3‹s_461,r_462› :
+  Type‹s_461› -> Type‹r_462› -> ?_10[0;0]
 :=
-  function prod0_405 : Type‹s_401› -> Type‹r_402› -> ?_7[0;0]
-  | A_408 B_409 =>
+  function prod0_465 : Type‹s_461› -> Type‹r_462› -> ?_7[0;0]
+  | A_468 B_469 =>
     (exists0_7‹??_16,??_17›
-      A_408 function _410 : ?_8[0;0] -> ?_9[0;0]
-            | _412 => B_409)
+      A_468 function _470 : ?_8[0;0] -> ?_9[0;0]
+            | _472 => B_469)
 
 #[logical]
-def prod1_4‹s_413,r_414› :
-  Type‹s_413› -> Type‹r_414› -> ?_14[0;0]
+def prod1_4‹s_473,r_474› :
+  Type‹s_473› -> Type‹r_474› -> ?_14[0;0]
 :=
-  function prod1_417 : Type‹s_413› -> Type‹r_414› -> ?_11[0;0]
-  | A_420 B_421 =>
+  function prod1_477 : Type‹s_473› -> Type‹r_474› -> ?_11[0;0]
+  | A_480 B_481 =>
     (exists1_8‹??_18,??_19›
-      A_420 function _422 : ?_12[0;0] -> ?_13[0;0]
-            | _424 => B_421)
+      A_480 function _482 : ?_12[0;0] -> ?_13[0;0]
+            | _484 => B_481)
 
 #[program]
 def not_5‹› : bool_4 -> bool_4 :=
-  function not_426 : bool_4 -> bool_4
+  function not_486 : bool_4 -> bool_4
   | true_4 => false_5
   | false_5 => true_4
 
 #[program]
 def and_6‹› : bool_4 -> bool_4 -> bool_4 :=
-  function and_430 : bool_4 -> bool_4 -> bool_4
+  function and_490 : bool_4 -> bool_4 -> bool_4
   | true_4 true_4 => true_4
-  | _433 _434 => false_5
+  | _493 _494 => false_5
 
 #[program]
 def or_7‹› : bool_4 -> bool_4 -> bool_4 :=
-  function or_437 : bool_4 -> bool_4 -> bool_4
+  function or_497 : bool_4 -> bool_4 -> bool_4
   | false_5 false_5 => false_5
-  | _440 _441 => true_4
+  | _500 _501 => true_4
 
 #[program]
 def xor_8‹› : bool_4 -> bool_4 -o bool_4 :=
-  function xor_444 : bool_4 -> bool_4 -o bool_4
+  function xor_504 : bool_4 -> bool_4 -o bool_4
   | true_4 true_4 => false_5
   | false_5 false_5 => false_5
-  | _447 _448 => true_4
+  | _507 _508 => true_4
 
 #[program]
 def lte_9‹› : nat_5 -> nat_5 -> bool_4 :=
-  function lte_451 : nat_5 -> nat_5 -> bool_4
-  | zero_6 _454 => true_4
-  | _455 zero_6 => false_5
-  | (succ_7 x_456) (succ_7 y_457) => ((lte_451) x_456 y_457)
+  function lte_511 : nat_5 -> nat_5 -> bool_4
+  | zero_6 _514 => true_4
+  | _515 zero_6 => false_5
+  | (succ_7 x_516) (succ_7 y_517) => ((lte_511) x_516 y_517)
 
 #[program]
 def lt_10‹› : nat_5 -> nat_5 -> bool_4 :=
-  function lt_460 : nat_5 -> nat_5 -> bool_4
-  | x_463 y_464 => ((lte_9) (succ_7‹› x_463) y_464)
+  function lt_520 : nat_5 -> nat_5 -> bool_4
+  | x_523 y_524 => ((lte_9) (succ_7‹› x_523) y_524)
 
 #[program]
 def pred_11‹› : nat_5 -> nat_5 :=
-  function pred_466 : nat_5 -> nat_5
+  function pred_526 : nat_5 -> nat_5
   | zero_6 => zero_6
-  | (succ_7 x_468) => x_468
+  | (succ_7 x_528) => x_528
 
 #[program]
 def add_12‹› : nat_5 -> nat_5 -> nat_5 :=
-  function add_471 : nat_5 -> nat_5 -> nat_5
-  | zero_6 y_474 => y_474
-  | (succ_7 x_475) y_476 => (succ_7‹› ((add_471) x_475 y_476))
+  function add_531 : nat_5 -> nat_5 -> nat_5
+  | zero_6 y_534 => y_534
+  | (succ_7 x_535) y_536 => (succ_7‹› ((add_531) x_535 y_536))
 
 #[program]
 def sub_13‹› : nat_5 -> nat_5 -> nat_5 :=
-  function sub_479 : nat_5 -> nat_5 -> nat_5
-  | x_482 zero_6 => x_482
-  | x_483 (succ_7 y_484) => ((sub_479) ((pred_11) x_483) y_484)
+  function sub_539 : nat_5 -> nat_5 -> nat_5
+  | x_542 zero_6 => x_542
+  | x_543 (succ_7 y_544) => ((sub_539) ((pred_11) x_543) y_544)
 
 #[program]
 def mul_14‹› : nat_5 -> nat_5 -> nat_5 :=
-  function mul_487 : nat_5 -> nat_5 -> nat_5
-  | zero_6 _490 => zero_6
-  | (succ_7 x_491) y_492 => ((add_12) y_492 ((mul_487) x_491 y_492))
+  function mul_547 : nat_5 -> nat_5 -> nat_5
+  | zero_6 _550 => zero_6
+  | (succ_7 x_551) y_552 => ((add_12) y_552 ((mul_547) x_551 y_552))
 
 #[program]
-def div_15‹› : nat_5 -> nat_5 -> ?_21[0;0] :=
-  function div_495 : nat_5 -> nat_5 -> ?_15[0;0]
-  | x_498 y_499 =>
-    match ((lt_10) x_498 y_499) in ?_16[0;0] -o ?_17[0;0] with
+def div_15‹› : nat_5 -> nat_5 -> ?_18[0;0] :=
+  function div_555 : nat_5 -> nat_5 -> ?_15[0;0]
+  | x_558 y_559 =>
+    match ((lt_10) x_558 y_559) in ?_16[0;0] -o ?_17[0;0] with
     | true_4 => zero_6
-    | false_5 =>
-      let loop_501 :=
-        function loop_502 : nat_5 -> nat_5 -> ?_18[0;0]
-        | x_505 y_506 =>
-          match ((sub_13) x_505 ((pred_11) y_506)) in ?_19[0;0] -o ?_20[0;0]
-          with
-          | zero_6 => zero_6
-          | (succ_7 x_508) => (succ_7‹› ((loop_502) x_508 y_506))
-      in ((loop_501) x_498 y_499)
+    | false_5 => (succ_7‹› ((div_555) ((sub_13) x_558 y_559) y_559))
 
 #[program]
-def rem_16‹› : nat_5 -> nat_5 -> ?_23[0;0] :=
-  function rem_511 : nat_5 -> nat_5 -> ?_22[0;0]
-  | x_514 y_515 => ((sub_13) x_514 ((mul_14) ((div_15) x_514 y_515) y_515))
+def rem_16‹› : nat_5 -> nat_5 -> ?_20[0;0] :=
+  function rem_563 : nat_5 -> nat_5 -> ?_19[0;0]
+  | x_566 y_567 => ((sub_13) x_566 ((mul_14) ((div_15) x_566 y_567) y_567))
 
 #[program]
 def pow_17‹› : nat_5 -> nat_5 -> nat_5 :=
-  function pow_518 : nat_5 -> nat_5 -> nat_5
-  | _521 zero_6 => (succ_7‹› zero_6)
-  | x_522 (succ_7 y_523) => ((mul_14) x_522 ((pow_518) x_522 y_523))
+  function pow_570 : nat_5 -> nat_5 -> nat_5
+  | _573 zero_6 => (succ_7‹› zero_6)
+  | x_574 (succ_7 y_575) => ((mul_14) x_574 ((pow_570) x_574 y_575))
 
 #[logical]
-def loc_18‹› : U := nat_5
+extern proto_18‹› : U
 
 #[logical]
-inductive at_9‹s_524› (A_525 : Type‹s_524›) (l_526 : loc_18): 
-L where
-| at_intro_12 (m_527 : A_525) : (at_9‹??_20› A_525 l_526)
-
-#[program]
-extern alloc_19‹› :
-  unit_3 ->
-    IO (exists1_8‹??_22,??_23›
-         ?_26[0;0]
-         function _529 : ?_24[0;0] -> ?_25[0;0]
-         | l_531 => (at_9‹??_21› unit_3 l_531))
-
-#[program]
-extern getU_20‹› :
-  ∀ {A_532 : U} ->
-    ∀ (l_533 : loc_18) ->
-      (at_9‹??_30› A_532 l_533) ->
-        ((prod1_4‹??_32,??_33›) A_532 (at_9‹??_31› A_532 l_533))
-:=
-  function getU_535 :
-    ∀ {A_536 : U} ->
-      ∀ (l_537 : loc_18) ->
-        (at_9‹??_24› A_536 l_537) ->
-          ((prod1_4‹??_26,??_27›) A_536 (at_9‹??_25› A_536 l_537))
-  | A_539 l_540 pf_541 =>
-    match pf_541 in ?_27[0;0] -o ?_28[0;0] with
-    | (at_intro_12 v_543) =>
-      (ex1_11‹??_28,??_29› ?_29[0;0] ?_30[0;0] v_543 pf_541)
-
-#[program]
-extern getL_21‹› :
-  ∀ {A_544 : L} ->
-    ∀ (l_545 : loc_18) ->
-      (at_9‹??_41› A_544 l_545) ->
-        ((prod1_4‹??_43,??_44›) A_544 (at_9‹??_42› unit_3 l_545))
-:=
-  function getL_547 :
-    ∀ {A_548 : L} ->
-      ∀ (l_549 : loc_18) ->
-        (at_9‹??_34› A_548 l_549) ->
-          ((prod1_4‹??_36,??_37›) A_548 (at_9‹??_35› unit_3 l_549))
-  | A_551 l_552 pf_553 =>
-    match pf_553 in ?_31[0;0] -o ?_32[0;0] with
-    | (at_intro_12 v_555) =>
-      (ex1_11‹??_39,??_40›
-        ?_35[0;0] ?_36[0;0] v_555
-        (at_intro_12‹??_38› ?_33[0;0] ?_34[0;0] tt_3))
-
-#[program]
-extern set_22‹s_556› :
-  ∀ {A_557 : U} ->
-    ∀ {B_558 : Type‹s_556›} ->
-      ∀ (l_559 : loc_18) ->
-        B_558 ->
-          (at_9‹??_48› A_557 l_559) -> (at_9‹??_49› B_558 l_559)
-:=
-  function set_562 :
-    ∀ {A_563 : U} ->
-      ∀ {B_564 : Type‹s_556›} ->
-        ∀ (l_565 : loc_18) ->
-          B_564 ->
-            (at_9‹??_45› A_563 l_565) -> (at_9‹??_46› B_564 l_565)
-  | A_568 B_569 l_570 m_571 pf_572 =>
-    match pf_572 in ?_37[0;0] -o ?_38[0;0] with
-    | (at_intro_12 _574) =>
-      (at_intro_12‹??_47› ?_39[0;0] ?_40[0;0] m_571)
-
-#[program]
-extern free_23‹› :
-  ∀ {A_575 : U} ->
-    ∀ (l_576 : loc_18) -> (at_9‹??_51› A_575 l_576) -> unit_3
-:=
-  function free_578 :
-    ∀ {A_579 : U} ->
-      ∀ (l_580 : loc_18) -> (at_9‹??_50› A_579 l_580) -> unit_3
-  | A_582 l_583 pf_584 =>
-    match pf_584 in ?_41[0;0] -o ?_42[0;0] with
-    | (at_intro_12 _586) => tt_3
+extern act0_19‹s_576› :
+  bool_4 -> ∀ (A_578 : Type‹s_576›) -> A_578 -> proto_18 -> proto_18
 
 #[logical]
-def set_get_law_24‹s_587› :
-  ∀ (A_588 : U) ->
-    ∀ (l_589 : loc_18) ->
-      ∀ (pf_590 : (at_9‹??_58› A_588 l_589)) ->
-        ∀ (v0_591 : A_588) ->
-          let pf_592 :=
-            ((set_22‹??_59›) ?_59[0;0] ?_58[0;0] l_589 v0_591 pf_590)
-          in
-          match ((getU_20) ?_60[0;0] l_589 pf_592) in ?_63[0;0] -o ?_62[0;0]
-          with
-          | (ex1_11 v1_594 pf_595) =>
-            (eq_1‹??_60› ?_61[0;0] v0_591 v1_594)
+extern act1_20‹s_581› :
+  bool_4 -> ∀ (A_583 : Type‹s_581›) -> A_583 -> proto_18 -> proto_18
+
+#[logical]
+extern endp_21‹› : proto_18
+
+#[logical]
+extern ch_22‹› : bool_4 -> proto_18 -> L
+
+#[program]
+extern close_23‹› :
+  ∀ {b_588 : bool_4} -> ((ch_22) b_588 endp_21) -> IO unit_3
+
+#[program]
+extern send0_24‹s_590› :
+  ∀ {b1_591 : bool_4} ->
+    ∀ {b2_592 : bool_4} ->
+      ∀ {A_593 : Type‹s_590›} ->
+        ∀ {B_594 : A_593 -> proto_18} ->
+          {(eq_1‹??_20› ?_21[0;0] ((xor_8) b1_591 b2_592) false_5)} ->
+            ((ch_22) b1_591 ((act0_19‹??_21›) b2_592 ?_22[0;0] B_594)) ->
+              ∀ {x_598 : A_593} -o IO ((ch_22) b1_591 ((B_594) x_598))
+
+#[program]
+extern send1_25‹s_599› :
+  ∀ {b1_600 : bool_4} ->
+    ∀ {b2_601 : bool_4} ->
+      ∀ {A_602 : Type‹s_599›} ->
+        ∀ {B_603 : A_602 -> proto_18} ->
+          {(eq_1‹??_22› ?_23[0;0] ((xor_8) b1_600 b2_601) false_5)} ->
+            ((ch_22) b1_600 ((act1_20‹??_23›) b2_601 ?_24[0;0] B_603)) ->
+              ∀ (x_607 : A_602) -o IO ((ch_22) b1_600 ((B_603) x_607))
+
+#[program]
+extern recv0_26‹s_608› :
+  ∀ {b1_609 : bool_4} ->
+    ∀ {b2_610 : bool_4} ->
+      ∀ {A_611 : Type‹s_608›} ->
+        ∀ {B_612 : A_611 -> proto_18} ->
+          {(eq_1‹??_24› ?_25[0;0] ((xor_8) b1_609 b2_610) true_4)} ->
+            ((ch_22) b1_609 ((act0_19‹??_25›) b2_610 ?_26[0;0] B_612)) ->
+              IO (exists0_7‹??_26,??_27›
+                   ?_28[0;0]
+                   function _616 : A_611 -> ?_27[0;0]
+                   | x_618 => ((ch_22) b1_609 ((B_612) x_618)))
+
+#[program]
+extern recv1_27‹s_619› :
+  ∀ {b1_620 : bool_4} ->
+    ∀ {b2_621 : bool_4} ->
+      ∀ {A_622 : Type‹s_619›} ->
+        ∀ {B_623 : A_622 -> proto_18} ->
+          {(eq_1‹??_28› ?_29[0;0] ((xor_8) b1_620 b2_621) true_4)} ->
+            ((ch_22) b1_620 ((act1_20‹??_29›) b2_621 ?_30[0;0] B_623)) ->
+              IO (exists1_8‹??_30,??_31›
+                   ?_32[0;0]
+                   function _627 : A_622 -> ?_31[0;0]
+                   | x_629 => ((ch_22) b1_620 ((B_623) x_629)))
+
+#[program]
+extern fork_28‹› :
+  ∀ {b_630 : bool_4} ->
+    ∀ {P_631 : proto_18} ->
+      ((ch_22) b_630 P_631) -o IO unit_3 ->
+        IO ((ch_22) ((not_5) b_630) P_631)
+
+#[program]
+def split_29‹t_634› :
+  (list_6‹??_57,t_634› nat_5) ->
+    ((prod1_4‹??_60,??_61›)
+      (list_6‹??_58,t_634› nat_5) (list_6‹??_59,t_634› nat_5))
 :=
-  function set_get_law_596 :
-    ∀ (A_597 : U) ->
-      ∀ (l_598 : loc_18) ->
-        ∀ (pf_599 : (at_9‹??_52› A_597 l_598)) ->
-          ∀ (v0_600 : A_597) ->
-            let pf_601 :=
-              ((set_22‹??_53›) ?_44[0;0] ?_43[0;0] l_598 v0_600 pf_599)
-            in
-            match ((getU_20) ?_45[0;0] l_598 pf_601) in
-              ?_48[0;0] -o ?_47[0;0]
-            with
-            | (ex1_11 v1_603 pf_604) =>
-              (eq_1‹??_54› ?_46[0;0] v0_600 v1_603)
-  | A_605 l_606 pf_607 v0_608 =>
-    match pf_607 in
-      ∀ (pf0_609 : ?_49[0;0]) -o
-        let pf0_610 :=
-          ((set_22‹??_55›) ?_51[0;0] ?_50[0;0] l_606 v0_608 pf0_609)
-        in
-        match ((getU_20) ?_52[0;0] l_606 pf0_610) in ?_55[0;0] -o ?_54[0;0]
-        with
-        | (ex1_11 v1_612 pf0_613) =>
-          (eq_1‹??_56› ?_53[0;0] v0_608 v1_612)
+  function split_636 :
+    (list_6‹??_32,t_634› nat_5) ->
+      ((prod1_4‹??_35,??_36›)
+        (list_6‹??_33,t_634› nat_5) (list_6‹??_34,t_634› nat_5))
+  | nil_8 =>
+    (ex1_11‹??_41,??_42›
+      ?_35[0;0] ?_36[0;0] (nil_8‹??_37,??_38› ?_33[0;0])
+      (nil_8‹??_39,??_40› ?_34[0;0]))
+  | (cons_9 x_638 nil_8) =>
+    (ex1_11‹??_49,??_50›
+      ?_40[0;0] ?_41[0;0]
+      (cons_9‹??_45,??_46›
+        ?_38[0;0] x_638 (nil_8‹??_43,??_44› ?_37[0;0]))
+      (nil_8‹??_47,??_48› ?_39[0;0]))
+  | (cons_9 x_639 (cons_9 y_640 zs_641)) =>
+    match ((split_636) zs_641) in ?_47[0;0] -o ?_46[0;0] with
+    | (ex1_11 xs_643 ys_644) =>
+      (ex1_11‹??_55,??_56›
+        ?_44[0;0] ?_45[0;0] (cons_9‹??_51,??_52› ?_42[0;0] x_639 xs_643)
+        (cons_9‹??_53,??_54› ?_43[0;0] y_640 ys_644))
+
+#[program]
+def merge_30‹t_645› :
+  (list_6‹??_73,t_645› nat_5) ->
+    (list_6‹??_74,t_645› nat_5) -o (list_6‹??_75,t_645› nat_5)
+:=
+  function merge_648 :
+    (list_6‹??_62,t_645› nat_5) ->
+      (list_6‹??_63,t_645› nat_5) -o (list_6‹??_64,t_645› nat_5)
+  | nil_8 ys_651 => ys_651
+  | xs_652 nil_8 => xs_652
+  | (cons_9 x_653 xs_654) (cons_9 y_655 ys_656) =>
+    match ((lte_9) x_653 y_655) in ?_48[0;0] -o ?_49[0;0] with
+    | true_4 =>
+      (cons_9‹??_67,??_68›
+        ?_51[0;0] x_653
+        ((merge_648) xs_654 (cons_9‹??_65,??_66› ?_50[0;0] y_655 ys_656)))
+    | false_5 =>
+      (cons_9‹??_71,??_72›
+        ?_53[0;0] y_655
+        ((merge_648) (cons_9‹??_69,??_70› ?_52[0;0] x_653 xs_654) ys_656))
+
+#[program]
+def msort_31‹t_658› :
+  (list_6‹??_86,t_658› nat_5) -> (list_6‹??_87,t_658› nat_5)
+:=
+  function msort_660 :
+    (list_6‹??_76,t_658› nat_5) -> (list_6‹??_77,t_658› nat_5)
+  | nil_8 => (nil_8‹??_78,??_79› ?_54[0;0])
+  | (cons_9 z_662 nil_8) =>
+    (cons_9‹??_82,??_83›
+      ?_56[0;0] z_662 (nil_8‹??_80,??_81› ?_55[0;0]))
+  | zs_663 =>
+    match ((split_29‹??_84›) zs_663) in ?_58[0;0] -o ?_57[0;0] with
+    | (ex1_11 xs_665 ys_666) =>
+      ((merge_30‹??_85›) ((msort_660) xs_665) ((msort_660) ys_666))
+
+#[logical]
+def cmsort_ch_32‹t_667› : (list_6‹??_92,t_667› nat_5) -> L :=
+  function cmsort_ch_669 : (list_6‹??_88,t_667› nat_5) -> L
+  | xs_671 =>
+    ((ch_22)
+      true_4
+      ((act1_20‹??_91›)
+        true_4 ?_61[0;0]
+        function _672 :
+          (sing_2‹??_90› ?_59[0;0] ((msort_31‹??_89›) xs_671)) ->
+            ?_60[0;0]
+        | _674 => endp_21))
+
+#[program]
+def cmsort_worker_33‹t_675› :
+  nat_5 ->
+    ∀ (zs_677 : (list_6‹??_137,t_675› nat_5)) ->
+      ((cmsort_ch_32‹t_675›) zs_677) -o IO unit_3
+:=
+  function cmsort_worker_679 :
+    nat_5 ->
+      ∀ (zs_681 : (list_6‹??_93,t_675› nat_5)) ->
+        ((cmsort_ch_32‹t_675›) zs_681) -o IO unit_3
+  | zero_6 zs_683 c_684 =>
+    let* c_685 :=
+      ((send1_25‹??_97›)
+        ?_68[0;0] ?_67[0;0] ?_66[0;0] ?_65[0;0]
+        (refl_1‹??_94› ?_62[0;0] ?_63[0;0]) c_684
+        (just_2‹??_96› ?_64[0;0] ((msort_31‹??_95›) zs_683)))
+    in ((close_23) ?_69[0;0] c_685)
+  | (succ_7 n_686) nil_8 c_687 =>
+    let* c_688 :=
+      ((send1_25‹??_102›)
+        ?_77[0;0] ?_76[0;0] ?_75[0;0] ?_74[0;0]
+        (refl_1‹??_98› ?_70[0;0] ?_71[0;0]) c_687
+        (just_2‹??_101› ?_73[0;0] (nil_8‹??_99,??_100› ?_72[0;0])))
+    in ((close_23) ?_78[0;0] c_688)
+  | (succ_7 n_689) (cons_9 z_690 nil_8) c_691 =>
+    let* c_692 :=
+      ((send1_25‹??_109›)
+        ?_87[0;0] ?_86[0;0] ?_85[0;0] ?_84[0;0]
+        (refl_1‹??_103› ?_79[0;0] ?_80[0;0]) c_691
+        (just_2‹??_108›
+          ?_83[0;0]
+          (cons_9‹??_106,??_107›
+            ?_82[0;0] z_690 (nil_8‹??_104,??_105› ?_81[0;0]))))
+    in ((close_23) ?_88[0;0] c_692)
+  | (succ_7 n_693) zs_694 c_695 =>
+    match ((split_29‹??_110›) zs_694),
+    (refl_1‹??_111› ?_89[0;0] ?_90[0;0]) in
+      ∀ (h1_696 : ?_91[0;0]) -o
+        {(eq_1‹??_119›
+           ?_96[0;0]
+           match h1_696 in ?_93[0;0] -o ?_92[0;0] with
+           | (ex1_11 xs_699 ys_700) =>
+             ((merge_30‹??_114›)
+               ((msort_31‹??_112›) xs_699)
+               ((msort_31‹??_113›) ys_700))
+           match ((split_29‹??_115›) zs_694) in ?_95[0;0] -o ?_94[0;0]
+           with
+           | (ex1_11 xs_702 ys_703) =>
+             ((merge_30‹??_118›)
+               ((msort_31‹??_116›) xs_702)
+               ((msort_31‹??_117›) ys_703)))} -o
+          ?_97[0;0]
     with
-    | (at_intro_12 v_614) => (refl_1‹??_57› ?_56[0;0] ?_57[0;0])
-
-#[program]
-def main_25‹› : IO unit_3 :=
-  let* _615 := ((alloc_19) tt_3) in
-  match _615 in ?_68[0;0] -o ?_67[0;0] with
-  | (ex1_11 l_617 pf_618) =>
-    let pf_619 :=
-      ((set_22‹??_61›) ?_65[0;0] ?_64[0;0] l_617 zero_6 pf_618)
-    in let __620 := ((free_23) ?_66[0;0] l_617 pf_619) in return tt_3
+    | (ex1_11 xs0_704 ys0_705), pf_706 =>
+      let* r1_707 :=
+        ((fork_28)
+          ?_101[0;0] ?_100[0;0]
+          function _708 : ?_98[0;0] -o ?_99[0;0]
+          | c1_710 => ((cmsort_worker_679) n_693 xs0_704 c1_710))
+      in
+      let* r2_711 :=
+        ((fork_28)
+          ?_105[0;0] ?_104[0;0]
+          function _712 : ?_102[0;0] -o ?_103[0;0]
+          | c2_714 => ((cmsort_worker_679) n_693 ys0_705 c2_714))
+      in
+      let* _715 :=
+        ((recv1_27‹??_121›)
+          ?_111[0;0] ?_110[0;0] ?_109[0;0] ?_108[0;0]
+          (refl_1‹??_120› ?_106[0;0] ?_107[0;0]) r1_707)
+      in
+      match _715 in ?_142[0;0] -o ?_141[0;0] with
+      | (ex1_11 xs1_717 c1_718) =>
+        let* _719 :=
+          ((recv1_27‹??_123›)
+            ?_117[0;0] ?_116[0;0] ?_115[0;0] ?_114[0;0]
+            (refl_1‹??_122› ?_112[0;0] ?_113[0;0]) r2_711)
+        in
+        match _719 in ?_140[0;0] -o ?_139[0;0] with
+        | (ex1_11 ys1_721 c2_722) =>
+          match xs1_717, ys1_721 in ?_118[0;0] -o ?_119[0;0] -o ?_120[0;0]
+          with
+          | (just_2 xs1_725), (just_2 ys1_726) =>
+            let zs1_727 :=
+              ((just_2‹??_125›
+                 ?_121[0;0] ((merge_30‹??_124›) xs1_725 ys1_726))
+                : (sing_2‹??_129›
+                    ?_122[0;0]
+                    ((merge_30‹??_128›)
+                      ((msort_31‹??_126›) xs0_704)
+                      ((msort_31‹??_127›) ys0_705))))
+            in
+            let zs1_728 :=
+              (((rwl_1‹??_131,??_132›)
+                 ?_128[0;0] ?_127[0;0] ?_126[0;0]
+                 function _729 : ?_123[0;0] -> ?_124[0;0]
+                 | x_731 => (sing_2‹??_130› ?_125[0;0] x_731) pf_706
+                 zs1_727)
+                : (sing_2‹??_134›
+                    ?_129[0;0] ((msort_31‹??_133›) zs_694)))
+            in
+            let* c_732 :=
+              ((send1_25‹??_136›)
+                ?_135[0;0] ?_134[0;0] ?_133[0;0] ?_132[0;0]
+                (refl_1‹??_135› ?_130[0;0] ?_131[0;0]) c_695 zs1_728)
+            in
+            let* __733 := ((close_23) ?_136[0;0] c1_718) in
+            let* __734 := ((close_23) ?_137[0;0] c2_722) in
+            let* __735 := ((close_23) ?_138[0;0] c_732) in return tt_3
 
 -----------------------------------------
 
 #[logical]
-inductive eq_1‹s_5675› (A_5676 : Type‹s_5675›) (m_5677 : A_5676):
-  A_5676 -> U
+inductive eq_1‹s_19243› (A_19244 : Type‹s_19243›) (m_19245 : A_19244):
+  A_19244 -> U
 where
-| refl_1 : (eq_1‹s_5675› A_5676 m_5677 m_5677)
+| refl_1 : (eq_1‹s_19243› A_19244 m_19245 m_19245)
 
 #[program]
-def rwl_1‹s_5679,r_5680› :
-  ∀ {A_5681 : Type‹s_5679›} ->
-    ∀ {m_5682 : A_5681} ->
-      ∀ {n_5683 : A_5681} ->
-        ∀ {B_5684 : A_5681 -> Type‹r_5680›} ->
-          {(eq_1‹s_5679› A_5681 m_5682 n_5683)} ->
-            ((B_5684) m_5682) -> ((B_5684) n_5683)
+def rwl_1‹s_19247,r_19248› :
+  ∀ {A_19249 : Type‹s_19247›} ->
+    ∀ {m_19250 : A_19249} ->
+      ∀ {n_19251 : A_19249} ->
+        ∀ {B_19252 : A_19249 -> Type‹r_19248›} ->
+          {(eq_1‹s_19247› A_19249 m_19250 n_19251)} ->
+            ((B_19252) m_19250) -> ((B_19252) n_19251)
 :=
-  function rwl_5688 :
-    ∀ {A_5689 : Type‹s_5679›} ->
-      ∀ {m_5690 : A_5689} ->
-        ∀ {n_5691 : A_5689} ->
-          ∀ {B_5692 : A_5689 -> Type‹r_5680›} ->
-            {(eq_1‹s_5679› A_5689 m_5690 n_5691)} ->
-              ((B_5692) m_5690) -> ((B_5692) n_5691)
-  | A_5696 m_5697 n_5698 B_5699 refl_1 __5700 => __5700
+  function rwl_19256 :
+    ∀ {A_19257 : Type‹s_19247›} ->
+      ∀ {m_19258 : A_19257} ->
+        ∀ {n_19259 : A_19257} ->
+          ∀ {B_19260 : A_19257 -> Type‹r_19248›} ->
+            {(eq_1‹s_19247› A_19257 m_19258 n_19259)} ->
+              ((B_19260) m_19258) -> ((B_19260) n_19259)
+  | A_19264 m_19265 n_19266 B_19267 refl_1 __19268 => __19268
 
 #[program]
-def rwr_2‹s_5701,r_5702› :
-  ∀ {A_5703 : Type‹s_5701›} ->
-    ∀ {m_5704 : A_5703} ->
-      ∀ {n_5705 : A_5703} ->
-        ∀ {B_5706 : A_5703 -> Type‹r_5702›} ->
-          {(eq_1‹s_5701› A_5703 m_5704 n_5705)} ->
-            ((B_5706) n_5705) -> ((B_5706) m_5704)
+def rwr_2‹s_19269,r_19270› :
+  ∀ {A_19271 : Type‹s_19269›} ->
+    ∀ {m_19272 : A_19271} ->
+      ∀ {n_19273 : A_19271} ->
+        ∀ {B_19274 : A_19271 -> Type‹r_19270›} ->
+          {(eq_1‹s_19269› A_19271 m_19272 n_19273)} ->
+            ((B_19274) n_19273) -> ((B_19274) m_19272)
 :=
-  function rwr_5710 :
-    ∀ {A_5711 : Type‹s_5701›} ->
-      ∀ {m_5712 : A_5711} ->
-        ∀ {n_5713 : A_5711} ->
-          ∀ {B_5714 : A_5711 -> Type‹r_5702›} ->
-            {(eq_1‹s_5701› A_5711 m_5712 n_5713)} ->
-              ((B_5714) n_5713) -> ((B_5714) m_5712)
-  | A_5718 m_5719 n_5720 B_5721 refl_1 __5722 => __5722
+  function rwr_19278 :
+    ∀ {A_19279 : Type‹s_19269›} ->
+      ∀ {m_19280 : A_19279} ->
+        ∀ {n_19281 : A_19279} ->
+          ∀ {B_19282 : A_19279 -> Type‹r_19270›} ->
+            {(eq_1‹s_19269› A_19279 m_19280 n_19281)} ->
+              ((B_19282) n_19281) -> ((B_19282) m_19280)
+  | A_19286 m_19287 n_19288 B_19289 refl_1 __19290 => __19290
 
 #[program]
-inductive sing_2‹s_5723› (A_5724 : Type‹s_5723›):
-  A_5724 -> Type‹s_5723›
+inductive sing_2‹s_19291› (A_19292 : Type‹s_19291›):
+  A_19292 -> Type‹s_19291›
 where
-| just_2 (m_5726 : A_5724) : (sing_2‹s_5723› A_5724 m_5726)
+| just_2 (m_19294 : A_19292) : (sing_2‹s_19291› A_19292 m_19294)
 
 #[program]
 inductive unit_3‹› : U where
@@ -1503,70 +2100,76 @@ inductive bool_4‹› : U where
 #[program]
 inductive nat_5‹› : U where
 | zero_6 : nat_5
-| succ_7 (n_5727 : nat_5) : nat_5
+| succ_7 (n_19295 : nat_5) : nat_5
 
 #[program]
-inductive list_6‹s_5728,t_5729› (A_5730 : Type‹s_5728›):
-  Type‹t_5729›
+inductive list_6‹s_19296,t_19297› (A_19298 : Type‹s_19296›):
+  Type‹t_19297›
 where
-| nil_8 : (list_6‹s_5728,t_5729› A_5730)
+| nil_8 : (list_6‹s_19296,t_19297› A_19298)
 | cons_9
-    (hd_5731 : A_5730) (tl_5732 : (list_6‹s_5728,t_5729› A_5730))
-    : (list_6‹s_5728,t_5729› A_5730)
+    (hd_19299 : A_19298) (tl_19300 : (list_6‹s_19296,t_19297› A_19298))
+    : (list_6‹s_19296,t_19297› A_19298)
 
 #[program]
-inductive exists0_7‹s_5733,r_5734› (A_5735 : Type‹s_5733›) (B_5736 : 
-A_5735 -> Type‹r_5734›): L where
+inductive exists0_7‹s_19301,r_19302› (A_19303 : Type‹s_19301›) (B_19304 : 
+A_19303 -> Type‹r_19302›): L where
 | ex0_10
-    {m_5738 : A_5735} (n_5739 : ((B_5736) m_5738))
-    : (exists0_7‹s_5733,r_5734› A_5735 B_5736)
+    {m_19306 : A_19303} (n_19307 : ((B_19304) m_19306))
+    : (exists0_7‹s_19301,r_19302› A_19303 B_19304)
 
 #[program]
-inductive exists1_8‹s_5740,r_5741› (A_5742 : Type‹s_5740›) (B_5743 : 
-A_5742 -> Type‹r_5741›): L where
+inductive exists1_8‹s_19308,r_19309› (A_19310 : Type‹s_19308›) (B_19311 : 
+A_19310 -> Type‹r_19309›): L where
 | ex1_11
-    (m_5745 : A_5742) (n_5746 : ((B_5743) m_5745))
-    : (exists1_8‹s_5740,r_5741› A_5742 B_5743)
+    (m_19313 : A_19310) (n_19314 : ((B_19311) m_19313))
+    : (exists1_8‹s_19308,r_19309› A_19310 B_19311)
 
 #[logical]
-def prod0_3‹s_5747,r_5748› : Type‹s_5747› -> Type‹r_5748› -> L :=
-  function prod0_5751 : Type‹s_5747› -> Type‹r_5748› -> L
-  | A_5754 B_5755 =>
-    (exists0_7‹s_5747,r_5748›
-      A_5754 function _5756 : A_5754 -> Type‹r_5748›
-             | __5758 => B_5755)
+def prod0_3‹s_19315,r_19316› :
+  Type‹s_19315› -> Type‹r_19316› -> L
+:=
+  function prod0_19319 : Type‹s_19315› -> Type‹r_19316› -> L
+  | A_19322 B_19323 =>
+    (exists0_7‹s_19315,r_19316›
+      A_19322
+      function _19324 : A_19322 -> Type‹r_19316›
+      | __19326 => B_19323)
 
 #[logical]
-def prod1_4‹s_5759,r_5760› : Type‹s_5759› -> Type‹r_5760› -> L :=
-  function prod1_5763 : Type‹s_5759› -> Type‹r_5760› -> L
-  | A_5766 B_5767 =>
-    (exists1_8‹s_5759,r_5760›
-      A_5766 function _5768 : A_5766 -> Type‹r_5760›
-             | __5770 => B_5767)
+def prod1_4‹s_19327,r_19328› :
+  Type‹s_19327› -> Type‹r_19328› -> L
+:=
+  function prod1_19331 : Type‹s_19327› -> Type‹r_19328› -> L
+  | A_19334 B_19335 =>
+    (exists1_8‹s_19327,r_19328›
+      A_19334
+      function _19336 : A_19334 -> Type‹r_19328›
+      | __19338 => B_19335)
 
 #[program]
 def not_5‹› : bool_4 -> bool_4 :=
-  function not_5772 : bool_4 -> bool_4
+  function not_19340 : bool_4 -> bool_4
   | true_4 => false_5
   | false_5 => true_4
 
 #[program]
 def and_6‹› : bool_4 -> bool_4 -> bool_4 :=
-  function and_5776 : bool_4 -> bool_4 -> bool_4
+  function and_19344 : bool_4 -> bool_4 -> bool_4
   | true_4 true_4 => true_4
   | true_4 false_5 => false_5
-  | false_5 __5779 => false_5
+  | false_5 __19347 => false_5
 
 #[program]
 def or_7‹› : bool_4 -> bool_4 -> bool_4 :=
-  function or_5782 : bool_4 -> bool_4 -> bool_4
-  | true_4 __5785 => true_4
+  function or_19350 : bool_4 -> bool_4 -> bool_4
+  | true_4 __19353 => true_4
   | false_5 true_4 => true_4
   | false_5 false_5 => false_5
 
 #[program]
 def xor_8‹› : bool_4 -> bool_4 -o bool_4 :=
-  function xor_5788 : bool_4 -> bool_4 -o bool_4
+  function xor_19356 : bool_4 -> bool_4 -o bool_4
   | true_4 true_4 => false_5
   | true_4 false_5 => true_4
   | false_5 true_4 => true_4
@@ -1574,295 +2177,630 @@ def xor_8‹› : bool_4 -> bool_4 -o bool_4 :=
 
 #[program]
 def lte_9‹› : nat_5 -> nat_5 -> bool_4 :=
-  function lte_5793 : nat_5 -> nat_5 -> bool_4
-  | zero_6 __5796 => true_4
-  | (succ_7 n_5797) zero_6 => false_5
-  | (succ_7 n_5798) (succ_7 n_5799) => ((lte_5793) n_5798 n_5799)
+  function lte_19361 : nat_5 -> nat_5 -> bool_4
+  | zero_6 __19364 => true_4
+  | (succ_7 n_19365) zero_6 => false_5
+  | (succ_7 n_19366) (succ_7 n_19367) => ((lte_19361) n_19366 n_19367)
 
 #[program]
 def lt_10‹› : nat_5 -> nat_5 -> bool_4 :=
-  function lt_5802 : nat_5 -> nat_5 -> bool_4
-  | x_5805 y_5806 => ((lte_9) (succ_7‹› x_5805) y_5806)
+  function lt_19370 : nat_5 -> nat_5 -> bool_4
+  | x_19373 y_19374 => ((lte_9) (succ_7‹› x_19373) y_19374)
 
 #[program]
 def pred_11‹› : nat_5 -> nat_5 :=
-  function pred_5808 : nat_5 -> nat_5
+  function pred_19376 : nat_5 -> nat_5
   | zero_6 => zero_6
-  | (succ_7 n_5810) => n_5810
+  | (succ_7 n_19378) => n_19378
 
 #[program]
 def add_12‹› : nat_5 -> nat_5 -> nat_5 :=
-  function add_5813 : nat_5 -> nat_5 -> nat_5
-  | zero_6 __5816 => __5816
-  | (succ_7 n_5817) __5818 => (succ_7‹› ((add_5813) n_5817 __5818))
+  function add_19381 : nat_5 -> nat_5 -> nat_5
+  | zero_6 __19384 => __19384
+  | (succ_7 n_19385) __19386 => (succ_7‹› ((add_19381) n_19385 __19386))
 
 #[program]
 def sub_13‹› : nat_5 -> nat_5 -> nat_5 :=
-  function sub_5821 : nat_5 -> nat_5 -> nat_5
-  | __5824 zero_6 => __5824
-  | __5825 (succ_7 n_5826) => ((sub_5821) ((pred_11) __5825) n_5826)
+  function sub_19389 : nat_5 -> nat_5 -> nat_5
+  | __19392 zero_6 => __19392
+  | __19393 (succ_7 n_19394) => ((sub_19389) ((pred_11) __19393) n_19394)
 
 #[program]
 def mul_14‹› : nat_5 -> nat_5 -> nat_5 :=
-  function mul_5829 : nat_5 -> nat_5 -> nat_5
-  | zero_6 __5832 => zero_6
-  | (succ_7 n_5833) __5834 => ((add_12) __5834 ((mul_5829) n_5833 __5834))
+  function mul_19397 : nat_5 -> nat_5 -> nat_5
+  | zero_6 __19400 => zero_6
+  | (succ_7 n_19401) __19402 =>
+    ((add_12) __19402 ((mul_19397) n_19401 __19402))
 
 #[program]
 def div_15‹› : nat_5 -> nat_5 -> nat_5 :=
-  function div_5837 : nat_5 -> nat_5 -> nat_5
-  | x_5840 y_5841 =>
-    match ((lt_10) x_5840 y_5841) in bool_4 -o nat_5 with
+  function div_19405 : nat_5 -> nat_5 -> nat_5
+  | x_19408 y_19409 =>
+    match ((lt_10) x_19408 y_19409) in bool_4 -o nat_5 with
     | true_4 => zero_6
     | false_5 =>
-      let loop_5843 :=
-        function loop_5844 : nat_5 -> nat_5 -> nat_5
-        | x_5847 y_5848 =>
-          match ((sub_13) x_5847 ((pred_11) y_5848)) in nat_5 -o nat_5 with
-          | zero_6 => zero_6
-          | (succ_7 n_5850) => (succ_7‹› ((loop_5844) n_5850 y_5848))
-      in ((loop_5843) x_5840 y_5841)
+      (succ_7‹› ((div_19405) ((sub_13) x_19408 y_19409) y_19409))
 
 #[program]
 def rem_16‹› : nat_5 -> nat_5 -> nat_5 :=
-  function rem_5853 : nat_5 -> nat_5 -> nat_5
-  | x_5856 y_5857 =>
-    ((sub_13) x_5856 ((mul_14) ((div_15) x_5856 y_5857) y_5857))
+  function rem_19413 : nat_5 -> nat_5 -> nat_5
+  | x_19416 y_19417 =>
+    ((sub_13) x_19416 ((mul_14) ((div_15) x_19416 y_19417) y_19417))
 
 #[program]
 def pow_17‹› : nat_5 -> nat_5 -> nat_5 :=
-  function pow_5860 : nat_5 -> nat_5 -> nat_5
-  | __5863 zero_6 => (succ_7‹› zero_6)
-  | __5864 (succ_7 n_5865) => ((mul_14) __5864 ((pow_5860) __5864 n_5865))
+  function pow_19420 : nat_5 -> nat_5 -> nat_5
+  | __19423 zero_6 => (succ_7‹› zero_6)
+  | __19424 (succ_7 n_19425) =>
+    ((mul_14) __19424 ((pow_19420) __19424 n_19425))
 
 #[logical]
-def loc_18‹› : U := nat_5
+extern proto_18‹› : U
 
 #[logical]
-inductive at_9‹s_5866› (A_5867 : Type‹s_5866›) (l_5868 : loc_18): 
-L where
-| at_intro_12 (m_5869 : A_5867) : (at_9‹s_5866› A_5867 l_5868)
-
-#[program]
-extern alloc_19‹› :
-  unit_3 ->
-    IO (exists1_8‹U,L›
-         loc_18
-         function _5871 : loc_18 -> L
-         | __5873 => (at_9‹U› unit_3 __5873))
-
-#[program]
-extern getU_20‹› :
-  ∀ {A_5874 : U} ->
-    ∀ (l_5875 : loc_18) ->
-      (at_9‹U› A_5874 l_5875) ->
-        ((prod1_4‹U,L›) A_5874 (at_9‹U› A_5874 l_5875))
-:=
-  function getU_5877 :
-    ∀ {A_5878 : U} ->
-      ∀ (l_5879 : loc_18) ->
-        (at_9‹U› A_5878 l_5879) ->
-          ((prod1_4‹U,L›) A_5878 (at_9‹U› A_5878 l_5879))
-  | A_5881 l_5882 pf_5883 =>
-    match pf_5883 in
-      (at_9‹U› A_5881 l_5882) -o
-        ((prod1_4‹U,L›) A_5881 (at_9‹U› A_5881 l_5882))
-    with
-    | (at_intro_12 m_5885) =>
-      (ex1_11‹U,L›
-        A_5881
-        function _5886 : A_5881 -> L
-        | __5888 => (at_9‹U› A_5881 l_5882) m_5885 pf_5883)
-
-#[program]
-extern getL_21‹› :
-  ∀ {A_5889 : L} ->
-    ∀ (l_5890 : loc_18) ->
-      (at_9‹L› A_5889 l_5890) ->
-        ((prod1_4‹L,L›) A_5889 (at_9‹U› unit_3 l_5890))
-:=
-  function getL_5892 :
-    ∀ {A_5893 : L} ->
-      ∀ (l_5894 : loc_18) ->
-        (at_9‹L› A_5893 l_5894) ->
-          ((prod1_4‹L,L›) A_5893 (at_9‹U› unit_3 l_5894))
-  | A_5896 l_5897 pf_5898 =>
-    match pf_5898 in
-      (at_9‹L› A_5896 l_5897) -o
-        ((prod1_4‹L,L›) A_5896 (at_9‹U› unit_3 l_5897))
-    with
-    | (at_intro_12 m_5900) =>
-      (ex1_11‹L,L›
-        A_5896
-        function _5901 : A_5896 -> L
-        | __5903 => (at_9‹U› unit_3 l_5897) m_5900
-        (at_intro_12‹U› unit_3 l_5897 tt_3))
-
-#[program]
-extern set_22‹s_5904› :
-  ∀ {A_5905 : U} ->
-    ∀ {B_5906 : Type‹s_5904›} ->
-      ∀ (l_5907 : loc_18) ->
-        B_5906 ->
-          (at_9‹U› A_5905 l_5907) -> (at_9‹s_5904› B_5906 l_5907)
-:=
-  function set_5910 :
-    ∀ {A_5911 : U} ->
-      ∀ {B_5912 : Type‹s_5904›} ->
-        ∀ (l_5913 : loc_18) ->
-          B_5912 ->
-            (at_9‹U› A_5911 l_5913) -> (at_9‹s_5904› B_5912 l_5913)
-  | A_5916 B_5917 l_5918 m_5919 pf_5920 =>
-    match pf_5920 in
-      (at_9‹U› A_5916 l_5918) -o (at_9‹s_5904› B_5917 l_5918)
-    with
-    | (at_intro_12 m_5922) => (at_intro_12‹s_5904› B_5917 l_5918 m_5919)
-
-#[program]
-extern free_23‹› :
-  ∀ {A_5923 : U} ->
-    ∀ (l_5924 : loc_18) -> (at_9‹U› A_5923 l_5924) -> unit_3
-:=
-  function free_5926 :
-    ∀ {A_5927 : U} ->
-      ∀ (l_5928 : loc_18) -> (at_9‹U› A_5927 l_5928) -> unit_3
-  | A_5930 l_5931 pf_5932 =>
-    match pf_5932 in (at_9‹U› A_5930 l_5931) -o unit_3 with
-    | (at_intro_12 m_5934) => tt_3
+extern act0_19‹s_19426› :
+  bool_4 ->
+    ∀ (A_19428 : Type‹s_19426›) -> A_19428 -> proto_18 -> proto_18
 
 #[logical]
-def set_get_law_24‹s_5935› :
-  ∀ (A_5936 : U) ->
-    ∀ (l_5937 : loc_18) ->
-      ∀ (pf_5938 : (at_9‹U› A_5936 l_5937)) ->
-        ∀ (v0_5939 : A_5936) ->
-          let pf_5940 :=
-            ((set_22‹U›) A_5936 A_5936 l_5937 v0_5939 pf_5938)
-          in
-          match ((getU_20) A_5936 l_5937 pf_5940) in
-            ((prod1_4‹U,L›) A_5936 (at_9‹U› A_5936 l_5937)) -o U
-          with
-          | (ex1_11 m_5942 n_5943) => (eq_1‹U› A_5936 v0_5939 m_5942)
+extern act1_20‹s_19431› :
+  bool_4 ->
+    ∀ (A_19433 : Type‹s_19431›) -> A_19433 -> proto_18 -> proto_18
+
+#[logical]
+extern endp_21‹› : proto_18
+
+#[logical]
+extern ch_22‹› : bool_4 -> proto_18 -> L
+
+#[program]
+extern close_23‹› :
+  ∀ {b_19438 : bool_4} -> ((ch_22) b_19438 endp_21) -> IO unit_3
+
+#[program]
+extern send0_24‹s_19440› :
+  ∀ {b1_19441 : bool_4} ->
+    ∀ {b2_19442 : bool_4} ->
+      ∀ {A_19443 : Type‹s_19440›} ->
+        ∀ {B_19444 : A_19443 -> proto_18} ->
+          {(eq_1‹U› bool_4 ((xor_8) b1_19441 b2_19442) false_5)} ->
+            ((ch_22)
+              b1_19441 ((act0_19‹s_19440›) b2_19442 A_19443 B_19444)) ->
+              ∀ {x_19448 : A_19443} -o
+                IO ((ch_22) b1_19441 ((B_19444) x_19448))
+
+#[program]
+extern send1_25‹s_19449› :
+  ∀ {b1_19450 : bool_4} ->
+    ∀ {b2_19451 : bool_4} ->
+      ∀ {A_19452 : Type‹s_19449›} ->
+        ∀ {B_19453 : A_19452 -> proto_18} ->
+          {(eq_1‹U› bool_4 ((xor_8) b1_19450 b2_19451) false_5)} ->
+            ((ch_22)
+              b1_19450 ((act1_20‹s_19449›) b2_19451 A_19452 B_19453)) ->
+              ∀ (x_19457 : A_19452) -o
+                IO ((ch_22) b1_19450 ((B_19453) x_19457))
+
+#[program]
+extern recv0_26‹s_19458› :
+  ∀ {b1_19459 : bool_4} ->
+    ∀ {b2_19460 : bool_4} ->
+      ∀ {A_19461 : Type‹s_19458›} ->
+        ∀ {B_19462 : A_19461 -> proto_18} ->
+          {(eq_1‹U› bool_4 ((xor_8) b1_19459 b2_19460) true_4)} ->
+            ((ch_22)
+              b1_19459 ((act0_19‹s_19458›) b2_19460 A_19461 B_19462)) ->
+              IO (exists0_7‹s_19458,L›
+                   A_19461
+                   function _19466 : A_19461 -> L
+                   | __19468 => ((ch_22) b1_19459 ((B_19462) __19468)))
+
+#[program]
+extern recv1_27‹s_19469› :
+  ∀ {b1_19470 : bool_4} ->
+    ∀ {b2_19471 : bool_4} ->
+      ∀ {A_19472 : Type‹s_19469›} ->
+        ∀ {B_19473 : A_19472 -> proto_18} ->
+          {(eq_1‹U› bool_4 ((xor_8) b1_19470 b2_19471) true_4)} ->
+            ((ch_22)
+              b1_19470 ((act1_20‹s_19469›) b2_19471 A_19472 B_19473)) ->
+              IO (exists1_8‹s_19469,L›
+                   A_19472
+                   function _19477 : A_19472 -> L
+                   | __19479 => ((ch_22) b1_19470 ((B_19473) __19479)))
+
+#[program]
+extern fork_28‹› :
+  ∀ {b_19480 : bool_4} ->
+    ∀ {P_19481 : proto_18} ->
+      ((ch_22) b_19480 P_19481) -o IO unit_3 ->
+        IO ((ch_22) ((not_5) b_19480) P_19481)
+
+#[program]
+def split_29‹t_19484› :
+  (list_6‹U,t_19484› nat_5) ->
+    ((prod1_4‹t_19484,t_19484›)
+      (list_6‹U,t_19484› nat_5) (list_6‹U,t_19484› nat_5))
 :=
-  function set_get_law_5944 :
-    ∀ (A_5945 : U) ->
-      ∀ (l_5946 : loc_18) ->
-        ∀ (pf_5947 : (at_9‹U› A_5945 l_5946)) ->
-          ∀ (v0_5948 : A_5945) ->
-            let pf_5949 :=
-              ((set_22‹U›) A_5945 A_5945 l_5946 v0_5948 pf_5947)
-            in
-            match ((getU_20) A_5945 l_5946 pf_5949) in
-              ((prod1_4‹U,L›) A_5945 (at_9‹U› A_5945 l_5946)) -o U
-            with
-            | (ex1_11 m_5951 n_5952) => (eq_1‹U› A_5945 v0_5948 m_5951)
-  | A_5953 l_5954 pf_5955 v0_5956 =>
-    match pf_5955 in
-      ∀ (pf0_5957 : (at_9‹U› A_5953 l_5954)) -o
-        let pf0_5958 :=
-          ((set_22‹U›) A_5953 A_5953 l_5954 v0_5956 pf0_5957)
+  function split_19486 :
+    (list_6‹U,t_19484› nat_5) ->
+      ((prod1_4‹t_19484,t_19484›)
+        (list_6‹U,t_19484› nat_5) (list_6‹U,t_19484› nat_5))
+  | nil_8 =>
+    (ex1_11‹t_19484,t_19484›
+      (list_6‹U,t_19484› nat_5)
+      function _19488 : (list_6‹U,t_19484› nat_5) -> Type‹t_19484›
+      | __19490 => (list_6‹U,t_19484› nat_5) (nil_8‹U,t_19484› nat_5)
+      (nil_8‹U,t_19484› nat_5))
+  | (cons_9 hd_19491 nil_8) =>
+    (ex1_11‹t_19484,t_19484›
+      (list_6‹U,t_19484› nat_5)
+      function _19492 : (list_6‹U,t_19484› nat_5) -> Type‹t_19484›
+      | __19494 => (list_6‹U,t_19484› nat_5)
+      (cons_9‹U,t_19484› nat_5 hd_19491 (nil_8‹U,t_19484› nat_5))
+      (nil_8‹U,t_19484› nat_5))
+  | (cons_9 hd_19495 (cons_9 hd_19496 tl_19497)) =>
+    match ((split_19486) tl_19497) in
+      ((prod1_4‹t_19484,t_19484›)
+        (list_6‹U,t_19484› nat_5) (list_6‹U,t_19484› nat_5)) -o
+        ((prod1_4‹t_19484,t_19484›)
+          (list_6‹U,t_19484› nat_5) (list_6‹U,t_19484› nat_5))
+    with
+    | (ex1_11 m_19499 n_19500) =>
+      (ex1_11‹t_19484,t_19484›
+        (list_6‹U,t_19484› nat_5)
+        function _19501 : (list_6‹U,t_19484› nat_5) -> Type‹t_19484›
+        | __19503 => (list_6‹U,t_19484› nat_5)
+        (cons_9‹U,t_19484› nat_5 hd_19495 m_19499)
+        (cons_9‹U,t_19484› nat_5 hd_19496 n_19500))
+
+#[program]
+def merge_30‹t_19504› :
+  (list_6‹U,t_19504› nat_5) ->
+    (list_6‹U,t_19504› nat_5) -o (list_6‹U,t_19504› nat_5)
+:=
+  function merge_19507 :
+    (list_6‹U,t_19504› nat_5) ->
+      (list_6‹U,t_19504› nat_5) -o (list_6‹U,t_19504› nat_5)
+  | nil_8 __19510 => __19510
+  | (cons_9 hd_19511 tl_19512) nil_8 =>
+    (cons_9‹U,t_19504› nat_5 hd_19511 tl_19512)
+  | (cons_9 hd_19513 tl_19514) (cons_9 hd_19515 tl_19516) =>
+    match ((lte_9) hd_19513 hd_19515) in
+      bool_4 -o (list_6‹U,t_19504› nat_5)
+    with
+    | true_4 =>
+      (cons_9‹U,t_19504›
+        nat_5 hd_19513
+        ((merge_19507)
+          tl_19514 (cons_9‹U,t_19504› nat_5 hd_19515 tl_19516)))
+    | false_5 =>
+      (cons_9‹U,t_19504›
+        nat_5 hd_19515
+        ((merge_19507)
+          (cons_9‹U,t_19504› nat_5 hd_19513 tl_19514) tl_19516))
+
+#[program]
+def msort_31‹t_19518› :
+  (list_6‹U,t_19518› nat_5) -> (list_6‹U,t_19518› nat_5)
+:=
+  function msort_19520 :
+    (list_6‹U,t_19518› nat_5) -> (list_6‹U,t_19518› nat_5)
+  | nil_8 => (nil_8‹U,t_19518› nat_5)
+  | (cons_9 hd_19522 nil_8) =>
+    (cons_9‹U,t_19518› nat_5 hd_19522 (nil_8‹U,t_19518› nat_5))
+  | (cons_9 hd_19523 (cons_9 hd_19524 tl_19525)) =>
+    match ((split_29‹t_19518›)
+            (cons_9‹U,t_19518›
+              nat_5 hd_19523 (cons_9‹U,t_19518› nat_5 hd_19524 tl_19525))) in
+      ((prod1_4‹t_19518,t_19518›)
+        (list_6‹U,t_19518› nat_5) (list_6‹U,t_19518› nat_5)) -o
+        (list_6‹U,t_19518› nat_5)
+    with
+    | (ex1_11 m_19527 n_19528) =>
+      ((merge_30‹t_19518›)
+        ((msort_19520) m_19527) ((msort_19520) n_19528))
+
+#[logical]
+def cmsort_ch_32‹t_19529› : (list_6‹U,t_19529› nat_5) -> L :=
+  function cmsort_ch_19531 : (list_6‹U,t_19529› nat_5) -> L
+  | xs_19533 =>
+    ((ch_22)
+      true_4
+      ((act1_20‹t_19529›)
+        true_4
+        (sing_2‹t_19529›
+          (list_6‹U,t_19529› nat_5) ((msort_31‹t_19529›) xs_19533))
+        function _19534 :
+          (sing_2‹t_19529›
+            (list_6‹U,t_19529› nat_5) ((msort_31‹t_19529›) xs_19533)) ->
+            proto_18
+        | __19536 => endp_21))
+
+#[program]
+def cmsort_worker_33‹t_19537› :
+  nat_5 ->
+    ∀ (zs_19539 : (list_6‹U,t_19537› nat_5)) ->
+      ((cmsort_ch_32‹t_19537›) zs_19539) -o IO unit_3
+:=
+  function cmsort_worker_19541 :
+    nat_5 ->
+      ∀ (zs_19543 : (list_6‹U,t_19537› nat_5)) ->
+        ((cmsort_ch_32‹t_19537›) zs_19543) -o IO unit_3
+  | zero_6 zs_19545 __19546 =>
+    let* c_19547 :=
+      ((send1_25‹t_19537›)
+        true_4 true_4
+        (sing_2‹t_19537›
+          (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) zs_19545))
+        function _19548 :
+          (sing_2‹t_19537›
+            (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) zs_19545)) ->
+            proto_18
+        | __19550 => endp_21 (refl_1‹U› bool_4 ((xor_8) true_4 true_4))
+        __19546
+        (just_2‹t_19537›
+          (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) zs_19545)))
+    in ((close_23) true_4 c_19547)
+  | (succ_7 n_19551) nil_8 __19552 =>
+    let* c_19553 :=
+      ((send1_25‹t_19537›)
+        true_4 true_4
+        (sing_2‹t_19537›
+          (list_6‹U,t_19537› nat_5)
+          ((msort_31‹t_19537›) (nil_8‹U,t_19537› nat_5)))
+        function _19554 :
+          (sing_2‹t_19537›
+            (list_6‹U,t_19537› nat_5)
+            ((msort_31‹t_19537›) (nil_8‹U,t_19537› nat_5))) ->
+            proto_18
+        | __19556 => endp_21 (refl_1‹U› bool_4 ((xor_8) true_4 true_4))
+        __19552
+        (just_2‹t_19537›
+          (list_6‹U,t_19537› nat_5) (nil_8‹U,t_19537› nat_5)))
+    in ((close_23) true_4 c_19553)
+  | (succ_7 n_19557) (cons_9 hd_19558 nil_8) __19559 =>
+    let* c_19560 :=
+      ((send1_25‹t_19537›)
+        true_4 true_4
+        (sing_2‹t_19537›
+          (list_6‹U,t_19537› nat_5)
+          ((msort_31‹t_19537›)
+            (cons_9‹U,t_19537›
+              nat_5 hd_19558 (nil_8‹U,t_19537› nat_5))))
+        function _19561 :
+          (sing_2‹t_19537›
+            (list_6‹U,t_19537› nat_5)
+            ((msort_31‹t_19537›)
+              (cons_9‹U,t_19537›
+                nat_5 hd_19558 (nil_8‹U,t_19537› nat_5)))) ->
+            proto_18
+        | __19563 => endp_21 (refl_1‹U› bool_4 ((xor_8) true_4 true_4))
+        __19559
+        (just_2‹t_19537›
+          (list_6‹U,t_19537› nat_5)
+          (cons_9‹U,t_19537› nat_5 hd_19558 (nil_8‹U,t_19537› nat_5))))
+    in ((close_23) true_4 c_19560)
+  | (succ_7 n_19564) (cons_9 hd_19565 (cons_9 hd_19566 tl_19567)) __19568 =>
+    match ((split_29‹t_19537›)
+            (cons_9‹U,t_19537›
+              nat_5 hd_19565 (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567))),
+    (refl_1‹t_19537›
+      (list_6‹U,t_19537› nat_5)
+      match ((split_29‹t_19537›)
+              (cons_9‹U,t_19537›
+                nat_5 hd_19565
+                (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567))) in
+        ((prod1_4‹t_19537,t_19537›)
+          (list_6‹U,t_19537› nat_5) (list_6‹U,t_19537› nat_5)) -o
+          (list_6‹U,t_19537› nat_5)
+      with
+      | (ex1_11 m_19570 n_19571) =>
+        ((merge_30‹t_19537›)
+          ((msort_31‹t_19537›) m_19570) ((msort_31‹t_19537›) n_19571))) in
+      ∀ (h1_19572 :
+        ((prod1_4‹t_19537,t_19537›)
+          (list_6‹U,t_19537› nat_5) (list_6‹U,t_19537› nat_5))) -o
+        {(eq_1‹t_19537›
+           (list_6‹U,t_19537› nat_5)
+           match h1_19572 in
+             ((prod1_4‹t_19537,t_19537›)
+               (list_6‹U,t_19537› nat_5) (list_6‹U,t_19537› nat_5)) -o
+               (list_6‹U,t_19537› nat_5)
+           with
+           | (ex1_11 m_19575 n_19576) =>
+             ((merge_30‹t_19537›)
+               ((msort_31‹t_19537›) m_19575)
+               ((msort_31‹t_19537›) n_19576))
+           match ((split_29‹t_19537›)
+                   (cons_9‹U,t_19537›
+                     nat_5 hd_19565
+                     (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567))) in
+             ((prod1_4‹t_19537,t_19537›)
+               (list_6‹U,t_19537› nat_5) (list_6‹U,t_19537› nat_5)) -o
+               (list_6‹U,t_19537› nat_5)
+           with
+           | (ex1_11 m_19578 n_19579) =>
+             ((merge_30‹t_19537›)
+               ((msort_31‹t_19537›) m_19578)
+               ((msort_31‹t_19537›) n_19579)))} -o
+          IO unit_3
+    with
+    | (ex1_11 m_19580 n_19581), __19582 =>
+      let* r1_19583 :=
+        ((fork_28)
+          true_4
+          ((act1_20‹t_19537›)
+            true_4
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) m_19580))
+            function _19584 :
+              (sing_2‹t_19537›
+                (list_6‹U,t_19537› nat_5)
+                ((msort_31‹t_19537›) m_19580)) -> proto_18
+            | __19586 => endp_21)
+          function _19587 :
+            ((ch_22)
+              true_4
+              ((act1_20‹t_19537›)
+                true_4
+                (sing_2‹t_19537›
+                  (list_6‹U,t_19537› nat_5)
+                  ((msort_31‹t_19537›) m_19580))
+                function _19589 :
+                  (sing_2‹t_19537›
+                    (list_6‹U,t_19537› nat_5)
+                    ((msort_31‹t_19537›) m_19580)) -> proto_18
+                | __19591 => endp_21)) -o
+              IO unit_3
+          | __19592 => ((cmsort_worker_19541) n_19564 m_19580 __19592))
+      in
+      let* r2_19593 :=
+        ((fork_28)
+          true_4
+          ((act1_20‹t_19537›)
+            true_4
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) n_19581))
+            function _19594 :
+              (sing_2‹t_19537›
+                (list_6‹U,t_19537› nat_5)
+                ((msort_31‹t_19537›) n_19581)) -> proto_18
+            | __19596 => endp_21)
+          function _19597 :
+            ((ch_22)
+              true_4
+              ((act1_20‹t_19537›)
+                true_4
+                (sing_2‹t_19537›
+                  (list_6‹U,t_19537› nat_5)
+                  ((msort_31‹t_19537›) n_19581))
+                function _19599 :
+                  (sing_2‹t_19537›
+                    (list_6‹U,t_19537› nat_5)
+                    ((msort_31‹t_19537›) n_19581)) -> proto_18
+                | __19601 => endp_21)) -o
+              IO unit_3
+          | __19602 => ((cmsort_worker_19541) n_19564 n_19581 __19602))
+      in
+      let* _19603 :=
+        ((recv1_27‹t_19537›)
+          ((not_5) true_4) true_4
+          (sing_2‹t_19537›
+            (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) m_19580))
+          function _19604 :
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) m_19580)) ->
+              proto_18
+          | __19606 => endp_21
+          (refl_1‹U› bool_4 ((xor_8) ((not_5) true_4) true_4)) r1_19583)
+      in
+      match _19603 in
+        (exists1_8‹t_19537,L›
+          (sing_2‹t_19537›
+            (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) m_19580))
+          function _19608 :
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) m_19580)) ->
+              L
+          | __19610 =>
+            ((ch_22)
+              ((not_5) true_4)
+              ((function _19611 :
+                  (sing_2‹t_19537›
+                    (list_6‹U,t_19537› nat_5)
+                    ((msort_31‹t_19537›) m_19580)) -> proto_18
+                | __19613 => endp_21) __19610))) -o
+          IO unit_3
+      with
+      | (ex1_11 m_19614 n_19615) =>
+        let* _19616 :=
+          ((recv1_27‹t_19537›)
+            ((not_5) true_4) true_4
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) n_19581))
+            function _19617 :
+              (sing_2‹t_19537›
+                (list_6‹U,t_19537› nat_5)
+                ((msort_31‹t_19537›) n_19581)) -> proto_18
+            | __19619 => endp_21
+            (refl_1‹U› bool_4 ((xor_8) ((not_5) true_4) true_4)) r2_19593)
         in
-        match ((getU_20) A_5953 l_5954 pf0_5958) in
-          ((prod1_4‹U,L›) A_5953 (at_9‹U› A_5953 l_5954)) -o U
+        match _19616 in
+          (exists1_8‹t_19537,L›
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) n_19581))
+            function _19621 :
+              (sing_2‹t_19537›
+                (list_6‹U,t_19537› nat_5)
+                ((msort_31‹t_19537›) n_19581)) -> L
+            | __19623 =>
+              ((ch_22)
+                ((not_5) true_4)
+                ((function _19624 :
+                    (sing_2‹t_19537›
+                      (list_6‹U,t_19537› nat_5)
+                      ((msort_31‹t_19537›) n_19581)) -> proto_18
+                  | __19626 => endp_21) __19623))) -o
+            IO unit_3
         with
-        | (ex1_11 m_5960 n_5961) => (eq_1‹U› A_5953 v0_5956 m_5960)
-    with
-    | (at_intro_12 m_5962) => (refl_1‹U› A_5953 v0_5956)
-
-#[program]
-def main_25‹› : IO unit_3 :=
-  let* _5963 := ((alloc_19) tt_3) in
-  match _5963 in
-    (exists1_8‹U,L›
-      loc_18
-      function _5965 : loc_18 -> L
-      | __5967 => (at_9‹U› unit_3 __5967)) -o IO unit_3
-  with
-  | (ex1_11 m_5968 n_5969) =>
-    let pf_5970 := ((set_22‹U›) unit_3 nat_5 m_5968 zero_6 n_5969) in
-    let __5971 := ((free_23) nat_5 m_5968 pf_5970) in return tt_3
+        | (ex1_11 m_19627 n_19628) =>
+          match m_19614, m_19627 in
+            (sing_2‹t_19537›
+              (list_6‹U,t_19537› nat_5) ((msort_31‹t_19537›) m_19580)) -o
+              (sing_2‹t_19537›
+                (list_6‹U,t_19537› nat_5)
+                ((msort_31‹t_19537›) n_19581)) -o IO unit_3
+          with
+          | (just_2 m_19631), (just_2 m_19632) =>
+            let zs1_19633 :=
+              ((just_2‹t_19537›
+                 (list_6‹U,t_19537› nat_5)
+                 ((merge_30‹t_19537›) m_19631 m_19632))
+                : (sing_2‹t_19537›
+                    (list_6‹U,t_19537› nat_5)
+                    ((merge_30‹t_19537›)
+                      ((msort_31‹t_19537›) m_19580)
+                      ((msort_31‹t_19537›) n_19581))))
+            in
+            let zs1_19634 :=
+              (((rwl_1‹t_19537,t_19537›)
+                 (list_6‹U,t_19537› nat_5)
+                 ((merge_30‹t_19537›)
+                   ((msort_31‹t_19537›) m_19580)
+                   ((msort_31‹t_19537›) n_19581))
+                 match ((split_29‹t_19537›)
+                         (cons_9‹U,t_19537›
+                           nat_5 hd_19565
+                           (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567))) in
+                   ((prod1_4‹t_19537,t_19537›)
+                     (list_6‹U,t_19537› nat_5)
+                     (list_6‹U,t_19537› nat_5)) -o
+                     (list_6‹U,t_19537› nat_5)
+                 with
+                 | (ex1_11 m_19636 n_19637) =>
+                   ((merge_30‹t_19537›)
+                     ((msort_31‹t_19537›) m_19636)
+                     ((msort_31‹t_19537›) n_19637))
+                 function _19638 :
+                   (list_6‹U,t_19537› nat_5) -> Type‹t_19537›
+                 | __19640 =>
+                   (sing_2‹t_19537›
+                     (list_6‹U,t_19537› nat_5) __19640)
+                 __19582 zs1_19633)
+                : (sing_2‹t_19537›
+                    (list_6‹U,t_19537› nat_5)
+                    ((msort_31‹t_19537›)
+                      (cons_9‹U,t_19537›
+                        nat_5 hd_19565
+                        (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567)))))
+            in
+            let* c_19641 :=
+              ((send1_25‹t_19537›)
+                true_4 true_4
+                (sing_2‹t_19537›
+                  (list_6‹U,t_19537› nat_5)
+                  ((msort_31‹t_19537›)
+                    (cons_9‹U,t_19537›
+                      nat_5 hd_19565
+                      (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567))))
+                function _19642 :
+                  (sing_2‹t_19537›
+                    (list_6‹U,t_19537› nat_5)
+                    ((msort_31‹t_19537›)
+                      (cons_9‹U,t_19537›
+                        nat_5 hd_19565
+                        (cons_9‹U,t_19537› nat_5 hd_19566 tl_19567)))) ->
+                    proto_18
+                | __19644 => endp_21
+                (refl_1‹U› bool_4 ((xor_8) true_4 true_4)) __19568
+                zs1_19634)
+            in
+            let* __19645 := ((close_23) ((not_5) true_4) n_19615) in
+            let* __19646 := ((close_23) ((not_5) true_4) n_19628) in
+            let* __19647 := ((close_23) true_4 c_19641) in return tt_3
 
 -----------------------------------------
 
 #[logical]
-inductive eqU_11 where
-| reflU_14 of layout[]
+inductive eqU_10 where
+| reflU_13 of layout[]
 
 #[logical]
-inductive eqL_10 where
-| reflL_13 of layout[]
+inductive eqL_9 where
+| reflL_12 of layout[]
 
 #[program]
-def rwlUU_29 :=
-  fun rwl_8490 {A_8491} -> {m_8492} -> {n_8493} -> {B_8494} -> {__8495} ->
-  (__8496) ->
+def rwlUU_37 :=
+  fun rwl_31285 {A_31286} -> {m_31287} -> {n_31288} -> {B_31289} ->
+  {__31290} -> (__31291) ->
     match {NULL} with
-    | reflU_14  => __8496
+    | reflU_13  => __31291
     end
 
 #[program]
-def rwlUL_28 :=
-  fun rwl_8497 {A_8498} -> {m_8499} -> {n_8500} -> {B_8501} -> {__8502} ->
-  (__8503) ->
+def rwlUL_36 :=
+  fun rwl_31292 {A_31293} -> {m_31294} -> {n_31295} -> {B_31296} ->
+  {__31297} -> (__31298) ->
     match {NULL} with
-    | reflU_14  => __8503
+    | reflU_13  => __31298
     end
 
 #[program]
-def rwlLU_27 :=
-  fun rwl_8504 {A_8505} -> {m_8506} -> {n_8507} -> {B_8508} -> {__8509} ->
-  (__8510) ->
+def rwlLU_35 :=
+  fun rwl_31299 {A_31300} -> {m_31301} -> {n_31302} -> {B_31303} ->
+  {__31304} -> (__31305) ->
     match {NULL} with
-    | reflL_13  => __8510
+    | reflL_12  => __31305
     end
 
 #[program]
-def rwlLL_26 :=
-  fun rwl_8511 {A_8512} -> {m_8513} -> {n_8514} -> {B_8515} -> {__8516} ->
-  (__8517) ->
+def rwlLL_34 :=
+  fun rwl_31306 {A_31307} -> {m_31308} -> {n_31309} -> {B_31310} ->
+  {__31311} -> (__31312) ->
     match {NULL} with
-    | reflL_13  => __8517
+    | reflL_12  => __31312
     end
 
 #[program]
-def rwrUU_33 :=
-  fun rwr_8518 {A_8519} -> {m_8520} -> {n_8521} -> {B_8522} -> {__8523} ->
-  (__8524) ->
+def rwrUU_41 :=
+  fun rwr_31313 {A_31314} -> {m_31315} -> {n_31316} -> {B_31317} ->
+  {__31318} -> (__31319) ->
     match {NULL} with
-    | reflU_14  => __8524
+    | reflU_13  => __31319
     end
 
 #[program]
-def rwrUL_32 :=
-  fun rwr_8525 {A_8526} -> {m_8527} -> {n_8528} -> {B_8529} -> {__8530} ->
-  (__8531) ->
+def rwrUL_40 :=
+  fun rwr_31320 {A_31321} -> {m_31322} -> {n_31323} -> {B_31324} ->
+  {__31325} -> (__31326) ->
     match {NULL} with
-    | reflU_14  => __8531
+    | reflU_13  => __31326
     end
 
 #[program]
-def rwrLU_31 :=
-  fun rwr_8532 {A_8533} -> {m_8534} -> {n_8535} -> {B_8536} -> {__8537} ->
-  (__8538) ->
+def rwrLU_39 :=
+  fun rwr_31327 {A_31328} -> {m_31329} -> {n_31330} -> {B_31331} ->
+  {__31332} -> (__31333) ->
     match {NULL} with
-    | reflL_13  => __8538
+    | reflL_12  => __31333
     end
 
 #[program]
-def rwrLL_30 :=
-  fun rwr_8539 {A_8540} -> {m_8541} -> {n_8542} -> {B_8543} -> {__8544} ->
-  (__8545) ->
+def rwrLL_38 :=
+  fun rwr_31334 {A_31335} -> {m_31336} -> {n_31337} -> {B_31338} ->
+  {__31339} -> (__31340) ->
     match {NULL} with
-    | reflL_13  => __8545
+    | reflL_12  => __31340
     end
 
 #[program]
-inductive singU_13 where
-| justU_16 of layout[R]
+inductive singU_12 where
+| justU_15 of layout[R]
 
 #[program]
-inductive singL_12 where
-| justL_15 of layout[R]
+inductive singL_11 where
+| justL_14 of layout[R]
 
 #[program]
 inductive unit_3 where
@@ -1879,93 +2817,93 @@ inductive nat_5 where
 | succ_7 of layout[R]
 
 #[program]
-inductive listUU_17 where
-| nilUU_23 of layout[]
-| consUU_24 of layout[R, R]
+inductive listUU_16 where
+| nilUU_22 of layout[]
+| consUU_23 of layout[R, R]
 
 #[program]
-inductive listUL_16 where
-| nilUL_21 of layout[]
-| consUL_22 of layout[R, R]
+inductive listUL_15 where
+| nilUL_20 of layout[]
+| consUL_21 of layout[R, R]
 
 #[program]
-inductive listLU_15 where
-| nilLU_19 of layout[]
+inductive listLU_14 where
+| nilLU_18 of layout[]
 
 #[program]
-inductive listLL_14 where
-| nilLL_17 of layout[]
-| consLL_18 of layout[R, R]
+inductive listLL_13 where
+| nilLL_16 of layout[]
+| consLL_17 of layout[R, R]
 
 #[program]
-inductive exists0UU_21 where
-| ex0UU_28 of layout[N, R]
+inductive exists0UU_20 where
+| ex0UU_27 of layout[N, R]
 
 #[program]
-inductive exists0UL_20 where
-| ex0UL_27 of layout[N, R]
+inductive exists0UL_19 where
+| ex0UL_26 of layout[N, R]
 
 #[program]
-inductive exists0LU_19 where
-| ex0LU_26 of layout[N, R]
+inductive exists0LU_18 where
+| ex0LU_25 of layout[N, R]
 
 #[program]
-inductive exists0LL_18 where
-| ex0LL_25 of layout[N, R]
+inductive exists0LL_17 where
+| ex0LL_24 of layout[N, R]
 
 #[program]
-inductive exists1UU_25 where
-| ex1UU_32 of layout[R, R]
+inductive exists1UU_24 where
+| ex1UU_31 of layout[R, R]
 
 #[program]
-inductive exists1UL_24 where
-| ex1UL_31 of layout[R, R]
+inductive exists1UL_23 where
+| ex1UL_30 of layout[R, R]
 
 #[program]
-inductive exists1LU_23 where
-| ex1LU_30 of layout[R, R]
+inductive exists1LU_22 where
+| ex1LU_29 of layout[R, R]
 
 #[program]
-inductive exists1LL_22 where
-| ex1LL_29 of layout[R, R]
+inductive exists1LL_21 where
+| ex1LL_28 of layout[R, R]
 
 #[logical]
-def prod0UU_37 := NULL
+def prod0UU_45 := NULL
 
 #[logical]
-def prod0UL_36 := NULL
+def prod0UL_44 := NULL
 
 #[logical]
-def prod0LU_35 := NULL
+def prod0LU_43 := NULL
 
 #[logical]
-def prod0LL_34 := NULL
+def prod0LL_42 := NULL
 
 #[logical]
-def prod1UU_41 := NULL
+def prod1UU_49 := NULL
 
 #[logical]
-def prod1UL_40 := NULL
+def prod1UL_48 := NULL
 
 #[logical]
-def prod1LU_39 := NULL
+def prod1LU_47 := NULL
 
 #[logical]
-def prod1LL_38 := NULL
+def prod1LL_46 := NULL
 
 #[program]
 def not_5 :=
-  fun not_8546 (__8547) ->
-    match __8547 with
+  fun not_31341 (__31342) ->
+    match __31342 with
     | true_4  => false_5 | false_5  => true_4
     end
 
 #[program]
 def and_6 :=
-  fun and_8548 (__8549) -> (__8550) ->
-    match __8549 with
+  fun and_31343 (__31344) -> (__31345) ->
+    match __31344 with
     | true_4  =>
-      match __8550 with
+      match __31345 with
       | true_4  => true_4 | false_5  => false_5
       end
     | false_5  => false_5
@@ -1973,213 +2911,469 @@ def and_6 :=
 
 #[program]
 def or_7 :=
-  fun or_8551 (__8552) -> (__8553) ->
-    match __8552 with
+  fun or_31346 (__31347) -> (__31348) ->
+    match __31347 with
     | true_4  => true_4
     | false_5  =>
-      match __8553 with
+      match __31348 with
       | true_4  => true_4 | false_5  => false_5
       end
     end
 
 #[program]
 def xor_8 :=
-  fun xor_8554 (__8555) -> (__8556) -o
-    match __8555 with
+  fun xor_31349 (__31350) -> (__31351) -o
+    match __31350 with
     | true_4  =>
-      match __8556 with
+      match __31351 with
       | true_4  => false_5 | false_5  => true_4
       end
     | false_5  =>
-      match __8556 with
+      match __31351 with
       | true_4  => true_4 | false_5  => false_5
       end
     end
 
 #[program]
 def lte_9 :=
-  fun lte_8557 (__8558) -> (__8559) ->
-    match __8558 with
+  fun lte_31352 (__31353) -> (__31354) ->
+    match __31353 with
     | zero_6  => true_4
-    | succ_7 n_8560 =>
-      match __8559 with
-      | zero_6  => false_5 | succ_7 n_8561 => ((lte_8557) n_8560 n_8561)
+    | succ_7 n_31355 =>
+      match __31354 with
+      | zero_6  => false_5 | succ_7 n_31356 => ((lte_31352) n_31355 n_31356)
       end
     end
 
 #[program]
 def lt_10 :=
-  fun lt_8562 (x_8563) -> (y_8564) ->
-    ((lte_9) (succ_7 x_8563) y_8564)
+  fun lt_31357 (x_31358) -> (y_31359) ->
+    ((lte_9) (succ_7 x_31358) y_31359)
 
 #[program]
 def pred_11 :=
-  fun pred_8565 (__8566) ->
-    match __8566 with
-    | zero_6  => zero_6 | succ_7 n_8567 => n_8567
+  fun pred_31360 (__31361) ->
+    match __31361 with
+    | zero_6  => zero_6 | succ_7 n_31362 => n_31362
     end
 
 #[program]
 def add_12 :=
-  fun add_8568 (__8569) -> (__8570) ->
-    match __8569 with
-    | zero_6  => __8570
-    | succ_7 n_8571 => (succ_7 ((add_8568) n_8571 __8570))
+  fun add_31363 (__31364) -> (__31365) ->
+    match __31364 with
+    | zero_6  => __31365
+    | succ_7 n_31366 => (succ_7 ((add_31363) n_31366 __31365))
     end
 
 #[program]
 def sub_13 :=
-  fun sub_8572 (__8573) -> (__8574) ->
-    match __8574 with
-    | zero_6  => __8573
-    | succ_7 n_8575 => ((sub_8572) ((pred_11) __8573) n_8575)
+  fun sub_31367 (__31368) -> (__31369) ->
+    match __31369 with
+    | zero_6  => __31368
+    | succ_7 n_31370 => ((sub_31367) ((pred_11) __31368) n_31370)
     end
 
 #[program]
 def mul_14 :=
-  fun mul_8576 (__8577) -> (__8578) ->
-    match __8577 with
+  fun mul_31371 (__31372) -> (__31373) ->
+    match __31372 with
     | zero_6  => zero_6
-    | succ_7 n_8579 => ((add_12) __8578 ((mul_8576) n_8579 __8578))
+    | succ_7 n_31374 => ((add_12) __31373 ((mul_31371) n_31374 __31373))
     end
 
 #[program]
 def div_15 :=
-  fun div_8580 (x_8581) -> (y_8582) ->
-    match ((lt_10) x_8581 y_8582) with
+  fun div_31375 (x_31376) -> (y_31377) ->
+    match ((lt_10) x_31376 y_31377) with
     | true_4  => zero_6
-    | false_5  =>
-      let loop_8583 :=
-        fun loop_8584 (x_8585) -> (y_8586) ->
-          match ((sub_13) x_8585 ((pred_11) y_8586)) with
-          | zero_6  => zero_6
-          | succ_7 n_8587 => (succ_7 ((loop_8584) n_8587 y_8586))
-          end
-      in ((loop_8583) x_8581 y_8582)
+    | false_5  => (succ_7 ((div_31375) ((sub_13) x_31376 y_31377) y_31377))
     end
 
 #[program]
 def rem_16 :=
-  fun rem_8588 (x_8589) -> (y_8590) ->
-    ((sub_13) x_8589 ((mul_14) ((div_15) x_8589 y_8590) y_8590))
+  fun rem_31378 (x_31379) -> (y_31380) ->
+    ((sub_13) x_31379 ((mul_14) ((div_15) x_31379 y_31380) y_31380))
 
 #[program]
 def pow_17 :=
-  fun pow_8591 (__8592) -> (__8593) ->
-    match __8593 with
+  fun pow_31381 (__31382) -> (__31383) ->
+    match __31383 with
     | zero_6  => (succ_7 zero_6)
-    | succ_7 n_8594 => ((mul_14) __8592 ((pow_8591) __8592 n_8594))
+    | succ_7 n_31384 => ((mul_14) __31382 ((pow_31381) __31382 n_31384))
     end
 
 #[logical]
-def loc_18 := NULL
+extern proto_18
 
 #[logical]
-inductive atU_27 where
-| at_introU_34 of layout[R]
+extern act0U_51
 
 #[logical]
-inductive atL_26 where
-| at_introL_33 of layout[R]
-
-#[program]
-extern alloc_19
-
-#[program]
-extern getU_20
-
-#[program]
-extern getL_21
-
-#[program]
-extern setU_43
-
-#[program]
-extern setL_42
-
-#[program]
-extern free_23
+extern act0L_50
 
 #[logical]
-def set_get_lawU_45 := NULL
+extern act1U_53
 
 #[logical]
-def set_get_lawL_44 := NULL
+extern act1L_52
+
+#[logical]
+extern endp_21
+
+#[logical]
+extern ch_22
 
 #[program]
-def main :=
-  let* _8595 := ((alloc_19) tt_3) in
-  match _8595 with
-  | ex1UL_31 m_8596 n_8597 =>
-    let pf_8598 := ((setU_43) NULL NULL m_8596 zero_6 n_8597) in
-    let __8599 := ((free_23) NULL m_8596 pf_8598) in return tt_3
-  end
+extern close_23
+
+#[program]
+extern send0U_55
+
+#[program]
+extern send0L_54
+
+#[program]
+extern send1U_57
+
+#[program]
+extern send1L_56
+
+#[program]
+extern recv0U_59
+
+#[program]
+extern recv0L_58
+
+#[program]
+extern recv1U_61
+
+#[program]
+extern recv1L_60
+
+#[program]
+extern fork_28
+
+#[program]
+def splitU_63 :=
+  fun split_31385 (__31386) ->
+    match __31386 with
+    | nilUU_22  => (ex1UU_31 nilUU_22 nilUU_22)
+    | consUU_23 hd_31387 tl_31388 =>
+      match tl_31388 with
+      | nilUU_22  => (ex1UU_31 (consUU_23 hd_31387 nilUU_22) nilUU_22)
+      | consUU_23 hd_31389 tl_31390 =>
+        match ((split_31385) tl_31390) with
+        | ex1UU_31 m_31391 n_31392 =>
+          (ex1UU_31
+            (consUU_23 hd_31387 m_31391) (consUU_23 hd_31389 n_31392))
+        end
+      end
+    end
+
+#[program]
+def splitL_62 :=
+  fun split_31393 (__31394) ->
+    match __31394 with
+    | nilUL_20  => (ex1LL_28 nilUL_20 nilUL_20)
+    | consUL_21 hd_31395 tl_31396 =>
+      match tl_31396 with
+      | nilUL_20  => (ex1LL_28 (consUL_21 hd_31395 nilUL_20) nilUL_20)
+      | consUL_21 hd_31397 tl_31398 =>
+        match ((split_31393) tl_31398) with
+        | ex1LL_28 m_31399 n_31400 =>
+          (ex1LL_28
+            (consUL_21 hd_31395 m_31399) (consUL_21 hd_31397 n_31400))
+        end
+      end
+    end
+
+#[program]
+def mergeU_65 :=
+  fun merge_31401 (__31402) -> (__31403) -o
+    match __31402 with
+    | nilUU_22  => __31403
+    | consUU_23 hd_31404 tl_31405 =>
+      match __31403 with
+      | nilUU_22  => (consUU_23 hd_31404 tl_31405)
+      | consUU_23 hd_31406 tl_31407 =>
+        match ((lte_9) hd_31404 hd_31406) with
+        | true_4  =>
+          (consUU_23
+            hd_31404 ((merge_31401) tl_31405 (consUU_23 hd_31406 tl_31407)))
+        | false_5  =>
+          (consUU_23
+            hd_31406 ((merge_31401) (consUU_23 hd_31404 tl_31405) tl_31407))
+        end
+      end
+    end
+
+#[program]
+def mergeL_64 :=
+  fun merge_31408 (__31409) -> (__31410) -o
+    match __31409 with
+    | nilUL_20  => __31410
+    | consUL_21 hd_31411 tl_31412 =>
+      match __31410 with
+      | nilUL_20  => (consUL_21 hd_31411 tl_31412)
+      | consUL_21 hd_31413 tl_31414 =>
+        match ((lte_9) hd_31411 hd_31413) with
+        | true_4  =>
+          (consUL_21
+            hd_31411 ((merge_31408) tl_31412 (consUL_21 hd_31413 tl_31414)))
+        | false_5  =>
+          (consUL_21
+            hd_31413 ((merge_31408) (consUL_21 hd_31411 tl_31412) tl_31414))
+        end
+      end
+    end
+
+#[program]
+def msortU_67 :=
+  fun msort_31415 (__31416) ->
+    match __31416 with
+    | nilUU_22  => nilUU_22
+    | consUU_23 hd_31417 tl_31418 =>
+      match tl_31418 with
+      | nilUU_22  => (consUU_23 hd_31417 nilUU_22)
+      | consUU_23 hd_31419 tl_31420 =>
+        match ((splitU_63)
+                (consUU_23 hd_31417 (consUU_23 hd_31419 tl_31420))) with
+        | ex1UU_31 m_31421 n_31422 =>
+          ((mergeU_65) ((msort_31415) m_31421) ((msort_31415) n_31422))
+        end
+      end
+    end
+
+#[program]
+def msortL_66 :=
+  fun msort_31423 (__31424) ->
+    match __31424 with
+    | nilUL_20  => nilUL_20
+    | consUL_21 hd_31425 tl_31426 =>
+      match tl_31426 with
+      | nilUL_20  => (consUL_21 hd_31425 nilUL_20)
+      | consUL_21 hd_31427 tl_31428 =>
+        match ((splitL_62)
+                (consUL_21 hd_31425 (consUL_21 hd_31427 tl_31428))) with
+        | ex1LL_28 m_31429 n_31430 =>
+          ((mergeL_64) ((msort_31423) m_31429) ((msort_31423) n_31430))
+        end
+      end
+    end
+
+#[logical]
+def cmsort_chU_69 := NULL
+
+#[logical]
+def cmsort_chL_68 := NULL
+
+#[program]
+def cmsort_workerU_71 :=
+  fun cmsort_worker_31431 (__31432) -> (zs_31433) -> (__31434) -o
+    match __31432 with
+    | zero_6  =>
+      let* c_31435 :=
+        ((send1U_57)
+          NULL NULL NULL NULL NULL __31434 (justU_15 ((msortU_67) zs_31433)))
+      in ((close_23) NULL c_31435)
+    | succ_7 n_31436 =>
+      match zs_31433 with
+      | nilUU_22  =>
+        let* c_31437 :=
+          ((send1U_57) NULL NULL NULL NULL NULL __31434 (justU_15 nilUU_22))
+        in ((close_23) NULL c_31437)
+      | consUU_23 hd_31438 tl_31439 =>
+        match tl_31439 with
+        | nilUU_22  =>
+          let* c_31440 :=
+            ((send1U_57)
+              NULL NULL NULL NULL NULL __31434
+              (justU_15 (consUU_23 hd_31438 nilUU_22)))
+          in ((close_23) NULL c_31440)
+        | consUU_23 hd_31441 tl_31442 =>
+          match ((splitU_63)
+                  (consUU_23 hd_31438 (consUU_23 hd_31441 tl_31442))) with
+          | ex1UU_31 m_31443 n_31444 =>
+            let* r1_31445 :=
+              ((fork_28)
+                NULL NULL
+                fun _31446 (c1_31447) -o
+                  ((cmsort_worker_31431) n_31436 m_31443 c1_31447))
+            in
+            let* r2_31448 :=
+              ((fork_28)
+                NULL NULL
+                fun _31449 (c2_31450) -o
+                  ((cmsort_worker_31431) n_31436 n_31444 c2_31450))
+            in
+            let* _31451 := ((recv1U_61) NULL NULL NULL NULL NULL r1_31445) in
+            match _31451 with
+            | ex1UL_30 m_31452 n_31453 =>
+              let* _31454 := ((recv1U_61) NULL NULL NULL NULL NULL r2_31448)
+              in
+              match _31454 with
+              | ex1UL_30 m_31455 n_31456 =>
+                match m_31452 with
+                | justU_15 m_31457 =>
+                  match m_31455 with
+                  | justU_15 m_31458 =>
+                    let zs1_31459 := (justU_15 ((mergeU_65) m_31457 m_31458))
+                    in
+                    let zs1_31460 :=
+                      ((rwlUU_37) NULL NULL NULL NULL NULL zs1_31459)
+                    in
+                    let* c_31461 :=
+                      ((send1U_57)
+                        NULL NULL NULL NULL NULL __31434 zs1_31460)
+                    in
+                    let* __31462 := ((close_23) NULL n_31453) in
+                    let* __31463 := ((close_23) NULL n_31456) in
+                    let* __31464 := ((close_23) NULL c_31461) in return tt_3
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+
+#[program]
+def cmsort_workerL_70 :=
+  fun cmsort_worker_31465 (__31466) -> (zs_31467) -> (__31468) -o
+    match __31466 with
+    | zero_6  =>
+      let* c_31469 :=
+        ((send1L_56)
+          NULL NULL NULL NULL NULL __31468 (justL_14 ((msortL_66) zs_31467)))
+      in ((close_23) NULL c_31469)
+    | succ_7 n_31470 =>
+      match zs_31467 with
+      | nilUL_20  =>
+        let* c_31471 :=
+          ((send1L_56) NULL NULL NULL NULL NULL __31468 (justL_14 nilUL_20))
+        in ((close_23) NULL c_31471)
+      | consUL_21 hd_31472 tl_31473 =>
+        match tl_31473 with
+        | nilUL_20  =>
+          let* c_31474 :=
+            ((send1L_56)
+              NULL NULL NULL NULL NULL __31468
+              (justL_14 (consUL_21 hd_31472 nilUL_20)))
+          in ((close_23) NULL c_31474)
+        | consUL_21 hd_31475 tl_31476 =>
+          match ((splitL_62)
+                  (consUL_21 hd_31472 (consUL_21 hd_31475 tl_31476))) with
+          | ex1LL_28 m_31477 n_31478 =>
+            let* r1_31479 :=
+              ((fork_28)
+                NULL NULL
+                fun _31480 (c1_31481) -o
+                  ((cmsort_worker_31465) n_31470 m_31477 c1_31481))
+            in
+            let* r2_31482 :=
+              ((fork_28)
+                NULL NULL
+                fun _31483 (c2_31484) -o
+                  ((cmsort_worker_31465) n_31470 n_31478 c2_31484))
+            in
+            let* _31485 := ((recv1L_60) NULL NULL NULL NULL NULL r1_31479) in
+            match _31485 with
+            | ex1LL_28 m_31486 n_31487 =>
+              let* _31488 := ((recv1L_60) NULL NULL NULL NULL NULL r2_31482)
+              in
+              match _31488 with
+              | ex1LL_28 m_31489 n_31490 =>
+                match m_31486 with
+                | justL_14 m_31491 =>
+                  match m_31489 with
+                  | justL_14 m_31492 =>
+                    let zs1_31493 := (justL_14 ((mergeL_64) m_31491 m_31492))
+                    in
+                    let zs1_31494 :=
+                      ((rwlLL_34) NULL NULL NULL NULL NULL zs1_31493)
+                    in
+                    let* c_31495 :=
+                      ((send1L_56)
+                        NULL NULL NULL NULL NULL __31468 zs1_31494)
+                    in
+                    let* __31496 := ((close_23) NULL n_31487) in
+                    let* __31497 := ((close_23) NULL n_31490) in
+                    let* __31498 := ((close_23) NULL c_31495) in return tt_3
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
 
 -----------------------------------------
 
 #[logical]
-inductive eqU_11 where
-| reflU_14 of layout[]
+inductive eqU_10 where
+| reflU_13 of layout[]
 
 #[logical]
-inductive eqL_10 where
-| reflL_13 of layout[]
+inductive eqL_9 where
+| reflL_12 of layout[]
 
 #[program]
-def rwlUU_29 :=
-  fun rwl_8710 {A_8711} -> {m_8712} -> {n_8713} -> {B_8714} -> {__8715} ->
-  (__8716) ->
-    __8716
+def rwlUU_37 :=
+  fun rwl_31713 {A_31714} -> {m_31715} -> {n_31716} -> {B_31717} ->
+  {__31718} -> (__31719) ->
+    __31719
 
 #[program]
-def rwlUL_28 :=
-  fun rwl_8717 {A_8718} -> {m_8719} -> {n_8720} -> {B_8721} -> {__8722} ->
-  (__8723) ->
-    __8723
+def rwlUL_36 :=
+  fun rwl_31720 {A_31721} -> {m_31722} -> {n_31723} -> {B_31724} ->
+  {__31725} -> (__31726) ->
+    __31726
 
 #[program]
-def rwlLU_27 :=
-  fun rwl_8724 {A_8725} -> {m_8726} -> {n_8727} -> {B_8728} -> {__8729} ->
-  (__8730) ->
-    __8730
+def rwlLU_35 :=
+  fun rwl_31727 {A_31728} -> {m_31729} -> {n_31730} -> {B_31731} ->
+  {__31732} -> (__31733) ->
+    __31733
 
 #[program]
-def rwlLL_26 :=
-  fun rwl_8731 {A_8732} -> {m_8733} -> {n_8734} -> {B_8735} -> {__8736} ->
-  (__8737) ->
-    __8737
+def rwlLL_34 :=
+  fun rwl_31734 {A_31735} -> {m_31736} -> {n_31737} -> {B_31738} ->
+  {__31739} -> (__31740) ->
+    __31740
 
 #[program]
-def rwrUU_33 :=
-  fun rwr_8738 {A_8739} -> {m_8740} -> {n_8741} -> {B_8742} -> {__8743} ->
-  (__8744) ->
-    __8744
+def rwrUU_41 :=
+  fun rwr_31741 {A_31742} -> {m_31743} -> {n_31744} -> {B_31745} ->
+  {__31746} -> (__31747) ->
+    __31747
 
 #[program]
-def rwrUL_32 :=
-  fun rwr_8745 {A_8746} -> {m_8747} -> {n_8748} -> {B_8749} -> {__8750} ->
-  (__8751) ->
-    __8751
+def rwrUL_40 :=
+  fun rwr_31748 {A_31749} -> {m_31750} -> {n_31751} -> {B_31752} ->
+  {__31753} -> (__31754) ->
+    __31754
 
 #[program]
-def rwrLU_31 :=
-  fun rwr_8752 {A_8753} -> {m_8754} -> {n_8755} -> {B_8756} -> {__8757} ->
-  (__8758) ->
-    __8758
+def rwrLU_39 :=
+  fun rwr_31755 {A_31756} -> {m_31757} -> {n_31758} -> {B_31759} ->
+  {__31760} -> (__31761) ->
+    __31761
 
 #[program]
-def rwrLL_30 :=
-  fun rwr_8759 {A_8760} -> {m_8761} -> {n_8762} -> {B_8763} -> {__8764} ->
-  (__8765) ->
-    __8765
+def rwrLL_38 :=
+  fun rwr_31762 {A_31763} -> {m_31764} -> {n_31765} -> {B_31766} ->
+  {__31767} -> (__31768) ->
+    __31768
 
 #[program]
-inductive singU_13 where
-| justU_16 of layout[R]
+inductive singU_12 where
+| justU_15 of layout[R]
 
 #[program]
-inductive singL_12 where
-| justL_15 of layout[R]
+inductive singL_11 where
+| justL_14 of layout[R]
 
 #[program]
 inductive unit_3 where
@@ -2196,93 +3390,93 @@ inductive nat_5 where
 | succ_7 of layout[R]
 
 #[program]
-inductive listUU_17 where
-| nilUU_23 of layout[]
-| consUU_24 of layout[R, R]
+inductive listUU_16 where
+| nilUU_22 of layout[]
+| consUU_23 of layout[R, R]
 
 #[program]
-inductive listUL_16 where
-| nilUL_21 of layout[]
-| consUL_22 of layout[R, R]
+inductive listUL_15 where
+| nilUL_20 of layout[]
+| consUL_21 of layout[R, R]
 
 #[program]
-inductive listLU_15 where
-| nilLU_19 of layout[]
+inductive listLU_14 where
+| nilLU_18 of layout[]
 
 #[program]
-inductive listLL_14 where
-| nilLL_17 of layout[]
-| consLL_18 of layout[R, R]
+inductive listLL_13 where
+| nilLL_16 of layout[]
+| consLL_17 of layout[R, R]
 
 #[program]
-inductive exists0UU_21 where
-| ex0UU_28 of layout[N, R]
+inductive exists0UU_20 where
+| ex0UU_27 of layout[N, R]
 
 #[program]
-inductive exists0UL_20 where
-| ex0UL_27 of layout[N, R]
+inductive exists0UL_19 where
+| ex0UL_26 of layout[N, R]
 
 #[program]
-inductive exists0LU_19 where
-| ex0LU_26 of layout[N, R]
+inductive exists0LU_18 where
+| ex0LU_25 of layout[N, R]
 
 #[program]
-inductive exists0LL_18 where
-| ex0LL_25 of layout[N, R]
+inductive exists0LL_17 where
+| ex0LL_24 of layout[N, R]
 
 #[program]
-inductive exists1UU_25 where
-| ex1UU_32 of layout[R, R]
+inductive exists1UU_24 where
+| ex1UU_31 of layout[R, R]
 
 #[program]
-inductive exists1UL_24 where
-| ex1UL_31 of layout[R, R]
+inductive exists1UL_23 where
+| ex1UL_30 of layout[R, R]
 
 #[program]
-inductive exists1LU_23 where
-| ex1LU_30 of layout[R, R]
+inductive exists1LU_22 where
+| ex1LU_29 of layout[R, R]
 
 #[program]
-inductive exists1LL_22 where
-| ex1LL_29 of layout[R, R]
+inductive exists1LL_21 where
+| ex1LL_28 of layout[R, R]
 
 #[logical]
-def prod0UU_37 := NULL
+def prod0UU_45 := NULL
 
 #[logical]
-def prod0UL_36 := NULL
+def prod0UL_44 := NULL
 
 #[logical]
-def prod0LU_35 := NULL
+def prod0LU_43 := NULL
 
 #[logical]
-def prod0LL_34 := NULL
+def prod0LL_42 := NULL
 
 #[logical]
-def prod1UU_41 := NULL
+def prod1UU_49 := NULL
 
 #[logical]
-def prod1UL_40 := NULL
+def prod1UL_48 := NULL
 
 #[logical]
-def prod1LU_39 := NULL
+def prod1LU_47 := NULL
 
 #[logical]
-def prod1LL_38 := NULL
+def prod1LL_46 := NULL
 
 #[program]
 def not_5 :=
-  fun not_8766 (__8767) ->
-    match __8767 with
+  fun not_31769 (__31770) ->
+    match __31770 with
     | true_4  => false_5 | false_5  => true_4
     end
 
 #[program]
 def and_6 :=
-  fun and_8768 (__8769) -> (__8770) ->
-    match __8769 with
+  fun and_31771 (__31772) -> (__31773) ->
+    match __31772 with
     | true_4  =>
-      match __8770 with
+      match __31773 with
       | true_4  => true_4 | false_5  => false_5
       end
     | false_5  => false_5
@@ -2290,277 +3484,758 @@ def and_6 :=
 
 #[program]
 def or_7 :=
-  fun or_8771 (__8772) -> (__8773) ->
-    match __8772 with
+  fun or_31774 (__31775) -> (__31776) ->
+    match __31775 with
     | true_4  => true_4
     | false_5  =>
-      match __8773 with
+      match __31776 with
       | true_4  => true_4 | false_5  => false_5
       end
     end
 
 #[program]
 def xor_8 :=
-  fun xor_8774 (__8775) -> (__8776) -o
-    match __8775 with
+  fun xor_31777 (__31778) -> (__31779) -o
+    match __31778 with
     | true_4  =>
-      match __8776 with
+      match __31779 with
       | true_4  => false_5 | false_5  => true_4
       end
     | false_5  =>
-      match __8776 with
+      match __31779 with
       | true_4  => true_4 | false_5  => false_5
       end
     end
 
 #[program]
 def lte_9 :=
-  fun lte_8777 (__8778) -> (__8779) ->
-    match __8778 with
+  fun lte_31780 (__31781) -> (__31782) ->
+    match __31781 with
     | zero_6  => true_4
-    | succ_7 n_8780 =>
-      match __8779 with
-      | zero_6  => false_5 | succ_7 n_8781 => ((lte_8777) n_8780 n_8781)
+    | succ_7 n_31783 =>
+      match __31782 with
+      | zero_6  => false_5 | succ_7 n_31784 => ((lte_31780) n_31783 n_31784)
       end
     end
 
 #[program]
 def lt_10 :=
-  fun lt_8782 (x_8783) -> (y_8784) ->
-    ((lte_9) (succ_7 x_8783) y_8784)
+  fun lt_31785 (x_31786) -> (y_31787) ->
+    ((lte_9) (succ_7 x_31786) y_31787)
 
 #[program]
 def pred_11 :=
-  fun pred_8785 (__8786) ->
-    match __8786 with
-    | zero_6  => zero_6 | succ_7 n_8787 => n_8787
+  fun pred_31788 (__31789) ->
+    match __31789 with
+    | zero_6  => zero_6 | succ_7 n_31790 => n_31790
     end
 
 #[program]
 def add_12 :=
-  fun add_8788 (__8789) -> (__8790) ->
-    match __8789 with
-    | zero_6  => __8790
-    | succ_7 n_8791 => (succ_7 ((add_8788) n_8791 __8790))
+  fun add_31791 (__31792) -> (__31793) ->
+    match __31792 with
+    | zero_6  => __31793
+    | succ_7 n_31794 => (succ_7 ((add_31791) n_31794 __31793))
     end
 
 #[program]
 def sub_13 :=
-  fun sub_8792 (__8793) -> (__8794) ->
-    match __8794 with
-    | zero_6  => __8793
-    | succ_7 n_8795 => ((sub_8792) ((pred_11) __8793) n_8795)
+  fun sub_31795 (__31796) -> (__31797) ->
+    match __31797 with
+    | zero_6  => __31796
+    | succ_7 n_31798 => ((sub_31795) ((pred_11) __31796) n_31798)
     end
 
 #[program]
 def mul_14 :=
-  fun mul_8796 (__8797) -> (__8798) ->
-    match __8797 with
+  fun mul_31799 (__31800) -> (__31801) ->
+    match __31800 with
     | zero_6  => zero_6
-    | succ_7 n_8799 => ((add_12) __8798 ((mul_8796) n_8799 __8798))
+    | succ_7 n_31802 => ((add_12) __31801 ((mul_31799) n_31802 __31801))
     end
 
 #[program]
 def div_15 :=
-  fun div_8800 (x_8801) -> (y_8802) ->
-    match ((lt_10) x_8801 y_8802) with
+  fun div_31803 (x_31804) -> (y_31805) ->
+    match ((lt_10) x_31804 y_31805) with
     | true_4  => zero_6
-    | false_5  =>
-      let loop_8803 :=
-        fun loop_8804 (x_8805) -> (y_8806) ->
-          match ((sub_13) x_8805 ((pred_11) y_8806)) with
-          | zero_6  => zero_6
-          | succ_7 n_8807 => (succ_7 ((loop_8804) n_8807 y_8806))
-          end
-      in ((loop_8803) x_8801 y_8802)
+    | false_5  => (succ_7 ((div_31803) ((sub_13) x_31804 y_31805) y_31805))
     end
 
 #[program]
 def rem_16 :=
-  fun rem_8808 (x_8809) -> (y_8810) ->
-    ((sub_13) x_8809 ((mul_14) ((div_15) x_8809 y_8810) y_8810))
+  fun rem_31806 (x_31807) -> (y_31808) ->
+    ((sub_13) x_31807 ((mul_14) ((div_15) x_31807 y_31808) y_31808))
 
 #[program]
 def pow_17 :=
-  fun pow_8811 (__8812) -> (__8813) ->
-    match __8813 with
+  fun pow_31809 (__31810) -> (__31811) ->
+    match __31811 with
     | zero_6  => (succ_7 zero_6)
-    | succ_7 n_8814 => ((mul_14) __8812 ((pow_8811) __8812 n_8814))
+    | succ_7 n_31812 => ((mul_14) __31810 ((pow_31809) __31810 n_31812))
     end
 
 #[logical]
-def loc_18 := NULL
+extern proto_18
 
 #[logical]
-inductive atU_27 where
-| at_introU_34 of layout[R]
+extern act0U_51
 
 #[logical]
-inductive atL_26 where
-| at_introL_33 of layout[R]
-
-#[program]
-extern alloc_19
-
-#[program]
-extern getU_20
-
-#[program]
-extern getL_21
-
-#[program]
-extern setU_43
-
-#[program]
-extern setL_42
-
-#[program]
-extern free_23
+extern act0L_50
 
 #[logical]
-def set_get_lawU_45 := NULL
+extern act1U_53
 
 #[logical]
-def set_get_lawL_44 := NULL
+extern act1L_52
+
+#[logical]
+extern endp_21
+
+#[logical]
+extern ch_22
 
 #[program]
-def main :=
-  let* _8815 := ((alloc_19) tt_3) in
-  match _8815 with
-  | ex1UL_31 m_8816 n_8817 =>
-    let pf_8818 := ((setU_43) NULL NULL m_8816 zero_6 n_8817) in
-    let __8819 := ((free_23) NULL m_8816 pf_8818) in return tt_3
-  end
+extern close_23
+
+#[program]
+extern send0U_55
+
+#[program]
+extern send0L_54
+
+#[program]
+extern send1U_57
+
+#[program]
+extern send1L_56
+
+#[program]
+extern recv0U_59
+
+#[program]
+extern recv0L_58
+
+#[program]
+extern recv1U_61
+
+#[program]
+extern recv1L_60
+
+#[program]
+extern fork_28
+
+#[program]
+def splitU_63 :=
+  fun split_31813 (__31814) ->
+    match __31814 with
+    | nilUU_22  => (ex1UU_31 nilUU_22 nilUU_22)
+    | consUU_23 hd_31815 tl_31816 =>
+      match tl_31816 with
+      | nilUU_22  => (ex1UU_31 (consUU_23 hd_31815 nilUU_22) nilUU_22)
+      | consUU_23 hd_31817 tl_31818 =>
+        match ((split_31813) tl_31818) with
+        | ex1UU_31 m_31819 n_31820 =>
+          (ex1UU_31
+            (consUU_23 hd_31815 m_31819) (consUU_23 hd_31817 n_31820))
+        end
+      end
+    end
+
+#[program]
+def splitL_62 :=
+  fun split_31821 (__31822) ->
+    match __31822 with
+    | nilUL_20  => (ex1LL_28 nilUL_20 nilUL_20)
+    | consUL_21 hd_31823 tl_31824 =>
+      match tl_31824 with
+      | nilUL_20  => (ex1LL_28 (consUL_21 hd_31823 nilUL_20) nilUL_20)
+      | consUL_21 hd_31825 tl_31826 =>
+        match ((split_31821) tl_31826) with
+        | ex1LL_28 m_31827 n_31828 =>
+          (ex1LL_28
+            (consUL_21 hd_31823 m_31827) (consUL_21 hd_31825 n_31828))
+        end
+      end
+    end
+
+#[program]
+def mergeU_65 :=
+  fun merge_31829 (__31830) -> (__31831) -o
+    match __31830 with
+    | nilUU_22  => __31831
+    | consUU_23 hd_31832 tl_31833 =>
+      match __31831 with
+      | nilUU_22  => (consUU_23 hd_31832 tl_31833)
+      | consUU_23 hd_31834 tl_31835 =>
+        match ((lte_9) hd_31832 hd_31834) with
+        | true_4  =>
+          (consUU_23
+            hd_31832 ((merge_31829) tl_31833 (consUU_23 hd_31834 tl_31835)))
+        | false_5  =>
+          (consUU_23
+            hd_31834 ((merge_31829) (consUU_23 hd_31832 tl_31833) tl_31835))
+        end
+      end
+    end
+
+#[program]
+def mergeL_64 :=
+  fun merge_31836 (__31837) -> (__31838) -o
+    match __31837 with
+    | nilUL_20  => __31838
+    | consUL_21 hd_31839 tl_31840 =>
+      match __31838 with
+      | nilUL_20  => (consUL_21 hd_31839 tl_31840)
+      | consUL_21 hd_31841 tl_31842 =>
+        match ((lte_9) hd_31839 hd_31841) with
+        | true_4  =>
+          (consUL_21
+            hd_31839 ((merge_31836) tl_31840 (consUL_21 hd_31841 tl_31842)))
+        | false_5  =>
+          (consUL_21
+            hd_31841 ((merge_31836) (consUL_21 hd_31839 tl_31840) tl_31842))
+        end
+      end
+    end
+
+#[program]
+def msortU_67 :=
+  fun msort_31843 (__31844) ->
+    match __31844 with
+    | nilUU_22  => nilUU_22
+    | consUU_23 hd_31845 tl_31846 =>
+      match tl_31846 with
+      | nilUU_22  => (consUU_23 hd_31845 nilUU_22)
+      | consUU_23 hd_31847 tl_31848 =>
+        match ((splitU_63)
+                (consUU_23 hd_31845 (consUU_23 hd_31847 tl_31848))) with
+        | ex1UU_31 m_31849 n_31850 =>
+          ((mergeU_65) ((msort_31843) m_31849) ((msort_31843) n_31850))
+        end
+      end
+    end
+
+#[program]
+def msortL_66 :=
+  fun msort_31851 (__31852) ->
+    match __31852 with
+    | nilUL_20  => nilUL_20
+    | consUL_21 hd_31853 tl_31854 =>
+      match tl_31854 with
+      | nilUL_20  => (consUL_21 hd_31853 nilUL_20)
+      | consUL_21 hd_31855 tl_31856 =>
+        match ((splitL_62)
+                (consUL_21 hd_31853 (consUL_21 hd_31855 tl_31856))) with
+        | ex1LL_28 m_31857 n_31858 =>
+          ((mergeL_64) ((msort_31851) m_31857) ((msort_31851) n_31858))
+        end
+      end
+    end
+
+#[logical]
+def cmsort_chU_69 := NULL
+
+#[logical]
+def cmsort_chL_68 := NULL
+
+#[program]
+def cmsort_workerU_71 :=
+  fun cmsort_worker_31859 (__31860) -> (zs_31861) -> (__31862) -o
+    match __31860 with
+    | zero_6  =>
+      let* c_31863 :=
+        ((send1U_57)
+          NULL NULL NULL NULL NULL __31862 (justU_15 ((msortU_67) zs_31861)))
+      in ((close_23) NULL c_31863)
+    | succ_7 n_31864 =>
+      match zs_31861 with
+      | nilUU_22  =>
+        let* c_31865 :=
+          ((send1U_57) NULL NULL NULL NULL NULL __31862 (justU_15 nilUU_22))
+        in ((close_23) NULL c_31865)
+      | consUU_23 hd_31866 tl_31867 =>
+        match tl_31867 with
+        | nilUU_22  =>
+          let* c_31868 :=
+            ((send1U_57)
+              NULL NULL NULL NULL NULL __31862
+              (justU_15 (consUU_23 hd_31866 nilUU_22)))
+          in ((close_23) NULL c_31868)
+        | consUU_23 hd_31869 tl_31870 =>
+          match ((splitU_63)
+                  (consUU_23 hd_31866 (consUU_23 hd_31869 tl_31870))) with
+          | ex1UU_31 m_31871 n_31872 =>
+            let* r1_31873 :=
+              ((fork_28)
+                NULL NULL
+                fun _31874 (c1_31875) -o
+                  ((cmsort_worker_31859) n_31864 m_31871 c1_31875))
+            in
+            let* r2_31876 :=
+              ((fork_28)
+                NULL NULL
+                fun _31877 (c2_31878) -o
+                  ((cmsort_worker_31859) n_31864 n_31872 c2_31878))
+            in
+            let* _31879 := ((recv1U_61) NULL NULL NULL NULL NULL r1_31873) in
+            match _31879 with
+            | ex1UL_30 m_31880 n_31881 =>
+              let* _31882 := ((recv1U_61) NULL NULL NULL NULL NULL r2_31876)
+              in
+              match _31882 with
+              | ex1UL_30 m_31883 n_31884 =>
+                match m_31880 with
+                | justU_15 m_31885 =>
+                  match m_31883 with
+                  | justU_15 m_31886 =>
+                    let zs1_31887 := (justU_15 ((mergeU_65) m_31885 m_31886))
+                    in
+                    let zs1_31888 :=
+                      ((rwlUU_37) NULL NULL NULL NULL NULL zs1_31887)
+                    in
+                    let* c_31889 :=
+                      ((send1U_57)
+                        NULL NULL NULL NULL NULL __31862 zs1_31888)
+                    in
+                    let* __31890 := ((close_23) NULL n_31881) in
+                    let* __31891 := ((close_23) NULL n_31884) in
+                    let* __31892 := ((close_23) NULL c_31889) in return tt_3
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+
+#[program]
+def cmsort_workerL_70 :=
+  fun cmsort_worker_31893 (__31894) -> (zs_31895) -> (__31896) -o
+    match __31894 with
+    | zero_6  =>
+      let* c_31897 :=
+        ((send1L_56)
+          NULL NULL NULL NULL NULL __31896 (justL_14 ((msortL_66) zs_31895)))
+      in ((close_23) NULL c_31897)
+    | succ_7 n_31898 =>
+      match zs_31895 with
+      | nilUL_20  =>
+        let* c_31899 :=
+          ((send1L_56) NULL NULL NULL NULL NULL __31896 (justL_14 nilUL_20))
+        in ((close_23) NULL c_31899)
+      | consUL_21 hd_31900 tl_31901 =>
+        match tl_31901 with
+        | nilUL_20  =>
+          let* c_31902 :=
+            ((send1L_56)
+              NULL NULL NULL NULL NULL __31896
+              (justL_14 (consUL_21 hd_31900 nilUL_20)))
+          in ((close_23) NULL c_31902)
+        | consUL_21 hd_31903 tl_31904 =>
+          match ((splitL_62)
+                  (consUL_21 hd_31900 (consUL_21 hd_31903 tl_31904))) with
+          | ex1LL_28 m_31905 n_31906 =>
+            let* r1_31907 :=
+              ((fork_28)
+                NULL NULL
+                fun _31908 (c1_31909) -o
+                  ((cmsort_worker_31893) n_31898 m_31905 c1_31909))
+            in
+            let* r2_31910 :=
+              ((fork_28)
+                NULL NULL
+                fun _31911 (c2_31912) -o
+                  ((cmsort_worker_31893) n_31898 n_31906 c2_31912))
+            in
+            let* _31913 := ((recv1L_60) NULL NULL NULL NULL NULL r1_31907) in
+            match _31913 with
+            | ex1LL_28 m_31914 n_31915 =>
+              let* _31916 := ((recv1L_60) NULL NULL NULL NULL NULL r2_31910)
+              in
+              match _31916 with
+              | ex1LL_28 m_31917 n_31918 =>
+                match m_31914 with
+                | justL_14 m_31919 =>
+                  match m_31917 with
+                  | justL_14 m_31920 =>
+                    let zs1_31921 := (justL_14 ((mergeL_64) m_31919 m_31920))
+                    in
+                    let zs1_31922 :=
+                      ((rwlLL_34) NULL NULL NULL NULL NULL zs1_31921)
+                    in
+                    let* c_31923 :=
+                      ((send1L_56)
+                        NULL NULL NULL NULL NULL __31896 zs1_31922)
+                    in
+                    let* __31924 := ((close_23) NULL n_31915) in
+                    let* __31925 := ((close_23) NULL n_31918) in
+                    let* __31926 := ((close_23) NULL c_31923) in return tt_3
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
 
 -----------------------------------------
 
-def rwlUU_29 := fun rwl_8930 () -> () -> () -> () -> () -> (__8931) -> __8931
+def rwlUU_37 :=
+  fun rwl_32161 () -> () -> () -> () -> () -> (__32162) -> __32162
 
-def rwlUL_28 := fun rwl_8932 () -> () -> () -> () -> () -> (__8933) -> __8933
+def rwlUL_36 :=
+  fun rwl_32163 () -> () -> () -> () -> () -> (__32164) -> __32164
 
-def rwlLU_27 := fun rwl_8934 () -> () -> () -> () -> () -> (__8935) -> __8935
+def rwlLU_35 :=
+  fun rwl_32165 () -> () -> () -> () -> () -> (__32166) -> __32166
 
-def rwlLL_26 := fun rwl_8936 () -> () -> () -> () -> () -> (__8937) -> __8937
+def rwlLL_34 :=
+  fun rwl_32167 () -> () -> () -> () -> () -> (__32168) -> __32168
 
-def rwrUU_33 := fun rwr_8938 () -> () -> () -> () -> () -> (__8939) -> __8939
+def rwrUU_41 :=
+  fun rwr_32169 () -> () -> () -> () -> () -> (__32170) -> __32170
 
-def rwrUL_32 := fun rwr_8940 () -> () -> () -> () -> () -> (__8941) -> __8941
+def rwrUL_40 :=
+  fun rwr_32171 () -> () -> () -> () -> () -> (__32172) -> __32172
 
-def rwrLU_31 := fun rwr_8942 () -> () -> () -> () -> () -> (__8943) -> __8943
+def rwrLU_39 :=
+  fun rwr_32173 () -> () -> () -> () -> () -> (__32174) -> __32174
 
-def rwrLL_30 := fun rwr_8944 () -> () -> () -> () -> () -> (__8945) -> __8945
+def rwrLL_38 :=
+  fun rwr_32175 () -> () -> () -> () -> () -> (__32176) -> __32176
 
 def not_5 :=
-  fun not_8946 (__8947) ->
-    match __8947 with
+  fun not_32177 (__32178) ->
+    match __32178 with
     | true_4 => false_5 | false_5 => true_4
     end
 
 def and_6 :=
-  fun and_8948 (__8949) -> (__8950) ->
-    match __8949 with
-    | true_4 => match __8950 with
-                | true_4 => true_4 | false_5 => false_5
-                end
+  fun and_32179 (__32180) -> (__32181) ->
+    match __32180 with
+    | true_4 =>
+      match __32181 with
+      | true_4 => true_4 | false_5 => false_5
+      end
     | false_5 => false_5
     end
 
 def or_7 :=
-  fun or_8951 (__8952) -> (__8953) ->
-    match __8952 with
+  fun or_32182 (__32183) -> (__32184) ->
+    match __32183 with
     | true_4 => true_4
     | false_5 =>
-      match __8953 with
+      match __32184 with
       | true_4 => true_4 | false_5 => false_5
       end
     end
 
 def xor_8 :=
-  fun xor_8954 (__8955) -> (__8956) -o
-    match __8955 with
-    | true_4 => match __8956 with
-                | true_4 => false_5 | false_5 => true_4
-                end
+  fun xor_32185 (__32186) -> (__32187) -o
+    match __32186 with
+    | true_4 =>
+      match __32187 with
+      | true_4 => false_5 | false_5 => true_4
+      end
     | false_5 =>
-      match __8956 with
+      match __32187 with
       | true_4 => true_4 | false_5 => false_5
       end
     end
 
 def lte_9 :=
-  fun lte_8957 (__8958) -> (__8959) ->
-    match __8958 with
+  fun lte_32188 (__32189) -> (__32190) ->
+    match __32189 with
     | zero_6  => true_4
-    | succ_7 n_8960 =>
-      match __8959 with
-      | zero_6  => false_5 | succ_7 n_8961 => ((lte_8957) n_8960 n_8961)
+    | succ_7 n_32191 =>
+      match __32190 with
+      | zero_6  => false_5 | succ_7 n_32192 => ((lte_32188) n_32191 n_32192)
       end
     end
 
 def lt_10 :=
-  fun lt_8962 (x_8963) -> (y_8964) -> ((lte_9) (succ_7 x_8963) y_8964)
+  fun lt_32193 (x_32194) -> (y_32195) -> ((lte_9) (succ_7 x_32194) y_32195)
 
 def pred_11 :=
-  fun pred_8965 (__8966) ->
-    match __8966 with
-    | zero_6  => (zero_6 ) | succ_7 n_8967 => n_8967
+  fun pred_32196 (__32197) ->
+    match __32197 with
+    | zero_6  => (zero_6 ) | succ_7 n_32198 => n_32198
     end
 
 def add_12 :=
-  fun add_8968 (__8969) -> (__8970) ->
-    match __8969 with
-    | zero_6  => __8970
-    | succ_7 n_8971 => (succ_7 ((add_8968) n_8971 __8970))
+  fun add_32199 (__32200) -> (__32201) ->
+    match __32200 with
+    | zero_6  => __32201
+    | succ_7 n_32202 => (succ_7 ((add_32199) n_32202 __32201))
     end
 
 def sub_13 :=
-  fun sub_8972 (__8973) -> (__8974) ->
-    match __8974 with
-    | zero_6  => __8973
-    | succ_7 n_8975 => ((sub_8972) ((pred_11) __8973) n_8975)
+  fun sub_32203 (__32204) -> (__32205) ->
+    match __32205 with
+    | zero_6  => __32204
+    | succ_7 n_32206 => ((sub_32203) ((pred_11) __32204) n_32206)
     end
 
 def mul_14 :=
-  fun mul_8976 (__8977) -> (__8978) ->
-    match __8977 with
+  fun mul_32207 (__32208) -> (__32209) ->
+    match __32208 with
     | zero_6  => (zero_6 )
-    | succ_7 n_8979 => ((add_12) __8978 ((mul_8976) n_8979 __8978))
+    | succ_7 n_32210 => ((add_12) __32209 ((mul_32207) n_32210 __32209))
     end
 
 def div_15 :=
-  fun div_8980 (x_8981) -> (y_8982) ->
-    match ((lt_10) x_8981 y_8982) with
+  fun div_32211 (x_32212) -> (y_32213) ->
+    match ((lt_10) x_32212 y_32213) with
     | true_4 => (zero_6 )
-    | false_5 =>
-      let loop_8983 :=
-        fun loop_8984 (x_8985) -> (y_8986) ->
-          match ((sub_13) x_8985 ((pred_11) y_8986)) with
-          | zero_6  => (zero_6 )
-          | succ_7 n_8987 => (succ_7 ((loop_8984) n_8987 y_8986))
-          end
-        in
-      ((loop_8983) x_8981 y_8982)
+    | false_5 => (succ_7 ((div_32211) ((sub_13) x_32212 y_32213) y_32213))
     end
 
 def rem_16 :=
-  fun rem_8988 (x_8989) -> (y_8990) ->
-    ((sub_13) x_8989 ((mul_14) ((div_15) x_8989 y_8990) y_8990))
+  fun rem_32214 (x_32215) -> (y_32216) ->
+    ((sub_13) x_32215 ((mul_14) ((div_15) x_32215 y_32216) y_32216))
 
 def pow_17 :=
-  fun pow_8991 (__8992) -> (__8993) ->
-    match __8993 with
+  fun pow_32217 (__32218) -> (__32219) ->
+    match __32219 with
     | zero_6  => (succ_7 (zero_6 ))
-    | succ_7 n_8994 => ((mul_14) __8992 ((pow_8991) __8992 n_8994))
+    | succ_7 n_32220 => ((mul_14) __32218 ((pow_32217) __32218 n_32220))
     end
 
-def main :=
-  lam () -o
-    let _8995 := ((alloc_19) tt_3 ()) in
-    match _8995 with
-    | ex1UL_31 m_8996 n_8997 =>
-      let pf_8998 := ((setU_43) () () m_8996 (zero_6 ) n_8997) in
-      let __8999 := ((free_23) () m_8996 pf_8998) in lam () -o tt_3
+def splitU_63 :=
+  fun split_32221 (__32222) ->
+    match __32222 with
+    | nilUU_22  => (ex1UU_31 (nilUU_22 ) (nilUU_22 ))
+    | consUU_23 hd_32223 tl_32224 =>
+      match tl_32224 with
+      | nilUU_22  => (ex1UU_31 (consUU_23 hd_32223 (nilUU_22 )) (nilUU_22 ))
+      | consUU_23 hd_32225 tl_32226 =>
+        match ((split_32221) tl_32226) with
+        | ex1UU_31 m_32227 n_32228 =>
+          (ex1UU_31
+            (consUU_23 hd_32223 m_32227) (consUU_23 hd_32225 n_32228))
+        end
+      end
     end
+
+def splitL_62 :=
+  fun split_32229 (__32230) ->
+    match __32230 with
+    | nilUL_20  => (ex1LL_28 (nilUL_20 ) (nilUL_20 ))
+    | consUL_21 hd_32231 tl_32232 =>
+      match tl_32232 with
+      | nilUL_20  => (ex1LL_28 (consUL_21 hd_32231 (nilUL_20 )) (nilUL_20 ))
+      | consUL_21 hd_32233 tl_32234 =>
+        match ((split_32229) tl_32234) with
+        | ex1LL_28 m_32235 n_32236 =>
+          (ex1LL_28
+            (consUL_21 hd_32231 m_32235) (consUL_21 hd_32233 n_32236))
+        end
+      end
+    end
+
+def mergeU_65 :=
+  fun merge_32237 (__32238) -> (__32239) -o
+    match __32238 with
+    | nilUU_22  => __32239
+    | consUU_23 hd_32240 tl_32241 =>
+      match __32239 with
+      | nilUU_22  => (consUU_23 hd_32240 tl_32241)
+      | consUU_23 hd_32242 tl_32243 =>
+        match ((lte_9) hd_32240 hd_32242) with
+        | true_4 =>
+          (consUU_23
+            hd_32240 ((merge_32237) tl_32241 (consUU_23 hd_32242 tl_32243)))
+        | false_5 =>
+          (consUU_23
+            hd_32242 ((merge_32237) (consUU_23 hd_32240 tl_32241) tl_32243))
+        end
+      end
+    end
+
+def mergeL_64 :=
+  fun merge_32244 (__32245) -> (__32246) -o
+    match __32245 with
+    | nilUL_20  => __32246
+    | consUL_21 hd_32247 tl_32248 =>
+      match __32246 with
+      | nilUL_20  => (consUL_21 hd_32247 tl_32248)
+      | consUL_21 hd_32249 tl_32250 =>
+        match ((lte_9) hd_32247 hd_32249) with
+        | true_4 =>
+          (consUL_21
+            hd_32247 ((merge_32244) tl_32248 (consUL_21 hd_32249 tl_32250)))
+        | false_5 =>
+          (consUL_21
+            hd_32249 ((merge_32244) (consUL_21 hd_32247 tl_32248) tl_32250))
+        end
+      end
+    end
+
+def msortU_67 :=
+  fun msort_32251 (__32252) ->
+    match __32252 with
+    | nilUU_22  => (nilUU_22 )
+    | consUU_23 hd_32253 tl_32254 =>
+      match tl_32254 with
+      | nilUU_22  => (consUU_23 hd_32253 (nilUU_22 ))
+      | consUU_23 hd_32255 tl_32256 =>
+        match ((splitU_63)
+                (consUU_23 hd_32253 (consUU_23 hd_32255 tl_32256))) with
+        | ex1UU_31 m_32257 n_32258 =>
+          ((mergeU_65) ((msort_32251) m_32257) ((msort_32251) n_32258))
+        end
+      end
+    end
+
+def msortL_66 :=
+  fun msort_32259 (__32260) ->
+    match __32260 with
+    | nilUL_20  => (nilUL_20 )
+    | consUL_21 hd_32261 tl_32262 =>
+      match tl_32262 with
+      | nilUL_20  => (consUL_21 hd_32261 (nilUL_20 ))
+      | consUL_21 hd_32263 tl_32264 =>
+        match ((splitL_62)
+                (consUL_21 hd_32261 (consUL_21 hd_32263 tl_32264))) with
+        | ex1LL_28 m_32265 n_32266 =>
+          ((mergeL_64) ((msort_32259) m_32265) ((msort_32259) n_32266))
+        end
+      end
+    end
+
+def cmsort_workerU_71 :=
+  fun cmsort_worker_32267 (__32268) -> (zs_32269) -> (__32270) -o
+    match __32268 with
+    | zero_6  =>
+      lam () -o
+        let c_32271 :=
+          ((send1U_57) () () () () () __32270 ((msortU_67) zs_32269) ())
+        in ((close_23) () c_32271)
+    | succ_7 n_32272 =>
+      match zs_32269 with
+      | nilUU_22  =>
+        lam () -o
+          let c_32273 := ((send1U_57) () () () () () __32270 (nilUU_22 ) ())
+          in ((close_23) () c_32273)
+      | consUU_23 hd_32274 tl_32275 =>
+        match tl_32275 with
+        | nilUU_22  =>
+          lam () -o
+            let c_32276 :=
+              ((send1U_57)
+                () () () () () __32270 (consUU_23 hd_32274 (nilUU_22 )) ())
+            in ((close_23) () c_32276)
+        | consUU_23 hd_32277 tl_32278 =>
+          match ((splitU_63)
+                  (consUU_23 hd_32274 (consUU_23 hd_32277 tl_32278))) with
+          | ex1UU_31 m_32279 n_32280 =>
+            lam () -o
+              let r1_32281 :=
+                ((fork_28)
+                  () ()
+                    fun _32282 (c1_32283) -o
+                      ((cmsort_worker_32267) n_32272 m_32279 c1_32283)
+                      ())
+                in
+              let r2_32284 :=
+                ((fork_28)
+                  () ()
+                    fun _32285 (c2_32286) -o
+                      ((cmsort_worker_32267) n_32272 n_32280 c2_32286)
+                      ())
+                in
+              let _32287 := ((recv1U_61) () () () () () r1_32281 ()) in
+              match _32287 with
+              | ex1UL_30 m_32288 n_32289 =>
+                lam () -o
+                  let _32290 := ((recv1U_61) () () () () () r2_32284 ()) in
+                  match _32290 with
+                  | ex1UL_30 m_32291 n_32292 =>
+                    let zs1_32293 := ((mergeU_65) m_32288 m_32291) in
+                    let zs1_32294 := ((rwlUU_37) () () () () () zs1_32293) in
+                    lam () -o
+                      let c_32295 :=
+                        ((send1U_57) () () () () () __32270 zs1_32294 ())
+                      in
+                      let __32296 := ((close_23) () n_32289 ()) in
+                      let __32297 := ((close_23) () n_32292 ()) in
+                      let __32298 := ((close_23) () c_32295 ()) in
+                      lam () -o tt_3
+                  end
+              end
+            end
+          end
+        end
+      end
+
+def cmsort_workerL_70 :=
+  fun cmsort_worker_32299 (__32300) -> (zs_32301) -> (__32302) -o
+    match __32300 with
+    | zero_6  =>
+      lam () -o
+        let c_32303 :=
+          ((send1L_56) () () () () () __32302 ((msortL_66) zs_32301) ())
+        in ((close_23) () c_32303)
+    | succ_7 n_32304 =>
+      match zs_32301 with
+      | nilUL_20  =>
+        lam () -o
+          let c_32305 := ((send1L_56) () () () () () __32302 (nilUL_20 ) ())
+          in ((close_23) () c_32305)
+      | consUL_21 hd_32306 tl_32307 =>
+        match tl_32307 with
+        | nilUL_20  =>
+          lam () -o
+            let c_32308 :=
+              ((send1L_56)
+                () () () () () __32302 (consUL_21 hd_32306 (nilUL_20 )) ())
+            in ((close_23) () c_32308)
+        | consUL_21 hd_32309 tl_32310 =>
+          match ((splitL_62)
+                  (consUL_21 hd_32306 (consUL_21 hd_32309 tl_32310))) with
+          | ex1LL_28 m_32311 n_32312 =>
+            lam () -o
+              let r1_32313 :=
+                ((fork_28)
+                  () ()
+                    fun _32314 (c1_32315) -o
+                      ((cmsort_worker_32299) n_32304 m_32311 c1_32315)
+                      ())
+                in
+              let r2_32316 :=
+                ((fork_28)
+                  () ()
+                    fun _32317 (c2_32318) -o
+                      ((cmsort_worker_32299) n_32304 n_32312 c2_32318)
+                      ())
+                in
+              let _32319 := ((recv1L_60) () () () () () r1_32313 ()) in
+              match _32319 with
+              | ex1LL_28 m_32320 n_32321 =>
+                lam () -o
+                  let _32322 := ((recv1L_60) () () () () () r2_32316 ()) in
+                  match _32322 with
+                  | ex1LL_28 m_32323 n_32324 =>
+                    let zs1_32325 := ((mergeL_64) m_32320 m_32323) in
+                    let zs1_32326 := ((rwlLL_34) () () () () () zs1_32325) in
+                    lam () -o
+                      let c_32327 :=
+                        ((send1L_56) () () () () () __32302 zs1_32326 ())
+                      in
+                      let __32328 := ((close_23) () n_32321 ()) in
+                      let __32329 := ((close_23) () n_32324 ()) in
+                      let __32330 := ((close_23) () c_32327 ()) in
+                      lam () -o tt_3
+                  end
+              end
+            end
+          end
+        end
+      end
 
 -----------------------------------------
 
