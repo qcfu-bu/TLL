@@ -7,6 +7,7 @@ type nspc_entry =
   | EVar of Syntax1.tm var * view list
   | ESVar of Syntax1.sort var
   | EConst of Const.t * int * view list
+  | ETName of TName.t * int * view list
   | EInd of Ind.t * int * int * view list
   | EConstr of Constr.t * int * int * view list
   | ESymbol of tm
@@ -53,6 +54,19 @@ let find_const s (nspc : nspc) =
   in
   match opt with
   | Some (_, EConst (x, _, _)) -> Some x
+  | _ -> None
+
+let find_tname s (nspc : nspc) =
+  let s = Hashtbl.hash s in
+  let opt =
+    List.find_opt
+      (function
+        | k, ETName _ when s = k -> true
+        | _ -> false)
+      nspc
+  in
+  match opt with
+  | Some (_, ETName (x, _, _)) -> Some x
   | _ -> None
 
 let find_ind s (nspc : nspc) =
@@ -145,6 +159,7 @@ let rec trans_tm (nspc : nspc) = function
       match nspc_assoc id nspc with
       | Some (EVar (x, _)) -> _Var x
       | Some (EConst (x, i, _)) -> _Const x (mk_inst nspc i)
+      | Some (ETName (x, i, _)) -> _TName x (mk_inst nspc i)
       | Some (EInd (d, i, _, _)) -> _Ind d (mk_inst nspc i) (box []) (box [])
       | Some (EConstr (c, i, j, _)) ->
         _Constr c (mk_inst nspc i) (mk_param j) (box [])
@@ -154,6 +169,7 @@ let rec trans_tm (nspc : nspc) = function
     Syntax1.(
       match nspc_assoc id nspc with
       | Some (EConst (x, _, _)) -> _Const x ss
+      | Some (ETName (x, _, _)) -> _TName x ss
       | Some (EInd (d, _, _, _)) -> _Ind d ss (box []) (box [])
       | Some (EConstr (c, _, j, _)) -> _Constr c ss (mk_param j) (box [])
       | _ -> failwith "trans01.trans_tm.Inst(%s)" id))
@@ -181,6 +197,7 @@ let rec trans_tm (nspc : nspc) = function
         match nspc_assoc id nspc with
         | Some (EVar (x, _)) -> _mkApps (_Var x) ms
         | Some (EConst (x, i, _)) -> _mkApps (_Const x (mk_inst nspc i)) ms
+        | Some (ETName (x, i, _)) -> _mkApps (_TName x (mk_inst nspc i)) ms
         | Some (EInd (d, i, j, _)) ->
           let ms, ns = list_take j ms in
           _Ind d (mk_inst nspc i) (box_list ms) (box_list ns)
@@ -198,6 +215,9 @@ let rec trans_tm (nspc : nspc) = function
         | Some (EConst (x, i, view)) ->
           let ms = inject_implicit nspc view ms in
           _mkApps (_Const x (mk_inst nspc i)) ms
+        | Some (ETName (x, i, view)) ->
+          let ms = inject_implicit nspc view ms in
+          _mkApps (_TName x (mk_inst nspc i)) ms
         | Some (EInd (d, i, j, view)) ->
           let ms, ns = list_take j (inject_implicit nspc view ms) in
           _Ind d (mk_inst nspc i) (box_list ms) (box_list ns)
@@ -211,6 +231,7 @@ let rec trans_tm (nspc : nspc) = function
         let ms = List.map (trans_tm nspc) ms in
         match nspc_assoc id nspc with
         | Some (EConst (x, _, _)) -> _mkApps (_Const x (box_list ss)) ms
+        | Some (ETName (x, _, _)) -> _mkApps (_TName x (box_list ss)) ms
         | Some (EInd (d, _, j, _)) ->
           let ms, ns = list_take j ms in
           _Ind d (box_list ss) (box_list ms) (box_list ns)
@@ -226,6 +247,9 @@ let rec trans_tm (nspc : nspc) = function
         | Some (EConst (x, _, view)) ->
           let ms = inject_implicit nspc view ms in
           _mkApps (_Const x (box_list ss)) ms
+        | Some (ETName (x, _, view)) ->
+          let ms = inject_implicit nspc view ms in
+          _mkApps (_TName x (box_list ss)) ms
         | Some (EInd (d, _, j, view)) ->
           let ms, ns = list_take j (inject_implicit nspc view ms) in
           _Ind d (box_list ss) (box_list ms) (box_list ns)
@@ -427,6 +451,22 @@ let rec trans_dcl nspc = function
             ; dconstrs = unbox dconstrs
             }
         ] )
+  | Template { name = id; relv; body = Binder (sids, a); view } ->
+    let x = TName.mk id in
+    let (local, i), xs =
+      List.fold_left_map
+        (fun (nspc, i) sid ->
+          let x = Syntax1.SVar.mk sid in
+          ((nspc_push sid (ESVar x) nspc, i + 1), x))
+        (nspc, 0) sids
+    in
+    let nspc = nspc_push id (ETName (x, i, view)) nspc in
+    let a = trans_tm local a in
+    let sch = bind_mvar (Array.of_list xs) a in
+    Syntax1.
+      ( nspc
+      , [ Template { name = x; relv = trans_relv relv; scheme = unbox sch } ] )
+  | Implement { name = id; relv; body = Binder (sids, (m, a)); view } -> _
   | Extern { name = id; relv; body = Binder (sids, (m_opt, a)); view } ->
     let x = Const.mk id in
     let (local, i), xs =

@@ -832,6 +832,11 @@ let dcl_tmpl :=
       Template { name = id; relv; body = sch; view } }
 
 // implement
+/*
+def show_list‹s,r› ?{A : Type‹s›} impl @show‹r› (list‹s,r› A)
+  | [] => "[]"
+  | x :: xs => show x ^ " :: " ^ show_list xs
+*/
 let dcl_impl :=
   | relv = dcl_modifier;
     DCL_DEF; id_sids = dcl_iden; args = dcl_args; DCL_IMPL; b = tm_closed; cls = tm_cls0;
