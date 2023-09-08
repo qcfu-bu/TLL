@@ -166,14 +166,11 @@ def cmsort_worker‹t› : nat -> forall (zs : list‹_,t› nat) -> cmsort_ch�
     | ⟨xs0, ys0⟩, pf => 
       let* r1 := fork ln c1 => cmsort_worker n xs0 c1 in
       let* r2 := fork ln c2 => cmsort_worker n ys0 c2 in
-      let* ⟨xs1, c1⟩ := recv1 refl r1 in
-      let* ⟨ys1, c2⟩ := recv1 refl r2 in
+      let* ⟨xs1, c1⟩ := recv1 refl r1 in close c1;
+      let* ⟨ys1, c2⟩ := recv1 refl r2 in close c2;
       match xs1, ys1 with
       | just xs1, just ys1 =>
         let zs1 : `merge (msort xs0) (msort ys0) := just (merge xs1 ys1) in
         let zs1 : `msort zs := rwl (fn x => `x) pf zs1 in
-        let* c := send1 refl c zs1 in
-        let* _ := close c1 in
-        let* _ := close c2 in
-        let* _ := close c in
+        let* c := send1 refl c zs1 in close c;
         return tt

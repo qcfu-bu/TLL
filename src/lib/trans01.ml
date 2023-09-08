@@ -466,7 +466,8 @@ let rec trans_dcl nspc = function
     Syntax1.
       ( nspc
       , [ Template { name = x; relv = trans_relv relv; scheme = unbox sch } ] )
-  | Implement { name = id; relv; body = Binder (sids, (m, a)); view } -> _
+  | Implement { name = id; relv; body = Binder (sids, (m, a)); view } ->
+    failwith "unimplemented"
   | Extern { name = id; relv; body = Binder (sids, (m_opt, a)); view } ->
     let x = Const.mk id in
     let (local, i), xs =
