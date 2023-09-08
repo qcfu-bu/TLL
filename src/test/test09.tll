@@ -54,11 +54,11 @@ inductive nat : U where
 
 -- simple theory of singleton elimination
 def sing_elim‹s,t› ?{A : Type‹s›} ?{x : A} : sing‹s,t›x -> A
-  | (just x) => x
+  | just x => x
 
 #[logical]
 def sing_uniq‹s,t› ?(A : Type‹s›) ?(x0 : A) : forall (x : sing‹s,t›x0) -> x0 = sing_elim x
-  | (just _) => refl
+  | just _ => refl
 
 
 
@@ -126,8 +126,8 @@ def proj2‹s,r,t› ?{A : Type‹s›} ?{B : A -> Type‹r›} : forall (x : @a
 -- examples
 #[logical]
 def nat_dep_t : nat -> Type‹L›
-  | zero     => stream nat
-  | (succ _) => unit‹L›
+  | zero   => stream nat
+  | succ _ => unit‹L›
 
 def my_apair0 : apair‹_,_,U› nat_dep_t :=
   -- different type modalities are allowed in components as long
