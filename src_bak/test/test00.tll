@@ -1,3 +1,6 @@
+notation ( |> ) := (%2 %1)
+notation ( @@ ) := (%1 %2)
+
 inductive bool : U where
 | true : bool
 | false : bool
@@ -28,4 +31,5 @@ def one : nat := succ zero
 def two : nat := succ one
 def three : _ := succ two
 
--- def test : nat := max (two) (three)
+def test1 ?{A B C : U} (m : A) (f : A -> B) (g : B -> C) := m |> f |> g
+def test2 ?{A B C : U} (m : A) (f : A -> B) (g : B -> C) := g @@ f m

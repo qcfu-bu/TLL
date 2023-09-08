@@ -1,3 +1,26 @@
+notation ( |> ) := (%2 %1)
+notation ( @@ ) := (%1 %2)
+notation ( = ) := eq %1 %2
+notation ( ` ) := sing %1
+notation ( && ) := and
+notation ( || ) := or
+notation ( + ) := add %1 %2
+notation ( - ) := sub %1 %2
+notation ( * ) := mul %1 %2
+notation ( / ) := div %1 %2
+notation ( % ) := rem %1 %2
+notation ( ^ ) := pow %1 %2
+notation ( < ) := lt %1 %2
+notation ( > ) := gt %1 %2
+notation ( <= ) := lte %1 %2
+notation ( >= ) := gte %1 %2
+notation ( ⊗ ) := (prod‹_,_,L› %1 %2)
+notation ( :: ) := cons %1 %2
+notation ( ; ) := let* _ := %1 in %2
+notation ( ( , ) ) := pair %1 %2
+notation ( ⟨ ,{ }⟩ ) := ex %1 %2
+
+
 inductive unit : U where
 | tt : unit
 
@@ -14,38 +37,41 @@ inductive list (A : U) : U where
 | cons (hd : A) (tl : list A) : list A
 
 #[logical]
-inductive eq<s> ?(A : Type‹s›) (m : A) : A -> U where
+inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
 | refl : eq m m
 
-inductive exists<s,r,t> ?(A : Type‹s›) (B : A -> Type<r>) : Type<t> where
+inductive exists‹s,r,t› ?(A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
 | ex (m : A) {pf : B m} : exists B
 
-inductive sing<s> ?(A : Type<s>) : A -> Type<s> where
+inductive sing‹s› ?(A : Type‹s›) : A -> Type‹s› where
 | just (m : A) : sing m
 
-inductive prod<s,r,t> (A : Type<s>) (B : Type<r>) : Type<t> where
+inductive prod‹s,r,t› (A : Type‹s›) (B : Type‹r›) : Type‹t› where
 | pair (m : A) (n : B) : prod A B
 
-def exists_sing<s,t> ?{A : Type<s>} ?{m : A} : exists<_,_,t> (fn (a : A) => eq a m) -> sing m
-  | (ex x refl) => just x
+def exists_sing‹s,t› ?{A : Type‹s›} ?{m : A} : exists‹_,_,t› (fn (a : A) => a = m) -> `m
+  | ⟨x, {refl}⟩ => just x
 
-def sing_exists<s,t> ?{A : Type<s>} ?{m : A} : sing m -> exists<_,_,t> (fn (a : A) => eq a m)
-  | (just x) => ex x refl
+def sing_exists‹s,t› ?{A : Type‹s›} ?{m : A} : `m -> exists‹_,_,t› (fn (a : A) => a = m)
+  | (just x) => ⟨x, {refl}⟩
 
 #[logical]
-def sing_exists_equiv1<s,t> {A : Type<s>} {m : A} :
-  forall (x : sing m) -> eq (exists_sing (sing_exists<_,t> x)) x
+def sing_exists_equiv1‹s,t› {A : Type‹s›} {m : A} :
+  forall (x : `m) -> exists_sing (sing_exists‹_,t› x) = x
   | (just x) => refl
 
 #[logical]
-def sing_exists_equiv2<s,t> {A : Type<s>} {m : A} :
-  forall (x : exists<_,_,t> fn (a : A) => eq a m) -> eq (sing_exists (exists_sing x)) x
-  | (ex x refl) => refl
+def sing_exists_equiv2‹s,t› {A : Type‹s›} {m : A} :
+  forall (x : exists‹_,_,t› fn (a : A) => a = m) -> sing_exists (exists_sing x) = x
+  | ⟨x, {refl}⟩ => refl
 
-def sing_double<s,t> {A : Type<s>} {m : A} : sing m -> sing m -o prod<_,_,t> A A
+def sing_double‹s› {A : Type‹s›} {m : A} : `m -> `m -o A ⊗ A
   | (just x) (just y) =>
-    let {pf} : eq x y := refl in
-    pair x y
+    let {pf} : x = y := refl in
+    (x, y)
+
+def my_sing := just true
+def my_exists : exists<_,_,U> fn (x : bool) => x = true := sing_exists my_sing
 
 /- axiom_K is admissible because pattern matching assumes
    that all variables introduced by the clauses are flexible.
@@ -54,12 +80,5 @@ def sing_double<s,t> {A : Type<s>} {m : A} : sing m -> sing m -o prod<_,_,t> A A
    eliminators introduce rigid variables which cannot be refined
    by unification. -/
 #[logical]
-def axiom_K ?{A : U} ?{m : A} : forall (x : eq m m) -> eq x refl
+def axiom_K ?{A : U} ?{m : A} : forall (x : m = m) -> x = refl
   | refl => refl
-
-def pattern_expansion {A : U} : list A -o unit
-  | nil => tt
-  | (cons x nil) => tt
-  | xs =>
-    let {pf} : eq xs xs := refl in
-    tt

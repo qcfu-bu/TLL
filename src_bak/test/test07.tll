@@ -10,23 +10,23 @@ inductive nat : U where
 | succ (pred : nat) : nat
 
 #[logical]
-inductive eq<s> ?(A : Type<s>) (m : A) : A -> U where
+inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
 | refl : eq m m
 
-inductive exists<s,r,t> ?(A : Type<s>) (B : A -> Type<r>) : Type<t> where
+inductive exists‹s,r,t› ?(A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
 | ex (m : A) {pf : B m} : exists B
 
-inductive prod<s,r,t> (A : Type<s>) (B : Type<r>) : Type<t> where
+inductive prod‹s,r,t› (A : Type‹s›) (B : Type‹r›) : Type‹t› where
 | pair (m : A) (n : B) : prod A B
 
-inductive sing<s> ?(A : Type<s>) : A -> Type<s> where
+inductive sing‹s› ?(A : Type‹s›) : A -> Type‹s› where
 | just (m : A) : sing m
 
-inductive list<s> (A : Type<s>) : Type<s> where
+inductive list‹s› (A : Type‹s›) : Type‹s› where
 | nil : list A
 | cons (hd : A) (tl : list A) : list A
 
-inductive vec<s> (A : Type<s>) : nat -> Type<s> where
+inductive vec‹s› (A : Type‹s›) : nat -> Type‹s› where
 | vnil : vec A zero
 | vcons ?{n : nat} (hd : A) (tl : vec A n) : vec A (succ n)
 
@@ -39,5 +39,5 @@ def uncons ?{A : U} : ∀ {n : nat} -> vec A (succ n) -> A
   | _ (vcons _ hd _) => hd
 
 
-def uncons2 ?{A : U} ?{n : nat} : vec A (succ n) -> vec A (succ n) -> prod<_,_,L> A A
+def uncons2 ?{A : U} ?{n : nat} : vec A (succ n) -> vec A (succ n) -> prod‹_,_,L› A A
   | (vcons _ hd1 _) (vcons _ hd2 _) => pair hd1 hd2

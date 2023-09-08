@@ -577,19 +577,40 @@ let rec check_dcls ctx env dcls =
     Debug.exec (fun () -> pr "----------------------------------@.@.");
     let dcls = check_dcls ctx env dcls in
     Inductive { name = ind; relv; arity; dconstrs } :: dcls
-  | Extern { name = x; relv; scheme = sch } :: dcls ->
-    Debug.exec (fun () -> pr "definition-------------------------@.");
-    let ss, a = unmbind sch in
-    let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
-    let a_elab = assert_type ctx0 env a in
-    let a = unbox a_elab in
-    let meta_map = solve_delayed (State.get_delayed ()) in
-    let a_sch = bind_mvar ss (lift_tm (resolve_tm meta_map a)) in
-    let sch = unbox a_sch in
-    let ctx = Ctx.add_const x sch ctx in
-    Debug.exec (fun () -> pr "----------------------------------@.@.");
-    let dcls = check_dcls ctx env dcls in
-    Extern { name = x; relv; scheme = sch } :: dcls
+  | Extern { name = x; relv; scheme = sch } :: dcls -> (
+    Debug.exec (fun () -> pr "extern---------------------------------@.");
+    let ss, (m_opt, a) = unmbind sch in
+    match m_opt with
+    | Some m ->
+      let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
+      let a_elab = assert_type ctx0 env a in
+      let a = unbox a_elab in
+      let m_elab = check_tm ctx0 env m a in
+      let m = unbox m_elab in
+      let meta_map = solve_delayed (State.get_delayed ()) in
+      let a_box = lift_tm (resolve_tm meta_map a) in
+      let m_box = lift_tm (resolve_tm meta_map m) in
+      let a_sch = bind_mvar ss a_box in
+      let m_sch = bind_mvar ss m_box in
+      let sch = bind_mvar ss (box_pair (box_opt (Some m_box)) a_box) in
+      let ctx = Ctx.add_const x (unbox a_sch) ctx in
+      let env = Env.add_const x (unbox m_sch) env in
+      Debug.exec (fun () -> pr "----------------------------------@.@.");
+      let dcls = check_dcls ctx env dcls in
+      Extern { name = x; relv; scheme = unbox sch } :: dcls
+    | None ->
+      let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
+      let a_elab = assert_type ctx0 env a in
+      let a = unbox a_elab in
+      let meta_map = solve_delayed (State.get_delayed ()) in
+      let a_box = lift_tm (resolve_tm meta_map a) in
+      let m_box = box None in
+      let a_sch = bind_mvar ss a_box in
+      let sch = bind_mvar ss (box_pair m_box a_box) in
+      let ctx = Ctx.add_const x (unbox a_sch) ctx in
+      Debug.exec (fun () -> pr "----------------------------------@.@.");
+      let dcls = check_dcls ctx env dcls in
+      Extern { name = x; relv; scheme = unbox sch } :: dcls)
   | [] -> []
 
 and check_arity ctx env arity =

@@ -46,7 +46,7 @@ and pp_tm fmt = function
     let x, bnd = unbind bnd in
     let xs, m = unmbind bnd in
     let rxs = List.combine relvs (Array.to_list xs) in
-    pf fmt "@[<v 0>@[fun %a %a@;<1 2>@[%a@]@]" Var.pp x pp_rxs rxs pp_tm m
+    pf fmt "@[<v 0>@[fun %a %a@]@;<1 2>@[%a@]@]" Var.pp x pp_rxs rxs pp_tm m
   | App _ as m ->
     let hd, ms = unApps m in
     let ms = List.map fst ms in

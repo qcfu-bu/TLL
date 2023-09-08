@@ -9,7 +9,7 @@ exception
     }
 
 (* general *)
-let blank = [%sedlex.regexp? ' ' | '\t']
+let blank = [%sedlex.regexp? ' ' | '\t' | "\r" | '\n']
 let newline = [%sedlex.regexp? '\r' | '\n' | "\r\n"]
 let letter = [%sedlex.regexp? 'a' .. 'z' | 'A' .. 'Z']
 let digit = [%sedlex.regexp? '0' .. '9']
@@ -30,6 +30,8 @@ let lbrace = [%sedlex.regexp? '{']
 let rbrace = [%sedlex.regexp? '}']
 let langle = [%sedlex.regexp? 10216] (* ⟨ *)
 let rangle = [%sedlex.regexp? 10217] (* ⟩ *)
+let lt = [%sedlex.regexp? '<']
+let gt = [%sedlex.regexp? '>']
 let flq = [%sedlex.regexp? 8249] (* ‹ *)
 let frq = [%sedlex.regexp? 8250] (* › *)
 let qlparen = [%sedlex.regexp? "?("]
@@ -38,7 +40,6 @@ let qlbrace = [%sedlex.regexp? "?{"]
 (* quantifiers *)
 let forall = [%sedlex.regexp? "forall" | 8704] (* ∀ *)
 let exists = [%sedlex.regexp? 8707] (* ∃ *)
-let question = [%sedlex.regexp? "?"]
 
 (* arrows *)
 let leftarrow0 = [%sedlex.regexp? "<-" | 8592] (* ← *)
@@ -49,42 +50,41 @@ let multimap = [%sedlex.regexp? "-o" | 8888] (* ⊸ *)
 let uparrow1 = [%sedlex.regexp? 8657] (* ⇑ *)
 let downarrow1 = [%sedlex.regexp? 8659] (* ⇓ *)
 
-(* products *)
-let times = [%sedlex.regexp? 215] (* × *)
-let otimes = [%sedlex.regexp? 8855] (* ⊗ *)
-let at = [%sedlex.regexp? "@"]
+(* operators *)
+let op_symbol =
+  [%sedlex.regexp?
+    ( '+' | '-' | '*' | '/' | '\\' | '%' | '<' | '>' | '=' | '!' | '&' | '~'
+    | '^' | '|' | ':' | ';' | '@' | '`' | 215 | 8855 )]
 
-(* bool *)
-let bool_and = [%sedlex.regexp? "&&"]
-let bool_or = [%sedlex.regexp? "||"]
-
-(* nat *)
-let add = [%sedlex.regexp? '+']
-let sub = [%sedlex.regexp? '-']
-let mul = [%sedlex.regexp? '*']
-let div = [%sedlex.regexp? '/']
-let rem = [%sedlex.regexp? '%']
-let lte = [%sedlex.regexp? "<="]
-let gte = [%sedlex.regexp? ">="]
-let lt = [%sedlex.regexp? "<"]
-let gt = [%sedlex.regexp? ">"]
-let eq = [%sedlex.regexp? "=="]
-let neq = [%sedlex.regexp? "!="]
+let op_mul = [%sedlex.regexp? '*', Star op_symbol]
+let op_times = [%sedlex.regexp? 215, Star op_symbol] (* × *)
+let op_otimes = [%sedlex.regexp? 8855, Star op_symbol] (* ⊗ *)
+let op_div = [%sedlex.regexp? '/', Star op_symbol]
+let op_rem = [%sedlex.regexp? '%', Star op_symbol]
+let op_add = [%sedlex.regexp? '+', Star op_symbol]
+let op_sub = [%sedlex.regexp? '-', Star op_symbol]
+let op_lt = [%sedlex.regexp? "<", Plus op_symbol]
+let op_gt = [%sedlex.regexp? ">", Plus op_symbol]
+let op_eq = [%sedlex.regexp? "=", Star op_symbol]
+let op_ex = [%sedlex.regexp? "!", Star op_symbol]
+let op_and = [%sedlex.regexp? "&", Star op_symbol]
+let op_sim = [%sedlex.regexp? "~", Star op_symbol]
+let op_cat = [%sedlex.regexp? '^', Star op_symbol]
+let op_or = [%sedlex.regexp? "|", Plus op_symbol]
+let op_colon = [%sedlex.regexp? ":", Plus op_symbol]
+let op_semi = [%sedlex.regexp? ";", Plus op_symbol]
+let op_at = [%sedlex.regexp? "@", Star op_symbol]
+let op_tic = [%sedlex.regexp? "`", Star op_symbol]
 
 (* string *)
 let quote0 = [%sedlex.regexp? "\'"]
 let quote1 = [%sedlex.regexp? "\""]
-let str_cat = [%sedlex.regexp? '^']
-
-(* list *)
-let list_cons = [%sedlex.regexp? "::"]
 
 (* truth *)
 let top = [%sedlex.regexp? 8868] (* ⊤ *)
 let bot = [%sedlex.regexp? 8869] (* ⊥ *)
 
-(* equality *)
-let equal = [%sedlex.regexp? '=']
+(* assign *)
 let assign = [%sedlex.regexp? ":=" | 8788]
 let equiv = [%sedlex.regexp? 8801] (* ≡ *)
 let negate = [%sedlex.regexp? 172] (* ¬ *)
@@ -101,11 +101,6 @@ let bullet = [%sedlex.regexp? 8226 | 8729] (* • *)
 let sort_u = [%sedlex.regexp? 'U']
 let sort_l = [%sedlex.regexp? 'L']
 
-(* prim *)
-let prim_stdin = [%sedlex.regexp? "stdin"]
-let prim_stdout = [%sedlex.regexp? "stdout"]
-let prim_stderr = [%sedlex.regexp? "stderr"]
-
 (* identifiers *)
 let identifier =
   [%sedlex.regexp? (letter | '_'), Star (letter | digit | '_' | '\'')]
@@ -115,6 +110,7 @@ let constant1 = [%sedlex.regexp? identifier, flq]
 let at_identifier = [%sedlex.regexp? "@", identifier]
 let at_constant0 = [%sedlex.regexp? "@", constant0]
 let at_constant1 = [%sedlex.regexp? "@", constant1]
+let hole = [%sedlex.regexp? "%", integer]
 
 (* term *)
 let tm_type0 = [%sedlex.regexp? "Type", lt]
@@ -123,7 +119,7 @@ let tm_forall0 = [%sedlex.regexp? "forall", lt]
 let tm_forall1 = [%sedlex.regexp? "forall", flq]
 let tm_fn = [%sedlex.regexp? "fn"]
 let tm_ln = [%sedlex.regexp? "ln"]
-let tm_function = [%sedlex.regexp? "function"]
+let tm_fun = [%sedlex.regexp? "fun"]
 let tm_let = [%sedlex.regexp? "let"]
 let tm_in = [%sedlex.regexp? "in"]
 let tm_tup = [%sedlex.regexp? "tup"]
@@ -134,7 +130,8 @@ let tm_if = [%sedlex.regexp? "if"]
 let tm_then = [%sedlex.regexp? "then"]
 let tm_else = [%sedlex.regexp? "else"]
 let tm_absurd = [%sedlex.regexp? "!!"]
-let tm_magic = [%sedlex.regexp? "#magic"]
+let tm_magic0 = [%sedlex.regexp? "#magic"]
+let tm_magic1 = [%sedlex.regexp? "#magic["]
 let tm_io = [%sedlex.regexp? "IO"]
 let tm_return = [%sedlex.regexp? "return"]
 let tm_mlet = [%sedlex.regexp? "let*"]
@@ -148,7 +145,10 @@ let modifier = [%sedlex.regexp? "#["]
 let dcl_def = [%sedlex.regexp? "def"]
 let dcl_inductive = [%sedlex.regexp? "inductive"]
 let dcl_where = [%sedlex.regexp? "where"]
+let dcl_tmpl = [%sedlex.regexp? "tmpl"]
+let dcl_impl = [%sedlex.regexp? "impl"]
 let dcl_extern = [%sedlex.regexp? "extern"]
+let dcl_notation = [%sedlex.regexp? "notation"]
 
 let rec filter buf =
   match%sedlex buf with
@@ -190,6 +190,8 @@ let rec tokenize buf =
   | rbrace -> RBRACE
   | langle -> LANGLE
   | rangle -> RANGLE
+  | lt -> LT
+  | gt -> GT
   | flq -> FLQ
   | frq -> FRQ
   | qlparen -> QLPAREN
@@ -205,35 +207,13 @@ let rec tokenize buf =
   | multimap -> MULTIMAP
   | uparrow1 -> UPARROW1
   | downarrow1 -> DOWNARROW1
-  (* products *)
-  | times -> TIMES
-  | otimes -> OTIMES
-  (* bool *)
-  | bool_and -> AND
-  | bool_or -> OR
-  (* nat *)
-  | add -> ADD
-  | sub -> SUB
-  | mul -> MUL
-  | div -> DIV
-  | rem -> REM
-  | lte -> LTE
-  | gte -> GTE
-  | lt -> LT
-  | gt -> GT
-  | eq -> EQEQ
-  | neq -> NEQ
   (* string *)
   | quote0 -> CHAR (tokenize_char buf)
   | quote1 -> STRING (tokenize_string buf)
-  | str_cat -> STR_CAT
-  (* list *)
-  | list_cons -> LIST_CONS
   (* truth *)
   | top -> TOP
   | bot -> BOT
   (* equality *)
-  | equal -> EQUAL
   | assign -> ASSIGN
   | equiv -> EQUIV
   | negate -> NEGATE
@@ -247,10 +227,6 @@ let rec tokenize buf =
   (* sort *)
   | sort_u -> SORT_U
   | sort_l -> SORT_L
-  (* prim *)
-  | prim_stdin -> PRIM_STDIN
-  | prim_stdout -> PRIM_STDOUT
-  | prim_stderr -> PRIM_STDERR
   (* tm *)
   | tm_type0 -> TM_TYPE0
   | tm_type1 -> TM_TYPE1
@@ -258,7 +234,7 @@ let rec tokenize buf =
   | tm_forall1 -> TM_FORALL1
   | tm_fn -> TM_FN
   | tm_ln -> TM_LN
-  | tm_function -> TM_FUNCTION
+  | tm_fun -> TM_FUN
   | tm_let -> TM_LET
   | tm_in -> TM_IN
   | tm_tup -> TM_TUP
@@ -269,7 +245,8 @@ let rec tokenize buf =
   | tm_then -> TM_THEN
   | tm_else -> TM_ELSE
   | tm_absurd -> TM_ABSURD
-  | tm_magic -> TM_MAGIC
+  | tm_magic0 -> TM_MAGIC0
+  | tm_magic1 -> TM_MAGIC1
   | tm_io -> TM_IO
   | tm_return -> TM_RETURN
   | tm_mlet -> TM_MLET
@@ -281,20 +258,41 @@ let rec tokenize buf =
   | dcl_def -> DCL_DEF
   | dcl_inductive -> DCL_INDUCTIVE
   | dcl_where -> DCL_WHERE
+  | dcl_tmpl -> DCL_TMPL
+  | dcl_impl -> DCL_IMPL
   | dcl_extern -> DCL_EXTERN
+  | dcl_notation -> DCL_NOTATION
+  (* operators *)
+  | op_mul -> OP_MUL (Utf8.lexeme buf)
+  | op_times -> OP_TIMES (Utf8.lexeme buf)
+  | op_otimes -> OP_OTIMES (Utf8.lexeme buf)
+  | op_div -> OP_DIV (Utf8.lexeme buf)
+  | op_rem -> OP_REM (Utf8.lexeme buf)
+  | op_add -> OP_ADD (Utf8.lexeme buf)
+  | op_sub -> OP_SUB (Utf8.lexeme buf)
+  | op_lt -> OP_LT (Utf8.lexeme buf)
+  | op_gt -> OP_GT (Utf8.lexeme buf)
+  | op_eq -> OP_EQ (Utf8.lexeme buf)
+  | op_ex -> OP_EX (Utf8.lexeme buf)
+  | op_and -> OP_AND (Utf8.lexeme buf)
+  | op_or -> OP_OR (Utf8.lexeme buf)
+  | op_sim -> OP_SIM (Utf8.lexeme buf)
+  | op_cat -> OP_CAT (Utf8.lexeme buf)
+  | op_colon -> OP_COLON (Utf8.lexeme buf)
+  | op_semi -> OP_SEMI (Utf8.lexeme buf)
+  | op_at -> OP_AT (Utf8.lexeme buf)
+  | op_tic -> OP_TIC (Utf8.lexeme buf)
   (* other *)
   | integer ->
     let i = int_of_string (Utf8.lexeme buf) in
     INTEGER i
+  | identifier -> IDENTIFIER (Utf8.lexeme buf)
   | constant0 ->
     let s = Utf8.lexeme buf in
     CONSTANT0 Text.(sub s 0 (length s - 1))
   | constant1 ->
     let s = Utf8.lexeme buf in
     CONSTANT1 Text.(sub s 0 (length s - 1))
-  | identifier ->
-    let s = Utf8.lexeme buf in
-    IDENTIFIER s
   | at_constant0 ->
     let s = Utf8.lexeme buf in
     AT_CONSTANT0 Text.(sub s 1 (length s - 2))
@@ -304,6 +302,10 @@ let rec tokenize buf =
   | at_identifier ->
     let s = Utf8.lexeme buf in
     AT_IDENTIFIER Text.(sub s 1 (length s - 1))
+  | hole ->
+    let s = Utf8.lexeme buf in
+    let s = Text.(sub s 1 (length s - 1)) in
+    HOLE (int_of_string s)
   | _ ->
     let pos = fst (lexing_positions buf) in
     raise (LexError { pos_lnum = pos.pos_lnum; pos_cnum = pos.pos_cnum })

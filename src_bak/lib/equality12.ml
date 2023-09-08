@@ -13,7 +13,10 @@ let rec whnf ?(expand = true) (env : Env.t) = function
     | _ -> Var x)
   | Const (x, ss) when expand -> (
     match Env.find_const x env with
-    | Some f -> whnf ~expand env (f ss)
+    | Some f -> (
+      match f ss with
+      | Some m -> whnf ~expand env m
+      | None -> Const (x, ss))
     | None -> Const (x, ss))
   | App _ as m -> (
     let hd, ms = unApps m in

@@ -1,4 +1,4 @@
-inductive unit<s> : Type<s> where
+inductive unit‹s› : Type‹s› where
   | tt : unit
 
 inductive nat : U where
@@ -9,7 +9,7 @@ inductive choice : L where
   | next : choice
   | free : choice
 
-inductive stream_node<s> (A : Type<s>) : L where
+inductive stream_node‹s› (A : Type‹s›) : L where
   | stream_nil : stream_node A
   | stream_cons
     (hd : A)
@@ -19,13 +19,13 @@ inductive stream_node<s> (A : Type<s>) : L where
             | free => unit) : stream_node A
 
 #[logical]
-def stream<s>(A : Type<s>) :=
+def stream‹s›(A : Type‹s›) :=
   forall (x : choice) -o
     match x with
     | next => stream_node A
     | free => unit
 
-def free_stream<s> ?{A : Type<s>} (st : stream A) : unit<U> :=
+def free_stream‹s› ?{A : Type‹s›} (st : stream A) : unit‹U› :=
   match st free with tt => tt
 
 def stream_succ (xs : stream nat) : stream nat

@@ -178,7 +178,15 @@ let resolve_dcl (meta_map : meta_map) = function
     let dconstrs = resolve_dconstrs meta_map dconstrs in
     Inductive { name; relv; arity; dconstrs }
   | Extern { name; relv; scheme = sch } ->
-    let sch = resolve_scheme lift_tm resolve_tm meta_map sch in
+    let sch =
+      resolve_scheme
+        (fun (m_opt, a) ->
+          let m_opt = m_opt |> Option.map lift_tm |> box_opt in
+          box_pair m_opt (lift_tm a))
+        (fun meta_map (m_opt, a) ->
+          (Option.map (resolve_tm meta_map) m_opt, resolve_tm meta_map a))
+        meta_map sch
+    in
     Extern { name; relv; scheme = sch }
 
 let resolve_dcls meta_map dcls = List.map (resolve_dcl meta_map) dcls
@@ -350,6 +358,15 @@ let rec simpl_iprbm ?(expand = false) eqn =
     in
     blocked m
   in
+  let imeta_pattern sp =
+    (* pattern fragment check *)
+    List.for_all
+      (function
+        | PMeta _ -> true
+        | Var _ -> true
+        | _ -> false)
+      sp
+  in
   match eqn with
   | EqualSort (s1, s2) -> (
     if eq_sort s1 s2 then
@@ -413,11 +430,17 @@ let rec simpl_iprbm ?(expand = false) eqn =
       try
         let hd1, sp1 = unApps m1 in
         let hd2, sp2 = unApps m2 in
-        let eqns1 = simpl_iprbm (EqualTerm (env, hd1, hd2)) in
-        let eqns2 =
-          List.map2 (fun m n -> simpl_iprbm (EqualTerm (env, m, n))) sp1 sp2
-        in
-        eqns1 @ List.concat eqns2
+        match (hd1, hd2) with
+        (* delay non-pattern fragment *)
+        | IMeta _, _ when not (imeta_pattern sp1) -> [ eqn ]
+        | _, IMeta _ when not (imeta_pattern sp2) -> [ eqn ]
+        (* attempt pattern fragment *)
+        | _ ->
+          let eqns1 = simpl_iprbm (EqualTerm (env, hd1, hd2)) in
+          let eqns2 =
+            List.map2 (fun m n -> simpl_iprbm (EqualTerm (env, m, n))) sp1 sp2
+          in
+          eqns1 @ List.concat eqns2
       with
       | _ when not expand -> simpl_iprbm ~expand:true (EqualTerm (env, m1, m2))
       | _ when imeta_blocked m1 || imeta_blocked m2 -> [ eqn ]

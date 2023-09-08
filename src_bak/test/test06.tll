@@ -10,16 +10,16 @@ inductive nat : U where
   | succ (pred : nat) : nat
 
 #[logical]
-inductive eq<s> ?(A : Type<s>) (m : A) : A -> U where
+inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
   | refl : eq m m
 
-inductive exists<s,r,t> ?(A : Type<s>) (B : A -> Type<r>) : Type<t> where
+inductive exists‹s,r,t› ?(A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
   | ex (m : A) {pf : B m} : exists B
 
-inductive sing<s> ?(A : Type<s>) : A -> Type<s> where
+inductive sing‹s› ?(A : Type‹s›) : A -> Type‹s› where
   | just (m : A) : sing m
 
-inductive list<s> (A : Type<s>) : Type<s> where
+inductive list‹s› (A : Type‹s›) : Type‹s› where
   | nil : list A
   | cons (hd : A) (tl : list A) : list A
 
@@ -31,7 +31,7 @@ def lte : nat -> nat -> bool
 def lt (x : nat) (y : nat) : bool := lte (succ x) y
 
 #[logical]
-def length<s> ?(A : Type<s>) : list A -> nat
+def length‹s› ?(A : Type‹s›) : list A -> nat
   | nil => zero
   | (cons _ tl) => succ (length tl)
 
@@ -41,7 +41,7 @@ inductive at ?(A : U) (x : A) : nat -> list A -> U where
   | at_succ ?(n : nat) (x0 : A) ?(xs0 : list A) (h : at x n xs0) : at x (succ n) (cons x0 xs0)
 
 def get_at ?{A : U}
-: ∀ (n : nat) (xs : list A) -> {eq (lt n (length xs)) true} -> exists<_,_,L> (fn x => at x n xs)
+: ∀ (n : nat) (xs : list A) -> {eq (lt n (length xs)) true} -> exists‹_,_,L› (fn x => at x n xs)
   | _        nil         !! =>
   | zero     (cons x xs) _  => ex x (at_zero xs)
   | (succ n) (cons x xs) e  => 

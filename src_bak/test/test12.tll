@@ -122,42 +122,76 @@ def pow : nat -> nat -> nat
 
 
 
-#[logical] extern proto : U
-#[logical] extern act0‹s› (b : bool) ?(A : Type‹s›) (B : A -> proto) : proto
-#[logical] extern act1‹s› (b : bool) ?(A : Type‹s›) (B : A -> proto) : proto
-#[logical] extern endp : proto
-#[logical] extern ch : bool -> proto -> L
+-- define locations
+#[logical]def loc : U := nat
 
-extern close ?{b : bool} : ch b endp -> IO unit 
-extern send0‹s› ?{b1 b2 : bool} ?{A : Type‹s›} ?{B : A -> proto} : {xor b1 b2 = false} -> (ch b1 (act0 b2 B)) -> ∀ {x : A} -o IO (ch b1 (B x))
-extern send1‹s› ?{b1 b2 : bool} ?{A : Type‹s›} ?{B : A -> proto} : {xor b1 b2 = false} -> (ch b1 (act1 b2 B)) -> ∀ (x : A) -o IO (ch b1 (B x))
-extern recv0‹s› ?{b1 b2 : bool} ?{A : Type‹s›} ?{B : A -> proto} : {xor b1 b2 = true} -> (ch b1 (act0 b2 B)) -> IO (exists0 fn (x : A) => ch b1 (B x))
-extern recv1‹s› ?{b1 b2 : bool} ?{A : Type‹s›} ?{B : A -> proto} : {xor b1 b2 = true} -> (ch b1 (act1 b2 B)) -> IO (exists1 fn (x : A) => ch b1 (B x))
-extern fork ?{b : bool} ?{P : proto} : (ch b P -o IO unit) -> IO (ch (not b) P)
-
+-- the capability A@l states that a value of type A is stored at location l
 #[logical]
-def DH (p g : nat) : proto :=
-  act0 true  fn (a : nat) => act1 true  fn (A : nat) => act0 true  fn (_ : A = (g ^ a % p)) =>
-  act0 false fn (b : nat) => act1 false fn (B : nat) => act0 false fn (_ : B = (g ^ b % p)) =>
-  endp
+inductive at‹s› (A : Type‹s›) (l : loc) : L where
+| at_intro (m : A) : at A l
 
-#[logical] def DH_ch (p g : nat) := ch true  (DH p g)
-#[logical] def DH_hc (p g : nat) := ch false (DH p g)
+notation ( @ ) := (at %1 %2)
 
-def alice (a : nat) (p g : nat) (c : DH_ch p g) : IO unit :=
-  let* c := send0 refl c a in 
-  let* c := send1 refl c (g ^ a % p) in
-  let* c := send0 refl c refl in
-  let* ⟨{b}, c⟩ := recv0 refl c in
-  let* ⟨B, c⟩ := recv1 refl c in
-  let* ⟨{pf}, c⟩ := recv0 refl c in
-  close c
 
-def bob (b : nat) (p g : nat) (c : DH_hc p g) : IO unit :=
-  let* ⟨{a}, c⟩ := recv0 refl c in
-  let* ⟨A, c⟩ := recv1 refl c in
-  let* ⟨{pf}, c⟩ := recv0 refl c in
-  let* c := send0 refl c b in
-  let* c := send1 refl c (g ^ b % p) in
-  let* c := send0 refl c refl in
-  close c
+
+
+-- at_intro cannot be used relevantly, so the only way to obtain relevant capabilities
+-- is to call alloc which is completely abstract.
+-- alloc is monadic because a fresh location is generated from thin air.
+extern alloc (_ : unit) : IO (exists1 fn l => unit @ l)  
+
+
+
+
+-- The following declarations are "semi-external". They have relevant names with
+-- irrlevant bodies. During compilation, external code is emitted instead of the
+-- irrlevant body. We must ensure that the semantics of the external code is
+-- consistent with the semantics of the irrelevant body.
+
+-- non-linear get can retrieve values without removal 
+extern getU ?{A : U} (l : loc) (pf : A @ l) : prod1 A (A @ l) :=
+  match pf with
+  | at_intro v => ⟨v, pf⟩
+
+-- linear get must retrieve values with removal 
+extern getL ?{A : L} (l : loc) (pf : A @ l) : prod1 A (unit @ l) :=
+  match pf with
+  | at_intro v => ⟨v, at_intro tt⟩
+
+-- set can override previous stored value
+extern set‹s› ?{A : U} ?{B : Type‹s›} (l : loc) (m : B) (pf : A @ l) : B @ l :=
+  match pf with
+  | at_intro _ => at_intro m
+
+-- free deallocates references with non-linear values inside
+-- to free references with linear values, the linear values must first be removed 
+extern free ?{A : U} (l : loc) (pf : A @ l) : unit :=
+  match pf with
+  | at_intro _ => tt
+
+
+
+
+-- State laws can be proven by simple induction on capabilities.
+#[logical]
+def set_get_law‹s› ?(A : U) (l : loc) (pf : A @ l) (v0 : A) : 
+  let pf := set l v0 pf in
+  let ⟨v1, pf⟩ := getU l pf in
+  v0 = v1
+:=
+  match pf as pf0 in
+    let pf0 := set l v0 pf0 in
+    let ⟨v1, pf0⟩ := getU l pf0 in
+    v0 = v1
+  with 
+  | at_intro v => refl
+
+
+
+
+-- Capabilities are linear, references enjoy unique ownership.
+def main : IO unit :=
+  let* ⟨l, pf⟩ := alloc tt in
+  let pf := set l zero pf in
+  let _ := free l pf in
+  return tt

@@ -25,6 +25,7 @@ type tm =
   | Type of sort
   | Var of tm var
   | Const of Const.t * sorts
+  | TName of TName.t * sorts
   | Pi of relv * sort * tm * (tm, tm) binder
   | Fun of guard * tm * (tm, cls) binder
   | App of tm * tm
@@ -76,10 +77,21 @@ type dcl =
       ; arity : tele param scheme
       ; dconstrs : dconstrs
       }
+  | Template of
+      { name : TName.t
+      ; relv : relv
+      ; scheme : tm scheme
+      }
+  | Implement of
+      { name : Const.t
+      ; relv : relv
+      ; tmpl : TName.t
+      ; scheme : (tm * tm) scheme
+      }
   | Extern of
       { name : Const.t
       ; relv : relv
-      ; scheme : tm scheme
+      ; scheme : (tm option * tm) scheme
       }
 
 and dcls = dcl list
@@ -155,6 +167,7 @@ let _PMeta x = box (PMeta x)
 let _Type = box_apply (fun s -> Type s)
 let _Var = box_var
 let _Const x = box_apply (fun ss -> Const (x, ss))
+let _TName x = box_apply (fun ss -> TName (x, ss))
 let _Pi relv = box_apply3 (fun s a b -> Pi (relv, s, a, b))
 let _Fun guard = box_apply2 (fun a bnd -> Fun (guard, a, bnd))
 let _App = box_apply2 (fun m n -> App (m, n))
@@ -236,6 +249,9 @@ let rec lift_tm = function
   | Const (x, ss) ->
     let ss = List.map lift_sort ss in
     _Const x (box_list ss)
+  | TName (x, ss) ->
+    let ss = List.map lift_sort ss in
+    _TName x (box_list ss)
   | Pi (relv, s, a, bnd) ->
     _Pi relv (lift_sort s) (lift_tm a) (box_binder lift_tm bnd)
   | Fun (guard, a, bnd) ->

@@ -45,7 +45,7 @@ end
 module Env = struct
   type t =
     { var : tm Var.Map.t
-    ; const : (sorts -> tm) Const.Map.t
+    ; const : (sorts -> tm option) Const.Map.t
     }
 
   let empty = { var = Var.Map.empty; const = Const.Map.empty }
@@ -82,15 +82,19 @@ module Env = struct
     pf fmt "@[<v 0>env {|@;<1 2>%a@;<1 0>|}@]" aux env.var
 end
 
-module Resolver = struct
+module RMap = struct
   module Sorts = struct
+    open Hashtbl
+
     type t = sorts
 
-    let compare ss1 ss2 = List.compare (fun s1 s2 -> compare s1 s2) ss1 ss2
+    let compare ss1 ss2 = Int.compare (hash ss1) (hash ss2)
   end
 
-  module RMap = Map.Make (Sorts)
+  include Map.Make (Sorts)
+end
 
+module Resolver = struct
   type t =
     { const : Const.t RMap.t Const.Map.t
     ; ind : Ind.t RMap.t Ind.Map.t
