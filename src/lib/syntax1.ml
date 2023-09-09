@@ -115,17 +115,6 @@ type dcl =
       ; arity : tele param scheme
       ; dconstrs : dconstrs
       }
-  | Template of
-      { name : TName.t
-      ; relv : relv
-      ; scheme : tm scheme
-      }
-  | Implement of
-      { name : Const.t
-      ; relv : relv
-      ; tmpl : TName.t
-      ; scheme : (tm * tm) scheme
-      }
   | Extern of
       { name : Const.t
       ; relv : relv

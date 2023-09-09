@@ -288,6 +288,47 @@ let map_pmeta f m =
     | MLet (m, bnd) ->
       let x, n = unbind bnd in
       _MLet (aux m) (bind_var x (aux n))
+    (* primitive types *)
+    | Int_t -> _Int_t
+    | Char_t -> _Char_t
+    | String_t -> _String_t
+    (* primitive terms *)
+    | Int i -> _Int i
+    | Char c -> _Char c
+    | String s -> _String s
+    (* primitive operators *)
+    | Neg m -> _Neg (aux m)
+    | Add (m, n) -> _Add (aux m) (aux n)
+    | Sub (m, n) -> _Sub (aux m) (aux n)
+    | Mul (m, n) -> _Mul (aux m) (aux n)
+    | Div (m, n) -> _Div (aux m) (aux n)
+    | Rem (m, n) -> _Rem (aux m) (aux n)
+    | Lte (m, n) -> _Lte (aux m) (aux n)
+    | Gte (m, n) -> _Gte (aux m) (aux n)
+    | Lt (m, n) -> _Lt (aux m) (aux n)
+    | Gt (m, n) -> _Gt (aux m) (aux n)
+    | Eq (m, n) -> _Eq (aux m) (aux n)
+    | Chr m -> _Chr (aux m)
+    | Ord m -> _Ord (aux m)
+    | Push (m, n) -> _Push (aux m) (aux n)
+    | Cat (m, n) -> _Cat (aux m) (aux n)
+    | Size m -> _Size (aux m)
+    | Indx (m, n) -> _Indx (aux m) (aux n)
+    (* primitive sessions *)
+    | Proto -> _Proto
+    | End -> _End
+    | Act (relv, role, a, bnd) ->
+      let x, b = unbind bnd in
+      _Act relv role (aux a) (bind_var x (aux b))
+    | Ch (role, m) -> _Ch role (aux m)
+    (* primitive effects *)
+    | Print m -> _Print (aux m)
+    | Prerr m -> _Prerr (aux m)
+    | ReadLn m -> _ReadLn (aux m)
+    | Fork m -> _Fork (aux m)
+    | Send m -> _Send (aux m)
+    | Recv m -> _Recv (aux m)
+    | Close m -> _Close (aux m)
     (* magic *)
     | Magic a -> _Magic (aux a)
   in
@@ -334,13 +375,12 @@ let occurs_tm x m =
       aux a || aux b
     | Fun (_, a, bnd) ->
       let _, cls = unbind bnd in
-      aux a
-      || List.exists
-        (fun (_, bnd) ->
-           let _, rhs_opt = unmbind bnd in
-           match rhs_opt with
-           | Some rhs -> aux rhs
-           | None -> false)
+      aux a ||
+      List.exists (fun (_, bnd) ->
+          let _, rhs_opt = unmbind bnd in
+          match rhs_opt with
+          | Some rhs -> aux rhs
+          | None -> false)
         cls
     | App (m, n) -> aux m || aux n
     | Let (_, m, bnd) ->
@@ -350,8 +390,8 @@ let occurs_tm x m =
     | Ind (_, _, ms, ns) -> List.exists aux (ms @ ns)
     | Constr (_, _, ms, ns) -> List.exists aux (ms @ ns)
     | Match (_, ms, a, cls) ->
-      List.exists aux ms || aux a
-      || List.exists
+      List.exists aux ms || aux a ||
+      List.exists
         (fun (_, bnd) ->
            let _, rhs_opt = unmbind bnd in
            match rhs_opt with
@@ -364,6 +404,47 @@ let occurs_tm x m =
     | MLet (m, bnd) ->
       let _, n = unbind bnd in
       aux m || aux n
+    (* primitive types *)
+    | Int_t -> false
+    | Char_t -> false
+    | String_t -> false
+    (* primitive terms *)
+    | Int _ -> false
+    | Char _ -> false
+    | String _ -> false
+    (* primitive operators *)
+    | Neg m -> aux m
+    | Add (m, n) -> aux m || aux n
+    | Sub (m, n) -> aux m || aux n
+    | Mul (m, n) -> aux m || aux n
+    | Div (m, n) -> aux m || aux n
+    | Rem (m, n) -> aux m || aux n
+    | Lte (m, n) -> aux m || aux n
+    | Gte (m, n) -> aux m || aux n
+    | Lt (m, n) -> aux m || aux n
+    | Gt (m, n) -> aux m || aux n
+    | Eq (m, n) -> aux m || aux n
+    | Chr m -> aux m
+    | Ord m -> aux m
+    | Push (m, n) -> aux m || aux n
+    | Cat (m, n) -> aux m || aux n
+    | Size m -> aux m
+    | Indx (m, n) -> aux m || aux n
+    (* primitive sessions *)
+    | Proto -> false
+    | End -> false
+    | Act (_, _, a, bnd) ->
+      let _, b = unbind bnd in
+      aux a || aux b
+    | Ch (_, m) -> aux m
+    (* primitive effects *)
+    | Print m -> aux m
+    | Prerr m -> aux m
+    | ReadLn m -> aux m
+    | Fork m -> aux m
+    | Send m -> aux m
+    | Recv m -> aux m
+    | Close m -> aux m
     (* magic *)
     | Magic a -> aux a
   in
