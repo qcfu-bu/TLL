@@ -25,18 +25,18 @@ let pp_modifier fmt = function
 
 let rec pp_rxs fmt = function
   | [] -> ()
-  | [ ((r, s), x) ] -> (
-    match (r, s) with
-    | N, U -> pf fmt "{%a} ->" Var.pp x
-    | R, U -> pf fmt "(%a) ->" Var.pp x
-    | N, L -> pf fmt "{%a} -o" Var.pp x
-    | R, L -> pf fmt "(%a) -o" Var.pp x)
-  | ((r, s), x) :: rxs -> (
-    match (r, s) with
-    | N, U -> pf fmt "{%a} ->@;<1 0>%a" Var.pp x pp_rxs rxs
-    | R, U -> pf fmt "(%a) ->@;<1 0>%a" Var.pp x pp_rxs rxs
-    | N, L -> pf fmt "{%a} -o@;<1 0>%a" Var.pp x pp_rxs rxs
-    | R, L -> pf fmt "(%a) -o@;<1 0>%a" Var.pp x pp_rxs rxs)
+  | [ ((r, s), x) ] ->
+    (match (r, s) with
+     | N, U -> pf fmt "{%a} ->" Var.pp x
+     | R, U -> pf fmt "(%a) ->" Var.pp x
+     | N, L -> pf fmt "{%a} -o" Var.pp x
+     | R, L -> pf fmt "(%a) -o" Var.pp x)
+  | ((r, s), x) :: rxs ->
+    (match (r, s) with
+     | N, U -> pf fmt "{%a} ->@;<1 0>%a" Var.pp x pp_rxs rxs
+     | R, U -> pf fmt "(%a) ->@;<1 0>%a" Var.pp x pp_rxs rxs
+     | N, L -> pf fmt "{%a} -o@;<1 0>%a" Var.pp x pp_rxs rxs
+     | R, L -> pf fmt "(%a) -o@;<1 0>%a" Var.pp x pp_rxs rxs)
 
 and pp_tm fmt = function
   (* core *)
@@ -53,25 +53,51 @@ and pp_tm fmt = function
     pf fmt "@[((%a)@;<1 2>@[%a@])@]" pp_tm hd (list ~sep:sp pp_tm) ms
   | Let (m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm
-      n
+    pf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
   (* inductive *)
   | Constr (c, []) -> pf fmt "%a" Constr.pp c
   | Constr (c, ms) ->
     pf fmt "@[(%a@;<1 2>@[%a@])@]" Constr.pp c (list ~sep:sp pp_tm) ms
   | Match (R, _, m, cls) ->
-    pf fmt "@[<v 0>@[match %a with@]@;<1 0>@[%a@]@;<1 0>end@]" pp_tm m pp_cls
-      cls
+    pf fmt "@[<v 0>@[match %a with@]@;<1 0>@[%a@]@;<1 0>end@]" pp_tm m pp_cls cls
   | Match (N, _, m, cls) ->
-    pf fmt "@[<v 0>@[match {%a} with@]@;<1 0>@[%a@]@;<1 0>end@]" pp_tm m pp_cls
-      cls
+    pf fmt "@[<v 0>@[match {%a} with@]@;<1 0>@[%a@]@;<1 0>end@]" pp_tm m pp_cls cls
   | Absurd -> pf fmt "!!"
   (* monad *)
   | Return m -> pf fmt "return %a" pp_tm m
   | MLet (m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let* %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m
-      pp_tm n
+    pf fmt "@[@[let* %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
+  (* primitive terms *)
+  | Int i -> pf fmt "%d" i
+  | Char c -> pf fmt "%c" c
+  | String s -> pf fmt "%s" s
+  (* primitive operators *)
+  | Neg m -> pf fmt "@[(__neg__@;<1 2>@[%a@])@]" pp_tm m
+  | Add (m, n) -> pf fmt "@[(__add__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Sub (m, n) -> pf fmt "@[(__sub__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Mul (m, n) -> pf fmt "@[(__mul__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Div (m, n) -> pf fmt "@[(__div__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Mod (m, n) -> pf fmt "@[(__mod__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Lte (m, n) -> pf fmt "@[(__lte__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Gte (m, n) -> pf fmt "@[(__gte__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Lt (m, n) -> pf fmt "@[(__lt__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Gt (m, n) -> pf fmt "@[(__gt__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Eq (m, n) -> pf fmt "@[(__eq__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Chr m -> pf fmt "@[(__chr__@;<1 2>@[%a@])@]" pp_tm m
+  | Ord m -> pf fmt "@[(__ord__@;<1 2>@[%a@])@]" pp_tm m
+  | Push (m, n) -> pf fmt "@[(__push__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Cat (m, n) -> pf fmt "@[(__cat__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Size m -> pf fmt "@[(__size__@;<1 2>@[%a@])@]" pp_tm m
+  | Indx (m, n) -> pf fmt "@[%a.[%a]@]" pp_tm m pp_tm n
+  (* primitive effects *)
+  | Print m -> pf fmt "@[print@;<1 2>%a@]" pp_tm m
+  | Prerr m -> pf fmt "@[prerr@;<1 2>%a@]" pp_tm m
+  | ReadLn m -> pf fmt "@[readln@;<1 2>%a@]" pp_tm m
+  | Fork m -> pf fmt "@[fork@;<1 2>%a@]" pp_tm m
+  | Send (relv, s, m) -> pf fmt "@[send[%a,%a]@;<1 2>%a@]" pp_relv relv pp_sort s pp_tm m
+  | Recv (relv, s, m) -> pf fmt "@[recv[%a,%a]@;<1 2>%a@]" pp_relv relv pp_sort s pp_tm m
+  | Close (role, m) -> pf fmt "@[close[%b]@;<1 2>%a@]" role pp_tm m
   (* erasure *)
   | NULL -> pf fmt "NULL"
   (* magic *)

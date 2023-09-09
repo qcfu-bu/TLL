@@ -35,9 +35,8 @@
 (setq tll-sorts '("U" "L" "Type"))
 (setq tll-keywords '("of" "layout"))
 (setq tll-lambda '("fn" "ln" "fun" "function" "lam" "val" "main" "where"))
-(setq tll-builtin '("let" "let*" "in" "rew" "match" "as" "with" "end"
-                    "if" "then" "else" "fork" "return"
-                    "open" "send" "recv" "close" "end" "•"))
+(setq tll-builtin '("let" "let*" "in" "match" "as" "with" "end" "if" "then" "else" "return"))
+(setq tll-constant '("fork" "recv" "send" "send" "recv" "close" "end" "•"))
 (setq tll-quantifier '("∀" "forall" "∃" "exists"))
 (setq tll-highlights '("→" "->" "⊸" "-o" "≔" ":=" "⇒" "=>" "⇑" "⇓"))
 (setq tll-intense '("#magic" "!!") )
@@ -48,6 +47,7 @@
 (setq tll-keywords-regexp (regexp-opt tll-keywords 'symbols))
 (setq tll-lambda-regexp (regexp-opt tll-lambda 'symbols))
 (setq tll-builtin-regexp (regexp-opt tll-builtin 'symbols))
+(setq tll-constant-regexp (regexp-opt tll-constant 'symbols))
 (setq tll-quantifier-regexp (regexp-opt tll-quantifier 'symbols))
 (setq tll-highlights-regexp (regexp-opt tll-highlights nil))
 (setq tll-intense-regexp (regexp-opt tll-intense nil))
@@ -77,6 +77,7 @@
         (,tll-keywords-regexp . font-lock-keyword-face)
         (,tll-lambda-regexp . font-lock-keyword-face)
         (,tll-builtin-regexp . font-lock-builtin-face)
+        (,tll-constant-regexp . font-lock-constant-face)
         (,tll-quantifier-regexp . font-lock-constant-face)
         ;; log file messages
         (,tll-log-group1-regexp . font-lock-string-face)

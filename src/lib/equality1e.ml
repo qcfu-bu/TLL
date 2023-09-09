@@ -4,7 +4,13 @@ open Syntax1
 open Context1e
 open Prelude1
 
-let rec whnf ?(expand = true) (env : Env.t) = function
+
+let rec whnf ?(expand = true) (env : Env.t) m = 
+  let (mod) x y =
+    let r = x mod y in
+    if r < 0 then r + abs(y) else r
+  in
+  match m with
   (* inference *)
   | Ann (m, a) -> whnf ~expand env m
   (* core *)
@@ -64,11 +70,11 @@ let rec whnf ?(expand = true) (env : Env.t) = function
      | Int i, Int 0 -> Int 0
      | Int i, Int j -> Int (i / j)
      | m, n -> Div (m, n))
-  | Rem (m, n) ->
+  | Mod (m, n) ->
     (match whnf ~expand env m, whnf ~expand env n with
      | Int i, Int 0 -> Int 0
      | Int i, Int j -> Int (i mod j)
-     | m, n -> Rem (m, n))
+     | m, n -> Mod (m, n))
   | Lte (m, n) ->
     (match whnf ~expand env m, whnf ~expand env n with
      | Int i, Int j ->
@@ -126,6 +132,7 @@ let rec whnf ?(expand = true) (env : Env.t) = function
      | m -> Size m)
   | Indx (m, n) ->
     (match whnf ~expand env m, whnf ~expand env n with
+     | String "", Int i -> Char '\000'
      | String s, Int i -> Char (String.(get s (i mod (length s))))
      | m, n -> Indx (m, n))
   (* primitive session *)
@@ -203,7 +210,7 @@ let rec aeq_tm m1 m2 =
     | Sub (m1, n1), Sub (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
     | Mul (m1, n1), Mul (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
     | Div (m1, n1), Div (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
-    | Rem (m1, n1), Rem (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Mod (m1, n1), Mod (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
     | Lte (m1, n1), Lte (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
     | Gte (m1, n1), Gte (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
     | Lt (m1, n1), Lt (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
@@ -285,7 +292,7 @@ let rec eq_tm ?(expand = false) env m1 m2 =
       | Sub (m1, n1), Sub (m2, n2) -> equal m1 m2 && equal n1 n2
       | Mul (m1, n1), Mul (m2, n2) -> equal m1 m2 && equal n1 n2
       | Div (m1, n1), Div (m2, n2) -> equal m1 m2 && equal n1 n2
-      | Rem (m1, n1), Rem (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Mod (m1, n1), Mod (m2, n2) -> equal m1 m2 && equal n1 n2
       | Lte (m1, n1), Lte (m2, n2) -> equal m1 m2 && equal n1 n2
       | Gte (m1, n1), Gte (m2, n2) -> equal m1 m2 && equal n1 n2
       | Lt (m1, n1), Lt (m2, n2) -> equal m1 m2 && equal n1 n2

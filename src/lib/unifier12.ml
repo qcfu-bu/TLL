@@ -80,7 +80,7 @@ let map_pmeta f m =
     | Sub (m, n) -> _Sub (aux m) (aux n)
     | Mul (m, n) -> _Mul (aux m) (aux n)
     | Div (m, n) -> _Div (aux m) (aux n)
-    | Rem (m, n) -> _Rem (aux m) (aux n)
+    | Mod (m, n) -> _Mod (aux m) (aux n)
     | Lte (m, n) -> _Lte (aux m) (aux n)
     | Gte (m, n) -> _Gte (aux m) (aux n)
     | Lt (m, n) -> _Lt (aux m) (aux n)
@@ -258,7 +258,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
        let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
        let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
        eqns1 @ eqns2
-     | Rem (m1, n1), Rem (m2, n2) -> 
+     | Mod (m1, n1), Mod (m2, n2) -> 
        let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
        let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
        eqns1 @ eqns2

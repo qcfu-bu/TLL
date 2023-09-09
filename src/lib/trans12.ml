@@ -140,7 +140,7 @@ module Logical = struct
       check_tm ctx env m Int_t;
       check_tm ctx env n Int_t;
       Int_t
-    | Rem (m, n) ->
+    | Mod (m, n) ->
       check_tm ctx env m Int_t;
       check_tm ctx env n Int_t;
       Int_t
@@ -206,7 +206,7 @@ module Logical = struct
     | Send m ->
       let t = infer_tm ctx env m in
       (match whnf env t with
-       | Ch (role1, Act (relv, role2, a, bnd)) when role1 <> role2 = false -> 
+       | Ch (role1, Act (relv, role2, a, bnd)) when role1 = role2 -> 
          let x, b = unbind bnd in
          let bnd = unbox (bind_var x (lift_tm (IO (Ch (role1, b))))) in
          Pi (relv, L, a, bnd)
@@ -214,14 +214,13 @@ module Logical = struct
     | Recv m ->
       let t = infer_tm ctx env m in
       (match whnf env t with
-       | Ch (role1, Act (relv, role2, a, bnd)) when role1 <> role2 = true ->
+       | Ch (role1, Act (relv, role2, a, bnd)) when role1 <> role2 ->
          let x, b = unbind bnd in
-         let _a = lift_tm a in
          let s = infer_sort ctx env a in
-         let _b_t = _Pi R _U _a (bind_var x (_Type _L)) in
+         let _b_t = _Pi R _U (lift_tm a) (bind_var x (_Type _L)) in
          let _b = _Lam _b_t x (_Ch role1 (lift_tm b)) in
          let ind = match relv with N -> exists0_ind | R -> exists1_ind in
-         IO (unbox (_Ind ind (box [s; L]) (box_list [_a; _b]) (box [])))
+         IO (Ind (ind, [s; L], [a; unbox _b], []))
        | _ -> failwith "trans12.Logical.infer_tm(Recv)")
     | Close m ->
       let t = infer_tm ctx env m in
@@ -600,13 +599,128 @@ module Program = struct
     | Int i -> Syntax2.(Int_t, _Int i, Usage.empty)
     | Char c -> Syntax2.(Char_t, _Char c, Usage.empty)
     | String s -> Syntax2.(String_t, _String s, Usage.empty)
-
-
-
+    (* primitive operators *)
+    | Neg m ->
+      let m_elab, usg = check_tm ctx env m Int_t in
+      Syntax2.(Int_t, _Neg m_elab, usg)
+    | Add (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m Int_t in
+      let n_elab, usg2 = check_tm ctx env n Int_t in
+      Syntax2.(Int_t, _Add m_elab n_elab, Usage.merge usg1 usg2)
+    | Sub (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m Int_t in
+      let n_elab, usg2 = check_tm ctx env n Int_t in
+      Syntax2.(Int_t, _Sub m_elab n_elab, Usage.merge usg1 usg2)
+    | Mul (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m Int_t in
+      let n_elab, usg2 = check_tm ctx env n Int_t in
+      Syntax2.(Int_t, _Mul m_elab n_elab, Usage.merge usg1 usg2)
+    | Div (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m Int_t in
+      let n_elab, usg2 = check_tm ctx env n Int_t in
+      Syntax2.(Int_t, _Div m_elab n_elab, Usage.merge usg1 usg2)
+    | Mod (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m Int_t in
+      let n_elab, usg2 = check_tm ctx env n Int_t in
+      Syntax2.(Int_t, _Mod m_elab n_elab, Usage.merge usg1 usg2)
+    | Lte (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m Int_t in
+      let n_elab, usg2 = check_tm ctx env n Int_t in
+      Syntax2.(Ind (bool_ind, [], [], []), _Lte m_elab n_elab, Usage.merge usg1 usg2)
+    | Gte (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m Int_t in
+      let n_elab, usg2 = check_tm ctx env n Int_t in
+      Syntax2.(Ind (bool_ind, [], [], []), _Gte m_elab n_elab, Usage.merge usg1 usg2)
+    | Lt (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m Int_t in
+      let n_elab, usg2 = check_tm ctx env n Int_t in
+      Syntax2.(Ind (bool_ind, [], [], []), _Lt m_elab n_elab, Usage.merge usg1 usg2)
+    | Gt (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m Int_t in
+      let n_elab, usg2 = check_tm ctx env n Int_t in
+      Syntax2.(Ind (bool_ind, [], [], []), _Gt m_elab n_elab, Usage.merge usg1 usg2)
+    | Eq (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m Int_t in
+      let n_elab, usg2 = check_tm ctx env n Int_t in
+      Syntax2.(Ind (bool_ind, [], [], []), _Eq m_elab n_elab, Usage.merge usg1 usg2)
+    | Chr m ->
+      let m_elab, usg = check_tm ctx env m Int_t in
+      Syntax2.(Char_t, _Chr m_elab, usg)
+    | Ord m ->
+      let m_elab, usg = check_tm ctx env m Char_t in
+      Syntax2.(Int_t, _Ord m_elab, usg)
+    | Push (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m String_t in
+      let n_elab, usg2 = check_tm ctx env n Char_t in
+      Syntax2.(String_t, _Push m_elab n_elab, Usage.merge usg1 usg2)
+    | Cat (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m String_t in
+      let n_elab, usg2 = check_tm ctx env n String_t in
+      Syntax2.(String_t, _Cat m_elab n_elab, Usage.merge usg1 usg2)
+    | Size m ->
+      let m_elab, usg = check_tm ctx env m String_t in
+      Syntax2.(Int_t, _Size m_elab, usg)
+    | Indx (m, n) ->
+      let m_elab, usg1 = check_tm ctx env m String_t in
+      let n_elab, usg2 = check_tm ctx env n Int_t in
+      Syntax2.(Char_t, _Indx m_elab n_elab, Usage.merge usg1 usg2)
+    (* primitive sessions *)
+    | Proto -> failwith "trans12.Program.infer_tm(Proto)"
+    | Act _ -> failwith "trans12.Program.infer_tm(Act)"
+    | End -> failwith "trans12.Program.infer_tm(End)"
+    | Ch _ -> failwith "trans12.Program.infer_tm(Ch)"
+    (* primitive effects *)
+    | Print m -> 
+      let m_elab, usg = check_tm ctx env m String_t in
+      Syntax2.(IO (Ind (unit_ind, [], [], [])), _Print m_elab, usg)
+    | Prerr m -> 
+      let m_elab, usg = check_tm ctx env m String_t in
+      Syntax2.(IO (Ind (unit_ind, [], [], [])), _Prerr m_elab, usg)
+    | ReadLn m -> 
+      let m_elab, usg = check_tm ctx env m (Ind (unit_ind, [], [], [])) in
+      Syntax2.(IO String_t, _ReadLn m_elab, usg)
+    | Fork m -> 
+      let t, m_elab, usg = infer_tm ctx env m in
+      (match whnf env t with
+       | Pi (R, L, a, bnd) ->
+         (match whnf env a with
+          | Ch (role, a) ->
+            let _, b = unbind bnd in
+            Logical.assert_equal env b (IO (Ind (unit_ind, [], [], [])));
+            Syntax2.(IO (Ch (not role, a)), _Fork m_elab, usg)
+          | _ -> failwith "trans12.Program.infer_tm(Fork)")
+       | _ -> failwith "trans12.Program.infer_tm(Fork)")
+    | Send m ->
+      let t, m_elab, usg = infer_tm ctx env m in
+      (match whnf env t with
+       | Ch (role1, Act (relv, role2, a, bnd)) when role1 = role2 ->
+         let x, b = unbind bnd in
+         let s = Logical.infer_sort ctx env a in
+         let bnd = unbox (bind_var x (lift_tm (IO (Ch (role1, b))))) in
+         Syntax2.(Pi (relv, L, a, bnd), _Send (trans_relv relv) (trans_sort s) m_elab, usg)
+       | _ -> failwith "trans12.Program.infer_tm(Send)")
+    | Recv m ->
+      let t, m_elab, usg = infer_tm ctx env m in
+      (match whnf env t with
+       | Ch (role1, Act (relv, role2, a, bnd)) when role1 <> role2 ->
+         let x, b = unbind bnd in
+         let s = Logical.infer_sort ctx env a in
+         let _b_t = _Pi R _U (lift_tm a) (bind_var x (_Type _L)) in
+         let _b = _Lam _b_t x (_Ch role1 (lift_tm b)) in
+         let ind = match relv with N -> exists0_ind | R -> exists1_ind in
+         let t = Ind (ind, [s; L], [a; unbox _b], []) in
+         Syntax2.(IO t, _Recv (trans_relv relv) (trans_sort s) m_elab, usg)
+       | _ -> failwith "trans12.Program.infer_tm(Recv)")
+    | Close m ->
+      let t, m_elab, usg = infer_tm ctx env m in
+      (match whnf env t with
+       | Ch (role, End) ->
+         Syntax2.(IO (Ind (unit_ind, [], [], [])), _Close role m_elab, usg)
+       | _ -> failwith "trans12.Program.infer_tm(Close)")
+    (* magic *)
     | Magic a ->
       let _ = Logical.infer_sort ctx env a in
       Syntax2.(a, _Magic, Usage.of_ctx ctx)
-    | _ -> _
 
   and infer_ptl ctx env ms ns ptl =
     let rec aux_param ms ptl =
@@ -993,109 +1107,84 @@ let make_init xs =
 
 let rec check_dcls ctx env = function
   | [] -> ([], Usage.empty)
-  | Definition { name = x0; relv = R; scheme = sch } :: _ when Const.is_main x0
-    -> (
-        let sargs, (m, a) = unmbind sch in
-        match (sargs, whnf env a) with
-        | [||], IO a0 -> (
-            let s = Logical.infer_sort ctx env a0 in
-            match s with
-            | U ->
-              let m_elab, usg = Program.check_tm ctx env m a in
-              Syntax2.([ Main { body = unbox m_elab } ], usg)
-            | _ -> failwith "trans.check_cls(Main)")
-        | _ -> failwith "trans12.check_dcls(Main)")
+  | Definition { name = x0; relv = R; scheme = sch } :: _ when Const.is_main x0 -> 
+    let sargs, (m, a) = unmbind sch in
+    (match (sargs, whnf env a) with
+     | [||], IO a -> 
+       Logical.assert_equal env a (Ind (unit_ind, [], [], []));
+       let m_elab, usg = Program.check_tm ctx env m (IO a) in
+       Syntax2.([ Main { body = unbox m_elab } ], usg)
+     | _ -> failwith "trans12.check_dcls(Main)")
   | Definition { name = x0; relv = N; scheme = sch } :: dcls ->
     let sargs = mbinder_names sch in
     let init = make_init sargs in
     let dcl_elab, res, ctx, local, xs =
-      List.fold_right
-        (fun ss (dcl_elab, res, ctx_acc, local, xs) ->
-           let x1 = const_extend x0 ss in
-           try
-             let m, a = msubst sch (Array.of_list ss) in
-             let s = Logical.infer_sort ctx env a in
-             Logical.check_tm ctx env m a;
-             ( Syntax2.(Definition { name = x1; relv = N; body = NULL })
-               :: dcl_elab
-             , RMap.add ss x1 res
-             , Ctx.add_const x1 a s ctx_acc
-             , RMap.add ss m local
-             , (x1, s) :: xs )
-           with
-           | e ->
-             warn_const x1 e;
-             (dcl_elab, res, ctx_acc, local, xs))
-        init
-        ([], RMap.empty, ctx, RMap.empty, [])
+      List.fold_right (fun ss (dcl_elab, res, ctx_acc, local, xs) ->
+          let x1 = const_extend x0 ss in
+          try
+            let m, a = msubst sch (Array.of_list ss) in
+            let s = Logical.infer_sort ctx env a in
+            Logical.check_tm ctx env m a;
+            ( Syntax2.(Definition { name = x1; relv = N; body = NULL })
+              :: dcl_elab
+            , RMap.add ss x1 res
+            , Ctx.add_const x1 a s ctx_acc
+            , RMap.add ss m local
+            , (x1, s) :: xs )
+          with e -> warn_const x1 e; (dcl_elab, res, ctx_acc, local, xs))
+        init ([], RMap.empty, ctx, RMap.empty, [])
     in
     State.add_const x0 res;
     let env = Env.add_const x0 (fun ss -> RMap.find_opt ss local) env in
     let dcls_elab, usg = check_dcls ctx env dcls in
-    let usg =
-      List.fold_left (fun usg (x, s) -> Usage.remove_const x usg N s) usg xs
-    in
+    let usg = List.fold_left (fun usg (x, s) -> Usage.remove_const x usg N s) usg xs in
     (dcl_elab @ dcls_elab, usg)
   | Definition { name = x0; relv = R; scheme = sch } :: dcls ->
     let sargs = mbinder_names sch in
     let init = make_init sargs in
     let dcl_elab, res, ctx, local, xs, usg1 =
-      List.fold_right
-        (fun ss (dcl_elab, res, ctx_acc, local, xs, usg1) ->
-           let x1 = const_extend x0 ss in
-           try
-             let m, a = msubst sch (Array.of_list ss) in
-             let s = Logical.infer_sort ctx env a in
-             let m_elab, usg = Program.check_tm ctx env m a in
-             ( Syntax2.(Definition { name = x1; relv = R; body = unbox m_elab })
-               :: dcl_elab
-             , RMap.add ss x1 res
-             , Ctx.add_const x1 a s ctx_acc
-             , RMap.add ss m local
-             , (x1, s) :: xs
-             , Usage.merge usg usg1 )
-           with
-           | e ->
-             warn_const x1 e;
-             (dcl_elab, res, ctx_acc, local, xs, usg1))
-        init
-        ([], RMap.empty, ctx, RMap.empty, [], Usage.empty)
+      List.fold_right (fun ss (dcl_elab, res, ctx_acc, local, xs, usg1) ->
+          let x1 = const_extend x0 ss in
+          try
+            let m, a = msubst sch (Array.of_list ss) in
+            let s = Logical.infer_sort ctx env a in
+            let m_elab, usg = Program.check_tm ctx env m a in
+            ( Syntax2.(Definition { name = x1; relv = R; body = unbox m_elab })
+              :: dcl_elab
+            , RMap.add ss x1 res
+            , Ctx.add_const x1 a s ctx_acc
+            , RMap.add ss m local
+            , (x1, s) :: xs
+            , Usage.merge usg usg1 )
+          with e -> warn_const x1 e; (dcl_elab, res, ctx_acc, local, xs, usg1))
+        init ([], RMap.empty, ctx, RMap.empty, [], Usage.empty)
     in
     State.add_const x0 res;
     let env = Env.add_const x0 (fun ss -> RMap.find_opt ss local) env in
     let dcls_elab, usg2 = check_dcls ctx env dcls in
-    let usg2 =
-      List.fold_left (fun usg2 (x, s) -> Usage.remove_const x usg2 R s) usg2 xs
-    in
+    let usg2 = List.fold_left (fun usg2 (x, s) -> Usage.remove_const x usg2 R s) usg2 xs in
     (dcl_elab @ dcls_elab, Usage.merge usg1 usg2)
-  | Inductive { name = d0; relv; arity; dconstrs } :: dcls ->
+  | Inductive { name = d0; relv; arity; dconstrs = dcs } :: dcls ->
     let sargs = mbinder_names arity in
     let init = make_init sargs in
-    let dcl_elab, ctx =
-      List.fold_right
-        (fun ss (dcl_elab, ctx_acc) ->
-           let d1 = ind_extend d0 ss in
-           try
-             let arity = msubst arity (Array.of_list ss) in
-             check_arity ctx env arity;
-             State.add_ind d0 ss d1;
-             let ctx = Ctx.add_ind d1 (arity, []) ctx in
-             let dconstrs_elab, ctx_acc, cs0 =
-               check_dconstrs ss ctx env relv d0 dconstrs ctx_acc
-             in
-             let ctx_acc = Ctx.add_ind d1 (arity, cs0) ctx_acc in
-             Syntax2.
-               ( Inductive
-                   { name = d1
-                   ; relv = Program.trans_relv relv
-                   ; body = dconstrs_elab
-                   }
-                 :: dcl_elab
-               , ctx_acc )
-           with
-           | e ->
-             warn_ind d1 e;
-             (dcl_elab, ctx_acc))
+    let dcl_elab, ctx = List.fold_right (fun ss (dcl_elab, ctx_acc) ->
+        let d1 = ind_extend d0 ss in
+        try
+          let arity = msubst arity (Array.of_list ss) in
+          check_arity ctx env arity;
+          State.add_ind d0 ss d1;
+          let ctx = Ctx.add_ind d1 (arity, []) ctx in
+          let dcs_elab, ctx_acc, cs0 = check_dconstrs ss ctx env relv d0 dcs ctx_acc in
+          let ctx_acc = Ctx.add_ind d1 (arity, cs0) ctx_acc in
+          Syntax2.
+            ( Inductive
+                { name = d1
+                ; relv = Program.trans_relv relv
+                ; body = dcs_elab
+                }
+              :: dcl_elab
+            , ctx_acc )
+        with e -> warn_ind d1 e; (dcl_elab, ctx_acc))
         init ([], ctx)
     in
     let dcls_elab, usg = check_dcls ctx env dcls in
@@ -1104,40 +1193,33 @@ let rec check_dcls ctx env = function
     let sargs = mbinder_names sch in
     let init = make_init sargs in
     let dcl_elab, res, ctx, local, xs =
-      List.fold_right
-        (fun ss (dcl_elab, res, ctx_acc, local, xs) ->
-           let x1 = const_extend x0 ss in
-           try
-             let m_opt, a = msubst sch (Array.of_list ss) in
-             let s = Logical.infer_sort ctx env a in
-             let relv = Program.trans_relv relv in
-             match m_opt with
-             | Some m ->
-               Logical.check_tm ctx env m a;
-               ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
-               , RMap.add ss x1 res
-               , Ctx.add_const x1 a s ctx_acc
-               , RMap.add ss m local
-               , (x1, s) :: xs )
-             | None ->
-               ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
-               , RMap.add ss x1 res
-               , Ctx.add_const x1 a s ctx_acc
-               , local
-               , (x1, s) :: xs )
-           with
-           | e ->
-             warn_extern x1 e;
-             (dcl_elab, res, ctx_acc, local, xs))
-        init
-        ([], RMap.empty, ctx, RMap.empty, [])
+      List.fold_right (fun ss (dcl_elab, res, ctx_acc, local, xs) ->
+          let x1 = const_extend x0 ss in
+          try
+            let m_opt, a = msubst sch (Array.of_list ss) in
+            let s = Logical.infer_sort ctx env a in
+            let relv = Program.trans_relv relv in
+            match m_opt with
+            | Some m ->
+              Logical.check_tm ctx env m a;
+              ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
+              , RMap.add ss x1 res
+              , Ctx.add_const x1 a s ctx_acc
+              , RMap.add ss m local
+              , (x1, s) :: xs )
+            | None ->
+              ( Syntax2.(Extern { name = x1; relv }) :: dcl_elab
+              , RMap.add ss x1 res
+              , Ctx.add_const x1 a s ctx_acc
+              , local
+              , (x1, s) :: xs )
+          with e -> warn_extern x1 e; (dcl_elab, res, ctx_acc, local, xs))
+        init ([], RMap.empty, ctx, RMap.empty, [])
     in
     State.add_const x0 res;
     let env = Env.add_const x0 (fun ss -> RMap.find_opt ss local) env in
     let dcls_elab, usg = check_dcls ctx env dcls in
-    let usg =
-      List.fold_left (fun usg (x, s) -> Usage.remove_const x usg relv s) usg xs
-    in
+    let usg = List.fold_left (fun usg (x, s) -> Usage.remove_const x usg relv s) usg xs in
     (dcl_elab @ dcls_elab, usg)
 
 and check_arity ctx env arity =

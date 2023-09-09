@@ -279,7 +279,7 @@ let rec trans_tm (nspc : nspc) = function
   | Sub (m, n) -> Syntax1.(_Sub (trans_tm nspc m) (trans_tm nspc n))
   | Mul (m, n) -> Syntax1.(_Mul (trans_tm nspc m) (trans_tm nspc n))
   | Div (m, n) -> Syntax1.(_Div (trans_tm nspc m) (trans_tm nspc n))
-  | Rem (m, n) -> Syntax1.(_Rem (trans_tm nspc m) (trans_tm nspc n))
+  | Mod (m, n) -> Syntax1.(_Mod (trans_tm nspc m) (trans_tm nspc n))
   | Lte (m, n) -> Syntax1.(_Lte (trans_tm nspc m) (trans_tm nspc n))
   | Gte (m, n) -> Syntax1.(_Gte (trans_tm nspc m) (trans_tm nspc n))
   | Lt (m, n) -> Syntax1.(_Lt (trans_tm nspc m) (trans_tm nspc n))

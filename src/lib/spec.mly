@@ -45,7 +45,7 @@
 %token<string> OP_TIMES  // × infixr
 %token<string> OP_OTIMES // ⊗ infixr
 %token<string> OP_DIV    // / infixl
-%token<string> OP_REM    // % infixl
+%token<string> OP_MOD    // % infixl
 %token<string> OP_ADD    // + infixl
 %token<string> OP_SUB    // - infixl
 %token<string> OP_LT     // < infixl
@@ -69,7 +69,7 @@
 %left OP_EQ OP_EX
 %left OP_LT OP_GT LT GT
 %left OP_ADD OP_SUB
-%left OP_MUL OP_DIV OP_REM
+%left OP_MUL OP_DIV OP_MOD
 %right OP_TIMES OP_OTIMES
 %left OP_CAT
 %nonassoc OP_SIM OP_TIC
@@ -148,7 +148,7 @@
 %token PRIM_SUB   // __sub__
 %token PRIM_MUL   // __mul__
 %token PRIM_DIV   // __div__
-%token PRIM_REM   // __rem__
+%token PRIM_MOD   // __mod__
 %token PRIM_LTE   // __lte__
 %token PRIM_GTE   // __gte__
 %token PRIM_LT    // __lt__
@@ -224,7 +224,7 @@ let infix_op ==
   | ~ = OP_TIMES; <>
   | ~ = OP_OTIMES; <>
   | ~ = OP_DIV; <>
-  | ~ = OP_REM; <>
+  | ~ = OP_MOD; <>
   | ~ = OP_ADD; <>
   | ~ = OP_SUB; <>
   | LT; { "<" }
@@ -673,7 +673,7 @@ let tm_prim_opr :=
   | PRIM_SUB; m = tm1; n = tm1; { Sub (m, n) }
   | PRIM_MUL; m = tm1; n = tm1; { Mul (m, n) }
   | PRIM_DIV; m = tm1; n = tm1; { Div (m, n) }
-  | PRIM_REM; m = tm1; n = tm1; { Rem (m, n) }
+  | PRIM_MOD; m = tm1; n = tm1; { Mod (m, n) }
   | PRIM_LTE; m = tm1; n = tm1; { Lte (m, n) }
   | PRIM_GTE; m = tm1; n = tm1; { Gte (m, n) }
   | PRIM_LT; m = tm1; n = tm1; { Lt (m, n) }

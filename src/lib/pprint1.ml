@@ -39,14 +39,14 @@ let pp_modifier fmt = function
 
 let rec pp_rxs fmt = function
   | [] -> ()
-  | [ (r, x, a) ] -> (
-      match r with
-      | N -> pf fmt "{%a : %a}" Var.pp x pp_tm a
-      | R -> pf fmt "(%a : %a)" Var.pp x pp_tm a)
-  | (r, x, a) :: rxs -> (
-      match r with
-      | R -> pf fmt "(%a : %a)@;<1 0>%a" Var.pp x pp_tm a pp_rxs rxs
-      | N -> pf fmt "{%a : %a}@;<1 0>%a" Var.pp x pp_tm a pp_rxs rxs)
+  | [ (r, x, a) ] ->
+    (match r with
+     | N -> pf fmt "{%a : %a}" Var.pp x pp_tm a
+     | R -> pf fmt "(%a : %a)" Var.pp x pp_tm a)
+  | (r, x, a) :: rxs ->
+    (match r with
+     | R -> pf fmt "(%a : %a)@;<1 0>%a" Var.pp x pp_tm a pp_rxs rxs
+     | N -> pf fmt "{%a : %a}@;<1 0>%a" Var.pp x pp_tm a pp_rxs rxs)
 
 and pp_tm fmt = function
   (* inference *)
@@ -63,28 +63,24 @@ and pp_tm fmt = function
   | Const (x, ss) -> pf fmt "%a‹%a›" Const.pp x pp_sorts ss
   | Pi (R, U, a, bnd) ->
     let x, b = unbind bnd in
-    if binder_occur bnd then
-      pf fmt "@[@[∀ (%a :@;<1 2>%a) ->@]@;<1 2>%a@]" Var.pp x pp_tm a pp_tm b
-    else
-      pf fmt "@[%a ->@;<1 2>%a@]" pp_tm a pp_tm b
+    if binder_occur bnd
+    then pf fmt "@[@[∀ (%a :@;<1 2>%a) ->@]@;<1 2>%a@]" Var.pp x pp_tm a pp_tm b
+    else pf fmt "@[%a ->@;<1 2>%a@]" pp_tm a pp_tm b
   | Pi (N, U, a, bnd) ->
     let x, b = unbind bnd in
-    if binder_occur bnd then
-      pf fmt "@[@[∀ {%a :@;<1 2>%a} ->@]@;<1 2>%a@]" Var.pp x pp_tm a pp_tm b
-    else
-      pf fmt "@[{%a} ->@;<1 2>%a@]" pp_tm a pp_tm b
+    if binder_occur bnd
+    then pf fmt "@[@[∀ {%a :@;<1 2>%a} ->@]@;<1 2>%a@]" Var.pp x pp_tm a pp_tm b
+    else pf fmt "@[{%a} ->@;<1 2>%a@]" pp_tm a pp_tm b
   | Pi (R, L, a, bnd) ->
     let x, b = unbind bnd in
-    if binder_occur bnd then
-      pf fmt "@[@[∀ (%a :@;<1 2>%a) -o@]@;<1 2>%a@]" Var.pp x pp_tm a pp_tm b
-    else
-      pf fmt "@[%a -o@;<1 2>%a@]" pp_tm a pp_tm b
+    if binder_occur bnd
+    then pf fmt "@[@[∀ (%a :@;<1 2>%a) -o@]@;<1 2>%a@]" Var.pp x pp_tm a pp_tm b
+    else pf fmt "@[%a -o@;<1 2>%a@]" pp_tm a pp_tm b
   | Pi (N, L, a, bnd) ->
     let x, b = unbind bnd in
-    if binder_occur bnd then
-      pf fmt "@[@[∀ {%a :@;<1 2>%a} -o@]@;<1 2>%a@]" Var.pp x pp_tm a pp_tm b
-    else
-      pf fmt "@[{%a} -o@;<1 2>%a@]" pp_tm a pp_tm b
+    if binder_occur bnd
+    then pf fmt "@[@[∀ {%a :@;<1 2>%a} -o@]@;<1 2>%a@]" Var.pp x pp_tm a pp_tm b
+    else pf fmt "@[{%a} -o@;<1 2>%a@]" pp_tm a pp_tm b
   | Pi (R, s, a, bnd) ->
     let x, b = unbind bnd in
     pf fmt "@[@[forall‹%a›(%a :@;<1 2>%a),@]@;<1 2>%a@]" pp_sort s Var.pp x
@@ -102,20 +98,17 @@ and pp_tm fmt = function
     pf fmt "@[((%a)@;<1 2>@[%a@])@]" pp_tm hd (list ~sep:sp pp_tm) ms
   | Let (R, m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm
-      n
+    pf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
   | Let (N, m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let {%a} :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m
-      pp_tm n
+    pf fmt "@[@[let {%a} :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
   (* inductive *)
   | Ind (d, [], [], []) -> pf fmt "%a" Ind.pp d
   | Ind (d, [], ms, ns) ->
     pf fmt "@[(%a@;<1 2>@[%a@])@]" Ind.pp d (list ~sep:sp pp_tm) (ms @ ns)
   | Ind (d, ss, [], []) -> pf fmt "%a‹%a›" Ind.pp d pp_sorts ss
   | Ind (d, ss, ms, ns) ->
-    pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Ind.pp d pp_sorts ss (list ~sep:sp pp_tm)
-      (ms @ ns)
+    pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Ind.pp d pp_sorts ss (list ~sep:sp pp_tm) (ms @ ns)
   | Constr (c, [], [], []) -> pf fmt "%a" Constr.pp c
   | Constr (c, ss, [], []) -> pf fmt "%a‹%a›" Constr.pp c pp_sorts ss
   | Constr (c, ss, ns, ms) ->
@@ -129,8 +122,7 @@ and pp_tm fmt = function
   | Return m -> pf fmt "return %a" pp_tm m
   | MLet (m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let* %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m
-      pp_tm n
+    pf fmt "@[@[let* %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
   (* primitive types *)
   | Int_t -> pf fmt "int"
   | Char_t -> pf fmt "char"
@@ -145,7 +137,7 @@ and pp_tm fmt = function
   | Sub (m, n) -> pf fmt "@[(__sub__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
   | Mul (m, n) -> pf fmt "@[(__mul__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
   | Div (m, n) -> pf fmt "@[(__div__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
-  | Rem (m, n) -> pf fmt "@[(__rem__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Mod (m, n) -> pf fmt "@[(__mod__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
   | Lte (m, n) -> pf fmt "@[(__lte__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
   | Gte (m, n) -> pf fmt "@[(__gte__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
   | Lt (m, n) -> pf fmt "@[(__lt__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
@@ -162,12 +154,10 @@ and pp_tm fmt = function
   | End -> pf fmt "•"
   | Act (R, role, a, bnd) ->
     let x, b = unbind bnd in
-    pf fmt "@[@[%a(%a :@;<1 2>%a) ⇒@]@;<1 2>%a@]" pp_role role Var.pp x pp_tm a
-      pp_tm b
+    pf fmt "@[@[%a(%a :@;<1 2>%a) ⇒@]@;<1 2>%a@]" pp_role role Var.pp x pp_tm a pp_tm b
   | Act (N, role, a, bnd) ->
     let x, b = unbind bnd in
-    pf fmt "@[@[%a{%a :@;<1 2>%a} ⇒@]@;<1 2>%a@]" pp_role role Var.pp x pp_tm a
-      pp_tm b
+    pf fmt "@[@[%a{%a :@;<1 2>%a} ⇒@]@;<1 2>%a@]" pp_role role Var.pp x pp_tm a pp_tm b
   | Ch (true, m) -> pf fmt "ch⟨%a⟩" pp_tm m
   | Ch (false, m) -> pf fmt "hc⟨%a⟩" pp_tm m
   (* primitive effects *)

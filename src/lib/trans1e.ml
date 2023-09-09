@@ -234,10 +234,10 @@ and infer_tm ctx env m : tm * tm box =
     let m_elab = check_tm ctx env m Int_t in
     let n_elab = check_tm ctx env n Int_t in
     (Int_t, _Div m_elab n_elab)
-  | Rem (m, n) ->
+  | Mod (m, n) ->
     let m_elab = check_tm ctx env m Int_t in
     let n_elab = check_tm ctx env n Int_t in
-    (Int_t, _Rem m_elab n_elab)
+    (Int_t, _Mod m_elab n_elab)
   | Lte (m, n) ->
     let m_elab = check_tm ctx env m Int_t in
     let n_elab = check_tm ctx env n Int_t in
@@ -699,9 +699,9 @@ let rec check_dcls ctx env dcls =
     let dcls = check_dcls ctx env dcls in
     Inductive { name = ind; relv; arity; dconstrs } :: dcls
   | Extern { name = x; relv; scheme = sch } :: dcls ->
-    (Debug.exec (fun () -> pr "extern---------------------------------@.");
-     let ss, (m_opt, a) = unmbind sch in
-     match m_opt with
+    Debug.exec (fun () -> pr "extern---------------------------------@.");
+    let ss, (m_opt, a) = unmbind sch in
+    (match m_opt with
      | Some m ->
        let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
        let a_elab = assert_type ctx0 env a in

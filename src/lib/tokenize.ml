@@ -62,7 +62,7 @@ let op_mul = [%sedlex.regexp? '*', Star op_symbol]
 let op_times = [%sedlex.regexp? 215, Star op_symbol] (* × *)
 let op_otimes = [%sedlex.regexp? 8855, Star op_symbol] (* ⊗ *)
 let op_div = [%sedlex.regexp? '/', Star op_symbol]
-let op_rem = [%sedlex.regexp? '%', Star op_symbol]
+let op_mod = [%sedlex.regexp? '%', Star op_symbol]
 let op_add = [%sedlex.regexp? '+', Star op_symbol]
 let op_sub = [%sedlex.regexp? '-', Star op_symbol]
 let op_lt = [%sedlex.regexp? "<", Plus op_symbol]
@@ -158,7 +158,7 @@ let prim_add = [%sedlex.regexp? "__add__"]
 let prim_sub = [%sedlex.regexp? "__sub__"]
 let prim_mul = [%sedlex.regexp? "__mul__"]
 let prim_div = [%sedlex.regexp? "__div__"]
-let prim_rem = [%sedlex.regexp? "__rem__"]
+let prim_mod = [%sedlex.regexp? "__mod__"]
 let prim_lte = [%sedlex.regexp? "__lte__"]
 let prim_gte = [%sedlex.regexp? "__gte__"]
 let prim_lt = [%sedlex.regexp? "__lt__"]
@@ -308,7 +308,7 @@ let rec tokenize buf =
   | op_times -> OP_TIMES (Utf8.lexeme buf)
   | op_otimes -> OP_OTIMES (Utf8.lexeme buf)
   | op_div -> OP_DIV (Utf8.lexeme buf)
-  | op_rem -> OP_REM (Utf8.lexeme buf)
+  | op_mod -> OP_MOD (Utf8.lexeme buf)
   | op_add -> OP_ADD (Utf8.lexeme buf)
   | op_sub -> OP_SUB (Utf8.lexeme buf)
   | op_lt -> OP_LT (Utf8.lexeme buf)
@@ -339,7 +339,7 @@ let rec tokenize buf =
   | prim_sub -> PRIM_SUB
   | prim_mul -> PRIM_MUL
   | prim_div -> PRIM_DIV
-  | prim_rem -> PRIM_REM
+  | prim_mod -> PRIM_MOD
   | prim_lte -> PRIM_LTE
   | prim_gte -> PRIM_GTE
   | prim_lt -> PRIM_LT
