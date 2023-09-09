@@ -61,8 +61,6 @@ and pp_tm fmt = function
   | Var x -> Var.pp fmt x
   | Const (x, []) -> pf fmt "%a" Const.pp x
   | Const (x, ss) -> pf fmt "%a‹%a›" Const.pp x pp_sorts ss
-  | TName (x, []) -> pf fmt "%a" TName.pp x
-  | TName (x, ss) -> pf fmt "%a‹%a›" TName.pp x pp_sorts ss
   | Pi (R, U, a, bnd) ->
     let x, b = unbind bnd in
     if binder_occur bnd then

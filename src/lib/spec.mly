@@ -932,57 +932,6 @@ let dcl_inductive :=
       let sch = Binder (sids, param) in
       Inductive { name = id; relv; body = sch; view } }
 
-// template
-/*
-tmpl show‹s› ?{A : Type‹s›} : A -> string
-*/
-let dcl_tmpl :=
-  | relv = dcl_modifier;
-    DCL_TMPL; id_sids = dcl_iden; args = dcl_args; COLON; b = tm;
-    { let id, sids = id_sids in
-      let a, view =
-        List.fold_right (fun (relv, id, a, v) (b, view) ->
-          (Pi (relv, U, a, Binder (id, b)), v :: view)) args (b, [])
-      in
-      let sch = Binder (sids, a) in
-      Template { name = id; relv; body = sch; view } }
-
-// implement
-/*
-def show_list‹s,r› ?{A : Type‹s›} impl @show‹r› (list‹s,r› A)
-  | [] => "[]"
-  | x :: xs => show x ^ " :: " ^ show_list xs
-*/
-let dcl_impl :=
-  | relv = dcl_modifier;
-    DCL_DEF; id_sids = dcl_iden; args = dcl_args; DCL_IMPL; b = tm_closed; cls = tm_cls0;
-    { let id, sids = id_sids in
-      let a, view =
-        List.fold_right (fun (relv, id, a, v) (b, view) ->
-          (Pi (relv, U, a, Binder (id, b)), v :: view)) args (b, [])
-      in
-      let ps = List.map (fun (_, id, _, _) -> PId id) args in
-      let cls = List.map (fun (ps0, rhs) -> (ps @ ps0, rhs)) cls in
-      let m = Fun (a, Binder (Some id, cls), view) in
-      let sch = Binder (sids, (m, a)) in
-      Implement { name = id; relv; body = sch; view } }
-  | relv = dcl_modifier;
-    DCL_DEF; id_sids = dcl_iden; args = dcl_args; DCL_IMPL; b = tm; ASSIGN; m = tm;
-    { let id, sids = id_sids in
-      let a, view =
-        List.fold_right (fun (relv, id, a, v) (b, view) ->
-          (Pi (relv, U, a, Binder (id, b)), v :: view)) args (b, [])
-      in
-      let m =
-        match args with
-        | [] -> m
-        | _ ->
-          let ps = List.map (fun (_, id, _, _) -> PId id) args in
-          Fun (a, Binder (Some id, [(ps, Some m)]), view)
-      in
-      let sch = Binder (sids, (m, a)) in
-      Implement { name = id; relv; body = sch; view } }
-
 // external
 /*
 #[logical]
@@ -1057,8 +1006,6 @@ let dcl_notation :=
 let dcl :=
   | ~ = dcl_def; <>
   | ~ = dcl_inductive; <>
-  | ~ = dcl_tmpl; <>
-  | ~ = dcl_impl; <>
   | ~ = dcl_extern; <>
   | ~ = dcl_notation; <>
 

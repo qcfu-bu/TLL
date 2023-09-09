@@ -115,18 +115,6 @@ type dcl =
       ; body : (tele * dconstrs) param scheme
       ; view : view list
       }
-  | Template of
-      { name : id
-      ; relv : relv
-      ; body : tm scheme
-      ; view : view list
-      }
-  | Implement of
-      { name : id
-      ; relv : relv
-      ; body : (tm * tm) scheme
-      ; view : view list
-      }
   | Extern of
       { name : id
       ; relv : relv
