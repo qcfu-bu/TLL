@@ -47,7 +47,12 @@
        (Pi (R, U, Int_t,
           (Binder ("p", (Pi (R, U, Int_t, (Binder ("g", Proto)))))))))
       ));
-   view = [E; E]}
+   view = [E; E]};
+  Definition {name = "x"; relv = R;
+    body =
+    (Binder ([],
+       ((BOpr ("+", (BOpr ("+", (Int 1), (Int 1))), (Int 2))), IMeta)));
+    view = []}
   ]
 
 -----------------------------------------
@@ -183,9 +188,9 @@ def pow_9‹› : int -> int -> int :=
     let loop_312 :=
       fun loop_313 : int -> int -> int
       | acc_316 y_317 =>
-        match __lte__ y_317 0 in ?_15[0;0] -o ?_16[0;0] with
+        match (__lte__ y_317 0) in ?_15[0;0] -o ?_16[0;0] with
         | true_4 => acc_316
-        | false_5 => ((loop_313) __mul__ x_310 acc_316 __sub__ y_317 1)
+        | false_5 => ((loop_313) (__mul__ x_310 acc_316) (__sub__ y_317 1))
     in ((loop_312) 1 y_311)
 
 #[program]
@@ -195,10 +200,11 @@ def powm_10‹› : int -> int -> int -> int :=
     let loop_329 :=
       fun loop_330 : int -> int -> int
       | acc_333 y_334 =>
-        match __lte__ y_334 0 in ?_17[0;0] -o ?_18[0;0] with
+        match (__lte__ y_334 0) in ?_17[0;0] -o ?_18[0;0] with
         | true_4 => acc_333
         | false_5 =>
-          ((loop_330) __rem__ __mul__ x_326 acc_333 m_328 __sub__ y_334 1)
+          ((loop_330)
+            (__rem__ (__mul__ x_326 acc_333) m_328) (__sub__ y_334 1))
     in ((loop_329) 1 y_327)
 
 #[logical]
@@ -215,6 +221,9 @@ def DH_11‹› : int -> int -> proto :=
                 (eq_1‹??_21›
                   ?_20[0;0] B_347 ((powm_10) g_342 b_346 p_341))} ⇒
                 •
+
+#[program]
+def x_12‹› : ?_21[0;0] := (__add__ (__add__ 1 1) 2)
 
 -----------------------------------------
 

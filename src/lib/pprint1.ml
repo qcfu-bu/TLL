@@ -142,22 +142,22 @@ and pp_tm fmt = function
   | Char c -> pf fmt "%c" c
   | String s -> pf fmt "%s" s
   (* primitive operators *)
-  | Neg m -> pf fmt "@[__neg__@;<1 2>@[%a@]@]" pp_tm m
-  | Add (m, n) -> pf fmt "@[__add__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
-  | Sub (m, n) -> pf fmt "@[__sub__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
-  | Mul (m, n) -> pf fmt "@[__mul__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
-  | Div (m, n) -> pf fmt "@[__div__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
-  | Rem (m, n) -> pf fmt "@[__rem__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
-  | Lte (m, n) -> pf fmt "@[__lte__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
-  | Gte (m, n) -> pf fmt "@[__gte__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
-  | Lt (m, n) -> pf fmt "@[__lt__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
-  | Gt (m, n) -> pf fmt "@[__gt__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
-  | Eq (m, n) -> pf fmt "@[__eq__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
-  | Chr m -> pf fmt "@[__chr__@;<1 2>@[%a@]@]" pp_tm m
-  | Ord m -> pf fmt "@[__ord__@;<1 2>@[%a@]@]" pp_tm m
-  | Push (m, n) -> pf fmt "@[__push__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
-  | Cat (m, n) -> pf fmt "@[__cat__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
-  | Size m -> pf fmt "@[__size__@;<1 2>@[%a@]@]" pp_tm m
+  | Neg m -> pf fmt "@[(__neg__@;<1 2>@[%a@])@]" pp_tm m
+  | Add (m, n) -> pf fmt "@[(__add__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Sub (m, n) -> pf fmt "@[(__sub__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Mul (m, n) -> pf fmt "@[(__mul__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Div (m, n) -> pf fmt "@[(__div__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Rem (m, n) -> pf fmt "@[(__rem__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Lte (m, n) -> pf fmt "@[(__lte__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Gte (m, n) -> pf fmt "@[(__gte__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Lt (m, n) -> pf fmt "@[(__lt__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Gt (m, n) -> pf fmt "@[(__gt__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Eq (m, n) -> pf fmt "@[(__eq__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Chr m -> pf fmt "@[(__chr__@;<1 2>@[%a@])@]" pp_tm m
+  | Ord m -> pf fmt "@[(__ord__@;<1 2>@[%a@])@]" pp_tm m
+  | Push (m, n) -> pf fmt "@[(__push__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Cat (m, n) -> pf fmt "@[(__cat__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n
+  | Size m -> pf fmt "@[(__size__@;<1 2>@[%a@])@]" pp_tm m
   | Indx (m, n) -> pf fmt "@[%a.[%a]@]" pp_tm m pp_tm n
   (* primitive sessions *)
   | Proto -> pf fmt "proto"

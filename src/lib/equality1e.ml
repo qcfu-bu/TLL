@@ -2,48 +2,137 @@ open Bindlib
 open Names
 open Syntax1
 open Context1e
+open Prelude
 
 let rec whnf ?(expand = true) (env : Env.t) = function
   (* inference *)
   | Ann (m, a) -> whnf ~expand env m
   (* core *)
   | Var x when expand -> (
-    try whnf ~expand env (Env.find_var x env) with
-    | _ -> Var x)
+      try whnf ~expand env (Env.find_var x env) with
+      | _ -> Var x)
   | Const (x, ss) when expand -> (
-    try
-      let sch = Env.find_const x env in
-      whnf ~expand env (msubst sch (Array.of_list ss))
-    with
-    | _ -> Const (x, ss))
+      try
+        let sch = Env.find_const x env in
+        whnf ~expand env (msubst sch (Array.of_list ss))
+      with
+      | _ -> Const (x, ss))
   | App _ as m -> (
-    let hd, ms = unApps m in
-    let hd = whnf ~expand env hd in
-    let ms = List.map (whnf ~expand env) ms in
-    match hd with
-    | Fun (guard, _, bnd) -> (
-      let cls = subst bnd hd in
-      match match_cls guard cls ms with
-      | Some (Some rhs, rst) -> whnf ~expand env (mkApps rhs rst)
+      let hd, ms = unApps m in
+      let hd = whnf ~expand env hd in
+      let ms = List.map (whnf ~expand env) ms in
+      match hd with
+      | Fun (guard, _, bnd) -> (
+          let cls = subst bnd hd in
+          match match_cls guard cls ms with
+          | Some (Some rhs, rst) -> whnf ~expand env (mkApps rhs rst)
+          | _ -> mkApps hd ms)
       | _ -> mkApps hd ms)
-    | _ -> mkApps hd ms)
   | Let (_, m, bnd) ->
     let m = whnf ~expand env m in
     whnf ~expand env (subst bnd m)
   (* inductive *)
   | Match (guard, ms, a, cls) -> (
-    let ms = List.map (whnf ~expand env) ms in
-    match match_cls guard cls ms with
-    | Some (Some rhs, []) -> whnf ~expand env rhs
-    | _ -> Match (guard, ms, a, cls))
+      let ms = List.map (whnf ~expand env) ms in
+      match match_cls guard cls ms with
+      | Some (Some rhs, []) -> whnf ~expand env rhs
+      | _ -> Match (guard, ms, a, cls))
   (* monadic *)
   | MLet (m, bnd) -> (
-    let m = whnf ~expand env m in
-    match m with
-    | Return m ->
       let m = whnf ~expand env m in
-      whnf ~expand env (subst bnd m)
-    | _ -> MLet (m, bnd))
+      match m with
+      | Return m ->
+        let m = whnf ~expand env m in
+        whnf ~expand env (subst bnd m)
+      | _ -> MLet (m, bnd))
+  (* primitive *)
+  | Neg m -> (
+      match whnf ~expand env m with
+      | Int i -> Int (-i)
+      | m -> Neg m)
+  | Add (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | Int i, Int j -> Int (i + j)
+      | m, n -> Add (m, n))
+  | Sub (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | Int i, Int j -> Int (i - j)
+      | m, n -> Sub (m, n))
+  | Mul (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | Int i, Int j -> Int (i * j)
+      | m, n -> Mul (m, n))
+  | Div (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | Int i, Int 0 -> Int 0
+      | Int i, Int j -> Int (i / j)
+      | m, n -> Div (m, n))
+  | Rem (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | Int i, Int 0 -> Int 0
+      | Int i, Int j -> Int (i mod j)
+      | m, n -> Rem (m, n))
+  | Lte (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | Int i, Int j ->
+        if i <= j
+        then Constr (true_constr, [], [], [])
+        else Constr (false_constr, [], [], [])
+      | m, n -> Lte (m, n))
+  | Gte (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | Int i, Int j ->
+        if i >= j
+        then Constr (true_constr, [], [], [])
+        else Constr (false_constr, [], [], [])
+      | m, n -> Gte (m, n))
+  | Lt (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | Int i, Int j ->
+        if i < j
+        then Constr (true_constr, [], [], [])
+        else Constr (false_constr, [], [], [])
+      | m, n -> Lt (m, n))
+  | Gt (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | Int i, Int j ->
+        if i > j
+        then Constr (true_constr, [], [], [])
+        else Constr (false_constr, [], [], [])
+      | m, n -> Gt (m, n))
+  | Eq (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | Int i, Int j ->
+        if i = j
+        then Constr (true_constr, [], [], [])
+        else Constr (false_constr, [], [], [])
+      | m, n -> Eq (m, n))
+  | Chr m -> (
+      match whnf ~expand env m with
+      | Int i -> Char (Char.chr (i mod 256))
+      | m -> Chr m)
+  | Ord m -> (
+      match whnf ~expand env m with
+      | Char c -> Int (Char.code c)
+      | m -> Ord m)
+  | Push (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | String s, Char c -> String (s ^ String.make 1 c)
+      | m, n -> Push (m, n))
+  | Cat (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | String s1, String s2 -> String (s1 ^ s2)
+      | m, n -> Cat (m, n))
+  | Size m -> (
+      match whnf ~expand env m with
+      | String s -> Int (String.length s)
+      | m -> Size m)
+  | Indx (m, n) -> (
+      match whnf ~expand env m, whnf ~expand env n with
+      | String s, Int i -> Char (String.(get s (i mod (length s))))
+      | m, n -> Indx (m, n))
+  (* primitive session *)
+  | Ch (role, m) -> Ch (role, whnf ~expand env m)
   (* other *)
   | m -> m
 
@@ -62,11 +151,11 @@ and match_cls guard cls ms =
   | Some (ms, ns) ->
     List.fold_left
       (fun acc_opt ((p0s, bnd) as cl) ->
-        match acc_opt with
-        | Some _ -> acc_opt
-        | None -> (
-          try Some (psubst cl ms, ns) with
-          | _ -> None))
+         match acc_opt with
+         | Some _ -> acc_opt
+         | None -> (
+             try Some (psubst cl ms, ns) with
+             | _ -> None))
       None cls
   | None -> None
 
