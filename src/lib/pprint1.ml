@@ -277,7 +277,6 @@ let pp_dcl fmt = function
       | None ->
         pf fmt "@[@[<v 0>#[%a]@;<1 0>extern@] %a‹%a› :@;<1 2>@[%a@]@]" pp_modifier
           relv Const.pp x pp_sargs (Array.to_list xs) pp_tm a)
-  | _ -> failwith "unimplemented"
 
 let pp_dcls fmt dcls =
   let break fmt _ = pf fmt "@.@." in

@@ -302,9 +302,9 @@ and infer_tm ctx env m : tm * tm box =
     let m_elab = check_tm ctx env m (Ind (unit_ind, [], [], [])) in
     (IO String_t, _ReadLn m_elab)
   | Fork m ->
-    (let t, m_elab = infer_tm ctx env m in
-     let t = State.resolve t in
-     match whnf env t with
+    let t, m_elab = infer_tm ctx env m in
+    let t = State.resolve t in
+    (match whnf env t with
      | Pi (R, L, a, bnd) -> 
        (match whnf env a with
         | Ch (role, a) -> 
@@ -314,30 +314,39 @@ and infer_tm ctx env m : tm * tm box =
         | _ -> failwith "trans1e.fork")
      | _ -> failwith "trans1e.fork")
   | Send m ->
-    (let t, m_elab = infer_tm ctx env m in
-     let t = State.resolve t in
-     match whnf env t with
+    let t, m_elab = infer_tm ctx env m in
+    let t = State.resolve t in
+    (match whnf env t with
      | Ch (role1, Act (relv, role2, a, bnd)) when role1 <> role2 = false ->
        let x, b = unbind bnd in
        let bnd = unbox (bind_var x (lift_tm (IO (Ch (role1, b))))) in
        (Pi (relv, L, a, bnd), _Send m_elab)
      | _ -> failwith "trans1e.infer_send")
   | Recv m ->
-    (let t, m_elab = infer_tm ctx env m in
-     let t = State.resolve t in
-     match whnf env t  with
+    let t, m_elab = infer_tm ctx env m in
+    let t = State.resolve t in
+    (match whnf env t  with
      | Ch (role1, Act (relv, role2, a, bnd)) when role1 <> role2 = true ->
        let x, b = unbind bnd in
-       let bnd = unbox (bind_var x (lift_tm (Ch (role1, b)))) in
-       _
+       let _a = lift_tm a in
+       let _b_t = _Pi R _U _a (bind_var x (_Type _L)) in
+       let _b = _Lam _b_t x (_Ch role1 (lift_tm b)) in
+       let _ss = box [smeta_of_ctx ctx; L] in
+       let ind = match relv with N -> exists0_ind | R -> exists1_ind in
+       let t = unbox (_Ind ind _ss (box_list [_a; _b]) (box [])) in
+       (IO t, _Recv m_elab)
      | _ -> failwith "trans1e.infer_recv")
-
+  | Close m ->
+    let t, m_elab = infer_tm ctx env m in
+    let t = State.resolve t in
+    (match whnf env t with
+     | Ch (_, End) -> (IO (Ind (unit_ind, [], [], [])), _Close m_elab)
+     | _ -> failwith "trans1e.infer_close")
   (* magic *)
   | Magic a ->
     let a_elab = assert_type ctx env a in
     let a = unbox a_elab in
     (a, _Magic a_elab)
-  | _ -> _
 
 and infer_ptl ctx env ms ns ptl : tm * tms box * tms box =
   let rec aux_param ms ptl =

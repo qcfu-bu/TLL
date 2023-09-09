@@ -16,19 +16,17 @@ let prelude_ind id =
   try
     let ind, _, _, _ = Option.get (find_ind id prelude_nspc) in
     ind
-  with
-  | _ -> failwith "prelude_ind(%s)" id
+  with _ -> failwith "prelude_ind(%s)" id
 
 let prelude_constr id =
   try
     let constr, _, _, _ = Option.get (find_constr id prelude_nspc) in
     constr
-  with
-  | _ -> failwith "prelude_c(%s)" id
+  with _ -> failwith "prelude_c(%s)" id
 
 let prelude_const id =
-  try Option.get (find_const id prelude_nspc) with
-  | _ -> failwith "prelude_i(%s)" id
+  try Option.get (find_const id prelude_nspc)
+  with _ -> failwith "prelude_i(%s)" id
 
 let unit_ind = prelude_ind "unit"
 

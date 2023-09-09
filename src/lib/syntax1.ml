@@ -167,6 +167,121 @@ module Var = struct
   module Map = Map.Make (Inner)
 end
 
+(* sort equality *)
+let rec eq_sort s1 s2 =
+  match (s1, s2) with
+  | SVar x, SVar y -> eq_vars x y
+  | SMeta (x1, _), SMeta (x2, _) -> SMeta.equal x1 x2
+  | _ -> s1 = s2
+
+(* pattern equality *)
+let rec eq_p0 p1 p2 =
+  match (p1, p2) with
+  | P0Rel, P0Rel -> true
+  | P0Absurd, P0Absurd -> true
+  | P0Constr (c1, p0s1), P0Constr (c2, p0s2) ->
+    Constr.equal c1 c2 && eq_p0s p0s1 p0s2
+  | _ -> false
+
+and eq_p0s ps1 ps2 = List.equal eq_p0 ps1 ps2
+
+and eq_pbinder eq (p0s1, bnd1) (p0s2, bnd2) =
+  eq_p0s p0s1 p0s2 && eq_mbinder eq bnd1 bnd2
+
+(* pattern binding *)
+let rec mvar_of_p p =
+  match p with
+  | PVar x -> ([ x ], P0Rel)
+  | PAbsurd -> ([], P0Absurd)
+  | PConstr (c, ps) ->
+    let xs, p0s = mvar_of_ps ps in
+    (xs, P0Constr (c, p0s))
+
+and mvar_of_ps ps =
+  List.fold_left_map
+    (fun acc p ->
+       let xs, p0 = mvar_of_p p in
+       (acc @ xs, p0))
+    [] ps
+
+let rec p_of_mvar mvar p0 =
+  match (mvar, p0) with
+  | [], P0Rel -> failwith "binding1.p_of_mvar"
+  | x :: mvar, P0Rel -> (mvar, PVar x)
+  | _, P0Absurd -> (mvar, PAbsurd)
+  | _, P0Constr (c, p0s) ->
+    let mvar, ps = ps_of_mvar mvar p0s in
+    (mvar, PConstr (c, ps))
+
+and ps_of_mvar mvar p0s = List.fold_left_map p_of_mvar mvar p0s
+
+let bind_ps ps m =
+  let xs, p0s = mvar_of_ps ps in
+  let bnd = bind_mvar (Array.of_list xs) m in
+  box_apply (fun bnd -> (p0s, bnd)) bnd
+
+let unbind_ps (p0s, bnd) =
+  let xs, m = unmbind bnd in
+  let _, ps = ps_of_mvar (Array.to_list xs) p0s in
+  (ps, m)
+
+let unbind_ps2 (p0s1, bnd1) (p0s2, bnd2) =
+  assert (eq_p0s p0s1 p0s2);
+  let xs, m1, m2 = unmbind2 bnd1 bnd2 in
+  let _, ps = ps_of_mvar (Array.to_list xs) p0s1 in
+  (ps, m1, m2)
+
+let unbind_pmeta bnd =
+  let s = binder_name bnd in
+  let x = Var.mk s in
+  (x, subst bnd (PMeta x))
+
+let unmbind_pmeta bnd =
+  let ss = mbinder_names bnd in
+  let xs = Array.map Var.mk ss in
+  let ms = Array.map (fun x -> PMeta x) xs in
+  (xs, msubst bnd ms)
+
+(* pattern substitution *)
+let psubst (p0s, bnd) ms =
+  let rec match_p0 p0 m =
+    match (p0, m) with
+    | P0Rel, _ -> [ m ]
+    | P0Constr (c1, p0s), Constr (c2, _, _, ms) when Constr.equal c1 c2 ->
+      match_p0s p0s ms
+    | _ -> failwith "binding1.match_p0"
+  and match_p0s p0s ms =
+    List.fold_left2 (fun acc p0 m -> acc @ match_p0 p0 m) [] p0s ms
+  in
+  let ms = match_p0s p0s ms in
+  msubst bnd (Array.of_list ms)
+
+(* pattern expansion *)
+let expand_ps ps pvar_map =
+  let rec aux_p = function
+    | PVar x -> (
+        match Var.Map.find_opt x pvar_map with
+        | Some p -> aux_p p
+        | None -> PVar x)
+    | PAbsurd -> PAbsurd
+    | PConstr (c, ps) -> PConstr (c, aux_ps ps)
+  and aux_ps ps = List.map aux_p ps in
+  aux_ps ps
+
+(* param instantiation *)
+let rec param_inst param ms =
+  match (param, ms) with
+  | PBase a, [] -> a
+  | PBind (_, bnd), m :: ms -> param_inst (subst bnd m) ms
+  | _ -> failwith "syntax1.param_inst"
+
+let rec unbind_tele = function
+  | TBase a -> ([], a)
+  | TBind (relv, a, bnd) ->
+    let x, tele = unbind_pmeta bnd in
+    let args, b = unbind_tele tele in
+    ((relv, x, a) :: args, b)
+
 (* smart constructors *)
 let var x = Var x
 let svar x = SVar x
@@ -196,6 +311,9 @@ let _Var = box_var
 let _Const x = box_apply (fun ss -> Const (x, ss))
 let _Pi relv = box_apply3 (fun s a b -> Pi (relv, s, a, b))
 let _Fun guard = box_apply2 (fun a bnd -> Fun (guard, a, bnd))
+let _Lam a x m =
+  let rhs = box_opt (Some m) in
+  _Fun [false] a (bind_var (Var.mk "") (box_list [bind_ps [PVar x] rhs]))
 let _App = box_apply2 (fun m n -> App (m, n))
 let _Let relv = box_apply2 (fun m n -> Let (relv, m, n))
 
@@ -404,117 +522,3 @@ let rec lift_tele = function
   | TBase a -> _TBase (lift_tm a)
   | TBind (relv, a, bnd) -> _TBind relv (lift_tm a) (box_binder lift_tele bnd)
 
-(* sort equality *)
-let rec eq_sort s1 s2 =
-  match (s1, s2) with
-  | SVar x, SVar y -> eq_vars x y
-  | SMeta (x1, _), SMeta (x2, _) -> SMeta.equal x1 x2
-  | _ -> s1 = s2
-
-(* pattern equality *)
-let rec eq_p0 p1 p2 =
-  match (p1, p2) with
-  | P0Rel, P0Rel -> true
-  | P0Absurd, P0Absurd -> true
-  | P0Constr (c1, p0s1), P0Constr (c2, p0s2) ->
-    Constr.equal c1 c2 && eq_p0s p0s1 p0s2
-  | _ -> false
-
-and eq_p0s ps1 ps2 = List.equal eq_p0 ps1 ps2
-
-and eq_pbinder eq (p0s1, bnd1) (p0s2, bnd2) =
-  eq_p0s p0s1 p0s2 && eq_mbinder eq bnd1 bnd2
-
-(* pattern binding *)
-let rec mvar_of_p p =
-  match p with
-  | PVar x -> ([ x ], P0Rel)
-  | PAbsurd -> ([], P0Absurd)
-  | PConstr (c, ps) ->
-    let xs, p0s = mvar_of_ps ps in
-    (xs, P0Constr (c, p0s))
-
-and mvar_of_ps ps =
-  List.fold_left_map
-    (fun acc p ->
-       let xs, p0 = mvar_of_p p in
-       (acc @ xs, p0))
-    [] ps
-
-let rec p_of_mvar mvar p0 =
-  match (mvar, p0) with
-  | [], P0Rel -> failwith "binding1.p_of_mvar"
-  | x :: mvar, P0Rel -> (mvar, PVar x)
-  | _, P0Absurd -> (mvar, PAbsurd)
-  | _, P0Constr (c, p0s) ->
-    let mvar, ps = ps_of_mvar mvar p0s in
-    (mvar, PConstr (c, ps))
-
-and ps_of_mvar mvar p0s = List.fold_left_map p_of_mvar mvar p0s
-
-let bind_ps ps m =
-  let xs, p0s = mvar_of_ps ps in
-  let bnd = bind_mvar (Array.of_list xs) m in
-  box_apply (fun bnd -> (p0s, bnd)) bnd
-
-let unbind_ps (p0s, bnd) =
-  let xs, m = unmbind bnd in
-  let _, ps = ps_of_mvar (Array.to_list xs) p0s in
-  (ps, m)
-
-let unbind_ps2 (p0s1, bnd1) (p0s2, bnd2) =
-  assert (eq_p0s p0s1 p0s2);
-  let xs, m1, m2 = unmbind2 bnd1 bnd2 in
-  let _, ps = ps_of_mvar (Array.to_list xs) p0s1 in
-  (ps, m1, m2)
-
-let unbind_pmeta bnd =
-  let s = binder_name bnd in
-  let x = Var.mk s in
-  (x, subst bnd (PMeta x))
-
-let unmbind_pmeta bnd =
-  let ss = mbinder_names bnd in
-  let xs = Array.map Var.mk ss in
-  let ms = Array.map (fun x -> PMeta x) xs in
-  (xs, msubst bnd ms)
-
-(* pattern substitution *)
-let psubst (p0s, bnd) ms =
-  let rec match_p0 p0 m =
-    match (p0, m) with
-    | P0Rel, _ -> [ m ]
-    | P0Constr (c1, p0s), Constr (c2, _, _, ms) when Constr.equal c1 c2 ->
-      match_p0s p0s ms
-    | _ -> failwith "binding1.match_p0"
-  and match_p0s p0s ms =
-    List.fold_left2 (fun acc p0 m -> acc @ match_p0 p0 m) [] p0s ms
-  in
-  let ms = match_p0s p0s ms in
-  msubst bnd (Array.of_list ms)
-
-(* pattern expansion *)
-let expand_ps ps pvar_map =
-  let rec aux_p = function
-    | PVar x -> (
-        match Var.Map.find_opt x pvar_map with
-        | Some p -> aux_p p
-        | None -> PVar x)
-    | PAbsurd -> PAbsurd
-    | PConstr (c, ps) -> PConstr (c, aux_ps ps)
-  and aux_ps ps = List.map aux_p ps in
-  aux_ps ps
-
-(* param instantiation *)
-let rec param_inst param ms =
-  match (param, ms) with
-  | PBase a, [] -> a
-  | PBind (_, bnd), m :: ms -> param_inst (subst bnd m) ms
-  | _ -> failwith "syntax1.param_inst"
-
-let rec unbind_tele = function
-  | TBase a -> ([], a)
-  | TBind (relv, a, bnd) ->
-    let x, tele = unbind_pmeta bnd in
-    let args, b = unbind_tele tele in
-    ((relv, x, a) :: args, b)

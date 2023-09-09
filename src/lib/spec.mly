@@ -716,10 +716,19 @@ let tm_prim_eff :=
   | PRIM_PRINT; m = tm1; { Print m }
   | PRIM_PRERR; m = tm1; { Prerr m }
   | PRIM_READLN; m = tm1; { ReadLn m }
-  | PRIM_FORK; m = tm1; { Fork m }
   | PRIM_SEND; m = tm1; { Send m }
   | PRIM_RECV; m = tm1; { Recv m }
   | PRIM_CLOSE; m = tm1; { Close m }
+
+// forking
+/*
+fork (c : ch P) => m
+*/
+let tm_fork(P) :=
+  | PRIM_FORK; LPAREN; id = iden; COLON; a = tm; RPAREN; RIGHTARROW1; n = P;
+    { let t = Pi (R, L, a, Binder ("", IO (Id ("unit", I)))) in
+      let f = Fun (t, Binder (None, [([PId id], Some n)]), []) in
+      Fork f }
 
 // magic
 /*
@@ -782,6 +791,8 @@ let tm5_generic(P) :=
   | ms = tm1*; m = tm_mlet(P);
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm1*; m = tm_ifte(P);
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm1*; m = tm_fork(P);
     { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ~ = tm4_generic(P); <>
 
