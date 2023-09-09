@@ -126,14 +126,14 @@ and infer_tm ctx env m : tm * tm box =
     let a = unbox a_elab in
     let m_elab = check_tm ctx env m a in
     (a, _Ann m_elab a_elab)
-  | IMeta (x, _, _) -> (
-    match State.find_imeta x with
-    | Some (ss, xs, a) -> (a, _IMeta x ss xs)
-    | None ->
-      let a = imeta_of_ctx ctx in
-      let ss, xs = spine_of_ctx ctx in
-      State.add_imeta ctx env x ss xs a;
-      (a, _IMeta x ss xs))
+  | IMeta (x, _, _) ->
+    (match State.find_imeta x with
+     | Some (ss, xs, a) -> (a, _IMeta x ss xs)
+     | None ->
+       let a = imeta_of_ctx ctx in
+       let ss, xs = spine_of_ctx ctx in
+       State.add_imeta ctx env x ss xs a;
+       (a, _IMeta x ss xs))
   | PMeta _ -> failwith "trans1e.infer_tm(PMeta)"
   (* core *)
   | Type s -> (Type U, _Type (lift_sort s))
@@ -153,15 +153,15 @@ and infer_tm ctx env m : tm * tm box =
     let a = unbox a_elab in
     let cls_elab = check_cls (Ctx.add_var x a ctx) env cls a in
     (a, _Fun guard a_elab (bind_var x cls_elab))
-  | App (m, n) -> (
-    let t, m_elab = infer_tm ctx env m in
-    let t = State.resolve t in
-    match whnf env t with
-    | Pi (_, _, a, bnd) ->
-      let n_elab = check_tm ctx env n a in
-      let n = unbox n_elab in
-      (subst bnd n, _App m_elab n_elab)
-    | _ -> failwith "trans1e.App")
+  | App (m, n) ->
+    (let t, m_elab = infer_tm ctx env m in
+     let t = State.resolve t in
+     match whnf env t with
+     | Pi (_, _, a, bnd) ->
+       let n_elab = check_tm ctx env n a in
+       let n = unbox n_elab in
+       (subst bnd n, _App m_elab n_elab)
+     | _ -> failwith "trans1e.App")
   | Let (relv, m, bnd) ->
     let x, n = unbind bnd in
     let a, m_elab = infer_tm ctx env m in
@@ -193,18 +193,18 @@ and infer_tm ctx env m : tm * tm box =
   | Return m ->
     let a, m_elab = infer_tm ctx env m in
     (IO a, _Return m_elab)
-  | MLet (m, bnd) -> (
-    let t1, m_elab = infer_tm ctx env m in
-    let t1 = State.resolve t1 in
-    match whnf env t1 with
-    | IO a -> (
-      let x, n = unbind bnd in
-      let t2, n_elab = infer_tm (Ctx.add_var x a ctx) env n in
-      let t2 = State.resolve t2 in
-      match whnf env t2 with
-      | IO b -> (IO b, _MLet m_elab (bind_var x n_elab))
-      | _ -> failwith "trans1e.MLet")
-    | _ -> failwith "trans1e.MLet")
+  | MLet (m, bnd) ->
+    (let t1, m_elab = infer_tm ctx env m in
+     let t1 = State.resolve t1 in
+     match whnf env t1 with
+     | IO a ->
+       (let x, n = unbind bnd in
+        let t2, n_elab = infer_tm (Ctx.add_var x a ctx) env n in
+        let t2 = State.resolve t2 in
+        match whnf env t2 with
+        | IO b -> (IO b, _MLet m_elab (bind_var x n_elab))
+        | _ -> failwith "trans1e.MLet")
+     | _ -> failwith "trans1e.MLet")
   (* magic *)
   | Magic a ->
     let a_elab = assert_type ctx env a in
@@ -267,17 +267,17 @@ and check_tm ctx env m a : tm box =
       pr "@[check_tm(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m pp_tm a);
   match m with
   (* inference *)
-  | IMeta (x, _, _) -> (
-    match State.find_imeta x with
-    | Some (ss, xs, b) ->
-      assert_equal1 env a b;
-      let m_elab = _IMeta x ss xs in
-      m_elab
-    | None ->
-      let ss, xs = spine_of_ctx ctx in
-      State.add_imeta ctx env x ss xs a;
-      let m_elab = _IMeta x ss xs in
-      m_elab)
+  | IMeta (x, _, _) ->
+    (match State.find_imeta x with
+     | Some (ss, xs, b) ->
+       assert_equal1 env a b;
+       let m_elab = _IMeta x ss xs in
+       m_elab
+     | None ->
+       let ss, xs = spine_of_ctx ctx in
+       State.add_imeta ctx env x ss xs a;
+       let m_elab = _IMeta x ss xs in
+       m_elab)
   | Fun (guard, b, bnd) ->
     let x, cls = unbind bnd in
     let b_elab = assert_type ctx env b in
@@ -316,8 +316,7 @@ and check_cls ctx env cls a : cls box =
   in
   let fail_on_ind global ctx d ss ms a =
     let _, cs = Ctx.find_ind d ctx in
-    List.iter
-      (fun c ->
+    List.iter (fun c ->
         let sch = Ctx.find_constr c ctx in
         let param = msubst sch (Array.of_list ss) in
         let tele = param_inst param ms in
@@ -334,57 +333,52 @@ and check_cls ctx env cls a : cls box =
       Debug.exec (fun () -> pr "case_empty@.");
       if not (witness_distinct prbm.global) then
         match whnf env a with
-        | Pi (_, _, a, _) -> (
-          match whnf env a with
-          | Ind (d, ss, ms, ns) ->
-            fail_on_ind prbm.global ctx d ss ms a;
-            []
-          | _ -> failwith "trans1e.check_cls(Empty)")
+        | Pi (_, _, a, _) ->
+          (match whnf env a with
+           | Ind (d, ss, ms, ns) ->
+             fail_on_ind prbm.global ctx d ss ms a;
+             []
+           | _ -> failwith "trans1e.check_cls(Empty)")
         | _ -> failwith "trans1e.check_cls(Empty)"
-      else
-        []
+      else []
     (* case intro *)
-    | (eqns, p :: ps, rhs, _) :: clause -> (
-      match whnf env a with
-      | Pi (_, _, a, bnd) ->
-        let x, b = unbind_pmeta bnd in
-        Debug.exec (fun () -> pr "case_intro(%a : %a)@." Var.pp x pp_tm a);
-        let ctx = Ctx.add_var x a ctx in
-        let prbm = prbm_add env prbm x a in
-        aux_prbm ctx prbm b
-      | a -> failwith "trans1e.check_cls(Intro(%a, %a))" pp_tm a (pp_ps " ") ps)
+    | (eqns, p :: ps, rhs, _) :: clause ->
+      (match whnf env a with
+       | Pi (_, _, a, bnd) ->
+         let x, b = unbind_pmeta bnd in
+         Debug.exec (fun () -> pr "case_intro(%a : %a)@." Var.pp x pp_tm a);
+         let ctx = Ctx.add_var x a ctx in
+         let prbm = prbm_add env prbm x a in
+         aux_prbm ctx prbm b
+       | a -> failwith "trans1e.check_cls(Intro(%a, %a))" pp_tm a (pp_ps " ") ps)
     (* case splitting *)
-    | (eqns, [], rhs, ps) :: _ when can_split eqns -> (
-      let x, b = first_split eqns in
-      match whnf env b with
-      | Ind (d, ss, ms, _) ->
-        let _, cs = Ctx.find_ind d ctx in
-        List.concat_map
-          (fun c ->
-            Debug.exec (fun () -> pr "splitting_on(%a)@." Constr.pp c);
-            let sch = Ctx.find_constr c ctx in
-            let param = msubst sch (Array.of_list ss) in
-            let tele = param_inst param ms in
-            let args, t = unbind_tele tele in
-            let ctx, args =
-              List.fold_left_map
-                (fun ctx (_, x, a) -> (Ctx.add_var x a ctx, (PMeta x, PVar x)))
-                ctx args
-            in
-            let ns, ps = List.split args in
-            let m = Constr (c, ss, ms, ns) in
-            let p = PConstr (c, ps) in
-            let var_map = Var.Map.singleton x m in
-            let pvar_map = Var.Map.singleton x p in
-            let a = subst_pmeta var_map a in
-            let ctx = Ctx.map_var (subst_pmeta var_map) ctx in
-            let prbm = prbm_simpl ctx var_map pvar_map prbm in
-            let prbm =
-              PPrbm.{ prbm with global = EqualTerm (env, b, t) :: prbm.global }
-            in
-            aux_prbm ctx prbm a)
-          cs
-      | b -> failwith "trans1e.check_cls(Split(%a : %a))" Var.pp x pp_tm b)
+    | (eqns, [], rhs, ps) :: _ when can_split eqns ->
+      (let x, b = first_split eqns in
+       match whnf env b with
+       | Ind (d, ss, ms, _) ->
+         let _, cs = Ctx.find_ind d ctx in
+         List.concat_map (fun c ->
+             Debug.exec (fun () -> pr "splitting_on(%a)@." Constr.pp c);
+             let sch = Ctx.find_constr c ctx in
+             let param = msubst sch (Array.of_list ss) in
+             let tele = param_inst param ms in
+             let args, t = unbind_tele tele in
+             let ctx, args = List.fold_left_map (fun ctx (_, x, a) ->
+                 (Ctx.add_var x a ctx, (PMeta x, PVar x)))
+                 ctx args
+             in
+             let ns, ps = List.split args in
+             let m = Constr (c, ss, ms, ns) in
+             let p = PConstr (c, ps) in
+             let var_map = Var.Map.singleton x m in
+             let pvar_map = Var.Map.singleton x p in
+             let a = subst_pmeta var_map a in
+             let ctx = Ctx.map_var (subst_pmeta var_map) ctx in
+             let prbm = prbm_simpl ctx var_map pvar_map prbm in
+             let prbm = PPrbm.{ prbm with global = EqualTerm (env, b, t) :: prbm.global } in
+             aux_prbm ctx prbm a)
+           cs
+       | b -> failwith "trans1e.check_cls(Split(%a : %a))" Var.pp x pp_tm b)
     (* absurd pattern *)
     | (eqns, [], rhs, ps) :: _ when is_absurd eqns rhs ->
       Debug.exec (fun () -> pr "case_absurd@.");
@@ -396,28 +390,26 @@ and check_cls ctx env cls a : cls box =
           fail_on_ind prbm.global ctx d ss ms a;
           [ bind_ps ps _None ]
         | _ -> failwith "trans1e.check_cls(Absurd)"
-      else
-        [ bind_ps ps _None ]
+      else [ bind_ps ps _None ]
     (* case coverage *)
-    | (eqns, [], rhs, ps) :: _ -> (
-      Debug.exec (fun () ->
-          pr "@[<v 0>case_coverage{|@;<1 2>%a@;<1 0>|}@]@." PPrbm.pp prbm);
-      match rhs with
-      | Some rhs ->
-        let local_map, global_map = unify_pprbm eqns prbm.global in
-        let a = resolve_pmeta global_map a in
-        let ctx = Ctx.map_var (resolve_pmeta global_map) ctx in
-        let env = Env.merge_var (Var.Map.map demote_pmeta global_map) env in
-        let rhs = resolve_pmeta local_map rhs in
-        Debug.exec (fun () ->
-            pr "@[case_coverage_ok(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm rhs pp_tm a);
-        let rhs_elab = check_tm ctx env rhs a in
-        [ bind_ps ps (_Some rhs_elab) ]
-      | None ->
-        if not (witness_distinct prbm.global) then
-          failwith "trans1e.check_cls(Cover)"
-        else
-          [ bind_ps ps _None ])
+    | (eqns, [], rhs, ps) :: _ ->
+      (Debug.exec (fun () ->
+           pr "@[<v 0>case_coverage{|@;<1 2>%a@;<1 0>|}@]@." PPrbm.pp prbm);
+       match rhs with
+       | Some rhs ->
+         let local_map, global_map = unify_pprbm eqns prbm.global in
+         let a = resolve_pmeta global_map a in
+         let ctx = Ctx.map_var (resolve_pmeta global_map) ctx in
+         let env = Env.merge_var (Var.Map.map demote_pmeta global_map) env in
+         let rhs = resolve_pmeta local_map rhs in
+         Debug.exec (fun () ->
+             pr "@[case_coverage_ok(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm rhs pp_tm a);
+         let rhs_elab = check_tm ctx env rhs a in
+         [ bind_ps ps (_Some rhs_elab) ]
+       | None ->
+         if not (witness_distinct prbm.global) then
+           failwith "trans1e.check_cls(Cover)"
+         else [ bind_ps ps _None ])
   in
   let prbm = PPrbm.of_cls cls in
   let a = State.resolve a in
@@ -435,8 +427,7 @@ and prbm_add env prbm x a =
     let clause =
       (eqns @ [ PPrbm.EqualPat (env, PMeta x, p, a) ], ps, rhs, ps0 @ [ PVar x ])
       :: prbm.clause
-    in
-    { prbm with clause }
+    in { prbm with clause }
   | _ -> failwith "trans1e.prbm_add"
 
 and prbm_simpl ctx var_map pvar_map prbm =
@@ -451,24 +442,22 @@ and prbm_simpl ctx var_map pvar_map prbm =
   in
   let rec aux_clause = function
     | [] -> []
-    | (eqns, [], rhs, ps) :: clause -> (
-      let clause = aux_clause clause in
-      let opt =
-        List.fold_left
-          (fun acc eqn ->
-            match (acc, eqn) with
-            | Some acc, PPrbm.EqualPat (env, l, r, a) -> (
-              let l = subst_pmeta var_map l in
+    | (eqns, [], rhs, ps) :: clause ->
+      (let clause = aux_clause clause in
+       let opt = List.fold_left (fun acc eqn ->
+           match (acc, eqn) with
+           | Some acc, PPrbm.EqualPat (env, l, r, a) ->
+             (let l = subst_pmeta var_map l in
               let a = subst_pmeta var_map a in
               match p_simpl ctx env l r a with
               | Some eqns -> Some (acc @ eqns)
               | None -> None)
-            | _ -> None)
-          (Some []) eqns
-      in
-      match opt with
-      | Some eqns -> (eqns, [], rhs, expand_ps ps pvar_map) :: clause
-      | None -> clause)
+           | _ -> None)
+           (Some []) eqns
+       in
+       match opt with
+       | Some eqns -> (eqns, [], rhs, expand_ps ps pvar_map) :: clause
+       | None -> clause)
     | _ -> failwith "trans1e.prbm_simpl(Clause)"
   in
   let global = aux_global prbm.global in
@@ -486,28 +475,25 @@ and p_simpl ctx env m p a =
         let param = msubst sch (Array.of_list ss) in
         let tele = param_inst param ms in
         ps_simpl ctx env ns ps tele
-      else
-        None
-    else
-      failwith "trans1e.p_simpl"
+      else None
+    else failwith "trans1e.p_simpl"
   | Constr _, _, Ind _ -> Some [ PPrbm.EqualPat (env, m, p, a) ]
   | _, PConstr (c2, _), Ind (d, _, _, _) ->
     let _, cs = Ctx.find_ind d ctx in
-    if List.exists (fun c -> Constr.equal c c2) cs then
-      Some [ PPrbm.EqualPat (env, m, p, a) ]
-    else
-      failwith "trans1e.p_simpl"
+    if List.exists (fun c -> Constr.equal c c2) cs
+    then Some [ PPrbm.EqualPat (env, m, p, a) ]
+    else failwith "trans1e.p_simpl"
   | m, p, a -> Some [ PPrbm.EqualPat (env, m, p, a) ]
 
 and ps_simpl ctx env ms ps tele =
   match (ms, ps, tele) with
-  | m :: ms, p :: ps, TBind (_, a, bnd) -> (
-    let opt1 = p_simpl ctx env m p a in
-    let tele = subst bnd m in
-    let opt2 = ps_simpl ctx env ms ps tele in
-    match (opt1, opt2) with
-    | Some eqns1, Some eqns2 -> Some (eqns1 @ eqns2)
-    | _ -> None)
+  | m :: ms, p :: ps, TBind (_, a, bnd) ->
+    (let opt1 = p_simpl ctx env m p a in
+     let tele = subst bnd m in
+     let opt2 = ps_simpl ctx env ms ps tele in
+     match (opt1, opt2) with
+     | Some eqns1, Some eqns2 -> Some (eqns1 @ eqns2)
+     | _ -> None)
   | [], [], TBase _ -> Some []
   | _ -> None
 
@@ -531,8 +517,7 @@ let rec check_dcls ctx env dcls =
         let entries0 = State.get_delayed () in
         loop (i - 1) (entries0 @ entries)
       | _ -> failwith "trans1e.solve_delayed(Timeout)"
-    in
-    loop (10 * List.length entries) entries
+    in loop (10 * List.length entries) entries
   in
   match dcls with
   | Definition { name = x; relv; scheme = sch } :: dcls ->
@@ -568,49 +553,48 @@ let rec check_dcls ctx env dcls =
         meta_map arity
     in
     let dconstrs = resolve_dconstrs meta_map dconstrs in
-    let cs, ctx =
-      List.fold_right
-        (fun (c, sch) (acc, ctx) -> (c :: acc, Ctx.add_constr c sch ctx))
+    let cs, ctx = List.fold_right (fun (c, sch) (acc, ctx) ->
+        (c :: acc, Ctx.add_constr c sch ctx))
         dconstrs ([], ctx)
     in
     let ctx = Ctx.add_ind ind (arity, cs) ctx in
     Debug.exec (fun () -> pr "----------------------------------@.@.");
     let dcls = check_dcls ctx env dcls in
     Inductive { name = ind; relv; arity; dconstrs } :: dcls
-  | Extern { name = x; relv; scheme = sch } :: dcls -> (
-    Debug.exec (fun () -> pr "extern---------------------------------@.");
-    let ss, (m_opt, a) = unmbind sch in
-    match m_opt with
-    | Some m ->
-      let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
-      let a_elab = assert_type ctx0 env a in
-      let a = unbox a_elab in
-      let m_elab = check_tm ctx0 env m a in
-      let m = unbox m_elab in
-      let meta_map = solve_delayed (State.get_delayed ()) in
-      let a_box = lift_tm (resolve_tm meta_map a) in
-      let m_box = lift_tm (resolve_tm meta_map m) in
-      let a_sch = bind_mvar ss a_box in
-      let m_sch = bind_mvar ss m_box in
-      let sch = bind_mvar ss (box_pair (box_opt (Some m_box)) a_box) in
-      let ctx = Ctx.add_const x (unbox a_sch) ctx in
-      let env = Env.add_const x (unbox m_sch) env in
-      Debug.exec (fun () -> pr "----------------------------------@.@.");
-      let dcls = check_dcls ctx env dcls in
-      Extern { name = x; relv; scheme = unbox sch } :: dcls
-    | None ->
-      let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
-      let a_elab = assert_type ctx0 env a in
-      let a = unbox a_elab in
-      let meta_map = solve_delayed (State.get_delayed ()) in
-      let a_box = lift_tm (resolve_tm meta_map a) in
-      let m_box = box None in
-      let a_sch = bind_mvar ss a_box in
-      let sch = bind_mvar ss (box_pair m_box a_box) in
-      let ctx = Ctx.add_const x (unbox a_sch) ctx in
-      Debug.exec (fun () -> pr "----------------------------------@.@.");
-      let dcls = check_dcls ctx env dcls in
-      Extern { name = x; relv; scheme = unbox sch } :: dcls)
+  | Extern { name = x; relv; scheme = sch } :: dcls ->
+    (Debug.exec (fun () -> pr "extern---------------------------------@.");
+     let ss, (m_opt, a) = unmbind sch in
+     match m_opt with
+     | Some m ->
+       let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
+       let a_elab = assert_type ctx0 env a in
+       let a = unbox a_elab in
+       let m_elab = check_tm ctx0 env m a in
+       let m = unbox m_elab in
+       let meta_map = solve_delayed (State.get_delayed ()) in
+       let a_box = lift_tm (resolve_tm meta_map a) in
+       let m_box = lift_tm (resolve_tm meta_map m) in
+       let a_sch = bind_mvar ss a_box in
+       let m_sch = bind_mvar ss m_box in
+       let sch = bind_mvar ss (box_pair (box_opt (Some m_box)) a_box) in
+       let ctx = Ctx.add_const x (unbox a_sch) ctx in
+       let env = Env.add_const x (unbox m_sch) env in
+       Debug.exec (fun () -> pr "----------------------------------@.@.");
+       let dcls = check_dcls ctx env dcls in
+       Extern { name = x; relv; scheme = unbox sch } :: dcls
+     | None ->
+       let ctx0 = Array.fold_right Ctx.add_svar ss ctx in
+       let a_elab = assert_type ctx0 env a in
+       let a = unbox a_elab in
+       let meta_map = solve_delayed (State.get_delayed ()) in
+       let a_box = lift_tm (resolve_tm meta_map a) in
+       let m_box = box None in
+       let a_sch = bind_mvar ss a_box in
+       let sch = bind_mvar ss (box_pair m_box a_box) in
+       let ctx = Ctx.add_const x (unbox a_sch) ctx in
+       Debug.exec (fun () -> pr "----------------------------------@.@.");
+       let dcls = check_dcls ctx env dcls in
+       Extern { name = x; relv; scheme = unbox sch } :: dcls)
   | [] -> []
 
 and check_arity ctx env arity =
@@ -648,13 +632,13 @@ and check_dconstrs ind ctx env dconstrs =
         _PBind a_elab (bind_var x b_elab)
     and aux_tele sids xs ctx = function
       | TBase (Ind (x, ss, ms, ns) as a) -> (
-        let a_elab = assert_type ctx env a in
-        match unbox a_elab with
-        | Ind (x, ss, ms, ns) ->
-          List.iter2 (fun sid s -> assert_equal0 (SVar sid) s) sids ss;
-          List.iter2 (fun x m -> assert_equal1 env (Var x) m) xs ms;
-          _TBase a_elab
-        | _ -> failwith "trans1e.check_dconstr(aux_tele)")
+          let a_elab = assert_type ctx env a in
+          match unbox a_elab with
+          | Ind (x, ss, ms, ns) ->
+            List.iter2 (fun sid s -> assert_equal0 (SVar sid) s) sids ss;
+            List.iter2 (fun x m -> assert_equal1 env (Var x) m) xs ms;
+            _TBase a_elab
+          | _ -> failwith "trans1e.check_dconstr(aux_tele)")
       | TBind (relv, a, bnd) ->
         let x, b = unbind bnd in
         let a_elab = assert_type ctx env a in
