@@ -36,13 +36,13 @@ let pp_modifier fmt = function
 let rec pp_rxs fmt = function
   | [] -> ()
   | [ (r, x, a) ] -> (
-    match r with
-    | N -> pf fmt "{%a : %a}" Var.pp x pp_tm a
-    | R -> pf fmt "(%a : %a)" Var.pp x pp_tm a)
+      match r with
+      | N -> pf fmt "{%a : %a}" Var.pp x pp_tm a
+      | R -> pf fmt "(%a : %a)" Var.pp x pp_tm a)
   | (r, x, a) :: rxs -> (
-    match r with
-    | R -> pf fmt "(%a : %a)@;<1 0>%a" Var.pp x pp_tm a pp_rxs rxs
-    | N -> pf fmt "{%a : %a}@;<1 0>%a" Var.pp x pp_tm a pp_rxs rxs)
+      match r with
+      | R -> pf fmt "(%a : %a)@;<1 0>%a" Var.pp x pp_tm a pp_rxs rxs
+      | N -> pf fmt "{%a : %a}@;<1 0>%a" Var.pp x pp_tm a pp_rxs rxs)
 
 and pp_tm fmt = function
   (* inference *)
@@ -127,6 +127,31 @@ and pp_tm fmt = function
     let x, n = unbind bnd in
     pf fmt "@[@[let* %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m
       pp_tm n
+  (* primitive types *)
+  | Int_t -> pf fmt "int"
+  | Char_t -> pf fmt "char"
+  | String_t -> pf fmt "string"
+  (* primitive terms *)
+  | Int i -> pf fmt "%d" i
+  | Char c -> pf fmt "%c" c
+  | String s -> pf fmt "%s" s
+  (* primitive operators *)
+  | Neg m -> pf fmt "@[__neg__@;<1 2>@[%a@]@]" pp_tm m
+  | Add (m, n) -> pf fmt "@[__add__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
+  | Sub (m, n) -> pf fmt "@[__sub__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
+  | Mul (m, n) -> pf fmt "@[__mul__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
+  | Div (m, n) -> pf fmt "@[__div__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
+  | Rem (m, n) -> pf fmt "@[__rem__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
+  | Lte (m, n) -> pf fmt "@[__lte__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
+  | Gte (m, n) -> pf fmt "@[__gte__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
+  | Lt (m, n) -> pf fmt "@[__lt__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
+  | Gt (m, n) -> pf fmt "@[__gt__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
+  | Eq (m, n) -> pf fmt "@[__eq__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
+  | Chr m -> pf fmt "@[__chr__@;<1 2>@[%a@]@]" pp_tm m
+  | Ord m -> pf fmt "@[__ord__@;<1 2>@[%a@]@]" pp_tm m
+  | Push (m, n) -> pf fmt "@[__push__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
+  | Cat (m, n) -> pf fmt "@[__cat__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
+  | Size m -> pf fmt "@[__size__@;<1 2>@[%a@]@]" pp_tm m
   (* magic *)
   | Magic a -> pf fmt "#magic[%a]" pp_tm a
 
@@ -213,19 +238,19 @@ let pp_dcl fmt = function
        <1 0>%a@]" pp_modifier relv Ind.pp d pp_sargs (Array.to_list xs) pp_args
       args pp_arity tele (pp_dconstrs xs args) dconstrs
   | Extern { name = x; relv; scheme = sch } -> (
-    let xs, (m_opt, a) = unmbind sch in
-    match m_opt with
-    | Some m ->
-      pf fmt
-        "@[@[<v 0>#[%a]@;\
-         <1 0>extern@] %a‹%a› :@;\
-         <1 2>@[%a@]@;\
-         <1 0>:=@;\
-         <1 2>@[%a@]@]" pp_modifier relv Const.pp x pp_sargs (Array.to_list xs)
-        pp_tm a pp_tm m
-    | None ->
-      pf fmt "@[@[<v 0>#[%a]@;<1 0>extern@] %a‹%a› :@;<1 2>@[%a@]@]" pp_modifier
-        relv Const.pp x pp_sargs (Array.to_list xs) pp_tm a)
+      let xs, (m_opt, a) = unmbind sch in
+      match m_opt with
+      | Some m ->
+        pf fmt
+          "@[@[<v 0>#[%a]@;\
+           <1 0>extern@] %a‹%a› :@;\
+           <1 2>@[%a@]@;\
+           <1 0>:=@;\
+           <1 2>@[%a@]@]" pp_modifier relv Const.pp x pp_sargs (Array.to_list xs)
+          pp_tm a pp_tm m
+      | None ->
+        pf fmt "@[@[<v 0>#[%a]@;<1 0>extern@] %a‹%a› :@;<1 2>@[%a@]@]" pp_modifier
+          relv Const.pp x pp_sargs (Array.to_list xs) pp_tm a)
 
 let pp_dcls fmt dcls =
   let break fmt _ = pf fmt "@.@." in

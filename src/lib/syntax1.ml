@@ -38,6 +38,45 @@ type tm =
   | IO of tm
   | Return of tm
   | MLet of tm * (tm, tm) binder
+  (* pimitive types *)
+  | Int_t
+  | Char_t
+  | String_t
+  (* pimitive terms *)
+  | Int of int
+  | Char of char
+  | String of string
+  (* primitive operators *)
+  | Neg of tm (* int -> int *)
+  | Add of tm * tm (* int -> int -> int *)
+  | Sub of tm * tm (* int -> int -> int *)
+  | Mul of tm * tm (* int -> int -> int *)
+  | Div of tm * tm (* int -> int -> int *)
+  | Rem of tm * tm (* int -> int -> int *)
+  | Lte of tm * tm (* int -> int -> bool *)
+  | Gte of tm * tm (* int -> int -> bool *)
+  | Lt of tm * tm (* int -> int -> bool *)
+  | Gt of tm * tm (* int -> int -> bool *)
+  | Eq of tm * tm (* int -> int -> bool *)
+  | Chr of tm (* int -> char *)
+  | Ord of tm (* char -> int *)
+  | Push of tm * tm (* string -> char -> string *)
+  | Cat of tm * tm (* string -> string -> string *)
+  | Size of tm (* string -> int *)
+  | Indx of tm * tm (* string -> int -> char *)
+  (* primitive sessions *)
+  | Proto
+  | EndP
+  | Act of relv * bool * tm * (tm, tm) binder
+  | Ch of bool * tm
+  (* primitive effects *)
+  | Print of tm (* string -> IO unit *)
+  | Prerr of tm (* string -> IO unit *)
+  | ReadLn of tm (* unit -> IO string *)
+  | Fork of tm (* (ch P1 -> IO unit) -> IO (ch P2) *)
+  | Send of tm * tm (* ch P1 -> m -> IO (ch P2) *)
+  | Recv of tm (* ch P1 -> IO (exists m, ch P1) *)
+  | Close of tm (* ch end -> IO unit *)
   (* magic *)
   | Magic of tm
 
@@ -183,6 +222,46 @@ let _IO = box_apply (fun a -> IO a)
 let _Return = box_apply (fun m -> Return m)
 let _MLet = box_apply2 (fun m n -> MLet (m, n))
 
+(* primitive *)
+let _Int_t = box Int_t
+let _Char_t = box Char_t
+let _String_t = box String_t
+
+let _Int i = box (Int i)
+let _Char c = box (Char c)
+let _String s = box (String s)
+
+let _Neg = box_apply (fun m -> Neg m)
+let _Add = box_apply2 (fun m n -> Add (m, n))
+let _Sub = box_apply2 (fun m n -> Sub (m, n))
+let _Mul = box_apply2 (fun m n -> Mul (m, n))
+let _Div = box_apply2 (fun m n -> Div (m, n))
+let _Rem = box_apply2 (fun m n -> Rem (m, n))
+let _Lte = box_apply2 (fun m n -> Lte (m, n))
+let _Gte = box_apply2 (fun m n -> Gte (m, n))
+let _Lt = box_apply2 (fun m n -> Lt (m, n))
+let _Gt = box_apply2 (fun m n -> Gt (m, n))
+let _Eq = box_apply2 (fun m n -> Eq (m, n))
+let _Chr = box_apply (fun m -> Chr m)
+let _Ord = box_apply (fun m -> Ord m)
+let _Push = box_apply2 (fun m n -> Push (m, n))
+let _Cat = box_apply2 (fun m n -> Cat (m, n))
+let _Size = box_apply (fun m -> Size m)
+let _Indx = box_apply2 (fun m n -> Indx (m, n))
+
+let _Proto = box Proto
+let _EndP = box EndP
+let _Act relv role = box_apply2 (fun a b -> Act (relv, role, a, b))
+let _Ch role = box_apply (fun p -> Ch (role, p))
+
+let _Print = box_apply (fun m -> Print m)
+let _Prerr = box_apply (fun m -> Prerr m)
+let _ReadLn = box_apply (fun m -> ReadLn m)
+let _Fork  = box_apply (fun m -> Fork m)
+let _Send = box_apply2 (fun m n -> Send (m, n))
+let _Recv = box_apply (fun m -> Recv m)
+let _Close = box_apply (fun m -> Close m)
+
 (* magic *)
 let _Magic = box_apply (fun a -> Magic a)
 
@@ -277,6 +356,46 @@ let rec lift_tm = function
   | IO a -> _IO (lift_tm a)
   | Return m -> _Return (lift_tm m)
   | MLet (m, bnd) -> _MLet (lift_tm m) (box_binder lift_tm bnd)
+  (* primitive types *)
+  | Int_t -> _Int_t
+  | Char_t -> _Char_t
+  | String_t -> _String_t
+  (* primitive terms *)
+  | Int i -> _Int i
+  | Char c -> _Char c
+  | String s -> _String s
+  (* primitive operators *)
+  | Neg m -> _Neg (lift_tm m)
+  | Add (m, n) -> _Add (lift_tm m) (lift_tm n)
+  | Sub (m, n) -> _Sub (lift_tm m) (lift_tm n)
+  | Mul (m, n) -> _Mul (lift_tm m) (lift_tm n)
+  | Div (m, n) -> _Div (lift_tm m) (lift_tm n)
+  | Rem (m, n) -> _Rem (lift_tm m) (lift_tm n)
+  | Lte (m, n) -> _Lte (lift_tm m) (lift_tm n)
+  | Gte (m, n) -> _Gte (lift_tm m) (lift_tm n)
+  | Lt (m, n) -> _Lt (lift_tm m) (lift_tm n)
+  | Gt (m, n) -> _Gt (lift_tm m) (lift_tm n)
+  | Eq (m, n) -> _Eq (lift_tm m) (lift_tm n)
+  | Chr m -> _Chr (lift_tm m)
+  | Ord m -> _Ord (lift_tm m)
+  | Push (m, n) -> _Push (lift_tm m) (lift_tm n)
+  | Cat (m, n) -> _Cat (lift_tm m) (lift_tm n)
+  | Size m -> _Size (lift_tm m)
+  | Indx (m, n) -> _Indx (lift_tm m) (lift_tm n)
+  (* primitive sessions *)
+  | Proto -> _Proto
+  | EndP -> _EndP
+  | Act (relv, role, a, bnd) ->
+    _Act relv role (lift_tm a) (box_binder lift_tm bnd)
+  | Ch (role, m) -> _Ch role (lift_tm m)
+  (* primitive effects *)
+  | Print m -> _Print (lift_tm m)
+  | Prerr m -> _Prerr (lift_tm m)
+  | ReadLn m -> _ReadLn (lift_tm m)
+  | Fork m -> _Fork (lift_tm m)
+  | Send (m, n) -> _Send (lift_tm m) (lift_tm n)
+  | Recv m -> _Recv (lift_tm m)
+  | Close m -> _Close (lift_tm m)
   (* magic *)
   | Magic a -> _Magic (lift_tm a)
 
@@ -284,11 +403,11 @@ and lift_cls cls =
   let cls =
     List.map
       (fun (p0s, mbnd) ->
-        let p0s = List.map box_p0 p0s in
-        let mbnd =
-          box_mbinder (fun opt -> opt |> Option.map lift_tm |> box_opt) mbnd
-        in
-        box_pair (box_list p0s) mbnd)
+         let p0s = List.map box_p0 p0s in
+         let mbnd =
+           box_mbinder (fun opt -> opt |> Option.map lift_tm |> box_opt) mbnd
+         in
+         box_pair (box_list p0s) mbnd)
       cls
   in
   box_list cls
@@ -334,8 +453,8 @@ let rec mvar_of_p p =
 and mvar_of_ps ps =
   List.fold_left_map
     (fun acc p ->
-      let xs, p0 = mvar_of_p p in
-      (acc @ xs, p0))
+       let xs, p0 = mvar_of_p p in
+       (acc @ xs, p0))
     [] ps
 
 let rec p_of_mvar mvar p0 =
@@ -394,9 +513,9 @@ let psubst (p0s, bnd) ms =
 let expand_ps ps pvar_map =
   let rec aux_p = function
     | PVar x -> (
-      match Var.Map.find_opt x pvar_map with
-      | Some p -> aux_p p
-      | None -> PVar x)
+        match Var.Map.find_opt x pvar_map with
+        | Some p -> aux_p p
+        | None -> PVar x)
     | PAbsurd -> PAbsurd
     | PConstr (c, ps) -> PConstr (c, aux_ps ps)
   and aux_ps ps = List.map aux_p ps in

@@ -44,6 +44,45 @@ type tm =
   | UOpr of id * tm
   | BOpr of id * tm * tm
   | Hole of int
+  (* pimitive types *)
+  | Int_t
+  | Char_t
+  | String_t
+  (* pimitive terms *)
+  | Int of int
+  | Char of char
+  | String of string
+  (* primitive operators *)
+  | Neg of tm (* int -> int *)
+  | Add of tm * tm (* int -> int -> int *)
+  | Sub of tm * tm (* int -> int -> int *)
+  | Mul of tm * tm (* int -> int -> int *)
+  | Div of tm * tm (* int -> int -> int *)
+  | Rem of tm * tm (* int -> int -> int *)
+  | Lte of tm * tm (* int -> int -> bool *)
+  | Gte of tm * tm (* int -> int -> bool *)
+  | Lt of tm * tm (* int -> int -> bool *)
+  | Gt of tm * tm (* int -> int -> bool *)
+  | Eq of tm * tm (* int -> int -> bool *)
+  | Chr of tm (* int -> char *)
+  | Ord of tm (* char -> int *)
+  | Push of tm * tm (* string -> char -> string *)
+  | Cat of tm * tm (* string -> string -> string *)
+  | Size of tm (* string -> int *)
+  | Indx of tm * tm (* string -> int -> char *)
+  (* primitive sessions *)
+  | Proto
+  | EndP
+  | Act of relv * bool * tm * (id, tm) binder
+  | Ch of bool * tm
+  (* primitive effects *)
+  | Print of tm (* string -> IO unit *)
+  | Prerr of tm (* string -> IO unit *)
+  | ReadLn of tm (* unit -> IO string *)
+  | Fork of tm (* (ch P1 -> IO unit) -> IO (ch P2) *)
+  | Send of tm * tm (* ch P1 -> m -> IO (ch P2) *)
+  | Recv of tm (* ch P1 -> IO (exists m, ch P1) *)
+  | Close of tm (* ch end -> IO unit *)
   (* magic *)
   | Magic of tm
 [@@deriving show { with_path = false }]
@@ -144,7 +183,7 @@ let subst_hole map m =
       let ms =
         List.map
           (fun (relv, m, a) ->
-            (relv, aux m, Option.map (fun (id, a) -> (id, aux a)) a))
+             (relv, aux m, Option.map (fun (id, a) -> (id, aux a)) a))
           ms
       in
       let a = Option.map aux a in
@@ -154,6 +193,46 @@ let subst_hole map m =
     | IO a -> IO (aux a)
     | Return m -> Return (aux m)
     | MLet (m, Binder (id, n)) -> MLet (aux m, Binder (id, aux n))
+    (* pimitive types *)
+    | Int_t -> Int_t
+    | Char_t -> Char_t
+    | String_t -> String_t
+    (* pimitive terms *)
+    | Int i -> Int i
+    | Char c -> Char c
+    | String s -> String s
+    (* primitive operators *)
+    | Neg m -> Neg (aux m)
+    | Add (m, n) -> Add (aux m, aux n)
+    | Sub (m, n) -> Sub (aux m, aux n)
+    | Mul (m, n) -> Mul (aux m, aux n)
+    | Div (m, n) -> Div (aux m, aux n)
+    | Rem (m, n) -> Rem (aux m, aux n)
+    | Lte (m, n) -> Lte (aux m, aux n)
+    | Gte (m, n) -> Gte (aux m, aux n)
+    | Lt (m, n) -> Lt (aux m, aux n)
+    | Gt (m, n) -> Gt (aux m, aux n)
+    | Eq (m, n) -> Eq (aux m, aux n)
+    | Chr m -> Chr (aux m)
+    | Ord m -> Ord (aux m)
+    | Push (m, n) -> Push (aux m, aux n)
+    | Cat (m, n) -> Cat (aux m, aux n)
+    | Size m -> Size (aux m)
+    | Indx (m, n) -> Indx (aux m, aux n)
+    (* primitive sessions *)
+    | Proto -> Proto
+    | EndP -> EndP
+    | Act (relv, role, a, Binder (id, n)) ->
+      Act (relv, role, aux a, Binder (id, aux n))
+    | Ch (role, m) -> Ch (role, aux m)
+    (* primitive effects *)
+    | Print m -> Print (aux m)
+    | Prerr m -> Prerr (aux m)
+    | ReadLn tm -> ReadLn (aux m)
+    | Fork m -> Fork (aux m)
+    | Send (m, n) -> Send (aux m, aux n) 
+    | Recv m -> Recv (aux m)
+    | Close m -> Close (aux m)
     (* custom *)
     | UOpr (sym, m) -> UOpr (sym, aux m)
     | BOpr (sym, m, n) -> BOpr (sym, aux m, aux n)

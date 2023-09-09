@@ -15,6 +15,8 @@
 %token FRQ     // ›
 %token QLPAREN // ?(
 %token QLBRACE // ?{
+%token DLBRACK  // .[
+%token RLBRACK  // ][
 
 // quantifiers
 %token FORALL   // ∀
@@ -72,10 +74,6 @@
 %left OP_CAT
 %nonassoc OP_SIM OP_TIC
 
-// string
-%token<int> CHAR
-%token<int list> STRING
-
 // bottom
 %token BOT // ⊥
 
@@ -100,10 +98,10 @@
 
 // identifier
 %token<int> INTEGER          // 123
-%token<string> IDENTIFIER    // foo
-%token<string> CONSTANT0     // foo<
-%token<string> CONSTANT1     // foo‹
-%token<string> AT_IDENTIFIER // @foo
+%token<string> ID            // foo
+%token<string> CONST0        // foo<
+%token<string> CONST1        // foo‹
+%token<string> AT_ID         // @foo
 %token<string> AT_CONSTANT0  // @foo<
 %token<string> AT_CONSTANT1  // @foo‹
 %token<int> HOLE             // %1
@@ -130,21 +128,53 @@
 %token TM_ABSURD   // !!
 %token TM_MAGIC0   // #magic
 %token TM_MAGIC1   // #magic[
-%token TM_REW      // rew
 %token TM_IO       // IO
 %token TM_RETURN   // return
 %token TM_MLET     // let*
-%token TM_PROTO    // proto
-%token TM_END      // end
-%token TM_CH       // ch⟨
-%token TM_HC       // hc⟨
-%token TM_OPEN     // open
-%token TM_FORK     // fork
-%token TM_RECV     // recv
-%token TM_SEND     // send
-%token TM_CLOSE    // close
-%token TM_SLEEP    // sleep
-%token TM_RAND     // rand
+
+// primitive types
+%token PRIM_INT_T      // int
+%token PRIM_CHAR_T     // char
+%token PRIM_STRING_T   // string
+
+// primitive terms
+%token <int>PRIM_INT       // 123
+%token <char>PRIM_CHAR     // 'a'
+%token <string>PRIM_STRING // "abc"
+
+// primitive operators
+%token PRIM_NEG   // __neg__
+%token PRIM_ADD   // __add__
+%token PRIM_SUB   // __sub__
+%token PRIM_MUL   // __mul__
+%token PRIM_DIV   // __div__
+%token PRIM_REM   // __rem__
+%token PRIM_LTE   // __lte__
+%token PRIM_GTE   // __gte__
+%token PRIM_LT    // __lt__
+%token PRIM_GT    // __gt__
+%token PRIM_EQ    // __eq__
+%token PRIM_CHR   // __chr__
+%token PRIM_ORD   // __ord__
+%token PRIM_PUSH  // __push__
+%token PRIM_CAT   // __cat__
+%token PRIM_SIZE  // __size__
+%token PRIM_INDX  // __indx__
+
+// primitive sessions
+%token PRIM_PROTO     // proto
+%token PRIM_ENDP      // endp
+%token PRIM_CH        // ch⟨
+%token PRIM_HC        // hc⟨
+
+// primitive effects
+%token PRIM_PRINT     // print
+%token PRIM_PRERR     // prerr
+%token PRIM_READLN    // readln
+%token PRIM_FORK      // fork
+%token PRIM_SEND      // send
+%token PRIM_RECV      // recv
+%token PRIM_CLOSE     // close
 
 // modifiers
 %token MOD_PROGRAM        // program
@@ -170,16 +200,16 @@ let trivial :=
   | { () }
 
 let iden ==
-  | ~ = IDENTIFIER; <>
+  | ~ = ID; <>
 
 let const0 ==
-  | ~ = CONSTANT0; <>
+  | ~ = CONST0; <>
 
 let const1 ==
-  | ~ = CONSTANT1; <>
+  | ~ = CONST1; <>
 
 let at_iden ==
-  | ~ = AT_IDENTIFIER; <>
+  | ~ = AT_ID; <>
 
 let at_const0 ==
   | ~ = AT_CONSTANT0; <>
@@ -242,10 +272,10 @@ let sort :=
   | id = iden; { SId id }
 
 // identifiers
-/* foo @foo */
+/* foo @foo foo[1,2,3] @foo[1,2,3] */
 let tm_id :=
-  | id = iden; { if id = "_" then IMeta else Id (id, I) }
-  | id = at_iden; { Id (id, E) }
+  | id = ID; { if id = "_" then IMeta else Id (id, I) }
+  | id = AT_ID; { Id (id, E) }
 
 // notation hole
 /* %1 */
@@ -300,14 +330,10 @@ let tm_cls1 :=
 // instance
 /* X‹s,r,t› */
 let tm_inst :=
-  | id = const0; ss = separated_list(COMMA, sort); GT;
-    { Inst (id, ss, I) }
-  | id = const1; ss = separated_list(COMMA, sort); FRQ;
-    { Inst (id, ss, I) }
-  | id = at_const0; ss = separated_list(COMMA, sort); GT;
-    { Inst (id, ss, E) }
-  | id = at_const1; ss = separated_list(COMMA, sort); FRQ;
-    { Inst (id, ss, E) }
+  | id = const0; ss = separated_list(COMMA, sort); GT; { Inst (id, ss, I) }
+  | id = const1; ss = separated_list(COMMA, sort); FRQ; { Inst (id, ss, I) }
+  | id = at_const0; ss = separated_list(COMMA, sort); GT; { Inst (id, ss, E) }
+  | id = at_const1; ss = separated_list(COMMA, sort); FRQ; { Inst (id, ss, E) }
 
 // annotation
 /* (m : A) */
@@ -596,15 +622,25 @@ let tm_match :=
   | TM_MATCH; args = tm_match_args; TM_IN; a = tm; TM_WITH; cls = tm_cls1;
     { Match (args, Some a, cls) }
 
+// if-then-else expression
+/*
+if m then n1 else n2
+*/
+let tm_ifte(P) :=
+  | TM_IF; m = tm; TM_THEN; n1 = tm; TM_ELSE; n2 = P;
+    { Match ([(R, m, None)], None, [ ([PId "true"], Some n1); ([PId "false"], Some n2)]) }
+  | TM_IF; LBRACE; m = tm; RBRACE; TM_THEN; n1 = tm; TM_ELSE; n2 = P;
+    { Match ([(N, m, None)], None, [ ([PId "true"], Some n1); ([PId "false"], Some n2)]) }
+
 // io
 /* IO A */
 let tm_io :=
-  | TM_IO; a = tm0; { IO a }
+  | TM_IO; a = tm1; { IO a }
 
 // return
 /* return m */
 let tm_return :=
-  | TM_RETURN; m = tm0; { Return m }
+  | TM_RETURN; m = tm1; { Return m }
 
 // mlet
 /* let* x := m in n */
@@ -617,6 +653,74 @@ let tm_mlet(P) :=
       in
       MLet (m, Binder (p0, n)) }
 
+// primitive types
+/* int char string */
+let tm_prim_type :=
+  | PRIM_INT_T; { Int_t }
+  | PRIM_CHAR_T; { Char_t }
+  | PRIM_STRING_T; { String_t }
+
+// primitive terms
+let tm_prim_term :=
+  | i = PRIM_INT; { Int i }
+  | c = PRIM_CHAR; { Char c }
+  | s = PRIM_STRING; { String s }
+
+// primitive operators
+let tm_prim_opr :=
+  | PRIM_NEG; m = tm1; { Neg m }
+  | PRIM_ADD; m = tm1; n = tm1; { Add (m, n) }
+  | PRIM_SUB; m = tm1; n = tm1; { Sub (m, n) }
+  | PRIM_MUL; m = tm1; n = tm1; { Mul (m, n) }
+  | PRIM_DIV; m = tm1; n = tm1; { Div (m, n) }
+  | PRIM_REM; m = tm1; n = tm1; { Rem (m, n) }
+  | PRIM_LTE; m = tm1; n = tm1; { Lte (m, n) }
+  | PRIM_GTE; m = tm1; n = tm1; { Gte (m, n) }
+  | PRIM_LT; m = tm1; n = tm1; { Lt (m, n) }
+  | PRIM_GT; m = tm1; n = tm1; { Gt (m, n) }
+  | PRIM_EQ; m = tm1; n = tm1; { Eq (m, n) }
+  | PRIM_CHR; m = tm1; { Chr (m) }
+  | PRIM_ORD; m = tm1; { Ord (m) }
+  | PRIM_PUSH; m = tm1; n = tm1; { Push (m, n) }
+  | PRIM_CAT; m = tm1; n = tm1; { Cat (m, n) }
+  | PRIM_SIZE; m = tm1; { Size m }
+  | PRIM_INDX; m = tm1; n = tm1; { Indx (m, n) }
+
+// primitive sessions
+let tm_prim_sess :=
+  | PRIM_PROTO; { Proto }
+  | PRIM_ENDP; { EndP }
+  | BULLET; { EndP }
+  | PRIM_CH; a = tm; RANGLE; { Ch (true, a) }
+  | PRIM_HC; a = tm; RANGLE; { Ch (false, a) }
+
+// session actions
+/*
+⇑{x : A} → b
+⇓(x : A) → b
+*/
+let tm_act_arg :=
+  | LPAREN; id = iden; COLON; a = tm; RPAREN; { (R, id, a) } 
+  | LBRACE; id = iden; COLON; a = tm; RBRACE; { (N, id, a) } 
+  | LPAREN; a = tm; RPAREN; { (R, "_", a) } 
+  | LBRACE; a = tm; RBRACE; { (N, "_", a) } 
+
+let tm_act(P) :=
+  | UPARROW1; arg = tm_act_arg; RIGHTARROW0; b = P;
+    { let relv, id, a = arg in Act (relv, true, a, Binder (id, b)) }
+  | DOWNARROW1; arg = tm_act_arg; RIGHTARROW0; b = P;
+    { let relv, id, a = arg in Act (relv, false, a, Binder (id, b)) }
+
+// primitive effects
+let tm_prim_eff :=
+  | PRIM_PRINT; m = tm1; { Print m }
+  | PRIM_PRERR; m = tm1; { Prerr m }
+  | PRIM_READLN; m = tm1; { ReadLn m }
+  | PRIM_FORK; m = tm1; { Fork m }
+  | PRIM_SEND; m = tm1; n = tm1; { Send (m, n) }
+  | PRIM_RECV; m = tm1; { Recv m }
+  | PRIM_CLOSE; m = tm1; { Close m }
+
 // magic
 /*
 #magic
@@ -628,64 +732,76 @@ let tm_magic :=
 
 // terms
 let tm0 :=
+  | ~ = tm_id; <>
+  | ~ = tm_hole; <>
   | ~ = tm_ann; <>
+  | ~ = tm_inst; <>
+  | m = delim_op(tm,tm); { let (s, m1, m2) = m in BOpr (s, m1, m2) }
+  | LPAREN; ~ = tm; RPAREN; <>
+  | m = tm0; DLBRACK; ns = separated_list(RLBRACK,tm); RBRACK;
+    { List.fold_left (fun acc n -> Indx (acc, n)) m ns }
+
+let tm1 :=
   | ~ = tm_type; <>
   | ~ = tm_io; <>
   | ~ = tm_return; <>
+  | ~ = tm_prim_type; <>
+  | ~ = tm_prim_term; <>
+  | ~ = tm_prim_opr; <>
+  | ~ = tm_prim_sess; <>
+  | ~ = tm_prim_eff; <>
   | ~ = tm_magic; <>
-  | ~ = tm_id; <>
-  | ~ = tm_inst; <>
-  | ~ = tm_hole; <>
-  | m = delim_op(tm,tm); { let (s, m1, m2) = m in BOpr (s, m1, m2) }
-  | LPAREN; ~ = tm; RPAREN; <>
-
-let tm1 :=
-  | m = tm0; ms = tm0*;
-    { match ms with [] -> m | _ -> App (m :: ms) }
+  | ~ = tm0; <>
 
 let tm2 :=
-  | m = tm2; s = infix_op; n = tm2; { BOpr (s, m, n) }
-  | s = prefix_op; m = tm2; { UOpr (s, m) }
-  | ~ = tm1; <>
+  | ms = tm1+; { match ms with [ m ] -> m | _ -> App ms }
 
-let tm3_generic(P) :=
-  | a = tm2; RIGHTARROW0; b = tm3_generic(P); { Pi (R, U, a, Binder ("_", b)) }
-  | a = tm2; MULTIMAP; b = tm3_generic(P); { Pi (R, L, a, Binder ("_", b)) }
-  | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm3_generic(P); { Pi (N, U, a, Binder ("_", b)) }
-  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm3_generic(P); { Pi (N, L, a, Binder ("_", b)) }
-  | ms = tm0*; m = tm_pi(P); { match ms with [] -> m | _ -> App (ms @ [m]) }
+let tm3 :=
+  | m = tm3; s = infix_op; n = tm3; { BOpr (s, m, n) }
+  | s = prefix_op; m = tm3; { UOpr (s, m) }
   | ~ = tm2; <>
 
 let tm4_generic(P) :=
-  | ms = tm0*; m = tm_lam(P);
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = tm0*; m = tm_let(P);
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = tm0*; m = tm_letcls(P);
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = tm0*; m = tm_letfun(P);
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = tm0*; m = tm_mlet(P);
-    { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ~ = tm3_generic(P); <>
+  | a = tm3; RIGHTARROW0; b = tm4_generic(P); { Pi (R, U, a, Binder ("_", b)) }
+  | a = tm3; MULTIMAP; b = tm4_generic(P); { Pi (R, L, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm4_generic(P); { Pi (N, U, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm4_generic(P); { Pi (N, L, a, Binder ("_", b)) }
+  | ms = tm1*; m = tm_pi(P); { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm1*; m = tm_act(P); { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ~ = tm3; <>
 
-let tm4_closed :=
-  | m = tm2; s = weakfix_op; n = tm4_closed; { BOpr (s, m, n) }
-  | ~ = tm4_generic(tm_closed); <>
+let tm5_generic(P) :=
+  | ms = tm1*; m = tm_lam(P);
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm1*; m = tm_let(P);
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm1*; m = tm_letcls(P);
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm1*; m = tm_letfun(P);
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm1*; m = tm_mlet(P);
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ms = tm1*; m = tm_ifte(P);
+    { match ms with [] -> m | _ -> App (ms @ [m]) }
+  | ~ = tm4_generic(P); <>
 
-let tm4 :=
-  | ms = tm0*; m = tm_fun;
+let tm5_closed :=
+  | m = tm3; s = weakfix_op; n = tm5_closed; { BOpr (s, m, n) }
+  | ~ = tm5_generic(tm_closed); <>
+
+let tm5 :=
+  | ms = tm1*; m = tm_fun;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | ms = tm0*; m = tm_match;
+  | ms = tm1*; m = tm_match;
     { match ms with [] -> m | _ -> App (ms @ [m]) }
-  | m = tm2; s = weakfix_op; n = tm4; { BOpr (s, m, n) }
-  | ~ = tm4_generic(tm); <>
+  | m = tm3; s = weakfix_op; n = tm5; { BOpr (s, m, n) }
+  | ~ = tm5_generic(tm); <>
 
 let tm_closed :=
-  | ~ = tm4_closed; <>
+  | ~ = tm5_closed; <>
 
 let tm :=
-  | ~ = tm4; <>
+  | ~ = tm5; <>
 
 // dcl modifier
 let dcl_modifier :=

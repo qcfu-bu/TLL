@@ -17,14 +17,16 @@ let main =
   Arg.parse specs anon usage;
   match !src_opt with
   | Some src_file -> (
-    try
-      let src_ch = open_in src_file in
-      let dcls0 = parse (Utf8.from_channel src_ch) in
-      pr "%a" Syntax0.pp_dcls dcls0;
-      pr "@.@.-----------------------------------------@.@.";
-      let _, dcls1 = Trans01.trans_dcls [] dcls0 in
-      pr "%a" Pprint1.pp_dcls dcls1;
-      pr "@.@.-----------------------------------------@.@.";
+      try
+        let src_ch = open_in src_file in
+        let dcls0 = parse (Utf8.from_channel src_ch) in
+        pr "%a" Syntax0.pp_dcls dcls0;
+        pr "@.@.-----------------------------------------@.@.";
+        let _, dcls1 = Trans01.trans_dcls Prelude.prelude_nspc dcls0 in
+        let dcls1 = Prelude.prelude_dcls @ dcls1 in
+        pr "%a" Pprint1.pp_dcls dcls1;
+        pr "@.@.-----------------------------------------@.@.";
+        (* 
       let dcls1e = Trans1e.trans_dcls dcls1 in
       pr "%a" Pprint1.pp_dcls dcls1e;
       pr "@.@.-----------------------------------------@.@.";
@@ -37,7 +39,8 @@ let main =
       let dcls3 = Trans23.trans_dcls dcls2e in
       pr "%a" Pprint3.pp_dcls dcls3;
       pr "@.@.-----------------------------------------@.@."
-    with
-    | Failure s -> epr "%s@." s
-    | e -> epr "%a" exn_backtrace (e, Printexc.get_raw_backtrace ()))
+       *)
+      with
+      | Failure s -> epr "%s@." s
+      | e -> epr "%a" exn_backtrace (e, Printexc.get_raw_backtrace ()))
   | None -> epr "input file expected@."

@@ -1,0 +1,88 @@
+-- begin of stdlib
+
+notation ( |> ) := (%2 %1)
+notation ( @@ ) := (%1 %2)
+notation ( = ) := eq %1 %2
+notation ( ` ) := sing %1
+notation ( && ) := and %1 %2
+notation ( || ) := or %1 %2
+notation ( ~ ) := __neg__ %1
+notation ( + ) := __add__ %1 %2
+notation ( - ) := __sub__ %1 %2
+notation ( * ) := __mul__ %1 %2
+notation ( / ) := __div__ %1 %2
+notation ( % ) := __rem__ %1 %2
+notation ( <= ) := __lte__ %1 %2
+notation ( >= ) := __gte__ %1 %2
+notation ( < ) := __lt__ %1 %2
+notation ( > ) := __gt__ %1 %2
+notation ( +: ) := __push__ %1 %2
+notation ( ++ ) := __cat__ %1 %2
+notation ( :: ) := cons %1 %2
+notation ( ; ) := let* _ := %1 in %2
+notation ( ⟨{ }, ⟩ ) := ex0 %1 %2
+notation ( ⟨ , ⟩ ) := ex1 %1 %2
+
+#[logical]
+inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
+  | refl : m = m
+
+def rwl‹s,r› ?{A : Type‹s›} ?{m n : A} {B : A -> Type‹r›} : {m = n} -> B m -> B n
+  | refl, x => x
+
+def rwr‹s,r› ?{A : Type‹s›} ?{m n : A} {B : A -> Type‹r›} : {m = n} -> B n -> B m
+  | refl, x => x
+
+inductive sing‹s› ?(A : Type‹s›) : A -> Type‹s› where
+  | just (m : A) : `m
+
+inductive unit : U where
+  | tt : unit
+
+inductive bool : U where
+  | true  : bool
+  | false : bool
+
+inductive list‹s,t› (A : Type‹s›) : Type‹t› where
+  | nil : list A
+  | cons (hd : A) (tl : list‹_,t› A) : list A
+
+inductive exists0‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : L where
+  | ex0 {m : A} (n : B m) : @exists0 A B
+
+inductive exists1‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : L where
+  | ex1 (m : A) (n : B m) : @exists1 A B
+
+#[logical]def prod0‹s,r› (A : Type‹s›) (B : Type‹r›) := @exists0 A (fn _ => B)
+#[logical]def prod1‹s,r› (A : Type‹s›) (B : Type‹r›) := @exists1 A (fn _ => B)
+
+def not : bool -> bool
+  | true  => false
+  | false => true
+
+def and : bool -> bool -> bool
+  | true, true => true
+  | _   , _    => false
+
+def or : bool -> bool -> bool
+  | false, false => false
+  | _    , _     => true
+
+def xor : bool -> bool -o bool
+  | true , true  => false
+  | false, false => false
+  | _    , _     => true
+
+def pow (x y : int) : int :=
+  let fun loop (acc y : int) : int :=
+    if y <= 0 then acc
+    else loop (x * acc) (y - 1)
+  in loop 1 y
+
+def powm (x y m : int) : int :=
+  let fun loop (acc y : int) : int :=
+    if y <= 0 then acc
+    else loop (x * acc % m) (y - 1)
+  in loop 1 y
+
+-- end of stdlib

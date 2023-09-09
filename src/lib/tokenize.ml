@@ -36,6 +36,8 @@ let flq = [%sedlex.regexp? 8249] (* ‹ *)
 let frq = [%sedlex.regexp? 8250] (* › *)
 let qlparen = [%sedlex.regexp? "?("]
 let qlbrace = [%sedlex.regexp? "?{"]
+let rlbrack = [%sedlex.regexp? "]["]
+let plbrack = [%sedlex.regexp? ")["]
 
 (* quantifiers *)
 let forall = [%sedlex.regexp? "forall" | 8704] (* ∀ *)
@@ -53,8 +55,8 @@ let downarrow1 = [%sedlex.regexp? 8659] (* ⇓ *)
 (* operators *)
 let op_symbol =
   [%sedlex.regexp?
-    ( '+' | '-' | '*' | '/' | '\\' | '%' | '<' | '>' | '=' | '!' | '&' | '~'
-    | '^' | '|' | ':' | ';' | '@' | '`' | 215 | 8855 )]
+      ( '+' | '-' | '*' | '/' | '\\' | '%' | '<' | '>' | '=' | '!' | '&' | '~'
+      | '^' | '|' | ':' | ';' | '@' | '`' | 215 | 8855 )]
 
 let op_mul = [%sedlex.regexp? '*', Star op_symbol]
 let op_times = [%sedlex.regexp? 215, Star op_symbol] (* × *)
@@ -111,6 +113,7 @@ let at_identifier = [%sedlex.regexp? "@", identifier]
 let at_constant0 = [%sedlex.regexp? "@", constant0]
 let at_constant1 = [%sedlex.regexp? "@", constant1]
 let hole = [%sedlex.regexp? "%", integer]
+let hbrack = [%sedlex.regexp? "%", integer, "["]
 
 (* term *)
 let tm_type0 = [%sedlex.regexp? "Type", lt]
@@ -140,6 +143,48 @@ let tm_mlet = [%sedlex.regexp? "let*"]
 let mod_program = [%sedlex.regexp? "program"]
 let mod_logical = [%sedlex.regexp? "logical"]
 let modifier = [%sedlex.regexp? "#["]
+
+(* primitive types *)
+let prim_int_t = [%sedlex.regexp? "int"] 
+let prim_char_t = [%sedlex.regexp? "char"] 
+let prim_string_t = [%sedlex.regexp? "string"] 
+
+(* primitive terms *)
+let prim_int = [%sedlex.regexp? integer]
+
+(* primitive operators *)
+let prim_neg = [%sedlex.regexp? "__neg__"]
+let prim_add = [%sedlex.regexp? "__add__"]
+let prim_sub = [%sedlex.regexp? "__sub__"]
+let prim_mul = [%sedlex.regexp? "__mul__"]
+let prim_div = [%sedlex.regexp? "__div__"]
+let prim_rem = [%sedlex.regexp? "__rem__"]
+let prim_lte = [%sedlex.regexp? "__lte__"]
+let prim_gte = [%sedlex.regexp? "__gte__"]
+let prim_lt = [%sedlex.regexp? "__lt__"]
+let prim_gt = [%sedlex.regexp? "__gt__"]
+let prim_eq = [%sedlex.regexp? "__eq__"]
+let prim_chr = [%sedlex.regexp? "__chr__"]
+let prim_ord = [%sedlex.regexp? "__ord__"]
+let prim_push = [%sedlex.regexp? "__push__"]
+let prim_cat = [%sedlex.regexp? "__cat__"]
+let prim_size = [%sedlex.regexp? "__size__"]
+let prim_indx = [%sedlex.regexp? "__indx_"]
+
+(* primitive sessions *)
+let prim_proto = [%sedlex.regexp? "proto"]
+let prim_endp = [%sedlex.regexp? "endp"]
+let prim_ch = [%sedlex.regexp? "ch"]
+let prim_hc = [%sedlex.regexp? "hc"]
+
+(* primitive effects *)
+let prim_print = [%sedlex.regexp? "print"]
+let prim_prerr = [%sedlex.regexp? "prerr"]
+let prim_readln = [%sedlex.regexp? "readln"]
+let prim_fork = [%sedlex.regexp? "fork"]
+let prim_send = [%sedlex.regexp? "send"]
+let prim_recv = [%sedlex.regexp? "recv"]
+let prim_close = [%sedlex.regexp? "close"]
 
 (* dcl *)
 let dcl_def = [%sedlex.regexp? "def"]
@@ -190,6 +235,8 @@ let rec tokenize buf =
   | rbrace -> RBRACE
   | langle -> LANGLE
   | rangle -> RANGLE
+  | dot, lbrack -> DLBRACK
+  | rlbrack -> RLBRACK
   | lt -> LT
   | gt -> GT
   | flq -> FLQ
@@ -207,12 +254,6 @@ let rec tokenize buf =
   | multimap -> MULTIMAP
   | uparrow1 -> UPARROW1
   | downarrow1 -> DOWNARROW1
-  (* string *)
-  | quote0 -> CHAR (tokenize_char buf)
-  | quote1 -> STRING (tokenize_string buf)
-  (* truth *)
-  | top -> TOP
-  | bot -> BOT
   (* equality *)
   | assign -> ASSIGN
   | equiv -> EQUIV
@@ -282,17 +323,55 @@ let rec tokenize buf =
   | op_semi -> OP_SEMI (Utf8.lexeme buf)
   | op_at -> OP_AT (Utf8.lexeme buf)
   | op_tic -> OP_TIC (Utf8.lexeme buf)
-  (* other *)
-  | integer ->
-    let i = int_of_string (Utf8.lexeme buf) in
-    INTEGER i
-  | identifier -> IDENTIFIER (Utf8.lexeme buf)
+  (* primitives types *)
+  | prim_int_t -> PRIM_INT_T
+  | prim_char_t -> PRIM_CHAR_T
+  | prim_string_t -> PRIM_STRING_T
+  (* primitives terms *)
+  | prim_int -> PRIM_INT (int_of_string (Utf8.lexeme buf))
+  | quote0 -> PRIM_CHAR (tokenize_char buf)
+  | quote1 ->
+    let cs = tokenize_string buf in
+    PRIM_STRING (String.of_seq (List.to_seq cs))
+  (* primitive operators *)
+  | prim_neg -> PRIM_NEG
+  | prim_add -> PRIM_ADD
+  | prim_sub -> PRIM_SUB
+  | prim_mul -> PRIM_MUL
+  | prim_div -> PRIM_DIV
+  | prim_rem -> PRIM_REM
+  | prim_lte -> PRIM_LTE
+  | prim_gte -> PRIM_GTE
+  | prim_lt -> PRIM_LT
+  | prim_gt -> PRIM_GT
+  | prim_eq -> PRIM_EQ
+  | prim_chr -> PRIM_CHR
+  | prim_ord -> PRIM_ORD
+  | prim_push -> PRIM_PUSH
+  | prim_cat -> PRIM_CAT
+  | prim_size -> PRIM_SIZE
+  | prim_indx -> PRIM_INDX
+  (* primitive sessions *)
+  | prim_proto -> PRIM_PROTO
+  | prim_endp -> PRIM_ENDP
+  | prim_ch, langle -> PRIM_CH
+  | prim_hc, langle -> PRIM_HC
+  (* primitive effects *)
+  | prim_print -> PRIM_PRINT
+  | prim_prerr -> PRIM_PRERR
+  | prim_readln -> PRIM_READLN
+  | prim_fork -> PRIM_FORK
+  | prim_send -> PRIM_SEND
+  | prim_recv -> PRIM_RECV
+  | prim_close -> PRIM_CLOSE
+  (* identifiers *)
+  | identifier -> ID (Utf8.lexeme buf)
   | constant0 ->
     let s = Utf8.lexeme buf in
-    CONSTANT0 Text.(sub s 0 (length s - 1))
+    CONST0 Text.(sub s 0 (length s - 1))
   | constant1 ->
     let s = Utf8.lexeme buf in
-    CONSTANT1 Text.(sub s 0 (length s - 1))
+    CONST1 Text.(sub s 0 (length s - 1))
   | at_constant0 ->
     let s = Utf8.lexeme buf in
     AT_CONSTANT0 Text.(sub s 1 (length s - 2))
@@ -301,7 +380,7 @@ let rec tokenize buf =
     AT_CONSTANT1 Text.(sub s 1 (length s - 2))
   | at_identifier ->
     let s = Utf8.lexeme buf in
-    AT_IDENTIFIER Text.(sub s 1 (length s - 1))
+    AT_ID Text.(sub s 1 (length s - 1))
   | hole ->
     let s = Utf8.lexeme buf in
     let s = Text.(sub s 1 (length s - 1)) in
@@ -312,21 +391,21 @@ let rec tokenize buf =
 
 and tokenize_char0 buf =
   match%sedlex buf with
-  | "\\", "\\" -> Char.code '\\'
-  | "\\", "\'" -> Char.code '\''
-  | "\\", "\"" -> Char.code '\"'
-  | "\\", "n" -> Char.code '\n'
-  | "\\", "t" -> Char.code '\t'
-  | "\\", "b" -> Char.code '\b'
-  | "\\", "r" -> Char.code '\r'
-  | "\\", " " -> Char.code '\ '
+  | "\\", "\\" -> '\\'
+  | "\\", "\'" -> '\''
+  | "\\", "\"" -> '\"'
+  | "\\", "n" -> '\n'
+  | "\\", "t" -> '\t'
+  | "\\", "b" -> '\b'
+  | "\\", "r" -> '\r'
+  | "\\", " " -> '\ '
   | "\\", digit, digit, digit ->
     let tok = Utf8.lexeme buf in
     let tok = Scanf.unescaped tok in
-    Char.code (String.get tok 0)
+    String.get tok 0
   | any ->
     let tok = Utf8.lexeme buf in
-    Char.code (String.get tok 0)
+    String.get tok 0
   | _ ->
     let pos = fst (lexing_positions buf) in
     raise (LexError { pos_lnum = pos.pos_lnum; pos_cnum = pos.pos_cnum })
@@ -343,6 +422,6 @@ and tokenize_string buf =
   match%sedlex buf with
   | quote1 -> []
   | _ ->
-    let ls = tokenize_char0 buf in
-    let lss = tokenize_string buf in
-    ls :: lss
+    let c = tokenize_char0 buf in
+    let cs = tokenize_string buf in
+    c :: cs
