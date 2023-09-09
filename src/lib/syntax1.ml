@@ -65,8 +65,8 @@ type tm =
   | Indx of tm * tm (* string -> int -> char *)
   (* primitive sessions *)
   | Proto
-  | End
   | Act of relv * bool * tm * (tm, tm) binder
+  | End
   | Ch of bool * tm
   (* primitive effects *)
   | Print of tm (* string -> IO unit *)

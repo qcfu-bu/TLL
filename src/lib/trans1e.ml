@@ -7,6 +7,7 @@ open Constraint1e
 open Equality1e
 open Unifier1e
 open Pprint1
+open Prelude1
 
 module State : sig
   val add_eqn : IPrbm.eqn -> unit
@@ -205,11 +206,138 @@ and infer_tm ctx env m : tm * tm box =
         | IO b -> (IO b, _MLet m_elab (bind_var x n_elab))
         | _ -> failwith "trans1e.MLet")
      | _ -> failwith "trans1e.MLet")
+  (* primitive types *)
+  | Int_t -> (Type U, _Int_t)
+  | Char_t -> (Type U, _Char_t)
+  | String_t -> (Type U, _String_t)
+  (* primitive terms *)
+  | Int i -> (Int_t, _Int i)
+  | Char c -> (Char_t, _Char c)
+  | String s -> (String_t, _String s)
+  (* primitive operators *)
+  | Neg m ->
+    let m_elab = check_tm ctx env m Int_t in
+    (Int_t, _Neg m_elab)
+  | Add (m, n) ->
+    let m_elab = check_tm ctx env m Int_t in
+    let n_elab = check_tm ctx env n Int_t in
+    (Int_t, _Add m_elab n_elab)
+  | Sub (m, n) ->
+    let m_elab = check_tm ctx env m Int_t in
+    let n_elab = check_tm ctx env n Int_t in
+    (Int_t, _Sub m_elab n_elab)
+  | Mul (m, n) ->
+    let m_elab = check_tm ctx env m Int_t in
+    let n_elab = check_tm ctx env n Int_t in
+    (Int_t, _Mul m_elab n_elab)
+  | Div (m, n) ->
+    let m_elab = check_tm ctx env m Int_t in
+    let n_elab = check_tm ctx env n Int_t in
+    (Int_t, _Div m_elab n_elab)
+  | Rem (m, n) ->
+    let m_elab = check_tm ctx env m Int_t in
+    let n_elab = check_tm ctx env n Int_t in
+    (Int_t, _Rem m_elab n_elab)
+  | Lte (m, n) ->
+    let m_elab = check_tm ctx env m Int_t in
+    let n_elab = check_tm ctx env n Int_t in
+    (Ind (bool_ind, [], [], []), _Lte m_elab n_elab)
+  | Gte (m, n) ->
+    let m_elab = check_tm ctx env m Int_t in
+    let n_elab = check_tm ctx env n Int_t in
+    (Ind (bool_ind, [], [], []), _Gte m_elab n_elab)
+  | Lt (m, n) ->
+    let m_elab = check_tm ctx env m Int_t in
+    let n_elab = check_tm ctx env n Int_t in
+    (Ind (bool_ind, [], [], []), _Lt m_elab n_elab)
+  | Gt (m, n) ->
+    let m_elab = check_tm ctx env m Int_t in
+    let n_elab = check_tm ctx env n Int_t in
+    (Ind (bool_ind, [], [], []), _Gt m_elab n_elab)
+  | Eq (m, n) ->
+    let m_elab = check_tm ctx env m Int_t in
+    let n_elab = check_tm ctx env n Int_t in
+    (Ind (bool_ind, [], [], []), _Eq m_elab n_elab)
+  | Chr m ->
+    let m_elab = check_tm ctx env m Int_t in
+    (Char_t, _Chr m_elab)
+  | Ord m ->
+    let m_elab = check_tm ctx env m Char_t in
+    (Int_t, _Ord m_elab)
+  | Push (m, n) ->
+    let m_elab = check_tm ctx env m String_t in
+    let n_elab = check_tm ctx env n Char_t in
+    (String_t, _Push m_elab n_elab)
+  | Cat (m, n) ->
+    let m_elab = check_tm ctx env m String_t in
+    let n_elab = check_tm ctx env n String_t in
+    (String_t, _Cat m_elab n_elab)
+  | Size m ->
+    let m_elab = check_tm ctx env m String_t in
+    (Int_t, _Size m_elab)
+  | Indx (m, n) ->
+    let m_elab = check_tm ctx env m String_t in
+    let n_elab = check_tm ctx env n Int_t in
+    (Char_t, _Indx m_elab n_elab)
+  (* primitive sessions *)
+  | Proto -> (Type U, _Proto)
+  | Act (relv, role, a, bnd) ->
+    let x, b = unbind bnd in
+    let a_elab = assert_type ctx env a in
+    let a = unbox a_elab in
+    let b_elab = check_tm (Ctx.add_var x a ctx) env b Proto in
+    (Proto, _Act relv role a_elab (bind_var x b_elab))
+  | End -> (Proto, _End)
+  | Ch (role, a) ->
+    let a_elab = check_tm ctx env a Proto in
+    (Type L, _Ch role a_elab)
+  (* primitive effects *)
+  | Print m ->
+    let m_elab = check_tm ctx env m String_t in
+    (IO (Ind (unit_ind, [], [], [])), _Print m_elab)
+  | Prerr m ->
+    let m_elab = check_tm ctx env m String_t in
+    (IO (Ind (unit_ind, [], [], [])), _Prerr m_elab)
+  | ReadLn m ->
+    let m_elab = check_tm ctx env m (Ind (unit_ind, [], [], [])) in
+    (IO String_t, _ReadLn m_elab)
+  | Fork m ->
+    (let t, m_elab = infer_tm ctx env m in
+     let t = State.resolve t in
+     match whnf env t with
+     | Pi (R, L, a, bnd) -> 
+       (match whnf env a with
+        | Ch (role, a) -> 
+          let _, b = unbind bnd in
+          assert_equal1 env b (IO (Ind (unit_ind, [], [], [])));
+          (IO (Ch (not role, a)), _Fork m_elab)
+        | _ -> failwith "trans1e.fork")
+     | _ -> failwith "trans1e.fork")
+  | Send m ->
+    (let t, m_elab = infer_tm ctx env m in
+     let t = State.resolve t in
+     match whnf env t with
+     | Ch (role1, Act (relv, role2, a, bnd)) when role1 <> role2 = false ->
+       let x, b = unbind bnd in
+       let bnd = unbox (bind_var x (lift_tm (IO (Ch (role1, b))))) in
+       (Pi (relv, L, a, bnd), _Send m_elab)
+     | _ -> failwith "trans1e.infer_send")
+  | Recv m ->
+    (let t, m_elab = infer_tm ctx env m in
+     let t = State.resolve t in
+     match whnf env t  with
+     | Ch (role1, Act (relv, role2, a, bnd)) when role1 <> role2 = true ->
+       let x, b = unbind bnd in
+       let bnd = unbox (bind_var x (lift_tm (Ch (role1, b)))) in
+       _
+     | _ -> failwith "trans1e.infer_recv")
+
   (* magic *)
   | Magic a ->
     let a_elab = assert_type ctx env a in
     let a = unbox a_elab in
     (a, _Magic a_elab)
+  | _ -> _
 
 and infer_ptl ctx env ms ns ptl : tm * tms box * tms box =
   let rec aux_param ms ptl =
