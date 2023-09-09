@@ -198,10 +198,9 @@ let rec mvar_of_p p =
     (xs, P0Constr (c, p0s))
 
 and mvar_of_ps ps =
-  List.fold_left_map
-    (fun acc p ->
-       let xs, p0 = mvar_of_p p in
-       (acc @ xs, p0))
+  List.fold_left_map (fun acc p ->
+      let xs, p0 = mvar_of_p p in
+      (acc @ xs, p0))
     [] ps
 
 let rec p_of_mvar mvar p0 =
@@ -259,10 +258,10 @@ let psubst (p0s, bnd) ms =
 (* pattern expansion *)
 let expand_ps ps pvar_map =
   let rec aux_p = function
-    | PVar x -> (
-        match Var.Map.find_opt x pvar_map with
-        | Some p -> aux_p p
-        | None -> PVar x)
+    | PVar x ->
+      (match Var.Map.find_opt x pvar_map with
+       | Some p -> aux_p p
+       | None -> PVar x)
     | PAbsurd -> PAbsurd
     | PConstr (c, ps) -> PConstr (c, aux_ps ps)
   and aux_ps ps = List.map aux_p ps in
@@ -502,14 +501,12 @@ let rec lift_tm = function
   | Magic a -> _Magic (lift_tm a)
 
 and lift_cls cls =
-  let cls =
-    List.map
-      (fun (p0s, mbnd) ->
-         let p0s = List.map box_p0 p0s in
-         let mbnd =
-           box_mbinder (fun opt -> opt |> Option.map lift_tm |> box_opt) mbnd
-         in
-         box_pair (box_list p0s) mbnd)
+  let cls = List.map (fun (p0s, mbnd) ->
+      let p0s = List.map box_p0 p0s in
+      let mbnd =
+        box_mbinder (fun opt -> opt |> Option.map lift_tm |> box_opt) mbnd
+      in
+      box_pair (box_list p0s) mbnd)
       cls
   in
   box_list cls

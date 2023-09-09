@@ -15,13 +15,13 @@ let rec whnf ?(expand = true) (env : Env.t) = function
        whnf ~expand env (msubst sch (Array.of_list ss))
      with _ -> Const (x, ss))
   | App _ as m ->
-    (let hd, ms = unApps m in
-     let hd = whnf ~expand env hd in
-     let ms = List.map (whnf ~expand env) ms in
-     match hd with
+    let hd, ms = unApps m in
+    let hd = whnf ~expand env hd in
+    let ms = List.map (whnf ~expand env) ms in
+    (match hd with
      | Fun (guard, _, bnd) ->
-       (let cls = subst bnd hd in
-        match match_cls guard cls ms with
+       let cls = subst bnd hd in
+       (match match_cls guard cls ms with
         | Some (Some rhs, rst) -> whnf ~expand env (mkApps rhs rst)
         | _ -> mkApps hd ms)
      | _ -> mkApps hd ms)
@@ -30,14 +30,14 @@ let rec whnf ?(expand = true) (env : Env.t) = function
     whnf ~expand env (subst bnd m)
   (* inductive *)
   | Match (guard, ms, a, cls) ->
-    (let ms = List.map (whnf ~expand env) ms in
-     match match_cls guard cls ms with
+    let ms = List.map (whnf ~expand env) ms in
+    (match match_cls guard cls ms with
      | Some (Some rhs, []) -> whnf ~expand env rhs
      | _ -> Match (guard, ms, a, cls))
   (* monadic *)
   | MLet (m, bnd) ->
-    (let m = whnf ~expand env m in
-     match m with
+    let m = whnf ~expand env m in
+    (match m with
      | Return m ->
        let m = whnf ~expand env m in
        whnf ~expand env (subst bnd m)

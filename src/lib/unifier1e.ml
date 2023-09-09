@@ -332,11 +332,10 @@ let map_pmeta f m =
 
 (* substitute pmeta variables *)
 let subst_pmeta var_map m =
-  map_pmeta
-    (fun self x ->
-       match Var.Map.find_opt x var_map with
-       | Some m -> self m
-       | None -> _PMeta x)
+  map_pmeta (fun self x ->
+      match Var.Map.find_opt x var_map with
+      | Some m -> self m
+      | None -> _PMeta x)
     m
 
 (* demote pmeta variables *)
@@ -344,11 +343,10 @@ let demote_pmeta m = map_pmeta (fun _ x -> _Var x) m
 
 (* substitute and demote pmeta variables *)
 let resolve_pmeta var_map m =
-  map_pmeta
-    (fun self x ->
-       match Var.Map.find_opt x var_map with
-       | Some m -> self m
-       | None -> _Var x)
+  map_pmeta (fun self x ->
+      match Var.Map.find_opt x var_map with
+      | Some m -> self m
+      | None -> _Var x)
     m
 
 (* occurs checking *)
@@ -387,12 +385,11 @@ let occurs_tm x m =
     | Constr (_, _, ms, ns) -> List.exists aux (ms @ ns)
     | Match (_, ms, a, cls) ->
       List.exists aux ms || aux a ||
-      List.exists
-        (fun (_, bnd) ->
-           let _, rhs_opt = unmbind bnd in
-           match rhs_opt with
-           | Some rhs -> aux rhs
-           | None -> false)
+      List.exists (fun (_, bnd) ->
+          let _, rhs_opt = unmbind bnd in
+          match rhs_opt with
+          | Some rhs -> aux rhs
+          | None -> false)
         cls
     (* monad *)
     | IO a -> aux a
@@ -461,8 +458,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
       | MLet (IMeta _, _) -> true
       | MLet (m, _) -> blocked m
       | _ -> false
-    in
-    blocked m
+    in blocked m
   in
   (* pattern fragment check *)
   let imeta_pattern sp =
@@ -479,11 +475,11 @@ let rec simpl_iprbm ?(expand = false) eqn =
        | SMeta _, _ -> [ EqualSort (s2, s1) ]
        | _ -> failwith "unifier1.simpl_iprbm(EqualSort)")
   | EqualTerm (env, m1, m2) ->
-    (let m1 = whnf ~expand env m1 in
-     let m2 = whnf ~expand env m2 in
-     Debug.exec (fun () ->
-         pr "@[simpl_tm ~expand:%b(@;<1 2>%a,@;<1 2>%a)@]@." expand pp_tm m1 pp_tm m2);
-     match (m1, m2) with
+    let m1 = whnf ~expand env m1 in
+    let m2 = whnf ~expand env m2 in
+    Debug.exec (fun () ->
+        pr "@[simpl_tm ~expand:%b(@;<1 2>%a,@;<1 2>%a)@]@." expand pp_tm m1 pp_tm m2);
+    (match (m1, m2) with
      (* inference *)
      | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y < 0 -> [ EqualTerm (env, m1, m2) ]
      | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y > 0 -> [ EqualTerm (env, m2, m1) ]
@@ -739,12 +735,12 @@ let rec simpl_pprbm ?(expand = false) eqn =
   match eqn with
   | EqualPat _ -> failwith "unifier1.simpl_pprbm(EqualPat)"
   | EqualTerm (env, m1, m2) ->
-    (let m1 = whnf ~expand env m1 in
-     let m2 = whnf ~expand env m2 in
-     Debug.exec (fun () ->
-         pr "@[simpl_pprbm ~expand:%b(@;<1 2>%a,@;<1 2>%a)@]@." expand pp_tm m1
-           pp_tm m2);
-     match (m1, m2) with
+    let m1 = whnf ~expand env m1 in
+    let m2 = whnf ~expand env m2 in
+    Debug.exec (fun () ->
+        pr "@[simpl_pprbm ~expand:%b(@;<1 2>%a,@;<1 2>%a)@]@." expand pp_tm m1
+          pp_tm m2);
+    (match (m1, m2) with
      (* inference *)
      | IMeta (x1, _, _), IMeta (x2, _, _) when IMeta.equal x2 x2 -> []
      | PMeta x, PMeta y when compare_vars x y < 0 -> [ EqualTerm (env, m1, m2) ]
@@ -773,16 +769,13 @@ let rec simpl_pprbm ?(expand = false) eqn =
            | None, None -> []
            | _ -> failwith "unifier.simpl_pprbm(Fun)")
            cls1 cls2
-       in
-       eqns1 @ List.concat eqns2
+       in eqns1 @ List.concat eqns2
      | _, App _ | App _, _ ->
        (try
           let hd1, sp1 = unApps m1 in
           let hd2, sp2 = unApps m2 in
           let eqns1 = simpl_pprbm (EqualTerm (env, hd1, hd2)) in
-          let eqns2 =
-            List.map2 (fun m n -> simpl_pprbm (EqualTerm (env, m, n))) sp1 sp2
-          in
+          let eqns2 = List.map2 (fun m n -> simpl_pprbm (EqualTerm (env, m, n))) sp1 sp2 in
           eqns1 @ List.concat eqns2
         with
         | e when expand -> raise e
@@ -816,8 +809,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
            | None, None -> []
            | _ -> failwith "unifier1e.simpl_pprbm(Match)")
            cls1 cls2
-       in
-       List.concat eqns1 @ eqns2 @ List.concat eqns3
+       in List.concat eqns1 @ eqns2 @ List.concat eqns3
      (* monad *)
      | IO a1, IO a2 -> simpl_pprbm (EqualTerm (env, a1, a2))
      | Return m1, Return m2 -> simpl_pprbm (EqualTerm (env, m1, m2))
@@ -930,18 +922,18 @@ let unify_pprbm local global =
   let rec aux_eqns var_map = function
     | [] -> var_map
     | EqualPat (env, m, PVar x, _) :: eqns ->
-      (let m = subst_pmeta var_map m in
-       let n = subst_pmeta var_map (PMeta x) in
-       match simpl_pprbm (EqualTerm (env, m, n)) with
+      let m = subst_pmeta var_map m in
+      let n = subst_pmeta var_map (PMeta x) in
+      (match simpl_pprbm (EqualTerm (env, m, n)) with
        | [] -> aux_eqns var_map eqns
        | eqn :: eqns0 ->
          let var_map = solve_pprbm var_map eqn in
          aux_eqns var_map (eqns0 @ eqns))
     | EqualPat _ :: eqns -> failwith "unifier1e.unify_pprbm"
     | EqualTerm (env, m, n) :: eqns ->
-      (let m = subst_pmeta var_map m in
-       let n = subst_pmeta var_map n in
-       match simpl_pprbm (EqualTerm (env, m, n)) with
+      let m = subst_pmeta var_map m in
+      let n = subst_pmeta var_map n in
+      (match simpl_pprbm (EqualTerm (env, m, n)) with
        | [] -> aux_eqns var_map eqns
        | eqn :: eqns0 ->
          let var_map = solve_pprbm var_map eqn in

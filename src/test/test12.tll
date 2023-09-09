@@ -150,24 +150,20 @@ extern alloc (_ : unit) : IO (exists1 fn l => unit @ l)
 
 -- non-linear get can retrieve values without removal 
 extern getU ?{A : U} (l : loc) (pf : A @ l) : prod1 A (A @ l) :=
-  match pf with
-  | at_intro v => ⟨v, pf⟩
+  let at_intro v := pf in ⟨v, pf⟩
 
 -- linear get must retrieve values with removal 
 extern getL ?{A : L} (l : loc) (pf : A @ l) : prod1 A (unit @ l) :=
-  match pf with
-  | at_intro v => ⟨v, at_intro tt⟩
+  let at_intro v := pf in ⟨v, at_intro tt⟩
 
 -- set can override previous stored value
 extern set‹s› ?{A : U} ?{B : Type‹s›} (l : loc) (m : B) (pf : A @ l) : B @ l :=
-  match pf with
-  | at_intro _ => at_intro m
+  let at_intro _ := pf in at_intro m
 
 -- free deallocates references with non-linear values inside
 -- to free references with linear values, the linear values must first be removed 
 extern free ?{A : U} (l : loc) (pf : A @ l) : unit :=
-  match pf with
-  | at_intro _ => tt
+  let at_intro _ := pf in tt
 
 
 
