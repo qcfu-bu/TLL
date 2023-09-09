@@ -32,10 +32,10 @@ let main =
        let dcls2 = Trans12.trans_dcls dcls1e in
        pr "%a" Pprint2.pp_dcls dcls2;
        pr "@.@.-----------------------------------------@.@.";
+       let dcls2e = Trans2e.trans_dcls dcls2 in
+       pr "%a" Pprint2.pp_dcls dcls2e;
+       pr "@.@.-----------------------------------------@.@.";
        (* 
-      let dcls2e = Trans2e.trans_dcls dcls2 in
-      pr "%a" Pprint2.pp_dcls dcls2e;
-      pr "@.@.-----------------------------------------@.@.";
       let dcls3 = Trans23.trans_dcls dcls2e in
       pr "%a" Pprint3.pp_dcls dcls3;
       pr "@.@.-----------------------------------------@.@."

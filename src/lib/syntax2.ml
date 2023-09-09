@@ -2,14 +2,10 @@ open Bindlib
 open Names
 
 (* sorts *)
-type sort =
-  | U
-  | L
+type sort = U | L
 
 (* relevancy *)
-type relv =
-  | N
-  | R
+type relv = N | R
 
 type relvs = (relv * sort) list
 

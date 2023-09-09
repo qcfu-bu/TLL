@@ -26,14 +26,12 @@ let rec trans_tm ctx = function
     let x, bnd = unbind bnd in
     let xs, m = unmbind bnd in
     let m_elab = trans_tm ctx m in
-    let m_elab =
-      List.fold_right2
-        (fun (relv, s) x m_elab ->
-          let x = trans_var x in
-          let s = trans_sort s in
-          match relv with
-          | N -> Syntax3.(_Lam0 s m_elab)
-          | R -> Syntax3.(_Lam1 s (bind_var x m_elab)))
+    let m_elab = List.fold_right2 (fun (relv, s) x m_elab ->
+        let x = trans_var x in
+        let s = trans_sort s in
+        match relv with
+        | N -> Syntax3.(_Lam0 s m_elab)
+        | R -> Syntax3.(_Lam1 s (bind_var x m_elab)))
         relvs (Array.to_list xs) m_elab
     in
     Syntax3.(_Fun (bind_var (trans_var x) m_elab))
@@ -51,53 +49,53 @@ let rec trans_tm ctx = function
     Syntax3.(_Let m (bind_var (trans_var x) n))
   (* inductive *)
   | Constr (c, ms) -> (
-    let entry = Ctx.find_constr c ctx in
-    let ms =
-      List.(
-        filter_map
-          (function
-            | N, _ -> None
-            | R, m -> Some (trans_tm ctx m))
-          (combine entry.layout ms))
-    in
-    match (ms, entry.unbox) with
-    | [], true -> Syntax3.(_Constr0 c)
-    | [ m ], true -> m
-    | ms, _ -> Syntax3.(_Constr1 c (box_list ms)))
+      let entry = Ctx.find_constr c ctx in
+      let ms =
+        List.(
+          filter_map
+            (function
+              | N, _ -> None
+              | R, m -> Some (trans_tm ctx m))
+            (combine entry.layout ms))
+      in
+      match (ms, entry.unbox) with
+      | [], true -> Syntax3.(_Constr0 c)
+      | [ m ], true -> m
+      | ms, _ -> Syntax3.(_Constr1 c (box_list ms)))
   | Match (_, s, m, cls) -> (
-    let m = trans_tm ctx m in
-    let cls =
-      List.map
-        (fun (c, bnd) ->
-          let xs, rhs = unmbind bnd in
-          let entry = Ctx.find_constr c ctx in
-          let xs =
-            List.(
-              filter_map
-                (function
-                  | N, _ -> None
-                  | R, x -> Some (trans_var x))
-                (combine entry.layout (Array.to_list xs)))
-          in
-          (c, xs, trans_tm ctx rhs, entry.unbox))
-        cls
-    in
-    match cls with
-    | [ (c, [ x ], rhs, true) ] ->
-      let bnd = unbox (bind_var x rhs) in
-      Syntax3.(lift_tm (subst bnd (unbox m)))
-    | _ when List.for_all (fun (_, xs, _, unbox) -> xs = [] && unbox) cls ->
-      let cls = List.map (fun (c, _, rhs, _) -> _PConstr c rhs) cls in
-      Syntax3.(_Match0 m (box_list cls))
-    | _ ->
+      let m = trans_tm ctx m in
       let cls =
         List.map
-          (fun (c, xs, rhs, _) ->
-            let xs = Array.of_list xs in
-            _PConstr c (bind_mvar xs rhs))
+          (fun (c, bnd) ->
+             let xs, rhs = unmbind bnd in
+             let entry = Ctx.find_constr c ctx in
+             let xs =
+               List.(
+                 filter_map
+                   (function
+                     | N, _ -> None
+                     | R, x -> Some (trans_var x))
+                   (combine entry.layout (Array.to_list xs)))
+             in
+             (c, xs, trans_tm ctx rhs, entry.unbox))
           cls
       in
-      Syntax3.(_Match1 (trans_sort s) m (box_list cls)))
+      match cls with
+      | [ (c, [ x ], rhs, true) ] ->
+        let bnd = unbox (bind_var x rhs) in
+        Syntax3.(lift_tm (subst bnd (unbox m)))
+      | _ when List.for_all (fun (_, xs, _, unbox) -> xs = [] && unbox) cls ->
+        let cls = List.map (fun (c, _, rhs, _) -> _PConstr c rhs) cls in
+        Syntax3.(_Match0 m (box_list cls))
+      | _ ->
+        let cls =
+          List.map
+            (fun (c, xs, rhs, _) ->
+               let xs = Array.of_list xs in
+               _PConstr c (bind_mvar xs rhs))
+            cls
+        in
+        Syntax3.(_Match1 (trans_sort s) m (box_list cls)))
   | Absurd -> Syntax3._Absurd
   (* monad *)
   | Return m -> Syntax3.(_Lam0 L (trans_tm ctx m))
@@ -106,10 +104,10 @@ let rec trans_tm ctx = function
     let n =
       List.fold_right
         (fun (x, m) n ->
-          let x = trans_var x in
-          let m = trans_tm ctx m in
-          let bnd = bind_var x n in
-          Syntax3.(_Let (_App0 L m) bnd))
+           let x = trans_var x in
+           let m = trans_tm ctx m in
+           let bnd = bind_var x n in
+           Syntax3.(_Let (_App0 L m) bnd))
         xs (trans_tm ctx n)
     in
     Syntax3.(_Lam0 L n)
@@ -117,6 +115,7 @@ let rec trans_tm ctx = function
   | NULL -> failwith "trans23.trans_tm(NULL)"
   (* magic *)
   | Magic -> Syntax3._Magic
+  | _ -> _
 
 let trans_dcls dcls =
   let rec aux ctx = function

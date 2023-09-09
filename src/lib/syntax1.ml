@@ -11,9 +11,7 @@ type sort =
 and sorts = sort list
 
 (* relevancy *)
-type relv =
-  | N
-  | R
+type relv = N | R
 
 (* terms *)
 type tm =
