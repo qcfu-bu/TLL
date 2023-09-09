@@ -197,6 +197,46 @@ let rec aeq_tm m1 m2 =
     | Return m1, Return m2 -> aeq_tm m1 m2
     | MLet (m1, bnd1), MLet (m2, bnd2) ->
       aeq_tm m1 m2 && eq_binder aeq_tm bnd1 bnd2
+    (* primitive types *)
+    | Int_t, Int_t -> true
+    | Char_t, Char_t -> true
+    | String_t, String_t -> true
+    (* primitive terms *)
+    | Int i1, Int i2 -> i1 = i2
+    | Char c1, Char c2 -> c1 = c2
+    | String s1, String s2 -> s1 = s2
+    (* primitive operators *)
+    | Neg m1, Neg m2 -> aeq_tm m1 m2
+    | Add (m1, n1), Add (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Sub (m1, n1), Sub (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Mul (m1, n1), Mul (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Div (m1, n1), Div (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Rem (m1, n1), Rem (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Lte (m1, n1), Lte (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Gte (m1, n1), Gte (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Lt (m1, n1), Lt (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Gt (m1, n1), Gt (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Eq (m1, n1), Eq (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Chr m1, Chr m2 -> aeq_tm m1 m2
+    | Ord m1, Ord m2 -> aeq_tm m1 m2
+    | Push (m1, n1), Push (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Cat (m1, n1), Cat (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    | Size m1, Size m2 -> aeq_tm m1 m2
+    | Indx (m1, n1), Indx (m2, n2) -> aeq_tm m1 m2 && aeq_tm n1 n2
+    (* primitive sessions *)
+    | Proto, Proto -> true
+    | End, End -> true
+    | Act (relv1, role1, a1, bnd1), Act (relv2, role2, a2, bnd2) ->
+      relv1 = relv2 && role1 = role2 && aeq_tm a1 a2 && eq_binder aeq_tm bnd1 bnd2
+    | Ch (role1, m1), Ch (role2, m2) -> role1 = role2 && aeq_tm m1 m2
+    (* primitive effects *)
+    | Print m1, Print m2 -> aeq_tm m1 m2
+    | Prerr m1, Prerr m2 -> aeq_tm m1 m2
+    | ReadLn m1, ReadLn m2 -> aeq_tm m1 m2
+    | Fork m1, Fork m2 -> aeq_tm m1 m2
+    | Send m1, Send m2 -> aeq_tm m1 m2
+    | Recv m1, Recv m2 -> aeq_tm m1 m2
+    | Close m1, Close m2 -> aeq_tm m1 m2
     (* magic *)
     | Magic a1, Magic a2 -> aeq_tm a1 a2
     (* other *)
@@ -242,6 +282,46 @@ let rec eq_tm ?(expand = false) env m1 m2 =
       | Return m1, Return m2 -> equal m1 m2
       | MLet (m1, bnd1), MLet (m2, bnd2) ->
         equal m1 m2 && eq_binder equal bnd1 bnd2
+      (* primitive types *)
+      | Int_t, Int_t -> true
+      | Char_t, Char_t -> true
+      | String_t, String_t -> true
+      (* primitive terms *)
+      | Int i1, Int i2 -> i1 = i2
+      | Char c1, Char c2 -> c1 = c2
+      | String s1, String s2 -> s1 = s2
+      (* primitive operators *)
+      | Neg m1, Neg m2 -> equal m1 m2
+      | Add (m1, n1), Add (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Sub (m1, n1), Sub (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Mul (m1, n1), Mul (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Div (m1, n1), Div (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Rem (m1, n1), Rem (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Lte (m1, n1), Lte (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Gte (m1, n1), Gte (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Lt (m1, n1), Lt (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Gt (m1, n1), Gt (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Eq (m1, n1), Eq (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Chr m1, Chr m2 -> equal m1 m2
+      | Ord m1, Ord m2 -> equal m1 m2
+      | Push (m1, n1), Push (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Cat (m1, n1), Cat (m2, n2) -> equal m1 m2 && equal n1 n2
+      | Size m1, Size m2 -> equal m1 m2
+      | Indx (m1, n1), Indx (m2, n2) -> equal m1 m2 && equal n1 n2
+      (* primitive sessions *)
+      | Proto, Proto -> true
+      | End, End -> true
+      | Act (relv1, role1, a1, bnd1), Act (relv2, role2, a2, bnd2) ->
+        relv1 = relv2 && role1 = role2 && equal a1 a2 && eq_binder equal bnd1 bnd2
+      | Ch (role1, m1), Ch (role2, m2) -> role1 = role2 && equal m1 m2
+      (* primitive effects *)
+      | Print m1, Print m2 -> equal m1 m2
+      | Prerr m1, Prerr m2 -> equal m1 m2
+      | ReadLn m1, ReadLn m2 -> equal m1 m2
+      | Fork m1, Fork m2 -> equal m1 m2
+      | Send m1, Send m2 -> equal m1 m2
+      | Recv m1, Recv m2 -> equal m1 m2
+      | Close m1, Close m2 -> equal m1 m2
       (* magic *)
       | Magic a1, Magic a2 -> equal a1 a2
       (* other *)
