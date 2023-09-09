@@ -472,10 +472,8 @@ let rec simpl_iprbm ?(expand = false) eqn =
   | EqualSort (s1, s2) ->
     (if eq_sort s1 s2 then []
      else match (s1, s2) with
-       | SMeta (x, _), SMeta (y, _) when SMeta.compare x y < 0 ->
-         [ EqualSort (s1, s2) ]
-       | SMeta (x, _), SMeta (y, _) when SMeta.compare x y > 0 ->
-         [ EqualSort (s2, s1) ]
+       | SMeta (x, _), SMeta (y, _) when SMeta.compare x y < 0 -> [ EqualSort (s1, s2) ]
+       | SMeta (x, _), SMeta (y, _) when SMeta.compare x y > 0 -> [ EqualSort (s2, s1) ]
        | SMeta (x, _), SMeta (y, _) when SMeta.compare x y = 0 -> []
        | _, SMeta _ -> [ EqualSort (s1, s2) ]
        | SMeta _, _ -> [ EqualSort (s2, s1) ]
@@ -484,14 +482,11 @@ let rec simpl_iprbm ?(expand = false) eqn =
     (let m1 = whnf ~expand env m1 in
      let m2 = whnf ~expand env m2 in
      Debug.exec (fun () ->
-         pr "@[simpl_tm ~expand:%b(@;<1 2>%a,@;<1 2>%a)@]@." expand pp_tm m1
-           pp_tm m2);
+         pr "@[simpl_tm ~expand:%b(@;<1 2>%a,@;<1 2>%a)@]@." expand pp_tm m1 pp_tm m2);
      match (m1, m2) with
      (* inference *)
-     | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y < 0 ->
-       [ EqualTerm (env, m1, m2) ]
-     | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y > 0 ->
-       [ EqualTerm (env, m2, m1) ]
+     | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y < 0 -> [ EqualTerm (env, m1, m2) ]
+     | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y > 0 -> [ EqualTerm (env, m2, m1) ]
      | IMeta (x, _, _), IMeta (y, _, _) when IMeta.compare x y = 0 -> []
      | _, IMeta _ -> [ EqualTerm (env, m1, m2) ]
      | IMeta _, _ -> [ EqualTerm (env, m2, m1) ]
@@ -508,8 +503,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
        let eqns2 = simpl_iprbm (EqualTerm (env, b1, b2)) in
        eqns0 @ eqns1 @ eqns2
      | Fun (_, a1, bnd1), Fun (_, a2, bnd2) ->
-       Debug.exec (fun () ->
-           pr "@[simpl_function(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m1 pp_tm m2);
+       Debug.exec (fun () -> pr "@[simpl_function(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m1 pp_tm m2);
        let _, cls1, cls2 = unbind2 bnd1 bnd2 in
        let eqns1 = simpl_iprbm (EqualTerm (env, a1, a2)) in
        let eqns2 = List.map2 (fun cl1 cl2 ->
@@ -578,8 +572,89 @@ let rec simpl_iprbm ?(expand = false) eqn =
        let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
        eqns1 @ eqns2
      (* primitive types *)
-
-
+     | Int_t, Int_t -> []
+     | Char_t, Char_t -> []
+     | String_t, String_t -> []
+     (* primitive terms *)
+     | Int i1, Int i2 when i1 = i2 -> []
+     | Char c1, Char c2 when c1 = c2 -> []
+     | String s1, String s2 when s1 = s2 -> []
+     (* primitive operators *)
+     | Neg m1, Neg m2 -> simpl_iprbm (EqualTerm (env, m1, m2))
+     | Add (m1, n1), Add (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Sub (m1, n1), Sub (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Mul (m1, n1), Mul (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Div (m1, n1), Div (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Rem (m1, n1), Rem (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Lte (m1, n1), Lte (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Gte (m1, n1), Gte (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Lt (m1, n1), Lt (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Gt (m1, n1), Gt (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Eq (m1, n1), Eq (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Chr m1, Chr m2 -> simpl_iprbm (EqualTerm (env, m1, m2))
+     | Ord m1, Ord m2 -> simpl_iprbm (EqualTerm (env, m1, m2))
+     | Push (m1, n1), Push (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Cat (m1, n1), Cat (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Size m1, Size m2 -> simpl_iprbm (EqualTerm (env, m1, m2))
+     | Indx (m1, n1), Indx (m2, n2) ->
+       let eqns1 = simpl_iprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     (* primitive sessions *)
+     | Proto, Proto -> []
+     | End, End -> []
+     | Act (relv1, role1, a1, bnd1), Act (relv2, role2, a2, bnd2)
+       when relv1 = relv2 || role1 = role2 ->
+       let _, b1, b2 = unbind2 bnd1 bnd2 in
+       let eqns1 = simpl_iprbm (EqualTerm (env, a1, a2)) in
+       let eqns2 = simpl_iprbm (EqualTerm (env, b1, b2)) in
+       eqns1 @ eqns2
+     | Ch (role1, m1), Ch (role2, m2) when role1 = role2 ->
+       simpl_iprbm (EqualTerm (env, m1, m2))
+     (* primitve effects *)
+     | Print m1, Print m2 -> simpl_iprbm (EqualTerm (env, m1, m2))
+     | Prerr m1, Prerr m2 -> simpl_iprbm (EqualTerm (env, m1, m2))
+     | ReadLn m1, ReadLn m2 -> simpl_iprbm (EqualTerm (env, m1, m2))
+     | Fork m1, Fork m2 -> simpl_iprbm (EqualTerm (env, m1, m2))
+     | Send m1, Send m2 -> simpl_iprbm (EqualTerm (env, m1, m2))
+     | Recv m1, Recv m2 -> simpl_iprbm (EqualTerm (env, m1, m2))
+     | Close m1, Close m2 -> simpl_iprbm (EqualTerm (env, m1, m2))
      (* magic *)
      | Magic a1, Magic a2 -> simpl_iprbm (EqualTerm (env, a1, a2))
      | _ when not expand -> simpl_iprbm ~expand:true (EqualTerm (env, m1, m2))
@@ -590,12 +665,8 @@ let rec simpl_iprbm ?(expand = false) eqn =
 
 let solve_iprbm ((smeta_map, imeta_map) : meta_map) (eqn : IPrbm.eqn) =
   let open IPrbm in
-  let svar_spine sp =
-    List.map (function SVar x -> x | _ -> SVar.mk "") sp
-  in
-  let var_spine sp =
-    List.map (function PMeta x -> x | Var x -> x | _ -> Var.mk "") sp
-  in
+  let svar_spine sp = List.map (function SVar x -> x | _ -> SVar.mk "") sp in
+  let var_spine sp = List.map (function PMeta x -> x | Var x -> x | _ -> Var.mk "") sp in
   match eqn with
   | EqualSort (s1, s2) ->
     (match (s1, s2) with
@@ -685,8 +756,7 @@ let rec simpl_pprbm ?(expand = false) eqn =
      | Type s1, Type s2 when eq_sort s1 s2 -> []
      | Var x1, Var x2 when eq_vars x1 x2 -> []
      | Const (x1, ss1), Const (x2, ss2)
-       when Const.equal x1 x2 && List.equal eq_sort ss1 ss2 ->
-       []
+       when Const.equal x1 x2 && List.equal eq_sort ss1 ss2 -> []
      | Pi (relv1, s1, a1, bnd1), Pi (relv2, s2, a2, bnd2)
        when relv1 = relv2 && eq_sort s1 s2 ->
        let _, b1, b2 = unbind2 bnd1 bnd2 in
@@ -696,14 +766,12 @@ let rec simpl_pprbm ?(expand = false) eqn =
      | Fun (_, a1, bnd1), Fun (_, a2, bnd2) ->
        let _, cls1, cls2 = unbind2 bnd1 bnd2 in
        let eqns1 = simpl_pprbm (EqualTerm (env, a1, a2)) in
-       let eqns2 =
-         List.map2
-           (fun cl1 cl2 ->
-              let _, rhs_opt1, rhs_opt2 = unbind_ps2 cl1 cl2 in
-              match (rhs_opt1, rhs_opt2) with
-              | Some rhs1, Some rhs2 -> simpl_pprbm (EqualTerm (env, rhs1, rhs2))
-              | None, None -> []
-              | _ -> failwith "unifier.simpl_pprbm(Fun)")
+       let eqns2 = List.map2 (fun cl1 cl2 ->
+           let _, rhs_opt1, rhs_opt2 = unbind_ps2 cl1 cl2 in
+           match (rhs_opt1, rhs_opt2) with
+           | Some rhs1, Some rhs2 -> simpl_pprbm (EqualTerm (env, rhs1, rhs2))
+           | None, None -> []
+           | _ -> failwith "unifier.simpl_pprbm(Fun)")
            cls1 cls2
        in
        eqns1 @ List.concat eqns2
@@ -758,6 +826,90 @@ let rec simpl_pprbm ?(expand = false) eqn =
        let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
        let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
        eqns1 @ eqns2
+     (* primitive types *)
+     | Int_t, Int_t -> []
+     | Char_t, Char_t -> []
+     | String_t, String_t -> []
+     (* primitive terms *)
+     | Int i1, Int i2 when i1 = i2 -> [] 
+     | Char c1, Char c2 when c1 = c2 -> []
+     | String s1, String s2 when s1 = s2 -> []
+     (* primitive operators *)
+     | Neg m1, Neg m2 -> simpl_pprbm (EqualTerm (env, m1, m2))
+     | Add (m1, n1), Add (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Sub (m1, n1), Sub (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Mul (m1, n1), Mul (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Div (m1, n1), Div (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Rem (m1, n1), Rem (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Lte (m1, n1), Lte (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Gte (m1, n1), Gte (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Lt (m1, n1), Lt (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Gt (m1, n1), Gt (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Eq (m1, n1), Eq (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Chr m1, Chr m2 -> simpl_pprbm (EqualTerm (env, m1, m2))
+     | Ord m1, Ord m2 -> simpl_pprbm (EqualTerm (env, m1, m2))
+     | Push (m1, n1), Push (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Cat (m1, n1), Cat (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     | Size m1, Size m2 -> simpl_pprbm (EqualTerm (env, m1, m2))
+     | Indx (m1, n1), Indx (m2, n2) -> 
+       let eqns1 = simpl_pprbm (EqualTerm (env, m1, m2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, n1, n2)) in
+       eqns1 @ eqns2
+     (* primitive sessions *)
+     | Proto, Proto -> []
+     | End, End -> []
+     | Act (relv1, role1, a1, bnd1), Act (relv2, role2, a2, bnd2)
+       when relv1 = relv2 && role1 = role2 ->
+       let _, b1, b2 = unbind2 bnd1 bnd2 in
+       let eqns1 = simpl_pprbm (EqualTerm (env, a1, a2)) in
+       let eqns2 = simpl_pprbm (EqualTerm (env, b1, b2)) in
+       eqns1 @ eqns2
+     | Ch (role1, a1), Ch (role2, a2) when role1 = role2 ->
+       simpl_pprbm (EqualTerm (env, a1, a2))
+     (* primitive effects *)
+     | Print m1, Print m2 -> simpl_pprbm (EqualTerm (env, m1, m2))
+     | Prerr m1, Prerr m2 -> simpl_pprbm (EqualTerm (env, m1, m2))
+     | ReadLn m1, ReadLn m2 -> simpl_pprbm (EqualTerm (env, m1, m2))
+     | Fork m1, Fork m2 -> simpl_pprbm (EqualTerm (env, m1, m2))
+     | Send m1, Send m2 -> simpl_pprbm (EqualTerm (env, m1, m2))
+     | Recv m1, Recv m2 -> simpl_pprbm (EqualTerm (env, m1, m2))
+     | Close m1, Close m2 -> simpl_pprbm (EqualTerm (env, m1, m2))
      (* magic *)
      | Magic a1, Magic a2 -> simpl_pprbm (EqualTerm (env, a1, a2))
      | _ when not expand -> simpl_pprbm ~expand:true (EqualTerm (env, m1, m2))
@@ -773,10 +925,8 @@ let solve_pprbm map eqn =
 
 let unify_pprbm local global =
   let open PPrbm in
-  Debug.exec (fun () ->
-      pr "@[unify_local(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns local);
-  Debug.exec (fun () ->
-      pr "@[unify_global(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns global);
+  Debug.exec (fun () -> pr "@[unify_local(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns local);
+  Debug.exec (fun () -> pr "@[unify_global(@;<1 2>@[%a@]@;<1 0>)@]@." pp_eqns global);
   let rec aux_eqns var_map = function
     | [] -> var_map
     | EqualPat (env, m, PVar x, _) :: eqns ->
