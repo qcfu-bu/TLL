@@ -173,7 +173,7 @@ let prim_indx = [%sedlex.regexp? "__indx_"]
 
 (* primitive sessions *)
 let prim_proto = [%sedlex.regexp? "proto"]
-let prim_endp = [%sedlex.regexp? "endp"]
+let prim_end = [%sedlex.regexp? "end"]
 let prim_ch = [%sedlex.regexp? "ch"]
 let prim_hc = [%sedlex.regexp? "hc"]
 
@@ -353,7 +353,7 @@ let rec tokenize buf =
   | prim_indx -> PRIM_INDX
   (* primitive sessions *)
   | prim_proto -> PRIM_PROTO
-  | prim_endp -> PRIM_ENDP
+  | prim_end -> PRIM_END
   | prim_ch, langle -> PRIM_CH
   | prim_hc, langle -> PRIM_HC
   (* primitive effects *)

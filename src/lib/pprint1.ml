@@ -29,6 +29,10 @@ let pp_relv fmt = function
   | N -> pf fmt "N"
   | R -> pf fmt "R"
 
+let pp_role fmt = function
+  | true  -> pf fmt "⇑"
+  | false -> pf fmt "⇓"
+
 let pp_modifier fmt = function
   | R -> pf fmt "program"
   | N -> pf fmt "logical"
@@ -57,6 +61,8 @@ and pp_tm fmt = function
   | Var x -> Var.pp fmt x
   | Const (x, []) -> pf fmt "%a" Const.pp x
   | Const (x, ss) -> pf fmt "%a‹%a›" Const.pp x pp_sorts ss
+  | TName (x, []) -> pf fmt "%a" TName.pp x
+  | TName (x, ss) -> pf fmt "%a‹%a›" TName.pp x pp_sorts ss
   | Pi (R, U, a, bnd) ->
     let x, b = unbind bnd in
     if binder_occur bnd then
@@ -91,7 +97,7 @@ and pp_tm fmt = function
       pp_tm a pp_tm b
   | Fun (_, a, bnd) ->
     let x, cls = unbind bnd in
-    pf fmt "@[<v 0>@[function %a :@;<1 2>@[%a@]@]@;<1 0>@[<v 0>%a@]@]" Var.pp x
+    pf fmt "@[<v 0>@[fun %a :@;<1 2>@[%a@]@]@;<1 0>@[<v 0>%a@]@]" Var.pp x
       pp_tm a (pp_cls " ") cls
   | App _ as m ->
     let hd, ms = unApps m in
@@ -152,6 +158,28 @@ and pp_tm fmt = function
   | Push (m, n) -> pf fmt "@[__push__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
   | Cat (m, n) -> pf fmt "@[__cat__@;<1 2>@[%a@]@;<1 2>@[%a@]@]" pp_tm m pp_tm n
   | Size m -> pf fmt "@[__size__@;<1 2>@[%a@]@]" pp_tm m
+  | Indx (m, n) -> pf fmt "@[%a.[%a]@]" pp_tm m pp_tm n
+  (* primitive sessions *)
+  | Proto -> pf fmt "proto"
+  | End -> pf fmt "•"
+  | Act (R, role, a, bnd) ->
+    let x, b = unbind bnd in
+    pf fmt "@[@[%a(%a :@;<1 2>%a) ⇒@]@;<1 2>%a@]" pp_role role Var.pp x pp_tm a
+      pp_tm b
+  | Act (N, role, a, bnd) ->
+    let x, b = unbind bnd in
+    pf fmt "@[@[%a{%a :@;<1 2>%a} ⇒@]@;<1 2>%a@]" pp_role role Var.pp x pp_tm a
+      pp_tm b
+  | Ch (true, m) -> pf fmt "ch⟨%a⟩" pp_tm m
+  | Ch (false, m) -> pf fmt "hc⟨%a⟩" pp_tm m
+  (* primitive effects *)
+  | Print m -> pf fmt "@[print@;<1 2>%a@]" pp_tm m
+  | Prerr m -> pf fmt "@[prerr@;<1 2>%a@]" pp_tm m
+  | ReadLn m -> pf fmt "@[readln@;<1 2>%a@]" pp_tm m
+  | Fork m -> pf fmt "@[fork@;<1 2>%a@]" pp_tm m
+  | Send m -> pf fmt "@[send@;<1 2>%a@]" pp_tm m
+  | Recv m -> pf fmt "@[recv@;<1 2>%a@]" pp_tm m
+  | Close m -> pf fmt "@[close@;<1 2>%a@]" pp_tm m
   (* magic *)
   | Magic a -> pf fmt "#magic[%a]" pp_tm a
 
@@ -251,6 +279,7 @@ let pp_dcl fmt = function
       | None ->
         pf fmt "@[@[<v 0>#[%a]@;<1 0>extern@] %a‹%a› :@;<1 2>@[%a@]@]" pp_modifier
           relv Const.pp x pp_sargs (Array.to_list xs) pp_tm a)
+  | _ -> failwith "unimplemented"
 
 let pp_dcls fmt dcls =
   let break fmt _ = pf fmt "@.@." in

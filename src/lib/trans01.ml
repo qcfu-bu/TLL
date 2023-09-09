@@ -349,7 +349,7 @@ let rec trans_tm (nspc : nspc) = function
   | Indx (m, n) -> Syntax1.(_Indx (trans_tm nspc m) (trans_tm nspc n))
   (* primitive sessions *)
   | Proto -> Syntax1._Proto
-  | EndP -> Syntax1._EndP
+  | End -> Syntax1._End
   | Act (relv, role, a, Binder (id, b)) ->
     let a = trans_tm nspc a in
     let x = Syntax1.Var.mk id in
@@ -361,7 +361,7 @@ let rec trans_tm (nspc : nspc) = function
   | Prerr m -> Syntax1.(_Prerr (trans_tm nspc m))
   | ReadLn m -> Syntax1.(_ReadLn (trans_tm nspc m))
   | Fork m -> Syntax1.(_Fork (trans_tm nspc m))
-  | Send (m, n) -> Syntax1.(_Send (trans_tm nspc m) (trans_tm nspc n))
+  | Send m -> Syntax1.(_Send (trans_tm nspc m))
   | Recv m -> Syntax1.(_Recv (trans_tm nspc m))
   | Close m -> Syntax1.(_Close (trans_tm nspc m))
   (* custom *)

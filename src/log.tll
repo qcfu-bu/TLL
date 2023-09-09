@@ -30,7 +30,7 @@
                                                               (Id ("b", I));
                                                               (Id ("p", I))])
                                                          )),
-                                                      (Binder ("_", EndP))))
+                                                      (Binder ("_", End))))
                                                    ))
                                                 ))
                                              ))
@@ -47,13 +47,174 @@
        (Pi (R, U, Int_t,
           (Binder ("p", (Pi (R, U, Int_t, (Binder ("g", Proto)))))))))
       ));
-   view = [E; E]};
-  Definition {name = "x"; relv = R;
-    body =
-    (Binder ([], ((Indx ((Indx ((Id ("a", I)), (Int 1))), (Int 12))), IMeta)
-       ));
-    view = []}
+   view = [E; E]}
   ]
+
+-----------------------------------------
+
+#[logical]
+inductive eq_1‹s_186› (A_187 : Type‹s_186›) (m_188 : A_187):
+  A_187 -> U
+where
+| refl_1 : (eq_1‹??_1› ?_1[0;0] m_188 m_188)
+
+#[program]
+def rwl_1‹s_190,r_191› :
+  ∀ {A_192 : Type‹s_190›} ->
+    ∀ {m_193 : A_192} ->
+      ∀ {n_194 : A_192} ->
+        ∀ {B_195 : A_192 -> Type‹r_191›} ->
+          {(eq_1‹??_3› ?_3[0;0] m_193 n_194)} ->
+            ((B_195) m_193) -> ((B_195) n_194)
+:=
+  fun rwl_199 :
+    ∀ {A_200 : Type‹s_190›} ->
+      ∀ {m_201 : A_200} ->
+        ∀ {n_202 : A_200} ->
+          ∀ {B_203 : A_200 -> Type‹r_191›} ->
+            {(eq_1‹??_2› ?_2[0;0] m_201 n_202)} ->
+              ((B_203) m_201) -> ((B_203) n_202)
+  | A_207 m_208 n_209 B_210 refl_1 x_211 => x_211
+
+#[program]
+def rwr_2‹s_212,r_213› :
+  ∀ {A_214 : Type‹s_212›} ->
+    ∀ {m_215 : A_214} ->
+      ∀ {n_216 : A_214} ->
+        ∀ {B_217 : A_214 -> Type‹r_213›} ->
+          {(eq_1‹??_5› ?_5[0;0] m_215 n_216)} ->
+            ((B_217) n_216) -> ((B_217) m_215)
+:=
+  fun rwr_221 :
+    ∀ {A_222 : Type‹s_212›} ->
+      ∀ {m_223 : A_222} ->
+        ∀ {n_224 : A_222} ->
+          ∀ {B_225 : A_222 -> Type‹r_213›} ->
+            {(eq_1‹??_4› ?_4[0;0] m_223 n_224)} ->
+              ((B_225) n_224) -> ((B_225) m_223)
+  | A_229 m_230 n_231 B_232 refl_1 x_233 => x_233
+
+#[program]
+inductive sing_2‹s_234› (A_235 : Type‹s_234›):
+  A_235 -> Type‹s_234›
+where
+| just_2 (m_237 : A_235) : (sing_2‹??_6› ?_6[0;0] m_237)
+
+#[program]
+inductive unit_3‹› : U where
+| tt_3 : unit_3
+
+#[program]
+inductive bool_4‹› : U where
+| true_4 : bool_4
+| false_5 : bool_4
+
+#[program]
+inductive list_5‹s_238,t_239› (A_240 : Type‹s_238›): Type‹t_239›
+where
+| nil_6 : (list_5‹??_7,??_8› A_240)
+| cons_7
+    (hd_241 : A_240) (tl_242 : (list_5‹??_9,t_239› A_240))
+    : (list_5‹??_10,??_11› A_240)
+
+#[program]
+inductive exists0_6‹s_243,r_244› (A_245 : Type‹s_243›) (B_246 : 
+A_245 -> Type‹r_244›): L where
+| ex0_8
+    {m_248 : A_245} (n_249 : ((B_246) m_248))
+    : (exists0_6‹??_12,??_13› A_245 B_246)
+
+#[program]
+inductive exists1_7‹s_250,r_251› (A_252 : Type‹s_250›) (B_253 : 
+A_252 -> Type‹r_251›): L where
+| ex1_9
+    (m_255 : A_252) (n_256 : ((B_253) m_255))
+    : (exists1_7‹??_14,??_15› A_252 B_253)
+
+#[logical]
+def prod0_3‹s_257,r_258› :
+  Type‹s_257› -> Type‹r_258› -> ?_10[0;0]
+:=
+  fun prod0_261 : Type‹s_257› -> Type‹r_258› -> ?_7[0;0]
+  | A_264 B_265 =>
+    (exists0_6‹??_16,??_17›
+      A_264 fun _266 : ?_8[0;0] -> ?_9[0;0]
+            | _268 => B_265)
+
+#[logical]
+def prod1_4‹s_269,r_270› :
+  Type‹s_269› -> Type‹r_270› -> ?_14[0;0]
+:=
+  fun prod1_273 : Type‹s_269› -> Type‹r_270› -> ?_11[0;0]
+  | A_276 B_277 =>
+    (exists1_7‹??_18,??_19›
+      A_276 fun _278 : ?_12[0;0] -> ?_13[0;0]
+            | _280 => B_277)
+
+#[program]
+def not_5‹› : bool_4 -> bool_4 :=
+  fun not_282 : bool_4 -> bool_4
+  | true_4 => false_5
+  | false_5 => true_4
+
+#[program]
+def and_6‹› : bool_4 -> bool_4 -> bool_4 :=
+  fun and_286 : bool_4 -> bool_4 -> bool_4
+  | true_4 true_4 => true_4
+  | _289 _290 => false_5
+
+#[program]
+def or_7‹› : bool_4 -> bool_4 -> bool_4 :=
+  fun or_293 : bool_4 -> bool_4 -> bool_4
+  | false_5 false_5 => false_5
+  | _296 _297 => true_4
+
+#[program]
+def xor_8‹› : bool_4 -> bool_4 -o bool_4 :=
+  fun xor_300 : bool_4 -> bool_4 -o bool_4
+  | true_4 true_4 => false_5
+  | false_5 false_5 => false_5
+  | _303 _304 => true_4
+
+#[program]
+def pow_9‹› : int -> int -> int :=
+  fun pow_307 : int -> int -> int
+  | x_310 y_311 =>
+    let loop_312 :=
+      fun loop_313 : int -> int -> int
+      | acc_316 y_317 =>
+        match __lte__ y_317 0 in ?_15[0;0] -o ?_16[0;0] with
+        | true_4 => acc_316
+        | false_5 => ((loop_313) __mul__ x_310 acc_316 __sub__ y_317 1)
+    in ((loop_312) 1 y_311)
+
+#[program]
+def powm_10‹› : int -> int -> int -> int :=
+  fun powm_322 : int -> int -> int -> int
+  | x_326 y_327 m_328 =>
+    let loop_329 :=
+      fun loop_330 : int -> int -> int
+      | acc_333 y_334 =>
+        match __lte__ y_334 0 in ?_17[0;0] -o ?_18[0;0] with
+        | true_4 => acc_333
+        | false_5 =>
+          ((loop_330) __rem__ __mul__ x_326 acc_333 m_328 __sub__ y_334 1)
+    in ((loop_329) 1 y_327)
+
+#[logical]
+def DH_11‹› : int -> int -> proto :=
+  fun DH_338 : int -> int -> proto
+  | p_341 g_342 =>
+    ⇑{a_343 : int} ⇒
+      ⇑(A_344 : int) ⇒
+        ⇑{__345 :
+          (eq_1‹??_20› ?_19[0;0] A_344 ((powm_10) g_342 a_343 p_341))} ⇒
+          ⇓{b_346 : int} ⇒
+            ⇓(B_347 : int) ⇒
+              ⇓{__348 :
+                (eq_1‹??_21›
+                  ?_20[0;0] B_347 ((powm_10) g_342 b_346 p_341))} ⇒
+                •
 
 -----------------------------------------
 

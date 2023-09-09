@@ -23,6 +23,7 @@
         (modify-syntax-entry ?! "_" st)
         (modify-syntax-entry ?: "_" st)
         (modify-syntax-entry ?_ "w" st)
+        (modify-syntax-entry ?• "w" st)
         (modify-syntax-entry ?‹ "(›" st)
         (modify-syntax-entry ?› ")‹" st)
         st))
@@ -36,9 +37,9 @@
 (setq tll-lambda '("fn" "ln" "fun" "function" "lam" "val" "main" "where"))
 (setq tll-builtin '("let" "let*" "in" "rew" "match" "as" "with" "end"
                     "if" "then" "else" "fork" "return"
-                    "open" "send" "recv" "close"))
+                    "open" "send" "recv" "close" "end" "•"))
 (setq tll-quantifier '("∀" "forall" "∃" "exists"))
-(setq tll-highlights '("→" "->" "⊸" "-o" "≔" ":=" "⇒" "=>"))
+(setq tll-highlights '("→" "->" "⊸" "-o" "≔" ":=" "⇒" "=>" "⇑" "⇓"))
 (setq tll-intense '("#magic" "!!") )
 
 (setq tll-basic-regexp (regexp-opt tll-basic 'symbols))
@@ -100,7 +101,8 @@
                 ("-o" . ?⊸)
                 (":=" . ?≔)
                 ("exists" . ?∃)
-                ("forall" . ?∀))))
+                ("forall" . ?∀)
+                ("end" . ?•))))
 
 
 ;;;###autoload

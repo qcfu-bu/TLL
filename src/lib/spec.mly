@@ -163,7 +163,7 @@
 
 // primitive sessions
 %token PRIM_PROTO     // proto
-%token PRIM_ENDP      // endp
+%token PRIM_END       // end
 %token PRIM_CH        // ch⟨
 %token PRIM_HC        // hc⟨
 
@@ -689,8 +689,8 @@ let tm_prim_opr :=
 // primitive sessions
 let tm_prim_sess :=
   | PRIM_PROTO; { Proto }
-  | PRIM_ENDP; { EndP }
-  | BULLET; { EndP }
+  | PRIM_END; { End }
+  | BULLET; { End }
   | PRIM_CH; a = tm; RANGLE; { Ch (true, a) }
   | PRIM_HC; a = tm; RANGLE; { Ch (false, a) }
 
@@ -717,7 +717,7 @@ let tm_prim_eff :=
   | PRIM_PRERR; m = tm1; { Prerr m }
   | PRIM_READLN; m = tm1; { ReadLn m }
   | PRIM_FORK; m = tm1; { Fork m }
-  | PRIM_SEND; m = tm1; n = tm1; { Send (m, n) }
+  | PRIM_SEND; m = tm1; { Send m }
   | PRIM_RECV; m = tm1; { Recv m }
   | PRIM_CLOSE; m = tm1; { Close m }
 

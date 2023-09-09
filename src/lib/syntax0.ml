@@ -72,7 +72,7 @@ type tm =
   | Indx of tm * tm (* string -> int -> char *)
   (* primitive sessions *)
   | Proto
-  | EndP
+  | End
   | Act of relv * bool * tm * (id, tm) binder
   | Ch of bool * tm
   (* primitive effects *)
@@ -80,7 +80,7 @@ type tm =
   | Prerr of tm (* string -> IO unit *)
   | ReadLn of tm (* unit -> IO string *)
   | Fork of tm (* (ch P1 -> IO unit) -> IO (ch P2) *)
-  | Send of tm * tm (* ch P1 -> m -> IO (ch P2) *)
+  | Send of tm (* ch P1 -> m -> IO (ch P2) *)
   | Recv of tm (* ch P1 -> IO (exists m, ch P1) *)
   | Close of tm (* ch end -> IO unit *)
   (* magic *)
@@ -221,7 +221,7 @@ let subst_hole map m =
     | Indx (m, n) -> Indx (aux m, aux n)
     (* primitive sessions *)
     | Proto -> Proto
-    | EndP -> EndP
+    | End -> End
     | Act (relv, role, a, Binder (id, n)) ->
       Act (relv, role, aux a, Binder (id, aux n))
     | Ch (role, m) -> Ch (role, aux m)
@@ -230,7 +230,7 @@ let subst_hole map m =
     | Prerr m -> Prerr (aux m)
     | ReadLn tm -> ReadLn (aux m)
     | Fork m -> Fork (aux m)
-    | Send (m, n) -> Send (aux m, aux n) 
+    | Send m -> Send (aux m) 
     | Recv m -> Recv (aux m)
     | Close m -> Close (aux m)
     (* custom *)

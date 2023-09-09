@@ -66,7 +66,7 @@ type tm =
   | Indx of tm * tm (* string -> int -> char *)
   (* primitive sessions *)
   | Proto
-  | EndP
+  | End
   | Act of relv * bool * tm * (tm, tm) binder
   | Ch of bool * tm
   (* primitive effects *)
@@ -74,7 +74,7 @@ type tm =
   | Prerr of tm (* string -> IO unit *)
   | ReadLn of tm (* unit -> IO string *)
   | Fork of tm (* (ch P1 -> IO unit) -> IO (ch P2) *)
-  | Send of tm * tm (* ch P1 -> m -> IO (ch P2) *)
+  | Send of tm (* ch P1 -> m -> IO (ch P2) *)
   | Recv of tm (* ch P1 -> IO (exists m, ch P1) *)
   | Close of tm (* ch end -> IO unit *)
   (* magic *)
@@ -250,7 +250,7 @@ let _Size = box_apply (fun m -> Size m)
 let _Indx = box_apply2 (fun m n -> Indx (m, n))
 
 let _Proto = box Proto
-let _EndP = box EndP
+let _End = box End
 let _Act relv role = box_apply2 (fun a b -> Act (relv, role, a, b))
 let _Ch role = box_apply (fun p -> Ch (role, p))
 
@@ -258,7 +258,7 @@ let _Print = box_apply (fun m -> Print m)
 let _Prerr = box_apply (fun m -> Prerr m)
 let _ReadLn = box_apply (fun m -> ReadLn m)
 let _Fork  = box_apply (fun m -> Fork m)
-let _Send = box_apply2 (fun m n -> Send (m, n))
+let _Send = box_apply (fun m -> Send m)
 let _Recv = box_apply (fun m -> Recv m)
 let _Close = box_apply (fun m -> Close m)
 
@@ -384,7 +384,7 @@ let rec lift_tm = function
   | Indx (m, n) -> _Indx (lift_tm m) (lift_tm n)
   (* primitive sessions *)
   | Proto -> _Proto
-  | EndP -> _EndP
+  | End -> _End
   | Act (relv, role, a, bnd) ->
     _Act relv role (lift_tm a) (box_binder lift_tm bnd)
   | Ch (role, m) -> _Ch role (lift_tm m)
@@ -393,7 +393,7 @@ let rec lift_tm = function
   | Prerr m -> _Prerr (lift_tm m)
   | ReadLn m -> _ReadLn (lift_tm m)
   | Fork m -> _Fork (lift_tm m)
-  | Send (m, n) -> _Send (lift_tm m) (lift_tm n)
+  | Send m -> _Send (lift_tm m)
   | Recv m -> _Recv (lift_tm m)
   | Close m -> _Close (lift_tm m)
   (* magic *)
