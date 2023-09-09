@@ -745,21 +745,21 @@ let tm0 :=
   | ~ = tm_hole; <>
   | ~ = tm_ann; <>
   | ~ = tm_inst; <>
+  | ~ = tm_type; <>
+  | ~ = tm_prim_type; <>
+  | ~ = tm_prim_term; <>
+  | ~ = tm_prim_sess; <>
+  | ~ = tm_magic; <>
   | m = delim_op(tm,tm); { let (s, m1, m2) = m in BOpr (s, m1, m2) }
   | LPAREN; ~ = tm; RPAREN; <>
   | m = tm0; DLBRACK; ns = separated_list(RLBRACK,tm); RBRACK;
     { List.fold_left (fun acc n -> Indx (acc, n)) m ns }
 
 let tm1 :=
-  | ~ = tm_type; <>
   | ~ = tm_io; <>
   | ~ = tm_return; <>
-  | ~ = tm_prim_type; <>
-  | ~ = tm_prim_term; <>
   | ~ = tm_prim_opr; <>
-  | ~ = tm_prim_sess; <>
   | ~ = tm_prim_eff; <>
-  | ~ = tm_magic; <>
   | ~ = tm0; <>
 
 let tm2 :=
