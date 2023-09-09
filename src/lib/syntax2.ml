@@ -28,6 +28,36 @@ type tm =
   (* monad *)
   | Return of tm
   | MLet of tm * (tm, tm) binder
+  (* primitive terms *)
+  | Int of int
+  | Char of char
+  | String of string
+  (* primitive operators *)
+  | Neg of tm (* int -> int *)
+  | Add of tm * tm (* int -> int -> int *)
+  | Sub of tm * tm (* int -> int -> int *)
+  | Mul of tm * tm (* int -> int -> int *)
+  | Div of tm * tm (* int -> int -> int *)
+  | Rem of tm * tm (* int -> int -> int *)
+  | Lte of tm * tm (* int -> int -> bool *)
+  | Gte of tm * tm (* int -> int -> bool *)
+  | Lt of tm * tm (* int -> int -> bool *)
+  | Gt of tm * tm (* int -> int -> bool *)
+  | Eq of tm * tm (* int -> int -> bool *)
+  | Chr of tm (* int -> char *)
+  | Ord of tm (* char -> int *)
+  | Push of tm * tm (* string -> char -> string *)
+  | Cat of tm * tm (* string -> string -> string *)
+  | Size of tm (* string -> int *)
+  | Indx of tm * tm (* string -> int -> char *)
+  (* primitive effects *)
+  | Print of tm (* string -> IO unit *)
+  | Prerr of tm (* string -> IO unit *)
+  | ReadLn of tm (* unit -> IO string *)
+  | Fork of tm (* (ch P1 -> IO unit) -> IO (ch P2) *)
+  | Send of tm (* ch P1 -> m -> IO (ch P2) *)
+  | Recv of tm (* ch P1 -> IO (exists m, ch P1) *)
+  | Close of tm (* ch end -> IO unit *)
   (* erasure *)
   | NULL
   (* magic *)

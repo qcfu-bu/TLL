@@ -328,12 +328,12 @@ and infer_tm ctx env m : tm * tm box =
     (match whnf env t  with
      | Ch (role1, Act (relv, role2, a, bnd)) when role1 <> role2 = true ->
        let x, b = unbind bnd in
-       let _a = lift_tm a in
+       let s = smeta_of_ctx ctx in
+       let _a = check_tm ctx env a (Type s) in
        let _b_t = _Pi R _U _a (bind_var x (_Type _L)) in
        let _b = _Lam _b_t x (_Ch role1 (lift_tm b)) in
-       let _ss = box [smeta_of_ctx ctx; L] in
        let ind = match relv with N -> exists0_ind | R -> exists1_ind in
-       let t = unbox (_Ind ind _ss (box_list [_a; _b]) (box [])) in
+       let t = unbox (_Ind ind (box [s; L]) (box_list [_a; _b]) (box [])) in
        (IO t, _Recv m_elab)
      | _ -> failwith "trans1e.infer_recv")
   | Close m ->
