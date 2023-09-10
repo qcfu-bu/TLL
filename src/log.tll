@@ -1547,3 +1547,167 @@ def key_exchange_16 :=
 
 -----------------------------------------
 
+def rwlUU_20 :=
+  fun rwl_12599 {A_12600} -> {m_12601} -> {n_12602} -> {B_12603} ->
+  {__12604} -> (__12605) -> __12605
+
+def rwlUL_19 :=
+  fun rwl_12606 {A_12607} -> {m_12608} -> {n_12609} -> {B_12610} ->
+  {__12611} -> (__12612) -> __12612
+
+def rwlLU_18 :=
+  fun rwl_12613 {A_12614} -> {m_12615} -> {n_12616} -> {B_12617} ->
+  {__12618} -> (__12619) -> __12619
+
+def rwlLL_17 :=
+  fun rwl_12620 {A_12621} -> {m_12622} -> {n_12623} -> {B_12624} ->
+  {__12625} -> (__12626) -> __12626
+
+def rwrUU_24 :=
+  fun rwr_12627 {A_12628} -> {m_12629} -> {n_12630} -> {B_12631} ->
+  {__12632} -> (__12633) -> __12633
+
+def rwrUL_23 :=
+  fun rwr_12634 {A_12635} -> {m_12636} -> {n_12637} -> {B_12638} ->
+  {__12639} -> (__12640) -> __12640
+
+def rwrLU_22 :=
+  fun rwr_12641 {A_12642} -> {m_12643} -> {n_12644} -> {B_12645} ->
+  {__12646} -> (__12647) -> __12647
+
+def rwrLL_21 :=
+  fun rwr_12648 {A_12649} -> {m_12650} -> {n_12651} -> {B_12652} ->
+  {__12653} -> (__12654) -> __12654
+
+def not_5 :=
+  fun not_12655 (__12656) ->
+    match __12656 with
+    | true_4 => false_5 | false_5 => true_4
+    end
+
+def and_6 :=
+  fun and_12657 (__12658) -> (__12659) ->
+    match __12658 with
+    | true_4 =>
+      match __12659 with
+      | true_4 => true_4 | false_5 => false_5
+      end
+    | false_5 => false_5
+    end
+
+def or_7 :=
+  fun or_12660 (__12661) -> (__12662) ->
+    match __12661 with
+    | true_4 => true_4
+    | false_5 =>
+      match __12662 with
+      | true_4 => true_4 | false_5 => false_5
+      end
+    end
+
+def xor_8 :=
+  fun xor_12663 (__12664) -> (__12665) -o
+    match __12664 with
+    | true_4 =>
+      match __12665 with
+      | true_4 => false_5 | false_5 => true_4
+      end
+    | false_5 =>
+      match __12665 with
+      | true_4 => true_4 | false_5 => false_5
+      end
+    end
+
+def pow_9 :=
+  fun pow_12666 (x_12667) -> (y_12668) ->
+    let loop_12669 :=
+      fun loop_12670 (acc_12671) -> (y_12672) ->
+        match (__lte__ y_12672 0) with
+        | true_4 => acc_12671
+        | false_5 =>
+          ((loop_12670) (__mul__ x_12667 acc_12671) (__sub__ y_12672 1))
+        end
+    in ((loop_12669) 1 y_12668)
+
+def powm_10 :=
+  fun powm_12673 (x_12674) -> (y_12675) -> (m_12676) ->
+    let loop_12677 :=
+      fun loop_12678 (acc_12679) -> (y_12680) ->
+        match (__lte__ y_12680 0) with
+        | true_4 => acc_12679
+        | false_5 =>
+          ((loop_12678)
+            (__mod__ (__mul__ x_12674 acc_12679) m_12676) (__sub__ y_12680 1))
+        end
+    in ((loop_12677) 1 y_12675)
+
+def alice_14 :=
+  fun alice_12681 (a_12682) -> (p_12683) -> (g_12684) -> (c_12685) ->
+    lazy(let c_12686 := force(((lam (x_12687) -> lazy(c_12685)) NULL)) in
+         let c_12688 :=
+           force(((lam (x_12689) -> lazy(send(c_12686, x_12689)))
+                   ((powm_10) g_12684 a_12682 p_12683)))
+         in
+         let c_12690 := force(((lam (x_12691) -> lazy(c_12688)) NULL)) in
+         let _12692 := force(lazy(c_12690)) in
+         force(lazy(let _12693 := force(lazy(recv[U](_12692))) in
+                    force(match _12693 with
+                          | ex1UL_28 m_12694 n_12695 =>
+                            lazy(let _12696 := force(lazy(n_12695)) in
+                                 force(close[true] _12696))
+                          end))))
+
+def bob_15 :=
+  fun bob_12697 (b_12698) -> (p_12699) -> (g_12700) -> (c_12701) ->
+    lazy(let _12702 := force(lazy(c_12701)) in
+         force(lazy(let _12703 := force(lazy(recv[U](_12702))) in
+                    force(match _12703 with
+                          | ex1UL_28 m_12704 n_12705 =>
+                            lazy(let _12706 := force(lazy(n_12705)) in
+                                 force(lazy(let c_12707 :=
+                                              force(((lam (x_12708) ->
+                                                        lazy(_12706))
+                                                      NULL))
+                                            in
+                                            let c_12709 :=
+                                              force(((lam (x_12710) ->
+                                                        lazy(send(c_12707, x_12710)))
+                                                      ((powm_10)
+                                                        g_12700 b_12698
+                                                          p_12699)))
+                                            in
+                                            let c_12711 :=
+                                              force(((lam (x_12712) ->
+                                                        lazy(c_12709))
+                                                      NULL))
+                                            in force(close[false] c_12711))))
+                          end))))
+
+def key_exchange_16 :=
+  fun key_exchange_12713 (__12714) ->
+    let p_12715 := 23 in
+    let g_12716 := 5 in
+    lazy(let c_12717 :=
+           force(lazy(fork
+                        fun _12718 (_12719) -o
+                          ((alice_14) 4 p_12715 g_12716 _12719)))
+         in
+         let c0_12720 :=
+           force(lazy(fork
+                        fun _12721 (_12722) -o
+                          lazy(let _12723 := force(lazy(recv[L](_12722))) in
+                               force(match _12723 with
+                                     | ex1LL_26 m_12724 n_12725 =>
+                                       lazy(let __12726 :=
+                                              force(close[true] n_12725)
+                                            in
+                                            force(((bob_15)
+                                                    3 p_12715 g_12716 m_12724)))
+                                     end))))
+         in
+         let c0_12727 :=
+           force(((lam (x_12728) -> lazy(send(c0_12720, x_12728))) c_12717))
+         in force(close[false] c0_12727))
+
+-----------------------------------------
+

@@ -98,10 +98,10 @@ and pp_tm fmt = function
     pf fmt "@[((%a)@;<1 2>@[%a@])@]" pp_tm hd (list ~sep:sp pp_tm) ms
   | Let (R, m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
+    pf fmt "@[@[let %a :=@;<1 2>%a@]@;<1 0>in@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
   | Let (N, m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let {%a} :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
+    pf fmt "@[@[let {%a} :=@;<1 2>%a@]@;<1 0>in@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
   (* inductive *)
   | Ind (d, [], [], []) -> pf fmt "%a" Ind.pp d
   | Ind (d, [], ms, ns) ->
@@ -122,7 +122,7 @@ and pp_tm fmt = function
   | Return m -> pf fmt "return %a" pp_tm m
   | MLet (m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let* %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
+    pf fmt "@[@[let* %a :=@;<1 2>%a@]@;<1 0>in@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
   (* primitive types *)
   | Int_t -> pf fmt "int"
   | Char_t -> pf fmt "char"

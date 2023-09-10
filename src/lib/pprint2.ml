@@ -53,7 +53,7 @@ and pp_tm fmt = function
     pf fmt "@[((%a)@;<1 2>@[%a@])@]" pp_tm hd (list ~sep:sp pp_tm) ms
   | Let (m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
+    pf fmt "@[@[let %a :=@;<1 2>%a@]@;<1 0>in@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
   (* inductive *)
   | Constr (c, []) -> pf fmt "%a" Constr.pp c
   | Constr (c, ms) ->
@@ -67,7 +67,7 @@ and pp_tm fmt = function
   | Return m -> pf fmt "return %a" pp_tm m
   | MLet (m, bnd) ->
     let x, n = unbind bnd in
-    pf fmt "@[@[let* %a :=@;<1 2>%a@;<1 0>in@]@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
+    pf fmt "@[@[let* %a :=@;<1 2>%a@]@;<1 0>in@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
   (* primitive terms *)
   | Int i -> pf fmt "%d" i
   | Char c -> pf fmt "%c" c

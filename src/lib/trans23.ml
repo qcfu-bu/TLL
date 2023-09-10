@@ -95,11 +95,98 @@ let rec trans_tm ctx = function
         xs Syntax3.(_Force (trans_tm ctx n))
     in
     Syntax3.(_Lazy n)
+  (* primitive terms *)
+  | Int i -> Syntax3.(_Int i)
+  | Char c -> Syntax3.(_Char c)
+  | String s -> Syntax3.(_String s)
+  (* primitive operators *)
+  | Neg m -> Syntax3.(_Neg (trans_tm ctx m))
+  | Add (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Add m n)
+  | Sub (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Sub m n)
+  | Mul (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Mul m n)
+  | Div (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Div m n)
+  | Mod (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Mod m n)
+  | Lte (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Lte m n)
+  | Gte (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Gte m n)
+  | Lt (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Lt m n)
+  | Gt (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Gt m n)
+  | Eq (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Eq m n)
+  | Chr m -> Syntax3.(_Chr (trans_tm ctx m))
+  | Ord m -> Syntax3.(_Ord (trans_tm ctx m))
+  | Push (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Push m n)
+  | Cat (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Cat m n)
+  | Size m -> Syntax3.(_Size (trans_tm ctx m))
+  | Indx (m, n) -> 
+    let m = trans_tm ctx m in
+    let n = trans_tm ctx n in
+    Syntax3.(_Indx m n)
+  (* primitive effects *)
+  | Print m ->
+    let m = trans_tm ctx m in
+    Syntax3.(_Lazy (_Print m))
+  | Prerr m ->
+    let m = trans_tm ctx m in
+    Syntax3.(_Lazy (_Prerr m))
+  | ReadLn m ->
+    let m = trans_tm ctx m in
+    Syntax3.(_Lazy (_ReadLn m))
+  | Fork m ->
+    let m = trans_tm ctx m in
+    Syntax3.(_Lazy (_Fork m))
+  | Send (R, _, m) ->
+    let x = Syntax3.(Var.mk "x") in
+    let m = Syntax3.(_Lazy (_Send (trans_tm ctx m) (_Var x))) in
+    Syntax3.(_Lam R U (bind_var x m))
+  | Send (N, _, m) ->
+    let x = Syntax3.(Var.mk "x") in
+    let m = Syntax3.(_Lazy (trans_tm ctx m)) in
+    Syntax3.(_Lam R U (bind_var x m))
+  | Recv (R, s, m) ->
+    Syntax3.(_Lazy (_Recv (trans_sort s) (trans_tm ctx m)))
+  | Recv (N, _, m) ->
+    Syntax3.(_Lazy (trans_tm ctx m))
+  | Close (role, m) ->
+    Syntax3.(_Close role (trans_tm ctx m))
   (* erasure *)
-  | NULL -> failwith "trans23.trans_tm(NULL)"
+  | NULL -> Syntax3._NULL
   (* magic *)
   | Magic -> Syntax3._Magic
-  | _ -> _
 
 let trans_dcls dcls =
   let rec aux ctx = function
