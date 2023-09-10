@@ -95,13 +95,14 @@ let rec trans_tm = function
      | Lam (relv, s, bnd), n when simpl_arg n -> trans_tm (subst bnd n)
      | Lam (relv, s, bnd), n when var_count bnd <= 1 -> trans_tm (subst bnd n)
      | Lam (relv, s, bnd), n -> _Let _n (box_binder lift_tm bnd)
-     | _, Var _ -> _App s _m _n
-     | _ ->
-       let x = Var.mk "x" in
-       _Let _n (bind_var x (_App s _m (_Var x))))
+     | _, _ -> _App s _m _n)
   | Let (m, bnd) ->
     let x, n = unbind bnd in
-    _Let (trans_tm m) (bind_var x (trans_tm n))
+    let _m = trans_tm m in
+    let _bnd = bind_var x (trans_tm n) in
+    (match unbox _m with
+     | Var x -> lift_tm (subst (unbox _bnd) (Var x))
+     | _ -> _Let _m _bnd)
   (* inductive *)
   | Constr0 c -> _Constr0 c
   | Constr1 (c, ms) -> 
@@ -176,8 +177,8 @@ let rec trans_tm = function
   | ReadLn m -> _ReadLn (trans_tm m)
   | Fork m -> _Fork (trans_tm m)
   | Send (m, n) -> _Send (trans_tm m) (trans_tm n)
-  | Recv (s, m) -> _Recv s (trans_tm m)
-  | Close (role, m) -> _Close role (trans_tm m)
+  | Recv (s, m) -> (_Recv s) (trans_tm m)
+  | Close (role, m) -> (_Close role) (trans_tm m)
   (* erasure *)
   | NULL -> _NULL
   (* magic *)

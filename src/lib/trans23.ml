@@ -182,7 +182,7 @@ let rec trans_tm ctx = function
   | Recv (N, _, m) ->
     Syntax3.(_Lazy (trans_tm ctx m))
   | Close (role, m) ->
-    Syntax3.(_Close role (trans_tm ctx m))
+    Syntax3.(_Lazy (_Close role (trans_tm ctx m)))
   (* erasure *)
   | NULL -> Syntax3._NULL
   (* magic *)
