@@ -422,6 +422,12 @@ and check_tm ctx env m a : tm box =
     assert_equal1 env a b;
     let cls_elab = check_cls (Ctx.add_var x a ctx) env cls a in
     _Fun guard b_elab (bind_var x cls_elab)
+  | Match (guard, ms, a0, cls) ->
+    let b, ms_elab, a0_elab = infer_motive ctx env ms a0 in
+    assert_equal1 env a b;
+    let a0 = unbox a0_elab in
+    let cls_elab = check_cls ctx env cls a0 in
+    _Match guard ms_elab a0_elab cls_elab
   | _ ->
     let b, m_elab = infer_tm ctx env m in
     assert_equal1 env a b;

@@ -33,7 +33,7 @@ let rec trans_tm ctx m =
         (Ctx.add_var x (Var fn) ctx) sxs
     in
     let cmds, ret = trans_tm ctx m in
-    Syntax4.([ Fun { lhs; fn; args; cmds; ret } ], Var lhs)
+    Syntax4.([ Fun { lhs; fip = None; fn; args; cmds; ret } ], Var lhs)
   | Lam _ as m ->
     let sxs, m = gather_lam m in
     let lhs = Syntax4.(Name.mk "x") in
@@ -44,7 +44,7 @@ let rec trans_tm ctx m =
         ctx sxs
     in
     let cmds, ret = trans_tm ctx m in
-    Syntax4.([ Fun { lhs; fn; args; cmds; ret } ], Var lhs)
+    Syntax4.([ Fun { lhs; fip = None; fn; args; cmds; ret } ], Var lhs)
   | App _ as m ->
     let lhs = Syntax4.(Name.mk "x") in
     let hd, sp = unApps m in
@@ -70,7 +70,7 @@ let rec trans_tm ctx m =
         [] ms
     in
     let lhs = Syntax4.Name.mk "x" in
-    Syntax4.(cmds @ [ MkConstr { lhs; cons = None; ctag = c; args } ], Var lhs)
+    Syntax4.(cmds @ [ MkConstr { lhs; fip = None; ctag = c; args } ], Var lhs)
   | Match0 (m, cls) ->
     let lhs = Syntax4.Name.mk "x" in
     let cmds, cond = trans_tm ctx m in

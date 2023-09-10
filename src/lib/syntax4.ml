@@ -22,6 +22,7 @@ type cmd =
   | Move of Name.t * expr
   | Fun of
       { lhs : Name.t
+      ; fip : expr option
       ; fn : Name.t
       ; args : (sort * Name.t) list
       ; cmds : cmds
@@ -36,7 +37,7 @@ type cmd =
   (* inductive *)
   | MkConstr of
       { lhs : Name.t
-      ; cons : expr option
+      ; fip : expr option
       ; ctag : Constr.t
       ; args : exprs
       }

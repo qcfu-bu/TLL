@@ -32,22 +32,22 @@ let pp_args fmt args =
 
 let rec pp_cmd fmt = function
   (* core *)
-  | Move (lhs, m) -> pf fmt "val %a := %a;" Name.pp lhs pp_expr m
+  | Move (lhs, m) -> pf fmt "%a := %a;" Name.pp lhs pp_expr m
   | Fun { lhs; fn; args; cmds; ret } ->
-    pf fmt "@[val %a :=@;<1 2>@[fn %a(%a) {@;<1 2>@[<v 0>%a@;<1 0>return %a;@]@;<1 0>}@];@]"
+    pf fmt "@[%a :=@;<1 2>@[fn %a(%a) {@;<1 2>@[<v 0>%a@;<1 0>return %a;@]@;<1 0>}@];@]"
       Name.pp lhs Name.pp fn pp_args args pp_cmds cmds pp_expr ret
   | App { lhs; fn; args } ->
     let args = List.map snd args in
-    pf fmt "@[val %a := %a(%a);@]" Name.pp lhs pp_expr fn pp_exprs args
+    pf fmt "@[%a := %a(%a);@]" Name.pp lhs pp_expr fn pp_exprs args
   | Free m -> pf fmt "@[free(%a);@]" pp_expr m
   (* inductive *)
-  | MkConstr { lhs; cons; ctag; args } ->
-    (match cons with
+  | MkConstr { lhs; fip; ctag; args } ->
+    (match fip with
      | Some m -> 
-       pf fmt "@[val %a := reconstr(%a, %a, %a);@]"
+       pf fmt "@[%a := reconstr(%a, %a, %a);@]"
          Name.pp lhs pp_expr m Constr.pp ctag pp_exprs args
      | None ->
-       pf fmt "@[val %a := mkconstr(%a, [%a]);@]"
+       pf fmt "@[%a := mkconstr(%a, [%a]);@]"
          Name.pp lhs Constr.pp ctag pp_exprs args)
   | Match0 { cond; cases } ->
     pf fmt "@[match(%a){@;<1 2>@[%a@]@;<1 0>}@]" pp_expr cond pp_cases cases
@@ -55,35 +55,35 @@ let rec pp_cmd fmt = function
     pf fmt "@[match[%a](%a){@;<1 2>@[%a@]@;<1 0>}@]" pp_sort sort pp_expr cond pp_cases cases
   | Absurd -> pf fmt "absurd;"
   | Lazy { lhs; cmds; ret } ->
-    pf fmt "@[val %a :=@;<1 2>@[lazy {@;<1 2>@[<v 0>%a@;<1 0>return %a;@]@;<1 0>}@];@]"
+    pf fmt "@[%a :=@;<1 2>@[lazy {@;<1 2>@[<v 0>%a@;<1 0>return %a;@]@;<1 0>}@];@]"
       Name.pp lhs pp_cmds cmds pp_expr ret
-  | Force (lhs, m) -> pf fmt "@[val %a := force(%a);@]" Name.pp lhs pp_expr m
+  | Force (lhs, m) -> pf fmt "@[%a := force(%a);@]" Name.pp lhs pp_expr m
   (* primitive operators *)
-  | Neg (lhs, m) -> pf fmt "@[val %a := neg(%a);@]" Name.pp lhs pp_expr m
-  | Add (lhs, m, n) -> pf fmt "@[val %a := add(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Sub (lhs, m, n) -> pf fmt "@[val %a := sub(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Mul (lhs, m, n) -> pf fmt "@[val %a := mul(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Div (lhs, m, n) -> pf fmt "@[val %a := div(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Mod (lhs, m, n) -> pf fmt "@[val %a := mod(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Lte (lhs, m, n) -> pf fmt "@[val %a := lte(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Gte (lhs, m, n) -> pf fmt "@[val %a := gte(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Lt (lhs, m, n) -> pf fmt "@[val %a := lt(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Gt (lhs, m, n) -> pf fmt "@[val %a := gt(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Eq (lhs, m, n) -> pf fmt "@[val %a := eq(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Chr (lhs, m) -> pf fmt "@[val %a := chr(%a);@]" Name.pp lhs pp_expr m
-  | Ord (lhs, m) -> pf fmt "@[val %a := ord(%a);@]" Name.pp lhs pp_expr m
-  | Push (lhs, m, n) -> pf fmt "@[val %a := push(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Cat (lhs, m, n) -> pf fmt "@[val %a := cat(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Size (lhs, m) -> pf fmt "@[val %a := size(%a);@]" Name.pp lhs pp_expr m
-  | Indx (lhs, m, n) -> pf fmt "@[val %a := indx(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Neg (lhs, m) -> pf fmt "@[%a := neg(%a);@]" Name.pp lhs pp_expr m
+  | Add (lhs, m, n) -> pf fmt "@[%a := add(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Sub (lhs, m, n) -> pf fmt "@[%a := sub(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Mul (lhs, m, n) -> pf fmt "@[%a := mul(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Div (lhs, m, n) -> pf fmt "@[%a := div(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Mod (lhs, m, n) -> pf fmt "@[%a := mod(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Lte (lhs, m, n) -> pf fmt "@[%a := lte(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Gte (lhs, m, n) -> pf fmt "@[%a := gte(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Lt (lhs, m, n) -> pf fmt "@[%a := lt(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Gt (lhs, m, n) -> pf fmt "@[%a := gt(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Eq (lhs, m, n) -> pf fmt "@[%a := eq(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Chr (lhs, m) -> pf fmt "@[%a := chr(%a);@]" Name.pp lhs pp_expr m
+  | Ord (lhs, m) -> pf fmt "@[%a := ord(%a);@]" Name.pp lhs pp_expr m
+  | Push (lhs, m, n) -> pf fmt "@[%a := push(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Cat (lhs, m, n) -> pf fmt "@[%a := cat(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Size (lhs, m) -> pf fmt "@[%a := size(%a);@]" Name.pp lhs pp_expr m
+  | Indx (lhs, m, n) -> pf fmt "@[%a := indx(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   (* primitive effects *)
-  | Print (lhs, m) -> pf fmt "@[val %a := print(%a);@]" Name.pp lhs pp_expr m
-  | Prerr (lhs, m) -> pf fmt "@[val %a := prerr(%a);@]" Name.pp lhs pp_expr m
-  | ReadLn (lhs, m) -> pf fmt "@[val %a := readln(%a);@]" Name.pp lhs pp_expr m
-  | Fork (lhs, m) -> pf fmt "@[val %a := fork(%a);@]" Name.pp lhs pp_expr m
-  | Send (lhs, m, n) -> pf fmt "@[val %a := send(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Recv (lhs, sort, m) -> pf fmt "@[val %a := recv[%a](%a);@]" Name.pp lhs pp_sort sort pp_expr m
-  | Close (lhs, role, m) -> pf fmt "@[val %a := close[%b](%a);@]" Name.pp lhs role pp_expr m
+  | Print (lhs, m) -> pf fmt "@[%a := print(%a);@]" Name.pp lhs pp_expr m
+  | Prerr (lhs, m) -> pf fmt "@[%a := prerr(%a);@]" Name.pp lhs pp_expr m
+  | ReadLn (lhs, m) -> pf fmt "@[%a := readln(%a);@]" Name.pp lhs pp_expr m
+  | Fork (lhs, m) -> pf fmt "@[%a := fork(%a);@]" Name.pp lhs pp_expr m
+  | Send (lhs, m, n) -> pf fmt "@[%a := send(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Recv (lhs, sort, m) -> pf fmt "@[%a := recv[%a](%a);@]" Name.pp lhs pp_sort sort pp_expr m
+  | Close (lhs, role, m) -> pf fmt "@[%a := close[%b](%a);@]" Name.pp lhs role pp_expr m
   (* magic *)
   | Magic -> pf fmt "magic;"
 
