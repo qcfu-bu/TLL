@@ -1711,3 +1711,150 @@ def key_exchange_16 :=
 
 -----------------------------------------
 
+def rwlUU_20 :=
+  lam {A_12897} -> {m_12898} -> {n_12899} -> {B_12900} -> {__12901} ->
+  (__12902) -> __12902
+
+def rwlUL_19 :=
+  lam {A_12903} -> {m_12904} -> {n_12905} -> {B_12906} -> {__12907} ->
+  (__12908) -> __12908
+
+def rwlLU_18 :=
+  lam {A_12909} -> {m_12910} -> {n_12911} -> {B_12912} -> {__12913} ->
+  (__12914) -> __12914
+
+def rwlLL_17 :=
+  lam {A_12915} -> {m_12916} -> {n_12917} -> {B_12918} -> {__12919} ->
+  (__12920) -> __12920
+
+def rwrUU_24 :=
+  lam {A_12921} -> {m_12922} -> {n_12923} -> {B_12924} -> {__12925} ->
+  (__12926) -> __12926
+
+def rwrUL_23 :=
+  lam {A_12927} -> {m_12928} -> {n_12929} -> {B_12930} -> {__12931} ->
+  (__12932) -> __12932
+
+def rwrLU_22 :=
+  lam {A_12933} -> {m_12934} -> {n_12935} -> {B_12936} -> {__12937} ->
+  (__12938) -> __12938
+
+def rwrLL_21 :=
+  lam {A_12939} -> {m_12940} -> {n_12941} -> {B_12942} -> {__12943} ->
+  (__12944) -> __12944
+
+def not_5 :=
+  lam (__12945) ->
+    match __12945 with
+    | true_4 => false_5 | false_5 => true_4
+    end
+
+def and_6 :=
+  lam (__12946) -> (__12947) ->
+    match __12946 with
+    | true_4 =>
+      match __12947 with
+      | true_4 => true_4 | false_5 => false_5
+      end
+    | false_5 => false_5
+    end
+
+def or_7 :=
+  lam (__12948) -> (__12949) ->
+    match __12948 with
+    | true_4 => true_4
+    | false_5 =>
+      match __12949 with
+      | true_4 => true_4 | false_5 => false_5
+      end
+    end
+
+def xor_8 :=
+  lam (__12950) -> (__12951) -o
+    match __12950 with
+    | true_4 =>
+      match __12951 with
+      | true_4 => false_5 | false_5 => true_4
+      end
+    | false_5 =>
+      match __12951 with
+      | true_4 => true_4 | false_5 => false_5
+      end
+    end
+
+def pow_9 :=
+  lam (x_12952) -> (y_12953) ->
+    let loop_12954 :=
+      fun loop_12955 (acc_12956) -> (y_12957) ->
+        match (__lte__ y_12957 0) with
+        | true_4 => acc_12956
+        | false_5 =>
+          let x_12958 := (__sub__ y_12957 1) in
+          ((let x_12959 := (__mul__ x_12952 acc_12956) in
+            ((loop_12955) x_12959)) x_12958)
+        end
+    in ((let x_12960 := 1 in ((loop_12954) x_12960)) y_12953)
+
+def powm_10 :=
+  lam (x_12961) -> (y_12962) -> (m_12963) ->
+    let loop_12964 :=
+      fun loop_12965 (acc_12966) -> (y_12967) ->
+        match (__lte__ y_12967 0) with
+        | true_4 => acc_12966
+        | false_5 =>
+          let x_12968 := (__sub__ y_12967 1) in
+          ((let x_12969 := (__mod__ (__mul__ x_12961 acc_12966) m_12963) in
+            ((loop_12965) x_12969)) x_12968)
+        end
+    in ((let x_12970 := 1 in ((loop_12964) x_12970)) y_12962)
+
+def alice_14 :=
+  lam (a_12971) -> (p_12972) -> (g_12973) -> (c_12974) ->
+    lazy(let c_12975 := c_12974 in
+         let c_12976 := send(c_12975, ((powm_10) g_12973 a_12971 p_12972)) in
+         let c_12977 := c_12976 in
+         let _12978 := c_12977 in
+         let _12979 := recv[U](_12978) in
+         match _12979 with
+         | ex1UL_28 m_12980 n_12981 =>
+           let _12982 := n_12981 in force(close[true] _12982)
+         end)
+
+def bob_15 :=
+  lam (b_12983) -> (p_12984) -> (g_12985) -> (c_12986) ->
+    lazy(let _12987 := c_12986 in
+         let _12988 := recv[U](_12987) in
+         match _12988 with
+         | ex1UL_28 m_12989 n_12990 =>
+           let _12991 := n_12990 in
+           let c_12992 := _12991 in
+           let c_12993 := send(c_12992, ((powm_10) g_12985 b_12983 p_12984))
+           in let c_12994 := c_12993 in force(close[false] c_12994)
+         end)
+
+def key_exchange_16 :=
+  lam (__12995) ->
+    let p_12996 := 23 in
+    let g_12997 := 5 in
+    lazy(let c_12998 :=
+           fork
+             lam (_12999) -o
+               ((let x_13000 := 4 in ((alice_14) x_13000))
+                 p_12996 g_12997 _12999)
+         in
+         let c0_13001 :=
+           fork
+             lam (_13002) -o
+               lazy(let _13003 := recv[L](_13002) in
+                    match _13003 with
+                    | ex1LL_26 m_13004 n_13005 =>
+                      let __13006 := force(close[true] n_13005) in
+                      force(((let x_13007 := 3 in ((bob_15) x_13007))
+                              p_12996 g_12997 m_13004))
+                    end)
+         in
+         let c0_13008 := send(c0_13001, c_12998) in
+         force(close[false] c0_13008))
+
+-----------------------------------------
+
