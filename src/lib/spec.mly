@@ -729,6 +729,10 @@ let tm_fork(P) :=
     { let t = Pi (R, L, a, Binder ("", IO (Id ("unit", I)))) in
       let f = Fun (t, Binder (None, [([PId id], Some n)]), []) in
       Fork f }
+  | PRIM_FORK; id = iden; RIGHTARROW1; n = P;
+    { let t = Pi (R, L, IMeta, Binder ("", IO (Id ("unit", I)))) in
+      let f = Fun (t, Binder (None, [([PId id], Some n)]), []) in
+      Fork f }
 
 // magic
 /*

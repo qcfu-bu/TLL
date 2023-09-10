@@ -321,7 +321,7 @@ and infer_tm ctx env m : tm * tm box =
        let x, b = unbind bnd in
        let bnd = unbox (bind_var x (lift_tm (IO (Ch (role1, b))))) in
        (Pi (relv, L, a, bnd), _Send m_elab)
-     | _ -> failwith "trans1e.infer_send")
+     | t -> failwith "trans1e.infer_send(%a)" pp_tm t)
   | Recv m ->
     let t, m_elab = infer_tm ctx env m in
     let t = State.resolve t in

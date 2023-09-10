@@ -20,29 +20,56 @@ def msort‹t› : list‹_,t› int -> list‹_,t› int
     let ⟨xs, ys⟩ := split zs in
     merge (msort xs) (msort ys)
 
-/-
-#[logical]
-def cmsort_ch‹t› (xs :  list‹_,t› int) : L :=
-  ch true (act1 true fn (_ : `msort xs) => endp)
 
-def cmsort_worker‹t› : int -> forall (zs : list‹_,t› int) -> cmsort_ch‹t› zs -o IO unit
-  | zero  , zs      , c => let* c := send1 refl c (just (msort zs)) in close c
-  | succ n, nil     , c => let* c := send1 refl c (just nil)        in close c
-  | succ n, z :: nil, c => let* c := send1 refl c (just (z :: nil)) in close c
-  | succ n, zs      , c => 
-    match split zs as h1
-        , {refl}   as _ : (let ⟨xs, ys⟩ := h1 in merge (msort xs) (msort ys)) =
-                          (let ⟨xs, ys⟩ := split zs in merge (msort xs) (msort ys))
-    with
-    | ⟨xs0, ys0⟩, pf => 
-      let* r1 := fork ln c1 => cmsort_worker n xs0 c1 in
-      let* r2 := fork ln c2 => cmsort_worker n ys0 c2 in
-      let* ⟨xs1, c1⟩ := recv1 refl r1 in close c1;
-      let* ⟨ys1, c2⟩ := recv1 refl r2 in close c2;
-      match xs1, ys1 with
-      | just xs1, just ys1 =>
-        let zs1 : `merge (msort xs0) (msort ys0) := just (merge xs1 ys1) in
-        let zs1 : `msort zs := rwl (fn x => `x) pf zs1 in
-        let* c := send1 refl c zs1 in close c;
-        return tt
--/
+
+
+-- #[logical]
+-- def cmsort_ch‹t› (xs :  list‹_,t› int) : L :=
+--   ch⟨ ⇑(`msort xs) -> • ⟩
+
+-- def cmsort_worker‹t› (spwn : int) : forall (zs : list‹_,t› int) -> cmsort_ch‹t› zs -o IO unit :=
+--   if spwn <= 0 then
+--     fun : forall (zs : list‹_,t› int) -> cmsort_ch‹t› zs -o IO unit
+--     | zs      , c => let* c := send c (just (msort zs)) in close c
+--   else
+--     fun : forall (zs : list‹_,t› int) -> cmsort_ch‹t› zs -o IO unit
+--     | nil     , c => let* c := send c (just nil)        in close c
+--     | z :: nil, c => let* c := send c (just (z :: nil)) in close c
+--     | zs      , c =>
+--       match split zs as h1
+--           , {refl}   as _ : (let ⟨xs, ys⟩ := h1 in merge (msort xs) (msort ys)) =
+--                             (let ⟨xs, ys⟩ := split zs in merge (msort xs) (msort ys))
+--       with
+--       | ⟨xs0, ys0⟩, pf => 
+--         let* r1 := fork c1 => cmsort_worker (spwn - 1) xs0 c1 in
+--         let* r2 := fork c2 => cmsort_worker (spwn - 1) ys0 c2 in
+--         let* ⟨xs1, c1⟩ := recv r1 in close c1;
+--         let* ⟨ys1, c2⟩ := recv r2 in close c2;
+--         match xs1, ys1 with
+--         | just xs1, just ys1 =>
+--           let zs1 : `merge (msort xs0) (msort ys0) := just (merge xs1 ys1) in
+--           let zs1 : `msort zs := rwl (fn x => `x) pf zs1 in
+--           let* c := send c zs1 in close c;
+--           return tt
+
+
+-- def cmsort_worker‹t› : nat -> forall (zs : list‹_,t› int) -> cmsort_ch‹t› zs -o IO unit
+--   | zero  , zs      , c => let* c := send c (just (msort zs)) in close c
+--   | succ n, nil     , c => let* c := send c (just nil)        in close c
+--   | succ n, z :: nil, c => let* c := send c (just (z :: nil)) in close c
+--   | succ n, zs      , c => 
+--     match split zs as h1
+--         , {refl}   as _ : (let ⟨xs, ys⟩ := h1 in merge (msort xs) (msort ys)) =
+--                           (let ⟨xs, ys⟩ := split zs in merge (msort xs) (msort ys))
+--     with
+--     | ⟨xs0, ys0⟩, pf => 
+--       let* r1 := fork c1 => cmsort_worker n xs0 c1 in
+--       let* r2 := fork c2 => cmsort_worker n ys0 c2 in
+--       let* ⟨xs1, c1⟩ := recv r1 in close c1;
+--       let* ⟨ys1, c2⟩ := recv r2 in close c2;
+--       match xs1, ys1 with
+--       | just xs1, just ys1 =>
+--         let zs1 : `merge (msort xs0) (msort ys0) := just (merge xs1 ys1) in
+--         let zs1 : `msort zs := rwl (fn x => `x) pf zs1 in
+--         let* c := send c zs1 in close c;
+--         return tt

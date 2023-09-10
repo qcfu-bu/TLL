@@ -27,11 +27,7 @@ def congr‹s,r,t› ?(A : Type‹s›) ?(B : Type‹r›) ?(m n : A) (f : foral
   | refl => refl
 
 /- axiom_K is admissible because pattern matching assumes
-   that all variables introduced by the clauses are flexible.
-
-   axiom_K cannot be proven with standard eliminators because
-   eliminators introduce rigid variables which cannot be refined
-   by unification. -/
+   that all variables introduced by the clauses are flexible. -/
 #[logical]
 def axiom_K ?{A : U} ?{m : A} : forall (x : m = m) -> x = refl
   | refl => refl
@@ -40,10 +36,13 @@ def axiom_K ?{A : U} ?{m : A} : forall (x : m = m) -> x = refl
 
 
 -- singletons
-notation ( ` ) := sing %1
+notation ( ` ) := ssing %1
 
 inductive sing‹s,t› ?(A : Type‹s›) : A -> Type‹t› where
-  | just (m : A) : `m
+  | just (m : A) : sing m
+
+#[logical]
+def ssing‹s› ?(A : Type‹s›) (m : A) : Type‹s› := @sing‹s,s› A m
 
 -- simple theory of singleton elimination
 def sing_elim‹s,t› ?{A : Type‹s›} ?{x : A} : sing‹s,t›x -> A

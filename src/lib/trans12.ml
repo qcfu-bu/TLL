@@ -32,7 +32,7 @@ module Logical = struct
   let assert_sort = function
     | U -> ()
     | L -> ()
-    | _ -> failwith "trans12.Logical.assert_sort"
+    | s -> failwith "trans12.Logical.assert_sort(%a)" pp_sort s
 
   let assert_equal env m n =
     Debug.exec (fun () -> pr "Logical.assert_equal(%a, %a)@." pp_tm m pp_tm n);
