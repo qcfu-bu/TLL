@@ -36,7 +36,7 @@
 (setq tll-keywords '("of" "layout"))
 (setq tll-lambda '("fn" "ln" "fun" "function" "lam" "val" "main" "where"))
 (setq tll-builtin '("let" "let*" "in" "match" "as" "with" "end" "if" "then" "else" "return"))
-(setq tll-constant '("fork" "recv" "send" "send" "recv" "close" "end" "•"))
+(setq tll-constant '("fork" "recv" "send" "send" "recv" "close" "end" "•" "lazy" "force"))
 (setq tll-quantifier '("∀" "forall" "∃" "exists"))
 (setq tll-highlights '("→" "->" "⊸" "-o" "≔" ":=" "⇒" "=>" "⇑" "⇓"))
 (setq tll-intense '("#magic" "!!") )

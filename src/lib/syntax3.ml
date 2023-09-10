@@ -7,14 +7,13 @@ type sort = U | L
 (* relevancy *)
 type relv = N | R
 
-
 (* terms *)
 type tm =
   (* core *)
   | Var of tm var
   | Const of Const.t
   | Fun of (tm, tm) binder
-  | Lam of relv * sort * (tm, tm) binder
+  | Lam of sort * (tm, tm) binder
   | App of sort * tm * tm
   | Let of tm * (tm, tm) binder
   (* inductive *)
@@ -69,10 +68,7 @@ and cl1s = cl1 list
 
 type dcl =
   | Main of { body : tm }
-  | Definition of
-      { name : Const.t
-      ; body : tm
-      }
+  | Definition of { name : Const.t ; body : tm }
 
 module Var = struct
   module Inner = struct
@@ -101,7 +97,7 @@ let _L = box L
 let _Var = box_var
 let _Const x = box (Const x)
 let _Fun = box_apply (fun bnd -> Fun bnd)
-let _Lam relv s = box_apply (fun m -> Lam (relv, s, m))
+let _Lam s = box_apply (fun m -> Lam (s, m))
 let _App s = box_apply2 (fun m n -> App (s, m, n))
 let _Let = box_apply2 (fun m n -> Let (m, n))
 
@@ -176,7 +172,7 @@ let rec lift_tm = function
   | Var x -> _Var x
   | Const x -> _Const x
   | Fun bnd -> _Fun (box_binder lift_tm bnd)
-  | Lam (relv, s, bnd) -> _Lam relv s (box_binder lift_tm bnd)
+  | Lam (s, bnd) -> _Lam s (box_binder lift_tm bnd)
   | App (s, m, n) -> _App s (lift_tm m) (lift_tm n)
   | Let (m, bnd) -> _Let (lift_tm m) (box_binder lift_tm bnd)
   (* inductive *)

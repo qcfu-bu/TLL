@@ -9,7 +9,7 @@ let var_count bnd =
     | Var x -> if eq_vars x x0 then 1 else 0
     | Const _ -> 0
     | Fun bnd -> aux (snd (unbind bnd))
-    | Lam (_, _, bnd) -> aux (snd (unbind bnd))
+    | Lam (_, bnd) -> aux (snd (unbind bnd))
     | App (_, m, n) -> aux m + aux n
     | Let (m, bnd) -> aux m + aux (snd (unbind bnd))
     (* inductive *)
@@ -85,16 +85,16 @@ let rec trans_tm = function
     let x, m = unbind bnd in
     _Fun (bind_var x (trans_tm m))
   | Fun bnd -> trans_tm (snd (unbind bnd))
-  | Lam (relv, s, bnd) ->
+  | Lam (s, bnd) ->
     let x, m = unbind bnd in
-    _Lam relv s (bind_var x (trans_tm m))
+    _Lam s (bind_var x (trans_tm m))
   | App (s, m, n) ->
     let _m = trans_tm m in
     let _n = trans_tm n in
     (match unbox _m, unbox _n with
-     | Lam (relv, s, bnd), n when simpl_arg n -> trans_tm (subst bnd n)
-     | Lam (relv, s, bnd), n when var_count bnd <= 1 -> trans_tm (subst bnd n)
-     | Lam (relv, s, bnd), n -> _Let _n (box_binder lift_tm bnd)
+     | Lam (s, bnd), n when simpl_arg n -> trans_tm (subst bnd n)
+     | Lam (s, bnd), n when var_count bnd <= 1 -> trans_tm (subst bnd n)
+     | Lam (s, bnd), n -> _Let _n (box_binder lift_tm bnd)
      | _, _ -> _App s _m _n)
   | Let (m, bnd) ->
     let x, n = unbind bnd in

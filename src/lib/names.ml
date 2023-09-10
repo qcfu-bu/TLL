@@ -11,7 +11,7 @@ module Name : sig
     val equal : t -> t -> bool
     val compare : t -> t -> int
     val extend : t -> string -> t
-    val is_main : t -> bool
+    val name_of : t -> string
     val pp : Format.formatter -> t -> unit
   end
 end = struct
@@ -28,7 +28,7 @@ end = struct
       let equal x y = snd x = snd y
       let compare x y = Int.compare (snd x) (snd y)
       let extend (s0, _) s1 = mk (s0 ^ s1)
-      let is_main (s, _) = s = "main"
+      let name_of (s, _) = s
       let pp fmt (s, id) = pf fmt "%s_%d" s id
     end
 

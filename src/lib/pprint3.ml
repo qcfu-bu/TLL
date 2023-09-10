@@ -7,10 +7,10 @@ let pipe fmt _ = pf fmt " | "
 let break fmt _ = pf fmt "@.@."
 
 let rec gather_lam = function
-  | Lam (relv, s, bnd) ->
+  | Lam (s, bnd) ->
     let x, m = unbind bnd in
     let xs, m = gather_lam m in
-    ((relv, s, x) :: xs, m)
+    ((s, x) :: xs, m)
   | m -> ([], m)
 
 let pp_sort fmt = function
@@ -24,14 +24,10 @@ let rec pp_sorts fmt = function
 
 let rec pp_rxs fmt = function
   | [] -> ()
-  | [ (R, U, x) ] -> pf fmt "(%a) ->" Var.pp x
-  | [ (R, L, x) ] -> pf fmt "(%a) -o" Var.pp x
-  | [ (N, U, x) ] -> pf fmt "{%a} ->" Var.pp x
-  | [ (N, L, x) ] -> pf fmt "{%a} -o" Var.pp x
-  | (R, U, x) :: rxs -> pf fmt "(%a) ->@;<1 0>%a" Var.pp x pp_rxs rxs
-  | (R, L, x) :: rxs -> pf fmt "(%a) -o@;<1 0>%a" Var.pp x pp_rxs rxs
-  | (N, U, x) :: rxs -> pf fmt "{%a} ->@;<1 0>%a" Var.pp x pp_rxs rxs
-  | (N, L, x) :: rxs -> pf fmt "{%a} -o@;<1 0>%a" Var.pp x pp_rxs rxs
+  | [ (U, x) ] -> pf fmt "(%a) ->" Var.pp x
+  | [ (L, x) ] -> pf fmt "(%a) -o" Var.pp x
+  | (U, x) :: rxs -> pf fmt "(%a) ->@;<1 0>%a" Var.pp x pp_rxs rxs
+  | (L, x) :: rxs -> pf fmt "(%a) -o@;<1 0>%a" Var.pp x pp_rxs rxs
 
 and pp_tm fmt = function
   (* core *)

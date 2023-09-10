@@ -1085,7 +1085,8 @@ let make_init xs =
 
 let rec check_dcls ctx env = function
   | [] -> ([], Usage.empty)
-  | Definition { name = x0; relv = R; scheme = sch } :: _ when Const.is_main x0 -> 
+  | Definition { name = x0; relv = R; scheme = sch } :: _
+    when Const.name_of x0 = "main" -> 
     let sargs, (m, a) = unmbind sch in
     (match (sargs, whnf env a) with
      | [||], IO a -> 

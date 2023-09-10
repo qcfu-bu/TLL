@@ -32,7 +32,7 @@ let rec trans_tm ctx = function
     let m_elab = trans_tm ctx m in
     let m_elab = List.fold_right2 (fun (relv, s) x m_elab ->
         let x = trans_var x in
-        Syntax3.(_Lam (trans_relv relv) (trans_sort s) (bind_var x m_elab)))
+        Syntax3.(_Lam (trans_sort s) (bind_var x m_elab)))
         relvs (Array.to_list xs) m_elab
     in
     Syntax3.(_Fun (bind_var (trans_var x) m_elab))
@@ -172,11 +172,11 @@ let rec trans_tm ctx = function
   | Send (R, _, m) ->
     let x = Syntax3.(Var.mk "x") in
     let m = Syntax3.(_Lazy (_Send (trans_tm ctx m) (_Var x))) in
-    Syntax3.(_Lam R U (bind_var x m))
+    Syntax3.(_Lam U (bind_var x m))
   | Send (N, _, m) ->
     let x = Syntax3.(Var.mk "x") in
     let m = Syntax3.(_Lazy (trans_tm ctx m)) in
-    Syntax3.(_Lam R U (bind_var x m))
+    Syntax3.(_Lam U (bind_var x m))
   | Recv (R, s, m) ->
     Syntax3.(_Lazy (_Recv (trans_sort s) (trans_tm ctx m)))
   | Recv (N, _, m) ->

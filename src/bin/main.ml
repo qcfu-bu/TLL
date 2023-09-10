@@ -48,6 +48,11 @@ let main =
        let dcls3e = Trans3e.trans_dcls dcls3 in
        pr "%a" Pprint3.pp_dcls dcls3e;
        pr "@.@.-----------------------------------------@.@.";
+
+       let dcls4 = Trans34.trans_dcls dcls3e in
+       pr "%a" Pprint4.pp_dcls dcls4;
+       pr "@.@.-----------------------------------------@.@.";
+
      with
      | Failure s -> epr "%s@." s
      | e -> epr "%a" exn_backtrace (e, Printexc.get_raw_backtrace ()))
