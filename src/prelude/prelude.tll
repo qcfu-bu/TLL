@@ -1,28 +1,15 @@
 -- begin of stdlib
 
+-- notations
 notation ( |> ) := (%2 %1)
 notation ( @@ ) := (%1 %2)
-notation ( = ) := eq %1 %2
-notation ( ` ) := sing %1
-notation ( && ) := and %1 %2
-notation ( || ) := or %1 %2
-notation ( ~ ) := __neg__ %1
-notation ( + ) := __add__ %1 %2
-notation ( - ) := __sub__ %1 %2
-notation ( * ) := __mul__ %1 %2
-notation ( / ) := __div__ %1 %2
-notation ( % ) := __mod__ %1 %2
-notation ( <= ) := __lte__ %1 %2
-notation ( >= ) := __gte__ %1 %2
-notation ( < ) := __lt__ %1 %2
-notation ( > ) := __gt__ %1 %2
-notation ( == ) := __eq__ %1 %2
-notation ( +: ) := __push__ %1 %2
-notation ( ++ ) := __cat__ %1 %2
-notation ( :: ) := cons %1 %2
 notation ( ; ) := let* _ := %1 in %2
-notation ( ⟨{ }, ⟩ ) := ex0 %1 %2
-notation ( ⟨ , ⟩ ) := ex1 %1 %2
+
+
+
+
+-- propositional equality
+notation ( = ) := eq %1 %2
 
 #[logical]
 inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
@@ -34,28 +21,60 @@ def rwl‹s,r› ?{A : Type‹s›} ?{m n : A} {B : A -> Type‹r›} : {m = n} 
 def rwr‹s,r› ?{A : Type‹s›} ?{m n : A} {B : A -> Type‹r›} : {m = n} -> B n -> B m
   | refl, x => x
 
-inductive sing‹s› ?(A : Type‹s›) : A -> Type‹s› where
+#[logical]
+def congr‹s,r,t› ?(A : Type‹s›) ?(B : Type‹r›) ?(m n : A) (f : forall‹t›(_ : A), B)
+: eq m n -> eq (f m) (f n)
+  | refl => refl
+
+/- axiom_K is admissible because pattern matching assumes
+   that all variables introduced by the clauses are flexible.
+
+   axiom_K cannot be proven with standard eliminators because
+   eliminators introduce rigid variables which cannot be refined
+   by unification. -/
+#[logical]
+def axiom_K ?{A : U} ?{m : A} : forall (x : m = m) -> x = refl
+  | refl => refl
+
+
+
+
+-- singletons
+notation ( ` ) := sing %1
+
+inductive sing‹s,t› ?(A : Type‹s›) : A -> Type‹t› where
   | just (m : A) : `m
 
+-- simple theory of singleton elimination
+def sing_elim‹s,t› ?{A : Type‹s›} ?{x : A} : sing‹s,t›x -> A
+  | just x => x
+
+#[logical]
+def sing_uniq‹s,t› ?(A : Type‹s›) ?(x0 : A) : forall (x : sing‹s,t›x0) -> x0 = sing_elim x
+  | just _ => refl
+
+
+
+
+-- unit
 inductive unit : U where
   | tt : unit
+
+#[logical]
+def unit_eta (x : unit) : x = tt :=
+  match x as x0 in x0 = tt with
+  | tt => refl
+
+
+
+
+-- booleans
+notation ( && ) := and %1 %2
+notation ( || ) := or %1 %2
 
 inductive bool : U where
   | true  : bool
   | false : bool
-
-inductive list‹s,t› (A : Type‹s›) : Type‹t› where
-  | nil : list A
-  | cons (hd : A) (tl : list‹_,t› A) : list A
-
-inductive exists0‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : L where
-  | ex0 {m : A} (n : B m) : @exists0 A B
-
-inductive exists1‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : L where
-  | ex1 (m : A) (n : B m) : @exists1 A B
-
-#[logical]def prod0‹s,r› (A : Type‹s›) (B : Type‹r›) := @exists0 A (fn _ => B)
-#[logical]def prod1‹s,r› (A : Type‹s›) (B : Type‹r›) := @exists1 A (fn _ => B)
 
 def not : bool -> bool
   | true  => false
@@ -74,6 +93,94 @@ def xor : bool -> bool -o bool
   | false, false => false
   | _    , _     => true
 
+
+
+
+-- natural numbers
+inductive nat : U where
+  | zero : nat
+  | succ (n : nat) : nat
+
+def lte : nat -> nat -> bool
+  | zero  , _      => true
+  | _     , zero   => false
+  | succ x, succ y => lte x y
+
+def lt (x : nat) (y : nat) : bool := lte (succ x) y
+
+def pred : nat -> nat
+  | zero   => zero
+  | succ x => x
+
+def add : nat -> nat -> nat
+  | zero  , y => y 
+  | succ x, y => succ (add x y)
+
+def sub : nat -> nat -> nat
+  | x, zero   => x
+  | x, succ y => sub (pred x) y
+
+def mul : nat -> nat -> nat
+  | zero  , _ => zero
+  | succ x, y => add y (mul x y)
+
+def div (x : nat) (y : nat) :=
+  match lt x y with
+  | true  => zero
+  | false =>
+    let fun loop (x y : nat) :=
+      match sub x (pred y) with
+      | zero => zero
+      | succ x => succ (loop x y)
+    in
+    loop x y
+
+def rem (x : nat) (y : nat) :=
+  sub x (mul (div x y) y)
+
+
+
+
+-- sort-polymorphic lists
+notation ( :: ) := cons %1 %2
+
+inductive list‹s,t› (A : Type‹s›) : Type‹t› where
+  | nil : list A
+  | cons (hd : A) (tl : list‹_,t› A) : list A
+
+
+
+
+-- sort-polymorphic existential
+notation ( × ) := prod1 %1 %2
+notation ( ⟨{ }, ⟩ ) := ex0 %1 %2
+notation ( ⟨ , ⟩ ) := ex1 %1 %2
+
+inductive exists0‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : L where
+  | ex0 {m : A} (n : B m) : @exists0 A B
+
+inductive exists1‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : L where
+  | ex1 (m : A) (n : B m) : @exists1 A B
+
+#[logical]def prod0‹s,r› (A : Type‹s›) (B : Type‹r›) := @exists0 A (fn _ => B)
+#[logical]def prod1‹s,r› (A : Type‹s›) (B : Type‹r›) := @exists1 A (fn _ => B)
+
+
+
+
+-- primitive integer
+notation ( ~ ) := __neg__ %1
+notation ( + ) := __add__ %1 %2
+notation ( - ) := __sub__ %1 %2
+notation ( * ) := __mul__ %1 %2
+notation ( / ) := __div__ %1 %2
+notation ( % ) := __mod__ %1 %2
+notation ( <= ) := __lte__ %1 %2
+notation ( >= ) := __gte__ %1 %2
+notation ( < ) := __lt__ %1 %2
+notation ( > ) := __gt__ %1 %2
+notation ( == ) := __eq__ %1 %2
+
 def pow (x y : int) : int :=
   let fun loop (acc y : int) : int :=
     if y <= 0 then acc
@@ -85,5 +192,14 @@ def powm (x y m : int) : int :=
     if y <= 0 then acc
     else loop (x * acc % m) (y - 1)
   in loop 1 y
+
+
+
+
+-- primitive string
+notation ( +: ) := __push__ %1 %2
+notation ( ++ ) := __cat__ %1 %2
+
+-- def strlen (s : string) : int := __size__ s
 
 -- end of stdlib

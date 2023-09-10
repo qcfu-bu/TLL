@@ -47,7 +47,7 @@ let rec pp_cmd fmt = function
        pf fmt "@[val %a := reconstr(%a, %a, %a);@]"
          Name.pp lhs pp_expr m Constr.pp ctag pp_exprs args
      | None ->
-       pf fmt "@[val %a := mkconstr(%a, %a);@]"
+       pf fmt "@[val %a := mkconstr(%a, [%a]);@]"
          Name.pp lhs Constr.pp ctag pp_exprs args)
   | Match0 { cond; cases } ->
     pf fmt "@[match(%a){@;<1 2>@[%a@]@;<1 0>}@]" pp_expr cond pp_cases cases
@@ -101,7 +101,7 @@ and pp_case fmt case =
     | [ x ] -> Name.pp fmt x
     | x :: xs -> pf fmt "%a, %a" Name.pp x pp_args xs
   in
-  pf fmt "@[%a(%a) => {@;<1 2>@[%a@]@;<1 0>}@]"
+  pf fmt "@[<v 0>%a(%a) => {@;<1 2>%a@;<1 0>}@]"
     Constr.pp case.ctag pp_args case.args pp_cmds case.rhs
 
 and pp_cases fmt cases =
