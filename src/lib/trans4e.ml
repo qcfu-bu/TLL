@@ -155,7 +155,7 @@ and trans_match1 mem cases e sort =
   match sort with
   | U -> trans_match0 mem cases
   | L ->
-    let max_mem =
+    let rem =
       cases
       |> List.map (fun { ctag; args; rhs } ->
           let mem = Mem.new_scope mem in
@@ -163,7 +163,8 @@ and trans_match1 mem cases e sort =
           snd (trans_cmds mem rhs))
       |> Mem.union
     in
-    let mem = Mem.diff mem max_mem in
+    (* greatest common fip subset *)
+    let mem = Mem.diff mem rem in
     let cases, _ =
       cases
       |> List.map (fun { ctag; args; rhs } ->
@@ -173,7 +174,7 @@ and trans_match1 mem cases e sort =
           ({ ctag; args; rhs }, mem))
       |> List.split
     in
-    (cases, max_mem)
+    (cases, rem)
 
 let trans_dcls dcls = 
   let rec aux = function
