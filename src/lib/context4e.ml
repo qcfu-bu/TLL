@@ -88,6 +88,25 @@ module Mem = struct
       let sz2 = List.length mem2 in
       failwith "merge(scope_uneven, %d, %d)" sz1 sz2
 
+  let rec diff (mem1 : t) (mem2 : t) : t =
+    match mem1, mem2 with
+    | [], [] -> []
+    | scope1 :: mem1, scope2 :: mem2 ->
+      let scope =
+        IMap.merge (fun size opt1 opt2 ->
+            match opt1, opt2 with
+            | None, _ -> None
+            | _, None -> opt1
+            | Some set1, Some set2 ->
+              Some ESet.(diff set1 set2)) 
+          scope1 scope2
+      in
+      scope :: merge mem1 mem2
+    | _ ->
+      let sz1 = List.length mem1 in
+      let sz2 = List.length mem2 in
+      failwith "diff(scope_uneven, %d, %d)" sz1 sz2
+
   let union (mems : t list) : t =
     match mems with
     | [] -> []
