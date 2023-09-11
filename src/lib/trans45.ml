@@ -254,7 +254,12 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Free e :: rest, lift)
   (* inductive *)
-  | MkConstr { lhs; fip; ctag; args } :: rest -> _
+  | MkConstr { lhs; fip; ctag; args } :: rest ->
+    let cmds = List.mapi (fun i e -> Syntax5.Setbox (lhs, trans_expr e, i)) args in
+    let rest, lift = trans_cmds ctx lift rest in
+    (match fip with
+     | Some e -> Syntax5.(ReBox { lhs; fip = trans_expr e; ctag } :: cmds @ rest, lift)
+     | None -> Syntax5.(MkBox { lhs; ctag; argc = List.length args } :: cmds @ rest, lift))
 
 
 

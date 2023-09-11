@@ -40,6 +40,7 @@ type cmd =
   | MkBox of
       { lhs : Name.t
       ; ctag : Constr.t
+      ; argc : int
       }
   | ReBox of
       { lhs : Name.t
@@ -47,6 +48,7 @@ type cmd =
       ; ctag : Constr.t
       }
   | Setbox of Name.t * expr * int
+  | Getbox of Name.t * expr * int
   | Match0 of
       { cond : expr
       ; cases : cases
@@ -95,7 +97,6 @@ type cmd =
 
 and case =
   { ctag : Constr.t
-  ; args : Name.t list
   ; rhs : cmds
   }
 
