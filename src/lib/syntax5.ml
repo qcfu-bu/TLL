@@ -5,6 +5,7 @@ type sort = U | L
 type expr =
   | Var of Name.t
   | Ctag of Constr.t
+  | CtagOf of expr
   (* primitive terms *)
   | Int of int
   | Char of char
@@ -49,13 +50,8 @@ type cmd =
       }
   | Setbox of Name.t * expr * int
   | Getbox of Name.t * expr * int
-  | Match0 of
+  | Switch of
       { cond : expr
-      ; cases : cases
-      }
-  | Match1 of
-      { cond : expr
-      ; sort : sort
       ; cases : cases
       }
   | Absurd
@@ -63,8 +59,9 @@ type cmd =
   | Lazy of
       { lhs : Name.t
       ; fn : Name.t
-      ; env : exprs
+      ; fvc : int
       }
+  | Setlazy of Name.t * expr * int
   | Force of Name.t * expr
   (* primitive operators *)
   | Neg  of Name.t * expr        (* int -> int                 *)
@@ -90,7 +87,7 @@ type cmd =
   | ReadLn of Name.t * expr
   | Fork of Name.t * expr
   | Send of Name.t * expr * expr 
-  | Recv of Name.t * sort * expr
+  | Recv of Name.t * Constr.t * expr
   | Close of Name.t * bool * expr
   (* magic *)
   | Magic

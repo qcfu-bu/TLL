@@ -1,6 +1,7 @@
 open Names
 open Syntax4
 open Context45
+open Prelude2
 
 let fv_expr bound = function
   | Var x when Fv.mem x bound -> Fv.empty
@@ -231,7 +232,8 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
         :: cmds3 @ rest
       , DefFun1
           { fn = fname
-          ; cmds = cmds1 @ cmds2; ret
+          ; cmds = cmds1 @ cmds2
+          ; ret
           }
         :: lift )
   | App { lhs; fn; args } :: rest ->
@@ -260,7 +262,163 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     (match fip with
      | Some e -> Syntax5.(ReBox { lhs; fip = trans_expr e; ctag } :: cmds @ rest, lift)
      | None -> Syntax5.(MkBox { lhs; ctag; argc = List.length args } :: cmds @ rest, lift))
+  | Match0 { cond; cases } :: rest ->
+    let cond = trans_expr cond in
+    let cases, lift = trans_cases ctx lift cases in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Switch { cond; cases } :: rest, lift)
+  | Match1 { cond; cases } :: rest ->
+    let cond = Syntax5.CtagOf (trans_expr cond) in
+    let cases, lift = trans_cases ctx lift cases in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Switch { cond; cases } :: rest, lift)
+  | Absurd :: rest ->
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Absurd :: rest, lift)
+  (* lazy *)
+  | Lazy { lhs; cmds; ret } :: rest ->
+    let fname = Name.mk "lazy" in
+    let fv1, bound = fv_cmds Fv.empty cmds in
+    let fv2 = fv_expr bound ret in
+    let fvs = Fv.(dump (union fv1 fv2)) in
+    let cmds1 = List.mapi (fun i x -> Syntax5.(Env (x, i))) fvs in
+    let cmds2, lift = trans_cmds ctx lift cmds in
+    let cmds3 = List.mapi (fun i x -> Syntax5.(Setlazy (lhs, Var x, i))) fvs in
+    let ret = trans_expr ret in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.
+      ( Lazy
+          { lhs
+          ; fn = fname
+          ; fvc = List.length fvs 
+          }
+        :: cmds3 @ rest
+      , DefFun1 
+          { fn = fname
+          ; cmds = cmds1 @ cmds2
+          ; ret
+          }
+        :: lift )
+  | Force (lhs, e) :: rest ->
+    let e = trans_expr e in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Force (lhs, e) :: Free e :: rest, lift)
+  (* primitive operators *)
+  | Neg (lhs, e) :: rest ->
+    let e = trans_expr e in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Neg (lhs, e) :: rest, lift)
+  | Add (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Add (lhs, e1, e2) :: rest, lift)
+  | Sub (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Sub (lhs, e1, e2) :: rest, lift)
+  | Mul (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Mul (lhs, e1, e2) :: rest, lift)
+  | Div (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Div (lhs, e1, e2) :: rest, lift)
+  | Mod (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Mod (lhs, e1, e2) :: rest, lift)
+  | Lte (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Lte (lhs, e1, e2) :: rest, lift)
+  | Gte (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Gte (lhs, e1, e2) :: rest, lift)
+  | Lt (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Lte (lhs, e1, e2) :: rest, lift)
+  | Gt (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Gte (lhs, e1, e2) :: rest, lift)
+  | Eq (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Eq (lhs, e1, e2) :: rest, lift)
+  | Chr (lhs, e) :: rest ->
+    let e = trans_expr e in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Chr (lhs, e) :: rest, lift)
+  | Ord (lhs, e) :: rest ->
+    let e = trans_expr e in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Ord (lhs, e) :: rest, lift)
+  | Push (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Push (lhs, e1, e2) :: rest, lift)
+  | Cat (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Cat (lhs, e1, e2) :: rest, lift)
+  | Size (lhs, e) :: rest ->
+    let e = trans_expr e in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Size (lhs, e) :: rest, lift)
+  | Indx (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Indx (lhs, e1, e2) :: rest, lift)
+  (* primitive effects *)
+  | Print (lhs, e) :: rest ->
+    let e = trans_expr e in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Print (lhs, e) :: rest, lift)
+  | Prerr (lhs, e) :: rest ->
+    let e = trans_expr e in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Prerr (lhs, e) :: rest, lift)
+  | ReadLn (lhs, e) :: rest ->
+    let e = trans_expr e in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(ReadLn (lhs, e) :: rest, lift)
+  | Fork (lhs, e) :: rest ->
+    let e = trans_expr e in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Fork (lhs, e) :: rest, lift)
+  | Send (lhs, e1, e2) :: rest ->
+    let e1 = trans_expr e1 in
+    let e2 = trans_expr e2 in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Send (lhs, e1, e2) :: rest, lift)
+  | Recv (lhs, s, e) :: rest ->
+    let e = trans_expr e in
+    let rest, lift = trans_cmds ctx lift rest in
+    (match s with
+     | U -> Syntax5.(Recv (lhs, ex1U_constr, e) :: rest, lift)
+     | L -> Syntax5.(Recv (lhs, ex1L_constr, e) :: rest, lift))
+  | Close (lhs, role, e) :: rest ->
+    let e = trans_expr e in
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Close (lhs, role, e) :: rest, lift)
+  (* magic *)
+  | Magic :: rest ->
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Magic :: rest, lift)
 
-
-
-  | _ -> _
