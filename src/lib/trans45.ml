@@ -19,12 +19,12 @@ let rec fv_cmds ctx = function
     let fv2, ctx = fv_cmds (Ctx.add lhs ctx) rest in
     (Ctx.union fv1 fv2, ctx)
   | Fun { lhs; fn; args; cmds; ret } :: rest ->
-    let ctx1 = List.fold_left (fun acc (_, x) ->
+    let ctx = List.fold_left (fun acc (_, x) ->
         Ctx.add x acc)
         (Ctx.add fn ctx) args
     in
-    let fv1, ctx1 = fv_cmds ctx1 cmds in
-    let fv2 = fv_expr ctx1 ret in
+    let fv1, ctx = fv_cmds ctx cmds in
+    let fv2 = fv_expr ctx ret in
     let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
     (Ctx.(union (union fv1 fv2) fv3), ctx)
   | App { lhs; fn; args } :: rest ->
@@ -65,12 +65,128 @@ let rec fv_cmds ctx = function
   | Absurd :: rest -> fv_cmds ctx rest
   (* lazy *)
   | Lazy { lhs; cmds; ret } :: rest ->
-    let fv1, ctx1 = fv_cmds ctx cmds in
-    let fv2 = fv_expr ctx1 ret in
+    let fv1, ctx = fv_cmds ctx cmds in
+    let fv2 = fv_expr ctx ret in
     let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
     (Ctx.(union (union fv1 fv2) fv3), ctx)
-
-  | _ -> _
+  | Force (lhs, e) :: rest ->
+    let fv1 = fv_expr ctx e in
+    let fv2, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union fv1 fv2), ctx)
+  (* primitive operators *)
+  | Neg (lhs, e) :: rest ->
+    let fv1 = fv_expr ctx e in
+    let fv2, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union fv1 fv2), ctx)
+  | Add (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Sub (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Mul (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Div (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Mod (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Lte (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Gte (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Lt (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Gt (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Eq (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Chr (lhs, e) :: rest ->
+    let fv1 = fv_expr ctx e in
+    let fv2, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union fv1 fv2), ctx)
+  | Ord (lhs, e) :: rest ->
+    let fv1 = fv_expr ctx e in
+    let fv2, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union fv1 fv2), ctx)
+  | Push (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Cat (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Size (lhs, e) :: rest ->
+    let fv1 = fv_expr ctx e in
+    let fv2, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union fv1 fv2), ctx)
+  | Indx (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  (* primitive effects *)
+  | Print (lhs, e) :: rest ->
+    let fv1 = fv_expr ctx e in
+    let fv2, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union fv1 fv2), ctx)
+  | Prerr (lhs, e) :: rest ->
+    let fv1 = fv_expr ctx e in
+    let fv2, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union fv1 fv2), ctx)
+  | ReadLn (lhs, e) :: rest ->
+    let fv1 = fv_expr ctx e in
+    let fv2, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union fv1 fv2), ctx)
+  | Fork (lhs, e) :: rest ->
+    let fv1 = fv_expr ctx e in
+    let fv2, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union fv1 fv2), ctx)
+  | Send (lhs, e1, e2) :: rest ->
+    let fv1 = fv_expr ctx e1 in
+    let fv2 = fv_expr ctx e2 in
+    let fv3, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union (union fv1 fv2) fv3), ctx)
+  | Recv (lhs, _, e) :: rest ->
+    let fv1 = fv_expr ctx e in
+    let fv2, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union fv1 fv2), ctx)
+  | Close (lhs, _, e) :: rest ->
+    let fv1 = fv_expr ctx e in
+    let fv2, ctx = fv_cmds (Ctx.add lhs ctx) rest in
+    (Ctx.(union fv1 fv2), ctx)
+  (* magic *)
+  | Magic :: rest -> fv_cmds ctx rest
 
 and fv_cases ctx cases =
   List.fold_left (fun (acc, ctx) { ctag; args; rhs } ->
