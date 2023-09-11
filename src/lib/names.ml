@@ -1,6 +1,6 @@
 open Fmt
 
-module Name : sig
+module Base : sig
   module Make () : sig
     type t
 
@@ -38,13 +38,14 @@ end = struct
   end
 end
 
-module SMeta = Name.Make () (* sort *)
-module RMeta = Name.Make () (* relevancy *)
-module IMeta = Name.Make () (* implicit *)
-module PMeta = Name.Make () (* pattern  *)
-module Const = Name.Make () (* constant *)
-module TName = Name.Make () (* template *)
-module Ind = Name.Make () (* inductive *)
-module Constr = Name.Make () (* constructor *)
-module Record = Name.Make () (* record *)
-module Field = Name.Make () (* field *)
+module SMeta = Base.Make ()  (* sort *)
+module RMeta = Base.Make ()  (* relevancy *)
+module IMeta = Base.Make ()  (* implicit *)
+module PMeta = Base.Make ()  (* pattern  *)
+module Const = Base.Make ()  (* constant *)
+module TName = Base.Make ()  (* template *)
+module Ind = Base.Make ()    (* inductive *)
+module Constr = Base.Make () (* constructor *)
+module Record = Base.Make () (* record *)
+module Field = Base.Make ()  (* field *)
+module Name = Base.Make ()     (* name *)

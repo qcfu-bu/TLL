@@ -1,7 +1,5 @@
 open Names
 
-module Name = Name.Make ()
-
 type sort = U | L
 
 type expr =

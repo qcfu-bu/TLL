@@ -69,26 +69,26 @@ let rec trans_tm ctx m =
         (acc @ cmds, ret))
         [] ms
     in
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     Syntax4.(cmds @ [ MkConstr { lhs; fip = None; ctag = c; args } ], Var lhs)
   | Match0 (m, cls) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, cond = trans_tm ctx m in
     let cases = trans_cl0s ctx cls lhs in
     Syntax4.(cmds @ [ Match0 { cond; cases } ], Var lhs)
   | Match1 (s, m, cls) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, cond = trans_tm ctx m in
     let cases = trans_cl1s ctx cls lhs in
     Syntax4.(cmds @ [ Match1 { sort = trans_sort s; cond; cases; } ], Var lhs)
   | Absurd -> Syntax4.([ Absurd ], NULL)
   (* lazy *)
   | Lazy m ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, ret = trans_tm ctx m in
     Syntax4.([ Lazy { lhs; cmds; ret } ], Var lhs)
   | Force m ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, ret = trans_tm ctx m in
     Syntax4.(cmds @ [ Force (lhs, ret) ], Var lhs)
   (* primitive terms *)
@@ -97,114 +97,114 @@ let rec trans_tm ctx m =
   | String s -> Syntax4.([], String s)
   (* primitive operators *)
   | Neg m ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, ret = trans_tm ctx m in
     Syntax4.(cmds @ [ Neg (lhs, ret) ], Var lhs)
   | Add (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Add (lhs, ret1, ret2) ], Var lhs)
   | Sub (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Sub (lhs, ret1, ret2) ], Var lhs)
   | Mul (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Mul (lhs, ret1, ret2) ], Var lhs)
   | Div (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Mul (lhs, ret1, ret2) ], Var lhs)
   | Mod (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Mul (lhs, ret1, ret2) ], Var lhs)
   | Lte (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Lte (lhs, ret1, ret2) ], Var lhs)
   | Gte (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Gte (lhs, ret1, ret2) ], Var lhs)
   | Lt (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Lt (lhs, ret1, ret2) ], Var lhs)
   | Gt (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Gt (lhs, ret1, ret2) ], Var lhs)
   | Eq (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Eq (lhs, ret1, ret2) ], Var lhs)
   | Chr m ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, ret = trans_tm ctx m in
     Syntax4.(cmds @ [ Chr (lhs, ret) ], Var lhs)
   | Ord m ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, ret = trans_tm ctx m in
     Syntax4.(cmds @ [ Ord (lhs, ret) ], Var lhs)
   | Push (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Push (lhs, ret1, ret2) ], Var lhs)
   | Cat (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Cat (lhs, ret1, ret2) ], Var lhs)
   | Size m ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, ret = trans_tm ctx m in
     Syntax4.(cmds @ [ Size (lhs, ret) ], Var lhs)
   | Indx (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx m in
     Syntax4.(cmds1 @ cmds2 @ [ Indx (lhs, ret1, ret2) ], Var lhs)
   (* primitive effects *)
   | Print m ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, ret = trans_tm ctx m in
     Syntax4.(cmds @ [ Print (lhs, ret) ], Var lhs)
   | Prerr m ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, ret = trans_tm ctx m in
     Syntax4.(cmds @ [ Prerr (lhs, ret) ], Var lhs)
   | ReadLn m ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, ret = trans_tm ctx m in
     Syntax4.(cmds @ [ ReadLn (lhs, ret) ], Var lhs)
   | Fork m ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, ret = trans_tm ctx m in
     Syntax4.(cmds @ [ Fork (lhs, ret) ], Var lhs)
   | Send (m, n) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx n in
     Syntax4.(cmds1 @ cmds2 @ [ Send (lhs, ret1, ret2) ], Var lhs)
   | Recv (s, m) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, ret = trans_tm ctx m in
     Syntax4.(cmds @ [ Recv (lhs, trans_sort s, ret) ], Var lhs)
   | Close (role, m) ->
-    let lhs = Syntax4.Name.mk "x" in
+    let lhs = Name.mk "x" in
     let cmds, ret = trans_tm ctx m in
     Syntax4.(cmds @ [ Close (lhs, role, ret) ], Var lhs)
   (* erasure *)
