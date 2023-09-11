@@ -1,24 +1,24 @@
-def split‹t› : list‹_,t› int -> list‹_,t› int × list‹_,t› int
+def split : list‹_,L› int -> list‹_,L› int × list‹_,L› int
   | nil          => ⟨nil, nil⟩
   | x :: nil     => ⟨x :: nil, nil⟩
   | x :: y :: zs =>
     let ⟨xs, ys⟩ := split zs in
     ⟨x :: xs, y :: ys⟩
 
-def merge‹t› : list‹_,t› int -> list‹_,t› int -o list‹_,t› int
-  | nil    , ys      => ys
-  | xs     , nil     => xs
-  | x :: xs, y :: ys =>
-    match x <= y with
-    | true  => x :: merge xs (y :: ys)
-    | false => y :: merge (x :: xs) ys
+-- def merge‹t› : list‹_,t› int -> list‹_,t› int -o list‹_,t› int
+--   | nil    , ys      => ys
+--   | xs     , nil     => xs
+--   | x :: xs, y :: ys =>
+--     match x <= y with
+--     | true  => x :: merge xs (y :: ys)
+--     | false => y :: merge (x :: xs) ys
 
-def msort‹t› : list‹_,t› int -> list‹_,t› int 
-  | nil      => nil
-  | z :: nil => z :: nil
-  | zs       =>
-    let ⟨xs, ys⟩ := split zs in
-    merge (msort xs) (msort ys)
+-- def msort‹t› : list‹_,t› int -> list‹_,t› int 
+--   | nil      => nil
+--   | z :: nil => z :: nil
+--   | zs       =>
+--     let ⟨xs, ys⟩ := split zs in
+--     merge (msort xs) (msort ys)
 
 
 

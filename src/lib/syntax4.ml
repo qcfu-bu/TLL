@@ -1,4 +1,3 @@
-open Bindlib
 open Names
 
 module Name = Name.Make ()
@@ -22,7 +21,6 @@ type cmd =
   | Move of Name.t * expr
   | Fun of
       { lhs : Name.t
-      ; fip : expr option
       ; fn : Name.t
       ; args : (sort * Name.t) list
       ; cmds : cmds
