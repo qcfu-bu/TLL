@@ -212,12 +212,12 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Move (lhs, e) :: rest, lift)
   | Fun { lhs; fn; args; cmds; ret } :: rest ->
-    let fname = Name.(mk ("fn" ^ name_of fn)) in
+    let fname = Name.(mk ("fn1" ^ name_of fn)) in
     let xs = List.map snd args in
     let fv1, bound = fv_cmds (Fv.of_list (fn :: xs)) cmds in
     let fv2 = fv_expr bound ret in
     let fvs = Fv.(dump (union fv1 fv2)) in
-    let cmds1 = List.mapi (fun i x -> Syntax5.(Env (x, i))) (fn :: fvs) in
+    let cmds1 = List.mapi (fun i x -> Syntax5.(Env (x, i))) (fn :: fvs @ xs) in
     let cmds2, lift = trans_cmds ctx lift cmds in
     let cmds3 = List.mapi (fun i x -> Syntax5.(Setclo (lhs, Var x, i + 1))) fvs in
     let ret = trans_expr ret in
@@ -239,10 +239,10 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
   | App { lhs; fn; args } :: rest ->
     let rest, lift = trans_cmds ctx lift rest in
     (match Ctx.find_opt fn ctx with
-     | Some argc ->
+     | Some (fn, argc) when argc = List.length args ->
        let args = List.map (fun (_, e) -> trans_expr e) args in
        Syntax5.(AppF { lhs; fn; args } :: rest, lift)
-     | None ->
+     | _ ->
        let rhs, _, cmds = List.fold_left (fun (lhs, fn, acc) (s, arg) ->
            let arg = trans_expr arg in
            match s with
@@ -264,12 +264,12 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
      | None -> Syntax5.(MkBox { lhs; ctag; argc = List.length args } :: cmds @ rest, lift))
   | Match0 { cond; cases } :: rest ->
     let cond = trans_expr cond in
-    let cases, lift = trans_cases ctx lift cases in
+    let cases, lift = trans_cases ctx lift cond cases in
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Switch { cond; cases } :: rest, lift)
   | Match1 { cond; cases } :: rest ->
     let cond = Syntax5.CtagOf (trans_expr cond) in
-    let cases, lift = trans_cases ctx lift cases in
+    let cases, lift = trans_cases ctx lift cond cases in
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Switch { cond; cases } :: rest, lift)
   | Absurd :: rest ->
@@ -422,3 +422,61 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Magic :: rest, lift)
 
+and trans_cases ctx lift cond cases =
+  let lift, cases = List.fold_left_map (fun lift { ctag; args; rhs } ->
+      let cmds1 = List.mapi (fun i x -> Syntax5.(Getbox (x, cond, i))) args in
+      let cmds2, lift = trans_cmds ctx lift rhs in
+      (lift, Syntax5.{ ctag; rhs = cmds1 @ cmds2 }))
+      lift cases
+  in
+  (cases, lift)
+
+let trans_dcls dcls =
+  let rec aux ctx lift = function 
+    | [] -> (lift, [], Syntax5.NULL)
+    | Main { cmds; ret } :: _ ->
+      let cmds, lift = trans_cmds ctx lift cmds in
+      let r = trans_expr ret in
+      (lift, cmds, r)
+    | DefFun { fn; args; cmds; ret } :: rest ->
+      let xs = List.map snd args in
+      let fname0 = Name.(mk ("fn0" ^ name_of fn)) in
+      let fname1 = Name.(mk ("fn1" ^ name_of fn)) in
+      let argc = List.length args in
+      let ctx = Ctx.add fn fname0 argc ctx in
+      let ret0 = trans_expr ret in
+      let cmds0, lift = trans_cmds ctx lift cmds in
+      let args1 = List.map (fun x -> Syntax5.Var x) xs in
+      let ret1 = Name.mk "x" in
+      let cmds1 = List.mapi (fun i (_, x) -> Syntax5.(Env (x, i + 1))) args in
+      let cmds1 = cmds1 @ [ AppF { lhs = ret1; fn = fname0; args = args1 } ] in
+      let tmp = Name.mk "x" in
+      let lift, rest, r = aux ctx lift rest in
+      Syntax5.
+        ( DefFun0
+            { fn = fname0
+            ; args = xs
+            ; cmds = cmds0
+            ; ret = ret0
+            } ::
+          DefFun1
+            { fn = fname1
+            ; cmds = cmds1
+            ; ret = Var ret1
+            }
+          :: lift
+        , MkClo 
+            { lhs = tmp
+            ; fn = fname1
+            ; fvc = 0
+            ; argc
+            } ::
+          Init (fn, Var tmp) :: rest, r )
+    | DefVal { lhs; cmds; ret = rhs } :: rest ->
+      let cmds, lift = trans_cmds ctx lift cmds in
+      let rhs = trans_expr rhs in
+      let lift, rest, r = aux ctx lift rest in
+      Syntax5.(lift, cmds @ [ Init (lhs, rhs) ] @ rest, r)
+  in
+  let lift, cmds, r = aux Ctx.empty [] dcls in
+  (lift, cmds, r)

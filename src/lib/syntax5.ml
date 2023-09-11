@@ -17,6 +17,7 @@ and exprs = expr list
 
 type cmd =
   (* core *)
+  | Init of Name.t * expr
   | Move of Name.t * expr
   | Env of Name.t * int
   | MkClo of
@@ -101,7 +102,8 @@ and cmds = cmd list
 and cases = case list
 
 type dcl =
-  | Main of { cmds : cmds; ret : expr }
+  (* toplevel names *)
+  | DefVal of Name.t
   (* toplevel functions *)
   | DefFun0 of
       { fn : Name.t
@@ -113,10 +115,5 @@ type dcl =
   | DefFun1 of
       { fn : Name.t
       ; cmds : cmds
-      ; ret : expr
-      }
-  | DefVal of
-      { lhs : Name.t
-      ; cmds : cmds 
       ; ret : expr
       }

@@ -34,10 +34,10 @@ module Fv = struct
 end
 
 module Ctx = struct
-  type t = int Name.Map.t
+  type t = (Name.t * int) Name.Map.t
 
   let empty : t = Name.Map.empty
-  let singleton x argc : t = Name.Map.singleton x argc
-  let add x argc (ctx : t) : t = Name.Map.add x argc ctx
-  let find_opt x (ctx : t) : int option = Name.Map.find_opt x ctx
+  let singleton x fn argc : t = Name.Map.singleton x (fn, argc)
+  let add x fn argc (ctx : t) : t = Name.Map.add x (fn, argc) ctx
+  let find_opt x (ctx : t) = Name.Map.find_opt x ctx
 end
