@@ -130,7 +130,7 @@ and pp_tm fmt = function
   (* primitive terms *)
   | Int i -> pf fmt "%d" i
   | Char c -> pf fmt "%c" c
-  | String s -> pf fmt "%s" s
+  | String s -> pf fmt "\"%s\"" (String.escaped s)
   (* primitive operators *)
   | Neg m -> pf fmt "@[(__neg__@;<1 2>@[%a@])@]" pp_tm m
   | Add (m, n) -> pf fmt "@[(__add__@;<1 2>@[%a@]@;<1 2>@[%a@])@]" pp_tm m pp_tm n

@@ -11,7 +11,7 @@ let pp_expr fmt = function
   | Ctag c -> Constr.pp fmt c
   | Int i -> int fmt i
   | Char c -> char fmt c
-  | String s -> string fmt s
+  | String s -> pf fmt "\"%s\"" (String.escaped s)
   | NULL -> pf fmt "NULL"
 
 let pp_exprs fmt ms =
