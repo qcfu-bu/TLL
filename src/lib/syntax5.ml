@@ -4,7 +4,6 @@ type sort = U | L
 
 type expr =
   | Var of Name.t
-  | Env of int
   | Ctag of Constr.t
   (* primitive terms *)
   | Int of int
@@ -18,29 +17,36 @@ and exprs = expr list
 type cmd =
   (* core *)
   | Move of Name.t * expr
-  | MkClosure of
+  | Env of Name.t * int
+  | MkClo of
       { lhs : Name.t
       ; fn : Name.t
-      ; env : exprs
+      ; fvc : int
+      ; argc : int
       }
+  | Setclo of Name.t * expr * int
   | AppF of
       { lhs : Name.t
-      ; fn : expr
+      ; fn : Name.t
       ; args : exprs
       }
   | AppC of
       { lhs : Name.t
-      ; fn : expr
+      ; fn : Name.t
       ; arg : expr
       }
   | Free of expr
   (* inductive *)
-  | MkConstr of
+  | MkBox of
       { lhs : Name.t
-      ; fip : expr option
       ; ctag : Constr.t
-      ; args : exprs
       }
+  | ReBox of
+      { lhs : Name.t
+      ; fip : expr
+      ; ctag : Constr.t
+      }
+  | Setbox of Name.t * expr * int
   | Match0 of
       { cond : expr
       ; cases : cases
@@ -98,9 +104,16 @@ and cases = case list
 
 type dcl =
   | Main of { cmds : cmds; ret : expr }
-  | DefFun of
+  (* toplevel functions *)
+  | DefFun0 of
       { fn : Name.t
-      ; args : (sort * Name.t) list
+      ; args : Name.t list
+      ; cmds : cmds
+      ; ret : expr
+      }
+  (* closure functions *)
+  | DefFun1 of
+      { fn : Name.t
       ; cmds : cmds
       ; ret : expr
       }

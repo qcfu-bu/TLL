@@ -26,7 +26,7 @@ type cmd =
       }
   | App of
       { lhs : Name.t
-      ; fn : expr
+      ; fn : Name.t
       ; args : (sort * expr) list
       }
   | Free of expr

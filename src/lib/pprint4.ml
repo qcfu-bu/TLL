@@ -38,7 +38,7 @@ let rec pp_cmd fmt = function
       Name.pp lhs Name.pp fn pp_args args pp_cmds cmds pp_expr ret
   | App { lhs; fn; args } ->
     let args = List.map snd args in
-    pf fmt "@[%a := %a(%a);@]" Name.pp lhs pp_expr fn pp_exprs args
+    pf fmt "@[%a := %a(%a);@]" Name.pp lhs Name.pp fn pp_exprs args
   | Free m -> pf fmt "@[free(%a);@]" pp_expr m
   (* inductive *)
   | MkConstr { lhs; fip; ctag; args } ->

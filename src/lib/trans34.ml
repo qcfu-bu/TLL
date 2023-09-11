@@ -48,7 +48,11 @@ let rec trans_tm ctx m =
   | App _ as m ->
     let lhs = Syntax4.(Name.mk "x") in
     let hd, sp = unApps m in
-    let cmds1, fn = trans_tm ctx hd in
+    let cmds1, fn =
+      match trans_tm ctx hd with
+      | cmds1, Var fn -> (cmds1, fn)
+      | _ -> failwith "trans34(App(%a))" pp_tm m
+    in
     let cmds2, args = List.fold_left_map (fun acc (m, s) ->
         let cmds, ret = trans_tm ctx m in
         (acc @ cmds, (trans_sort s, ret)))
