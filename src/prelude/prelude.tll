@@ -215,12 +215,15 @@ notation ( ++ ) := __cat__ %1 %2
 def str (c : char) : string := "" <+ c
 def strlen (s : string) : int := __size__ s
 
--- def string_of_int (i : int) : string :=
---   let fun aux (i : int) : string :=
---     let r := i % 10 in
---     let i := i / 10 in
---     if i <= 0 then "" else
---   in
-
+def string_of_int (i : int) : string :=
+  let fun aux (i : int) : string :=
+    if 10 <= i then 
+      let r := i % 10 in
+      let i := i / 10 in
+      aux i <+ chr (r + ord '0')
+    else (i + ord '0') |> chr |> str
+  in
+  if 0 < i then aux i
+  else "~" ++ aux (~i)
 
 -- end of stdlib
