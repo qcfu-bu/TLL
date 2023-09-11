@@ -175,24 +175,17 @@ and trans_match1 mem cases e sort =
     in
     (cases, max_mem)
 
-let trans_dcls dcls =
-  let rec aux mem = function
-    | [] -> ([], mem)
+let trans_dcls dcls = 
+  let rec aux = function
+    | [] -> []
     | Main { cmds; ret } :: _ ->
-      let cmds, mem = trans_cmds mem cmds in
-      (Main { cmds; ret } :: dcls, mem)
+      let cmds, _ = trans_cmds Mem.(new_scope empty) cmds in
+      (Main { cmds; ret } :: [])
     | DefFun { fn; args; cmds; ret } :: dcls ->
-      if List.for_all (fun (s, _) -> s = L) args then
-        let cmds, mem = trans_cmds (Mem.new_scope mem) cmds in
-        let dcls, mem = aux mem dcls in
-        (DefFun { fn; args; cmds; ret } :: dcls, mem)
-      else
-        let cmds, mem = trans_cmds Mem.(new_scope empty) cmds in
-        let dcls, mem = aux mem dcls in
-        (DefFun { fn; args; cmds; ret } :: dcls, mem)
+      let cmds, _ = trans_cmds Mem.(new_scope empty) cmds in
+      DefFun { fn; args; cmds; ret } :: aux dcls
     | DefVal { lhs; cmds; ret } :: dcls ->
-      let cmds, mem = trans_cmds mem cmds in
-      let dcls, mem = aux mem dcls in
-      (DefVal { lhs; cmds; ret } :: dcls, mem)
+      let cmds, _ = trans_cmds Mem.(new_scope empty) cmds in
+      DefVal { lhs; cmds; ret } :: aux dcls
   in
-  fst (aux Mem.empty dcls)
+  aux dcls

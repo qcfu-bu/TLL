@@ -1,9 +1,11 @@
 -- begin of stdlib
 
--- notations
+-- basics
 notation ( |> ) := (%2 %1)
 notation ( @@ ) := (%1 %2)
 notation ( ; ) := let* _ := %1 in %2
+
+def id‹s› ?(A : Type‹s›) (m : A) := m
 
 
 
@@ -147,6 +149,10 @@ inductive list‹s,t› (A : Type‹s›) : Type‹t› where
   | nil : list A
   | cons (hd : A) (tl : list‹_,t› A) : list A
 
+def free_list‹s,t› ?{A : Type‹s›} (f : A -> unit) : list‹_,t›A -> unit
+  | nil => tt
+  | x :: xs => let _ := f x in free_list f xs
+
 
 
 
@@ -199,6 +205,6 @@ def powm (x y m : int) : int :=
 notation ( +: ) := __push__ %1 %2
 notation ( ++ ) := __cat__ %1 %2
 
--- def strlen (s : string) : int := __size__ s
+def strlen (s : string) : int := __size__ s
 
 -- end of stdlib

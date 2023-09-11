@@ -114,12 +114,13 @@ and pp_cases fmt cases =
 
 let pp_dcl fmt = function
   | Main { cmds; ret } ->
-    pf fmt "main := { %a; ret %a; }" pp_cmds cmds pp_expr ret
+    pf fmt "@[<v 0>main := {@;<1 2>@[<v 0>%a@;<1 0>return %a;@]@;<1 0>};@]"
+      pp_cmds cmds pp_expr ret
   | DefFun { fn; args; cmds; ret } ->
     pf fmt "@[<v 0>fn %a(%a) {@;<1 2>@[<v 0>%a@;<1 0>return %a;@]@;<1 0>}@]"
       Name.pp fn pp_args args pp_cmds cmds pp_expr ret
   | DefVal { lhs; cmds; ret } ->
-    pf fmt "%a := { %a; ret %a; } " Name.pp lhs pp_cmds cmds pp_expr ret
+    pf fmt "@[<v 0>%a := {@;<1 2>@[<v 0>%a@;<1 0>return %a;@]@;<1 0>};@]" Name.pp lhs pp_cmds cmds pp_expr ret
 
 let pp_dcls fmt dcls =
   let break fmt _ = pf fmt "@.@." in
