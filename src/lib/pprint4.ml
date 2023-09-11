@@ -44,7 +44,7 @@ let rec pp_cmd fmt = function
   | MkConstr { lhs; fip; ctag; args } ->
     (match fip with
      | Some m -> 
-       pf fmt "@[%a := reconstr(%a, %a, %a);@]"
+       pf fmt "@[%a := reconstr(%a, %a, [%a]);@]"
          Name.pp lhs pp_expr m Constr.pp ctag pp_exprs args
      | None ->
        pf fmt "@[%a := mkconstr(%a, [%a]);@]"
