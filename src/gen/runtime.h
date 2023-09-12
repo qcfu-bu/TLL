@@ -7,6 +7,9 @@
 
 #define nothing 0
 
+// initialize
+void begin_run(void);
+void end_run(void);
 
 // core
 void mkclo(intptr_t *lhs, intptr_t (*fn)(intptr_t[]), int fvc, int argc);
@@ -46,6 +49,12 @@ void __push__(intptr_t *lhs, intptr_t e1, intptr_t e2);
 void __cat__(intptr_t *lhs, intptr_t e1, intptr_t e2);
 void __size__(intptr_t *lhs, intptr_t e);
 void __indx__(intptr_t *lhs, intptr_t e1, intptr_t e2);
+
+// primitive effects
+void __print__(intptr_t *lhs, intptr_t e);
+void __prerr__(intptr_t *lhs, intptr_t e);
+void __readln__(intptr_t *lhs, intptr_t e);
+
 
 // magic
 void magic();

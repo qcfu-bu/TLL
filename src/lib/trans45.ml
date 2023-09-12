@@ -440,9 +440,10 @@ let trans_dcls dcls : Syntax5.prog =
   let rec aux ctx lift = function 
     | [] -> (lift, [], Syntax5.NULL)
     | Main { cmds; ret } :: _ ->
+      let lhs = Name.mk "x" in
       let cmds, lift = trans_cmds ctx lift cmds in
-      let r = trans_expr ret in
-      (lift, cmds, r)
+      let ret = trans_expr ret in
+      Syntax5.(lift, cmds @ [ Force (lhs, ret) ], Var lhs)
     | DefFun { fn; args; cmds; ret } :: rest ->
       let xs = List.map snd args in
       let fname0 = Name.(mk ("fn0_" ^ name_of fn)) in
@@ -481,5 +482,5 @@ let trans_dcls dcls : Syntax5.prog =
       let lift, rest, r = aux ctx lift rest in
       Syntax5.(lift, cmds @ [ Move0 (lhs, rhs) ] @ rest, r)
   in
-  let lift, cmds, r = aux Ctx.empty [] dcls in
-  Syntax5.{ dcls = lift; cmds; ret = r}
+  let lift, cmds, ret = aux Ctx.empty [] dcls in
+  Syntax5.{ dcls = lift; cmds; ret }

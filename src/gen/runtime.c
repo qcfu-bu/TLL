@@ -18,6 +18,31 @@
 
 
 
+// initialize
+pthread_attr_t attr;
+
+void begin_run(void) {
+  const rlim_t stacksize = 0xf000000;
+  struct rlimit rl;
+  getrlimit(RLIMIT_STACK, &rl);
+  if (rl.rlim_cur < stacksize) {
+    rl.rlim_cur = stacksize;
+    setrlimit(RLIMIT_STACK, &rl);
+  }
+  srand(time(0));
+  pthread_attr_init(&attr);
+  pthread_attr_setstacksize(&attr, stacksize);
+  return;
+}
+
+void end_run(void) {
+  pthread_exit(NULL);
+  return;
+}
+
+
+
+
 // core
 #define sizeofclo(env_size) (2 * sizeof(int) + sizeof(intptr_t) + env_size * sizeof(intptr_t))
 
@@ -107,7 +132,7 @@ void getbox(intptr_t *lhs, intptr_t box, int i) {
 }
 
 void absurd() {
-    fprintf(stderr, "%s", "absurd case reached, please report bug\n");
+    fprintf(stderr, "%s", "absurd case reached, compiler bug\n");
     exit(1);
 }
 
@@ -217,7 +242,7 @@ void __size__(intptr_t *lhs, intptr_t e) { *lhs = ((str_t)e)->len; }
 
 void __indx__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
     intptr_t i;
-    str_t str = ((str_t)e1);
+    str_t str = (str_t)e1;
     if (str->len == 0) {
         *lhs = 0;
     }
@@ -226,6 +251,35 @@ void __indx__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
         *lhs = str->buf[i];
     }
 }
+
+
+
+
+// primitive effects
+void __print__(intptr_t *lhs, intptr_t e) {
+    str_t str = (str_t)e;
+    printf("%s", str->buf);
+    *lhs = __tt__;
+}
+
+void __prerr__(intptr_t *lhs, intptr_t e) {
+    str_t str = (str_t)e;
+    fprintf(stderr, "%s", str->buf);
+    *lhs = __tt__;
+}
+
+void __readln__(intptr_t *lhs, intptr_t e) {
+    char* buf = NULL; size_t size; ssize_t len; str_t str;
+    len = getline(&buf, &size, stdin) - 1;
+    buf[len] = 0;
+    str = raw_str(len);
+    strcpy(str->buf, buf);
+    str->buf[len] = 0;
+    free(buf);
+    *lhs = (intptr_t)str;
+}
+
+
 
 
 
