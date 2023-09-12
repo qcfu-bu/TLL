@@ -160,8 +160,7 @@ and pp_case fmt case =
 
 and pp_cases fmt cases =
   let rec aux fmt = function
-    | [] -> ()
-    | [ case ] -> pp_case fmt case
+    | [] -> pf fmt "default: failcase();"
     | case :: cases -> pf fmt "%a@;<1 0>%a" pp_case case aux cases
   in
   pf fmt "@[<v 0>%a@]" aux cases

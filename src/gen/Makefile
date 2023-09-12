@@ -1,6 +1,6 @@
 CC=clang
 RMF=rm -rf
-CFLAGS=-g -O0 -Wall -pedantic
+CFLAGS=-g -O0
 SRC=main.c runtime.c sds.c chan.c queue.c
 
 UNAME_S := $(shell uname -s)

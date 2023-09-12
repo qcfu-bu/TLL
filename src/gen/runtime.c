@@ -132,8 +132,13 @@ void getbox(intptr_t *lhs, intptr_t box, unsigned int i) {
     *lhs = ((box_t)box)->data[i];
 }
 
+void failcase(void) {
+    fprintf(stderr, "%s", "fail-case reached, compiler bug!\n");
+    exit(1);
+}
+
 void absurd(void) {
-    fprintf(stderr, "%s", "absurd case reached, compiler bug\n");
+    fprintf(stderr, "%s", "absurd case reached, compiler bug!\n");
     exit(1);
 }
 

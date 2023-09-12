@@ -265,6 +265,7 @@ intptr_t fn0_not_485(intptr_t __80) {
     case 5: //false_5
       x_81 = 4;
       break;
+    default: failcase();
   }
   return x_81;
 }
@@ -287,12 +288,14 @@ intptr_t fn0_and_488(intptr_t __83, intptr_t __84) {
         case 5: //false_5
           x_86 = 5;
           break;
+        default: failcase();
       }
       x_85 = x_86;
       break;
     case 5: //false_5
       x_85 = 5;
       break;
+    default: failcase();
   }
   return x_85;
 }
@@ -319,9 +322,11 @@ intptr_t fn0_or_491(intptr_t __88, intptr_t __89) {
         case 5: //false_5
           x_91 = 5;
           break;
+        default: failcase();
       }
       x_90 = x_91;
       break;
+    default: failcase();
   }
   return x_90;
 }
@@ -345,6 +350,7 @@ intptr_t fn0_xor_494(intptr_t __93, intptr_t __94) {
         case 5: //false_5
           x_96 = 4;
           break;
+        default: failcase();
       }
       x_95 = x_96;
       break;
@@ -356,9 +362,11 @@ intptr_t fn0_xor_494(intptr_t __93, intptr_t __94) {
         case 5: //false_5
           x_97 = 5;
           break;
+        default: failcase();
       }
       x_95 = x_97;
       break;
+    default: failcase();
   }
   return x_95;
 }
@@ -389,9 +397,11 @@ intptr_t fn0_lte_497(intptr_t __99, intptr_t __100) {
           x_105 = fn0_lte_497(n_102, n_104);
           x_103 = x_105;
           break;
+        default: failcase();
       }
       x_101 = x_103;
       break;
+    default: failcase();
   }
   return x_101;
 }
@@ -431,6 +441,7 @@ intptr_t fn0_pred_503(intptr_t __112) {
       getbox(&n_115, __112, 0);
       x_113 = n_115;
       break;
+    default: failcase();
   }
   return x_113;
 }
@@ -455,6 +466,7 @@ intptr_t fn0_add_506(intptr_t __117, intptr_t __118) {
       setbox(x_122, x_121, 0);
       x_119 = x_122;
       break;
+    default: failcase();
   }
   return x_119;
 }
@@ -479,6 +491,7 @@ intptr_t fn0_sub_509(intptr_t __124, intptr_t __125) {
       x_128 = fn0_sub_509(x_129, n_127);
       x_126 = x_128;
       break;
+    default: failcase();
   }
   return x_126;
 }
@@ -505,6 +518,7 @@ intptr_t fn0_mul_512(intptr_t __131, intptr_t __132) {
       x_136 = fn0_add_506(__132, x_137);
       x_133 = x_136;
       break;
+    default: failcase();
   }
   return x_133;
 }
@@ -536,6 +550,7 @@ intptr_t fn0_div_515(intptr_t x_139, intptr_t y_140) {
       x_156 = x_522;
       x_141 = x_156;
       break;
+    default: failcase();
   }
   return x_141;
 }
@@ -580,6 +595,7 @@ intptr_t fn0_free_listUU_528(intptr_t A_164, intptr_t f_165, intptr_t __166) {
       x_172 = fn0_free_listUU_528(nothing, f_165, tl_169);
       x_167 = x_172;
       break;
+    default: failcase();
   }
   return x_167;
 }
@@ -611,6 +627,7 @@ intptr_t fn0_free_listUL_533(intptr_t A_174, intptr_t f_175, intptr_t __176) {
       x_177 = x_182;
       ffree(__176);
       break;
+    default: failcase();
   }
   return x_177;
 }
@@ -642,6 +659,7 @@ intptr_t fn0_free_listLL_538(intptr_t A_184, intptr_t f_185, intptr_t __186) {
       x_187 = x_192;
       ffree(__186);
       break;
+    default: failcase();
   }
   return x_187;
 }
@@ -774,6 +792,7 @@ intptr_t fn0_string_of_int_575(intptr_t i_237) {
       __cat__(&x_260, x_261, x_262);
       x_257 = x_260;
       break;
+    default: failcase();
   }
   return x_257;
 }
@@ -834,12 +853,15 @@ intptr_t fn0_splitU_585(intptr_t __265) {
               setbox(x_285, x_284, 1);
               x_279 = x_285;
               break;
+            default: failcase();
           }
           x_272 = x_279;
           break;
+        default: failcase();
       }
       x_266 = x_272;
       break;
+    default: failcase();
   }
   return x_266;
 }
@@ -900,12 +922,15 @@ intptr_t fn0_splitL_588(intptr_t __287) {
               setbox(x_307, x_306, 1);
               x_301 = x_307;
               break;
+            default: failcase();
           }
           x_294 = x_301;
           break;
+        default: failcase();
       }
       x_288 = x_294;
       break;
+    default: failcase();
   }
   return x_288;
 }
@@ -961,12 +986,15 @@ intptr_t fn0_mergeU_591(intptr_t __309, intptr_t __310) {
               setbox(x_325, x_323, 1);
               x_318 = x_325;
               break;
+            default: failcase();
           }
           x_314 = x_318;
           break;
+        default: failcase();
       }
       x_311 = x_314;
       break;
+    default: failcase();
   }
   return x_311;
 }
@@ -1025,12 +1053,15 @@ intptr_t fn0_mergeL_594(intptr_t __327, intptr_t __328) {
               setbox(x_343, x_341, 1);
               x_336 = x_343;
               break;
+            default: failcase();
           }
           x_332 = x_336;
           break;
+        default: failcase();
       }
       x_329 = x_332;
       break;
+    default: failcase();
   }
   return x_329;
 }
@@ -1085,12 +1116,15 @@ intptr_t fn0_msortU_597(intptr_t __345) {
               x_355 = x_361;
               ffree(x_356);
               break;
+            default: failcase();
           }
           x_350 = x_355;
           break;
+        default: failcase();
       }
       x_346 = x_350;
       break;
+    default: failcase();
   }
   return x_346;
 }
@@ -1144,12 +1178,15 @@ intptr_t fn0_msortL_600(intptr_t __365) {
               x_375 = x_381;
               ffree(x_376);
               break;
+            default: failcase();
           }
           x_370 = x_375;
           break;
+        default: failcase();
       }
       x_366 = x_370;
       break;
+    default: failcase();
   }
   return x_366;
 }
@@ -1178,6 +1215,7 @@ intptr_t fn0_mklistU_603(intptr_t n_385) {
       setbox(x_391, x_389, 1);
       x_386 = x_391;
       break;
+    default: failcase();
   }
   return x_386;
 }
@@ -1206,6 +1244,7 @@ intptr_t fn0_mklistL_606(intptr_t n_393) {
       setbox(x_399, x_397, 1);
       x_394 = x_399;
       break;
+    default: failcase();
   }
   return x_394;
 }
@@ -1231,6 +1270,7 @@ intptr_t fn0_list_lenU_609(intptr_t __401) {
       __add__(&x_405, 1, x_406);
       x_402 = x_405;
       break;
+    default: failcase();
   }
   return x_402;
 }
@@ -1258,6 +1298,7 @@ intptr_t fn0_list_lenL_612(intptr_t __408) {
       x_409 = x_412;
       ffree(__408);
       break;
+    default: failcase();
   }
   return x_409;
 }
@@ -1288,6 +1329,7 @@ intptr_t fn0_string_of_listU_615(intptr_t __415) {
       __cat__(&x_420, x_421, x_424);
       x_416 = x_420;
       break;
+    default: failcase();
   }
   return x_416;
 }
@@ -1320,6 +1362,7 @@ intptr_t fn0_string_of_listL_618(intptr_t __426) {
       x_427 = x_431;
       ffree(__426);
       break;
+    default: failcase();
   }
   return x_427;
 }
@@ -1375,6 +1418,7 @@ intptr_t fn1_aux_577(intptr_t* env) {
       x_253 = fn0_str_569(x_254);
       x_242 = x_253;
       break;
+    default: failcase();
   }
   return x_242;
 }
@@ -1403,6 +1447,7 @@ intptr_t fn1_loop_555(intptr_t* env) {
       x_218 = x_557;
       x_216 = x_218;
       break;
+    default: failcase();
   }
   return x_216;
 }
@@ -1428,6 +1473,7 @@ intptr_t fn1_loop_545(intptr_t* env) {
       x_203 = x_547;
       x_201 = x_203;
       break;
+    default: failcase();
   }
   return x_201;
 }
@@ -1458,6 +1504,7 @@ intptr_t fn1_loop_517(intptr_t* env) {
       setbox(x_155, x_154, 0);
       x_149 = x_155;
       break;
+    default: failcase();
   }
   return x_149;
 }

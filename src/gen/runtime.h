@@ -23,6 +23,7 @@ void mkbox(intptr_t *lhs, unsigned int ctag, unsigned int argc);
 void rebox(intptr_t *lhs, intptr_t fip, unsigned int ctag);
 void setbox(intptr_t box, intptr_t arg, unsigned int i);
 void getbox(intptr_t *lhs, intptr_t box, unsigned int i);
+void failcase(void);
 void absurd(void);
 
 // lazy
