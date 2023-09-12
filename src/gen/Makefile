@@ -1,6 +1,6 @@
 CC=clang
 RMF=rm -rf
-CFLAGS=-g -O2
+CFLAGS=-g -O0 -fsanitize=undefined -fsanitize-trap=all
 SRC=main.c runtime.c sds.c chan.c queue.c
 
 UNAME_S := $(shell uname -s)
