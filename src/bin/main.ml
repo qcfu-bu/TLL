@@ -57,6 +57,10 @@ let main =
        pr "%a" Pprint4.pp_dcls dcls4e;
        pr "@.@.-----------------------------------------@.@.";
 
+       let dcls5 = Trans45.trans_dcls dcls4e in
+       pr "%a" Pprint5.pp_prog dcls5;
+       pr "@.@.-----------------------------------------@.@.";
+
      with
      | Failure s -> epr "%s@." s
      | e -> epr "%a" exn_backtrace (e, Printexc.get_raw_backtrace ()))

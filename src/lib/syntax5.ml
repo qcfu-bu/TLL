@@ -26,7 +26,7 @@ type cmd =
       ; fvc : int
       ; argc : int
       }
-  | Setclo of Name.t * expr * int
+  | SetClo of Name.t * expr * int
   | AppF of
       { lhs : Name.t
       ; fn : Name.t
@@ -49,8 +49,8 @@ type cmd =
       ; fip : expr
       ; ctag : Constr.t
       }
-  | Setbox of Name.t * expr * int
-  | Getbox of Name.t * expr * int
+  | SetBox of Name.t * expr * int
+  | GetBox of Name.t * expr * int
   | Switch of
       { cond : expr
       ; cases : cases
@@ -62,7 +62,7 @@ type cmd =
       ; fn : Name.t
       ; fvc : int
       }
-  | Setlazy of Name.t * expr * int
+  | SetLazy of Name.t * expr * int
   | Force of Name.t * expr
   (* primitive operators *)
   | Neg  of Name.t * expr        (* int -> int                 *)
@@ -102,8 +102,6 @@ and cmds = cmd list
 and cases = case list
 
 type dcl =
-  (* toplevel names *)
-  | DefVal of Name.t
   (* toplevel functions *)
   | DefFun0 of
       { fn : Name.t
@@ -117,3 +115,9 @@ type dcl =
       ; cmds : cmds
       ; ret : expr
       }
+
+type prog = 
+  { dcls : dcl list
+  ; cmds : cmds
+  ; ret : expr
+  }

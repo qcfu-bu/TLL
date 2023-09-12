@@ -219,7 +219,7 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let fvs = Fv.(dump (union fv1 fv2)) in
     let cmds1 = List.mapi (fun i x -> Syntax5.(Env (x, i))) (fn :: fvs @ xs) in
     let cmds2, lift = trans_cmds ctx lift cmds in
-    let cmds3 = List.mapi (fun i x -> Syntax5.(Setclo (lhs, Var x, i + 1))) fvs in
+    let cmds3 = List.mapi (fun i x -> Syntax5.(SetClo (lhs, Var x, i + 1))) fvs in
     let ret = trans_expr ret in
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.
@@ -257,7 +257,7 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     Syntax5.(Free e :: rest, lift)
   (* inductive *)
   | MkConstr { lhs; fip; ctag; args } :: rest ->
-    let cmds = List.mapi (fun i e -> Syntax5.Setbox (lhs, trans_expr e, i)) args in
+    let cmds = List.mapi (fun i e -> Syntax5.SetBox (lhs, trans_expr e, i)) args in
     let rest, lift = trans_cmds ctx lift rest in
     (match fip with
      | Some e -> Syntax5.(ReBox { lhs; fip = trans_expr e; ctag } :: cmds @ rest, lift)
@@ -283,7 +283,7 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let fvs = Fv.(dump (union fv1 fv2)) in
     let cmds1 = List.mapi (fun i x -> Syntax5.(Env (x, i))) fvs in
     let cmds2, lift = trans_cmds ctx lift cmds in
-    let cmds3 = List.mapi (fun i x -> Syntax5.(Setlazy (lhs, Var x, i))) fvs in
+    let cmds3 = List.mapi (fun i x -> Syntax5.(SetLazy (lhs, Var x, i))) fvs in
     let ret = trans_expr ret in
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.
@@ -408,11 +408,12 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Send (lhs, e1, e2) :: rest, lift)
   | Recv (lhs, s, e) :: rest ->
+    let ex1U, ex1L = Prelude2.find_ex1 () in
     let e = trans_expr e in
     let rest, lift = trans_cmds ctx lift rest in
     (match s with
-     | U -> Syntax5.(Recv (lhs, ex1U_constr, e) :: rest, lift)
-     | L -> Syntax5.(Recv (lhs, ex1L_constr, e) :: rest, lift))
+     | U -> Syntax5.(Recv (lhs, ex1U, e) :: rest, lift)
+     | L -> Syntax5.(Recv (lhs, ex1L, e) :: rest, lift))
   | Close (lhs, role, e) :: rest ->
     let e = trans_expr e in
     let rest, lift = trans_cmds ctx lift rest in
@@ -424,14 +425,14 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
 
 and trans_cases ctx lift cond cases =
   let lift, cases = List.fold_left_map (fun lift { ctag; args; rhs } ->
-      let cmds1 = List.mapi (fun i x -> Syntax5.(Getbox (x, cond, i))) args in
+      let cmds1 = List.mapi (fun i x -> Syntax5.(GetBox (x, cond, i))) args in
       let cmds2, lift = trans_cmds ctx lift rhs in
       (lift, Syntax5.{ ctag; rhs = cmds1 @ cmds2 }))
       lift cases
   in
   (cases, lift)
 
-let trans_dcls dcls =
+let trans_dcls dcls : Syntax5.prog =
   let rec aux ctx lift = function 
     | [] -> (lift, [], Syntax5.NULL)
     | Main { cmds; ret } :: _ ->
@@ -479,4 +480,4 @@ let trans_dcls dcls =
       Syntax5.(lift, cmds @ [ Init (lhs, rhs) ] @ rest, r)
   in
   let lift, cmds, r = aux Ctx.empty [] dcls in
-  (lift, cmds, r)
+  Syntax5.{ dcls = lift; cmds; ret = r}

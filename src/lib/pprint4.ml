@@ -54,6 +54,7 @@ let rec pp_cmd fmt = function
   | Match1 { cond; sort; cases } ->
     pf fmt "@[match[%a](%a){@;<1 2>@[%a@]@;<1 0>}@]" pp_sort sort pp_expr cond pp_cases cases
   | Absurd -> pf fmt "absurd;"
+  (* lazy *)
   | Lazy { lhs; cmds; ret } ->
     pf fmt "@[%a :=@;<1 2>@[lazy {@;<1 2>@[<v 0>%a@;<1 0>return %a;@]@;<1 0>}@];@]"
       Name.pp lhs pp_cmds cmds pp_expr ret
