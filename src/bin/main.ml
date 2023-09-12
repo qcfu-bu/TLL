@@ -61,8 +61,9 @@ let main =
        pr "%a" Pprint5.pp_prog dcls5;
        pr "@.@.-----------------------------------------@.@.";
 
-       let gen_ch = open_out "gen/main.c" in
-       Printf.fprintf gen_ch "%s" (str "%a@.@." Emitter.pp_prog dcls5);
+       let main_c = open_out "gen/main.c" in
+       let main_h = open_out "gen/main.h" in
+       Emitter.emit dcls5 main_h main_c;
        pr "compilation success";
        pr "@.@.-----------------------------------------@.@.";
 

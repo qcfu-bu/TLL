@@ -8,7 +8,7 @@ let rec gather_lhs0 ctx cmds =
   match cmds with
   | [] -> ctx
   | Move0 (lhs, _) :: cmds -> gather_lhs0 (NSet.add lhs ctx) cmds
-  | MkClo1 { lhs } :: cmds -> gather_lhs0 (NSet.add lhs ctx) cmds
+  | MkClo0 { lhs } :: cmds -> gather_lhs0 (NSet.add lhs ctx) cmds
   | _ :: cmds -> gather_lhs0 ctx cmds
 
 let rec gather_lhs1 ctx = function
@@ -73,7 +73,7 @@ let rec pp_expr fmt = function
   | Int i -> int fmt i
   | Char c -> char fmt c
   | String s -> pf fmt "\"%s\"" (String.escaped s)
-  | NULL -> pf fmt "NULL"
+  | NULL -> pf fmt "nothing"
 
 let pp_exprs fmt ms =
   let rec aux fmt = function
@@ -89,9 +89,9 @@ let rec pp_cmd fmt = function
   | Move1 (lhs, m) -> pf fmt "%a = %a;" Name.pp lhs pp_expr m
   | Env (lhs, i) -> pf fmt "%a = env[%d];" Name.pp lhs i
   | MkClo0 { lhs; fn; fvc; argc; } ->
-    pf fmt "mkclo0(%a, %a, %d, %d);" Name.pp lhs Name.pp fn fvc argc
+    pf fmt "mkclo(%a, %a, %d, %d);" Name.pp lhs Name.pp fn fvc argc
   | MkClo1 { lhs; fn; fvc; argc; } ->
-    pf fmt "mkclo1(%a, %a, %d, %d);" Name.pp lhs Name.pp fn fvc argc
+    pf fmt "mkclo(%a, %a, %d, %d);" Name.pp lhs Name.pp fn fvc argc
   | SetClo (lhs, e, i) -> pf fmt "setclo(%a, %a, %d);" Name.pp lhs pp_expr e i
   | AppF { lhs; fn; args } -> pf fmt "%a = %a(%a);" Name.pp lhs Name.pp fn pp_exprs args
   | AppC { lhs; fn; arg } -> pf fmt "appc(%a, %a, %a);" Name.pp lhs Name.pp fn pp_expr arg
@@ -104,7 +104,7 @@ let rec pp_cmd fmt = function
   | SetBox (lhs, e, i) -> pf fmt "setbox(%a, %a, %d);" Name.pp lhs pp_expr e i
   | GetBox (lhs, e, i) -> pf fmt "getbox(%a, %a, %d);" Name.pp lhs pp_expr e i
   | Switch { cond; cases } ->
-    pf fmt "@[switch(%a){@;<1 2>@[%a@]@;<1 0>}@]" pp_expr cond pp_cases cases
+    pf fmt "@[<v 0>switch(%a){@;<1 2>@[%a@]@;<1 0>}@]" pp_expr cond pp_cases cases
   | Break -> pf fmt "break;"
   | Absurd -> pf fmt "absurd();"
   (* lazy *)
@@ -164,8 +164,8 @@ let pp_xs fmt ctx =
   let xs = NSet.elements ctx in
   let rec aux fmt = function
     | [] -> ()
-    | [ x ] -> pf fmt "intptr %a;" Name.pp x
-    | x :: xs -> pf fmt "intptr %a;@;<1 0>%a" Name.pp x aux xs
+    | [ x ] -> pf fmt "intptr_t %a;" Name.pp x
+    | x :: xs -> pf fmt "intptr_t %a;@;<1 0>%a" Name.pp x aux xs
   in
   aux fmt xs
 
@@ -197,21 +197,35 @@ let rec pp_defs fmt = function
   | [] -> ()
   | DefFun0 { fn; args } :: rest ->
     pf fmt "intptr_t %a(%a);@;<1 0>%a" Name.pp fn pp_args args pp_defs rest
-  | _ :: rest -> pp_defs fmt rest
+  | DefFun1 { fn; } :: rest ->
+    pf fmt "intptr_t %a(intptr_t* env);@;<1 0>%a" Name.pp fn pp_defs rest
+
+let pp_header fmt prog =
+  pf fmt
+    "#ifndef MAIN_H@.#define MAIN_H@.@.\
+     #include \"runtime.h\"@.@.\
+     @[<v 0>%a@]@.\
+     #endif"
+    pp_defs prog.dcls
 
 let pp_prog fmt prog =
   let xs0 = gather_lhs0 NSet.empty prog.cmds in
   let xs1 = gather_lhs1 NSet.empty prog.cmds in
   pf fmt
-    "#include \"runtime.h\"@.@.@[<v 0>%a@;\
-     <1 0>%a@]@.@.%a@.@.@[<v 0>int main() {@;\
-     <1 2>@[<v 0>begin_run();@;\
-     <1 0>@[%a@]@;\
-     <1 0>%a@;\
-     <1 0>end_run();@]@;\
-     <1 0>}@]"
-    pp_defs prog.dcls
+    "#include \"main.h\"@.@.\
+     @[%a@]@.@.\
+     %a@.@.\
+     @[<v 0>int main() {@;<1 2>\
+     @[<v 0>begin_run();@;<1 0>\
+     @[%a@]@;<1 0>\
+     %a@;<1 0>\
+     end_run();@]@;<1 0>}@]"
     pp_xs xs0
     pp_dcls prog.dcls
     pp_xs xs1
     pp_cmds prog.cmds
+
+let emit prog main_h main_c =
+  Printf.fprintf main_h "%s" (str "%a@.@." pp_header prog);
+  Printf.fprintf main_c "%s" (str "%a@.@." pp_prog prog);
+
