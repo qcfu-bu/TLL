@@ -103,15 +103,15 @@ let rec trans_cmds mem cmds =
   | Ord (lhs, m) :: rest ->
     let rest, mem = trans_cmds mem rest in
     (Ord (lhs, m) :: rest, mem)
+  | Str (lhs, s) :: rest ->
+    let rest, mem = trans_cmds mem rest in
+    (Str (lhs, s) :: rest, mem)
   | Push (lhs, m, n) :: rest ->
     let rest, mem = trans_cmds mem rest in
     (Push (lhs, m, n) :: rest, mem)
   | Cat (lhs, m, n) :: rest ->
     let rest, mem = trans_cmds mem rest in
     (Cat (lhs, m, n) :: rest, mem)
-  | Str (lhs, s) :: rest ->
-    let rest, mem = trans_cmds mem rest in
-    (Str (lhs, s) :: rest, mem)
   | Size (lhs, m) :: rest ->
     let rest, mem = trans_cmds mem rest in
     (Size (lhs, m) :: rest, mem)

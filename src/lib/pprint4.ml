@@ -72,9 +72,9 @@ let rec pp_cmd fmt = function
   | Eq (lhs, m, n) -> pf fmt "@[%a := eq(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   | Chr (lhs, m) -> pf fmt "@[%a := chr(%a);@]" Name.pp lhs pp_expr m
   | Ord (lhs, m) -> pf fmt "@[%a := ord(%a);@]" Name.pp lhs pp_expr m
+  | Str (lhs, s) -> pf fmt "@[%a := str(\"%s\");@]" Name.pp lhs (String.escaped s)
   | Push (lhs, m, n) -> pf fmt "@[%a := push(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   | Cat (lhs, m, n) -> pf fmt "@[%a := cat(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Str (lhs, s) -> pf fmt "@[%a := str(\"%s\");@]" Name.pp lhs (String.escaped s)
   | Size (lhs, m) -> pf fmt "@[%a := size(%a);@]" Name.pp lhs pp_expr m
   | Indx (lhs, m, n) -> pf fmt "@[%a := indx(%a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   (* primitive effects *)

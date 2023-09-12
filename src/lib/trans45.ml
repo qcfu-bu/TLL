@@ -136,6 +136,7 @@ let rec fv_cmds bound = function
     let fv1 = fv_expr bound e in
     let fv2, bound = fv_cmds (Fv.add lhs bound) rest in
     (Fv.(union fv1 fv2), bound)
+  | Str (lhs, _) :: rest -> fv_cmds (Fv.add lhs bound) rest 
   | Push (lhs, e1, e2) :: rest ->
     let fv1 = fv_expr bound e1 in
     let fv2 = fv_expr bound e2 in
@@ -146,7 +147,6 @@ let rec fv_cmds bound = function
     let fv2 = fv_expr bound e2 in
     let fv3, bound = fv_cmds (Fv.add lhs bound) rest in
     (Fv.(union (union fv1 fv2) fv3), bound)
-  | Str (lhs, _) :: rest -> fv_cmds (Fv.add lhs bound) rest 
   | Size (lhs, e) :: rest ->
     let fv1 = fv_expr bound e in
     let fv2, bound = fv_cmds (Fv.add lhs bound) rest in
@@ -366,6 +366,9 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let e = trans_expr e in
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Ord (lhs, e) :: rest, lift)
+  | Str (lhs, s) :: rest ->
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Str (lhs, s) :: rest, lift)
   | Push (lhs, e1, e2) :: rest ->
     let e1 = trans_expr e1 in
     let e2 = trans_expr e2 in
@@ -376,9 +379,6 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let e2 = trans_expr e2 in
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Cat (lhs, e1, e2) :: rest, lift)
-  | Str (lhs, s) :: rest ->
-    let rest, lift = trans_cmds ctx lift rest in
-    Syntax5.(Str (lhs, s) :: rest, lift)
   | Size (lhs, e) :: rest ->
     let e = trans_expr e in
     let rest, lift = trans_cmds ctx lift rest in

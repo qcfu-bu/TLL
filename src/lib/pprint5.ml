@@ -58,9 +58,9 @@ let rec pp_cmd fmt = function
   | Eq (lhs, m, n) -> pf fmt "@[eq(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   | Chr (lhs, m) -> pf fmt "@[chr(%a, %a);@]" Name.pp lhs pp_expr m
   | Ord (lhs, m) -> pf fmt "@[ord(%a, %a);@]" Name.pp lhs pp_expr m
+  | Str (lhs, s) -> pf fmt "@[str(%a, \"%s\")@]" Name.pp lhs (String.escaped s)
   | Push (lhs, m, n) -> pf fmt "@[push(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   | Cat (lhs, m, n) -> pf fmt "@[cat(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Str (lhs, s) -> pf fmt "@[str(%a, \"%s\")@]" Name.pp lhs (String.escaped s)
   | Size (lhs, m) -> pf fmt "@[size(%a, %a);@]" Name.pp lhs pp_expr m
   | Indx (lhs, m, n) -> pf fmt "@[indx(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   (* primitive effects *)

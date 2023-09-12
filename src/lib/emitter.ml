@@ -52,9 +52,9 @@ let rec gather_lhs1 ctx = function
   | Eq (lhs, _, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
   | Chr (lhs, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
   | Ord (lhs, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
+  | Str (lhs, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
   | Push (lhs, _, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
   | Cat (lhs, _, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
-  | Str (lhs, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
   | Size (lhs, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
   | Indx (lhs, _, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
   (* primitive effects *)
@@ -128,9 +128,9 @@ let rec pp_cmd fmt = function
   | Eq (lhs, m, n) -> pf fmt "@[__eq__(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   | Chr (lhs, m) -> pf fmt "@[__chr__(&%a, %a);@]" Name.pp lhs pp_expr m
   | Ord (lhs, m) -> pf fmt "@[__ord__(&%a, %a);@]" Name.pp lhs pp_expr m
+  | Str (lhs, s) -> pf fmt "@[__str__(&%a, \"%s\");@]" Name.pp lhs (String.escaped s)
   | Push (lhs, m, n) -> pf fmt "@[__push__(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   | Cat (lhs, m, n) -> pf fmt "@[__cat__(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Str (lhs, s) -> pf fmt "@[__str__(&%a, \"%s\");@]" Name.pp lhs (String.escaped s)
   | Size (lhs, m) -> pf fmt "@[__size__(&%a, %a);@]" Name.pp lhs pp_expr m
   | Indx (lhs, m, n) -> pf fmt "@[__indx__(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   (* primitive effects *)

@@ -41,6 +41,7 @@ void __gt__(intptr_t *lhs, intptr_t e1, intptr_t e2);
 void __eq__(intptr_t *lhs, intptr_t e1, intptr_t e2);
 void __chr__(intptr_t *lhs, intptr_t e);
 void __ord__(intptr_t *lhs, intptr_t e);
+void __str__(intptr_t *lhs, char* buf);
 void __push__(intptr_t *lhs, intptr_t e1, intptr_t e2);
 void __cat__(intptr_t *lhs, intptr_t e1, intptr_t e2);
 void __size__(intptr_t *lhs, intptr_t e);

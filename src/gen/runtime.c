@@ -147,39 +147,26 @@ void force(intptr_t *lhs, intptr_t laz) {
 
 
 // primitive operators
-#define sizeofstr(buf_size) (sizeof(int) + buf_size * sizeof(char))
+#define sizeofstr(len) (sizeof(int) + (len + 1) * sizeof(char))
 
 typedef struct {
-    unsigned int buf_size;
-    char buf[];
+    unsigned int len;
+    char buf[]; // layout: [c1,c2,...,0]
 } str_block;
 
 typedef str_block* str_t;
 
-void __neg__(intptr_t *lhs, intptr_t e) {
-    *lhs = -e;
+str_t raw_str(unsigned int len) {
+    str_t str = malloc(sizeofstr(len));
+    str->len = len;
+    return str;
 }
 
-void __add__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    *lhs = e1 + e2;
-}
-
-void __sub__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    *lhs = e1 - e2;
-}
-
-void __mul__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    *lhs = e1 * e2;
-}
-
-void __div__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    if (e2 == 0) {
-        *lhs = 0;
-    }
-    else {
-        *lhs = e1 / e2;
-    }
-}
+void __neg__(intptr_t *lhs, intptr_t e) { *lhs = -e; }
+void __add__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 + e2; }
+void __sub__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 - e2; }
+void __mul__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 * e2; }
+void __div__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e2 == 0 ? 0 : e1 / e2; }
 
 void __mod__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
     if (e2 == 0) {
@@ -191,82 +178,54 @@ void __mod__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
     }
 }
 
-void __lte__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    if (e1 <= e2) {
-        *lhs = __true__;
+void __lte__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 <= e2 ? __true__ : __false__; }
+void __gte__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 >= e2 ? __true__ : __false__; }
+void __lt__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 < e2 ? __true__ : __false__; }
+void __gt__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 > e2 ? __true__ : __false__; }
+void __eq__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 == e2 ? __true__ : __false__; }
+void __chr__(intptr_t *lhs, intptr_t e) { __mod__(lhs, e, 256); }
+void __ord__(intptr_t *lhs, intptr_t e) { *lhs = e; }
+
+void __str__(intptr_t *lhs, char *buf) {
+    unsigned int len = strlen(buf);
+    str_t str = raw_str(len);
+    strcpy(str->buf, buf);
+    str->buf[len] = 0;
+    *lhs = (intptr_t)str;
+}
+
+void __push__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    unsigned int len = ((str_t)e1)->len;
+    str_t str = raw_str(len + 1);
+    strcpy(str->buf, ((str_t)e1)->buf);
+    str->buf[len] = (char)e2;
+    str->buf[len + 1] = 0;
+    *lhs = (intptr_t)str;
+}
+
+void __cat__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    unsigned int len1 = ((str_t)e1)->len;
+    unsigned int len2 = ((str_t)e2)->len;
+    str_t str = raw_str(len1 + len2);
+    strcpy(str->buf, ((str_t)e1)->buf);
+    strcpy(str->buf + len1, ((str_t)e2)->buf);
+    str->buf[len1 + len2] = 0;
+    *lhs = (intptr_t)str;
+}
+
+void __size__(intptr_t *lhs, intptr_t e) { *lhs = ((str_t)e)->len; }
+
+void __indx__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    intptr_t i;
+    str_t str = ((str_t)e1);
+    if (str->len == 0) {
+        *lhs = 0;
     }
     else {
-        *lhs = __false__;
+        __mod__(&i, e2, str->len);
+        *lhs = str->buf[i];
     }
 }
-
-void __gte__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    if (e1 >= e2) {
-        *lhs = __true__;
-    }
-    else {
-        *lhs = __false__;
-    }
-}
-
-void __lt__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    if (e1 < e2) {
-        *lhs = __true__;
-    }
-    else {
-        *lhs = __false__;
-    }
-}
-
-void __gt__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    if (e1 > e2) {
-        *lhs = __true__;
-    }
-    else {
-        *lhs = __false__;
-    }
-}
-
-void __eq__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    if (e1 == e2) {
-        *lhs = __true__;
-    }
-    else {
-        *lhs = __false__;
-    }
-}
-
-void __chr__(intptr_t *lhs, intptr_t e) {
-    __mod__(lhs, e, 256);
-}
-
-void __ord__(intptr_t *lhs, intptr_t e) {
-    *lhs = e;
-}
-
-/* void __push__(intptr_t *lhs, intptr_t e1, intptr_t e2) { */
-/*     unsigned int len = strlen((str_t)e1); */
-/*     str_t str = myalloc((len + 2) * sizeof(char)); */
-/*     strcpy(str, (str_t)e1); */
-/*     str[len] = (char)e2; */
-/*     str[len + 1] = 0; */
-/*     *lhs = (intptr_t)str; */
-/* } */
-
-/* void __cat__(intptr_t *lhs, intptr_t e1, intptr_t e2) { */
-/*     unsigned int len1 = strlen((str_t)e1); */
-/*     unsigned int len2 = strlen((str_t)e2); */
-/*     str_t str = myalloc((len1 + len2 + 1) * sizeof(char)); */
-/*     strcpy(str, (str_t)e1); */
-/*     strcpy(str + len1, (str_t)e1); */
-/*     str[len1 + len2] = 0; */
-/*     *lhs = (intptr_t)str; */
-/* } */
-
-/* void __size__(intptr_t *lhs, intptr_t e) { */
-/*     *lhs = strlen((str_t)e); */
-/* } */
-
 
 
 
