@@ -147,9 +147,14 @@ void force(intptr_t *lhs, intptr_t laz) {
 
 
 // primitive operators
+#define sizeofstr(buf_size) (sizeof(int) + buf_size * sizeof(char))
+
 typedef struct {
-    
+    unsigned int buf_size;
+    char buf[];
 } str_block;
+
+typedef str_block* str_t;
 
 void __neg__(intptr_t *lhs, intptr_t e) {
     *lhs = -e;
@@ -239,28 +244,28 @@ void __ord__(intptr_t *lhs, intptr_t e) {
     *lhs = e;
 }
 
-void __push__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    unsigned int len = strlen((str_t)e1);
-    str_t str = myalloc((len + 2) * sizeof(char));
-    strcpy(str, (str_t)e1);
-    str[len] = (char)e2;
-    str[len + 1] = 0;
-    *lhs = (intptr_t)str;
-}
+/* void __push__(intptr_t *lhs, intptr_t e1, intptr_t e2) { */
+/*     unsigned int len = strlen((str_t)e1); */
+/*     str_t str = myalloc((len + 2) * sizeof(char)); */
+/*     strcpy(str, (str_t)e1); */
+/*     str[len] = (char)e2; */
+/*     str[len + 1] = 0; */
+/*     *lhs = (intptr_t)str; */
+/* } */
 
-void __cat__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    unsigned int len1 = strlen((str_t)e1);
-    unsigned int len2 = strlen((str_t)e2);
-    str_t str = myalloc((len1 + len2 + 1) * sizeof(char));
-    strcpy(str, (str_t)e1);
-    strcpy(str + len1, (str_t)e1);
-    str[len1 + len2] = 0;
-    *lhs = (intptr_t)str;
-}
+/* void __cat__(intptr_t *lhs, intptr_t e1, intptr_t e2) { */
+/*     unsigned int len1 = strlen((str_t)e1); */
+/*     unsigned int len2 = strlen((str_t)e2); */
+/*     str_t str = myalloc((len1 + len2 + 1) * sizeof(char)); */
+/*     strcpy(str, (str_t)e1); */
+/*     strcpy(str + len1, (str_t)e1); */
+/*     str[len1 + len2] = 0; */
+/*     *lhs = (intptr_t)str; */
+/* } */
 
-void __size__(intptr_t *lhs, intptr_t e) {
-    *lhs = strlen((str_t)e);
-}
+/* void __size__(intptr_t *lhs, intptr_t e) { */
+/*     *lhs = strlen((str_t)e); */
+/* } */
 
 
 

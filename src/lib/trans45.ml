@@ -9,7 +9,6 @@ let fv_expr bound = function
   | Ctag _ -> Fv.empty
   | Int _ -> Fv.empty
   | Char _ -> Fv.empty
-  | String _ -> Fv.empty
   | NULL -> Fv.empty
 
 let rec fv_cmds bound = function
@@ -147,6 +146,7 @@ let rec fv_cmds bound = function
     let fv2 = fv_expr bound e2 in
     let fv3, bound = fv_cmds (Fv.add lhs bound) rest in
     (Fv.(union (union fv1 fv2) fv3), bound)
+  | Str (lhs, _) :: rest -> fv_cmds (Fv.add lhs bound) rest 
   | Size (lhs, e) :: rest ->
     let fv1 = fv_expr bound e in
     let fv2, bound = fv_cmds (Fv.add lhs bound) rest in
@@ -201,7 +201,6 @@ let trans_expr = function
   | Ctag c -> Syntax5.Ctag c
   | Int i -> Syntax5.Int i
   | Char c -> Syntax5.Char c
-  | String s -> Syntax5.String s
   | NULL -> Syntax5.NULL
 
 let rec trans_cmds (ctx : Ctx.t) lift = function
@@ -377,6 +376,9 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let e2 = trans_expr e2 in
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Cat (lhs, e1, e2) :: rest, lift)
+  | Str (lhs, s) :: rest ->
+    let rest, lift = trans_cmds ctx lift rest in
+    Syntax5.(Str (lhs, s) :: rest, lift)
   | Size (lhs, e) :: rest ->
     let e = trans_expr e in
     let rest, lift = trans_cmds ctx lift rest in

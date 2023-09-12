@@ -7,7 +7,6 @@ type expr =
   (* primitive terms *)
   | Int of int
   | Char of char
-  | String of string
   (* erasure *)
   | NULL
 
@@ -85,6 +84,7 @@ type cmd =
   | Ord  of Name.t * expr        (* char -> int                *)
   | Push of Name.t * expr * expr (* string -> char -> string   *)
   | Cat  of Name.t * expr * expr (* string -> string -> string *)
+  | Str  of Name.t * string      (* char[] -> string           *)
   | Size of Name.t * expr        (* string -> int              *)
   | Indx of Name.t * expr * expr (* string -> int -> char      *)
   (* primitive effects *)

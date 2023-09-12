@@ -8,7 +8,6 @@ let rec pp_expr fmt = function
   | CtagOf e -> pf fmt "ctagof(%a)" pp_expr e
   | Int i -> int fmt i
   | Char c -> char fmt c
-  | String s -> pf fmt "\"%s\"" (String.escaped s)
   | NULL -> pf fmt "NULL"
 
 let pp_exprs fmt ms =
@@ -61,6 +60,7 @@ let rec pp_cmd fmt = function
   | Ord (lhs, m) -> pf fmt "@[ord(%a, %a);@]" Name.pp lhs pp_expr m
   | Push (lhs, m, n) -> pf fmt "@[push(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   | Cat (lhs, m, n) -> pf fmt "@[cat(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Str (lhs, s) -> pf fmt "@[str(%a, \"%s\")@]" Name.pp lhs (String.escaped s)
   | Size (lhs, m) -> pf fmt "@[size(%a, %a);@]" Name.pp lhs pp_expr m
   | Indx (lhs, m, n) -> pf fmt "@[indx(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   (* primitive effects *)

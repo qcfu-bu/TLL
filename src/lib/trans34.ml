@@ -98,7 +98,9 @@ let rec trans_tm ctx m =
   (* primitive terms *)
   | Int i -> Syntax4.([], Int i)
   | Char c -> Syntax4.([], Char c)
-  | String s -> Syntax4.([], String s)
+  | String s ->
+    let lhs = Name.mk "x" in
+    Syntax4.([ Str (lhs, s) ], Var lhs)
   (* primitive operators *)
   | Neg m ->
     let lhs = Name.mk "x" in
