@@ -70,7 +70,8 @@ let rec pp_cmd fmt = function
   | Fork (lhs, m) -> pf fmt "@[fork(%a, %a);@]" Name.pp lhs pp_expr m
   | Send (lhs, m, n) -> pf fmt "@[send(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   | Recv (lhs, ctag, m) -> pf fmt "@[recv(%a, %a, %a);@]" Name.pp lhs  Constr.pp ctag pp_expr m
-  | Close (lhs, role, m) -> pf fmt "@[close(%a, %b, %a);@]" Name.pp lhs role pp_expr m
+  | Close0 (lhs, ctag, m) -> pf fmt "@[close0(%a, %a, %a);@]" Name.pp lhs Constr.pp ctag pp_expr m
+  | Close1 (lhs, ctag, m) -> pf fmt "@[close1(%a, %a, %a);@]" Name.pp lhs Constr.pp ctag pp_expr m
   (* magic *)
   | Magic -> pf fmt "magic;"
 

@@ -94,7 +94,8 @@ type cmd =
   | Fork of Name.t * expr
   | Send of Name.t * expr * expr 
   | Recv of Name.t * Constr.t * expr
-  | Close of Name.t * bool * expr
+  | Close0 of Name.t * Constr.t * expr
+  | Close1 of Name.t * Constr.t * expr
   (* magic *)
   | Magic
 

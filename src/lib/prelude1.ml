@@ -29,6 +29,7 @@ let prelude_const id =
   with _ -> failwith "prelude_i(%s)" id
 
 let unit_ind = prelude_ind "unit"
+let tt_constr = prelude_constr "tt"
 
 let exists0_ind = prelude_ind "exists0"
 let exists1_ind = prelude_ind "exists1"

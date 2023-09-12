@@ -1,7 +1,7 @@
 open Names
 open Syntax4
 open Context45
-open Prelude2
+open Prelude1
 
 let fv_expr bound = function
   | Var x when Fv.mem x bound -> Fv.empty
@@ -409,16 +409,20 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Send (lhs, e1, e2) :: rest, lift)
   | Recv (lhs, s, e) :: rest ->
-    let ex1U, ex1L = Prelude2.find_ex1 () in
+    let ex1U = Trans12.State.find_constr ex1_constr [U;L] in
+    let ex1L = Trans12.State.find_constr ex1_constr [L;L] in
     let e = trans_expr e in
     let rest, lift = trans_cmds ctx lift rest in
     (match s with
      | U -> Syntax5.(Recv (lhs, ex1U, e) :: rest, lift)
      | L -> Syntax5.(Recv (lhs, ex1L, e) :: rest, lift))
   | Close (lhs, role, e) :: rest ->
+    let ttU =Trans12.State.find_constr tt_constr [] in
     let e = trans_expr e in
     let rest, lift = trans_cmds ctx lift rest in
-    Syntax5.(Close (lhs, role, e) :: rest, lift)
+    if role
+    then Syntax5.(Close0 (lhs, ttU, e) :: rest, lift)
+    else Syntax5.(Close1 (lhs, ttU, e) :: rest, lift)
   (* magic *)
   | Magic :: rest ->
     let rest, lift = trans_cmds ctx lift rest in

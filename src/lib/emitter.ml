@@ -62,7 +62,8 @@ let rec gather_lhs1 ctx = function
   | Fork (lhs, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
   | Send (lhs, _, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
   | Recv (lhs, _, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
-  | Close (lhs, _, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
+  | Close0 (lhs, _, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
+  | Close1 (lhs, _, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
   (* magic *)
   | Magic :: cmds -> gather_lhs1 ctx cmds
 
@@ -89,18 +90,18 @@ let rec pp_cmd fmt = function
   | Move1 (lhs, m) -> pf fmt "%a = %a;" Name.pp lhs pp_expr m
   | Env (lhs, i) -> pf fmt "%a = env[%d];" Name.pp lhs i
   | MkClo0 { lhs; fn; fvc; argc; } ->
-    pf fmt "mkclo(%a, %a, %d, %d);" Name.pp lhs Name.pp fn fvc argc
+    pf fmt "mkclo(&%a, %a, %d, %d);" Name.pp lhs Name.pp fn fvc argc
   | MkClo1 { lhs; fn; fvc; argc; } ->
-    pf fmt "mkclo(%a, %a, %d, %d);" Name.pp lhs Name.pp fn fvc argc
+    pf fmt "mkclo(&%a, %a, %d, %d);" Name.pp lhs Name.pp fn fvc argc
   | SetClo (lhs, e, i) -> pf fmt "setclo(%a, %a, %d);" Name.pp lhs pp_expr e i
   | AppF { lhs; fn; args } -> pf fmt "%a = %a(%a);" Name.pp lhs Name.pp fn pp_exprs args
-  | AppC { lhs; fn; arg } -> pf fmt "appc(%a, %a, %a);" Name.pp lhs Name.pp fn pp_expr arg
-  | Free m -> pf fmt "@[free(%a);@]" pp_expr m
+  | AppC { lhs; fn; arg } -> pf fmt "appc(&%a, %a, %a);" Name.pp lhs Name.pp fn pp_expr arg
+  | Free m -> pf fmt "@[ffree(%a);@]" pp_expr m
   (* inductive *)
   | MkBox { lhs; ctag; argc } ->
-    pf fmt "mkbox(%a, %d, %d);" Name.pp lhs (Constr.id_of ctag) argc
+    pf fmt "mkbox(&%a, %d, %d);" Name.pp lhs (Constr.id_of ctag) argc
   | ReBox { lhs; fip; ctag } ->
-    pf fmt "rebox(%a, %a, %d);" Name.pp lhs pp_expr fip (Constr.id_of ctag)
+    pf fmt "rebox(&%a, %a, %d);" Name.pp lhs pp_expr fip (Constr.id_of ctag)
   | SetBox (lhs, e, i) -> pf fmt "setbox(%a, %a, %d);" Name.pp lhs pp_expr e i
   | GetBox (lhs, e, i) -> pf fmt "getbox(%a, %a, %d);" Name.pp lhs pp_expr e i
   | Switch { cond; cases } ->
@@ -108,36 +109,39 @@ let rec pp_cmd fmt = function
   | Break -> pf fmt "break;"
   | Absurd -> pf fmt "absurd();"
   (* lazy *)
-  | Lazy { lhs; fn; fvc } -> pf fmt "lazy(%a, %a, %d);" Name.pp lhs Name.pp fn fvc
-  | SetLazy (lhs, e, i) -> pf fmt "setlazy(%a, %a, %d);" Name.pp lhs pp_expr e i 
-  | Force (lhs, m) -> pf fmt "@[force(%a, %a);@]" Name.pp lhs pp_expr m
+  | Lazy { lhs; fn; fvc } -> pf fmt "lazy(&%a, %a, %d);" Name.pp lhs Name.pp fn fvc
+  | SetLazy (lhs, e, i) -> pf fmt "setlazy(&%a, %a, %d);" Name.pp lhs pp_expr e i 
+  | Force (lhs, m) -> pf fmt "@[force(&%a, %a);@]" Name.pp lhs pp_expr m
   (* primitive operators *)
-  | Neg (lhs, m) -> pf fmt "@[neg(%a, %a);@]" Name.pp lhs pp_expr m
-  | Add (lhs, m, n) -> pf fmt "@[add(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Sub (lhs, m, n) -> pf fmt "@[sub(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Mul (lhs, m, n) -> pf fmt "@[mul(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Div (lhs, m, n) -> pf fmt "@[div(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Mod (lhs, m, n) -> pf fmt "@[mod(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Lte (lhs, m, n) -> pf fmt "@[lte(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Gte (lhs, m, n) -> pf fmt "@[gte(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Lt (lhs, m, n) -> pf fmt "@[lt(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Gt (lhs, m, n) -> pf fmt "@[gt(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Eq (lhs, m, n) -> pf fmt "@[eq(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Chr (lhs, m) -> pf fmt "@[chr(%a, %a);@]" Name.pp lhs pp_expr m
-  | Ord (lhs, m) -> pf fmt "@[ord(%a, %a);@]" Name.pp lhs pp_expr m
-  | Push (lhs, m, n) -> pf fmt "@[push(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Cat (lhs, m, n) -> pf fmt "@[cat(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Size (lhs, m) -> pf fmt "@[size(%a, %a);@]" Name.pp lhs pp_expr m
-  | Indx (lhs, m, n) -> pf fmt "@[indx(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Neg (lhs, m) -> pf fmt "@[neg(&%a, %a);@]" Name.pp lhs pp_expr m
+  | Add (lhs, m, n) -> pf fmt "@[add(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Sub (lhs, m, n) -> pf fmt "@[sub(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Mul (lhs, m, n) -> pf fmt "@[mul(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Div (lhs, m, n) -> pf fmt "@[div(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Mod (lhs, m, n) -> pf fmt "@[mod(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Lte (lhs, m, n) -> pf fmt "@[lte(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Gte (lhs, m, n) -> pf fmt "@[gte(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Lt (lhs, m, n) -> pf fmt "@[lt(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Gt (lhs, m, n) -> pf fmt "@[gt(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Eq (lhs, m, n) -> pf fmt "@[eq(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Chr (lhs, m) -> pf fmt "@[chr(&%a, %a);@]" Name.pp lhs pp_expr m
+  | Ord (lhs, m) -> pf fmt "@[ord(&%a, %a);@]" Name.pp lhs pp_expr m
+  | Push (lhs, m, n) -> pf fmt "@[push(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Cat (lhs, m, n) -> pf fmt "@[cat(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Size (lhs, m) -> pf fmt "@[size(&%a, %a);@]" Name.pp lhs pp_expr m
+  | Indx (lhs, m, n) -> pf fmt "@[indx(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   (* primitive effects *)
-  | Print (lhs, m) -> pf fmt "@[print(%a, %a);@]" Name.pp lhs pp_expr m
-  | Prerr (lhs, m) -> pf fmt "@[prerr(%a, %a);@]" Name.pp lhs pp_expr m
-  | ReadLn (lhs, m) -> pf fmt "@[readln(%a, %a);@]" Name.pp lhs pp_expr m
-  | Fork (lhs, m) -> pf fmt "@[fork(%a, %a);@]" Name.pp lhs pp_expr m
-  | Send (lhs, m, n) -> pf fmt "@[send(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
+  | Print (lhs, m) -> pf fmt "@[print(&%a, %a);@]" Name.pp lhs pp_expr m
+  | Prerr (lhs, m) -> pf fmt "@[prerr(&%a, %a);@]" Name.pp lhs pp_expr m
+  | ReadLn (lhs, m) -> pf fmt "@[readln(&%a, %a);@]" Name.pp lhs pp_expr m
+  | Fork (lhs, m) -> pf fmt "@[fork(&%a, %a);@]" Name.pp lhs pp_expr m
+  | Send (lhs, m, n) -> pf fmt "@[send(&%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
   | Recv (lhs, ctag, m) ->
-    pf fmt "@[recv(%a, %d, %a);@]" Name.pp lhs  (Constr.id_of ctag) pp_expr m
-  | Close (lhs, role, m) -> pf fmt "@[close(%a, %b, %a);@]" Name.pp lhs role pp_expr m
+    pf fmt "@[recv(&%a, %d, %a);@]" Name.pp lhs  (Constr.id_of ctag) pp_expr m
+  | Close0 (lhs, ctag, m) ->
+    pf fmt "@[close(&%a, %d, %a);@]" Name.pp lhs (Constr.id_of ctag) pp_expr m
+  | Close1 (lhs, ctag, m) ->
+    pf fmt "@[close(&%a, %d, %a);@]" Name.pp lhs (Constr.id_of ctag) pp_expr m
   (* magic *)
   | Magic -> pf fmt "magic();"
 
