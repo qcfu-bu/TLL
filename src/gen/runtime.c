@@ -38,7 +38,6 @@ void begin_run(void) {
 
 void end_run(void) {
   pthread_exit(NULL);
-  return;
 }
 
 
@@ -105,7 +104,7 @@ void ffree(intptr_t x) {
 
 typedef struct {
     unsigned int ctag;
-    intptr_t data[10];
+    intptr_t data[5];
 } box_block;
 
 typedef box_block* box_t;
@@ -133,7 +132,7 @@ void getbox(intptr_t *lhs, intptr_t box, unsigned int i) {
     *lhs = ((box_t)box)->data[i];
 }
 
-void absurd() {
+void absurd(void) {
     fprintf(stderr, "%s", "absurd case reached, compiler bug\n");
     exit(1);
 }
@@ -260,7 +259,7 @@ void __readln__(intptr_t *lhs, intptr_t e) {
 
 
 // magic
-void magic() {
+void magic(void) {
     fprintf(stderr, "%s", "magic reached, nothing to do\n");
     exit(1);
 }
