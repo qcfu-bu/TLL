@@ -75,7 +75,7 @@ let rec pp_expr fmt = function
   | Ctag c -> int fmt (Constr.id_of c)
   | CtagOf e -> pf fmt "ctagof(%a)" pp_expr e
   | Int i -> int fmt i
-  | Char c -> char fmt c
+  | Char c -> pf fmt "\'%s\'" (Char.escaped c)
   | NULL -> pf fmt "nothing"
 
 let pp_exprs fmt ms =
@@ -101,9 +101,9 @@ let rec pp_cmd fmt = function
   | Free m -> pf fmt "@[ffree(%a);@]" pp_expr m
   (* inductive *)
   | MkBox { lhs; ctag; argc } ->
-    pf fmt "mkbox(&%a, %d, %d);" Name.pp lhs (Constr.id_of ctag) argc
+    pf fmt "mkbox(&%a, %d, %d); //%a" Name.pp lhs (Constr.id_of ctag) argc Constr.pp ctag
   | ReBox { lhs; fip; ctag } ->
-    pf fmt "rebox(&%a, %a, %d);" Name.pp lhs pp_expr fip (Constr.id_of ctag)
+    pf fmt "rebox(&%a, %a, %d); //%a" Name.pp lhs pp_expr fip (Constr.id_of ctag) Constr.pp ctag
   | SetBox (lhs, e, i) -> pf fmt "setbox(%a, %a, %d);" Name.pp lhs pp_expr e i
   | GetBox (lhs, e, i) -> pf fmt "getbox(&%a, %a, %d);" Name.pp lhs pp_expr e i
   | Switch { cond; cases } ->
@@ -112,7 +112,7 @@ let rec pp_cmd fmt = function
   | Absurd -> pf fmt "absurd();"
   (* lazy *)
   | Lazy { lhs; fn; fvc } -> pf fmt "lazy(&%a, %a, %d);" Name.pp lhs Name.pp fn fvc
-  | SetLazy (lhs, e, i) -> pf fmt "setlazy(&%a, %a, %d);" Name.pp lhs pp_expr e i 
+  | SetLazy (lhs, e, i) -> pf fmt "setlazy(%a, %a, %d);" Name.pp lhs pp_expr e i 
   | Force (lhs, m) -> pf fmt "@[force(&%a, %a);@]" Name.pp lhs pp_expr m
   (* primitive operators *)
   | Neg (lhs, m) -> pf fmt "@[__neg__(&%a, %a);@]" Name.pp lhs pp_expr m
@@ -155,7 +155,8 @@ and pp_cmds fmt cmds =
   pf fmt "@[<v 0>%a@]" aux cmds
 
 and pp_case fmt case =
-  pf fmt "@[<v 0>case %d:@;<1 2>%a@]" (Constr.id_of case.ctag) pp_cmds case.rhs
+  let ctag = case.ctag in
+  pf fmt "@[<v 0>case %d: //%a@;<1 2>%a@]" (Constr.id_of ctag) Constr.pp ctag pp_cmds case.rhs
 
 and pp_cases fmt cases =
   let rec aux fmt = function

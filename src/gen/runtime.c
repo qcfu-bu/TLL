@@ -1,4 +1,5 @@
 #include "chan.h"
+#include "sds.h"
 #include <pthread.h>
 
 #include <stdint.h>
@@ -116,6 +117,7 @@ unsigned int ctagof(intptr_t box) {
 void mkbox(intptr_t *lhs, unsigned int ctag, int argc) {
     box_t box = (box_t)myalloc(sizeofbox(argc));
     box->ctag = ctag;
+    *lhs = (intptr_t)box;
 }
 
 void rebox(intptr_t *lhs, intptr_t fip, unsigned int ctag) {
@@ -172,21 +174,6 @@ void force(intptr_t *lhs, intptr_t laz) {
 
 
 // primitive operators
-#define sizeofstr(len) (sizeof(int) + (len + 1) * sizeof(char))
-
-typedef struct {
-    unsigned int len;
-    char buf[]; // layout: [c1,c2,...,0]
-} str_block;
-
-typedef str_block* str_t;
-
-str_t raw_str(unsigned int len) {
-    str_t str = malloc(sizeofstr(len));
-    str->len = len;
-    return str;
-}
-
 void __neg__(intptr_t *lhs, intptr_t e) { *lhs = -e; }
 void __add__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 + e2; }
 void __sub__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 - e2; }
@@ -212,43 +199,31 @@ void __chr__(intptr_t *lhs, intptr_t e) { __mod__(lhs, e, 256); }
 void __ord__(intptr_t *lhs, intptr_t e) { *lhs = e; }
 
 void __str__(intptr_t *lhs, char *buf) {
-    unsigned int len = strlen(buf);
-    str_t str = raw_str(len);
-    strcpy(str->buf, buf);
-    str->buf[len] = 0;
-    *lhs = (intptr_t)str;
+    *lhs = (intptr_t)sdsnew(buf);
 }
 
 void __push__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    unsigned int len = ((str_t)e1)->len;
-    str_t str = raw_str(len + 1);
-    strcpy(str->buf, ((str_t)e1)->buf);
-    str->buf[len] = (char)e2;
-    str->buf[len + 1] = 0;
-    *lhs = (intptr_t)str;
+    char c[] = { (char)e2, '\0' };
+    *lhs = (intptr_t)sdscat((sds)e1, c);
 }
 
 void __cat__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    unsigned int len1 = ((str_t)e1)->len;
-    unsigned int len2 = ((str_t)e2)->len;
-    str_t str = raw_str(len1 + len2);
-    strcpy(str->buf, ((str_t)e1)->buf);
-    strcpy(str->buf + len1, ((str_t)e2)->buf);
-    str->buf[len1 + len2] = 0;
-    *lhs = (intptr_t)str;
+    *lhs = (intptr_t)sdscatsds((sds)e1, (sds)e2);
 }
 
-void __size__(intptr_t *lhs, intptr_t e) { *lhs = ((str_t)e)->len; }
+void __size__(intptr_t *lhs, intptr_t e) {
+    *lhs = sdslen((sds)e);
+}
 
 void __indx__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
     intptr_t i;
-    str_t str = (str_t)e1;
-    if (str->len == 0) {
+    sds str = (sds)e1;
+    if (sdslen(str) == 0) {
         *lhs = 0;
     }
     else {
-        __mod__(&i, e2, str->len);
-        *lhs = str->buf[i];
+        __mod__(&i, e2, sdslen(str));
+        *lhs = str[i];
     }
 }
 
@@ -257,24 +232,22 @@ void __indx__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
 
 // primitive effects
 void __print__(intptr_t *lhs, intptr_t e) {
-    str_t str = (str_t)e;
-    printf("%s", str->buf);
+    sds str = (sds)e;
+    printf("%s", str);
     *lhs = __tt__;
 }
 
 void __prerr__(intptr_t *lhs, intptr_t e) {
-    str_t str = (str_t)e;
-    fprintf(stderr, "%s", str->buf);
+    sds str = (sds)e;
+    fprintf(stderr, "%s", str);
     *lhs = __tt__;
 }
 
 void __readln__(intptr_t *lhs, intptr_t e) {
-    char* buf = NULL; size_t size; ssize_t len; str_t str;
+    char* buf = NULL; size_t size; ssize_t len; sds str;
     len = getline(&buf, &size, stdin) - 1;
     buf[len] = 0;
-    str = raw_str(len);
-    strcpy(str->buf, buf);
-    str->buf[len] = 0;
+    str = sdsnew(buf);
     free(buf);
     *lhs = (intptr_t)str;
 }

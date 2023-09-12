@@ -1,7 +1,7 @@
 CC=clang
 RMF=rm -rf
-CFLAGS=-g
-SRC=main.c runtime.c chan.c queue.c
+CFLAGS=-g -O2
+SRC=main.c runtime.c sds.c chan.c queue.c
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Darwin)

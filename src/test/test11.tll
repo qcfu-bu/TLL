@@ -5,31 +5,40 @@ def split‹t› : list‹_,t› int -> list‹_,t› int × list‹_,t› int
     let ⟨xs, ys⟩ := split zs in
     ⟨x :: xs, y :: ys⟩
 
--- def add_zero := add zero
--- def test0 := zero
--- def test1 := true
+def merge‹t› : list‹_,t› int -> list‹_,t› int -o list‹_,t› int
+  | nil    , ys      => ys
+  | xs     , nil     => xs
+  | x :: xs, y :: ys =>
+    if x <= y
+    then x :: merge xs (y :: ys)
+    else y :: merge (x :: xs) ys
+
+def msort‹t› : list‹_,t›int -> list‹_,t›int 
+  | nil      => nil
+  | z :: nil => z :: nil
+  | zs       =>
+    let ⟨xs, ys⟩ := split zs in
+    merge (msort xs) (msort ys)
+
+def mklist‹t› (n : int) : list‹_,t›int :=
+  if n <= 0 then nil else n :: mklist (n - 1)
+
+def list_len‹t› : list‹_,t›int -> int
+  | nil => 0
+  | _ :: xs => 1 + list_len xs
+
+def string_of_list‹t› : list‹_,t›int -> string 
+  | nil => "nil"
+  | x :: xs => string_of_int x ++ " :: " ++ string_of_list xs
+
 def main : IO unit :=
-  let* s := readln tt in
-  let* _ := print s in
-  return tt
-
-
--- def merge‹t› : list‹_,t› int -> list‹_,t› int -o list‹_,t› int
---   | nil    , ys      => ys
---   | xs     , nil     => xs
---   | x :: xs, y :: ys =>
---     match x <= y with
---     | true  => x :: merge xs (y :: ys)
---     | false => y :: merge (x :: xs) ys
-
--- def msort‹t› : list‹_,t› int -> list‹_,t› int 
---   | nil      => nil
---   | z :: nil => z :: nil
---   | zs       =>
---     let ⟨xs, ys⟩ := split zs in
---     merge (msort xs) (msort ys)
-
-
+  let test := mklist‹L› 33 in
+  let sorted := msort test in
+  -- let len := list_len sorted in
+  -- print (string_of_int len)
+  print (string_of_list sorted)
+  -- let _ := free_list (fn _ => tt) sorted in
+  -- return tt
 
 
 -- #[logical]

@@ -125,12 +125,12 @@ let rec trans_tm ctx m =
     let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx n in
-    Syntax4.(cmds1 @ cmds2 @ [ Mul (lhs, ret1, ret2) ], Var lhs)
+    Syntax4.(cmds1 @ cmds2 @ [ Div (lhs, ret1, ret2) ], Var lhs)
   | Mod (m, n) ->
     let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in
     let cmds2, ret2 = trans_tm ctx n in
-    Syntax4.(cmds1 @ cmds2 @ [ Mul (lhs, ret1, ret2) ], Var lhs)
+    Syntax4.(cmds1 @ cmds2 @ [ Mod (lhs, ret1, ret2) ], Var lhs)
   | Lte (m, n) ->
     let lhs = Name.mk "x" in
     let cmds1, ret1 = trans_tm ctx m in

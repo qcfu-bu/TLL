@@ -347,12 +347,12 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let e1 = trans_expr e1 in
     let e2 = trans_expr e2 in
     let rest, lift = trans_cmds ctx lift rest in
-    Syntax5.(Lte (lhs, e1, e2) :: rest, lift)
+    Syntax5.(Lt (lhs, e1, e2) :: rest, lift)
   | Gt (lhs, e1, e2) :: rest ->
     let e1 = trans_expr e1 in
     let e2 = trans_expr e2 in
     let rest, lift = trans_cmds ctx lift rest in
-    Syntax5.(Gte (lhs, e1, e2) :: rest, lift)
+    Syntax5.(Gt (lhs, e1, e2) :: rest, lift)
   | Eq (lhs, e1, e2) :: rest ->
     let e1 = trans_expr e1 in
     let e2 = trans_expr e2 in
