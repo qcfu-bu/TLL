@@ -1,7 +1,5 @@
 open Names
 
-type sort = U | L
-
 type expr =
   | Var of Name.t
   | Ctag of Constr.t
@@ -17,10 +15,16 @@ and exprs = expr list
 
 type cmd =
   (* core *)
-  | Init of Name.t * expr
-  | Move of Name.t * expr
+  | Move0 of Name.t * expr
+  | Move1 of Name.t * expr
   | Env of Name.t * int
-  | MkClo of
+  | MkClo0 of
+      { lhs : Name.t
+      ; fn : Name.t
+      ; fvc : int
+      ; argc : int
+      }
+  | MkClo1 of
       { lhs : Name.t
       ; fn : Name.t
       ; fvc : int

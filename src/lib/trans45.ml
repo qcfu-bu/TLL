@@ -210,9 +210,9 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
   | Move (lhs, e) :: rest ->
     let e = trans_expr e in
     let rest, lift = trans_cmds ctx lift rest in
-    Syntax5.(Move (lhs, e) :: rest, lift)
+    Syntax5.(Move1 (lhs, e) :: rest, lift)
   | Fun { lhs; fn; args; cmds; ret } :: rest ->
-    let fname = Name.(mk ("fn1" ^ name_of fn)) in
+    let fname = Name.(mk ("fn1_" ^ name_of fn)) in
     let xs = List.map snd args in
     let fv1, bound = fv_cmds (Fv.of_list (fn :: xs)) cmds in
     let fv2 = fv_expr bound ret in
@@ -223,7 +223,7 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let ret = trans_expr ret in
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.
-      ( MkClo
+      ( MkClo1
           { lhs
           ; fn = fname
           ; fvc = List.length fvs
@@ -243,14 +243,15 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
        let args = List.map (fun (_, e) -> trans_expr e) args in
        Syntax5.(AppF { lhs; fn; args } :: rest, lift)
      | _ ->
-       let rhs, _, cmds = List.fold_left (fun (lhs, fn, acc) (s, arg) ->
+       let _, rhs, cmds = List.fold_left (fun (lhs, rhs, acc) (s, arg) ->
            let arg = trans_expr arg in
-           match s with
-           | U -> Syntax5.(Name.mk "x", lhs, AppC { lhs; fn; arg } :: acc)
-           | L -> Syntax5.(Name.mk "x", lhs, Free (Var fn) :: AppC { lhs; fn; arg } :: acc))
+           Syntax5.
+             (match s with
+              | U -> (Name.mk "x", lhs, AppC { lhs; fn = rhs; arg } :: acc)
+              | L -> (Name.mk "x", lhs, Free (Var rhs) :: AppC { lhs; fn = rhs; arg } :: acc)))
            (Name.mk "x", fn, []) args
        in
-       Syntax5.(List.rev cmds @ [ Move (lhs, Var rhs) ] @ rest, lift))
+       Syntax5.(List.rev cmds @ [ Move1 (lhs, Var rhs) ] @ rest, lift))
   | Free e :: rest ->
     let e = trans_expr e in
     let rest, lift = trans_cmds ctx lift rest in
@@ -277,7 +278,7 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     Syntax5.(Absurd :: rest, lift)
   (* lazy *)
   | Lazy { lhs; cmds; ret } :: rest ->
-    let fname = Name.mk "lazy" in
+    let fname = Name.mk "lazy_" in
     let fv1, bound = fv_cmds Fv.empty cmds in
     let fv2 = fv_expr bound ret in
     let fvs = Fv.(dump (union fv1 fv2)) in
@@ -441,8 +442,8 @@ let trans_dcls dcls : Syntax5.prog =
       (lift, cmds, r)
     | DefFun { fn; args; cmds; ret } :: rest ->
       let xs = List.map snd args in
-      let fname0 = Name.(mk ("fn0" ^ name_of fn)) in
-      let fname1 = Name.(mk ("fn1" ^ name_of fn)) in
+      let fname0 = Name.(mk ("fn0_" ^ name_of fn)) in
+      let fname1 = Name.(mk ("fn1_" ^ name_of fn)) in
       let argc = List.length args in
       let ctx = Ctx.add fn fname0 argc ctx in
       let ret0 = trans_expr ret in
@@ -451,7 +452,6 @@ let trans_dcls dcls : Syntax5.prog =
       let ret1 = Name.mk "x" in
       let cmds1 = List.mapi (fun i (_, x) -> Syntax5.(Env (x, i + 1))) args in
       let cmds1 = cmds1 @ [ AppF { lhs = ret1; fn = fname0; args = args1 } ] in
-      let tmp = Name.mk "x" in
       let lift, rest, r = aux ctx lift rest in
       Syntax5.
         ( DefFun0
@@ -466,18 +466,17 @@ let trans_dcls dcls : Syntax5.prog =
             ; ret = Var ret1
             }
           :: lift
-        , MkClo 
-            { lhs = tmp
+        , MkClo0
+            { lhs = fn
             ; fn = fname1
             ; fvc = 0
             ; argc
-            } ::
-          Init (fn, Var tmp) :: rest, r )
+            } :: rest, r )
     | DefVal { lhs; cmds; ret = rhs } :: rest ->
       let cmds, lift = trans_cmds ctx lift cmds in
       let rhs = trans_expr rhs in
       let lift, rest, r = aux ctx lift rest in
-      Syntax5.(lift, cmds @ [ Init (lhs, rhs) ] @ rest, r)
+      Syntax5.(lift, cmds @ [ Move0 (lhs, rhs) ] @ rest, r)
   in
   let lift, cmds, r = aux Ctx.empty [] dcls in
   Syntax5.{ dcls = lift; cmds; ret = r}

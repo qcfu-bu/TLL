@@ -11,7 +11,6 @@ let rec pp_expr fmt = function
   | String s -> pf fmt "\"%s\"" (String.escaped s)
   | NULL -> pf fmt "NULL"
 
-
 let pp_exprs fmt ms =
   let rec aux fmt = function
     | [] -> ()
@@ -22,10 +21,12 @@ let pp_exprs fmt ms =
 
 let rec pp_cmd fmt = function
   (* core *)
-  | Init (lhs, m) -> pf fmt "%a := %a;" Name.pp lhs pp_expr m
-  | Move (lhs, m) -> pf fmt "%a := %a;" Name.pp lhs pp_expr m
+  | Move0 (lhs, m) -> pf fmt "%a := %a;" Name.pp lhs pp_expr m
+  | Move1 (lhs, m) -> pf fmt "%a := %a;" Name.pp lhs pp_expr m
   | Env (lhs, i) -> pf fmt "%a := env[%d]" Name.pp lhs i
-  | MkClo { lhs; fn; fvc; argc; } ->
+  | MkClo0 { lhs; fn; fvc; argc; } ->
+    pf fmt "mkclo(%a, %a, fvc:=%d, argc:=%d);" Name.pp lhs Name.pp fn fvc argc
+  | MkClo1 { lhs; fn; fvc; argc; } ->
     pf fmt "mkclo(%a, %a, fvc:=%d, argc:=%d);" Name.pp lhs Name.pp fn fvc argc
   | SetClo (lhs, e, i) -> pf fmt "setclo(%a, %a, %d);" Name.pp lhs pp_expr e i
   | AppF { lhs; fn; args } -> pf fmt "%a := %a(%a);" Name.pp lhs Name.pp fn pp_exprs args

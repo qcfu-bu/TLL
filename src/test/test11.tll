@@ -5,20 +5,23 @@ def split‹t› : list‹_,t› int -> list‹_,t› int × list‹_,t› int
     let ⟨xs, ys⟩ := split zs in
     ⟨x :: xs, y :: ys⟩
 
-def merge‹t› : list‹_,t› int -> list‹_,t› int -o list‹_,t› int
-  | nil    , ys      => ys
-  | xs     , nil     => xs
-  | x :: xs, y :: ys =>
-    match x <= y with
-    | true  => x :: merge xs (y :: ys)
-    | false => y :: merge (x :: xs) ys
+def add_zero := add zero
+def test := add zero zero
 
-def msort‹t› : list‹_,t› int -> list‹_,t› int 
-  | nil      => nil
-  | z :: nil => z :: nil
-  | zs       =>
-    let ⟨xs, ys⟩ := split zs in
-    merge (msort xs) (msort ys)
+-- def merge‹t› : list‹_,t› int -> list‹_,t› int -o list‹_,t› int
+--   | nil    , ys      => ys
+--   | xs     , nil     => xs
+--   | x :: xs, y :: ys =>
+--     match x <= y with
+--     | true  => x :: merge xs (y :: ys)
+--     | false => y :: merge (x :: xs) ys
+
+-- def msort‹t› : list‹_,t› int -> list‹_,t› int 
+--   | nil      => nil
+--   | z :: nil => z :: nil
+--   | zs       =>
+--     let ⟨xs, ys⟩ := split zs in
+--     merge (msort xs) (msort ys)
 
 
 
