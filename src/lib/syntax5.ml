@@ -93,9 +93,10 @@ type cmd =
   | ReadLn of Name.t * expr
   | Fork of Name.t * expr
   | Send of Name.t * expr * expr 
-  | Recv of Name.t * Constr.t * expr
-  | Close0 of Name.t * Constr.t * expr
-  | Close1 of Name.t * Constr.t * expr
+  | Recv0 of Name.t *  expr
+  | Recv1 of Name.t *  expr
+  | Close0 of Name.t * expr
+  | Close1 of Name.t * expr
   (* magic *)
   | Magic
 

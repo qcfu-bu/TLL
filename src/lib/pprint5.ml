@@ -69,9 +69,10 @@ let rec pp_cmd fmt = function
   | ReadLn (lhs, m) -> pf fmt "@[readln(%a, %a);@]" Name.pp lhs pp_expr m
   | Fork (lhs, m) -> pf fmt "@[fork(%a, %a);@]" Name.pp lhs pp_expr m
   | Send (lhs, m, n) -> pf fmt "@[send(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n
-  | Recv (lhs, ctag, m) -> pf fmt "@[recv(%a, %a, %a);@]" Name.pp lhs  Constr.pp ctag pp_expr m
-  | Close0 (lhs, ctag, m) -> pf fmt "@[close0(%a, %a, %a);@]" Name.pp lhs Constr.pp ctag pp_expr m
-  | Close1 (lhs, ctag, m) -> pf fmt "@[close1(%a, %a, %a);@]" Name.pp lhs Constr.pp ctag pp_expr m
+  | Recv0 (lhs, m) -> pf fmt "@[recv0(%a, %a);@]" Name.pp lhs pp_expr m
+  | Recv1 (lhs, m) -> pf fmt "@[recv1(%a, %a);@]" Name.pp lhs pp_expr m
+  | Close0 (lhs, m) -> pf fmt "@[close0(%a, %a);@]" Name.pp lhs pp_expr m
+  | Close1 (lhs, m) -> pf fmt "@[close1(%a, %a);@]" Name.pp lhs pp_expr m
   (* magic *)
   | Magic -> pf fmt "magic;"
 

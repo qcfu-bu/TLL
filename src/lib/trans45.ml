@@ -269,10 +269,10 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Switch { cond; cases } :: rest, lift)
   | Match1 { cond; cases } :: rest ->
-    let cond = Syntax5.CtagOf (trans_expr cond) in
+    let cond = trans_expr cond in
     let cases, lift = trans_cases ctx lift cond cases in
     let rest, lift = trans_cmds ctx lift rest in
-    Syntax5.(Switch { cond; cases } :: rest, lift)
+    Syntax5.(Switch { cond = CtagOf cond; cases } :: rest, lift)
   | Absurd :: rest ->
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Absurd :: rest, lift)
@@ -409,20 +409,17 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Send (lhs, e1, e2) :: rest, lift)
   | Recv (lhs, s, e) :: rest ->
-    let ex1U = Trans12.State.find_constr ex1_constr [U;L] in
-    let ex1L = Trans12.State.find_constr ex1_constr [L;L] in
     let e = trans_expr e in
     let rest, lift = trans_cmds ctx lift rest in
     (match s with
-     | U -> Syntax5.(Recv (lhs, ex1U, e) :: rest, lift)
-     | L -> Syntax5.(Recv (lhs, ex1L, e) :: rest, lift))
+     | U -> Syntax5.(Recv0 (lhs, e) :: rest, lift)
+     | L -> Syntax5.(Recv1 (lhs, e) :: rest, lift))
   | Close (lhs, role, e) :: rest ->
-    let ttU =Trans12.State.find_constr tt_constr [] in
     let e = trans_expr e in
     let rest, lift = trans_cmds ctx lift rest in
     if role
-    then Syntax5.(Close0 (lhs, ttU, e) :: rest, lift)
-    else Syntax5.(Close1 (lhs, ttU, e) :: rest, lift)
+    then Syntax5.(Close0 (lhs, e) :: rest, lift)
+    else Syntax5.(Close1 (lhs, e) :: rest, lift)
   (* magic *)
   | Magic :: rest ->
     let rest, lift = trans_cmds ctx lift rest in

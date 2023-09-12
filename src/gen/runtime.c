@@ -9,10 +9,13 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "prelude.h"
 #include "runtime.h"
 
 #define myalloc malloc
 #define myfree free
+
+
 
 
 // core
@@ -40,9 +43,9 @@ void mkclo(intptr_t *lhs, intptr_t (*fn)(intptr_t[]), int fvc, int argc) {
     *lhs = (intptr_t)clo;
 }
 
-void setclo(intptr_t lhs, intptr_t arg, unsigned int i) {
+void setclo(intptr_t box, intptr_t arg, unsigned int i) {
     // environment index starts at 1
-    ((clo_t)lhs)->env[i] = arg;
+    ((clo_t)box)->env[i] = arg;
 }
 
 void appc(intptr_t *lhs, intptr_t clo0, intptr_t arg) {
@@ -81,6 +84,10 @@ typedef struct {
 
 typedef box_block* box_t;
 
+unsigned int ctagof(intptr_t box) {
+    return ((box_t)box)->ctag;
+}
+
 void mkbox(intptr_t *lhs, unsigned int ctag, int argc) {
     box_t box = (box_t)myalloc(sizeofbox(argc));
     box->ctag = ctag;
@@ -95,14 +102,168 @@ void setbox(intptr_t box, intptr_t arg, int i) {
     ((box_t)box)->data[i] = arg;
 }
 
-
-
-
+void getbox(intptr_t *lhs, intptr_t box, int i) {
+    *lhs = ((box_t)box)->data[i];
+}
 
 void absurd() {
     fprintf(stderr, "%s", "absurd case reached, please report bug\n");
     exit(1);
 }
+
+
+
+
+// lazy
+#define sizeoflaz(fvc) (sizeof(intptr_t) + fvc * sizeof(intptr_t))
+
+typedef struct {
+    intptr_t (*fn)(intptr_t[]); // function
+    intptr_t env[];             // layout: [fvs]
+} laz_block;
+
+typedef laz_block* laz_t;
+
+void lazy(intptr_t *lhs, intptr_t (*fn)(intptr_t *), int fvc) {
+    // layout: [fn,[fvs]]
+    unsigned int laz_size = sizeoflaz(fvc);
+    laz_t laz = myalloc(laz_size);
+    laz->fn = fn;
+    *lhs = (intptr_t)laz;
+}
+
+void setlazy(intptr_t laz, intptr_t arg, unsigned int i) {
+    ((laz_t)laz)->env[i] = arg;
+}
+
+void force(intptr_t *lhs, intptr_t laz) {
+    laz_t laz1 = (laz_t)laz;
+    intptr_t (*fn)(intptr_t[]) = laz1->fn;
+    *lhs = (*fn)(laz1->env);
+    myfree(laz1);
+}
+
+
+
+
+// primitive operators
+typedef struct {
+    
+} str_block;
+
+void __neg__(intptr_t *lhs, intptr_t e) {
+    *lhs = -e;
+}
+
+void __add__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    *lhs = e1 + e2;
+}
+
+void __sub__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    *lhs = e1 - e2;
+}
+
+void __mul__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    *lhs = e1 * e2;
+}
+
+void __div__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    if (e2 == 0) {
+        *lhs = 0;
+    }
+    else {
+        *lhs = e1 / e2;
+    }
+}
+
+void __mod__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    if (e2 == 0) {
+        *lhs = 0;
+    }
+    else {
+        intptr_t r = e1 % e2;
+        *lhs = r < 0 ? r + labs(e2) : r;
+    }
+}
+
+void __lte__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    if (e1 <= e2) {
+        *lhs = __true__;
+    }
+    else {
+        *lhs = __false__;
+    }
+}
+
+void __gte__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    if (e1 >= e2) {
+        *lhs = __true__;
+    }
+    else {
+        *lhs = __false__;
+    }
+}
+
+void __lt__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    if (e1 < e2) {
+        *lhs = __true__;
+    }
+    else {
+        *lhs = __false__;
+    }
+}
+
+void __gt__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    if (e1 > e2) {
+        *lhs = __true__;
+    }
+    else {
+        *lhs = __false__;
+    }
+}
+
+void __eq__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    if (e1 == e2) {
+        *lhs = __true__;
+    }
+    else {
+        *lhs = __false__;
+    }
+}
+
+void __chr__(intptr_t *lhs, intptr_t e) {
+    __mod__(lhs, e, 256);
+}
+
+void __ord__(intptr_t *lhs, intptr_t e) {
+    *lhs = e;
+}
+
+void __push__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    unsigned int len = strlen((str_t)e1);
+    str_t str = myalloc((len + 2) * sizeof(char));
+    strcpy(str, (str_t)e1);
+    str[len] = (char)e2;
+    str[len + 1] = 0;
+    *lhs = (intptr_t)str;
+}
+
+void __cat__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+    unsigned int len1 = strlen((str_t)e1);
+    unsigned int len2 = strlen((str_t)e2);
+    str_t str = myalloc((len1 + len2 + 1) * sizeof(char));
+    strcpy(str, (str_t)e1);
+    strcpy(str + len1, (str_t)e1);
+    str[len1 + len2] = 0;
+    *lhs = (intptr_t)str;
+}
+
+void __size__(intptr_t *lhs, intptr_t e) {
+    *lhs = strlen((str_t)e);
+}
+
+
+
 
 
 // magic

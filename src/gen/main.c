@@ -376,13 +376,13 @@ intptr_t fn0_lte_366(intptr_t __99, intptr_t __100) {
       x_101 = 4;
       break;
     case 7:
-      getbox(n_102, ctagof(__99), 0);
+      getbox(&n_102, __99, 0);
       switch(ctagof(__100)){
         case 6:
           x_103 = 5;
           break;
         case 7:
-          getbox(n_104, ctagof(__100), 0);
+          getbox(&n_104, __100, 0);
           x_105 = fn0_lte_366(n_102, n_104);
           x_103 = x_105;
           break;
@@ -425,7 +425,7 @@ intptr_t fn0_pred_372(intptr_t __112) {
       x_113 = x_114;
       break;
     case 7:
-      getbox(n_115, ctagof(__112), 0);
+      getbox(&n_115, __112, 0);
       x_113 = n_115;
       break;
   }
@@ -446,7 +446,7 @@ intptr_t fn0_add_375(intptr_t __117, intptr_t __118) {
       x_119 = __118;
       break;
     case 7:
-      getbox(n_120, ctagof(__117), 0);
+      getbox(&n_120, __117, 0);
       x_121 = fn0_add_375(n_120, __118);
       mkbox(&x_122, 7, 1);
       setbox(x_122, x_121, 0);
@@ -471,7 +471,7 @@ intptr_t fn0_sub_378(intptr_t __124, intptr_t __125) {
       x_126 = __124;
       break;
     case 7:
-      getbox(n_127, ctagof(__125), 0);
+      getbox(&n_127, __125, 0);
       x_129 = fn0_pred_372(__124);
       x_128 = fn0_sub_378(x_129, n_127);
       x_126 = x_128;
@@ -497,7 +497,7 @@ intptr_t fn0_mul_381(intptr_t __131, intptr_t __132) {
       x_133 = x_134;
       break;
     case 7:
-      getbox(n_135, ctagof(__131), 0);
+      getbox(&n_135, __131, 0);
       x_137 = fn0_mul_381(n_135, __132);
       x_136 = fn0_add_375(__132, x_137);
       x_133 = x_136;
@@ -525,8 +525,8 @@ intptr_t fn0_div_384(intptr_t x_139, intptr_t y_140) {
       break;
     case 5:
       mkclo(&x_145, fn1_loop_386, 2, 2);
-      setclo(&x_145, pred_111, 1);
-      setclo(&x_145, sub_123, 2);
+      setclo(x_145, pred_111, 1);
+      setclo(x_145, sub_123, 2);
       loop_144 = x_145;
       appc(&x_390, loop_144, x_139);
       appc(&x_391, x_390, y_140);
@@ -569,8 +569,8 @@ intptr_t fn0_free_listUU_397(intptr_t A_164, intptr_t f_165, intptr_t __166) {
       x_167 = 3;
       break;
     case 25:
-      getbox(hd_168, ctagof(__166), 0);
-      getbox(tl_169, ctagof(__166), 1);
+      getbox(&hd_168, __166, 0);
+      getbox(&tl_169, __166, 1);
       appc(&x_399, f_165, hd_168);
       x_171 = x_399;
       __170 = x_171;
@@ -599,8 +599,8 @@ intptr_t fn0_free_listUL_402(intptr_t A_174, intptr_t f_175, intptr_t __176) {
       ffree(__176);
       break;
     case 23:
-      getbox(hd_178, ctagof(__176), 0);
-      getbox(tl_179, ctagof(__176), 1);
+      getbox(&hd_178, __176, 0);
+      getbox(&tl_179, __176, 1);
       appc(&x_404, f_175, hd_178);
       x_181 = x_404;
       __180 = x_181;
@@ -630,8 +630,8 @@ intptr_t fn0_free_listLL_407(intptr_t A_184, intptr_t f_185, intptr_t __186) {
       ffree(__186);
       break;
     case 19:
-      getbox(hd_188, ctagof(__186), 0);
-      getbox(tl_189, ctagof(__186), 1);
+      getbox(&hd_188, __186, 0);
+      getbox(&tl_189, __186, 1);
       appc(&x_409, f_185, hd_188);
       x_191 = x_409;
       __190 = x_191;
@@ -656,7 +656,7 @@ intptr_t fn0_pow_412(intptr_t x_194, intptr_t y_195) {
   intptr_t loop_196; intptr_t x_197; intptr_t x_206; intptr_t x_418;
   intptr_t x_419;
   mkclo(&x_197, fn1_loop_414, 1, 2);
-  setclo(&x_197, x_194, 1);
+  setclo(x_197, x_194, 1);
   loop_196 = x_197;
   appc(&x_418, loop_196, 1);
   appc(&x_419, x_418, y_195);
@@ -676,8 +676,8 @@ intptr_t fn0_powm_422(intptr_t x_208, intptr_t y_209, intptr_t m_210) {
   intptr_t loop_211; intptr_t x_212; intptr_t x_222; intptr_t x_428;
   intptr_t x_429;
   mkclo(&x_212, fn1_loop_424, 2, 2);
-  setclo(&x_212, x_208, 1);
-  setclo(&x_212, m_210, 2);
+  setclo(x_212, x_208, 1);
+  setclo(x_212, m_210, 2);
   loop_211 = x_212;
   appc(&x_428, loop_211, 1);
   appc(&x_429, x_428, y_209);
@@ -696,7 +696,7 @@ intptr_t fn1_powm_423(intptr_t* env) {
 
 intptr_t fn0_ord_432(intptr_t c_224) {
   intptr_t x_225;
-  ord(&x_225, c_224);
+  __ord__(&x_225, c_224);
   return x_225;
 }
 
@@ -709,7 +709,7 @@ intptr_t fn1_ord_433(intptr_t* env) {
 
 intptr_t fn0_chr_435(intptr_t i_227) {
   intptr_t x_228;
-  chr(&x_228, i_227);
+  __chr__(&x_228, i_227);
   return x_228;
 }
 
@@ -722,7 +722,7 @@ intptr_t fn1_chr_436(intptr_t* env) {
 
 intptr_t fn0_str_438(intptr_t c_230) {
   intptr_t x_231;
-  push(&x_231, "", c_230);
+  __push__(&x_231, "", c_230);
   return x_231;
 }
 
@@ -735,7 +735,7 @@ intptr_t fn1_str_439(intptr_t* env) {
 
 intptr_t fn0_strlen_441(intptr_t s_233) {
   intptr_t x_234;
-  size(&x_234, s_233);
+  __size__(&x_234, s_233);
   return x_234;
 }
 
@@ -751,11 +751,11 @@ intptr_t fn0_string_of_int_444(intptr_t i_236) {
   intptr_t x_258; intptr_t x_259; intptr_t x_260; intptr_t x_261;
   intptr_t x_449; intptr_t x_451;
   mkclo(&x_238, fn1_aux_446, 3, 1);
-  setclo(&x_238, ord_223, 1);
-  setclo(&x_238, chr_226, 2);
-  setclo(&x_238, str_229, 3);
+  setclo(x_238, ord_223, 1);
+  setclo(x_238, chr_226, 2);
+  setclo(x_238, str_229, 3);
   aux_237 = x_238;
-  lte(&x_257, 0, i_236);
+  __lte__(&x_257, 0, i_236);
   switch(x_257){
     case 4:
       appc(&x_449, aux_237, i_236);
@@ -763,10 +763,10 @@ intptr_t fn0_string_of_int_444(intptr_t i_236) {
       x_256 = x_258;
       break;
     case 5:
-      neg(&x_261, i_236);
+      __neg__(&x_261, i_236);
       appc(&x_451, aux_237, x_261);
       x_260 = x_451;
-      cat(&x_259, "~", x_260);
+      __cat__(&x_259, "~", x_260);
       x_256 = x_259;
       break;
   }
@@ -796,8 +796,8 @@ intptr_t fn0_splitU_454(intptr_t __263) {
       x_264 = x_267;
       break;
     case 25:
-      getbox(hd_268, ctagof(__263), 0);
-      getbox(tl_269, ctagof(__263), 1);
+      getbox(&hd_268, __263, 0);
+      getbox(&tl_269, __263, 1);
       switch(ctagof(tl_269)){
         case 24:
           mkbox(&x_271, 24, 0);
@@ -811,13 +811,13 @@ intptr_t fn0_splitU_454(intptr_t __263) {
           x_270 = x_274;
           break;
         case 25:
-          getbox(hd_275, ctagof(tl_269), 0);
-          getbox(tl_276, ctagof(tl_269), 1);
+          getbox(&hd_275, tl_269, 0);
+          getbox(&tl_276, tl_269, 1);
           x_278 = fn0_splitU_454(tl_276);
           switch(ctagof(x_278)){
             case 33:
-              getbox(m_279, ctagof(x_278), 0);
-              getbox(n_280, ctagof(x_278), 1);
+              getbox(&m_279, x_278, 0);
+              getbox(&n_280, x_278, 1);
               rebox(&x_281, x_278, 25);
               setbox(x_281, hd_268, 0);
               setbox(x_281, m_279, 1);
@@ -862,8 +862,8 @@ intptr_t fn0_splitL_457(intptr_t __285) {
       x_286 = x_289;
       break;
     case 23:
-      getbox(hd_290, ctagof(__285), 0);
-      getbox(tl_291, ctagof(__285), 1);
+      getbox(&hd_290, __285, 0);
+      getbox(&tl_291, __285, 1);
       switch(ctagof(tl_291)){
         case 22:
           rebox(&x_293, tl_291, 22);
@@ -877,13 +877,13 @@ intptr_t fn0_splitL_457(intptr_t __285) {
           x_292 = x_296;
           break;
         case 23:
-          getbox(hd_297, ctagof(tl_291), 0);
-          getbox(tl_298, ctagof(tl_291), 1);
+          getbox(&hd_297, tl_291, 0);
+          getbox(&tl_298, tl_291, 1);
           x_300 = fn0_splitL_457(tl_298);
           switch(ctagof(x_300)){
             case 30:
-              getbox(m_301, ctagof(x_300), 0);
-              getbox(n_302, ctagof(x_300), 1);
+              getbox(&m_301, x_300, 0);
+              getbox(&n_302, x_300, 1);
               rebox(&x_303, x_300, 23);
               setbox(x_303, hd_290, 0);
               setbox(x_303, m_301, 1);
@@ -924,24 +924,24 @@ intptr_t fn1_aux_446(intptr_t* env) {
   chr_226 = env[2];
   str_229 = env[3];
   i_240 = env[4];
-  lte(&x_242, 10, i_240);
+  __lte__(&x_242, 10, i_240);
   switch(x_242){
     case 4:
-      mul(&x_244, i_240, 10);
+      __mul__(&x_244, i_240, 10);
       r_243 = x_244;
-      mul(&x_246, i_240, 10);
+      __mul__(&x_246, i_240, 10);
       i_245 = x_246;
       appc(&x_447, aux_239, i_245);
       x_248 = x_447;
       x_251 = fn0_ord_432(0);
-      add(&x_250, r_243, x_251);
+      __add__(&x_250, r_243, x_251);
       x_249 = fn0_chr_435(x_250);
-      push(&x_247, x_248, x_249);
+      __push__(&x_247, x_248, x_249);
       x_241 = x_247;
       break;
     case 5:
       x_255 = fn0_ord_432(0);
-      add(&x_254, i_240, x_255);
+      __add__(&x_254, i_240, x_255);
       x_253 = fn0_chr_435(x_254);
       x_252 = fn0_str_438(x_253);
       x_241 = x_252;
@@ -960,15 +960,15 @@ intptr_t fn1_loop_424(intptr_t* env) {
   m_210 = env[2];
   acc_214 = env[3];
   y_215 = env[4];
-  lte(&x_217, y_215, 0);
+  __lte__(&x_217, y_215, 0);
   switch(x_217){
     case 4:
       x_216 = acc_214;
       break;
     case 5:
-      mul(&x_220, x_208, acc_214);
-      mul(&x_219, x_220, m_210);
-      sub(&x_221, y_215, 1);
+      __mul__(&x_220, x_208, acc_214);
+      __mul__(&x_219, x_220, m_210);
+      __sub__(&x_221, y_215, 1);
       appc(&x_425, loop_213, x_219);
       appc(&x_426, x_425, x_221);
       x_218 = x_426;
@@ -986,14 +986,14 @@ intptr_t fn1_loop_414(intptr_t* env) {
   x_194 = env[1];
   acc_199 = env[2];
   y_200 = env[3];
-  lte(&x_202, y_200, 0);
+  __lte__(&x_202, y_200, 0);
   switch(x_202){
     case 4:
       x_201 = acc_199;
       break;
     case 5:
-      mul(&x_204, x_194, acc_199);
-      sub(&x_205, y_200, 1);
+      __mul__(&x_204, x_194, acc_199);
+      __sub__(&x_205, y_200, 1);
       appc(&x_415, loop_198, x_204);
       appc(&x_416, x_415, x_205);
       x_203 = x_416;
@@ -1021,7 +1021,7 @@ intptr_t fn1_loop_386(intptr_t* env) {
       x_149 = x_152;
       break;
     case 7:
-      getbox(n_153, ctagof(x_150), 0);
+      getbox(&n_153, x_150, 0);
       appc(&x_387, loop_146, n_153);
       appc(&x_388, x_387, y_148);
       x_154 = x_388;
