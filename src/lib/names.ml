@@ -12,6 +12,7 @@ module Base : sig
     val compare : t -> t -> int
     val extend : t -> string -> t
     val name_of : t -> string
+    val id_of : t -> int
     val pp : Format.formatter -> t -> unit
   end
 end = struct
@@ -29,6 +30,7 @@ end = struct
       let compare x y = Int.compare (snd x) (snd y)
       let extend (s0, _) s1 = mk (s0 ^ s1)
       let name_of (s, _) = s
+      let id_of (_, i) = i
       let pp fmt (s, id) = pf fmt "%s_%d" s id
     end
 

@@ -59,6 +59,7 @@ type cmd =
       { cond : expr
       ; cases : cases
       }
+  | Break
   | Absurd
   (* lazy *)
   | Lazy of

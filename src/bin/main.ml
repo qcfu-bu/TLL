@@ -61,6 +61,11 @@ let main =
        pr "%a" Pprint5.pp_prog dcls5;
        pr "@.@.-----------------------------------------@.@.";
 
+       let gen_ch = open_out "gen/main.c" in
+       Printf.fprintf gen_ch "%s" (str "%a@.@." Emitter.pp_prog dcls5);
+       pr "compilation success";
+       pr "@.@.-----------------------------------------@.@.";
+
      with
      | Failure s -> epr "%s@." s
      | e -> epr "%a" exn_backtrace (e, Printexc.get_raw_backtrace ()))

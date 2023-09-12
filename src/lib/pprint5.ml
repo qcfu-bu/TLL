@@ -21,13 +21,13 @@ let pp_exprs fmt ms =
 
 let rec pp_cmd fmt = function
   (* core *)
-  | Move0 (lhs, m) -> pf fmt "%a := %a;" Name.pp lhs pp_expr m
-  | Move1 (lhs, m) -> pf fmt "%a := %a;" Name.pp lhs pp_expr m
-  | Env (lhs, i) -> pf fmt "%a := env[%d]" Name.pp lhs i
+  | Move0 (lhs, m) -> pf fmt "move0(%a, %a);" Name.pp lhs pp_expr m
+  | Move1 (lhs, m) -> pf fmt "move1(%a, %a);" Name.pp lhs pp_expr m
+  | Env (lhs, i) -> pf fmt "%a := env[%d];" Name.pp lhs i
   | MkClo0 { lhs; fn; fvc; argc; } ->
-    pf fmt "mkclo(%a, %a, fvc:=%d, argc:=%d);" Name.pp lhs Name.pp fn fvc argc
+    pf fmt "mkclo0(%a, %a, fvc:=%d, argc:=%d);" Name.pp lhs Name.pp fn fvc argc
   | MkClo1 { lhs; fn; fvc; argc; } ->
-    pf fmt "mkclo(%a, %a, fvc:=%d, argc:=%d);" Name.pp lhs Name.pp fn fvc argc
+    pf fmt "mkclo1(%a, %a, fvc:=%d, argc:=%d);" Name.pp lhs Name.pp fn fvc argc
   | SetClo (lhs, e, i) -> pf fmt "setclo(%a, %a, %d);" Name.pp lhs pp_expr e i
   | AppF { lhs; fn; args } -> pf fmt "%a := %a(%a);" Name.pp lhs Name.pp fn pp_exprs args
   | AppC { lhs; fn; arg } -> pf fmt "appc(%a, %a, %a);" Name.pp lhs Name.pp fn pp_expr arg
@@ -35,15 +35,16 @@ let rec pp_cmd fmt = function
   (* inductive *)
   | MkBox { lhs; ctag; argc } -> pf fmt "mkbox(%a, %a, %d);" Name.pp lhs Constr.pp ctag argc
   | ReBox { lhs; fip; ctag } -> pf fmt "rebox(%a, %a, %a);" Name.pp lhs pp_expr fip Constr.pp ctag
-  | SetBox (lhs, e, i) -> pf fmt "setbox(%a, %a, %d)" Name.pp lhs pp_expr e i
-  | GetBox (lhs, e, i) -> pf fmt "getbox(%a, %a, %d)" Name.pp lhs pp_expr e i
+  | SetBox (lhs, e, i) -> pf fmt "setbox(%a, %a, %d);" Name.pp lhs pp_expr e i
+  | GetBox (lhs, e, i) -> pf fmt "getbox(%a, %a, %d);" Name.pp lhs pp_expr e i
   | Switch { cond; cases } ->
     pf fmt "@[switch(%a){@;<1 2>@[%a@]@;<1 0>}@]" pp_expr cond pp_cases cases
+  | Break -> pf fmt "break;"
   | Absurd -> pf fmt "absurd;"
   (* lazy *)
   | Lazy { lhs; fn; fvc } -> pf fmt "lazy(%a, %a, %d);" Name.pp lhs Name.pp fn fvc
   | SetLazy (lhs, e, i) -> pf fmt "setlazy(%a, %a, %d);" Name.pp lhs pp_expr e i 
-  | Force (lhs, m) -> pf fmt "@[%a := force(%a);@]" Name.pp lhs pp_expr m
+  | Force (lhs, m) -> pf fmt "@[force(%a, %a);@]" Name.pp lhs pp_expr m
   (* primitive operators *)
   | Neg (lhs, m) -> pf fmt "@[neg(%a, %a);@]" Name.pp lhs pp_expr m
   | Add (lhs, m, n) -> pf fmt "@[add(%a, %a, %a);@]" Name.pp lhs pp_expr m pp_expr n

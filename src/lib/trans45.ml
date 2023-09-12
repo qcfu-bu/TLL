@@ -428,7 +428,7 @@ and trans_cases ctx lift cond cases =
   let lift, cases = List.fold_left_map (fun lift { ctag; args; rhs } ->
       let cmds1 = List.mapi (fun i x -> Syntax5.(GetBox (x, cond, i))) args in
       let cmds2, lift = trans_cmds ctx lift rhs in
-      (lift, Syntax5.{ ctag; rhs = cmds1 @ cmds2 }))
+      (lift, Syntax5.{ ctag; rhs = cmds1 @ cmds2 @ [ Break ] }))
       lift cases
   in
   (cases, lift)
