@@ -56,7 +56,7 @@ typedef struct {
 
 typedef clo_block* clo_t;
 
-void mkclo(intptr_t *lhs, intptr_t (*fn)(intptr_t[]), int fvc, int argc) {
+void mkclo(intptr_t *lhs, intptr_t (*fn)(intptr_t[]), unsigned int fvc, unsigned int argc) {
     // layout: [env_max,env_size,fn,[self,fvs,_]]
     unsigned int env_smax = 1 + fvc + argc;
     unsigned int env_size = 1 + fvc;
@@ -114,7 +114,7 @@ unsigned int ctagof(intptr_t box) {
     return ((box_t)box)->ctag;
 }
 
-void mkbox(intptr_t *lhs, unsigned int ctag, int argc) {
+void mkbox(intptr_t *lhs, unsigned int ctag, unsigned int argc) {
     box_t box = (box_t)myalloc(sizeofbox(argc));
     box->ctag = ctag;
     *lhs = (intptr_t)box;
@@ -125,11 +125,11 @@ void rebox(intptr_t *lhs, intptr_t fip, unsigned int ctag) {
     *lhs = fip;
 }
 
-void setbox(intptr_t box, intptr_t arg, int i) {
+void setbox(intptr_t box, intptr_t arg, unsigned int i) {
     ((box_t)box)->data[i] = arg;
 }
 
-void getbox(intptr_t *lhs, intptr_t box, int i) {
+void getbox(intptr_t *lhs, intptr_t box, unsigned int i) {
     *lhs = ((box_t)box)->data[i];
 }
 
@@ -151,7 +151,7 @@ typedef struct {
 
 typedef laz_block* laz_t;
 
-void lazy(intptr_t *lhs, intptr_t (*fn)(intptr_t *), int fvc) {
+void lazy(intptr_t *lhs, intptr_t (*fn)(intptr_t *), unsigned int fvc) {
     // layout: [fn,[fvs]]
     unsigned int laz_size = sizeoflaz(fvc);
     laz_t laz = myalloc(laz_size);
@@ -204,15 +204,17 @@ void __str__(intptr_t *lhs, char *buf) {
 
 void __push__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
     char c[] = { (char)e2, '\0' };
-    *lhs = (intptr_t)sdscat((sds)e1, c);
+    sds str = sdsdup((sds)e1);
+    *lhs = (intptr_t)sdscat((sds)str, c);
 }
 
 void __cat__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
-    *lhs = (intptr_t)sdscatsds((sds)e1, (sds)e2);
+    sds str = sdsdup((sds)e1);
+    *lhs = (intptr_t)sdscatsds(str, (sds)e2);
 }
 
 void __size__(intptr_t *lhs, intptr_t e) {
-    *lhs = sdslen((sds)e);
+    *lhs = (intptr_t)sdslen((sds)e);
 }
 
 void __indx__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
@@ -222,7 +224,7 @@ void __indx__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
         *lhs = 0;
     }
     else {
-        __mod__(&i, e2, sdslen(str));
+        __mod__(&i, e2, (intptr_t)sdslen(str));
         *lhs = str[i];
     }
 }
