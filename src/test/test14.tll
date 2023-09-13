@@ -14,6 +14,7 @@ def alice (a : int) (p g : int) (c : DH_ch p g) : IO unit :=
   let* ⟨{b}, c⟩ := recv c in
   let* ⟨B, c⟩ := recv c in
   let* ⟨{pf}, c⟩ := recv c in
+  print (string_of_int B ++ "\n");
   close c
 
 
@@ -24,6 +25,7 @@ def bob (b : int) (p g : int) (c : DH_hc p g) : IO unit :=
   let* c := send c b in
   let* c := send c (powm g b p) in
   let* c := send c refl in
+  print (string_of_int A ++ "\n");
   close c
 
 
