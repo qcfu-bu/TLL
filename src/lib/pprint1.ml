@@ -92,7 +92,7 @@ and pp_tm fmt = function
   | Fun (_, a, bnd) ->
     let x, cls = unbind bnd in
     pf fmt "@[<v 0>@[fun %a :@;<1 2>@[%a@]@]@;<1 0>@[<v 0>%a@]@]" Var.pp x
-      pp_tm a (pp_cls " ") cls
+      pp_tm a (pp_cls ", ") cls
   | App _ as m ->
     let hd, ms = unApps m in
     pf fmt "@[((%a)@;<1 2>@[%a@])@]" pp_tm hd (list ~sep:sp pp_tm) ms

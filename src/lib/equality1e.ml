@@ -24,9 +24,13 @@ let rec whnf ?(expand = true) (env : Env.t) m =
   | App _ as m ->
     let hd, ms = unApps m in
     let hd = whnf ~expand env hd in
-    let ms = List.map (whnf ~expand env) ms in
     (match hd with
-     | Fun (guard, _, bnd) ->
+     | Fun (guard, _, bnd) when expand ->
+       let cls = subst bnd hd in
+       (match match_cls ~expand env guard cls ms with
+        | Some (Some rhs, rst) -> whnf ~expand env (mkApps rhs rst)
+        | _ -> mkApps hd ms)
+     | Fun (guard, _, bnd) when not (binder_occur bnd) ->
        let cls = subst bnd hd in
        (match match_cls ~expand env guard cls ms with
         | Some (Some rhs, rst) -> whnf ~expand env (mkApps rhs rst)
@@ -144,8 +148,11 @@ let rec whnf ?(expand = true) (env : Env.t) m =
 and match_cls ?(expand = true) (env : Env.t) guard cls ms =
   let rec check_guard guard ms =
     match (guard, ms) with
-    | true :: guard, (Constr _ as m) :: ms ->
-      Option.map (fun (ms, ns) -> (m :: ms, ns)) (check_guard guard ms)
+    | true :: guard, m :: ms ->
+      (match whnf ~expand env m with
+       | Constr _ as m ->
+         Option.map (fun (ms, ns) -> (m :: ms, ns)) (check_guard guard ms)
+       | _ -> None)
     | true :: guard, _ -> None
     | false :: guard, m :: ms ->
       Option.map (fun (ms, ns) -> (m :: ms, ns)) (check_guard guard ms)
@@ -153,11 +160,13 @@ and match_cls ?(expand = true) (env : Env.t) guard cls ms =
     | [], ms -> Some ([], ms)
   and psubst (p0s, bnd) ms =
     let rec match_p0 p0 m =
-      (* FIXME *)
-      match (p0, m) with
-      | P0Rel, m -> [ m ]
-      | P0Constr (c1, p0s), Constr (c2, _, _, ms)
-        when Constr.equal c1 c2 -> match_p0s p0s ms
+      match p0 with
+      | P0Rel -> [ m ]
+      | P0Constr (c1, p0s) ->
+        (match whnf ~expand env m with
+         | Constr (c2, _, _, ms)
+           when Constr.equal c1 c2 -> match_p0s p0s ms
+         | _ -> failwith "equality1e.match_p0")
       | _ -> failwith "equality1e.match_p0"
     and match_p0s p0s ms =
       List.fold_left2 (fun acc p0 m -> acc @ match_p0 p0 m) [] p0s ms
