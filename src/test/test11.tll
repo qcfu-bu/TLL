@@ -29,10 +29,10 @@ def cmsort_ch‹t› (xs :  list‹_,t› int) : L :=
 
 def cmsort_worker‹t› (spwn : int) : forall (zs : list‹_,t›int) -> cmsort_ch‹t›zs -o IO unit :=
   if spwn <= 0 then
-    fun : forall (zs : list‹_,t›int) -> cmsort_ch‹t›zs -o IO unit
-    | zs      , c => let* c := send c (just (msort zs)) in close c
+    fun
+    | zs, c => let* c := send c (just (msort zs)) in close c
   else
-    fun : forall (zs : list‹_,t› int) -> cmsort_ch‹t›zs -o IO unit
+    fun 
     | nil     , c => let* c := send c (just nil)        in close c
     | z :: nil, c => let* c := send c (just (z :: nil)) in close c
     | zs      , c =>
@@ -74,6 +74,17 @@ def string_of_list‹t› : list‹_,t›int -> string
 
 
 
+/- benchmarks for allocating sequential msort
+   3.06s user 0.46s system 99% cpu 3.550 total -/
+-- def main : IO unit :=
+--   let test := mklist‹U› 2000000 in
+--   let sorted := msort test in
+--   let len := list_len sorted in
+--   print (string_of_int len)
+
+
+/- benchmarks for non-allocating sequential msort
+   2.58s user 0.05s system 99% cpu 2.636 total -/
 -- def main : IO unit :=
 --   let test := mklist‹L› 2000000 in
 --   let sorted := msort test in
@@ -81,10 +92,19 @@ def string_of_list‹t› : list‹_,t›int -> string
 --   print (string_of_int len)
 
 
+/- benchmarks for allocating concurrent msort
+   7.48s user 1.48s system 575% cpu 1.557 total -/
+-- def main : IO unit :=
+--   let test := mklist‹U› 2000000 in
+--   let* just sorted := cmsort test in
+--   let len := list_len sorted in
+--   print (string_of_int len)
 
 
-def main : IO unit :=
-  let test := mklist‹L› 2000000 in
-  let* just sorted := cmsort test in
-  let len := list_len sorted in
-  print (string_of_int len)
+/- benchmarks for non-allocating concurrent msort
+   4.25s user 0.16s system 429% cpu 1.027 total -/
+-- def main : IO unit :=
+--   let test := mklist‹L› 2000000 in
+--   let* just sorted := cmsort test in
+--   let len := list_len sorted in
+--   print (string_of_int len)

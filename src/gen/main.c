@@ -1466,18 +1466,18 @@ intptr_t fn1_string_of_listL_864(intptr_t* env) {
 }
 
 intptr_t lazy__867(intptr_t* env) {
-  intptr_t string_of_int_236; intptr_t cmsortL_554; intptr_t list_lenL_593;
+  intptr_t string_of_int_236; intptr_t cmsortU_538; intptr_t list_lenU_586;
   intptr_t test_622; intptr_t _625; intptr_t x_626; intptr_t x_627;
   intptr_t len_628; intptr_t x_629; intptr_t x_630; intptr_t x_631;
   string_of_int_236 = env[0];
-  cmsortL_554 = env[1];
-  list_lenL_593 = env[2];
+  cmsortU_538 = env[1];
+  list_lenU_586 = env[2];
   test_622 = env[3];
-  x_627 = fn0_cmsortL_839(test_622);
+  x_627 = fn0_cmsortU_830(test_622);
   force(&x_626, x_627);
   ffree(x_627);
   _625 = x_626;
-  x_629 = fn0_list_lenL_857(_625);
+  x_629 = fn0_list_lenU_854(_625);
   len_628 = x_629;
   x_631 = fn0_string_of_int_764(len_628);
   __print__(&x_630, x_631);
@@ -2209,12 +2209,12 @@ int main() {
   mkclo(&list_lenL_593, fn1_list_lenL_858, 0, 1);
   mkclo(&string_of_listU_600, fn1_string_of_listU_861, 0, 1);
   mkclo(&string_of_listL_611, fn1_string_of_listL_864, 0, 1);
-  x_623 = fn0_mklistL_851(2000000);
+  x_623 = fn0_mklistU_848(2000000);
   test_622 = x_623;
   lazy(&x_624, lazy__867, 4);
   setlazy(x_624, string_of_int_236, 0);
-  setlazy(x_624, cmsortL_554, 1);
-  setlazy(x_624, list_lenL_593, 2);
+  setlazy(x_624, cmsortU_538, 1);
+  setlazy(x_624, list_lenU_586, 2);
   setlazy(x_624, test_622, 3);
   force(&x_866, x_624);
   end_run();
