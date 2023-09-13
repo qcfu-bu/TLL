@@ -50,7 +50,7 @@ typedef struct {
     unsigned int env_smax;      // maximum size
     unsigned int env_size;      // current size
     intptr_t (*fn)(intptr_t[]); // function
-    intptr_t env[];             // layout: [self,fvs,args]
+    intptr_t env[5];             // layout: [self,fvs,args]
 } clo_block;
 
 typedef clo_block* clo_t;
@@ -59,7 +59,7 @@ void mkclo(intptr_t *lhs, intptr_t (*fn)(intptr_t[]), unsigned int fvc, unsigned
     // layout: [env_max,env_size,fn,[self,fvs,_]]
     unsigned int env_smax = 1 + fvc + argc;
     unsigned int env_size = 1 + fvc;
-    unsigned int clo_size = sizeofclo(env_size);
+    size_t clo_size = sizeofclo(env_size);
     clo_t clo = myalloc(clo_size);
     clo->env_smax = env_smax;
     clo->env_size = env_size;
@@ -75,15 +75,16 @@ void setclo(intptr_t box, intptr_t arg, unsigned int i) {
 
 void appc(intptr_t *lhs, intptr_t clo0, intptr_t arg) {
     unsigned int env_smax = ((clo_t)clo0)->env_smax;
-    unsigned int env_size = ((clo_t)clo0)->env_size;
-    unsigned int clo0_size = sizeofclo(env_size);
-    unsigned int clo1_size = sizeofclo(env_size + 1);
+    unsigned int env0_size = ((clo_t)clo0)->env_size;
+    unsigned int env1_size = env0_size + 1;
+    size_t clo0_size = sizeofclo(env0_size);
+    size_t clo1_size = sizeofclo(env1_size);
     // deep copy closure
     clo_t clo1 = myalloc(clo1_size);
-    memcpy(clo1, (clo_t)clo0, clo0_size);
-    clo1->env[env_size] = arg;
-    clo1->env_size = env_size + 1;
-    if (env_size + 1 < env_smax) {
+    memcpy(clo1, (void*)clo0, clo0_size);
+    clo1->env[env0_size] = arg;
+    clo1->env_size = env1_size;
+    if (env1_size < env_smax) {
         *lhs = (intptr_t)clo1;
     }
     else {
