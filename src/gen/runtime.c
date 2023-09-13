@@ -1,15 +1,14 @@
-#include "chan.h"
-#include "sds.h"
-#include <pthread.h>
-
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include <sys/resource.h>
 #include <time.h>
 #include <unistd.h>
 
+#include "sds.h"
+#include "chan.h"
 #include "prelude.h"
 #include "runtime.h"
 
@@ -239,6 +238,13 @@ void __indx__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
 
 
 // primitive effects
+typedef struct {
+    intptr_t clo; // closure
+    intptr_t ch;  // channel
+} farg_block;
+
+typedef farg_block* farg_t;
+
 void __print__(intptr_t *lhs, intptr_t e) {
     sds str = (sds)e;
     printf("%s", str);
@@ -260,10 +266,26 @@ void __readln__(intptr_t *lhs, intptr_t e) {
     *lhs = (intptr_t)str;
 }
 
-void __fork__(intptr_t *lhs, intptr_t e) {
-    clo_t clo = (clo_t)e;
+void *__fork_fn__(void *args) {
+    farg_t fargs = args;
+    intptr_t lhs;
+    intptr_t clo = fargs->clo;
+    intptr_t ch = fargs->ch;
+    myfree(fargs);
+    appc(&lhs, clo, ch);
+    myfree((clo_t)clo);
+    return NULL;
+}
 
-    // TODO
+void __fork__(intptr_t *lhs, intptr_t e) {
+    pthread_t tr;
+    chan_t* ch = chan_init(0);
+    clo_t clo = (clo_t)e;
+    farg_t fargs = malloc(sizeof(farg_block));
+    fargs->clo = (intptr_t)clo;
+    fargs->ch = (intptr_t)ch;
+    pthread_create(&tr, &attr, (void *(*)(void *))__fork_fn__, fargs);
+    *lhs = (intptr_t)ch;
 }
 
 void __send__(intptr_t *lhs, intptr_t c, intptr_t e) {
