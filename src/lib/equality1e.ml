@@ -14,7 +14,8 @@ let rec whnf ?(expand = true) (env : Env.t) m =
   (* inference *)
   | Ann (m, a) -> whnf ~expand env m
   (* core *)
-  | Var x when expand -> (try whnf ~expand env (Env.find_var x env) with _ -> Var x)
+  | Var x when expand ->
+    (try whnf ~expand env (Env.find_var x env) with _ -> Var x)
   | Const (x, ss) when expand ->
     (try
        let sch = Env.find_const x env in
