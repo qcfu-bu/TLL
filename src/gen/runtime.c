@@ -151,7 +151,7 @@ void absurd(void) {
 
 typedef struct {
     intptr_t (*fn)(intptr_t[]); // function
-    intptr_t env[];             // layout: [fvs]
+    intptr_t env[6];             // layout: [fvs]
 } laz_block;
 
 typedef laz_block* laz_t;
@@ -172,7 +172,6 @@ void force(intptr_t *lhs, intptr_t laz) {
     laz_t laz1 = (laz_t)laz;
     intptr_t (*fn)(intptr_t[]) = laz1->fn;
     *lhs = (*fn)(laz1->env);
-    myfree(laz1);
 }
 
 
@@ -268,12 +267,13 @@ void __readln__(intptr_t *lhs, intptr_t e) {
 
 void *__fork_fn__(void *args) {
     farg_t fargs = args;
-    intptr_t lhs;
+    intptr_t lhs, laz;
     intptr_t clo = fargs->clo;
     intptr_t ch = fargs->ch;
     myfree(fargs);
-    appc(&lhs, clo, ch);
+    appc(&laz, clo, ch);
     myfree((clo_t)clo);
+    force(&lhs, laz);
     return NULL;
 }
 
@@ -300,6 +300,7 @@ void __recv0__(intptr_t *lhs, intptr_t c) {
     mkbox(&box, __exU__, 2);
     setbox(box, msg, 0);
     setbox(box, c, 1);
+    *lhs = box;
 }
 
 void __recv1__(intptr_t *lhs, intptr_t c) {
@@ -309,6 +310,7 @@ void __recv1__(intptr_t *lhs, intptr_t c) {
     mkbox(&box, __exL__, 2);
     setbox(box, msg, 0);
     setbox(box, c, 1);
+    *lhs = box;
 }
 
 void __close0__(intptr_t *lhs, intptr_t c) {

@@ -778,7 +778,7 @@ intptr_t fn0_string_of_int_764(intptr_t i_237) {
   setclo(x_239, chr_226, 2);
   setclo(x_239, str_229, 3);
   aux_238 = x_239;
-  __lt__(&x_258, 0, i_237);
+  __lte__(&x_258, 0, i_237);
   switch(x_258){
     case 4: //true_4
       appc(&x_769, aux_238, i_237);
@@ -2209,7 +2209,7 @@ int main() {
   mkclo(&list_lenL_593, fn1_list_lenL_858, 0, 1);
   mkclo(&string_of_listU_600, fn1_string_of_listU_861, 0, 1);
   mkclo(&string_of_listL_611, fn1_string_of_listL_864, 0, 1);
-  x_623 = fn0_mklistL_851(2);
+  x_623 = fn0_mklistL_851(1000);
   test_622 = x_623;
   lazy(&x_624, lazy__867, 4);
   setlazy(x_624, string_of_int_236, 0);
