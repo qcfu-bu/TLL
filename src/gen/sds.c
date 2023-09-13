@@ -38,6 +38,10 @@
 #include <limits.h>
 #include "sds.h"
 
+#define s_malloc malloc
+#define s_realloc realloc
+#define s_free free
+
 const char *SDS_NOINIT = "SDS_NOINIT";
 
 static inline int sdsHdrSize(char type) {

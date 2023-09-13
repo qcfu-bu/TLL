@@ -695,7 +695,7 @@
   Definition {name = "main"; relv = R;
     body =
     (Binder ([],
-       ((Let (R, (App [(Inst ("mklist", [U], I)); (Int 2000000)]),
+       ((Let (R, (App [(Inst ("mklist", [L], I)); (Int 2000000)]),
            (Binder ((PId "test"),
               (MLet ((App [(Id ("cmsort", I)); (Id ("test", I))]),
                  (Binder ((PConstr ("just", [(PId "sorted")])),
@@ -1289,7 +1289,7 @@ def string_of_list_40‹t_1004› : (list_6‹??_159,t_1004› int) -> string
 
 #[program]
 def main_41‹› : IO unit_3 :=
-  let test_1010 := ((mklist_38‹U›) 2000000) in
+  let test_1010 := ((mklist_38‹L›) 2000000) in
   let* _1011 := ((cmsort_37‹??_160›) test_1010) in
   match _1011 in ?_143[0;0] -o ?_142[0;0] with
   | (just_2 sorted_1013) =>
@@ -2005,14 +2005,14 @@ def string_of_list_40‹t_14419› : (list_6‹U,t_14419› int) -> string :=
 
 #[program]
 def main_41‹› : IO unit_3 :=
-  let test_14425 := ((mklist_38‹U›) 2000000) in
-  let* _14426 := ((cmsort_37‹U›) test_14425) in
+  let test_14425 := ((mklist_38‹L›) 2000000) in
+  let* _14426 := ((cmsort_37‹L›) test_14425) in
   match _14426 in
-    ((ssing_6‹U›) (list_6‹U,U› int) ((msort_34‹U›) test_14425)) -o
+    ((ssing_6‹L›) (list_6‹U,L› int) ((msort_34‹L›) test_14425)) -o
       IO unit_3
   with
   | (just_2 m_14428) =>
-    let len_14429 := ((list_len_39‹U›) m_14428) in
+    let len_14429 := ((list_len_39‹L›) m_14428) in
     print ((string_of_int_31) len_14429)
 
 -----------------------------------------
@@ -2804,11 +2804,11 @@ def string_of_listL_98 :=
 
 #[program]
 def main :=
-  let test_26147 := ((mklistU_95) 2000000) in
-  let* _26148 := ((cmsortU_93) test_26147) in
+  let test_26147 := ((mklistL_94) 2000000) in
+  let* _26148 := ((cmsortL_92) test_26147) in
   match _26148 with
-  | justUU_17 m_26149 =>
-    let len_26150 := ((list_lenU_97) m_26149) in
+  | justLL_14 m_26149 =>
+    let len_26150 := ((list_lenL_96) m_26149) in
     print ((string_of_int_31) len_26150)
   end
 
@@ -3583,11 +3583,11 @@ def string_of_listL_98 :=
 
 #[program]
 def main :=
-  let test_26825 := ((mklistU_95) 2000000) in
-  let* _26826 := ((cmsortU_93) test_26825) in
+  let test_26825 := ((mklistL_94) 2000000) in
+  let* _26826 := ((cmsortL_92) test_26825) in
   match _26826 with
-  | justUU_17 m_26827 =>
-    let len_26828 := ((list_lenU_97) m_26827) in
+  | justLL_14 m_26827 =>
+    let len_26828 := ((list_lenL_96) m_26827) in
     print ((string_of_int_31) len_26828)
   end
 
@@ -4157,9 +4157,9 @@ def string_of_listL_98 :=
     end
 
 def main :=
-  let test_27524 := ((mklistU_95) 2000000) in
-  lazy(let _27525 := force(((cmsortU_93) test_27524)) in
-       force(let len_27526 := ((list_lenU_97) _27525) in
+  let test_27524 := ((mklistL_94) 2000000) in
+  lazy(let _27525 := force(((cmsortL_92) test_27524)) in
+       force(let len_27526 := ((list_lenL_96) _27525) in
              lazy(print ((string_of_int_31) len_27526))))
 
 -----------------------------------------
@@ -4664,9 +4664,9 @@ def string_of_listL_98 :=
     end
 
 def main :=
-  let test_28240 := ((mklistU_95) 2000000) in
-  lazy(let _28241 := force(((cmsortU_93) test_28240)) in
-       let len_28242 := ((list_lenU_97) _28241) in
+  let test_28240 := ((mklistL_94) 2000000) in
+  lazy(let _28241 := force(((cmsortL_92) test_28240)) in
+       let len_28242 := ((list_lenL_96) _28241) in
        print ((string_of_int_31) len_28242))
 
 -----------------------------------------
@@ -5691,14 +5691,14 @@ fn string_of_listL_611(__612%U) {
 }
 
 main := {
-  x_623 := mklistU_570(2000000);
+  x_623 := mklistL_578(2000000);
   test_622 := x_623;
   x_624 :=
     lazy {
-      x_627 := cmsortU_538(test_622);
+      x_627 := cmsortL_554(test_622);
       x_626 := force(x_627);
       _625 := x_626;
-      x_629 := list_lenU_586(_625);
+      x_629 := list_lenL_593(_625);
       len_628 := x_629;
       x_631 := string_of_int_236(len_628);
       x_630 := print(x_631);
@@ -6749,14 +6749,14 @@ fn string_of_listL_611(__612%U) {
 }
 
 main := {
-  x_623 := mklistU_570(2000000);
+  x_623 := mklistL_578(2000000);
   test_622 := x_623;
   x_624 :=
     lazy {
-      x_627 := cmsortU_538(test_622);
+      x_627 := cmsortL_554(test_622);
       x_626 := force(x_627);
       _625 := x_626;
-      x_629 := list_lenU_586(_625);
+      x_629 := list_lenL_593(_625);
       len_628 := x_629;
       x_631 := string_of_int_236(len_628);
       x_630 := print(x_631);
@@ -8106,14 +8106,14 @@ fn fn1_string_of_listL_864(env) {
 
 fn lazy__867(env) {
   string_of_int_236 := env[0];
-  cmsortU_538 := env[1];
-  list_lenU_586 := env[2];
+  cmsortL_554 := env[1];
+  list_lenL_593 := env[2];
   test_622 := env[3];
-  x_627 := fn0_cmsortU_830(test_622);
+  x_627 := fn0_cmsortL_839(test_622);
   force(x_626, x_627);
   free(x_627);
   move1(_625, x_626);
-  x_629 := fn0_list_lenU_854(_625);
+  x_629 := fn0_list_lenL_857(_625);
   move1(len_628, x_629);
   x_631 := fn0_string_of_int_764(len_628);
   print(x_630, x_631);
@@ -8759,12 +8759,12 @@ main {
   mkclo0(list_lenL_593, fn1_list_lenL_858, fvc:=0, argc:=1);
   mkclo0(string_of_listU_600, fn1_string_of_listU_861, fvc:=0, argc:=1);
   mkclo0(string_of_listL_611, fn1_string_of_listL_864, fvc:=0, argc:=1);
-  x_623 := fn0_mklistU_848(2000000);
+  x_623 := fn0_mklistL_851(2000000);
   move1(test_622, x_623);
   lazy(x_624, lazy__867, 4);
   setlazy(x_624, string_of_int_236, 0);
-  setlazy(x_624, cmsortU_538, 1);
-  setlazy(x_624, list_lenU_586, 2);
+  setlazy(x_624, cmsortL_554, 1);
+  setlazy(x_624, list_lenL_593, 2);
   setlazy(x_624, test_622, 3);
   force(x_866, x_624);
   return x_866;
