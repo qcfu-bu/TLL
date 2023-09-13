@@ -44,7 +44,7 @@ void end_run(void) {
 
 
 // core
-#define sizeofclo(env_size) (2 * sizeof(int) + sizeof(intptr_t) + env_size * sizeof(intptr_t))
+#define sizeofclo(env_size) (2 * sizeof(int) + sizeof(void(*)(void)) + env_size * sizeof(intptr_t))
 
 typedef struct {
     unsigned int env_smax;      // maximum size
@@ -76,10 +76,11 @@ void setclo(intptr_t box, intptr_t arg, unsigned int i) {
 void appc(intptr_t *lhs, intptr_t clo0, intptr_t arg) {
     unsigned int env_smax = ((clo_t)clo0)->env_smax;
     unsigned int env_size = ((clo_t)clo0)->env_size;
+    unsigned int clo0_size = sizeofclo(env_size);
     unsigned int clo1_size = sizeofclo(env_size + 1);
     // deep copy closure
     clo_t clo1 = myalloc(clo1_size);
-    memcpy(clo1, (clo_t)clo0, clo1_size);
+    memcpy(clo1, (clo_t)clo0, clo0_size);
     clo1->env[env_size] = arg;
     clo1->env_size = env_size + 1;
     if (env_size + 1 < env_smax) {
@@ -104,7 +105,7 @@ void ffree(intptr_t x) {
 
 typedef struct {
     unsigned int ctag;
-    intptr_t data[5];
+    intptr_t data[2];
 } box_block;
 
 typedef box_block* box_t;
