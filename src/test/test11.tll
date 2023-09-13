@@ -64,11 +64,11 @@ def mklist‹t› (n : int) : list‹_,t›int :=
   if n <= 0 then nil else n :: mklist (n - 1)
 
 def list_len‹t› : list‹_,t›int -> int
-  | nil => 0
+  | nil     => 0
   | _ :: xs => 1 + list_len xs
 
 def string_of_list‹t› : list‹_,t›int -> string 
-  | nil => "nil"
+  | nil     => "nil"
   | x :: xs => string_of_int x ++ " :: " ++ string_of_list xs
 
 
@@ -88,7 +88,7 @@ def main : IO unit :=
   let* just sorted := cmsort test in
   let len := list_len sorted in
   print (string_of_int len)
-  
+
 
 
 

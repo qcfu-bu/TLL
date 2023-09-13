@@ -239,20 +239,6 @@ let unmbind_pmeta bnd =
   let ms = Array.map (fun x -> PMeta x) xs in
   (xs, msubst bnd ms)
 
-(* pattern substitution *)
-let psubst (p0s, bnd) ms =
-  let rec match_p0 p0 m =
-    match (p0, m) with
-    | P0Rel, _ -> [ m ]
-    | P0Constr (c1, p0s), Constr (c2, _, _, ms) when Constr.equal c1 c2 ->
-      match_p0s p0s ms
-    | _ -> failwith "binding1.match_p0"
-  and match_p0s p0s ms =
-    List.fold_left2 (fun acc p0 m -> acc @ match_p0 p0 m) [] p0s ms
-  in
-  let ms = match_p0s p0s ms in
-  msubst bnd (Array.of_list ms)
-
 (* pattern expansion *)
 let expand_ps ps pvar_map =
   let rec aux_p = function

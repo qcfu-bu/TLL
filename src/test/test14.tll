@@ -6,6 +6,7 @@ def DH (p g : int) : proto :=
 #[logical]def DH_ch (p g : int) := ch⟨ DH p g ⟩
 #[logical]def DH_hc (p g : int) := hc⟨ DH p g ⟩
 
+
 def alice (a : int) (p g : int) (c : DH_ch p g) : IO unit :=
   let* c := send c a in 
   let* c := send c (powm g a p) in
@@ -15,6 +16,7 @@ def alice (a : int) (p g : int) (c : DH_ch p g) : IO unit :=
   let* ⟨{pf}, c⟩ := recv c in
   close c
 
+
 def bob (b : int) (p g : int) (c : DH_hc p g) : IO unit :=
   let* ⟨{a}, c⟩ := recv c in
   let* ⟨A, c⟩ := recv c in
@@ -23,6 +25,7 @@ def bob (b : int) (p g : int) (c : DH_hc p g) : IO unit :=
   let* c := send c (powm g b p) in
   let* c := send c refl in
   close c
+
 
 def key_exchange (_ : unit) : IO unit :=
   let p := 23 in
@@ -38,5 +41,6 @@ def key_exchange (_ : unit) : IO unit :=
   in
   let* c0 := send c0 c in
   close c0
+
 
 def main : IO unit := key_exchange tt

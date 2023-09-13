@@ -27,7 +27,7 @@ let rec whnf ?(expand = true) (env : Env.t) m =
     (match hd with
      | Fun (guard, _, bnd) ->
        let cls = subst bnd hd in
-       (match match_cls guard cls ms with
+       (match match_cls ~expand env guard cls ms with
         | Some (Some rhs, rst) -> whnf ~expand env (mkApps rhs rst)
         | _ -> mkApps hd ms)
      | _ -> mkApps hd ms)
@@ -37,7 +37,7 @@ let rec whnf ?(expand = true) (env : Env.t) m =
   (* inductive *)
   | Match (guard, ms, a, cls) ->
     let ms = List.map (whnf ~expand env) ms in
-    (match match_cls guard cls ms with
+    (match match_cls ~expand env guard cls ms with
      | Some (Some rhs, []) -> whnf ~expand env rhs
      | _ -> Match (guard, ms, a, cls))
   (* monadic *)
@@ -140,7 +140,7 @@ let rec whnf ?(expand = true) (env : Env.t) m =
   (* other *)
   | m -> m
 
-and match_cls guard cls ms =
+and match_cls ?(expand = true) (env : Env.t) guard cls ms =
   let rec check_guard guard ms =
     match (guard, ms) with
     | true :: guard, (Constr _ as m) :: ms ->
@@ -150,6 +150,18 @@ and match_cls guard cls ms =
       Option.map (fun (ms, ns) -> (m :: ms, ns)) (check_guard guard ms)
     | false :: guard, [] -> None
     | [], ms -> Some ([], ms)
+  and psubst (p0s, bnd) ms =
+    let rec match_p0 p0 m =
+      match (p0, whnf ~expand env m) with
+      | P0Rel, m -> [ m ]
+      | P0Constr (c1, p0s), Constr (c2, _, _, ms)
+        when Constr.equal c1 c2 -> match_p0s p0s ms
+      | _ -> failwith "equality1e.match_p0"
+    and match_p0s p0s ms =
+      List.fold_left2 (fun acc p0 m -> acc @ match_p0 p0 m) [] p0s ms
+    in
+    let ms = match_p0s p0s ms in
+    msubst bnd (Array.of_list ms)
   in
   match check_guard guard ms with
   | Some (ms, ns) ->
