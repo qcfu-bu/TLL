@@ -62,16 +62,15 @@
 %token<string> OP_TIC    // ` prefix
 
 %right OP_SEMI
-%right OP_AT
-%right OP_COLON
 %left OP_OR
 %left OP_AND
-%left OP_EQ OP_EX
-%left OP_LT OP_GT LT GT
+%left OP_EQ OP_LT OP_GT LT GT
+%right OP_AT OP_CAT
+%right OP_COLON
 %left OP_ADD OP_SUB
 %left OP_MUL OP_DIV OP_MOD
 %right OP_TIMES OP_OTIMES
-%left OP_CAT
+%left OP_EX
 %nonassoc OP_SIM OP_TIC
 
 // bottom
