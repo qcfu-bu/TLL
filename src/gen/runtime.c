@@ -49,7 +49,7 @@ typedef struct {
     unsigned int env_smax;      // maximum size
     unsigned int env_size;      // current size
     intptr_t (*fn)(intptr_t[]); // function
-    intptr_t env[5];             // layout: [self,fvs,args]
+    intptr_t env[];             // layout: [self,fvs,args]
 } clo_block;
 
 typedef clo_block* clo_t;
@@ -105,7 +105,7 @@ void ffree(intptr_t x) {
 
 typedef struct {
     unsigned int ctag;
-    intptr_t data[2];
+    intptr_t data[];
 } box_block;
 
 typedef box_block* box_t;
@@ -151,7 +151,7 @@ void absurd(void) {
 
 typedef struct {
     intptr_t (*fn)(intptr_t[]); // function
-    intptr_t env[6];             // layout: [fvs]
+    intptr_t env[];             // layout: [fvs]
 } laz_block;
 
 typedef laz_block* laz_t;

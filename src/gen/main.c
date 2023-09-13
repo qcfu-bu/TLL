@@ -2209,7 +2209,7 @@ int main() {
   mkclo(&list_lenL_593, fn1_list_lenL_858, 0, 1);
   mkclo(&string_of_listU_600, fn1_string_of_listU_861, 0, 1);
   mkclo(&string_of_listL_611, fn1_string_of_listL_864, 0, 1);
-  x_623 = fn0_mklistL_851(1000);
+  x_623 = fn0_mklistL_851(2000000);
   test_622 = x_623;
   lazy(&x_624, lazy__867, 4);
   setlazy(x_624, string_of_int_236, 0);

@@ -156,7 +156,8 @@ and match_cls ?(expand = true) (env : Env.t) guard cls ms =
     | [], ms -> Some ([], ms)
   and psubst (p0s, bnd) ms =
     let rec match_p0 p0 m =
-      match (p0, whnf ~expand env m) with
+      (* FIXME *)
+      match (p0, m) with
       | P0Rel, m -> [ m ]
       | P0Constr (c1, p0s), Constr (c2, _, _, ms)
         when Constr.equal c1 c2 -> match_p0s p0s ms
