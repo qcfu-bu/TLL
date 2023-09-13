@@ -55,6 +55,7 @@ void __indx__(intptr_t *lhs, intptr_t e1, intptr_t e2);
 void __print__(intptr_t *lhs, intptr_t e);
 void __prerr__(intptr_t *lhs, intptr_t e);
 void __readln__(intptr_t *lhs, intptr_t e);
+void __fork__(intptr_t *lhs, intptr_t e);
 
 
 // magic

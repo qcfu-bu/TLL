@@ -39,9 +39,6 @@ let rec whnf ?(expand = true) (env : Env.t) m =
     let m = whnf ~expand env m in
     whnf ~expand env (subst bnd m)
   (* inductive *)
-  | Constr (c, s, ms, ns) ->
-    let ns = List.map (whnf ~expand env) ns in
-    Constr (c, s, ms, ns)
   | Match (guard, ms, a, cls) -> 
     let ms = List.map (whnf ~expand env) ms in
     (match match_cls guard cls ms with
