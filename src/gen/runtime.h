@@ -56,7 +56,11 @@ void __print__(intptr_t *lhs, intptr_t e);
 void __prerr__(intptr_t *lhs, intptr_t e);
 void __readln__(intptr_t *lhs, intptr_t e);
 void __fork__(intptr_t *lhs, intptr_t e);
-
+void __send__(intptr_t *lhs, intptr_t c, intptr_t e);
+void __recv0__(intptr_t *lhs, intptr_t c);
+void __recv1__(intptr_t *lhs, intptr_t c);
+void __close0__(intptr_t *lhs, intptr_t c);
+void __close1__(intptr_t *lhs, intptr_t c);
 
 // magic
 void magic(void);

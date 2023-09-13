@@ -260,7 +260,43 @@ void __readln__(intptr_t *lhs, intptr_t e) {
     *lhs = (intptr_t)str;
 }
 
+void __fork__(intptr_t *lhs, intptr_t e) {
+    clo_t clo = (clo_t)e;
 
+    // TODO
+}
+
+void __send__(intptr_t *lhs, intptr_t c, intptr_t e) {
+    chan_send((chan_t*)c, (void*)e);
+    *lhs = c;
+}
+
+void __recv0__(intptr_t *lhs, intptr_t c) {
+    intptr_t msg;
+    intptr_t box;
+    chan_recv((chan_t*)c, (void*)&msg);
+    mkbox(&box, __exU__, 2);
+    setbox(box, msg, 0);
+    setbox(box, c, 1);
+}
+
+void __recv1__(intptr_t *lhs, intptr_t c) {
+    intptr_t msg;
+    intptr_t box;
+    chan_recv((chan_t*)c, (void*)&msg);
+    mkbox(&box, __exL__, 2);
+    setbox(box, msg, 0);
+    setbox(box, c, 1);
+}
+
+void __close0__(intptr_t *lhs, intptr_t c) {
+    chan_dispose((chan_t*)c);
+    *lhs = __tt__;
+}
+
+void __close1__(intptr_t *lhs, intptr_t c) {
+    *lhs = __tt__;
+}
 
 
 
