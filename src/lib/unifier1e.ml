@@ -473,7 +473,7 @@ let rec simpl_iprbm ?(expand = false) eqn =
        | SMeta (x, _), SMeta (y, _) when SMeta.compare x y = 0 -> []
        | _, SMeta _ -> [ EqualSort (s1, s2) ]
        | SMeta _, _ -> [ EqualSort (s2, s1) ]
-       | _ -> failwith "unifier1.simpl_iprbm(EqualSort)")
+       | _ -> failwith "unifier1.simpl_iprbm(EqualSort(%a, %a))" pp_sort s1 pp_sort s2)
   | EqualTerm (env, m1, m2) ->
     let m1 = whnf ~expand env m1 in
     let m2 = whnf ~expand env m2 in

@@ -1,9 +1,6 @@
 inductive boxed‹s› (A : Type‹s›) : L where
   | box (m : A) : boxed A
 
-inductive sing‹s,t› ?(A : Type‹s›) : A -> Type‹t› where
-  | just (m : A) : `m
-
 inductive choice : L where
   | next : choice
   | free : choice
@@ -21,7 +18,6 @@ def sing_uniq‹s,t› ?(A : Type‹s›) ?(x0 : A) : forall (x : sing‹s,t›x
 
 
 
-
 -- linear streams
 inductive stream_node‹s› (A : Type‹s›) : L where
   | stream_cons
@@ -29,16 +25,16 @@ inductive stream_node‹s› (A : Type‹s›) : L where
     (tl : forall (x : choice) .->
             match x with
             | next => stream_node A
-            | free => unit) : stream_node A
+            | free => base) : stream_node A
 
 #[logical]
 def stream‹s› (A : Type‹s›) :=
   forall (x : choice) .->
     match x with
     | next => stream_node A
-    | free => unit
+    | free => base
 
-def free_stream‹s› ?{A : Type‹s›} (st : stream A) : unit‹U› :=
+def free_stream‹s› ?{A : Type‹s›} (st : stream A) : unit :=
   match st free with tt => tt
 
 def uncons_stream‹s› ?{A : Type‹s›} (st : stream A) : A × stream A :=
@@ -67,12 +63,12 @@ notation ( { , } ) :=
     | false => box %2
 
 def proj1‹s,r,t› ?{A : Type‹s›} ?{B : A -> Type‹r›} : @apair‹s,r,t› A B -> A
-  | (apair_intro _ select) => sing_elim (select true)
+  | apair_intro _ select => sing_elim (select true)
 
 def proj2‹s,r,t› ?{A : Type‹s›} ?{B : A -> Type‹r›} : forall (x : @apair‹s,r,t› A B) -> B (proj1 x)
-  | (apair_intro x select) => 
+  | apair_intro x select => 
     match {x}                       as x0 -- x is matched to introduce flex variable x0
-        , {select true}             as a0 : `x
+        , {select true}             as a0 : sing x
         , {sing_uniq (select true)} as _  : x0 = sing_elim a0
         , select false              as _  : boxed (B x0)
       in B (sing_elim a0)
@@ -86,7 +82,7 @@ def proj2‹s,r,t› ?{A : Type‹s›} ?{B : A -> Type‹r›} : forall (x : @a
 #[logical]
 def nat_dep_t : nat -> Type‹L›
   | zero   => stream nat
-  | succ _ => unit‹L›
+  | succ _ => base
 
 def my_apair0 : apair‹_,_,U› nat_dep_t :=
   -- different type modalities are allowed in components as long
