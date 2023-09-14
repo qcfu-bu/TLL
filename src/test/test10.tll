@@ -71,7 +71,7 @@ def or : bool -> bool -> bool
   | false, false => false
   | _    , _     => true
 
-def xor : bool -> bool -o bool
+def xor : bool -> bool .-> bool
   | true , true  => false
   | false, false => false
   | _    , _     => true
@@ -122,27 +122,27 @@ def pow : nat -> nat -> nat
 
 
 
-#[logical] extern proto : U
-#[logical] extern act0‹s› (b : bool) ?(A : Type‹s›) (B : A -> proto) : proto
-#[logical] extern act1‹s› (b : bool) ?(A : Type‹s›) (B : A -> proto) : proto
-#[logical] extern endp : proto
-#[logical] extern ch : bool -> proto -> L
+#[logical] extern proto0 : U
+#[logical] extern act0‹s› (b : bool) ?(A : Type‹s›) (B : A -> proto0) : proto0
+#[logical] extern act1‹s› (b : bool) ?(A : Type‹s›) (B : A -> proto0) : proto0
+#[logical] extern endp : proto0
+#[logical] extern ch0 : bool -> proto0 -> L
 
-extern close ?{b : bool} : ch b endp -> IO unit 
-extern send0‹s› ?{b1 b2 : bool} ?{A : Type‹s›} ?{B : A -> proto} : {xor b1 b2 = false} -> (ch b1 (act0 b2 B)) -> ∀ {x : A} -o IO (ch b1 (B x))
-extern send1‹s› ?{b1 b2 : bool} ?{A : Type‹s›} ?{B : A -> proto} : {xor b1 b2 = false} -> (ch b1 (act1 b2 B)) -> ∀ (x : A) -o IO (ch b1 (B x))
-extern recv0‹s› ?{b1 b2 : bool} ?{A : Type‹s›} ?{B : A -> proto} : {xor b1 b2 = true} -> (ch b1 (act0 b2 B)) -> IO (exists0 fn (x : A) => ch b1 (B x))
-extern recv1‹s› ?{b1 b2 : bool} ?{A : Type‹s›} ?{B : A -> proto} : {xor b1 b2 = true} -> (ch b1 (act1 b2 B)) -> IO (exists1 fn (x : A) => ch b1 (B x))
-extern fork ?{b : bool} ?{P : proto} : (ch b P -o IO unit) -> IO (ch (not b) P)
+extern close0 ?{b : bool} : ch0 b endp -> IO unit 
+extern send0‹s› ?{b1 b2 : bool} ?{A : Type‹s›} ?{B : A -> proto0} : {xor b1 b2 = false} -> (ch0 b1 (act0 b2 B)) -> ∀ {x : A} .-> IO (ch0 b1 (B x))
+extern send1‹s› ?{b1 b2 : bool} ?{A : Type‹s›} ?{B : A -> proto0} : {xor b1 b2 = false} -> (ch0 b1 (act1 b2 B)) -> ∀ (x : A) .-> IO (ch0 b1 (B x))
+extern recv0‹s› ?{b1 b2 : bool} ?{A : Type‹s›} ?{B : A -> proto0} : {xor b1 b2 = true} -> (ch0 b1 (act0 b2 B)) -> IO (exists0 fn (x : A) => ch0 b1 (B x))
+extern recv1‹s› ?{b1 b2 : bool} ?{A : Type‹s›} ?{B : A -> proto0} : {xor b1 b2 = true} -> (ch0 b1 (act1 b2 B)) -> IO (exists1 fn (x : A) => ch0 b1 (B x))
+extern fork0 ?{b : bool} ?{P : proto0} : (ch0 b P .-> IO unit) -> IO (ch0 (not b) P)
 
 #[logical]
-def DH (p g : nat) : proto :=
+def DH (p g : nat) : proto0 :=
   act0 true  fn (a : nat) => act1 true  fn (A : nat) => act0 true  fn (_ : A = (g ^ a % p)) =>
   act0 false fn (b : nat) => act1 false fn (B : nat) => act0 false fn (_ : B = (g ^ b % p)) =>
   endp
 
-#[logical] def DH_ch (p g : nat) := ch true  (DH p g)
-#[logical] def DH_hc (p g : nat) := ch false (DH p g)
+#[logical] def DH_ch (p g : nat) := ch0 true  (DH p g)
+#[logical] def DH_hc (p g : nat) := ch0 false (DH p g)
 
 def alice (a : nat) (p g : nat) (c : DH_ch p g) : IO unit :=
   let* c := send0 refl c a in 
@@ -151,7 +151,7 @@ def alice (a : nat) (p g : nat) (c : DH_ch p g) : IO unit :=
   let* ⟨{b}, c⟩ := recv0 refl c in
   let* ⟨B, c⟩ := recv1 refl c in
   let* ⟨{pf}, c⟩ := recv0 refl c in
-  close c
+  close0 c
 
 def bob (b : nat) (p g : nat) (c : DH_hc p g) : IO unit :=
   let* ⟨{a}, c⟩ := recv0 refl c in
@@ -160,4 +160,4 @@ def bob (b : nat) (p g : nat) (c : DH_hc p g) : IO unit :=
   let* c := send0 refl c b in
   let* c := send1 refl c (g ^ b % p) in
   let* c := send0 refl c refl in
-  close c
+  close0 c
