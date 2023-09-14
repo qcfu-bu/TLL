@@ -27,7 +27,7 @@ def msort‹t› : list‹_,t›int -> list‹_,t›int
 def cmsort_ch‹t› (xs :  list‹_,t› int) : L :=
   ch⟨ ⇑(`msort xs) -> • ⟩
 
-def cmsort_worker‹t› : int -> forall (zs : list‹_,t›int) -> cmsort_ch‹t›zs .-> IO unit
+def cmsort_worker‹t› : int -> ∀ (zs : list‹_,t›int) -> cmsort_ch‹t›zs .-> IO unit
   | _, nil     , c => let* c := send c (just nil)        in close c
   | _, z :: nil, c => let* c := send c (just (z :: nil)) in close c
   | i, zs      , c =>
