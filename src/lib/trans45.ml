@@ -1,3 +1,4 @@
+open Fmt
 open Names
 open Syntax4
 open Context45
@@ -483,4 +484,8 @@ let trans_dcls dcls : Syntax5.prog =
       Syntax5.(lift, cmds @ [ Move0 (lhs, rhs) ] @ rest, r)
   in
   let lift, cmds, ret = aux Ctx.empty [] dcls in
-  Syntax5.{ dcls = lift; cmds; ret }
+  let dcls = Syntax5.{ dcls = lift; cmds; ret } in
+  pf Debug.fmt "%a" Pprint5.pp_prog dcls;
+  pf Debug.fmt "@.@.[trans45 success]";
+  pf Debug.fmt "@.@.-----------------------------------------@.@.";
+  dcls

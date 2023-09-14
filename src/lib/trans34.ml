@@ -276,4 +276,8 @@ let trans_dcls dcls =
          let dcls = aux (Ctx.add_const x (Var lhs) ctx) dcls in
          Syntax4.(DefVal { lhs; cmds; ret } :: dcls))
   in
-  aux Ctx.empty dcls
+  let dcls = aux Ctx.empty dcls in
+  pf Debug.fmt "%a" Pprint4.pp_dcls dcls;
+  pf Debug.fmt "@.@.[trans34 success]";
+  pf Debug.fmt "@.@.-----------------------------------------@.@.";
+  dcls

@@ -2,15 +2,18 @@ open Fmt
 open Bindlib
 open Syntax0
 open Trans01
+open Spec
 open Sedlexing
+open Tokenize
 open Parser
 
 let prelude_src = "prelude/prelude.tll"
 
 let prelude_nspc, prelude_dcls =
-  let ch = open_in prelude_src in
-  let dcls0 = parse (Utf8.from_channel ch) in
-  trans_dcls [] dcls0
+  let lexbuf = Utf8.from_channel (open_in prelude_src) in
+  let lexer = with_tokenizer tokenize lexbuf in
+  let dcls0 = loop lexer (Incremental.main (fst (lexing_positions lexbuf))) in
+  trans_dcls0 [] dcls0
 
 let prelude_ind id =
   try

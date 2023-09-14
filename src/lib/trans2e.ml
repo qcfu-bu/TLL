@@ -100,14 +100,22 @@ let rec trans_tm = function
   (* magic *)
   | Magic -> _Magic
 
-let rec trans_dcls = function
-  | [] -> []
-  | Main { body } :: [] -> Main { body = unbox (trans_tm body) } :: []
-  | Main _ :: _ -> failwith "trans12.trans_dcls(Main)"
-  | Definition { name; relv; body } :: dcls ->
-    let body_elab = trans_tm body in
-    let dcls_elab = trans_dcls dcls in
-    Definition { name; relv; body = unbox body_elab } :: dcls_elab
-  | Inductive { name; relv; body } :: dcls ->
-    Inductive { name; relv; body } :: trans_dcls dcls
-  | Extern { name; relv } :: dcls -> Extern { name; relv } :: trans_dcls dcls
+let trans_dcls dcls = 
+  let rec aux = function
+    | [] -> []
+    | Main { body } :: [] -> Main { body = unbox (trans_tm body) } :: []
+    | Main _ :: _ -> failwith "trans12.trans_dcls(Main)"
+    | Definition { name; relv; body } :: dcls ->
+      let body_elab = trans_tm body in
+      let dcls_elab = aux dcls in
+      Definition { name; relv; body = unbox body_elab } :: dcls_elab
+    | Inductive { name; relv; body } :: dcls ->
+      Inductive { name; relv; body } :: aux dcls
+    | Extern { name; relv } :: dcls -> Extern { name; relv } :: aux dcls
+  in
+  let dcls = aux dcls in
+  pf Debug.fmt "%a" Pprint2.pp_dcls dcls;
+  pf Debug.fmt "@.@.[trans2e success]";
+  pf Debug.fmt "@.@.-----------------------------------------@.@.";
+  dcls
+

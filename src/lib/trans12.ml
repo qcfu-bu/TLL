@@ -1272,4 +1272,7 @@ and check_dconstrs ss ctx env relv d0 dconstrs ctx_acc =
 let trans_dcls dcls =
   let dcls, usg = check_dcls Ctx.empty Env.empty dcls in
   Usage.assert_empty usg;
+  pf Debug.fmt "%a" Pprint2.pp_dcls dcls;
+  pf Debug.fmt "@.@.[trans12 success]";
+  pf Debug.fmt "@.@.-----------------------------------------@.@.";
   dcls

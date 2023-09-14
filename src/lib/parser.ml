@@ -1,6 +1,6 @@
 open Fmt
-open Sedlexing
 open Spec
+open Sedlexing
 open Tokenize
 module I = MenhirInterpreter
 module S = MenhirLib.General
@@ -37,4 +37,8 @@ let rec loop next_token checkpoint =
 
 let parse lexbuf =
   let lexer = with_tokenizer tokenize lexbuf in
-  loop lexer (Incremental.main (fst (lexing_positions lexbuf)))
+  let dcls = loop lexer (Incremental.main (fst (lexing_positions lexbuf))) in
+  pf Debug.fmt "%a" Syntax0.pp_dcls dcls;
+  pf Debug.fmt "@.@.[parse success]";
+  pf Debug.fmt "@.@.-----------------------------------------@.@.";
+  dcls

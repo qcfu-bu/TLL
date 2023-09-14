@@ -215,4 +215,8 @@ let trans_dcls dcls =
     List.fold_left (fun ctx (c, layout) -> Ctx.(add_constr c { layout; unbox } ctx))
       ctx dconstrs
   in
-  aux Ctx.empty dcls
+  let dcls = aux Ctx.empty dcls in
+  pf Debug.fmt "%a" Pprint3.pp_dcls dcls;
+  pf Debug.fmt "@.@.[trans23 success]";
+  pf Debug.fmt "@.@.-----------------------------------------@.@.";
+  dcls

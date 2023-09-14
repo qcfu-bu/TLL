@@ -798,4 +798,9 @@ and check_dconstrs ind ctx env dconstrs =
   in
   box_list (List.map (check_dconstr ind ctx) dconstrs)
 
-let trans_dcls dcls = check_dcls Ctx.empty Env.empty dcls
+let trans_dcls dcls = 
+  let dcls = check_dcls Ctx.empty Env.empty dcls in
+  pf Debug.fmt "%a" Pprint1.pp_dcls dcls;
+  pf Debug.fmt "@.@.[trans1e success]";
+  pf Debug.fmt "@.@.-----------------------------------------@.@.";
+  dcls

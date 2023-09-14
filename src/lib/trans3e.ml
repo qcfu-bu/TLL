@@ -1,3 +1,4 @@
+open Fmt
 open Bindlib
 open Names
 open Syntax3
@@ -184,11 +185,18 @@ let rec trans_tm = function
   (* magic *)
   | Magic -> _Magic
 
-let rec trans_dcls = function
-  | [] -> []
-  | Main { body } :: [] -> Main { body = unbox (trans_tm body) } :: []
-  | Main _ :: _ -> failwith "trans12.trans_dcls(Main)"
-  | Definition { name; body } :: dcls ->
-    let body_elab = trans_tm body in
-    let dcls_elab = trans_dcls dcls in
-    Definition { name; body = unbox body_elab } :: dcls_elab
+let trans_dcls dcls = 
+  let rec aux = function
+    | [] -> []
+    | Main { body } :: [] -> Main { body = unbox (trans_tm body) } :: []
+    | Main _ :: _ -> failwith "trans12.trans_dcls(Main)"
+    | Definition { name; body } :: dcls ->
+      let body_elab = trans_tm body in
+      let dcls_elab = aux dcls in
+      Definition { name; body = unbox body_elab } :: dcls_elab
+  in
+  let dcls = aux dcls in
+  pf Debug.fmt "%a" Pprint3.pp_dcls dcls;
+  pf Debug.fmt "@.@.[trans3e success]";
+  pf Debug.fmt "@.@.-----------------------------------------@.@.";
+  dcls

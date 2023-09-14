@@ -252,8 +252,10 @@ let pp_prog fmt prog =
     pp_cmds prog.cmds
 
 let emit prog main_h main_c =
-  let prelude_h = open_out "gen/prelude.h" in
-  Printf.fprintf prelude_h "%s" (str "%a@.@." pp_prelude ());
-  Printf.fprintf main_h "%s" (str "%a@.@." pp_header prog);
-  Printf.fprintf main_c "%s" (str "%a@.@." pp_prog prog);
+  let prelude_h = Format.formatter_of_out_channel (open_out "gen/prelude.h") in
+  pf prelude_h "%s" (str "%a@.@." pp_prelude ());
+  pf main_h "%s" (str "%a@.@." pp_header prog);
+  pf main_c "%s" (str "%a@.@." pp_prog prog);
+  pf Debug.fmt "compilation success";
+  pf Debug.fmt "@.@.-----------------------------------------@.@.";
 

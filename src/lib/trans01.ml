@@ -447,11 +447,11 @@ let rec trans_dcl nspc = function
     let nspc = nspc_push sym (ESymbol body) nspc in
     Syntax1.(nspc, [])
 
-and trans_dcls nspc = function
+and trans_dcls0 nspc = function
   | [] -> (nspc, [])
   | dcl :: dcls ->
     let nspc, dcl = trans_dcl nspc dcl in
-    let nspc, dcls = trans_dcls nspc dcls in
+    let nspc, dcls = trans_dcls0 nspc dcls in
     (nspc, dcl @ dcls)
 
 and flatten_param = function
@@ -488,3 +488,10 @@ and trans_dconstr (nspc : nspc) sids args = function
 
 and trans_dconstrs (nspc : nspc) sids args dconstrs =
   List.map (trans_dconstr nspc sids args) dconstrs
+
+let trans_dcls nspc dcls =
+  let _, dcls = trans_dcls0 nspc dcls in
+  pf Debug.fmt "%a" Pprint1.pp_dcls dcls;
+  pf Debug.fmt "@.@.[trans01 success]";
+  pf Debug.fmt "@.@.-----------------------------------------@.@.";
+  dcls

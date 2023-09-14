@@ -192,4 +192,8 @@ let trans_dcls dcls =
       let cmds, _ = trans_cmds Mem.(new_scope empty) cmds in
       DefVal { lhs; cmds; ret } :: aux dcls
   in
-  aux dcls
+  let dcls = aux dcls in
+  pf Debug.fmt "%a" Pprint4.pp_dcls dcls;
+  pf Debug.fmt "@.@.[trans4e success]";
+  pf Debug.fmt "@.@.-----------------------------------------@.@.";
+  dcls
