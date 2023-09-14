@@ -38,7 +38,7 @@
 (setq tll-builtin '("let" "let*" "in" "match" "as" "with" "end" "if" "then" "else" "return"))
 (setq tll-constant '("fork" "recv" "send" "send" "recv" "close" "end" "•" "lazy" "force"))
 (setq tll-quantifier '("∀" "forall" "∃" "exists"))
-(setq tll-highlights '("→" "->" "⊸" "-o" "≔" ":=" "⇒" "=>" "⇑" "⇓"))
+(setq tll-highlights '("→" "->" ".→" ".->" "⊸" "-o" "≔" ":=" "⇒" "=>" "⇑" "⇓"))
 (setq tll-intense '("#magic" "!!") )
 
 (setq tll-basic-regexp (regexp-opt tll-basic 'symbols))
@@ -97,6 +97,7 @@
   (setq-local comment-end "")
   (setq-local prettify-symbols-alist
               '(("->" . ?→)
+                (".->" . (?. (Br . Bl) ?→))
                 ("<-" . ?←)
                 ("=>" . ?⇒)
                 ("-o" . ?⊸)

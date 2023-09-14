@@ -2,7 +2,6 @@ open Fmt
 open TLL
 open Bindlib
 open Sedlexing
-open Parser
 open Debug
 
 let debug_mode () =
@@ -20,7 +19,7 @@ let main =
     (try
        let src_ch = open_in src_file in
 
-       let dcls0 = parse (Utf8.from_channel src_ch) in
+       let dcls0 = Parser.parse (Utf8.from_channel src_ch) in
        pr "%a" Syntax0.pp_dcls dcls0;
        pr "@.@.parse success";
        pr "@.@.-----------------------------------------@.@.";

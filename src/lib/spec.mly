@@ -27,10 +27,13 @@
 %token LEFTARROW1  // ⇐
 %token RIGHTARROW0 // →
 %token RIGHTARROW1 // ⇒
+%token DOT_RARROW0 // .→
 %token MULTIMAP    // ⊸
 %token UPARROW1    // ⇑
 %token DOWNARROW1  // ⇓
+
 %right RIGHTARROW0
+%right DOT_RARROW0
 %right MULTIMAP
 
 %token AT     // @
@@ -379,7 +382,7 @@ let tm_pi(P) :=
   | FORALL; args = tm_pi_args; RIGHTARROW0; b = P;
     { List.fold_right (fun (rel, id, a) b ->
         Pi (rel, U, a, Binder (id, b))) args b }
-  | FORALL; args = tm_pi_args; MULTIMAP; b = P; 
+  | FORALL; args = tm_pi_args; DOT_RARROW0; b = P; 
     { List.fold_right (fun (rel, id, a) b ->
         Pi (rel, L, a, Binder (id, b))) args b }
   | TM_FORALL0; s = sort; GT; args = tm_pi_args; COMMA; b = P;
@@ -775,9 +778,9 @@ let tm3 :=
 
 let tm4_generic(P) :=
   | a = tm3; RIGHTARROW0; b = tm4_generic(P); { Pi (R, U, a, Binder ("_", b)) }
-  | a = tm3; MULTIMAP; b = tm4_generic(P); { Pi (R, L, a, Binder ("_", b)) }
+  | a = tm3; DOT_RARROW0; b = tm4_generic(P); { Pi (R, L, a, Binder ("_", b)) }
   | LBRACE; a = tm; RBRACE; RIGHTARROW0; b = tm4_generic(P); { Pi (N, U, a, Binder ("_", b)) }
-  | LBRACE; a = tm; RBRACE; MULTIMAP; b = tm4_generic(P); { Pi (N, L, a, Binder ("_", b)) }
+  | LBRACE; a = tm; RBRACE; DOT_RARROW0; b = tm4_generic(P); { Pi (N, L, a, Binder ("_", b)) }
   | ms = tm1*; m = tm_pi(P); { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ms = tm1*; m = tm_act(P); { match ms with [] -> m | _ -> App (ms @ [m]) }
   | ~ = tm3; <>

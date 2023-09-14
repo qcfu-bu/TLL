@@ -5,7 +5,7 @@ def split‹t› : list‹_,t›int -> list‹_,t›int × list‹_,t›int
     let ⟨xs, ys⟩ := split zs in
     ⟨x :: xs, y :: ys⟩
 
-def merge‹t› : list‹_,t›int -> list‹_,t›int -o list‹_,t›int
+def merge‹t› : list‹_,t›int -> list‹_,t›int .-> list‹_,t›int
   | nil    , ys      => ys
   | xs     , nil     => xs
   | x :: xs, y :: ys =>
@@ -27,7 +27,7 @@ def msort‹t› : list‹_,t›int -> list‹_,t›int
 def cmsort_ch‹t› (xs :  list‹_,t› int) : L :=
   ch⟨ ⇑(`msort xs) -> • ⟩
 
-def cmsort_worker‹t› : int -> forall (zs : list‹_,t›int) -> cmsort_ch‹t›zs -o IO unit
+def cmsort_worker‹t› : int -> forall (zs : list‹_,t›int) -> cmsort_ch‹t›zs .-> IO unit
   | _, nil     , c => let* c := send c (just nil)        in close c
   | _, z :: nil, c => let* c := send c (just (z :: nil)) in close c
   | i, zs      , c =>
@@ -61,7 +61,7 @@ def list_len‹t› : list‹_,t›int -> int
   | nil     => 0
   | _ :: xs => 1 + list_len xs
 
-def print_list‹t› : list‹_,t›int ->  IO unit
+def print_list‹t› : list‹_,t›int -> IO unit
   | nil     => print "nil"
   | x :: xs =>
     print (string_of_int x);

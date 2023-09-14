@@ -48,6 +48,7 @@ let leftarrow0 = [%sedlex.regexp? "<-" | 8592] (* ← *)
 let leftarrow1 = [%sedlex.regexp? 8656] (* ⇐ *)
 let rightarrow0 = [%sedlex.regexp? "->" | 8594] (* → *)
 let rightarrow1 = [%sedlex.regexp? "=>" | 8658] (* ⇒ *)
+let dot_rarrow0 = [%sedlex.regexp? ".->" | (".", 8594)] (* .→ *)
 let multimap = [%sedlex.regexp? "-o" | 8888] (* ⊸ *)
 let uparrow1 = [%sedlex.regexp? 8657] (* ⇑ *)
 let downarrow1 = [%sedlex.regexp? 8659] (* ⇓ *)
@@ -251,6 +252,7 @@ let rec tokenize buf =
   | leftarrow1 -> LEFTARROW1
   | rightarrow0 -> RIGHTARROW0
   | rightarrow1 -> RIGHTARROW1
+  | dot_rarrow0 -> DOT_RARROW0
   | multimap -> MULTIMAP
   | uparrow1 -> UPARROW1
   | downarrow1 -> DOWNARROW1
