@@ -20,19 +20,18 @@ let main =
        let src_ch = open_in src_file in
        let main_c = Format.formatter_of_out_channel (open_out "gen/main.c") in
        let main_h = Format.formatter_of_out_channel (open_out "gen/main.h") in
-
-       let dcls0 = Parser.parse (Utf8.from_channel src_ch) in
-       let dcls1 = Trans01.trans_dcls Prelude1.prelude_nspc dcls0 in
-       let dcls1 = Prelude1.prelude_dcls @ dcls1 in
-       let dcls1e = Trans1e.trans_dcls dcls1 in
-       let dcls2 = Trans12.trans_dcls dcls1e in
-       let dcls2e = Trans2e.trans_dcls dcls2 in
-       let dcls3 = Trans23.trans_dcls dcls2e in
-       let dcls3e = Trans3e.trans_dcls dcls3 in
-       let dcls4 = Trans34.trans_dcls dcls3e in
-       let dcls4e = Trans4e.trans_dcls dcls4 in
-       let dcls5 = Trans45.trans_dcls dcls4e in
-       Emitter.emit dcls5 main_h main_c;
+       let dcls = Parser.parse (Utf8.from_channel src_ch) in
+       let dcls = Trans01.trans_dcls Prelude1.prelude_nspc dcls in
+       let dcls = Prelude1.prelude_dcls @ dcls in
+       let dcls = Trans1e.trans_dcls dcls in
+       let dcls = Trans12.trans_dcls dcls in
+       let dcls = Trans2e.trans_dcls dcls in
+       let dcls = Trans23.trans_dcls dcls in
+       let dcls = Trans3e.trans_dcls dcls in
+       let dcls = Trans34.trans_dcls dcls in
+       let dcls = Trans4e.trans_dcls dcls in
+       let dcls = Trans45.trans_dcls dcls in
+       Emitter.emit dcls main_h main_c;
      with
      | Failure s -> epr "%s@." s
      | e -> epr "%a" exn_backtrace (e, Printexc.get_raw_backtrace ()))
