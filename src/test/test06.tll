@@ -1,53 +1,17 @@
-inductive unit : U where
-  | tt : unit
-
-inductive bool : U where
-  | true  : bool
-  | false : bool
-
-inductive nat : U where
-  | zero : nat
-  | succ (pred : nat) : nat
+#[logical]
+def length‹s,t› ?(A : Type‹s›) : list‹_,t›A -> nat
+  | nil     => zero
+  | _ :: tl => succ (length tl)
 
 #[logical]
-inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
-  | refl : eq m m
-
-inductive exists‹s,r,t› ?(A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
-  | ex (m : A) {pf : B m} : exists B
-
-inductive sing‹s› ?(A : Type‹s›) : A -> Type‹s› where
-  | just (m : A) : sing m
-
-inductive list‹s› (A : Type‹s›) : Type‹s› where
-  | nil : list A
-  | cons (hd : A) (tl : list A) : list A
-
-def lte : nat -> nat -> bool
-  | zero _ => true
-  | _ zero => false
-  | (succ x) (succ y) => lte x y
-
-def lt (x : nat) (y : nat) : bool := lte (succ x) y
-
-#[logical]
-def length‹s› ?(A : Type‹s›) : list A -> nat
-  | nil => zero
-  | (cons _ tl) => succ (length tl)
-
-#[logical]
-inductive at ?(A : U) (x : A) : nat -> list A -> U where
-  | at_zero (xs0 : list A) : at x zero (cons x xs0)
-  | at_succ ?(n : nat) (x0 : A) ?(xs0 : list A) (h : at x n xs0) : at x (succ n) (cons x0 xs0)
+inductive at‹s,t› ?(A : Type‹s›) (x : A) : nat -> list‹_,t› A -> U where
+  | at_zero (xs0 : list A) : at x zero (x :: xs0)
+  | at_succ ?(n : nat) (x0 : A) ?(xs0 : list A) (h : at x n xs0) : at x (succ n) (x0 :: xs0)
 
 def get_at ?{A : U}
-: ∀ (n : nat) (xs : list A) -> {eq (lt n (length xs)) true} -> exists‹_,_,L› (fn x => at x n xs)
-  | _        nil         !! =>
-  | zero     (cons x xs) _  => ex x (at_zero xs)
-  | (succ n) (cons x xs) e  => 
-    /- inference for motive:
-       check discrminees against motive
-       - if motive is rigid then we are done
-       - if motive is flex then unify against discrimees' types -/
-    match get_at n xs e with
-    | ex x0 pf => ex x0 (at_succ _ pf)
+: ∀ (n : nat) (xs : list‹_,U›A) -> {lt n (length xs) = true} -> exists (fn x => at x n xs)
+  | _     , nil    , !! =>
+  | zero  , x :: xs, _  => ⟨x, {at_zero xs}⟩
+  | succ n, x :: xs, e  => 
+    let ⟨x0, {pf}⟩ := get_at n xs e in
+    ⟨x0, {at_succ _ pf}⟩

@@ -1,63 +1,27 @@
-inductive unit : U where
-| tt : unit
-
-inductive bool : U where
-| true  : bool
-| false : bool
-
-inductive nat : U where
-| zero : nat
-| succ (pred : nat) : nat
-
-#[logical]
-inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
-| refl : eq m m
-
-inductive exists‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : U where
-| ex (m : A) {pf : B m} : @exists A B
-
-inductive sing‹s› ?(A : Type‹s›) : A -> Type‹s› where
-| just (m : A) : sing m
-
-inductive list‹s› (A : Type‹s›) : Type‹s› where
-| nil : list A
-| cons (hd : A) (tl : list A) : list A
-
 inductive vec‹s› (A : Type‹s›) : nat -> Type‹s› where
 | vnil : vec A zero
 | vcons ?{n : nat} (hd : A) (tl : vec‹s› A n) : vec A (succ n)
 
-def rwl‹s,r› ?{A : Type‹s›} ?{m n : A} {B : A -> Type‹r›} : {eq m n} -> B m -> B n
-  | refl x => x
-
-def rwr‹s,r› ?{A : Type‹s›} ?{m n : A} {B : A -> Type‹r›} : {eq m n} -> B n -> B m
-  | refl x => x
-
-#[logical]
-def congr‹s,r,t› ?(A : Type‹s›) ?(B : Type‹r›) ?(m n : A) (f : forall‹t›(_ : A), B)
-: eq m n -> eq (f m) (f n)
-  | refl => refl
-
-def hd_vec ?{A : U} ?{n : nat} : vec A (succ n) -> A
-  | (vcons _ hd _) => hd
+def hd_vec1 ?{A : U} ?{n : nat} : vec A (succ n) -> A
+  | vcons _ hd _ => hd
 
 def hd_vec2 ?{A : U} ?{n : nat} (xs : vec A (succ n)) :=
   match {_} as n0, xs as _ : vec A (succ n0) with
   | _, vnil =>
-  | _, (vcons _ hd _) => hd
+  | _, vcons _ hd _ => hd
 
 def hd_vec3 ?{A : U} ?{n : nat} (xs : vec A (succ n)) :=
   match xs with
   | vnil =>
-  | (vcons _ hd _) => hd
+  | vcons _ hd _ => hd
 
 def vlength ?{A : U} ?{n : nat} : vec A n -> exists (fn x => eq x n)
   | vnil => ex zero refl
-  | (vcons _ _ tl) =>
+  | vcons _ _ tl =>
     match vlength tl with
-    | ex n pf => ex (succ n) (congr (fn x => succ x) pf)
+    | ex n pf => ⟨succ n, {congr (fn x => succ x) pf}⟩
 
 def xs := vcons zero vnil
-def x := hd_vec xs
+def x := hd_vec1 xs
 def y := hd_vec2 xs
 def z := hd_vec3 xs

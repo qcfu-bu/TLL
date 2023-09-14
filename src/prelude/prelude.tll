@@ -161,8 +161,12 @@ def free_list‹s,t› ?{A : Type‹s›} (f : A -> unit) : list‹_,t›A -> un
 
 -- sort-polymorphic existential
 notation ( × ) := prod1 %1 %2
+notation ( ⟨ ,{ }⟩ ) := ex %1 %2
 notation ( ⟨{ }, ⟩ ) := ex0 %1 %2
 notation ( ⟨ , ⟩ ) := ex1 %1 %2
+
+inductive exists‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : L where
+  | ex (m : A) {n : B m} : @exists A B
 
 inductive exists0‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : L where
   | ex0 {m : A} (n : B m) : @exists0 A B

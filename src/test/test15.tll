@@ -1,0 +1,101 @@
+def gcd (a b : int) : int :=
+  if b <= 0 then a else gcd b (a % b)
+
+def lcm (a b : int) : int :=
+  (a * b) / gcd a b
+
+#[logical]
+def coprime (a b : int) : U :=
+  gcd a b = 1
+
+-- ———————————————————————————————————————————————
+-- Rivest–Shamir–Adleman public-key
+
+-- x and y are large prime numbers (primality is assumed)
+-- n is the product of x and y (part of public key)
+-- tot is the totient value of n (part of private key)
+-- e is the exponent (part of public key)
+-- P0 is the plaintext of the client
+-- C is the ciphertext of the client encrypted with public key (n, e)
+
+-- Only the public key (n, e) and ciphertext C are transmitted
+-- across the channel at runtime.
+-- ———————————————————————————————————————————————
+
+#[logical]
+def RSA : proto :=
+  ⇑{x : int} -> ⇑{y : int} ->
+  ⇑(n : int) -> ⇑{n = x * y} ->
+  ⇑{tot : int} -> ⇑{tot = lcm (x - 1) (y - 1)} ->
+  ⇑(e : int) -> ⇑{coprime e tot} -> ⇑{1 < e = true} -> ⇑{e < tot = true} ->
+  ⇓{P0 : int} -> ⇓(C : int) -> ⇓{C = powm P0 e n} -> end
+
+#[logical]def RSA_ch : L := ch⟨ RSA ⟩
+#[logical]def RSA_hc : L := hc⟨ RSA ⟩
+
+-- ———————————————————————————————————————————————
+
+def server (ch : RSA_ch) : IO unit :=
+  -- server side parameters
+  let x := 61 in
+  let y := 53 in
+  let n := x * y in
+  let tot := lcm (x - 1) (y - 1) in
+  let e := 17 in
+  let d := 413 in
+  -- send public key to client
+  let* ch := send ch x in
+  let* ch := send ch y in
+  let* ch := send ch n in
+  let* ch := send ch refl in
+  let* ch := send ch tot in
+  let* ch := send ch refl in
+  let* ch := send ch e in
+  let* ch := send ch refl in
+  let* ch := send ch refl in
+  let* ch := send ch refl in
+  -- receive ciphertext from client
+  let* ⟨{P0}, ch⟩ := recv ch in
+  let* ⟨C, ch⟩ := recv ch in 
+  let* ⟨{pf}, ch⟩ := recv ch in
+  -- decrypt client message
+  let P1 := powm C d n in
+  print ("server received: " ++ string_of_int P1 ++ "\n");
+  close ch
+
+-- ———————————————————————————————————————————————
+
+def client (ch : RSA_hc) : IO unit :=
+  -- client plaintext
+  let P0 := 123 in
+  -- receive public key from server
+  let* ⟨{x}, ch⟩ := recv ch in
+  let* ⟨{y}, ch⟩ := recv ch in
+  let* ⟨n, ch⟩ := recv ch in
+  let* ⟨{pf1}, ch⟩ := recv ch in
+  let* ⟨{tot}, ch⟩ := recv ch in
+  let* ⟨{pf2}, ch⟩ := recv ch in
+  let* ⟨e, ch⟩ := recv ch in
+  let* ⟨{pf3}, ch⟩ := recv ch in
+  let* ⟨{pf4}, ch⟩ := recv ch in
+  let* ⟨{pf5}, ch⟩ := recv ch in
+  -- send ciphertext to server
+  let* ch := send ch P0 in
+  let* ch := send ch (powm P0 e n) in
+  let* ch := send ch refl in
+  close ch
+
+-- ———————————————————————————————————————————————
+
+def main : IO unit :=
+  -- spawn server process
+  let* c := fork c => server c in
+  -- spawn client process
+  let* c0 := 
+    fork (c0 : ch⟨ ⇓(RSA_hc) -> end ⟩ ) =>
+      let* ⟨c, c0⟩ := recv c0 in
+      close c0; client c
+  in
+  -- connect client process to server
+  let* c0 := send c0 c in
+  close c0
