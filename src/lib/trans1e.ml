@@ -294,12 +294,12 @@ and infer_tm ctx env m : tm * tm box =
   (* primitive effects *)
   | Print m ->
     let m_elab = check_tm ctx env m String_t in
-    (IO (Ind (unit_ind, [], [], [])), _Print m_elab)
+    (IO (Ind (base_ind, [U], [], [])), _Print m_elab)
   | Prerr m ->
     let m_elab = check_tm ctx env m String_t in
-    (IO (Ind (unit_ind, [], [], [])), _Prerr m_elab)
+    (IO (Ind (base_ind, [U], [], [])), _Prerr m_elab)
   | ReadLn m ->
-    let m_elab = check_tm ctx env m (Ind (unit_ind, [], [], [])) in
+    let m_elab = check_tm ctx env m (Ind (base_ind, [U], [], [])) in
     (IO String_t, _ReadLn m_elab)
   | Fork m ->
     let t, m_elab = infer_tm ctx env m in
@@ -309,7 +309,7 @@ and infer_tm ctx env m : tm * tm box =
        (match whnf env a with
         | Ch (role, a) -> 
           let _, b = unbind bnd in
-          assert_equal1 env b (IO (Ind (unit_ind, [], [], [])));
+          assert_equal1 env b (IO (Ind (base_ind, [U], [], [])));
           (IO (Ch (not role, a)), _Fork m_elab)
         | _ -> failwith "trans1e.fork")
      | _ -> failwith "trans1e.fork")
@@ -340,7 +340,7 @@ and infer_tm ctx env m : tm * tm box =
     let t, m_elab = infer_tm ctx env m in
     let t = State.resolve t in
     (match whnf env t with
-     | Ch (_, End) -> (IO (Ind (unit_ind, [], [], [])), _Close m_elab)
+     | Ch (_, End) -> (IO (Ind (base_ind, [U], [], [])), _Close m_elab)
      | _ -> failwith "trans1e.infer_close")
   (* magic *)
   | Magic a ->

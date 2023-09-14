@@ -189,9 +189,9 @@ module Logical = struct
     | End -> Proto
     | Ch (_, a) -> check_tm ctx env a Proto; Type L
     (* primitive effects *)
-    | Print m -> check_tm ctx env m String_t; IO (Ind (unit_ind, [], [], []))
-    | Prerr m -> check_tm ctx env m String_t; IO (Ind (unit_ind, [], [], []))
-    | ReadLn m -> check_tm ctx env m (Ind (unit_ind, [], [], [])); IO String_t
+    | Print m -> check_tm ctx env m String_t; IO (Ind (base_ind, [U], [], []))
+    | Prerr m -> check_tm ctx env m String_t; IO (Ind (base_ind, [U], [], []))
+    | ReadLn m -> check_tm ctx env m (Ind (base_ind, [U], [], [])); IO String_t
     | Fork m ->
       let t = infer_tm ctx env m in
       (match whnf env t with
@@ -199,7 +199,7 @@ module Logical = struct
          (match whnf env a with
           | Ch (role, a) ->
             let _, b = unbind bnd in
-            assert_equal env b (IO (Ind (unit_ind, [], [], [])));
+            assert_equal env b (IO (Ind (base_ind, [U], [], [])));
             IO (Ch (not role, a))
           | _ -> failwith "trans12.Logical.infer_tm(Fork)")
        | _ -> failwith "trans12.Logical.infer_tm(Fork)")
@@ -225,7 +225,7 @@ module Logical = struct
     | Close m ->
       let t = infer_tm ctx env m in
       (match whnf env t with
-       | Ch (_, End) -> IO (Ind (unit_ind, [], [], []))
+       | Ch (_, End) -> IO (Ind (base_ind, [U], [], []))
        | _ -> failwith "trans12.Logical.infer_tm(Close)")
     (* magic *)
     | Magic a ->
@@ -672,12 +672,12 @@ module Program = struct
     (* primitive effects *)
     | Print m -> 
       let m_elab, usg = check_tm ctx env m String_t in
-      Syntax2.(IO (Ind (unit_ind, [], [], [])), _Print m_elab, usg)
+      Syntax2.(IO (Ind (base_ind, [U], [], [])), _Print m_elab, usg)
     | Prerr m -> 
       let m_elab, usg = check_tm ctx env m String_t in
-      Syntax2.(IO (Ind (unit_ind, [], [], [])), _Prerr m_elab, usg)
+      Syntax2.(IO (Ind (base_ind, [U], [], [])), _Prerr m_elab, usg)
     | ReadLn m -> 
-      let m_elab, usg = check_tm ctx env m (Ind (unit_ind, [], [], [])) in
+      let m_elab, usg = check_tm ctx env m (Ind (base_ind, [U], [], [])) in
       Syntax2.(IO String_t, _ReadLn m_elab, usg)
     | Fork m -> 
       let t, m_elab, usg = infer_tm ctx env m in
@@ -686,7 +686,7 @@ module Program = struct
          (match whnf env a with
           | Ch (role, a) ->
             let _, b = unbind bnd in
-            Logical.assert_equal env b (IO (Ind (unit_ind, [], [], [])));
+            Logical.assert_equal env b (IO (Ind (base_ind, [U], [], [])));
             Syntax2.(IO (Ch (not role, a)), _Fork m_elab, usg)
           | _ -> failwith "trans12.Program.infer_tm(Fork)")
        | _ -> failwith "trans12.Program.infer_tm(Fork)")
@@ -715,7 +715,7 @@ module Program = struct
       let t, m_elab, usg = infer_tm ctx env m in
       (match whnf env t with
        | Ch (role, End) ->
-         Syntax2.(IO (Ind (unit_ind, [], [], [])), _Close role m_elab, usg)
+         Syntax2.(IO (Ind (base_ind, [U], [], [])), _Close role m_elab, usg)
        | _ -> failwith "trans12.Program.infer_tm(Close)")
     (* magic *)
     | Magic a ->
@@ -1090,7 +1090,7 @@ let rec check_dcls ctx env = function
     let sargs, (m, a) = unmbind sch in
     (match (sargs, whnf env a) with
      | [||], IO a -> 
-       Logical.assert_equal env a (Ind (unit_ind, [], [], []));
+       Logical.assert_equal env a (Ind (base_ind, [U], [], []));
        let m_elab, usg = Program.check_tm ctx env m (IO a) in
        Syntax2.([ Main { body = unbox m_elab } ], usg)
      | _ -> failwith "trans12.check_dcls(Main)")

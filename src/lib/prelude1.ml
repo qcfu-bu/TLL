@@ -31,7 +31,7 @@ let prelude_const id =
   try Option.get (find_const id prelude_nspc)
   with _ -> failwith "prelude_i(%s)" id
 
-let unit_ind = prelude_ind "unit"
+let base_ind = prelude_ind "base"
 let tt_constr = prelude_constr "tt"
 
 let exists0_ind = prelude_ind "exists0"

@@ -209,7 +209,7 @@ let pp_prelude fmt () =
   let open Trans12 in
   let ex1U = State.find_constr ex1_constr [U;L] in
   let ex1L = State.find_constr ex1_constr [L;L] in
-  let ttU = State.find_constr tt_constr [] in
+  let ttU = State.find_constr tt_constr [U] in
   let trueU = State.find_constr true_constr [] in
   let falseU = State.find_constr false_constr [] in
   pf fmt

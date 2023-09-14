@@ -1,53 +1,12 @@
-notation ( |> ) := (%2 %1)
-notation ( @@ ) := (%1 %2)
-notation ( = ) := eq %1 %2
-notation ( ` ) := sing %1
-notation ( && ) := and
-notation ( || ) := or
-notation ( + ) := add %1 %2
-notation ( - ) := sub %1 %2
-notation ( * ) := mul %1 %2
-notation ( / ) := div %1 %2
-notation ( % ) := rem %1 %2
-notation ( ^ ) := pow %1 %2
-notation ( < ) := lt %1 %2
-notation ( > ) := gt %1 %2
-notation ( <= ) := lte %1 %2
-notation ( >= ) := gte %1 %2
-notation ( × ) := prod1 %1 %2
-notation ( :: ) := cons %1 %2
-notation ( ⟨ , ⟩ ) := pair %1 %2
-
-
-
-
-#[logical]
-inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
-  | refl : m = m
-
 inductive boxed‹s› (A : Type‹s›) : L where
   | box (m : A) : boxed A
 
 inductive sing‹s,t› ?(A : Type‹s›) : A -> Type‹t› where
   | just (m : A) : `m
 
-inductive unit‹s› : Type‹s› where
-  | tt : unit
-
-inductive bool : U where
-  | true  : bool
-  | false : bool
-
 inductive choice : L where
   | next : choice
   | free : choice
-
-inductive prod‹s,r,t› (A : Type‹s›) (B : Type‹r›) : Type‹t› where
-  | pair (m : A) (n : B) : prod A B
-
-inductive nat : U where
-  | zero : nat
-  | succ (_ : nat) : nat
 
 
 
@@ -67,14 +26,14 @@ def sing_uniq‹s,t› ?(A : Type‹s›) ?(x0 : A) : forall (x : sing‹s,t›x
 inductive stream_node‹s› (A : Type‹s›) : L where
   | stream_cons
     (hd : A)
-    (tl : forall (x : choice) -o
+    (tl : forall (x : choice) .->
             match x with
             | next => stream_node A
             | free => unit) : stream_node A
 
 #[logical]
 def stream‹s› (A : Type‹s›) :=
-  forall (x : choice) -o
+  forall (x : choice) .->
     match x with
     | next => stream_node A
     | free => unit
@@ -82,7 +41,7 @@ def stream‹s› (A : Type‹s›) :=
 def free_stream‹s› ?{A : Type‹s›} (st : stream A) : unit‹U› :=
   match st free with tt => tt
 
-def uncons_stream‹s› ?{A : Type‹s›} (st : stream A) : prod‹_,_,L› A (stream A) :=
+def uncons_stream‹s› ?{A : Type‹s›} (st : stream A) : A × stream A :=
   let stream_cons hd tl := st next in
   ⟨hd, tl⟩
 
