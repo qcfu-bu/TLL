@@ -189,6 +189,8 @@ let prim_close = [%sedlex.regexp? "close"]
 
 (* dcl *)
 let dcl_def = [%sedlex.regexp? "def"]
+let dcl_lemma = [%sedlex.regexp? "lemma"]
+let dcl_theorem = [%sedlex.regexp? "theorem"]
 let dcl_inductive = [%sedlex.regexp? "inductive"]
 let dcl_where = [%sedlex.regexp? "where"]
 let dcl_tmpl = [%sedlex.regexp? "tmpl"]
@@ -299,6 +301,8 @@ let rec tokenize buf =
   | modifier -> MODIFIER
   (* dcl *)
   | dcl_def -> DCL_DEF
+  | dcl_lemma -> DCL_LEMMA
+  | dcl_theorem -> DCL_THEOREM
   | dcl_inductive -> DCL_INDUCTIVE
   | dcl_where -> DCL_WHERE
   | dcl_tmpl -> DCL_TMPL

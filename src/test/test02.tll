@@ -1,0 +1,9 @@
+notation ( + ) := add %1 %2
+
+inductive vec‹s› (A : Type‹s›) : nat -> L where
+| vnil : vec A zero
+| vcons ?{n : nat} (hd : A) (tl : vec A n) : vec A (succ n)
+
+def vec_append‹s› ?{A : Type‹s›} ?{m n : nat} : vec A m -> vec A n .-> vec A (m + n)
+  | vnil        , ys => ys
+  | vcons _ x xs, ys => vcons x (vec_append xs ys)

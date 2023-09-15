@@ -185,6 +185,8 @@
 
 // dcl
 %token DCL_DEF            // def
+%token DCL_LEMMA          // def
+%token DCL_THEOREM        // def
 %token DCL_INDUCTIVE      // inductive
 %token DCL_WHERE          // where
 %token DCL_TMPL           // tmpl
@@ -855,9 +857,14 @@ def foo‹s› (x : A) (y : B) : C := m
 def foo‹s› (x : A) : A -> B
   | P x => n
 */
+let dcl_def_header :=
+  | relv = dcl_modifier; DCL_DEF; { relv }
+  | DCL_LEMMA; { N }
+  | DCL_THEOREM; { N }
+
 let dcl_def :=
-  | relv = dcl_modifier;
-    DCL_DEF; id_sids = dcl_iden; args = dcl_args; COLON; b = tm_closed; cls = tm_cls0;
+  | relv = dcl_def_header;
+    id_sids = dcl_iden; args = dcl_args; COLON; b = tm_closed; cls = tm_cls0;
     { let id, sids = id_sids in
       let a, view =
         List.fold_right (fun (relv, id, a, v) (b, view) ->
@@ -868,8 +875,8 @@ let dcl_def :=
       let m = Fun (a, Binder (Some id, cls), view) in
       let sch = Binder (sids, (m, a)) in
       Definition { name = id; relv; body = sch; view } }
-  | relv = dcl_modifier;
-    DCL_DEF; id_sids = dcl_iden; args = dcl_args; opt = tm_ann_open; ASSIGN; m = tm;
+  | relv = dcl_def_header;
+    id_sids = dcl_iden; args = dcl_args; opt = tm_ann_open; ASSIGN; m = tm;
     { let id, sids = id_sids in
       let b =
         match opt with

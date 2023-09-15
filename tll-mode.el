@@ -65,7 +65,7 @@
 
 (setq tll-font-lock-keywords
       `(;; top level declarations
-        ("\\(\\<inductive\\>\\|\\<def\\>\\|\\<tmpl\\>\\|\\<impl\\>\\|\\<extern\\>\\|\\<notation\\>\\)\s*\\(\\w*\\)"
+        ("\\(\\<inductive\\>\\|\\<def\\>\\|\\<lemma\\>\\|\\<theorem\\>\\|\\<tmpl\\>\\|\\<impl\\>\\|\\<extern\\>\\|\\<notation\\>\\)\s*\\(\\w*\\)"
          (1 font-lock-keyword-face)
          (2 font-lock-variable-name-face))
         ;; expression syntax
