@@ -1,0 +1,15 @@
+def append‹s,t› ?{A : Type‹s›} : list‹s,t›A -> list‹s,t›A .-> list‹s,t›A
+  | nil    , ys => ys
+  | x :: xs, ys => x :: append xs ys
+
+#[logical]
+def len‹s,t› ?{A : Type‹s›} : list‹_,t›A -> nat
+  | nil     => zero
+  | _ :: tl => succ (len tl)
+
+#[logical]
+def append_len‹s,t› ?{A : Type‹s›} 
+: ∀ (xs ys : list‹_,t›A) -> len (append xs ys) = add (len xs) (len ys)
+  | nil    , ys => refl
+  | x :: xs, ys => 
+    rwl (fn n => succ (len (append xs ys)) = succ n) (append_len xs ys) refl
