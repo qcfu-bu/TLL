@@ -23,15 +23,13 @@ def rwl‹s,r› ?{A : Type‹s›} ?{m n : A} {B : A -> Type‹r›} : {m = n} 
 def rwr‹s,r› ?{A : Type‹s›} ?{m n : A} {B : A -> Type‹r›} : {m = n} -> B n -> B m
   | refl, x => x
 
-#[logical]
-def congr‹s,r,t› ?(A : Type‹s›) ?(B : Type‹r›) ?(m n : A) (f : forall‹t›(_ : A), B)
+theorem congr‹s,r,t› ?(A : Type‹s›) ?(B : Type‹r›) ?(m n : A) (f : forall‹t›(_ : A), B)
 : eq m n -> eq (f m) (f n)
   | refl => refl
 
 /- axiom_K is admissible because pattern matching assumes
    that all variables introduced by the clauses are flexible. -/
-#[logical]
-def axiom_K ?{A : U} ?{m : A} : forall (x : m = m) -> x = refl
+theorem axiom_K ?{A : U} ?{m : A} : forall (x : m = m) -> x = refl
   | refl => refl
 
 
@@ -50,8 +48,7 @@ def ssing‹s› ?(A : Type‹s›) (m : A) : Type‹s› := @sing‹s,s› A m
 def sing_elim‹s,t› ?{A : Type‹s›} ?{x : A} : sing‹s,t›x -> A
   | just x => x
 
-#[logical]
-def sing_uniq‹s,t› ?(A : Type‹s›) ?(x0 : A) : forall (x : sing‹s,t›x0) -> x0 = sing_elim x
+theorem sing_uniq‹s,t› ?(A : Type‹s›) ?(x0 : A) : forall (x : sing‹s,t›x0) -> x0 = sing_elim x
   | just _ => refl
 
 
@@ -64,9 +61,7 @@ inductive base‹s› : Type‹s› where
 #[logical]
 def unit : U := base
 
-#[logical]
-def unit_eta (x : unit) : x = tt :=
-  match x as x0 in x0 = tt with
+theorem unit_eta : forall (x : unit) -> x = tt
   | tt => refl
 
 
