@@ -51,9 +51,9 @@ and pp_tm fmt = function
   | Constr1 (c, ms) ->
     pf fmt "@[(%a@;<1 2>@[%a@])@]" Constr.pp c (list ~sep:sp pp_tm) ms
   | Match0 (m, cls) ->
-    pf fmt "@[<v 0>@[match %a with@]@;<1 0>@[%a@]@;<1 0>end@]" pp_tm m pp_cl0s cls
+    pf fmt "@[<v 0>(@[match %a with@]@;<1 0>@[%a@])@]" pp_tm m pp_cl0s cls
   | Match1 (_, m, cls) ->
-    pf fmt "@[<v 0>@[match %a with@]@;<1 0>@[%a@]@;<1 0>end@]" pp_tm m pp_cl1s cls
+    pf fmt "@[<v 0>(@[match %a with@]@;<1 0>@[%a@])@]" pp_tm m pp_cl1s cls
   | Absurd -> pf fmt "!!"
   (* lazy *)
   | Lazy m -> pf fmt "@[lazy(@[%a@])@]" pp_tm m

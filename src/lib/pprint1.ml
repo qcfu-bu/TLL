@@ -115,7 +115,7 @@ and pp_tm fmt = function
     pf fmt "@[(%a‹%a›@;<1 2>@[%a@])@]" Constr.pp c pp_sorts ss
       (list ~sep:sp pp_tm) (ns @ ms)
   | Match (_, ms, a, cls) ->
-    pf fmt "@[<v 0>@[match %a in@;<1 2>%a@;<1 0>with@]@;<1 0>@[<v 0>%a@]@]"
+    pf fmt "@[<v 0>(@[match %a in@;<1 2>%a@;<1 0>with@]@;<1 0>@[<v 0>%a@])@]"
       (list ~sep:comma pp_tm) ms pp_tm a (pp_cls ", ") cls
   (* monad *)
   | IO a -> pf fmt "IO %a" pp_tm a
