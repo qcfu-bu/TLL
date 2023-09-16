@@ -1463,14 +1463,12 @@ intptr_t fn1_mklistL_826(intptr_t* env) {
 }
 
 intptr_t fn0_list_lenU_828(intptr_t __577) {
-  intptr_t x_578; intptr_t hd_579; intptr_t tl_580; intptr_t x_581;
-  intptr_t x_582;
+  intptr_t x_578; intptr_t tl_580; intptr_t x_581; intptr_t x_582;
   switch(ctagof(__577)){
     case 27: //nilUU_27
       x_578 = 0;
       break;
     case 28: //consUU_28
-      hd_579 = getbox(__577, 0);
       tl_580 = getbox(__577, 1);
       x_582 = fn0_list_lenU_828(tl_580);
       x_581 = __add__(1, x_582);
@@ -1489,15 +1487,13 @@ intptr_t fn1_list_lenU_829(intptr_t* env) {
 }
 
 intptr_t fn0_list_lenL_831(intptr_t __584) {
-  intptr_t x_585; intptr_t hd_586; intptr_t tl_587; intptr_t x_588;
-  intptr_t x_589;
+  intptr_t x_585; intptr_t tl_587; intptr_t x_588; intptr_t x_589;
   switch(ctagof(__584)){
     case 25: //nilUL_25
       x_585 = 0;
       ffree(__584);
       break;
     case 26: //consUL_26
-      hd_586 = getbox(__584, 0);
       tl_587 = getbox(__584, 1);
       x_589 = fn0_list_lenL_831(tl_587);
       x_588 = __add__(1, x_589);
@@ -2196,7 +2192,7 @@ int main() {
   list_lenL_583 = mkclo(fn1_list_lenL_832, 0, 1);
   print_listU_590 = mkclo(fn1_print_listU_835, 0, 1);
   print_listL_607 = mkclo(fn1_print_listL_840, 0, 1);
-  x_625 = fn0_mklistL_825(2000000);
+  x_625 = fn0_mklistL_825(1000000);
   test_624 = x_625;
   x_626 = lazy(lazy__845, 4);
   setlazy(x_626, string_of_int_236, 0);
