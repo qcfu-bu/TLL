@@ -72,7 +72,7 @@ def print_list‹t› : list‹_,t›int -> IO unit
 
 
 /- benchmarks for allocating sequential msort
-   3.06s user 0.46s system 99% cpu 3.550 total -/
+   2.95s user 0.42s system 99% cpu 3.386 total -/
 -- def main : IO unit :=
 --   let test := mklist‹U› 2000000 in
 --   let sorted := msort test in
@@ -80,7 +80,7 @@ def print_list‹t› : list‹_,t›int -> IO unit
 --   print (string_of_int len)
 
 /- benchmarks for non-allocating sequential msort
-   2.58s user 0.05s system 99% cpu 2.636 total -/
+   2.49s user 0.04s system 99% cpu 2.527 total -/
 -- def main : IO unit :=
 --   let test := mklist‹L› 2000000 in
 --   let sorted := msort test in
@@ -88,7 +88,7 @@ def print_list‹t› : list‹_,t›int -> IO unit
 --   print (string_of_int len)
 
 /- benchmarks for allocating concurrent msort
-   7.48s user 1.48s system 575% cpu 1.557 total -/
+   7.48s user 1.36s system 612% cpu 1.442 total -/
 -- def main : IO unit :=
 --   let test := mklist‹U› 2000000 in
 --   let* just sorted := cmsort test in
@@ -96,7 +96,7 @@ def print_list‹t› : list‹_,t›int -> IO unit
 --   print (string_of_int len)
 
 /- benchmarks for non-allocating concurrent msort
-   4.25s user 0.16s system 429% cpu 1.027 total -/
+   3.85s user 0.12s system 425% cpu 0.932 total -/
 def main : IO unit :=
   let test := mklist‹L› 2000000 in
   let* just sorted := cmsort test in

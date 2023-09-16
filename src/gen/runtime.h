@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/_types/_intptr_t.h>
 
 #define nothing 0
 
@@ -12,55 +13,55 @@ void begin_run(void);
 void end_run(void);
 
 // core
-void mkclo(intptr_t *lhs, intptr_t (*fn)(intptr_t[]), unsigned int fvc, unsigned int argc);
+intptr_t mkclo(intptr_t (*fn)(intptr_t[]), unsigned int fvc, unsigned int argc);
 void setclo(intptr_t clo, intptr_t arg, unsigned int i);
-void appc(intptr_t *lhs, intptr_t clo, intptr_t arg);
+intptr_t appc(intptr_t clo, intptr_t arg);
 void ffree(intptr_t x);
 
 // inductive
 unsigned int ctagof(intptr_t box);
-void mkbox(intptr_t *lhs, unsigned int ctag, unsigned int argc);
-void rebox(intptr_t *lhs, intptr_t fip, unsigned int ctag);
+intptr_t mkbox(unsigned int ctag, unsigned int argc);
+intptr_t rebox(intptr_t fip, unsigned int ctag);
 void setbox(intptr_t box, intptr_t arg, unsigned int i);
-void getbox(intptr_t *lhs, intptr_t box, unsigned int i);
+intptr_t getbox(intptr_t box, unsigned int i);
 void failcase(void);
 void absurd(void);
 
 // lazy
-void lazy(intptr_t *lhs, intptr_t (*fn)(intptr_t[]), unsigned int fvc);
+intptr_t lazy(intptr_t (*fn)(intptr_t[]), unsigned int fvc);
 void setlazy(intptr_t laz, intptr_t arg, unsigned int i);
-void force(intptr_t *lhs, intptr_t laz);
+intptr_t force(intptr_t laz);
 
 // primitive operators
-void __neg__(intptr_t *lhs, intptr_t e);
-void __add__(intptr_t *lhs, intptr_t e1, intptr_t e2);
-void __sub__(intptr_t *lhs, intptr_t e1, intptr_t e2);
-void __mul__(intptr_t *lhs, intptr_t e1, intptr_t e2);
-void __div__(intptr_t *lhs, intptr_t e1, intptr_t e2);
-void __mod__(intptr_t *lhs, intptr_t e1, intptr_t e2);
-void __lte__(intptr_t *lhs, intptr_t e1, intptr_t e2);
-void __gte__(intptr_t *lhs, intptr_t e1, intptr_t e2);
-void __lt__(intptr_t *lhs, intptr_t e1, intptr_t e2);
-void __gt__(intptr_t *lhs, intptr_t e1, intptr_t e2);
-void __eq__(intptr_t *lhs, intptr_t e1, intptr_t e2);
-void __chr__(intptr_t *lhs, intptr_t e);
-void __ord__(intptr_t *lhs, intptr_t e);
-void __str__(intptr_t *lhs, char* buf);
-void __push__(intptr_t *lhs, intptr_t e1, intptr_t e2);
-void __cat__(intptr_t *lhs, intptr_t e1, intptr_t e2);
-void __size__(intptr_t *lhs, intptr_t e);
-void __indx__(intptr_t *lhs, intptr_t e1, intptr_t e2);
+intptr_t __neg__(intptr_t e);
+intptr_t __add__(intptr_t e1, intptr_t e2);
+intptr_t __sub__(intptr_t e1, intptr_t e2);
+intptr_t __mul__(intptr_t e1, intptr_t e2);
+intptr_t __div__(intptr_t e1, intptr_t e2);
+intptr_t __mod__(intptr_t e1, intptr_t e2);
+intptr_t __lte__(intptr_t e1, intptr_t e2);
+intptr_t __gte__(intptr_t e1, intptr_t e2);
+intptr_t __lt__(intptr_t e1, intptr_t e2);
+intptr_t __gt__(intptr_t e1, intptr_t e2);
+intptr_t __eq__(intptr_t e1, intptr_t e2);
+intptr_t __chr__(intptr_t e);
+intptr_t __ord__(intptr_t e);
+intptr_t __str__(char* buf);
+intptr_t __push__(intptr_t e1, intptr_t e2);
+intptr_t __cat__(intptr_t e1, intptr_t e2);
+intptr_t __size__(intptr_t e);
+intptr_t __indx__(intptr_t e1, intptr_t e2);
 
 // primitive effects
-void __print__(intptr_t *lhs, intptr_t e);
-void __prerr__(intptr_t *lhs, intptr_t e);
-void __readln__(intptr_t *lhs, intptr_t e);
-void __fork__(intptr_t *lhs, intptr_t e);
-void __send__(intptr_t *lhs, intptr_t c, intptr_t e);
-void __recv0__(intptr_t *lhs, intptr_t c);
-void __recv1__(intptr_t *lhs, intptr_t c);
-void __close0__(intptr_t *lhs, intptr_t c);
-void __close1__(intptr_t *lhs, intptr_t c);
+intptr_t __print__(intptr_t e);
+intptr_t __prerr__(intptr_t e);
+intptr_t __readln__(intptr_t e);
+intptr_t __fork__(intptr_t e);
+intptr_t __send__(intptr_t c, intptr_t e);
+intptr_t __recv0__(intptr_t c);
+intptr_t __recv1__(intptr_t c);
+intptr_t __close0__(intptr_t c);
+intptr_t __close1__(intptr_t c);
 
 // magic
 void magic(void);

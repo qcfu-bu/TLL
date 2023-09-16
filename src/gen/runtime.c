@@ -54,7 +54,7 @@ typedef struct {
 
 typedef clo_block* clo_t;
 
-void mkclo(intptr_t *lhs, intptr_t (*fn)(intptr_t[]), unsigned int fvc, unsigned int argc) {
+intptr_t mkclo(intptr_t (*fn)(intptr_t[]), unsigned int fvc, unsigned int argc) {
     // layout: [env_max,env_size,fn,[self,fvs,_]]
     unsigned int env_smax = 1 + fvc + argc;
     unsigned int env_size = 1 + fvc;
@@ -64,7 +64,7 @@ void mkclo(intptr_t *lhs, intptr_t (*fn)(intptr_t[]), unsigned int fvc, unsigned
     clo->env_size = env_size;
     clo->fn = fn;
     clo->env[0] = (intptr_t)clo;
-    *lhs = (intptr_t)clo;
+    return (intptr_t)clo;
 }
 
 void setclo(intptr_t box, intptr_t arg, unsigned int i) {
@@ -72,7 +72,7 @@ void setclo(intptr_t box, intptr_t arg, unsigned int i) {
     ((clo_t)box)->env[i] = arg;
 }
 
-void appc(intptr_t *lhs, intptr_t clo0, intptr_t arg) {
+intptr_t appc(intptr_t clo0, intptr_t arg) {
     unsigned int env_smax = ((clo_t)clo0)->env_smax;
     unsigned int env0_size = ((clo_t)clo0)->env_size;
     unsigned int env1_size = env0_size + 1;
@@ -84,12 +84,13 @@ void appc(intptr_t *lhs, intptr_t clo0, intptr_t arg) {
     clo1->env[env0_size] = arg;
     clo1->env_size = env1_size;
     if (env1_size < env_smax) {
-        *lhs = (intptr_t)clo1;
+        return (intptr_t)clo1;
     }
     else {
         intptr_t (*fn)(intptr_t[]) = clo1->fn;
-        *lhs = (*fn)(clo1->env);
+        intptr_t result = (*fn)(clo1->env);
         myfree(clo1);
+        return result;
     }
 }
 
@@ -114,23 +115,23 @@ unsigned int ctagof(intptr_t box) {
     return ((box_t)box)->ctag;
 }
 
-void mkbox(intptr_t *lhs, unsigned int ctag, unsigned int argc) {
+intptr_t mkbox(unsigned int ctag, unsigned int argc) {
     box_t box = (box_t)myalloc(sizeofbox(argc));
     box->ctag = ctag;
-    *lhs = (intptr_t)box;
+    return (intptr_t)box;
 }
 
-void rebox(intptr_t *lhs, intptr_t fip, unsigned int ctag) {
+intptr_t rebox(intptr_t fip, unsigned int ctag) {
     ((box_t)fip)->ctag = ctag;
-    *lhs = fip;
+    return fip;
 }
 
 void setbox(intptr_t box, intptr_t arg, unsigned int i) {
     ((box_t)box)->data[i] = arg;
 }
 
-void getbox(intptr_t *lhs, intptr_t box, unsigned int i) {
-    *lhs = ((box_t)box)->data[i];
+intptr_t getbox(intptr_t box, unsigned int i) {
+    return ((box_t)box)->data[i];
 }
 
 void failcase(void) {
@@ -156,80 +157,80 @@ typedef struct {
 
 typedef laz_block* laz_t;
 
-void lazy(intptr_t *lhs, intptr_t (*fn)(intptr_t *), unsigned int fvc) {
+intptr_t lazy(intptr_t (*fn)(intptr_t *), unsigned int fvc) {
     // layout: [fn,[fvs]]
     unsigned int laz_size = sizeoflaz(fvc);
     laz_t laz = myalloc(laz_size);
     laz->fn = fn;
-    *lhs = (intptr_t)laz;
+    return (intptr_t)laz;
 }
 
 void setlazy(intptr_t laz, intptr_t arg, unsigned int i) {
     ((laz_t)laz)->env[i] = arg;
 }
 
-void force(intptr_t *lhs, intptr_t laz) {
+intptr_t force(intptr_t laz) {
     laz_t laz1 = (laz_t)laz;
     intptr_t (*fn)(intptr_t[]) = laz1->fn;
-    *lhs = (*fn)(laz1->env);
+    return (*fn)(laz1->env);
 }
 
 
 
 
 // primitive operators
-void __neg__(intptr_t *lhs, intptr_t e) { *lhs = -e; }
-void __add__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 + e2; }
-void __sub__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 - e2; }
-void __mul__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 * e2; }
-void __div__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e2 == 0 ? 0 : e1 / e2; }
+intptr_t __neg__(intptr_t e) { return -e; }
+intptr_t __add__(intptr_t e1, intptr_t e2) { return e1 + e2; }
+intptr_t __sub__(intptr_t e1, intptr_t e2) { return e1 - e2; }
+intptr_t __mul__(intptr_t e1, intptr_t e2) { return e1 * e2; }
+intptr_t __div__(intptr_t e1, intptr_t e2) { return e2 == 0 ? 0 : e1 / e2; }
 
-void __mod__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+intptr_t __mod__(intptr_t e1, intptr_t e2) {
     if (e2 == 0) {
-        *lhs = 0;
+        return 0;
     }
     else {
         intptr_t r = e1 % e2;
-        *lhs = r < 0 ? r + labs(e2) : r;
+        return r < 0 ? r + labs(e2) : r;
     }
 }
 
-void __lte__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 <= e2 ? __true__ : __false__; }
-void __gte__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 >= e2 ? __true__ : __false__; }
-void __lt__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 < e2 ? __true__ : __false__; }
-void __gt__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 > e2 ? __true__ : __false__; }
-void __eq__(intptr_t *lhs, intptr_t e1, intptr_t e2) { *lhs = e1 == e2 ? __true__ : __false__; }
-void __chr__(intptr_t *lhs, intptr_t e) { __mod__(lhs, e, 256); }
-void __ord__(intptr_t *lhs, intptr_t e) { *lhs = e; }
+intptr_t __lte__(intptr_t e1, intptr_t e2) { return e1 <= e2 ? __true__ : __false__; }
+intptr_t __gte__(intptr_t e1, intptr_t e2) { return e1 >= e2 ? __true__ : __false__; }
+intptr_t __lt__(intptr_t e1, intptr_t e2) { return e1 < e2 ? __true__ : __false__; }
+intptr_t __gt__(intptr_t e1, intptr_t e2) { return e1 > e2 ? __true__ : __false__; }
+intptr_t __eq__(intptr_t e1, intptr_t e2) { return e1 == e2 ? __true__ : __false__; }
+intptr_t __chr__(intptr_t e) { return __mod__(e, 256); }
+intptr_t __ord__(intptr_t e) { return e; }
 
-void __str__(intptr_t *lhs, char *buf) {
-    *lhs = (intptr_t)sdsnew(buf);
+intptr_t __str__(char *buf) {
+    return (intptr_t)sdsnew(buf);
 }
 
-void __push__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+intptr_t __push__(intptr_t e1, intptr_t e2) {
     char c[] = { (char)e2, '\0' };
     sds str = sdsdup((sds)e1);
-    *lhs = (intptr_t)sdscat((sds)str, c);
+    return (intptr_t)sdscat((sds)str, c);
 }
 
-void __cat__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+intptr_t __cat__(intptr_t e1, intptr_t e2) {
     sds str = sdsdup((sds)e1);
-    *lhs = (intptr_t)sdscatsds(str, (sds)e2);
+    return (intptr_t)sdscatsds(str, (sds)e2);
 }
 
-void __size__(intptr_t *lhs, intptr_t e) {
-    *lhs = (intptr_t)sdslen((sds)e);
+intptr_t __size__(intptr_t e) {
+    return (intptr_t)sdslen((sds)e);
 }
 
-void __indx__(intptr_t *lhs, intptr_t e1, intptr_t e2) {
+intptr_t __indx__(intptr_t e1, intptr_t e2) {
     intptr_t i;
     sds str = (sds)e1;
     if (sdslen(str) == 0) {
-        *lhs = 0;
+        return 0;
     }
     else {
-        __mod__(&i, e2, (intptr_t)sdslen(str));
-        *lhs = str[i];
+        i = __mod__(e2, (intptr_t)sdslen(str));
+        return str[i];
     }
 }
 
@@ -244,25 +245,25 @@ typedef struct {
 
 typedef farg_block* farg_t;
 
-void __print__(intptr_t *lhs, intptr_t e) {
+intptr_t __print__(intptr_t e) {
     sds str = (sds)e;
     printf("%s", str);
-    *lhs = __tt__;
+    return __tt__;
 }
 
-void __prerr__(intptr_t *lhs, intptr_t e) {
+intptr_t __prerr__(intptr_t e) {
     sds str = (sds)e;
     fprintf(stderr, "%s", str);
-    *lhs = __tt__;
+    return __tt__;
 }
 
-void __readln__(intptr_t *lhs, intptr_t e) {
+intptr_t __readln__(intptr_t e) {
     char* buf = NULL; size_t size; ssize_t len; sds str;
     len = getline(&buf, &size, stdin) - 1;
     buf[len] = 0;
     str = sdsnew(buf);
     free(buf);
-    *lhs = (intptr_t)str;
+    return (intptr_t)str;
 }
 
 void *__fork_fn__(void *args) {
@@ -271,55 +272,55 @@ void *__fork_fn__(void *args) {
     intptr_t clo = fargs->clo;
     intptr_t ch = fargs->ch;
     myfree(fargs);
-    appc(&laz, clo, ch);
+    laz = appc(clo, ch);
     myfree((clo_t)clo);
-    force(&lhs, laz);
+    lhs = force(laz);
     return NULL;
 }
 
-void __fork__(intptr_t *lhs, intptr_t e) {
+intptr_t __fork__(intptr_t e) {
     pthread_t tr;
     chan_t* ch = chan_init(0);
     clo_t clo = (clo_t)e;
-    farg_t fargs = malloc(sizeof(farg_block));
+    farg_t fargs = myalloc(sizeof(farg_block));
     fargs->clo = (intptr_t)clo;
     fargs->ch = (intptr_t)ch;
     pthread_create(&tr, &attr, (void *(*)(void *))__fork_fn__, fargs);
-    *lhs = (intptr_t)ch;
+    return (intptr_t)ch;
 }
 
-void __send__(intptr_t *lhs, intptr_t c, intptr_t e) {
+intptr_t __send__(intptr_t c, intptr_t e) {
     chan_send((chan_t*)c, (void*)e);
-    *lhs = c;
+    return c;
 }
 
-void __recv0__(intptr_t *lhs, intptr_t c) {
+intptr_t __recv0__(intptr_t c) {
     intptr_t msg;
     intptr_t box;
     chan_recv((chan_t*)c, (void*)&msg);
-    mkbox(&box, __exU__, 2);
+    box = mkbox(__exU__, 2);
     setbox(box, msg, 0);
     setbox(box, c, 1);
-    *lhs = box;
+    return box;
 }
 
-void __recv1__(intptr_t *lhs, intptr_t c) {
+intptr_t __recv1__(intptr_t c) {
     intptr_t msg;
     intptr_t box;
     chan_recv((chan_t*)c, (void*)&msg);
-    mkbox(&box, __exL__, 2);
+    box = mkbox(__exL__, 2);
     setbox(box, msg, 0);
     setbox(box, c, 1);
-    *lhs = box;
+    return box;
 }
 
-void __close0__(intptr_t *lhs, intptr_t c) {
+intptr_t __close0__(intptr_t c) {
     chan_dispose((chan_t*)c);
-    *lhs = __tt__;
+    return __tt__;
 }
 
-void __close1__(intptr_t *lhs, intptr_t c) {
-    *lhs = __tt__;
+intptr_t __close1__(intptr_t c) {
+    return __tt__;
 }
 
 
