@@ -41,8 +41,8 @@ def cmsort_worker‹t› : int -> ∀ (zs : list‹_,t›int) -> cmsort_ch‹t�
       let* r2 := fork c2 => cmsort_worker (i - 1) ys0 c2 in
       let* ⟨just xs1, c1⟩ := recv r1 in
       let* ⟨just ys1, c2⟩ := recv r2 in
-      let zs1 : `merge (msort xs0) (msort ys0) := just (merge xs1 ys1) in
-      let zs1 : `msort zs := rwl (fn x => `x) pf zs1 in
+      let zs1 := just (merge xs1 ys1) in
+      let zs1 := rwl (fn x => `x) pf zs1 in
       let* c := send c zs1 in
       close c1; close c2; close c
 
