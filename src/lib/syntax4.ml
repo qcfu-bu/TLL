@@ -85,7 +85,7 @@ type cmd =
 
 and case =
   { ctag : Constr.t
-  ; args : Name.t list
+  ; args : (Name.t * bool) list
   ; rhs : cmds
   }
 

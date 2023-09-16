@@ -226,10 +226,11 @@ and trans_cl0s ctx cls lhs =
 and trans_cl1s ctx cls lhs =
   List.map (fun (c, bnd) ->
       let xs, rhs = unmbind bnd in
-      let ctx, args = List.fold_left_map (fun ctx x ->
+      let occurs = mbinder_occurs bnd in
+      let ctx, args = List.fold_left_map (fun ctx (x, occur) ->
           let n = Syntax4.(Name.mk (name_of x)) in
-          (Ctx.add_var x (Var n) ctx, n))
-          ctx (Array.to_list xs)
+          (Ctx.add_var x (Var n) ctx, (n, occur)))
+          ctx Array.(to_list (combine xs occurs))
       in
       let cmds, ret = trans_tm ctx rhs in
       Syntax4.{ ctag = c; args; rhs = cmds @ [ Move (lhs, ret) ] })

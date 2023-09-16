@@ -99,8 +99,8 @@ and pp_cmds fmt cmds =
 and pp_case fmt case =
   let rec pp_args fmt = function
     | [] -> ()
-    | [ x ] -> Name.pp fmt x
-    | x :: xs -> pf fmt "%a, %a" Name.pp x pp_args xs
+    | [ (x, _) ] -> Name.pp fmt x
+    | (x, _) :: xs -> pf fmt "%a, %a" Name.pp x pp_args xs
   in
   pf fmt "@[<v 0>%a(%a) => {@;<1 2>%a@;<1 0>}@]"
     Constr.pp case.ctag pp_args case.args pp_cmds case.rhs

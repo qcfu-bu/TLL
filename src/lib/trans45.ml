@@ -192,7 +192,7 @@ let rec fv_cmds bound = function
 
 and fv_cases bound cases =
   List.fold_left (fun (acc, bound) { ctag; args; rhs } ->
-      let bound = List.fold_left (fun acc x -> Fv.add x acc) bound args in
+      let bound = List.fold_left (fun acc (x, _) -> Fv.add x acc) bound args in
       let fv, bound = fv_cmds bound rhs in
       (Fv.union acc fv, bound))
     (Fv.empty, bound) cases
@@ -430,7 +430,8 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
 
 and trans_cases ctx lift cond cases =
   let lift, cases = List.fold_left_map (fun lift { ctag; args; rhs } ->
-      let cmds1 = List.mapi (fun i x -> Syntax5.(GetBox (x, cond, i))) args in
+      let cmds1 = List.mapi (fun i (x, occur) -> Syntax5.(GetBox (x, cond, i), occur)) args in
+      let cmds1 = List.filter_map (fun (cmd, occur) -> if occur then Some cmd else None) cmds1 in
       let cmds2, lift = trans_cmds ctx lift rhs in
       (lift, Syntax5.{ ctag; rhs = cmds1 @ cmds2 @ [ Break ] }))
       lift cases
