@@ -18,7 +18,12 @@ let var_count bnd =
     | Constr1 (_, ms) ->
       List.fold_left (fun acc m -> acc + aux m) 0 ms
     | Match0 (m, cls) ->
-      aux m + List.fold_left (fun acc (_, rhs) -> acc + aux rhs) 0 cls
+      aux m +
+      List.fold_left (fun acc cl ->
+          match cl with
+          | Case (_, rhs) -> acc + aux rhs
+          | Default rhs -> acc + aux rhs)
+        0 cls
     | Match1 (_, m, cls) ->
       aux m + List.fold_left (fun acc (_, bnd) ->
           let _, rhs = unmbind bnd in
@@ -111,8 +116,9 @@ let rec trans_tm = function
     _Constr1 c (box_list ms)
   | Match0 (m, cls) ->
     let m = trans_tm m in
-    let cls = List.map (fun (c, rhs) ->
-        let rhs = trans_tm rhs in _PConstr c rhs)
+    let cls = List.map (function
+        | Case (c, rhs) -> _Case c (trans_tm rhs)
+        | Default rhs -> _Default (trans_tm rhs))
         cls
     in
     _Match0 m (box_list cls)
@@ -137,8 +143,9 @@ let rec trans_tm = function
        let n = trans_tm (Force n) in
        _Let (lift_tm m) (bind_var x n)
      | Match0 (m, cls) -> 
-       let cls = List.map (fun (c, rhs) ->
-           _PConstr c (trans_tm (Force rhs)))
+       let cls = List.map (function
+           | Case (c, rhs) -> _Case  c (trans_tm (Force rhs))
+           | Default rhs -> _Default (trans_tm (Force rhs)))
            cls
        in
        _Match0 (lift_tm m) (box_list cls)

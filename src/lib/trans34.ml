@@ -218,9 +218,13 @@ let rec trans_tm ctx m =
   | Magic -> Syntax4.([ Magic ], NULL)
 
 and trans_cl0s ctx cls lhs =
-  List.map (fun (c, rhs) ->
-      let cmds, ret = trans_tm ctx rhs in
-      Syntax4.{ ctag = c; args = []; rhs = cmds @ [ Move (lhs, ret) ] })
+  List.map (function 
+      | Case (c, rhs) ->
+        let cmds, ret = trans_tm ctx rhs in
+        Syntax4.Case (c, cmds @ [ Move (lhs, ret) ])
+      | Default rhs ->
+        let cmds, ret = trans_tm ctx rhs in
+        Syntax4.Default (cmds @ [ Move (lhs, ret) ]))
     cls
 
 and trans_cl1s ctx cls lhs =

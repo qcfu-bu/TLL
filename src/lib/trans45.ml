@@ -55,12 +55,12 @@ let rec fv_cmds bound = function
     (Fv.(union (union fv1 fv2) fv3), bound)
   | Match0 { cond; cases } :: rest ->
     let fv1 = fv_expr bound cond in
-    let fv2, bound = fv_cases bound cases in 
+    let fv2, bound = fv_cases0 bound cases in 
     let fv3, bound = fv_cmds bound rest in
     (Fv.(union (union fv1 fv2) fv3), bound)
   | Match1 { cond; sort; cases } :: rest ->
     let fv1 = fv_expr bound cond in
-    let fv2, bound = fv_cases bound cases in 
+    let fv2, bound = fv_cases1 bound cases in 
     let fv3, bound = fv_cmds bound rest in
     (Fv.(union (union fv1 fv2) fv3), bound)
   | Absurd :: rest -> fv_cmds bound rest
@@ -190,7 +190,18 @@ let rec fv_cmds bound = function
   (* magic *)
   | Magic :: rest -> fv_cmds bound rest
 
-and fv_cases bound cases =
+and fv_cases0 bound cases =
+  List.fold_left (fun (acc, bound) cl ->
+      match cl with
+      | Case (c, rhs) ->
+        let fv, bound = fv_cmds bound rhs in
+        (Fv.union acc fv, bound)
+      | Default rhs ->
+        let fv, bound = fv_cmds bound rhs in
+        (Fv.union acc fv, bound))
+    (Fv.empty, bound) cases
+
+and fv_cases1 bound cases =
   List.fold_left (fun (acc, bound) { ctag; args; rhs } ->
       let bound = List.fold_left (fun acc (x, _) -> Fv.add x acc) bound args in
       let fv, bound = fv_cmds bound rhs in
@@ -265,14 +276,23 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
      | None -> Syntax5.(MkBox { lhs; ctag; argc = List.length args } :: cmds @ rest, lift))
   | Match0 { cond; cases } :: rest ->
     let cond = trans_expr cond in
-    let cases, lift = trans_cases ctx lift cond cases in
+    let cases, lift = trans_cases0 ctx lift cond cases in
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Switch { cond; cases } :: rest, lift)
   | Match1 { cond; cases } :: rest ->
     let cond = trans_expr cond in
-    let cases, lift = trans_cases ctx lift cond cases in
+    let cases, lift = trans_cases1 ctx lift cond cases in
     let rest, lift = trans_cmds ctx lift rest in
-    Syntax5.(Switch { cond = CtagOf cond; cases } :: rest, lift)
+    (match cases with
+     | [ Syntax5.Case (_, cmds) ] -> Syntax5.(cmds @ rest, lift)
+     | [ Syntax5.Default cmds ] -> Syntax5.(cmds @ rest, lift)
+     | _ ->
+       let cases = List.map Syntax5.(function 
+           | Case (c, cmds) -> Case (c, cmds @ [ Break ])
+           | Default cmds -> Default (cmds @ [ Break ]))
+           cases
+       in
+       Syntax5.(Switch { cond = CtagOf cond; cases } :: rest, lift))
   | Absurd :: rest ->
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Absurd :: rest, lift)
@@ -428,12 +448,25 @@ let rec trans_cmds (ctx : Ctx.t) lift = function
     let rest, lift = trans_cmds ctx lift rest in
     Syntax5.(Magic :: rest, lift)
 
-and trans_cases ctx lift cond cases =
+and trans_cases0 ctx lift cond cases =
+  let lift, cases = List.fold_left_map (fun lift cl ->
+      match cl with
+      | Case (ctag, rhs) ->
+        let cmds, lift = trans_cmds ctx lift rhs in
+        (lift, Syntax5.Case (ctag, cmds @ [ Break ]))
+      | Default rhs ->
+        let cmds, lift = trans_cmds ctx lift rhs in
+        (lift, Syntax5.Default (cmds @ [ Break ])))
+      lift cases
+  in
+  (cases, lift)
+
+and trans_cases1 ctx lift cond cases =
   let lift, cases = List.fold_left_map (fun lift { ctag; args; rhs } ->
       let cmds1 = List.mapi (fun i (x, occur) -> Syntax5.(GetBox (x, cond, i), occur)) args in
       let cmds1 = List.filter_map (fun (cmd, occur) -> if occur then Some cmd else None) cmds1 in
       let cmds2, lift = trans_cmds ctx lift rhs in
-      (lift, Syntax5.{ ctag; rhs = cmds1 @ cmds2 @ [ Break ] }))
+      (lift, Syntax5.Case (ctag, cmds1 @ cmds2)))
       lift cases
   in
   (cases, lift)

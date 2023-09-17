@@ -147,16 +147,28 @@ let rec trans_cmds mem cmds =
 and trans_match0 mem cases = 
   let cases, mems =
     cases
-    |> List.map (fun { ctag; args; rhs } ->
-        let rhs, mem = trans_cmds (Mem.new_scope mem) rhs in
-        ({ ctag; args; rhs }, mem))
+    |> List.map (function
+        | Case (ctag, rhs) ->
+          let rhs, mem = trans_cmds (Mem.new_scope mem) rhs in
+          (Case (ctag, rhs), mem)
+        | Default rhs ->
+          let rhs, mem = trans_cmds (Mem.new_scope mem) rhs in
+          (Default rhs, mem))
     |> List.split
   in
   (cases, Mem.union mems)
 
 and trans_match1 mem cases e sort =
   match sort with
-  | U -> trans_match0 mem cases
+  | U ->
+    let cases, mems =
+      cases
+      |> List.map (fun { ctag; args; rhs } ->
+          let rhs, mem = trans_cmds (Mem.new_scope mem) rhs in
+          ({ ctag; args; rhs }, mem))
+      |> List.split
+    in
+    (cases, Mem.union mems)
   | L ->
     let rem =
       cases

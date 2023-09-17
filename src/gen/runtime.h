@@ -42,7 +42,6 @@ static inline void end_run(void) {
   pthread_exit(NULL);
 }
 
-
 static inline void ffree(intptr_t x) {
     myfree((void*)x);
 }

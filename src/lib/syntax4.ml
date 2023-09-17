@@ -38,12 +38,12 @@ type cmd =
       }
   | Match0 of
       { cond : expr
-      ; cases : cases
+      ; cases : cases0
       }
   | Match1 of
       { cond : expr
       ; sort : sort
-      ; cases : cases
+      ; cases : cases1
       }
   | Absurd
   (* lazy *)
@@ -83,14 +83,19 @@ type cmd =
   (* magic *)
   | Magic
 
-and case =
+and case0 =
+  | Case of Constr.t * cmds
+  | Default of cmds
+
+and case1 =
   { ctag : Constr.t
   ; args : (Name.t * bool) list
   ; rhs : cmds
   }
 
 and cmds = cmd list
-and cases = case list
+and cases0 = case0 list
+and cases1 = case1 list
 
 type dcl =
   | Main of { cmds : cmds; ret : expr }

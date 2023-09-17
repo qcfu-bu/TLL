@@ -84,8 +84,9 @@ and pp_cmds fmt cmds =
   in
   pf fmt "@[<v 0>%a@]" aux cmds
 
-and pp_case fmt case =
-  pf fmt "@[<v 0>%a => {@;<1 2>%a@;<1 0>}@]" Constr.pp case.ctag pp_cmds case.rhs
+and pp_case fmt = function
+  | Case (ctag, rhs) -> pf fmt "@[<v 0>%a => {@;<1 2>%a@;<1 0>}@]" Constr.pp ctag pp_cmds rhs
+  | Default rhs -> pf fmt "@[<v 0>_ => {@;<1 2>%a@;<1 0>}@]" pp_cmds rhs
 
 and pp_cases fmt cases =
   let rec aux fmt = function

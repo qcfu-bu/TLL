@@ -101,9 +101,8 @@ type cmd =
   | Magic
 
 and case =
-  { ctag : Constr.t
-  ; rhs : cmds
-  }
+  | Case of Constr.t * cmds
+  | Default of cmds
 
 and cmds = cmd list
 and cases = case list

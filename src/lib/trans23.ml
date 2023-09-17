@@ -73,15 +73,21 @@ let rec trans_tm ctx = function
      | [ (c, [ x ], rhs, true) ] ->
        let bnd = unbox (bind_var x rhs) in
        Syntax3.(lift_tm (subst bnd (unbox m)))
-     | _ when List.for_all (fun (_, xs, _, unbox) -> xs = [] && unbox) cls ->
-       let cls = List.map (fun (c, _, rhs, _) -> _PConstr c rhs) cls in
-       Syntax3.(_Match0 m (box_list cls))
-     | _ ->
-       let cls = List.map (fun (c, xs, rhs, _) ->
+     | _ -> 
+       let cls0 = List.filter (fun (_, xs, _, unbox) -> xs = [] && unbox) cls in
+       let cls1 = List.filter (fun (_, xs, _, unbox) -> not (xs = [] && unbox)) cls in
+       let cls0 = List.map (fun (c, _, rhs, _) -> Syntax3._Case c rhs) cls0 in
+       let cls1 = List.map (fun (c, xs, rhs, _) ->
            let xs = Array.of_list xs in
            _PConstr c (bind_mvar xs rhs))
-           cls
-       in Syntax3.(_Match1 (trans_sort s) m (box_list cls)))
+           cls1
+       in
+       (match cls0, cls1 with
+        | [], _ -> Syntax3.(_Match1 (trans_sort s) m (box_list cls1))
+        | _, [] -> Syntax3.(_Match0 m (box_list cls0))
+        | _ ->
+          let default = Syntax3.(_Match1 (trans_sort s) m (box_list cls1)) in
+          Syntax3.(_Match0 m (box_list (cls0 @ [ _Default default ])))))
   | Absurd -> Syntax3._Absurd
   (* monad *)
   | Return m -> Syntax3.(_Lazy (trans_tm ctx m))
@@ -203,16 +209,15 @@ let trans_dcls dcls =
       aux ctx dcls
     | Extern { name; relv } :: dcls -> aux ctx dcls
   and trans_dconstrs ctx dconstrs =
-    let unbox_cond1 = List.for_all (fun (_, relvs) ->
-        List.for_all (fun relv -> relv = N) relvs) dconstrs
-    in
+    let unbox_cond1 layout = List.for_all (fun relv -> relv = N) layout in
     let unbox_cond2 =
       match dconstrs with
       | [ (c, relvs) ] -> List.(length (filter (fun relv -> relv = R) relvs)) = 1
       | _ -> false
     in
-    let unbox = unbox_cond1 || unbox_cond2 in
-    List.fold_left (fun ctx (c, layout) -> Ctx.(add_constr c { layout; unbox } ctx))
+    List.fold_left (fun ctx (c, layout) ->
+        let unbox = unbox_cond1 layout || unbox_cond2 in
+        Ctx.(add_constr c { layout; unbox } ctx))
       ctx dconstrs
   in
   let dcls = aux Ctx.empty dcls in

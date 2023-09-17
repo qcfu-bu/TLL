@@ -47,7 +47,7 @@ and pp_tm fmt = function
     let x, n = unbind bnd in
     pf fmt "@[@[let %a :=@;<1 2>%a@]@;<1 0>in@;<1 0>%a@]" Var.pp x pp_tm m pp_tm n
   (* inductive *)
-  | Constr0 c -> pf fmt "%a" Constr.pp c
+  | Constr0 c -> pf fmt "constr0(%a)" Constr.pp c
   | Constr1 (c, ms) ->
     pf fmt "@[(%a@;<1 2>@[%a@])@]" Constr.pp c (list ~sep:sp pp_tm) ms
   | Match0 (m, cls) ->
@@ -98,7 +98,9 @@ and pp_spine fmt = function
   | (n, _) :: [] -> pf fmt "%a" pp_tm n
   | (n, _) :: spine -> pf fmt "%a@;<1 2>%a" pp_tm n pp_spine spine
 
-and pp_cl0 fmt (c, rhs) = pf fmt "| @[%a =>@;<1 0>%a@]" Constr.pp c pp_tm rhs
+and pp_cl0 fmt = function
+  | Case (c, rhs) -> pf fmt "| @[%a =>@;<1 0>%a@]" Constr.pp c pp_tm rhs
+  | Default rhs -> pf fmt "| @[_ =>@;<1 0>%a@]" pp_tm rhs
 
 and pp_cl0s fmt = function
   | [] -> ()

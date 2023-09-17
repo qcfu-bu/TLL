@@ -61,7 +61,11 @@ type tm =
   | Magic
 
 and tms = tm list
-and cl0 = Constr.t * tm
+
+and cl0 =
+  | Case of Constr.t * tm
+  | Default of tm
+
 and cl1 = Constr.t * (tm, tm) mbinder
 and cl0s = cl0 list
 and cl1s = cl1 list
@@ -152,6 +156,8 @@ let _NULL = box NULL
 let _Magic = box Magic
 
 (* clause *)
+let _Case x = box_apply (fun rhs -> Case (x, rhs))
+let _Default = box_apply (fun rhs -> Default rhs)
 let _PConstr x = box_apply (fun rhs -> (x, rhs))
 
 (* spine forms *)
@@ -181,7 +187,11 @@ let rec lift_tm = function
     let ms = List.map lift_tm ms in
     _Constr1 c (box_list ms)
   | Match0 (m, cls) ->
-    let cls = List.map (fun (c, m) -> _PConstr c (lift_tm m)) cls in
+    let cls = List.map (function
+        | Case (c, m) -> _Case c (lift_tm m)
+        | Default m -> _Default (lift_tm m))
+        cls
+    in
     _Match0 (lift_tm m) (box_list cls)
   | Match1 (s, m, cls) ->
     let cls = List.map (fun (c, bnd) -> _PConstr c (box_mbinder lift_tm bnd)) cls in

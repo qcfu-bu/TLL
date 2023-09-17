@@ -30,7 +30,12 @@ let rec gather_lhs1 ctx = function
   | SetBox (lhs, _, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
   | GetBox (lhs, _, _) :: cmds -> gather_lhs1 (NSet.add lhs ctx) cmds
   | Switch { cases } :: cmds ->
-    let ctx = List.fold_left (fun ctx { rhs } -> gather_lhs1 ctx rhs) ctx cases in
+    let ctx = List.fold_left (fun ctx cl ->
+        match cl with
+        | Case (_, rhs) -> gather_lhs1 ctx rhs
+        | Default rhs -> gather_lhs1 ctx rhs)
+        ctx cases
+    in
     gather_lhs1 ctx cmds
   | Break :: cmds -> gather_lhs1 ctx cmds
   | Absurd :: cmds -> gather_lhs1 ctx cmds
@@ -154,13 +159,16 @@ and pp_cmds fmt cmds =
   in
   pf fmt "@[<v 0>%a@]" aux cmds
 
-and pp_case fmt case =
-  let ctag = case.ctag in
-  pf fmt "@[<v 0>case %d: //%a@;<1 2>%a@]" (Constr.id_of ctag) Constr.pp ctag pp_cmds case.rhs
+and pp_case fmt = function
+  | Case (ctag, rhs) ->
+    pf fmt "@[<v 0>case %d: //%a@;<1 2>%a@]" (Constr.id_of ctag) Constr.pp ctag pp_cmds rhs
+  | Default rhs -> 
+    pf fmt "@[<v 0>default:@;<1 2>%a@]" pp_cmds rhs
 
 and pp_cases fmt cases =
   let rec aux fmt = function
-    | [] -> pf fmt "default: failcase();"
+    | [] -> ()
+    | [ case ] -> pf fmt "%a" pp_case case
     | case :: cases -> pf fmt "%a@;<1 0>%a" pp_case case aux cases
   in
   pf fmt "@[<v 0>%a@]" aux cases

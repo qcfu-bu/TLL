@@ -49,9 +49,9 @@ let rec pp_cmd fmt = function
        pf fmt "@[%a := mkconstr(%a, [%a]);@]"
          Name.pp lhs Constr.pp ctag pp_exprs args)
   | Match0 { cond; cases } ->
-    pf fmt "@[match(%a){@;<1 2>@[%a@]@;<1 0>}@]" pp_expr cond pp_cases cases
+    pf fmt "@[match(%a){@;<1 2>@[%a@]@;<1 0>}@]" pp_expr cond pp_cases0 cases
   | Match1 { cond; sort; cases } ->
-    pf fmt "@[match[%a](%a){@;<1 2>@[%a@]@;<1 0>}@]" pp_sort sort pp_expr cond pp_cases cases
+    pf fmt "@[match[%a](%a){@;<1 2>@[%a@]@;<1 0>}@]" pp_sort sort pp_expr cond pp_cases1 cases
   | Absurd -> pf fmt "absurd;"
   (* lazy *)
   | Lazy { lhs; cmds; ret } ->
@@ -96,7 +96,19 @@ and pp_cmds fmt cmds =
   in
   pf fmt "@[<v 0>%a@]" aux cmds
 
-and pp_case fmt case =
+and pp_case0 fmt = function
+  | Case (c, rhs) -> pf fmt "@[<v 0>%a => {@;<1 2>%a@;<1 0>}@]" Constr.pp c pp_cmds rhs
+  | Default rhs -> pf fmt "@[<v 0>_ => {@;<1 2>%a@;<1 0>}@]" pp_cmds rhs
+
+and pp_cases0 fmt cases =
+  let rec aux fmt = function
+    | [] -> ()
+    | [ case ] -> pp_case0 fmt case
+    | case :: cases -> pf fmt "%a@;<1 0>%a" pp_case0 case aux cases
+  in
+  pf fmt "@[<v 0>%a@]" aux cases
+
+and pp_case1 fmt case =
   let rec pp_args fmt = function
     | [] -> ()
     | [ (x, _) ] -> Name.pp fmt x
@@ -105,11 +117,11 @@ and pp_case fmt case =
   pf fmt "@[<v 0>%a(%a) => {@;<1 2>%a@;<1 0>}@]"
     Constr.pp case.ctag pp_args case.args pp_cmds case.rhs
 
-and pp_cases fmt cases =
+and pp_cases1 fmt cases =
   let rec aux fmt = function
     | [] -> ()
-    | [ case ] -> pp_case fmt case
-    | case :: cases -> pf fmt "%a@;<1 0>%a" pp_case case aux cases
+    | [ case ] -> pp_case1 fmt case
+    | case :: cases -> pf fmt "%a@;<1 0>%a" pp_case1 case aux cases
   in
   pf fmt "@[<v 0>%a@]" aux cases
 
