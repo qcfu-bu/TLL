@@ -316,6 +316,7 @@ static inline intptr_t __close1__(intptr_t c) {
     return __tt__;
 }
 
+
 // magic
 static inline void magic(void) {
     fprintf(stderr, "%s", "magic reached, nothing to do\n");
