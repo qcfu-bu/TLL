@@ -77,7 +77,7 @@ let rec gather_lhs1 ctx = function
 
 let rec pp_expr fmt = function
   | Var n -> Name.pp fmt n
-  | Ctag c -> int fmt (Constr.id_of c)
+  | Ctag c -> pf fmt "%d" (Constr.id_of c)
   | CtagOf e -> pf fmt "ctagof(%a)" pp_expr e
   | Int i -> int fmt i
   | Char c -> pf fmt "\'%s\'" (Char.escaped c)

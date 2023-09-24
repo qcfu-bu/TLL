@@ -7,3 +7,9 @@ inductive vec‹s› (A : Type‹s›) : nat -> L where
 def vappend‹s› ?{A : Type‹s›} ?{m n : nat} : vec A m -> vec A n .-> vec A (m + n)
   | vnil        , ys => ys
   | vcons _ x xs, ys => vcons x (vappend xs ys)
+
+def vlen‹s› ?{A : Type‹s›} ?{n : nat} : ∀ (xs : vec‹s›A n) -> exists (fn (n0 : nat) => n0 = n) × `xs
+  | vnil => ⟨⟨zero, {refl}⟩, just vnil⟩
+  | vcons _ x xs =>
+    let ⟨⟨n0, {pf}⟩, just xs⟩ := vlen xs in
+    ⟨⟨succ n0, {congr (fn x => succ x) pf}⟩, just (vcons x xs)⟩
