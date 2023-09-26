@@ -25,11 +25,11 @@ extern alloc (_ : unit) : IO (exists1 fn l => unit @ l)
 -- consistent with the semantics of the irrelevant body.
 
 -- non-linear get can retrieve values without removal 
-extern getU ?{A : U} (l : loc) (pf : A @ l) : prod1 A (A @ l) :=
+extern getU ?{A : U} (l : loc) (pf : A @ l) : A ⊗ (A @ l) :=
   let at_intro v := pf in ⟨v, pf⟩
 
 -- linear get must retrieve values with removal 
-extern getL ?{A : L} (l : loc) (pf : A @ l) : prod1 A (unit @ l) :=
+extern getL ?{A : L} (l : loc) (pf : A @ l) : A ⊗ (unit @ l) :=
   let at_intro v := pf in ⟨v, at_intro tt⟩
 
 -- set can override previous stored value
