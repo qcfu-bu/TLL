@@ -12,3 +12,34 @@ theorem append_len‹s,t› ?{A : Type‹s›}
   | nil    , ys => refl
   | x :: xs, ys => 
     rwl (fn n => succ (len (append xs ys)) = succ n) (append_len xs ys) refl
+
+def llen‹s,t› ?{A : Type‹s›} : forall (xs : list‹_,t›A) -> nat ⊗ sing‹t,t›xs
+  | nil => ⟨zero, just nil⟩
+  | hd :: tl =>
+    let ⟨n, just tl⟩ := llen tl in
+    ⟨succ n, just (hd :: tl)⟩
+
+#[logical]
+def fst‹s,r› ?{A : Type‹s›} ?{B : Type‹r›} : A ⊗ B -> A
+  | ⟨x, _⟩ => x
+
+#[logical]
+def snd‹s,r› ?{A : Type‹s›} ?{B : Type‹r›} : A ⊗ B -> B
+  | ⟨_, x⟩ => x
+
+#[logical]
+def llen_len‹s,t› ?{A : Type‹s›} : ∀ (xs : list‹_,t›A) -> fst (llen xs) = len xs
+  | nil      => refl
+  | hd :: tl =>
+    match llen tl as x, refl as _ : llen tl = x with
+    | ⟨n, just tl⟩, pf =>
+      let ih := llen_len tl in
+      let ih := rwl (fn x => fst x = len tl) pf ih in
+      refl |>
+      rwr (fn (x : nat ⊗ sing tl) =>
+          @fst nat (sing‹t,t›(_ :: tl))
+          (let ⟨n, just tl⟩ := x in ⟨succ n, just (hd :: tl)⟩) = succ n) pf |>
+      rwl (fn (x : nat) =>
+          @fst nat (sing‹t,t›(hd :: tl))
+          (let ⟨n, just tl⟩ := llen tl in ⟨succ n, just (hd :: tl)⟩) = succ x) ih
+    
