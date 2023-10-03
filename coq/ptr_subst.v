@@ -220,7 +220,7 @@ Lemma resolve_subst Γ Δ H1 H2 H m n n' A σ σ' x :
   agree_resolve Δ H2 σ σ' x ->
   H ; n'.[σ] ~ n.[σ'].
 Proof with eauto using
-  resolve, agree_resolve, merge_pure, key_impure, merge_key.
+  resolve, agree_resolve, merge_pure, key_impure, key_merge.
   move=>erm. elim: erm H1 H2 H n' σ σ' x=>{Γ Δ m n A}...
   { move=>Γ Δ x s A wf shs dhs H1 H2 H n' σ σ' x0 mrg rsn wr agr.
     inv rsn; asimpl.

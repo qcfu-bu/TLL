@@ -168,16 +168,6 @@ Proof with eauto using merge.
     have[Δc[mrga mrgb]]:=ih _ _ H2. exists (_: Δc)... }
 Qed.
 
-Lemma merge_key Δ1 Δ2 Δ s :
-  Δ1 ∘ Δ2 => Δ -> Δ1 ▷ s -> Δ2 ▷ s -> Δ ▷ s.
-Proof with eauto using key, key_impure.
-  move=>mrg. elim: mrg s=>//{Δ1 Δ2 Δ}.
-  { move=>Δ1 Δ2 Δ m mrg ih [|] k1 k2... inv k1. inv k2... }
-  { move=>Δ1 Δ2 Δ m mrg ih [|] k1 k2... inv k1. }
-  { move=>Δ1 Δ2 Δ m mrg ih [|] k1 k2... inv k2. }
-  { move=>Δ1 Δ2 Δ mrg ih [|] k1 k2... inv k1. inv k2... }
-Qed.
-
 Lemma merge_distr Δ1 Δ2 Δ Δ11 Δ12 Δ21 Δ22 :
   Δ1 ∘ Δ2 => Δ ->
   Δ11 ∘ Δ12 => Δ1 ->
