@@ -9,8 +9,8 @@ Unset Printing Implicit Defensive.
 Inductive sta_val : term -> Prop :=
 | sta_val_var x :
   sta_val (Var x)
-| sta_val_sort s :
-  sta_val (Sort s)
+| sta_val_sort s l :
+  sta_val (Sort s l)
 | sta_val_pi0 A B s :
   sta_val (Pi0 A B s)
 | sta_val_pi1 A B s :

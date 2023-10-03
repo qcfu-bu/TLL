@@ -22,7 +22,7 @@ Notation "s ⊑ t" := (sort_leq s t) (at level 30) : sort_scope.
 
 Inductive term : Type :=
 | Var (x : var)
-| Sort (s : sort)
+| Sort (s : sort) (l : nat)
 | Pi0 (A : term) (B : {bind term}) (s : sort)  (* Πs {x : A}.B *)
 | Pi1 (A : term) (B : {bind term}) (s : sort)  (* Πs (x : A).B *)
 | Lam0 (A : term) (m : {bind term}) (s : sort) (* λs {x : A}.m *)

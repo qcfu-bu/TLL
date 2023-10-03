@@ -8,7 +8,7 @@ Unset Printing Implicit Defensive.
 
 Inductive term : Type :=
 | Var (x : var)
-| Ty
+| Ty (l : nat)
 | Pi (A : term) (B : {bind term}) (* Π {x : A}.B *)
 | Lam (A : term) (m : {bind term}) (* λ {x : A}.m *)
 | App (m n : term)

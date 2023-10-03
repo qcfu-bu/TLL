@@ -9,8 +9,8 @@ Unset Printing Implicit Defensive.
 Inductive pstep : term -> term -> Prop :=
 | pstep_var x :
   pstep (Var x) (Var x)
-| pstep_ty :
-  pstep Ty Ty
+| pstep_ty l :
+  pstep (Ty l) (Ty l)
 | pstep_pi A A' B B' :
   pstep A A' ->
   pstep B B' ->
@@ -637,8 +637,8 @@ Proof.
   inv r2.
 Qed.
 
-Lemma mltt_red_ty_inv A :
-  Ty ~>* A -> A = Ty.
+Lemma mltt_red_ty_inv l A :
+  Ty l ~>* A -> A = Ty l.
 Proof.
   elim=>//y z r1 e r2; subst.
   inv r2.

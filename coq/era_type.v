@@ -30,26 +30,26 @@ Inductive era_type : sta_ctx -> dyn_ctx -> term -> term -> term -> Prop :=
   Γ ; Δ1 ⊢ m ~ m' : Pi1 A B s ->
   Γ ; Δ2 ⊢ n ~ n' : A ->
   Γ ; Δ ⊢ App m n ~ App m' n' : B.[n/]
-| era_pair0 Γ Δ A B m m' n t :
-  Γ ⊢ Sig0 A B t : Sort t ->
+| era_pair0 Γ Δ A B m m' n t l :
+  Γ ⊢ Sig0 A B t : Sort t l ->
   Γ ; Δ ⊢ m ~ m' : A ->
   Γ ⊢ n : B.[m/] ->
   Γ ; Δ ⊢ Pair0 m n t ~ Pair0 m' Box t : Sig0 A B t
-| era_pair1 Γ Δ1 Δ2 Δ A B m m' n n' t :
+| era_pair1 Γ Δ1 Δ2 Δ A B m m' n n' t l :
   Δ1 ∘ Δ2 => Δ ->
-  Γ ⊢ Sig1 A B t : Sort t ->
+  Γ ⊢ Sig1 A B t : Sort t l ->
   Γ ; Δ1 ⊢ m ~ m' : A ->
   Γ ; Δ2 ⊢ n ~ n' : B.[m/] ->
   Γ ; Δ ⊢ Pair1 m n t ~ Pair1 m' n' t : Sig1 A B t
-| era_letin0 Γ Δ1 Δ2 Δ A B C m m' n n' s r t :
+| era_letin0 Γ Δ1 Δ2 Δ A B C m m' n n' s r t l :
   Δ1 ∘ Δ2 => Δ ->
-  (Sig0 A B t :: Γ) ⊢ C : Sort s ->
+  (Sig0 A B t :: Γ) ⊢ C : Sort s l ->
   Γ ; Δ1 ⊢ m ~ m' : Sig0 A B t ->
   (B :: A :: Γ) ; _: A :{r} Δ2 ⊢ n ~ n' : C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] ->
   Γ ; Δ ⊢ LetIn C m n ~ LetIn Box m' n' : C.[m/]
-| era_letin1 Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t :
+| era_letin1 Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l :
   Δ1 ∘ Δ2 => Δ ->
-  (Sig1 A B t :: Γ) ⊢ C : Sort s ->
+  (Sig1 A B t :: Γ) ⊢ C : Sort s l ->
   Γ ; Δ1 ⊢ m ~ m' : Sig1 A B t ->
   (B :: A :: Γ) ; B :{r2} A :{r1} Δ2 ⊢ n ~ n' : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   Γ ; Δ ⊢ LetIn C m n ~ LetIn Box m' n' : C.[m/]
@@ -64,15 +64,15 @@ Inductive era_type : sta_ctx -> dyn_ctx -> term -> term -> term -> Prop :=
 | era_snd Γ Δ A B m m' t :
   Γ ; Δ ⊢ m ~ m' : With A B t ->
   Γ ; Δ ⊢ Snd m ~ Snd m' : B
-| era_rw Γ Δ A B H H' P m n s :
-  (Id A.[ren (+1)] m.[ren (+1)] (Var 0) :: A :: Γ) ⊢ B : Sort s ->
+| era_rw Γ Δ A B H H' P m n s l :
+  (Id A.[ren (+1)] m.[ren (+1)] (Var 0) :: A :: Γ) ⊢ B : Sort s l ->
   Γ ; Δ ⊢ H ~ H' : B.[Refl m,m/] ->
   Γ ⊢ P : Id A m n ->
   Γ ; Δ ⊢ Rw B H P ~ Rw Box H' Box : B.[P,n/]
-| era_conv Γ Δ A B m m' s :
+| era_conv Γ Δ A B m m' s l :
   A === B ->
   Γ ; Δ ⊢ m ~ m' : A ->
-  Γ ⊢ B : Sort s ->
+  Γ ⊢ B : Sort s l ->
   Γ ; Δ ⊢ m ~ m' : B
 where "Γ ; Δ ⊢ m ~ n : A" := (era_type Γ Δ m n A).
 
@@ -94,13 +94,13 @@ Proof with eauto using era_type.
     exists (App m' Box)... }
   { move=>Γ Δ1 Δ2 Δ A B m n s mrg tym[m' erm]tyn[n' ern].
     exists (App m' n')... }
-  { move=>Γ Δ A B m n t tyS tym[m' tym']tyn.
+  { move=>Γ Δ A B m n t l tyS tym[m' tym']tyn.
     exists (Pair0 m' Box t)... }
-  { move=>Γ Δ1 Δ2 Δ A B m n t mrg tyS tym[m' tym']tyn[n' tyn'].
+  { move=>Γ Δ1 Δ2 Δ A B m n t l mrg tyS tym[m' tym']tyn[n' tyn'].
     exists (Pair1 m' n' t)... }
-  { move=>Γ Δ1 Δ2 Δ A B C m n s r t mrg tyC tym[m' tym']tyn[n' tyn'].
+  { move=>Γ Δ1 Δ2 Δ A B C m n s r t l mrg tyC tym[m' tym']tyn[n' tyn'].
     exists (LetIn Box m' n')... }
-  { move=>Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg tyC tym[m' tym']tyn[n' tyn'].
+  { move=>Γ Δ1 Δ2 Δ A B C m n s r1 r2 t l mrg tyC tym[m' tym']tyn[n' tyn'].
     exists (LetIn Box m' n')... }
   { move=>Γ Δ A B m n t k tym[m' tym']tyn[n' tyn'].
     exists (APair m' n' t)... }
@@ -108,9 +108,9 @@ Proof with eauto using era_type.
     exists (Fst m')... }
   { move=>Γ Δ A B m t tym[m' tym'].
     exists (Snd m')... }
-  { move=>Γ Δ A B H P m n s tyB tyH[H' erH]tyP.
+  { move=>Γ Δ A B H P m n s l tyB tyH[H' erH]tyP.
     exists (Rw Box H' Box).
     apply: era_rw... }
-  { move=>Γ Δ A B m s eq tym[m' er]tyB.
+  { move=>Γ Δ A B m s l eq tym[m' er]tyB.
     exists m'. apply: era_conv... }
 Qed.

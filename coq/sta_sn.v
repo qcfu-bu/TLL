@@ -14,7 +14,7 @@ Open Scope model_scope.
 Fixpoint interp (m : tll_ast.term) : mltt_ast.term :=
   match m with
   | tll_ast.Var x => mltt_ast.Var x
-  | tll_ast.Sort _ => mltt_ast.Ty
+  | tll_ast.Sort _ l => mltt_ast.Ty l
   | tll_ast.Pi0 A B _ => mltt_ast.Pi (interp A) (interp B)
   | tll_ast.Pi1 A B _ => mltt_ast.Pi (interp A) (interp B)
   | tll_ast.Lam0 A m _ => mltt_ast.Lam (interp A) (interp m)
@@ -32,8 +32,8 @@ Fixpoint interp (m : tll_ast.term) : mltt_ast.term :=
   | tll_ast.Id A m n => mltt_ast.Id (interp A) (interp m) (interp n)
   | tll_ast.Refl m => mltt_ast.Refl (interp m)
   | tll_ast.Rw A H P => mltt_ast.Rw (interp A) (interp H) (interp P)
-  | tll_ast.Box => mltt_ast.Ty
-  | tll_ast.Ptr _ => mltt_ast.Ty
+  | tll_ast.Box => mltt_ast.Ty 0
+  | tll_ast.Ptr _ => mltt_ast.Ty 0
   end.
 
 Fixpoint interp_ctx (Γ : sta_ctx) : mltt_ctx :=
@@ -218,21 +218,21 @@ Proof with eauto using mltt_type, mltt_wf.
   { move=>Γ A B m n s tym ihm tyn ihn.
     erewrite interp_subst_com...
     move=>x. destruct x=>//. }
-  { move=>Γ A B m n t _ _ tym ihm tyn ihn.
+  { move=>Γ A B m n t l _ _ tym ihm tyn ihn.
     constructor...
     erewrite<-interp_subst_com...
     move=>x. destruct x=>//. }
-  { move=>Γ A B m n t _ _ tym ihm tyn ihn.
+  { move=>Γ A B m n t l _ _ tym ihm tyn ihn.
     constructor...
     erewrite<-interp_subst_com...
     move=>x. destruct x=>//. }
-  { move=>Γ A B C m n s t tyC ihC tym ihm tyn ihn.
+  { move=>Γ A B C m n s t l tyC ihC tym ihm tyn ihn.
     erewrite interp_subst_com...
     econstructor...
     erewrite<-interp_subst_com...
     move=>x. destruct x=>//.
     move=>x. destruct x=>//. }
-  { move=>Γ A B C m n s t tyC ihC tym ihm tyn ihn.
+  { move=>Γ A B C m n s t l tyC ihC tym ihm tyn ihn.
     erewrite interp_subst_com...
     econstructor...
     erewrite<-interp_subst_com...
@@ -245,11 +245,12 @@ Proof with eauto using mltt_type, mltt_wf.
     erewrite<-interp_subst_com...
     move=>x. destruct x=>//=. destruct x=>//=.
     move=>x. destruct x=>//=. destruct x=>//=. }
-  { move=>Γ A B m s eq tym ihm tyB ihB.
+  { move=>Γ A B m s l eq tym ihm tyB ihB.
     apply: mltt_conv.
     apply: interp_conv...
     apply: ihm.
     apply: ihB. }
+  Unshelve. eauto.
 Qed.
 
 CoInductive nn T (Rel : T -> T -> Prop) : T -> Prop :=

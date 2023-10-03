@@ -223,15 +223,15 @@ Proof with eauto using resolve.
     { have->//:=ihm _ _ H5. }
     { have->:=ihm _ _ H7.
       have->//:=ihn _ _ H9. } }
-  { move=>Γ Δ A B m m' n t tyS erm ihm tyn H z rs. inv rs.
+  { move=>Γ Δ A B m m' n t l tyS erm ihm tyn H z rs. inv rs.
     have->//:=ihm _ _ H5. }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg tyS erm ihm ern ihn H z rs. inv rs.
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t l mrg tyS erm ihm ern ihn H z rs. inv rs.
     have->:=ihm _ _ H9.
     have->//:=ihn _ _ H10. }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg tyC erm ihm ern ihn H z rs. inv rs.
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l mrg tyC erm ihm ern ihn H z rs. inv rs.
     have->:=ihm _ _ H7.
     have->//:=ihn _ _ H9. }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg tyC erm ihm ern ihn H z rs. inv rs.
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l mrg tyC erm ihm ern ihn H z rs. inv rs.
     have->:=ihm _ _ H7.
     have->//:=ihn _ _ H9. }
   { move=>Γ Δ A B m m' n n' t k erm ihm ern ihn H z rs. inv rs.
@@ -241,7 +241,7 @@ Proof with eauto using resolve.
     have->//:=ihm _ _ H3. }
   { move=>Γ Δ A B m m' t erm ihm H z rs. inv rs.
     have->//:=ihm _ _ H3. }
-  { move=>Γ Δ A B x x' P m n s tyB erH ihH tyP H0 z rs. inv rs.
+  { move=>Γ Δ A B x x' P m n s l tyB erH ihH tyP H0 z rs. inv rs.
     f_equal... }
 Qed.
 
@@ -720,74 +720,74 @@ Proof with eauto using key_impure.
     { exfalso. apply: free_wr_ptr... } }
 Qed.
 
-Theorem resolution H x y z A s :
+Theorem resolution H x y z A s l :
   H ; x ~ y ~ z : A ->
-  nil ⊢ A : Sort s ->
+  nil ⊢ A : Sort s l ->
   dyn_val y -> wr_heap H -> H ▷ s.
 Proof with eauto using key_impure.
   move=>wr. inv wr.
   move:H1 H2.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty.
-  elim: ty H z s e1 e2=>{Γ Δ x y A}.
-  { move=>Γ Δ x s A wf shs dhs H z s0 e1 e2 rs tyA vl wr; subst.
+  elim: ty H z s l e1 e2=>{Γ Δ x y A}.
+  { move=>Γ Δ x s A wf shs dhs H z s0 l e1 e2 rs tyA vl wr; subst.
     inv shs. }
-  { move=>Γ Δ A B m m' s k erm _ H z s0 e1 e2 rs tyP vl wr; subst.
-    have[_[_/sort_inj e]]:=sta_pi0_inv tyP. subst.
+  { move=>Γ Δ A B m m' s k erm _ H z s0 l e1 e2 rs tyP vl wr; subst.
+    have[t[l1[l2[tyB/sort_inj[e1 e2]]]]]:=sta_pi0_inv tyP. subst.
     destruct s...
     apply: resolve_lam0_inv... }
-  { move=>Γ Δ A B m m' s t k erm _ H z s0 e1 e2 rs tyP vl wr; subst.
-    have[_[_/sort_inj e]]:=sta_pi1_inv tyP. subst.
+  { move=>Γ Δ A B m m' s t k erm _ H z s0 l e1 e2 rs tyP vl wr; subst.
+    have[r[l1[l2[tyB/sort_inj[e1 e2]]]]]:=sta_pi1_inv tyP. subst.
     destruct s...
     apply: resolve_lam1_inv... }
   { move=>Γ Δ A B m m' n s erm _ tyn
-      H z s0 e1 e2 rs tyB vl. inv vl. }
+      H z s0 l e1 e2 rs tyB vl. inv vl. }
   { move=>Γ Δ1 Δ2 Δ A B m m' n n' s mrg erm _ ern _
-      H z s0 e1 e2 rs tyB vl. inv vl. }
-  { move=>Γ Δ A B m m' n t tyS1 erm ihm tyn
-      H z s e1 e2 rs tyS2 vl wr; subst.
-    have[s0[r[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv tyS2. subst.
+      H z s0 l e1 e2 rs tyB vl. inv vl. }
+  { move=>Γ Δ A B m m' n t l tyS1 erm ihm tyn
+      H z s l0 e1 e2 rs tyS2 vl wr; subst.
+    have[s0[r[l1[l2[ord[tyA[tyB/sort_inj[e1 e2]]]]]]]]:=sta_sig0_inv tyS2. subst.
     destruct t... inv ord. inv vl.
     inv rs... have wr':=free_wr H2 wr. inv H3.
-    { have k':=ihm _ _ _ erefl erefl H7 tyA H1 wr'.
+    { have k':=ihm _ _ _ _ erefl erefl H7 tyA H1 wr'.
       have->//:=free_wr_pair0 H2 wr. }
     { exfalso. apply: free_wr_ptr... } }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg tyS1 erm ihm ern ihn
-      H z s e1 e2 rs tyS2 vl wr; subst.
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t l mrg tyS1 erm ihm ern ihn
+      H z s l0 e1 e2 rs tyS2 vl wr; subst.
     inv mrg. inv vl.
-    have[s0[r[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv tyS2. subst.
+    have[s0[r[l1[l2[ord1[ord2[tyA[tyB/sort_inj[e1 e2]]]]]]]]]:=sta_sig1_inv tyS2. subst.
     destruct t... inv ord1. inv ord2.
     inv rs.
     { have[wr1 wr2]:=wr_merge_inv H10 wr.
       have tym:=dyn_sta_type (era_dyn_type erm).
       have tyBm:=sta_subst tyB tym. asimpl in tyBm.
-      have k1:=ihm _ _ _ erefl erefl H11 tyA H2 wr1.
-      have k2:=ihn _ _ _ erefl erefl H12 tyBm H4 wr2.
+      have k1:=ihm _ _ _ _ erefl erefl H11 tyA H2 wr1.
+      have k2:=ihn _ _ _ _ erefl erefl H12 tyBm H4 wr2.
       apply: merge_pure... }
     { have wr':=free_wr H1 wr. inv H3.
       { have[wr1 wr2]:=wr_merge_inv H12 wr'.
         have tym:=dyn_sta_type (era_dyn_type erm).
         have tyBm:=sta_subst tyB tym. asimpl in tyBm.
-        have k1:=ihm _ _ _ erefl erefl H13 tyA H2 wr1.
-        have k2:=ihn _ _ _ erefl erefl H14 tyBm H4 wr2.
+        have k1:=ihm _ _ _ _ erefl erefl H13 tyA H2 wr1.
+        have k2:=ihn _ _ _ _ erefl erefl H14 tyBm H4 wr2.
         have->:=free_wr_pair1 H1 wr.
         apply: merge_pure... }
       { exfalso. apply: free_wr_ptr... } } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg tyC1 erm _ ern _
-      H z s0 e1 e2 rs tyC2 vl. inv vl. }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg tyC1 erm _ ern _
-      H z s0 e1 e2 rs tyC2 vl. inv vl. }
-  { move=>Γ Δ A B m m' n n' t k erm ihm ern ihn H z s e1 e2 rs tyW vl wr.
-    have[s0[r[tyA[tyB/sort_inj e]]]]:=sta_with_inv tyW. subst.
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l mrg tyC1 erm _ ern _
+      H z s0 l0 e1 e2 rs tyC2 vl. inv vl. }
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s l r1 r2 t mrg tyC1 erm _ ern _
+      H z s0 l0 e1 e2 rs tyC2 vl. inv vl. }
+  { move=>Γ Δ A B m m' n n' t k erm ihm ern ihn H z s l0 e1 e2 rs tyW vl wr.
+    have[s0[r[l1[l2[tyA[tyB/sort_inj[e3 e4]]]]]]]:=sta_with_inv tyW. subst.
     destruct t... inv rs... inv H2.
     { have->//:=free_wr_apair H1 wr. }
     { exfalso. apply: free_wr_ptr... } }
-  { move=>Γ Δ A B m m' t erm _ H z s e1 e2 rs tyA vl. inv vl. }
-  { move=>Γ Δ A B m m' t erm _ H z s e1 e2 rs tyA vl. inv vl. }
-  { move=>Γ Δ A B x x' P m n s tyB erH _ tyP H z s0 e1 e2 rs tyB' vl. inv vl. }
-  { move=>Γ Δ A B m m' s eq erm ihm tyB1 H z s0 e1 e2 rs tyB2 vl wr.
+  { move=>Γ Δ A B m m' t erm _ H z s l e1 e2 rs tyA vl. inv vl. }
+  { move=>Γ Δ A B m m' t erm _ H z s l e1 e2 rs tyA vl. inv vl. }
+  { move=>Γ Δ A B x x' P m n s l tyB erH _ tyP H z s0 l0 e1 e2 rs tyB' vl. inv vl. }
+  { move=>Γ Δ A B m m' s l eq erm ihm tyB1 H z s0 l0 e1 e2 rs tyB2 vl wr.
     have e:=sta_unicity tyB1 tyB2. subst.
-    have[s tyA]:=dyn_valid (era_dyn_type erm).
+    have[s[lA tyA]]:=dyn_valid (era_dyn_type erm).
     have[x r1 r2]:=church_rosser eq.
     have tyx1:=sta_rd tyA r1.
     have tyx2:=sta_rd tyB1 r2.

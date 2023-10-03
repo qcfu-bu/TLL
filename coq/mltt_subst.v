@@ -12,18 +12,18 @@ Inductive mltt_agree_subst :
   mltt_ctx -> (var -> term) -> mltt_ctx -> Prop :=
 | mltt_agree_subst_nil σ :
   nil ⊢ σ ⊣ nil
-| mltt_agree_subst_ty Γ1 σ Γ2 A :
+| mltt_agree_subst_ty Γ1 σ Γ2 A l :
   Γ1 ⊢ σ ⊣ Γ2 ->
-  Γ2 ⊢ A : Ty ->
+  Γ2 ⊢ A : Ty l ->
   (A.[σ] :: Γ1) ⊢ up σ ⊣ (A :: Γ2)
 | mltt_agree_subst_wk Γ1 σ Γ2 n A :
   Γ1 ⊢ σ ⊣ Γ2 ->
   Γ1 ⊢ n : A.[σ] ->
   Γ1 ⊢ n .: σ ⊣ (A :: Γ2)
-| mltt_agree_subst_conv Γ1 σ Γ2 A B :
+| mltt_agree_subst_conv Γ1 σ Γ2 A B l :
   A === B ->
-  Γ1 ⊢ B.[ren (+1)].[σ] : Ty ->
-  Γ2 ⊢ B : Ty ->
+  Γ1 ⊢ B.[ren (+1)].[σ] : Ty l ->
+  Γ2 ⊢ B : Ty l ->
   Γ1 ⊢ σ ⊣ (A :: Γ2) ->
   Γ1 ⊢ σ ⊣ (B :: Γ2)
 where "Γ1 ⊢ σ ⊣ Γ2" := (mltt_agree_subst Γ1 σ Γ2).
@@ -31,7 +31,7 @@ where "Γ1 ⊢ σ ⊣ Γ2" := (mltt_agree_subst Γ1 σ Γ2).
 Lemma mltt_agree_subst_refl Γ : mltt_wf Γ -> Γ ⊢ ids ⊣ Γ.
 Proof with eauto using mltt_agree_subst.
   elim=>{Γ}...
-  move=>Γ A wf agr tyA.
+  move=>Γ A l wf agr tyA.
   have: (A.[ids] :: Γ) ⊢ up ids ⊣ (A :: Γ)...
   by asimpl...
 Qed.
@@ -42,7 +42,7 @@ Lemma mltt_agree_subst_has Γ1 σ Γ2 x A :
 Proof with eauto using mltt_agree_subst.
   move=>agr. elim: agr x A=>{Γ1 σ Γ2}.
   { move=>σ x A wf hs. inv hs. }
-  { move=>Γ1 σ Γ2 A agr ih tyA x B wf hs.
+  { move=>Γ1 σ Γ2 A l agr ih tyA x B wf hs.
     inv hs; asimpl.
     replace A.[σ >> ren (+1)] with A.[σ].[ren (+1)] by autosubst.
     apply: mltt_var...
@@ -50,7 +50,7 @@ Proof with eauto using mltt_agree_subst.
     replace A0.[σ >> ren (+1)] with A0.[σ].[ren (+1)] by autosubst.
     inv wf. apply: mltt_eweaken... }
   { move=>Γ1 σ Γ2 n A agr ih tyn x B wf hs. inv hs; asimpl... }
-  { move=>Γ1 σ Γ2 A B eq tyB1 tyB2 agr ih x C wf hs. inv hs.
+  { move=>Γ1 σ Γ2 A B l eq tyB1 tyB2 agr ih x C wf hs. inv hs.
     { apply: mltt_conv.
       apply: mltt_conv_subst.
       apply: mltt_conv_subst.
@@ -70,11 +70,12 @@ Qed.
 Lemma mltt_agree_subst_wf_cons Γ1 Γ2 A σ :
   Γ1 ⊢ σ ⊣ (A :: Γ2) -> mltt_wf Γ2 ->
   (∀ Γ1 σ, Γ1 ⊢ σ ⊣ Γ2 → mltt_wf Γ1) ->
-  (∀ Γ1 σ, Γ1 ⊢ σ ⊣ Γ2 → Γ1 ⊢ A.[σ] : Ty) ->
+  (∀ Γ1 σ, Γ1 ⊢ σ ⊣ Γ2 → exists l, Γ1 ⊢ A.[σ] : Ty l) ->
   mltt_wf Γ1.
 Proof with eauto using mltt_wf.
   move e:(A :: Γ2)=>Γ0 agr. elim: agr Γ2 A e=>//{Γ0 Γ1 σ}...
-  move=>Γ1 σ Γ2 A agr ih tyA Γ0 A0 [e1 e2] wf h1 h2; subst.
+  move=>Γ1 σ Γ2 A l agr ih tyA Γ0 A0 [e1 e2] wf h1 h2; subst.
+  have[l0 tyA']:=h2 _ _ agr.
   apply: mltt_wf_cons...
 Qed.
 
@@ -102,7 +103,7 @@ Proof with eauto using mltt_agree_subst, mltt_type.
     asimpl in ihm...
     asimpl in ihn...
     by autosubst. }
-  { move=>Γ A B C m n tyC ihC tym ihm tyn ihn Γ1 σ agr. asimpl.
+  { move=>Γ A B C m n l tyC ihC tym ihm tyn ihn Γ1 σ agr. asimpl.
     replace C.[m.[σ] .: σ] with C.[up σ].[m.[σ]/] by autosubst.
     have wf:=mltt_type_wf tyC. inv wf.
     have wf:=mltt_type_wf tyn. inv wf. inv H3.
@@ -114,7 +115,7 @@ Proof with eauto using mltt_agree_subst, mltt_type.
     asimpl in ihm...
     asimpl in ihn...
     by asimpl. }
-  { move=>Γ A B H P m n tyB ihB tyH ihH tyP ihP Γ1 σ agr. asimpl.
+  { move=>Γ A B H P m n l tyB ihB tyH ihH tyP ihP Γ1 σ agr. asimpl.
     replace B.[P.[σ] .: n.[σ] .: σ] with B.[upn 2 σ].[P.[σ],n.[σ]/] by autosubst.
     have wf:=mltt_type_wf tyB. inv wf. inv H2.
     have{}ihB:=ihB _ _ (mltt_agree_subst_ty (mltt_agree_subst_ty agr H5) H3).
@@ -127,7 +128,7 @@ Proof with eauto using mltt_agree_subst, mltt_type.
     exact: ihB.
     asimpl. asimpl in ihH...
     asimpl in ihP... }
-  { move=>Γ2 A B m eq tym ihm tyB ihB Γ1 σ agr.
+  { move=>Γ2 A B m l eq tym ihm tyB ihB Γ1 σ agr.
     apply: mltt_conv.
     apply: mltt_conv_subst.
     apply: eq.
@@ -135,7 +136,7 @@ Proof with eauto using mltt_agree_subst, mltt_type.
     apply: ihB... }
   { move=>Γ1 σ agr.
     apply: mltt_agree_subst_wf_nil... }
-  { move=>Γ A wf ih tyA h Γ1 σ agr.
+  { move=>Γ A l wf ih tyA h Γ1 σ agr.
     apply: mltt_agree_subst_wf_cons... }
 Qed.
 
@@ -156,9 +157,9 @@ Proof.
   move=>*; subst. apply: mltt_subst; eauto.
 Qed.
 
-Lemma mltt_ctx_conv Γ m A B C :
+Lemma mltt_ctx_conv Γ m A B C l :
   B === A ->
-  Γ ⊢ B : Ty -> (A :: Γ) ⊢ m : C -> (B :: Γ) ⊢ m : C.
+  Γ ⊢ B : Ty l -> (A :: Γ) ⊢ m : C -> (B :: Γ) ⊢ m : C.
 Proof with eauto using mltt_wf, mltt_agree_subst_refl.
   move=>eq tyB tym.
   have wf:=mltt_type_wf tym. inv wf.

@@ -141,8 +141,8 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
       inv wrx.
       exists Hx. exists H2p. exists (App m x'). exists (App m' y').
       repeat split...
-      { have[t tyP]:=dyn_valid (era_dyn_type erm).
-        have[r[tyB/sort_inj e]]:=sta_pi1_inv tyP. subst.
+      { have[t[lP tyP]]:=dyn_valid (era_dyn_type erm).
+        have[r[l1[l2[tyB/sort_inj[e1 e2]]]]]:=sta_pi1_inv tyP. subst.
         have tyn:=dyn_sta_type (era_dyn_type ern).
         have//=tyBn:=sta_subst tyB tyn.
         apply: era_conv.
@@ -203,16 +203,16 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
           constructor... } }
       { apply: star1. apply: dyn_step_beta1... }
       { apply: star1. apply: dyn_step_beta1... } } }
-  { move=>Γ Δ A B m m' n t tyS erm ihm tyn H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
+  { move=>Γ Δ A B m m' n t l tyS erm ihm tyn H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
     inv rs; inv st.
     { have[H1'[H2'[x'[y'[wrx[wr'[pd[mrg'[rd1 rd2]]]]]]]]]:=ihm _ _ _ _ _ _ erefl erefl H6 wr mrg H9.
       inv wrx.
       exists H1'. exists H2'. exists (Pair0 x' n t). exists (Pair0 y' Box t).
       repeat split...
-      { have[s[r[ord[tyA[tyB _]]]]]:=sta_sig0_inv tyS.
+      { have[s[r[l1[l2[ord[tyA[tyB _]]]]]]]:=sta_sig0_inv tyS.
         have tyx:=dyn_sta_type (dyn_rd (era_dyn_type erm) rd1).
         have//=tyBx:=sta_subst tyB tyx.
-        constructor...
+        econstructor...
         apply: sta_conv.
         apply: sta_conv_beta.
         apply: star_conv.
@@ -244,8 +244,8 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
           constructor.
           apply: resolve_wkN... }
         { constructor... } } } }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 tyS erm ihm ern ihn H1 H2 H H' z z' e1 e2 rs wr mrg2 st; subst.
-    have[s[r[ord1[ord2[tyA[tyB _]]]]]]:=sta_sig1_inv tyS. inv mrg1. inv rs; inv st.
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t l mrg1 tyS erm ihm ern ihn H1 H2 H H' z z' e1 e2 rs wr mrg2 st; subst.
+    have[s[r[l1[l2[ord1[ord2[tyA[tyB _]]]]]]]]:=sta_sig1_inv tyS. inv mrg1. inv rs; inv st.
     { have[H4[mrg3 mrg4]]:=merge_splitR mrg2 H10.
       have[H1'[H2'[x'[y'[wrx[wr'[pd[mrg'[rd1 rd2]]]]]]]]]:=
         ihm _ _ _ _ _ _ erefl erefl H11 wr (merge_sym mrg4) H14. inv wrx.
@@ -306,7 +306,7 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
           apply: resolve_wkN...
           apply: resolve_wkN... }
         { constructor... } } } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg1 tyC
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l mrg1 tyC
       erm ihm ern _ H1 H2 H H' z z' e1 e2 rs wr mrg2 st; subst.
     inv mrg1. inv rs; inv st.
     { have[H4[mrg3 mrg4]]:=merge_splitR mrg2 H7.
@@ -381,7 +381,7 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
       have[H1'[mrg' rs]]:=resolve_free H13 H10 (merge_sym mrg4). inv rs.
       have[m1[m2 e]]:=era_pair1_form erm. subst.
       exfalso. apply: sta_pair1_sig0_false... } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg1 tyC
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l mrg1 tyC
       erm ihm ern _ H1 H2 H H' z z' e1 e2 rs wr mrg2 st; subst.
     inv mrg1. inv rs; inv st.
     { have[H4[mrg3 mrg4]]:=merge_splitR mrg2 H7.
@@ -548,7 +548,7 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
         apply: dyn_step_proj2. }
       { apply: star1.
         apply: dyn_step_proj2. } } }
-  { move=>Γ Δ A B x x' P m n s tyB erx ihx tyP H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
+  { move=>Γ Δ A B x x' P m n s l tyB erx ihx tyP H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
     inv rs; inv st.
     exists H1. exists H2. exists x. exists x'.
     repeat split...
@@ -556,16 +556,16 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
       have tyP0:=sta_rd tyP rdP.
       have[n0 e]:=sta_id_canonical tyP0 (convR _ _) vlP. subst.
       have tyr:=sta_rd tyP rdP.
-      have[r tyI]:=sta_valid tyP.
-      have[tym[tyn/sort_inj e]]:=sta_id_inv tyI. subst.
+      have[r[lI tyI]]:=sta_valid tyP.
+      have[l0[tym[tyn/sort_inj[e1 e2]]]]:=sta_id_inv tyI. subst.
       have[tym0[eq1 eq2]]:=sta_refl_inv tyr.
       have sc:sconv (Refl m .: m .: ids) (P .: n .: ids).
       { move=>[|[|]]//=.
         apply: conv_trans. apply: sta_conv_refl. apply: conv_sym...
         apply: conv_sym. apply: star_conv...
         apply: conv_trans. apply: conv_sym... eauto. }
-      have wkB:nil ⊢ B.[P,n/] : Sort s.
-      { replace (Sort s) with (Sort s).[P,n/] by eauto.
+      have wkB:nil ⊢ B.[P,n/] : Sort s l.
+      { replace (Sort s l) with (Sort s l).[P,n/] by eauto.
         apply: sta_substitution...
         repeat constructor...
         all: asimpl... }
@@ -576,7 +576,7 @@ Proof with eauto 7 using pad, era_type, resolve, merge, free, key, dyn_step.
       apply: dyn_step_rwE. }
     { apply: star1.
       apply: dyn_step_rwE. } }
-  { move=>Γ Δ A B m m' s eq erm ihm tyB H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
+  { move=>Γ Δ A B m m' s l eq erm ihm tyB H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
     have[H1'[H2'[x'[y'[wrx[wr'[pd[mrg'[rd1 rd2]]]]]]]]]:=
       ihm _ _ _ _ _ _ erefl erefl rs wr mrg st. inv wrx.
     exists H1'. exists H2'. exists x'. exists y'.

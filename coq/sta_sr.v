@@ -10,9 +10,9 @@ Theorem sta_sr Γ m n A : Γ ⊢ m : A -> m ~> n -> Γ ⊢ n : A.
 Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
   move=>/sta_sta0_type ty st. apply: sta0_sta_type.
   elim: ty n st=>{Γ m A}...
-  { move=>Γ s wf n st. inv st. }
+  { move=>Γ s l wf n st. inv st. }
   { move=>Γ x A wf hs n st. inv st. }
-  { move=>Γ A B s r t tyA ihA tyB ihB n st. inv st.
+  { move=>Γ A B s r t l1 l2 tyA ihA tyB ihB n st. inv st.
     { have tyA':=ihA _ H3.
       apply: sta0_pi0...
       apply: sta_sta0_type.
@@ -24,7 +24,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       exact: tyB. }
     { have tyB':=ihB _ H3.
       apply: sta0_pi0... } }
-  { move=>Γ A B s r t tyA ihA tyB ihB n st. inv st.
+  { move=>Γ A B s r t l1 l2 tyA ihA tyB ihB n st. inv st.
     { have tyA':=ihA _ H3.
       apply: sta0_pi1...
       apply: sta_sta0_type.
@@ -36,11 +36,11 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       exact: tyB. }
     { have tyB':=ihB _ H3.
       apply: sta0_pi1... } }
-  { move=>Γ A B m s r tyA ihA tym ihm n st. inv st.
+  { move=>Γ A B m s r lA tyA ihA tym ihm n st. inv st.
     { have tyA':=ihA _ H3.
       move/sta0_sta_type in tym.
       move/sta0_sta_type in tyA'.
-      have[t tyB]:=sta_valid tym.
+      have[t[lB tyB]]:=sta_valid tym.
       apply: sta0_conv.
       apply: conv1i...
       apply: sta0_lam0...
@@ -52,11 +52,11 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       apply: sta0_pi0... }
     { have tym':=ihm _ H3.
       apply: sta0_lam0... } }
-  { move=>Γ A B m s r tyA ihA tym ihm n st. inv st.
+  { move=>Γ A B m s r lA tyA ihA tym ihm n st. inv st.
     { have tyA':=ihA _ H3.
       move/sta0_sta_type in tym.
       move/sta0_sta_type in tyA'.
-      have[t tyB]:=sta_valid tym.
+      have[t[lB tyB]]:=sta_valid tym.
       apply: sta0_conv.
       apply: conv1i...
       apply: sta0_lam1...
@@ -72,7 +72,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
     { have tym':=ihm _ H2... }
     { have tyn':=ihn _ H2.
       move/sta0_sta_type in tyn.
-      have[_/sta_pi0_inv[r[tyB _]]]:=sta_valid (sta0_sta_type tym).
+      have[_[l0/sta_pi0_inv[r[l1[l2[tyB _]]]]]]:=sta_valid (sta0_sta_type tym).
       apply: sta0_conv.
       apply: sta_conv_beta.
       apply: conv1i...
@@ -91,7 +91,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
     { have tym':=ihm _ H2... }
     { have tyn':=ihn _ H2.
       move/sta0_sta_type in tyn.
-      have[_/sta_pi1_inv[r[tyB _]]]:=sta_valid (sta0_sta_type tym).
+      have[_[l0/sta_pi1_inv[r[l1[l2[tyB _]]]]]]:=sta_valid (sta0_sta_type tym).
       apply: sta0_conv.
       apply: sta_conv_beta.
       apply: conv1i...
@@ -106,7 +106,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       move/sta0_sta_type in tyn.
       apply: sta_sta0_type.
       apply: sta_esubst... } }
-  { move=>Γ A B s r t ord tyA ihA tyB ihB n st. inv st.
+  { move=>Γ A B s r t l1 l2 ord tyA ihA tyB ihB n st. inv st.
     { have tyA':=ihA _ H3.
       move/sta0_sta_type in tyB.
       move/sta0_sta_type in tyA'.
@@ -118,7 +118,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       apply: tyB. }
     { have tyB':=ihB _ H3.
       apply: sta0_sig0... } }
-  { move=>Γ A B s r t ord1 ord2 tyA ihA tyB ihB n st. inv st.
+  { move=>Γ A B s r t l1 l2 ord1 ord2 tyA ihA tyB ihB n st. inv st.
     { have tyA':=ihA _ H3.
       move/sta0_sta_type in tyB.
       move/sta0_sta_type in tyA'.
@@ -134,10 +134,10 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       apply: sta0_sig1.
       apply: ord1. apply: ord2.
       all: eauto. } }
-  { move=>Γ A B m n t tyS ihS tym ihm tyn ihn x st. inv st.
+  { move=>Γ A B m n t l tyS ihS tym ihm tyn ihn x st. inv st.
     { have/sta0_sta_type tym':=ihm _ H3.
       have tyS':=sta0_sta_type tyS.
-      have[s[r[ord[tyA[tyB _]]]]]:=sta_sig0_inv tyS'.
+      have[s[r[l1[l2[ord[tyA[tyB _]]]]]]]:=sta_sig0_inv tyS'.
       apply: sta0_pair0...
       apply: sta0_conv.
       apply: sta_conv_beta.
@@ -148,10 +148,10 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       by autosubst. }
     { have tyn':=ihn _ H3.
       apply: sta0_pair0... } }
-  { move=>Γ A B m n t tyS ihS tym ihm tyn ihn x st. inv st.
+  { move=>Γ A B m n t l tyS ihS tym ihm tyn ihn x st. inv st.
     { have/sta0_sta_type tym':=ihm _ H3.
       have tyS':=sta0_sta_type tyS.
-      have[s[r[ord1[ord2[tyA[tyB _]]]]]]:=sta_sig1_inv tyS'.
+      have[s[r[l1[l2[ord1[ord2[tyA[tyB _]]]]]]]]:=sta_sig1_inv tyS'.
       apply: sta0_pair1...
       apply: sta0_conv.
       apply: sta_conv_beta.
@@ -162,15 +162,15 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       by autosubst. }
     { have tyn':=ihn _ H3.
       apply: sta0_pair1... } }
-  { move=>Γ A B C m n s t tyC ihC tym ihm tyn ihn x st. inv st.
+  { move=>Γ A B C m n s t l tyC ihC tym ihm tyn ihn x st. inv st.
     { have/sta0_sta_type tyA':=ihC _ H3.
       move/sta0_sta_type in tyC.
       move/sta0_sta_type in tym.
       have//=tyCm:=sta_subst tyC tym.
       have wf:=sta_type_wf tyC. inv wf.
-      have[s1[r[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv H2; subst.
-      have wkA':((Sig0 A B t).[ren (+2)] :: B :: A :: Γ) ⊢ A'.[ren (upren (+2))] : Sort s.
-      { replace (Sort s) with (Sort s).[ren (upren (+2))] by eauto.
+      have[s1[r[l1[l2[ord[tyA[tyB/sort_inj[e1 e2]]]]]]]]:=sta_sig0_inv H2; subst.
+      have wkA':((Sig0 A B t).[ren (+2)] :: B :: A :: Γ) ⊢ A'.[ren (upren (+2))] : Sort s l.
+      { replace (Sort s l) with (Sort s l).[ren (upren (+2))] by eauto.
         apply: sta_rename...
         apply: sta_agree_ren_cons...
         replace (+2) with (id >>> (+1) >>> (+1)) by autosubst.
@@ -182,7 +182,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
         { replace (Sig0 A.[ren (+2)] B.[up (ren (+2))] t)
           with (Sig0 A B t).[ren (+1)].[ren (+1)] by autosubst.
           apply: sta_eweaken...
-          instantiate (1 := Sort t)=>//.
+          instantiate (1 := Sort t (maxn l1 l2))=>//.
           apply: sta_eweaken... eauto. }
         { replace A.[ren (+2)] with A.[ren (+1)].[ren (+1)] by autosubst.
           repeat constructor.
@@ -222,15 +222,15 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       by asimpl. }
     { move/sta0_sta_type in tym.
       exfalso. apply: sta_pair1_sig0_false... } }
-  { move=>Γ A B C m n s t tyC ihC tym ihm tyn ihn x st. inv st.
+  { move=>Γ A B C m n s t l tyC ihC tym ihm tyn ihn x st. inv st.
     { have/sta0_sta_type tyA':=ihC _ H3.
       move/sta0_sta_type in tyC.
       move/sta0_sta_type in tym.
       have//=tyCm:=sta_subst tyC tym.
       have wf:=sta_type_wf tyC. inv wf.
-      have[s1[r[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv H2; subst.
-      have wkA':((Sig1 A B t).[ren (+2)] :: B :: A :: Γ) ⊢ A'.[ren (upren (+2))] : Sort s.
-      { replace (Sort s) with (Sort s).[ren (upren (+2))] by eauto.
+      have[s1[r[l1[l2[ord1[ord2[tyA[tyB/sort_inj[e1 e2]]]]]]]]]:=sta_sig1_inv H2; subst.
+      have wkA':((Sig1 A B t).[ren (+2)] :: B :: A :: Γ) ⊢ A'.[ren (upren (+2))] : Sort s l.
+      { replace (Sort s l) with (Sort s l).[ren (upren (+2))] by eauto.
         apply: sta_rename...
         apply: sta_agree_ren_cons...
         replace (+2) with (id >>> (+1) >>> (+1)) by autosubst.
@@ -242,7 +242,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
         { replace (Sig1 A.[ren (+2)] B.[up (ren (+2))] t)
           with (Sig1 A B t).[ren (+1)].[ren (+1)] by autosubst.
           apply: sta_eweaken...
-          instantiate (1 := Sort t)=>//.
+          instantiate (1 := Sort t (maxn l1 l2))=>//.
           apply: sta_eweaken... eauto. }
         { replace A.[ren (+2)] with A.[ren (+1)].[ren (+1)] by autosubst.
           repeat constructor.
@@ -282,7 +282,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       apply: sta_substitution...
       repeat constructor...
       by asimpl. } }
-  { move=>Γ A B s r t tyA ihA tyB ihB n st. inv st.
+  { move=>Γ A B s r t l1 l2 tyA ihA tyB ihB n st. inv st.
     { have tyA':=ihA _ H3. apply: sta0_with... }
     { have tyB':=ihB _ H3. apply: sta0_with... } }
   { move=>Γ A B m n t tym ihm tyn ihn n0 st. inv st.
@@ -296,7 +296,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
     { have tym':=ihm _ H0. apply: sta0_snd... }
     { move/sta0_sta_type in tym.
       have[_[_ tyn]]:=sta_apair_inv tym... } }
-  { move=>Γ A m n s tyA ihA tym ihm tyn ihn n0 st. inv st.
+  { move=>Γ A m n s l tyA ihA tym ihm tyn ihn n0 st. inv st.
     { have tyA':=ihA _ H3.
       apply: sta0_id...
       apply: sta0_conv.
@@ -309,7 +309,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
     { have tyn':=ihn _ H3. apply: sta0_id... } }
   { move=>Γ A m tym ihm n st. inv st.
     move/sta0_sta_type in tym.
-    have[s tyA]:=sta_valid tym.
+    have[s[l tyA]]:=sta_valid tym.
     have tym':=ihm _ H0.
     apply: sta0_conv.
     apply: sta_conv_id.
@@ -318,20 +318,20 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
     apply: conv1i...
     apply: sta0_refl...
     apply: sta0_id... }
-  { move=>Γ A B H P m n s tyB ihB tyH ihH tyP ihP n0 st. inv st.
+  { move=>Γ A B H P m n s l tyB ihB tyH ihH tyP ihP n0 st. inv st.
     { have/sta0_sta_type tyA':=ihB _ H5.
       move/sta0_sta_type in tyB.
       move/sta0_sta_type in tyH.
       move/sta0_sta_type in tyP.
-      have[r tyI]:=sta_valid tyP.
-      have[tym[tyn/sort_inj e]]:=sta_id_inv tyI; subst.
-      have wkA':Γ ⊢ A'.[Refl m,m/] : Sort s.
-      { replace (Sort s) with (Sort s).[Refl m,m/] by eauto.
+      have[r[lI tyI]]:=sta_valid tyP.
+      have[l0[tym[tyn/sort_inj[e1 e2]]]]:=sta_id_inv tyI; subst.
+      have wkA':Γ ⊢ A'.[Refl m,m/] : Sort s l.
+      { replace (Sort s l) with (Sort s l).[Refl m,m/] by eauto.
         apply: sta_substitution...
         repeat constructor...
         all: asimpl...  }
-      have wkB:Γ ⊢ B.[P,n/] : Sort s.
-      { replace (Sort s) with (Sort s).[P,n/] by eauto.
+      have wkB:Γ ⊢ B.[P,n/] : Sort s l.
+      { replace (Sort s l) with (Sort s l).[P,n/] by eauto.
         apply: sta_substitution...
         repeat constructor...
         all: asimpl... }
@@ -348,12 +348,12 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       move/sta0_sta_type in tyB.
       move/sta0_sta_type in tyH.
       move/sta0_sta_type in tyP.
-      have[r tyI]:=sta_valid tyP.
-      have[tym[tyn/sort_inj e]]:=sta_id_inv tyI; subst.
+      have[r[lI tyI]]:=sta_valid tyP.
+      have[l0[tym[tyn/sort_inj[e1 e2]]]]:=sta_id_inv tyI; subst.
       have sc:sconv (P' .: n .: ids) (P .: n .: ids).
       { move=>[|]//=. apply: conv1i... }
-      have wkB:Γ ⊢ B.[P,n/] : Sort s.
-      { replace (Sort s) with (Sort s).[P,n/] by eauto.
+      have wkB:Γ ⊢ B.[P,n/] : Sort s l.
+      { replace (Sort s l) with (Sort s l).[P,n/] by eauto.
         apply: sta_substitution...
         repeat constructor...
         all: asimpl... }
@@ -365,14 +365,14 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       move/sta0_sta_type in tyH.
       move/sta0_sta_type in tyP.
       have[tym0[eq1 eq2]]:=sta_refl_inv tyP.
-      have[r tyI]:=sta_valid tyP.
-      have[tym[tyn/sort_inj e]]:=sta_id_inv tyI; subst.
+      have[r[lI tyI]]:=sta_valid tyP.
+      have[l0[tym[tyn/sort_inj[e1 e2]]]]:=sta_id_inv tyI; subst.
       have sc:sconv (Refl m .: m .: ids) (Refl m0 .: n .: ids).
       { move=>[|[|]]//=.
         apply: sta_conv_refl. apply: conv_sym...
         apply: conv_trans. apply: conv_sym... eauto. }
-      have wkB:Γ ⊢ B.[Refl m0,n/] : Sort s.
-      { replace (Sort s) with (Sort s).[Refl m0,n/] by eauto.
+      have wkB:Γ ⊢ B.[Refl m0,n/] : Sort s l.
+      { replace (Sort s l) with (Sort s l).[Refl m0,n/] by eauto.
         apply: sta_substitution...
         repeat constructor...
         all: asimpl... }

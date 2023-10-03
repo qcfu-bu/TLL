@@ -9,8 +9,8 @@ Unset Printing Implicit Defensive.
 Inductive pstep : term -> term -> Prop :=
 | pstep_var x :
   pstep (Var x) (Var x)
-| pstep_sort s :
-  pstep (Sort s) (Sort s)
+| pstep_sort s l :
+  pstep (Sort s l) (Sort s l)
 | pstep_pi0 A A' B B' s :
   pstep A A' ->
   pstep B B' ->
@@ -818,8 +818,8 @@ Proof.
   inv r2.
 Qed.
 
-Lemma sta_red_sort_inv s A :
-  Sort s ~>* A -> A = Sort s.
+Lemma sta_red_sort_inv s l A :
+  Sort s l ~>* A -> A = Sort s l.
 Proof.
   elim=>//y z r1 e r2; subst.
   inv r2.
@@ -1019,8 +1019,8 @@ Proof.
   apply: starSE; eauto.
 Qed.
 
-Lemma sort_inj s1 s2 :
-  Sort s1 === Sort s2 -> s1 = s2.
+Lemma sort_inj s1 s2 l1 l2 :
+  Sort s1 l1 === Sort s2 l2 -> s1 = s2 /\ l1 = l2.
 Proof.
   move/church_rosser=>[x/sta_red_sort_inv->/sta_red_sort_inv[->]]//.
 Qed.

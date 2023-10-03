@@ -175,14 +175,14 @@ Proof with eauto using ptr_step.
             exists H6. exists m2.[Ptr l2/]... }
           { exfalso. apply: free_wr_ptr... } } } }
     { right. exists l... } }
-  { move=>Γ Δ A B m m' n t tyS erm ihm tyn H z e1 e2 rs wr; subst. inv rs.
+  { move=>Γ Δ A B m m' n t l0 tyS erm ihm tyn H z e1 e2 rs wr; subst. inv rs.
     { have[[H'[m1 st]]|[l e]]:=ihm _ _ erefl erefl H4 wr.
       { left. exists H'. exists (Pair0 m1 Box t)... }
       { subst. left.
         exists (Pair0 (Ptr l) Box t :{t} H).
         exists (Ptr (size H))... } }
     { right. exists l... } }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg tyS erm ihm ern ihn H z e1 e2 rs wr.
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t l0 mrg tyS erm ihm ern ihn H z e1 e2 rs wr.
     subst; inv mrg. inv rs.
     { left. have[wr1 wr2]:=wr_merge_inv H8 wr.
       have[[H1'[m1 st1]]|[l1 e1]]:=ihm _ _ erefl erefl H9 wr1.
@@ -195,7 +195,7 @@ Proof with eauto using ptr_step.
           exists (Pair1 (Ptr l1) (Ptr l2) t :{t} H).
           exists (Ptr (size H))... } } }
     { right. exists l... } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg tyC erm ihm ern _ H z e1 e2 rs wr.
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l0 mrg tyC erm ihm ern _ H z e1 e2 rs wr.
     subst; inv mrg. inv rs.
     { left. have[wr1 wr2]:=wr_merge_inv H5 wr.
       have[[H1'[m1 st]]|[l e]]:=ihm _ _ erefl erefl H8 wr1.
@@ -211,7 +211,7 @@ Proof with eauto using ptr_step.
           exists H6. exists (n0.[Box,Ptr lm/])... }
         { exfalso. apply: free_wr_ptr... } } }
     { right. exists l... } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg tyC erm ihm ern _ H z e1 e2 rs wr.
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l0 mrg tyC erm ihm ern _ H z e1 e2 rs wr.
     subst; inv mrg. inv rs.
     { left. have[wr1 wr2]:=wr_merge_inv H5 wr.
       have[[H1'[m1 st]]|[l e]]:=ihm _ _ erefl erefl H8 wr1.
@@ -252,7 +252,7 @@ Proof with eauto using ptr_step.
         { exists H'. exists n... }
         { exfalso. apply: free_wr_ptr... } } }
     { right. exists l... } }
-  { move=>Γ Δ A B x x' P m n s tyB erx ihx tyP H z e1 e2 rs wr; subst. inv rs.
+  { move=>Γ Δ A B x x' P m n s l0 tyB erx ihx tyP H z e1 e2 rs wr; subst. inv rs.
     { left. exists H. exists m0... }
     { right. exists l... } }
   { move=>Γ Δ A B m m' s eq erm ihm tyB H z e1 e2 rs wr; subst... }

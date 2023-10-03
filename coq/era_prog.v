@@ -26,7 +26,7 @@ Lemma era_pair0_canonical Γ Δ A m1 m2 n s :
   Γ ; Δ ⊢ Pair0 m1 m2 s ~ n : A -> exists m1', n = Pair0 m1' Box s.
 Proof with eauto.
   move e:(Pair0 m1 m2 s)=>x ty. elim: ty m1 m2 s e=>//{Γ Δ x n A}.
-  move=>Γ Δ A B m m' n t tyS erm ihm tyn m1 m2 s[e1 e2 e3]; subst.
+  move=>Γ Δ A B m m' n t l tyS erm ihm tyn m1 m2 s[e1 e2 e3]; subst.
   exists m'...
 Qed.
 
@@ -34,7 +34,7 @@ Lemma era_pair1_canonical Γ Δ A m1 m2 n s :
   Γ ; Δ ⊢ Pair1 m1 m2 s ~ n : A -> exists m1' m2', n = Pair1 m1' m2' s.
 Proof with eauto.
   move e:(Pair1 m1 m2 s)=>x ty. elim: ty m1 m2 s e=>//{Γ Δ x n A}.
-  move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg tyS erm ihm tyn ihn m1 m2 s[e1 e2 e3]; subst.
+  move=>Γ Δ1 Δ2 Δ A B m m' n n' t l mrg tyS erm ihm tyn ihn m1 m2 s[e1 e2 e3]; subst.
   exists m'. exists n'...
 Qed.
 
@@ -75,17 +75,17 @@ Proof with eauto using dyn_step, dyn_val.
       have[A0[n0 e]]:=dyn_pi1_canonical tym (convR _ _) vlm. subst.
       have[m0 e]:=era_lam1_canonical erm. subst.
       exists (m0.[n'/])... } }
-  { move=>Γ Δ A B m m' n t tyS erm ihm tyn e1 e2; subst.
+  { move=>Γ Δ A B m m' n t l tyS erm ihm tyn e1 e2; subst.
     have[[mx stm]|vlm]:=ihm erefl erefl.
     { left. exists (Pair0 mx Box t)... }
     { right... } }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg tyS erm ihm ern ihn e1 e2; subst.
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t l mrg tyS erm ihm ern ihn e1 e2; subst.
     inv mrg. have[[mx stm]|vlm]:=ihm erefl erefl.
     { left. exists (Pair1 mx n' t)... }
     { have[[nx stn]|vln]:=ihn erefl erefl.
       { left. exists (Pair1 m' nx t)... }
       { right... } } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg tyC erm ihm ern ihn e1 e2; subst.
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l mrg tyC erm ihm ern ihn e1 e2; subst.
     inv mrg. have[[mx stm]|vlm]:=ihm erefl erefl.
     { left. exists (LetIn Box mx n')... }
     { have[m1[m2 e]]:=
@@ -95,7 +95,7 @@ Proof with eauto using dyn_step, dyn_val.
           (era_dyn_val erm vlm). subst.
       have[mx e]:=era_pair0_canonical erm. subst.
       left. exists (n'.[Box,mx/])... } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg tyC erm ihm ern ihn e1 e2; subst.
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l mrg tyC erm ihm ern ihn e1 e2; subst.
     inv mrg. have[[mx stm]|vlm]:=ihm erefl erefl.
     { left. exists (LetIn Box mx n')... }
     { have[m1[m2 e]]:=

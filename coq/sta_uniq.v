@@ -8,7 +8,7 @@ Unset Printing Implicit Defensive.
 
 Inductive head_sim : term -> term -> Prop :=
 | head_sim_var x : head_sim (Var x) (Var x)
-| head_sim_sort s : head_sim (Sort s) (Sort s)
+| head_sim_sort s l1 l2 : head_sim (Sort s l1) (Sort s l2)
 | head_sim_pi0 A1 A2 B1 B2 s :
   head_sim A1 A2 ->
   head_sim B1 B2 ->
@@ -44,6 +44,9 @@ Inductive head_sim : term -> term -> Prop :=
 
 Inductive sim (m n : term) : Prop :=
 | Sim x y : m === x -> head_sim x y -> y === n -> sim m n.
+
+Lemma head_sim_sim m n : head_sim m n -> sim m n.
+Proof. move=>h. econstructor; eauto. Qed.
 
 Lemma head_sim_reflexive m : head_sim m m.
 Proof with eauto using head_sim. elim: m... Qed.
@@ -108,40 +111,40 @@ Ltac solve_sim :=
     pose proof (conv_trans _ eq1 eq2); solve_conv
   end.
 
-Lemma sim_sort s t : sim (Sort s) (Sort t) -> s = t.
+Lemma sim_sort s t l1 l2 : sim (Sort s l1) (Sort t l2) -> s = t.
 Proof with eauto.
-  move e1:(Sort s)=>m.
-  move e2:(Sort t)=>n sm.
+  move e1:(Sort s l1)=>m.
+  move e2:(Sort t l2)=>n sm.
   inv sm.
-  elim: H0 s t H H1=>//{x y}.
+  elim: H0 s t l1 l2 H H1=>//{x y}.
   { move=>*. exfalso. solve_conv. }
-  { move=>s r t/sort_inj->/sort_inj->//. }
-  { move=>*. exfalso. solve_conv. }
-  { move=>*. exfalso. solve_conv. }
-  { move=>*. exfalso. solve_conv. }
-  { move=>*. exfalso. solve_conv. }
-  { move=>m n s t eq1 eq2.
-    have/sort_inj//:=conv_trans _ eq1 eq2. }
+  { move=>s l1 l2 r t l3 l4/sort_inj[->_]/sort_inj[->_]//. }
   { move=>*. exfalso. solve_conv. }
   { move=>*. exfalso. solve_conv. }
   { move=>*. exfalso. solve_conv. }
   { move=>*. exfalso. solve_conv. }
-  { move=>A m n s t eq1 eq2.
-    have/sort_inj//:=conv_trans _ eq1 eq2. }
+  { move=>m n s t l1 l2 eq1 eq2.
+    have/sort_inj[->_]//:=conv_trans _ eq1 eq2. }
   { move=>*. exfalso. solve_conv. }
   { move=>*. exfalso. solve_conv. }
-  { move=>m s t eq1 eq2.
-    have/sort_inj//:=conv_trans _ eq1 eq2. }
-  { move=>m s t eq1 eq2.
-    have/sort_inj//:=conv_trans _ eq1 eq2. }
   { move=>*. exfalso. solve_conv. }
   { move=>*. exfalso. solve_conv. }
-  { move=>A H P s t eq1 eq2.
-    have/sort_inj//:=conv_trans _ eq1 eq2. }
-  { move=>s t eq1 eq2.
-    have/sort_inj//:=conv_trans _ eq1 eq2. }
-  { move=>l s t eq1 eq2.
-    have/sort_inj//:=conv_trans _ eq1 eq2. }
+  { move=>A m n s t l1 l2 eq1 eq2.
+    have/sort_inj[->_]//:=conv_trans _ eq1 eq2. }
+  { move=>*. exfalso. solve_conv. }
+  { move=>*. exfalso. solve_conv. }
+  { move=>m s t l1 l2 eq1 eq2.
+    have/sort_inj[->_]//:=conv_trans _ eq1 eq2. }
+  { move=>m s t l1 l2 eq1 eq2.
+    have/sort_inj[->_]//:=conv_trans _ eq1 eq2. }
+  { move=>*. exfalso. solve_conv. }
+  { move=>*. exfalso. solve_conv. }
+  { move=>A H P s t l1 l2 eq1 eq2.
+    have/sort_inj[->_]//:=conv_trans _ eq1 eq2. }
+  { move=>s t l1 l2 eq1 eq2.
+    have/sort_inj[->_]//:=conv_trans _ eq1 eq2. }
+  { move=>l s t l1 l2 eq1 eq2.
+    have/sort_inj[->_]//:=conv_trans _ eq1 eq2. }
 Qed.
 
 Lemma sim_pi0_inj A1 A2 B1 B2 s1 s2 :
@@ -278,13 +281,15 @@ Proof with eauto using sim.
     repeat split... }
 Qed.
 
-Lemma sta_sort_uniq Γ s A :
-  Γ ⊢ Sort s : A -> sim (Sort U) A.
-Proof with eauto.
-  move e:(Sort s)=>n ty. elim: ty s e=>//{Γ n A}.
-  move=>Γ A B m s eq tym ihm tyB ihB t e; subst.
-  have eq':=ihm _ erefl.
-  apply: sim_transL...
+Lemma sta_sort_uniq Γ s l1 l2 A :
+  Γ ⊢ Sort s l1 : A -> sim (Sort U l2) A.
+Proof with eauto using head_sim.
+  move e:(Sort s l1)=>n ty. elim: ty s l1 l2 e=>//{Γ n A}.
+  { move=>Γ s l wf s0 l1 l2[e1 e2]. subst.
+    apply: head_sim_sim... }
+  { move=>Γ A B m s l eq tym ihm tyB ihB t l1 l2 e; subst.
+    have eq':=ihm _ _ l2 erefl.
+    apply: sim_transL... }
 Qed.
 
 Lemma sta_has_uniq Γ x A B : sta_has Γ x A -> sta_has Γ x B -> A = B.
@@ -301,7 +306,7 @@ Proof with eauto using sim_reflexive.
   move e:(Var x)=>n ty. elim: ty A x e=>//{Γ n B}.
   { move=>Γ x A wf hs1 A0 x0 [e] hs2; subst.
     rewrite (sta_has_uniq hs1 hs2)... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 x e hs; subst.
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 x e hs; subst.
     have eq':=ihm _ _ erefl hs.
     apply: sim_transL... }
 Qed.
@@ -314,28 +319,30 @@ Proof with eauto.
     have eq:=h _ tym. inv eq.
     econstructor. apply: sta_conv_pi0...
     constructor... apply: sta_conv_pi0... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 s0 e h; subst.
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 B0 m0 s0 e h; subst.
     have eq':=ihm _ _ _ _ erefl h.
     apply: sim_transL... }
 Qed.
 
-Lemma sta_pi0_uniq Γ A B C s :
-  Γ ⊢ Pi0 A B s : C -> sim (Sort s) C.
-Proof with eauto.
-  move e:(Pi0 A B s)=>n ty. elim: ty A B s e=>//{Γ n C}.
-  { move=>Γ A B s r t tyA ihA tyB ihB A0 B0 s0[e1 e2 e3]; subst... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 s0 e; subst.
-    have eq':=ihm _ _ _ erefl.
+Lemma sta_pi0_uniq Γ A B C s l :
+  Γ ⊢ Pi0 A B s : C -> sim (Sort s l) C.
+Proof with eauto using head_sim.
+  move e:(Pi0 A B s)=>n ty. elim: ty A B s l e=>//{Γ n C}.
+  { move=>Γ A B s r t l1 l2 tyA ihA tyB ihB A0 B0 s0 l0[e1 e2 e3]; subst.
+    apply: head_sim_sim... }
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 B0 s0 l0 e; subst.
+    have eq':=ihm _ _ _ l0 erefl.
     apply: sim_transL... }
 Qed.
 
-Lemma sta_pi1_uniq Γ A B C s :
-  Γ ⊢ Pi1 A B s : C -> sim (Sort s) C.
-Proof with eauto.
-  move e:(Pi1 A B s)=>n ty. elim: ty A B s e=>//{Γ n C}.
-  { move=>Γ A B s r t tyA ihA tyB ihB A0 B0 s0[e1 e2 e3]; subst... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 s0 e; subst.
-    have eq':=ihm _ _ _ erefl.
+Lemma sta_pi1_uniq Γ A B C s l :
+  Γ ⊢ Pi1 A B s : C -> sim (Sort s l) C.
+Proof with eauto using head_sim.
+  move e:(Pi1 A B s)=>n ty. elim: ty A B s l e=>//{Γ n C}.
+  { move=>Γ A B s r t l1 l2 tyA ihA tyB ihB A0 B0 s0 l0[e1 e2 e3]; subst.
+    apply: head_sim_sim... }
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 B0 s0 l0 e; subst.
+    have eq':=ihm _ _ _ l0 erefl.
     apply: sim_transL... }
 Qed.
 
@@ -347,7 +354,7 @@ Proof with eauto.
     have eq:=h _ tym. inv eq.
     econstructor. apply: sta_conv_pi1...
     constructor... apply: sta_conv_pi1... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 s0 e h; subst.
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 B0 m0 s0 e h; subst.
     have eq':=ihm _ _ _ _ erefl h.
     apply: sim_transL... }
 Qed.
@@ -362,7 +369,7 @@ Proof with eauto.
   { move=>Γ A B m n s tym ihm tyn ihn A0 B0 m0 n0 s0 [e1 e2] h; subst.
     have eq:=h _ tym.
     exfalso. solve_sim. }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 n s0 e h; subst.
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 B0 m0 n s0 e h; subst.
     have eq':=ihm _ _ _ _ _ erefl h.
     apply: sim_transL... }
 Qed.
@@ -377,28 +384,30 @@ Proof with eauto.
   { move=>Γ A B m n s tym ihm tyn ihn A0 B0 m0 n0 s0 [e1 e2] h; subst.
     have/sim_pi1_inj[_[eq' _]]:=h _ tym.
     apply: sim_subst... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 n s0 e h; subst.
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 B0 m0 n s0 e h; subst.
     have eq':=ihm _ _ _ _ _ erefl h.
     apply: sim_transL... }
 Qed.
 
-Lemma sta_sig0_uniq Γ A B C s :
-  Γ ⊢ Sig0 A B s : C -> sim (Sort s) C.
-Proof with eauto.
-  move e:(Sig0 A B s)=>m ty. elim: ty A B s e=>//{Γ m C}.
-  { move=>Γ A B s r t ord tyA ihA tyB ihB A0 B0 s0[e1 e2 e3]; subst... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 s0 e; subst.
-    have eq':=ihm _ _ _ erefl.
+Lemma sta_sig0_uniq Γ A B C s l :
+  Γ ⊢ Sig0 A B s : C -> sim (Sort s l) C.
+Proof with eauto using head_sim.
+  move e:(Sig0 A B s)=>m ty. elim: ty A B s l e=>//{Γ m C}.
+  { move=>Γ A B s r t l1 l2 ord tyA ihA tyB ihB A0 B0 s0 l0[e1 e2 e3]; subst...
+    apply: head_sim_sim... }
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 B0 s0 l0 e; subst.
+    have eq':=ihm _ _ _ l0 erefl.
     apply: sim_transL... }
 Qed.
 
-Lemma sta_sig1_uniq Γ A B C s :
-  Γ ⊢ Sig1 A B s : C -> sim (Sort s) C.
-Proof with eauto.
-  move e:(Sig1 A B s)=>m ty. elim: ty A B s e=>//{Γ m C}.
-  { move=>Γ A B s r t ord1 ord2 tyA ihA tyB ihB A0 B0 s0[e1 e2 e3]; subst... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 s0 e; subst.
-    have eq':=ihm _ _ _ erefl.
+Lemma sta_sig1_uniq Γ A B C s l :
+  Γ ⊢ Sig1 A B s : C -> sim (Sort s l) C.
+Proof with eauto using head_sim.
+  move e:(Sig1 A B s)=>m ty. elim: ty A B s l e=>//{Γ m C}.
+  { move=>Γ A B s r t l1 l2 ord1 ord2 tyA ihA tyB ihB A0 B0 s0 l0[e1 e2 e3]; subst.
+    apply: head_sim_sim... }
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 B0 s0 l0 e; subst.
+    have eq':=ihm _ _ _ l0 erefl.
     apply: sim_transL... }
 Qed.
 
@@ -411,7 +420,7 @@ Proof with eauto.
   { move=>*.
     econstructor. eauto.
     constructor. eauto. }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 n s0 e h; subst.
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 B0 m0 n s0 e h; subst.
     have eq':=ihm _ _ _ _ _ erefl h.
     apply: sim_transL... }
 Qed.
@@ -425,7 +434,7 @@ Proof with eauto.
   { move=>*.
     econstructor. eauto.
     constructor. eauto. }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 m0 n s0 e h; subst.
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 B0 m0 n s0 e h; subst.
     have eq':=ihm _ _ _ _ _ erefl h.
     apply: sim_transL... }
 Qed.
@@ -434,22 +443,23 @@ Lemma sta_letin_uniq Γ m n A B :
   Γ ⊢ LetIn A m n : B -> sim A.[m/] B.
 Proof with eauto.
   move e:(LetIn A m n)=>x ty. elim: ty A m n e=>//{Γ B x}.
-  { move=>Γ A B C m n s t
+  { move=>Γ A B C m n s t l
       tyC ihC tym ihm tyn ihn A0 m0 n0[e1 e2 e3]; subst... }
-  { move=>Γ A B C m n s t
+  { move=>Γ A B C m n s t l
       tyC ihC tym ihm tyn ihn A0 m0 n0[e1 e2 e3]; subst... }
-  { move=>Γ A B m s k tym ihm tyB _ A0 m0 n e; subst.
+  { move=>Γ A B m s l k tym ihm tyB _ A0 m0 n e; subst.
     have eq':=ihm _ _ _ erefl.
     apply: sim_transL... }
 Qed.
 
-Lemma sta_with_uniq Γ A B C s :
-  Γ ⊢ With A B s : C -> sim (Sort s) C.
-Proof with eauto.
-  move e:(With A B s)=>x ty. elim: ty A B s e=>//{Γ C x}.
-  { move=>Γ A B s r t tyA ihA tyB ihB A0 B0 s0[e1 e2 e3]; subst... }
-  { move=>Γ A B m s eq tym ihm tyB ihB A0 B0 s0 e; subst.
-    have eq':=ihm _ _ _ erefl.
+Lemma sta_with_uniq Γ A B C s l :
+  Γ ⊢ With A B s : C -> sim (Sort s l) C.
+Proof with eauto using head_sim.
+  move e:(With A B s)=>x ty. elim: ty A B s l e=>//{Γ C x}.
+  { move=>Γ A B s r t l1 l2 tyA ihA tyB ihB A0 B0 s0 l0[e1 e2 e3]; subst.
+    apply: head_sim_sim... }
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 B0 s0 l0 e; subst.
+    have eq':=ihm _ _ _ l0 erefl.
     apply: sim_transL... }
 Qed.
 
@@ -463,7 +473,7 @@ Proof with eauto.
     have[e1 e2]:=h _ _ tym tyn. inv e1. inv e2.
     econstructor. apply: sta_conv_with...
     constructor... apply: sta_conv_with... }
-  { move=>Γ A0 B0 m s eq tym ihm tyB ihB m0 n s0 e h; subst.
+  { move=>Γ A0 B0 m s l eq tym ihm tyB ihB m0 n s0 e h; subst.
     have eq':=ihm _ _ _ erefl h.
     apply: sim_transL... }
 Qed.
@@ -474,7 +484,7 @@ Proof with eauto.
   move e:(Fst m)=>x ty. elim: ty m e=>//{Γ x C}.
   { move=>Γ A0 B0 m t tym ihm m0[e]h; subst.
     have/sim_with_inj[//]:=h _ tym. }
-  { move=>Γ A0 B0 m s0 eq tym ihm tyB ihB m0 e h; subst.
+  { move=>Γ A0 B0 m s0 l eq tym ihm tyB ihB m0 e h; subst.
     have eq':=ihm _ erefl h.
     apply: sim_transL... }
 Qed.
@@ -485,18 +495,20 @@ Proof with eauto.
   move e:(Snd m)=>x ty. elim: ty m e=>//{Γ x C}.
   { move=>Γ A0 B0 m t tym ihm m0[e]h; subst.
     have/sim_with_inj[_[//]]:=h _ tym. }
-  { move=>Γ A0 B0 m s0 eq tym ihm tyB ihB m0 e h; subst.
+  { move=>Γ A0 B0 m s0 l eq tym ihm tyB ihB m0 e h; subst.
     have eq':=ihm _ erefl h.
     apply: sim_transL... }
 Qed.
 
-Lemma sta_id_uniq Γ A B m n :
-  Γ ⊢ Id A m n : B -> sim (Sort U) B.
-Proof with eauto.
-  move e:(Id A m n)=>x ty. elim: ty A m n e=>//{Γ x B}.
-  move=>Γ A B m s eq tym ihm tyB ihB A0 m0 n e; subst.
-  have eq':=ihm _ _ _ erefl.
-  apply: sim_transL...
+Lemma sta_id_uniq Γ A B m n l :
+  Γ ⊢ Id A m n : B -> sim (Sort U l) B.
+Proof with eauto using head_sim.
+  move e:(Id A m n)=>x ty. elim: ty A m n l e=>//{Γ x B}.
+  { move=>Γ A m n s l tyA ihA tym ihm tyn ihn A0 m0 n0 l0[e1 e2 e3]; subst.
+    apply: head_sim_sim... }
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 m0 n l0 e; subst.
+    have eq':=ihm _ _ _ l0 erefl.
+    apply: sim_transL... }
 Qed.
 
 Lemma sta_refl_uniq Γ A B m :
@@ -507,7 +519,7 @@ Proof with eauto.
     have eq:=h _ tym. inv eq.
     econstructor. apply: sta_conv_id...
     constructor... apply: sta_conv_id... }
-  { move=>Γ A0 B m s eq tym ihm tyB ihB m0 e h; subst.
+  { move=>Γ A0 B m s l eq tym ihm tyB ihB m0 e h; subst.
     have eq':=ihm _ erefl h.
     apply: sim_transL... }
 Qed.
@@ -516,13 +528,13 @@ Lemma sta_rw_uniq Γ A B C H P m n :
   Γ ⊢ Rw B H P : C -> (forall X, Γ ⊢ P : X -> sim (Id A m n) X) -> sim B.[P,n/] C.
 Proof with eauto.
   move e:(Rw B H P)=>x ty. elim: ty B H P e=>//{Γ x C}.
-  { move=>Γ A0 B H P m0 n0 s tyB ihB tyH ihH tyP ihP B0 H0 P0[e1 e2 e3]h; subst.
+  { move=>Γ A0 B H P m0 n0 s l tyB ihB tyH ihH tyP ihP B0 H0 P0[e1 e2 e3]h; subst.
     have/sim_id_inj[_[eq1 eq2]]:=h _ tyP.
     have sc:sconv (P .: n .: ids) (P .: n0 .: ids) by move=>[|[|]]//.
     econstructor.
     apply: sta_conv_compat...
     all: eauto... }
-  { move=>Γ A0 B m0 s eq tym ihm tyB ihB B0 H P e h; subst.
+  { move=>Γ A0 B m0 s l eq tym ihm tyB ihB B0 H P e h; subst.
     have eq':=ihm _ _ _ erefl h.
     apply: sim_transL... }
 Qed.
@@ -531,13 +543,13 @@ Lemma sta_uniq Γ m A B :
   Γ ⊢ m : A -> Γ ⊢ m : B -> sim A B.
 Proof with eauto.
   move=>ty. elim: ty B=>{Γ m A}.
-  { move=>Γ s B tyB.
+  { move=>Γ s l B tyB.
     apply: sta_sort_uniq... }
   { move=>Γ x A wf hs B ty.
     apply: sta_var_uniq... }
-  { move=>Γ A B s r t tyA ihA tyB ihB B0 ty.
+  { move=>Γ A B s r t l tyA ihA tyB ihB B0 ty.
     apply: sta_pi0_uniq... }
-  { move=>Γ A B s r t tyA ihA tyB ihB B0 ty.
+  { move=>Γ A B s r t l tyA ihA tyB ihB B0 ty.
     apply: sta_pi1_uniq... }
   { move=>Γ A B m s tym ihm B0 ty.
     apply: sta_lam0_uniq... }
@@ -547,19 +559,19 @@ Proof with eauto.
     apply: sta_app0_uniq... }
   { move=>Γ A B m n s tym ihm tyn ihn B0 ty.
     apply: sta_app1_uniq... }
-  { move=>Γ A B s r t ord tyA ihA tyB ihB B0 ty.
+  { move=>Γ A B s r t l ord tyA ihA tyB ihB B0 ty.
     apply: sta_sig0_uniq... }
-  { move=>Γ A B s r t ord1 ord2 tyA ihA tyB ihB B0 ty.
+  { move=>Γ A B s r t l ord1 ord2 tyA ihA tyB ihB B0 ty.
     apply: sta_sig1_uniq... }
-  { move=>Γ A B m n t tyS ihS tym ihm tyn ihn B0 ty.
+  { move=>Γ A B m n t l tyS ihS tym ihm tyn ihn B0 ty.
     apply: sta_pair0_uniq... }
-  { move=>Γ A B m n t tyS ihS tym ihm tyn ihn B0 ty.
+  { move=>Γ A B m n t l tyS ihS tym ihm tyn ihn B0 ty.
     apply: sta_pair1_uniq... }
-  { move=>Γ A B C m n s t tyC ihC tym ihm tyn ihn B0 ty.
+  { move=>Γ A B C m n s t l tyC ihC tym ihm tyn ihn B0 ty.
     apply: sta_letin_uniq... }
-  { move=>Γ A B C m n s t tyC ihC tym ihm tyn ihn B0 ty.
+  { move=>Γ A B C m n s t l tyC ihC tym ihm tyn ihn B0 ty.
     apply: sta_letin_uniq... }
-  { move=>Γ A B s r t tyA ihA tyB ihB B0 ty.
+  { move=>Γ A B s r t l tyA ihA tyB ihB B0 ty.
     apply: sta_with_uniq... }
   { move=>Γ A B m n t tym ihm tyn ihn B0 ty.
     apply: sta_apair_uniq... }
@@ -567,20 +579,20 @@ Proof with eauto.
     apply: sta_fst_uniq... }
   { move=>Γ A B m t tym ihm B0 ty.
     apply: sta_snd_uniq... }
-  { move=>Γ A m n s tyA ihA tym ihm tyn ihn B ty.
+  { move=>Γ A m n s l tyA ihA tym ihm tyn ihn B ty.
     apply: sta_id_uniq... }
   { move=>Γ A m tym ihm B ty.
     apply: sta_refl_uniq... }
-  { move=>Γ A B H P m n s tyB ihB tyH ihH tyP ihP B0 ty.
+  { move=>Γ A B H P m n s l tyB ihB tyH ihH tyP ihP B0 ty.
     apply: sta_rw_uniq... }
-  { move=>Γ A B m s eq tym1 ihm tyB ihB B0 tym2.
+  { move=>Γ A B m s l eq tym1 ihm tyB ihB B0 tym2.
     apply: sim_transR.
     apply: ihm...
     apply: conv_sym... }
 Qed.
 
-Theorem sta_unicity Γ m s t :
-  Γ ⊢ m : Sort s -> Γ ⊢ m : Sort t -> s = t.
+Theorem sta_unicity Γ m s t l1 l2 :
+  Γ ⊢ m : Sort s l1 -> Γ ⊢ m : Sort t l2 -> s = t.
 Proof.
   move=>tym1 tym2.
   apply: sim_sort.

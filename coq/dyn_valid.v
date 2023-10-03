@@ -14,7 +14,7 @@ Proof with eauto using sta_type, sta_wf.
 Qed.
 #[global] Hint Resolve dyn_sta_type.
 
-Theorem dyn_valid Γ Δ m A : Γ ; Δ ⊢ m : A -> exists s, Γ ⊢ A : Sort s.
+Theorem dyn_valid Γ Δ m A : Γ ; Δ ⊢ m : A -> exists s l, Γ ⊢ A : Sort s l.
 Proof.
   move=>ty.
   apply: sta_valid.

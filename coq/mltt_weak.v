@@ -10,19 +10,19 @@ Inductive mltt_agree_ren : (var -> var) ->
   mltt_ctx -> mltt_ctx -> Prop :=
 | mltt_agree_ren_nil ξ :
   mltt_agree_ren ξ nil nil
-| mltt_agree_ren_cons Γ Γ' ξ m :
-  Γ ⊢ m : Ty ->
+| mltt_agree_ren_cons Γ Γ' ξ m l :
+  Γ ⊢ m : Ty l ->
   mltt_agree_ren ξ Γ Γ' ->
   mltt_agree_ren (upren ξ) (m :: Γ) (m.[ren ξ] :: Γ')
-| mltt_agree_ren_wk Γ Γ' ξ m :
-  Γ' ⊢ m : Ty ->
+| mltt_agree_ren_wk Γ Γ' ξ m l :
+  Γ' ⊢ m : Ty l ->
   mltt_agree_ren ξ Γ Γ' ->
   mltt_agree_ren (ξ >>> (+1)) (Γ) (m :: Γ').
 
 Lemma mltt_agree_ren_refl Γ : mltt_wf Γ -> mltt_agree_ren id Γ Γ.
 Proof with eauto using mltt_agree_ren.
   move=>wf. elim: wf=>{Γ}...
-  move=>Γ A wf agr tyA.
+  move=>Γ A l wf agr tyA.
   have:(mltt_agree_ren (upren id) (A :: Γ) (A.[ren id] :: Γ))...
   by asimpl.
 Qed.
@@ -32,12 +32,12 @@ Lemma mltt_agree_ren_has Γ Γ' ξ x A :
 Proof with eauto.
   move=>agr. elim: agr x A=>{Γ Γ' ξ}.
   { move=>ξ x A hs. inv hs. }
-  { move=>Γ Γ' ξ m tym agr ih x A hs. inv hs; asimpl.
+  { move=>Γ Γ' ξ m l tym agr ih x A hs. inv hs; asimpl.
     { replace m.[ren (ξ >>> (+1))] with m.[ren ξ].[ren (+1)] by autosubst.
       constructor. }
     { replace A0.[ren (ξ >>> (+1))] with A0.[ren ξ].[ren (+1)] by autosubst.
       constructor... } }
-  { move=>Γ Γ' ξ m tym agr ih x B /ih hs. asimpl.
+  { move=>Γ Γ' ξ m l tym agr ih x B /ih hs. asimpl.
     replace B.[ren (ξ >>> (+1))] with B.[ren ξ].[ren (+1)] by autosubst.
     constructor... }
 Qed.
@@ -50,11 +50,12 @@ Qed.
 Lemma mltt_agree_weak_wf_cons Γ Γ' A ξ :
   mltt_agree_ren ξ (A :: Γ) Γ' -> mltt_wf Γ ->
   (∀ Γ' ξ, mltt_agree_ren ξ Γ Γ' → mltt_wf Γ') ->
-  (∀ Γ' ξ, mltt_agree_ren ξ Γ Γ' → Γ' ⊢ A.[ren ξ] : Ty) ->
+  (∀ Γ' ξ, mltt_agree_ren ξ Γ Γ' → exists l, Γ' ⊢ A.[ren ξ] : Ty l) ->
   mltt_wf Γ'.
 Proof with eauto using mltt_wf.
   move e:(A :: Γ)=>Γ0 agr. elim: agr Γ A e=>//{Γ0 Γ' ξ}...
-  move=>Γ Γ' ξ m tym agr _ Γ0 A [e1 e2] wf h1 h2; subst.
+  move=>Γ Γ' ξ m l tym agr _ Γ0 A [e1 e2] wf h1 h2; subst.
+  have[l0 tym']:=h2 _ _ agr.
   apply: mltt_wf_cons...
 Qed.
 
@@ -66,7 +67,7 @@ Proof with eauto using mltt_type, mltt_wf, mltt_agree_ren.
   { move=>Γ x A wf h hs Γ' ξ agr. asimpl.
     apply: mltt_var...
     apply: mltt_agree_ren_has... }
-  { move=>Γ A B tyA ihA tyB ihB Γ' ξ agr. asimpl.
+  { move=>Γ A B l1 l2 tyA ihA tyB ihB Γ' ξ agr. asimpl.
     have wf:=mltt_type_wf tyB. inv wf.
     apply: mltt_pi... }
   { move=>Γ A B m tym ihm Γ' ξ agr. asimpl.
@@ -79,7 +80,7 @@ Proof with eauto using mltt_type, mltt_wf, mltt_agree_ren.
     have{}ihn:=ihn _ _ agr.
     apply: mltt_app...
     asimpl in ihm... }
-  { move=>Γ A B tyA ihA tyB ihB Γ' ξ agr. asimpl.
+  { move=>Γ A B l1 l2 tyA ihA tyB ihB Γ' ξ agr. asimpl.
     have{}ihA:=ihA _ _ agr.
     have{}ihB:=ihB _ _ (mltt_agree_ren_cons tyA agr).
     apply: mltt_sig... }
@@ -89,7 +90,7 @@ Proof with eauto using mltt_type, mltt_wf, mltt_agree_ren.
     asimpl in ihn.
     apply: mltt_dpair...
     by autosubst. }
-  { move=>Γ A B C m n tyC ihC tym ihm tyn ihn Γ' ξ agr. asimpl.
+  { move=>Γ A B C m n l tyC ihC tym ihm tyn ihn Γ' ξ agr. asimpl.
     have wf:=mltt_type_wf tyC. inv wf.
     have wf:=mltt_type_wf tyn. inv wf. inv H3.
     have{}ihC:=ihC _ _ (mltt_agree_ren_cons H2 agr).
@@ -103,7 +104,7 @@ Proof with eauto using mltt_type, mltt_wf, mltt_agree_ren.
         in ihn by autosubst.
     have:=mltt_letin ihC ihm ihn.
     by autosubst. }
-  { move=>Γ A B H P m n tyB ihB tyH ihH tyP ihP Γ' ξ agr. asimpl.
+  { move=>Γ A B H P m n l tyB ihB tyH ihH tyP ihP Γ' ξ agr. asimpl.
     have wf:=mltt_type_wf tyB. inv wf. inv H2.
     have{}ihP:=ihP _ _ agr.
     have/ihB{}ihB:
@@ -119,7 +120,7 @@ Proof with eauto using mltt_type, mltt_wf, mltt_agree_ren.
     have pf:=mltt_rw ihB. asimpl in pf.
     have:=pf _ _ _ ihH ihP.
     by autosubst. }
-  { move=>Γ A B m eq tym ihm tyB ihB Γ' ξ agr.
+  { move=>Γ A B m l eq tym ihm tyB ihB Γ' ξ agr.
     apply: mltt_conv.
     apply: mltt_conv_subst.
     apply: eq.
@@ -127,36 +128,38 @@ Proof with eauto using mltt_type, mltt_wf, mltt_agree_ren.
     have:=ihB _ _ agr.
     asimpl... }
   { exact: mltt_agree_weak_wf_nil. }
-  { move=>Γ A wf ih tyA ihA Γ' ξ agr.
+  { move=>Γ A l wf ih tyA ihA Γ' ξ agr.
     apply: mltt_agree_weak_wf_cons... }
 Qed.
 
 Lemma mltt_wf_ok Γ x A :
-  mltt_wf Γ -> mltt_has Γ x A -> Γ ⊢ A : Ty.
+  mltt_wf Γ -> mltt_has Γ x A -> exists l, Γ ⊢ A : Ty l.
 Proof with eauto using mltt_agree_ren, mltt_agree_ren_refl.
   move=>wf. elim: wf x A=>{Γ}.
   { move=>x A hs. inv hs. }
-  { move=>Γ A wf ih tyA x B hs. inv hs.
-    { replace Ty with Ty.[ren (+1)] by autosubst.
+  { move=>Γ A l wf ih tyA x B hs. inv hs.
+    { exists l.
+      replace (Ty l) with (Ty l).[ren (+1)] by autosubst.
       apply: mltt_rename... }
-    { have tyA0:=ih _ _ H3.
-      replace Ty with Ty.[ren (+1)] by autosubst.
+    { have[l0 tyA0]:=ih _ _ H3.
+      exists l0.
+      replace (Ty l0) with (Ty l0).[ren (+1)] by autosubst.
       apply: mltt_rename... } }
 Qed.
 
-Lemma mltt_weaken Γ m A B :
+Lemma mltt_weaken Γ m A B l :
   Γ ⊢ m : A ->
-  Γ ⊢ B : Ty ->
+  Γ ⊢ B : Ty l ->
   (B :: Γ) ⊢ m.[ren (+1)] : A.[ren (+1)].
 Proof with eauto using mltt_agree_ren, mltt_agree_ren_refl.
   move=>tym tyB. apply: mltt_rename...
 Qed.
 
-Lemma mltt_eweaken Γ m m' A A' B :
+Lemma mltt_eweaken Γ m m' A A' B l :
   m' = m.[ren (+1)] ->
   A' = A.[ren (+1)] ->
   Γ ⊢ m : A ->
-  Γ ⊢ B : Ty ->
+  Γ ⊢ B : Ty l ->
   (B :: Γ) ⊢ m' : A'.
 Proof with eauto using mltt_agree_ren, mltt_agree_ren_refl.
   move=>*; subst. apply: mltt_weaken...

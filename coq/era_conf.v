@@ -158,12 +158,12 @@ Proof with eauto.
       have{}H0:=dyn_sta_type (era_dyn_type erm).
       apply: sta_lam0_pi1_false... }
     { apply: starES... by constructor. } }
-  { move=>Γ Δ A B m m' n t tyS erm ihm tyn nx ps. inv ps.
+  { move=>Γ Δ A B m m' n t l tyS erm ihm tyn nx ps. inv ps.
     apply: dyn_red_pair0... }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t l
            mrg tyS erm ihm ern ihn nx ps. inv ps.
     apply: dyn_red_pair1... }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l
            mrg tyC erm ihm ern ihn nx ps. inv ps.
     { apply: dyn_red_letin... }
     { inv H3.
@@ -173,7 +173,7 @@ Proof with eauto.
     { exfalso.
       have[m3[m4 e]]:=era_pair1_form erm. subst.
       apply: sta_pair1_sig0_false... } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l
            mrg tyC erm ihm ern ihn nx ps. inv ps.
     { apply: dyn_red_letin... }
     { exfalso.
@@ -189,7 +189,7 @@ Proof with eauto.
   { move=>Γ Δ A B m m' t erm ihm n ps. inv ps.
     { apply: dyn_red_snd... }
     { apply: starES... by constructor. } }
-  { move=>Γ Δ A B H H' P m n s tyB erH ihH tyP n' ps. inv ps...
+  { move=>Γ Δ A B H H' P m n s l tyB erH ihH tyP n' ps. inv ps...
     apply: starES... by constructor. }
   { move=>Γ Δ A B m m' s eq erm ihm tyB n' ps... }
 Qed.
@@ -273,17 +273,17 @@ Proof with eauto using dyn_pstep, era_pstep_reflexive.
       have k:=dyn_val_key (era_dyn_type ern) H6 vl.
       have erm':=era_subst1 k mrg erm1 ern.
       exists m0.[n'/]... } }
-  { move=>Γ Δ A B m m' n t tyS erm ihm tyn m1 m2 ps1 ps2.
+  { move=>Γ Δ A B m m' n t l tyS erm ihm tyn m1 m2 ps1 ps2.
     inv ps1. inv ps2.
     have[mx ps1 ps2]:=ihm _ _ H3 H4.
     exists (Pair0 mx Box t)... }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t l
            mrg tyS erm ihm ern ihn m1 m2 ps1 ps2.
     inv ps1. inv ps2.
     have[mx ps1 ps2]:=ihm _ _ H3 H5.
     have[nx ps3 ps4]:=ihn _ _ H4 H6.
     exists (Pair1 mx nx t)... }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l
            mrg tyC erm ihm ern ihn m1 m2 ps1 ps2.
     inv ps1.
     { inv ps2.
@@ -333,7 +333,7 @@ Proof with eauto using dyn_pstep, era_pstep_reflexive.
     { exfalso.
       have[m4[m5 e]]:=era_pair1_form erm. subst.
       apply: sta_pair1_sig0_false... } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l
            mrg tyC erm ihm ern ihn m1 m2 ps1 ps2.
     inv ps1.
     { inv ps2.
@@ -417,7 +417,7 @@ Proof with eauto using dyn_pstep, era_pstep_reflexive.
     { have[m1[m3 e]]:=era_apair_form erm. subst.
       have[e[erm1 erm3]]:=era_apair_inv erm. subst.
       exists m2... } }
-  { move=>Γ Δ A B H H' P m n s tyB erH ihH tyP m1 m2 ps1 ps2.
+  { move=>Γ Δ A B H H' P m n s l tyB erH ihH tyP m1 m2 ps1 ps2.
     inv ps1; inv ps2.
     { exists H'... }
     { exists m2... }

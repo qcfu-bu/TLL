@@ -12,13 +12,13 @@ Proof with eauto using dyn_val.
   move=>ty. elim: ty=>{Γ Δ m m' A}...
   { move=>Γ Δ A B m m' n s tym ihm tyn vl. inv vl. }
   { move=>Γ Δ1 Δ2 Δ A B m m' n n' s mrg tym ihm tyn ihn vl. inv vl. }
-  { move=>Γ Δ A B m m' n t tyS tym ihm tyn vl. inv vl... }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg tyS tym ihm tyn ihn vl. inv vl... }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg tyC tym ihm tyn ihn vl. inv vl. }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg tyC tym ihm tyn ihn vl. inv vl. }
+  { move=>Γ Δ A B m m' n t l tyS tym ihm tyn vl. inv vl... }
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t l mrg tyS tym ihm tyn ihn vl. inv vl... }
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l mrg tyC tym ihm tyn ihn vl. inv vl. }
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l mrg tyC tym ihm tyn ihn vl. inv vl. }
   { move=>Γ Δ A B m m' t tym ihm vl. inv vl. }
   { move=>Γ Δ A B m m' t tym ihm vl. inv vl. }
-  { move=>Γ Δ A B H H' P m n s tyB tyH ihH tyP vl. inv vl. }
+  { move=>Γ Δ A B H H' P m n s l tyB tyH ihH tyP vl. inv vl. }
 Qed.
 
 Theorem era_sr m m' n' A :
@@ -46,7 +46,8 @@ Proof with eauto using dyn_step, era_type, dyn_val, merge.
     { have[x st tyx]:=ihn erefl erefl _ H2. exists (App m x)...
       have tym:=era_dyn_type erm.
       have/dyn_sta_type tyn:=era_dyn_type ern.
-      have[_/sta_pi1_inv[r[tyB _]]]:=dyn_valid tym.
+      have O:=dyn_valid tym.
+      have[r[l/sta_pi1_inv[t[l1[l2[tyB _]]]]]]:=dyn_valid tym.
       apply: era_conv.
       apply: sta_conv_beta.
       apply: conv_sym.
@@ -69,8 +70,8 @@ Proof with eauto using dyn_step, era_type, dyn_val, merge.
       apply: (era_dyn_type ern)...
       exact: H5.
       apply: era_dyn_val... } }
-  { move=>Γ Δ A B m m' n t tyS erm ihm tyn e1 e2 x st. inv st.
-    have[s[r[ord[tyA[tyB _]]]]]:=sta_sig0_inv tyS.
+  { move=>Γ Δ A B m m' n t l tyS erm ihm tyn e1 e2 x st. inv st.
+    have[s[r[l1[l2[ord[tyA[tyB _]]]]]]]:=sta_sig0_inv tyS.
     have[x st erx]:=ihm erefl erefl _ H3. exists (Pair0 x n t)...
     apply: era_pair0...
     apply: sta_conv.
@@ -80,8 +81,8 @@ Proof with eauto using dyn_step, era_type, dyn_val, merge.
     apply: tyn.
     apply: sta_esubst...
     by autosubst. }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg tyS erm ihm ern ihn e1 e2 x st.
-    have[s[r[ord1[ord2[tyA[tyB _]]]]]]:=sta_sig1_inv tyS.
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t l mrg tyS erm ihm ern ihn e1 e2 x st.
+    have[s[r[l1[l2[ord1[ord2[tyA[tyB _]]]]]]]]:=sta_sig1_inv tyS.
     subst. inv mrg. inv st.
     { have[x st erx]:=ihm erefl erefl _ H3. exists (Pair1 x n t)...
       apply: era_pair1...
@@ -93,7 +94,7 @@ Proof with eauto using dyn_step, era_type, dyn_val, merge.
       apply: sta_esubst...
       by autosubst. }
     { have[x st erx]:=ihn erefl erefl _ H3. exists (Pair1 m x t)... } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg tyC erm ihm ern ihn e1 e2 x st.
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l mrg tyC erm ihm ern ihn e1 e2 x st.
     subst. inv mrg. inv st.
     { have[x st erx]:=ihm erefl erefl _ H3. exists (LetIn C x n)...
       apply: era_conv.
@@ -122,7 +123,7 @@ Proof with eauto using dyn_step, era_type, dyn_val, merge.
     { have[m3[m4 e]]:=era_pair1_form erm. subst.
       have/dyn_sta_type ty:=era_dyn_type erm.
       exfalso. apply: sta_pair1_sig0_false... } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg tyC erm ihm ern ihn e1 e2 x st.
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l mrg tyC erm ihm ern ihn e1 e2 x st.
     subst. inv mrg. inv st.
     { have[x st erx]:=ihm erefl erefl _ H3. exists (LetIn C x n)...
       apply: era_conv.
@@ -163,21 +164,21 @@ Proof with eauto using dyn_step, era_type, dyn_val, merge.
     { have[m1[m2 e]]:=era_apair_form tym. subst.
       have[e[erm1 erm2]]:=era_apair_inv tym.
       subst. exists m2... } }
-  { move=>Γ Δ A B H H' P m n s tyB erH ihH tyP e1 e2 x st. inv st.
+  { move=>Γ Δ A B H H' P m n s l tyB erH ihH tyP e1 e2 x st. inv st.
     have[P0[rdP vlP]]:=sta_vn tyP.
     have tyP0:=sta_rd tyP rdP.
     have[n0 e]:=sta_id_canonical tyP0 (convR _ _) vlP. subst.
     have tyr:=sta_rd tyP rdP.
-    have[r tyI]:=sta_valid tyP.
-    have[tym[tyn/sort_inj e]]:=sta_id_inv tyI. subst.
+    have[r[lI tyI]]:=sta_valid tyP.
+    have[l0[tym[tyn/sort_inj[e1 e2]]]]:=sta_id_inv tyI. subst.
     have[tym0[eq1 eq2]]:=sta_refl_inv tyr.
     have sc:sconv (Refl m .: m .: ids) (P .: n .: ids).
     { move=>[|[|]]//=.
       apply: conv_trans. apply: sta_conv_refl. apply: conv_sym...
       apply: conv_sym. apply: star_conv...
       apply: conv_trans. apply: conv_sym... eauto. }
-    have wkB:nil ⊢ B.[P,n/] : Sort s.
-    { replace (Sort s) with (Sort s).[P,n/] by eauto.
+    have wkB:nil ⊢ B.[P,n/] : Sort s l.
+    { replace (Sort s l) with (Sort s l).[P,n/] by eauto.
       apply: sta_substitution...
       repeat constructor...
       all: asimpl... }
@@ -185,7 +186,7 @@ Proof with eauto using dyn_step, era_type, dyn_val, merge.
     apply: era_conv.
     apply: sta_conv_compat sc.
     all: eauto. }
-  { move=>Γ Δ A B m m' s eq tym ihm tyB e1 e2 n' st. subst.
+  { move=>Γ Δ A B m m' s l eq tym ihm tyB e1 e2 n' st. subst.
     have[n st' tyn]:=ihm erefl erefl _ st.
     exists n... }
 Qed.

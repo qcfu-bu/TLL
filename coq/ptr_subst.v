@@ -289,7 +289,7 @@ Proof with eauto using
       { have vl:=wr_free_dyn_val H3 wr. inv vl. }
       { have vl:=wr_free_dyn_val H3 wr. inv vl. }
       { exfalso. apply: free_wr_ptr... } } }
-  { move=>Γ Δ A B m m' n t tyS erm ihm tyn H1 H2 H n' σ σ' x mrg rsn wr agr.
+  { move=>Γ Δ A B m m' n t l tyS erm ihm tyn H1 H2 H n' σ σ' x mrg rsn wr agr.
     inv rsn; asimpl.
     { econstructor... }
     { inv H4.
@@ -302,7 +302,7 @@ Proof with eauto using
         apply: ihm...
         apply:free_wr... }
       { exfalso. apply: free_wr_ptr... } } }
-  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 tyS erm ihm ern ihn H1 H2 H n0 σ σ' x mrg2 rsn wr agr.
+  { move=>Γ Δ1 Δ2 Δ A B m m' n n' t l mrg1 tyS erm ihm ern ihn H1 H2 H n0 σ σ' x mrg2 rsn wr agr.
     inv rsn; asimpl.
     { have[wr1 wr2]:=wr_merge_inv H10 wr.
       have[H4[H5[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
@@ -321,7 +321,7 @@ Proof with eauto using
         have->:=nf_agree_resolve H8 lx agr1...
         have->:=nf_agree_resolve H10 lx agr2... }
       { exfalso. apply: free_wr_ptr... } } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg1 tyC erm ihm ern ihn H1 H2 H n0 σ σ' x mrg2 rsn wr agr.
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l mrg1 tyC erm ihm ern ihn H1 H2 H n0 σ σ' x mrg2 rsn wr agr.
     inv rsn; asimpl.
     { have[wr1 wr2]:=wr_merge_inv H7 wr.
       have[H4[H5[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
@@ -330,7 +330,7 @@ Proof with eauto using
     { inv H4.
       { have vl:=wr_free_dyn_val H3 wr. inv vl. }
       { exfalso. apply: free_wr_ptr... } } }
-  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg1 tyC erm ihm ern ihn H1 H2 H n0 σ σ' x mrg2 rsn wr agr.
+  { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l mrg1 tyC erm ihm ern ihn H1 H2 H n0 σ σ' x mrg2 rsn wr agr.
     inv rsn; asimpl.
     { have[wr1 wr2]:=wr_merge_inv H7 wr.
       have[H4[H5[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
@@ -366,7 +366,7 @@ Proof with eauto using
     { inv H4.
       { have vl:=wr_free_dyn_val H3 wr. inv vl. }
       { exfalso. apply: free_wr_ptr... } } }
-  { move=>Γ Δ A B x x' P m n s tyB erx ihx tyP H1 H2 H n' σ σ' x0 mrg rsn wr agr.
+  { move=>Γ Δ A B x x' P m n s l tyB erx ihx tyP H1 H2 H n' σ σ' x0 mrg rsn wr agr.
     inv rsn; asimpl.
     { constructor... }
     { inv H4.
