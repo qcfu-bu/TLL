@@ -7,13 +7,13 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Reserved Notation "H1 ; m ~>> H2 ; n" (at level 50, m, H2, n at next level).
-Inductive ptr_step : heap -> term -> heap -> term -> Prop :=
+Inductive ptr_step : dyn_ctx -> term -> dyn_ctx -> term -> Prop :=
 | ptr_step_lam0 H m s l :
-  l \notin domm H ->
-  H ; Lam0 Box m s ~>> setm H l (Lam0 Box m s, s) ; Ptr l
+  l = size H ->
+  H ; (Lam0 Box m s) ~>> (Lam0 Box m s :{s} H) ; (Ptr l)
 | ptr_step_lam1 H m s l :
-  l \notin domm H ->
-  H ; Lam1 Box m s ~>> setm H l (Lam1 Box m s, s) ; (Ptr l)
+  l = size H ->
+  H ; (Lam1 Box m s) ~>> (Lam1 Box m s :{s} H) ; (Ptr l)
 | ptr_step_appL H H' m m' n :
   H ; m ~>> H' ; m' ->
   H ; App m n ~>> H' ; App m' n
@@ -30,8 +30,8 @@ Inductive ptr_step : heap -> term -> heap -> term -> Prop :=
   H ; m ~>> H' ; m' ->
   H ; Pair0 m Box t ~>> H' ; Pair0 m' Box t
 | ptr_step_pair0 H l lm t :
-  l \notin domm H ->
-  H ; Pair0 (Ptr lm) Box t ~>> setm H l (Pair0 (Ptr lm) Box t, t) ; Ptr l
+  l = size H ->
+  H ; Pair0 (Ptr lm) Box t ~>> (Pair0 (Ptr lm) Box t :{t} H) ; Ptr l
 | ptr_step_pair1L H H' m m' n t :
   H ; m ~>> H' ; m' ->
   H ; Pair1 m n t ~>> H' ; Pair1 m' n t
@@ -39,8 +39,8 @@ Inductive ptr_step : heap -> term -> heap -> term -> Prop :=
   H ; n ~>> H' ; n' ->
   H ; Pair1 m n t ~>> H' ; Pair1 m n' t
 | ptr_step_pair1 H l lm ln t :
-  l \notin domm H ->
-  H ; Pair1 (Ptr lm) (Ptr ln) t ~>> setm H l (Pair1 (Ptr lm) (Ptr ln) t, t) ; Ptr l
+  l = size H ->
+  H ; Pair1 (Ptr lm) (Ptr ln) t ~>> (Pair1 (Ptr lm) (Ptr ln) t :{t} H) ; Ptr l
 | ptr_step_letinL H H' m m' n :
   H ; m ~>> H' ; m' ->
   H ; LetIn Box m n ~>> H' ; LetIn Box m' n
@@ -51,8 +51,8 @@ Inductive ptr_step : heap -> term -> heap -> term -> Prop :=
   free H l (Pair1 (Ptr lm) (Ptr ln) t) H' ->
   H ; LetIn Box (Ptr l) n ~>> H' ; n.[Ptr ln,Ptr lm/]
 | ptr_step_apair H m n t l :
-  l \notin domm H ->
-  H ; APair m n t ~>> setm H l (APair m n t, t) ; Ptr l
+  l = size H ->
+  H ; APair m n t ~>> (APair m n t :{t} H) ; Ptr l
 | ptr_step_fst H H' m m' :
   H ; m ~>> H' ; m' ->
   H ; Fst m ~>> H' ; Fst m'

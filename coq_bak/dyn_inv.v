@@ -33,7 +33,7 @@ Lemma dyn_lam1_invX Γ Δ A1 A2 B C m s1 s2 t l :
   Γ ; Δ ⊢ Lam1 A1 m s1 : C ->
   C === Pi1 A2 B s2 ->
   (A2 :: Γ) ⊢ B : Sort t l ->
-  exists r, (A2 :: Γ) ; A2 .{r} Δ ⊢ m : B.
+  exists r, (A2 :: Γ) ; A2 :{r} Δ ⊢ m : B.
 Proof with eauto.
   move e:(Lam1 A1 m s1)=>n tyL.
   elim: tyL A1 A2 B m s1 s2 t l e=>//{Γ Δ C n}.
@@ -66,7 +66,7 @@ Proof with eauto.
 Qed.
 
 Lemma dyn_lam1_inv Γ Δ m A1 A2 B s1 s2 :
-  Γ ; Δ ⊢ Lam1 A2 m s2 : Pi1 A1 B s1 -> exists r, (A1 :: Γ) ; A1 .{r} Δ ⊢ m : B.
+  Γ ; Δ ⊢ Lam1 A2 m s2 : Pi1 A1 B s1 -> exists r, (A1 :: Γ) ; A1 :{r} Δ ⊢ m : B.
 Proof with eauto.
   move=>ty.
   have[t[l/sta_pi1_inv[r[l1[l2[tyB _]]]]]]:=dyn_valid ty.

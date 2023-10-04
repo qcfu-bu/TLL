@@ -60,8 +60,8 @@ Proof with eauto using
     have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg.
     have{}ihC:=sta_rename tyC (sta_agree_ren_cons H2 (dyn_sta_agree_ren agr)).
     have{}ihm:=ihm _ _ _ agr1.
-    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (_: A .{r} Δ2)
-      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (_: A.[ren ξ] .{r} Δ2')...
+    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (_: A :{r} Δ2)
+      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (_: A.[ren ξ] :{r} Δ2')...
     asimpl in ihC.
     asimpl in ihm.
     replace C.[Pair0 (Var 1) (Var 0) t .: ren (+2)].[ren (upren (upren ξ))]
@@ -75,8 +75,8 @@ Proof with eauto using
     have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg.
     have{}ihC:=sta_rename tyC (sta_agree_ren_cons H2 (dyn_sta_agree_ren agr)).
     have{}ihm:=ihm _ _ _ agr1.
-    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (B .{r2} A .{r1} Δ2)
-      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (B.[ren (upren ξ)] .{r2} A.[ren ξ] .{r1} Δ2')...
+    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (B :{r2} A :{r1} Δ2)
+      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (B.[ren (upren ξ)] :{r2} A.[ren ξ] :{r1} Δ2')...
     asimpl in ihC.
     asimpl in ihm.
     replace C.[Pair1 (Var 1) (Var 0) t .: ren (+2)].[ren (upren (upren ξ))]

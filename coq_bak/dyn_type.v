@@ -21,7 +21,7 @@ Inductive dyn_type : sta_ctx -> dyn_ctx -> term -> term -> Prop :=
   Γ ; Δ ⊢ Lam0 A m s : Pi0 A B s
 | dyn_lam1 Γ Δ A B m s t :
   Δ ▷ s ->
-  (A :: Γ) ; A .{t} Δ ⊢ m : B ->
+  (A :: Γ) ; A :{t} Δ ⊢ m : B ->
   Γ ; Δ ⊢ Lam1 A m s : Pi1 A B s
 | dyn_app0 Γ Δ A B m n s :
   Γ ; Δ ⊢ m : Pi0 A B s ->
@@ -47,13 +47,13 @@ Inductive dyn_type : sta_ctx -> dyn_ctx -> term -> term -> Prop :=
   Δ1 ∘ Δ2 => Δ ->
   (Sig0 A B t :: Γ) ⊢ C : Sort s l ->
   Γ ; Δ1 ⊢ m : Sig0 A B t ->
-  (B :: A :: Γ) ; _: A .{r} Δ2 ⊢ n : C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] ->
+  (B :: A :: Γ) ; _: A :{r} Δ2 ⊢ n : C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] ->
   Γ ; Δ ⊢ LetIn C m n : C.[m/]
 | dyn_letin1 Γ Δ1 Δ2 Δ A B C m n s r1 r2 t l :
   Δ1 ∘ Δ2 => Δ ->
   (Sig1 A B t :: Γ) ⊢ C : Sort s l ->
   Γ ; Δ1 ⊢ m : Sig1 A B t ->
-  (B :: A :: Γ) ; B .{r2} A .{r1} Δ2 ⊢ n : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
+  (B :: A :: Γ) ; B :{r2} A :{r1} Δ2 ⊢ n : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   Γ ; Δ ⊢ LetIn C m n : C.[m/]
 | dyn_apair Γ Δ A B m n t :
   Δ ▷ t ->
@@ -83,7 +83,7 @@ with dyn_wf : sta_ctx -> dyn_ctx -> Prop :=
 | dyn_wf_ty Γ Δ A s l :
   dyn_wf Γ Δ ->
   Γ ⊢ A : Sort s l ->
-  dyn_wf (A :: Γ) (A .{s} Δ)
+  dyn_wf (A :: Γ) (A :{s} Δ)
 | dyn_wf_n Γ Δ A s l :
   dyn_wf Γ Δ ->
   Γ ⊢ A : Sort s l ->

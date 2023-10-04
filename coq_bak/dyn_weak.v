@@ -14,7 +14,7 @@ Inductive dyn_agree_ren : (var -> var) ->
   Γ ⊢ m : Sort s l ->
   dyn_agree_ren ξ Γ Δ Γ' Δ' ->
   dyn_agree_ren (upren ξ)
-    (m :: Γ) (m .{s} Δ) (m.[ren ξ] :: Γ') (m.[ren ξ] .{s} Δ')
+    (m :: Γ) (m :{s} Δ) (m.[ren ξ] :: Γ') (m.[ren ξ] :{s} Δ')
 | dyn_agree_ren_n Γ Γ' Δ Δ' ξ m s l :
   Γ ⊢ m : Sort s l ->
   dyn_agree_ren ξ Γ Δ Γ' Δ' ->
@@ -43,7 +43,7 @@ Proof with eauto using dyn_agree_ren.
   { move=>A Γ ih Δ wf. inv wf.
     { have agr:=ih _ H1.
       have:dyn_agree_ren (upren id)
-        (A :: Γ) (A .{s} Δ0) (A.[ren id] :: Γ) (A.[ren id] .{s} Δ0)...
+        (A :: Γ) (A :{s} Δ0) (A.[ren id] :: Γ) (A.[ren id] :{s} Δ0)...
       by asimpl. }
     { have agr:=ih _ H1.
       have:dyn_agree_ren (upren id)
@@ -121,12 +121,12 @@ Proof with eauto using dyn_wf.
 Qed.
 
 Lemma dyn_agree_weak_wf_ty Γ Γ' Δ Δ' A s ξ :
-  dyn_agree_ren ξ (A :: Γ) (A .{s} Δ) Γ' Δ' -> dyn_wf Γ Δ ->
+  dyn_agree_ren ξ (A :: Γ) (A :{s} Δ) Γ' Δ' -> dyn_wf Γ Δ ->
   (∀ Γ' Δ' ξ, dyn_agree_ren ξ Γ Δ Γ' Δ' → dyn_wf Γ' Δ') ->
   dyn_wf Γ' Δ'.
 Proof with eauto using dyn_wf.
   move e1:(A :: Γ)=>Γ0.
-  move e2:(A .{s} Δ)=>Δ0 agr.
+  move e2:(A :{s} Δ)=>Δ0 agr.
   elim: agr A Γ Δ s e1 e2=>//{Γ0 Δ0 Γ' Δ' ξ}...
   move=>Γ Γ' Δ Δ' ξ m s l tym agr _ A Γ0 Δ0 s0[e1 e2][_ e4 e5]wf h; subst.
   apply: dyn_wf_ty...
@@ -203,8 +203,8 @@ Proof with eauto using
     have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg.
     have{}ihC:=sta_rename tyC (sta_agree_ren_cons H2 (dyn_sta_agree_ren agr)).
     have{}ihm:=ihm _ _ _ agr1.
-    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (_: A .{r} Δ2)
-      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (_: A.[ren ξ] .{r} Δ2')...
+    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (_: A :{r} Δ2)
+      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (_: A.[ren ξ] :{r} Δ2')...
     asimpl in ihC.
     asimpl in ihm.
     replace C.[Pair0 (Var 1) (Var 0) t .: ren (+2)].[ren (upren (upren ξ))]
@@ -218,8 +218,8 @@ Proof with eauto using
     have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg.
     have{}ihC:=sta_rename tyC (sta_agree_ren_cons H2 (dyn_sta_agree_ren agr)).
     have{}ihm:=ihm _ _ _ agr1.
-    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (B .{r2} A .{r1} Δ2)
-      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (B.[ren (upren ξ)] .{r2} A.[ren ξ] .{r1} Δ2')...
+    have/ihn{}ihn:dyn_agree_ren (upren (upren ξ)) (B :: A :: Γ) (B :{r2} A :{r1} Δ2)
+      (B.[ren (upren ξ)] :: A.[ren ξ] :: Γ') (B.[ren (upren ξ)] :{r2} A.[ren ξ] :{r1} Δ2')...
     asimpl in ihC.
     asimpl in ihm.
     replace C.[Pair1 (Var 1) (Var 0) t .: ren (+2)].[ren (upren (upren ξ))]

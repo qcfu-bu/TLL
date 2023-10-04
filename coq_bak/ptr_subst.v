@@ -7,14 +7,14 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Inductive agree_resolve :
-  dyn_ctx -> heap -> (var -> term) -> (var -> term) -> nat -> Prop :=
+  dyn_ctx -> dyn_ctx -> (var -> term) -> (var -> term) -> nat -> Prop :=
 | agree_resolve_nil H :
   H ▷ U ->
   wr_heap H ->
   agree_resolve nil H ids ids 0
 | agree_resolve_upTy Δ H σ σ' A x s :
   agree_resolve Δ H σ σ' x ->
-  agree_resolve (A .{s} Δ) H (up σ) (up σ') x.+1
+  agree_resolve (A :{s} Δ) H (up σ) (up σ') x.+1
 | agree_resolve_upN Δ H σ σ' x :
   agree_resolve Δ H σ σ' x ->
   agree_resolve (_: Δ) H (up σ) (up σ') x.+1
@@ -36,8 +36,8 @@ Inductive agree_resolve :
   agree_resolve (_: Δ) H (m .: σ) (m' .: σ') 0.
 
 Lemma agree_resolve_key Δ H σ σ' x s :
-  agree_resolve Δ H σ σ' x -> key Δ s -> H ▷ s.
-Proof with eauto using key, hkey_impure, hmrg_pure.
+  agree_resolve Δ H σ σ' x -> Δ ▷ s -> H ▷ s.
+Proof with eauto using key, key_impure, merge_pure.
   move=>agr. elim: agr s=>//{Δ H σ σ' x}.
   { move=>H k wr [|]... }
   { move=>Δ H σ σ' A x s agr ih [|] k... inv k... }
@@ -90,7 +90,7 @@ Qed.
 
 Lemma agree_resolve_wr Δ H σ σ' x :
   agree_resolve Δ H σ σ' x -> wr_heap H.
-Proof with eauto.
+Proof with eauto using wr_heap.
   elim=>{Δ H σ σ' x}...
   { move=>Δ H1 H2 H σ σ' m m' _ mrg k wr2 rs agr wr1.
     apply: wr_merge... }
@@ -168,18 +168,18 @@ Proof with eauto using resolve, id_ren1.
   { move=>Δ H1 H2 H σ σ' m m' A mrg k wr rsm agr ih x s A0 hs.
     inv hs; asimpl.
     { have k1:=agree_resolve_key agr H8.
-      have->//:=hmrg_pureL mrg k1. }
-    { have->:=hmrg_pureR mrg k... } }
+      have->//:=merge_pureL mrg k1. }
+    { have->:=merge_pureR mrg k... } }
   { move=>Δ H1 H2 H σ σ' m m' A mrg wr rsm agr ih x s A0 hs.
     inv hs; asimpl.
     have k1:=agree_resolve_key agr H8.
-    have->//:=hmrg_pureL mrg k1. }
+    have->//:=merge_pureL mrg k1. }
   { move=>Δ H σ σ' m m' agr ih x s A hs. inv hs; asimpl... }
 Qed.
 
 Lemma agree_resolve_merge_inv Δ1 Δ2 Δ H σ σ' x :
   agree_resolve Δ H σ σ' x ->
-  merge Δ1 Δ2 Δ ->
+  Δ1 ∘ Δ2 => Δ ->
   exists H1 H2,
     H1 ∘ H2 => H /\
     agree_resolve Δ1 H1 σ σ' x /\
@@ -187,7 +187,7 @@ Lemma agree_resolve_merge_inv Δ1 Δ2 Δ H σ σ' x :
 Proof with eauto using merge, agree_resolve.
   move=>agr. elim: agr Δ1 Δ2=>{Δ H σ σ' x}.
   { move=>H k wr Δ1 Δ2 mrg. inv mrg.
-    have[H1[H2[k1[k2 mrg]]]]:=hpure_split k.
+    have[H1[H2[k1[k2 mrg]]]]:=pure_split k.
     have[wr1 wr2]:=wr_merge_inv mrg wr.
     exists H1. exists H2... }
   { move=>Δ H σ σ' A x s agr ih Δ1 Δ2 mrg. inv mrg.
@@ -198,17 +198,17 @@ Proof with eauto using merge, agree_resolve.
     have[H1[H2[mrg[agr1 agr2]]]]:=ih _ _ H3. exists H1. exists H2... }
   { move=>Δ H1 H2 H σ σ' m m' A mrg1 k wr rsm agr ih Δ1 Δ2 mrg2. inv mrg2.
     have[H3[H4[mrg2[agr1 agr2]]]]:=ih _ _ H5.
-    have e:=hmrg_pureR mrg1 k. subst.
-    have[H6[H7[mrg3[mrg4 mrg5]]]]:=hmrg_distr mrg1 mrg2 (hmrg_pure_refl k).
+    have e:=merge_pureR mrg1 k. subst.
+    have[H6[H7[mrg3[mrg4 mrg5]]]]:=merge_distr mrg1 mrg2 (merge_pure_refl k).
     exists H6. exists H7. repeat split... }
   { move=>Δ H1 H2 H σ σ' m m' A mrg1 wr rsm agr ih Δ1 Δ2 mrg2. inv mrg2.
     { have[H3[H4[mrg2[agr1 agr2]]]]:=ih _ _ H5.
-      have[H6[mrg3 mrg4]]:=hmrg_splitL mrg1 mrg2.
+      have[H6[mrg3 mrg4]]:=merge_splitL mrg1 mrg2.
       exists H6. exists H4. repeat split... }
     { have[H3[H4[mrg2[agr1 agr2]]]]:=ih _ _ H5.
-      have[H6[mrg3 mrg4]]:=hmrg_splitR mrg1 mrg2.
+      have[H6[mrg3 mrg4]]:=merge_splitR mrg1 mrg2.
       exists H3. exists H6. repeat split...
-      apply: hmrg_sym... } }
+      apply: merge_sym... } }
   { move=>Δ H σ σ' m m' agr ih Δ1 Δ2 mrg. inv mrg.
     have[H4[H5[mrg2[agr1 agr2]]]]:=ih _ _ H3.
     exists H4. exists H5. repeat split... }
@@ -220,11 +220,11 @@ Lemma resolve_subst Γ Δ H1 H2 H m n n' A σ σ' x :
   agree_resolve Δ H2 σ σ' x ->
   H ; n'.[σ] ~ n.[σ'].
 Proof with eauto using
-  resolve, agree_resolve, hmrg_pure, hkey_impure, hkey_merge.
+  resolve, agree_resolve, merge_pure, key_impure, key_merge.
   move=>erm. elim: erm H1 H2 H n' σ σ' x=>{Γ Δ m n A}...
   { move=>Γ Δ x s A wf shs dhs H1 H2 H n' σ σ' x0 mrg rsn wr agr.
     inv rsn; asimpl.
-    { have->:=hmrg_pureL mrg H6.
+    { have->:=merge_pureL mrg H6.
       apply: agree_resolve_id... }
     { inv H4.
       have//:=free_wr_var H3 wr.
@@ -283,7 +283,7 @@ Proof with eauto using
     { exfalso. apply: era_box_form... }
     { have[wr1 wr2]:=wr_merge_inv H7 wr.
       have[H4[H5[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
-      have[H6[H8[mrg4[mrg5 mrg6]]]]:=hmrg_distr mrg2 H7 mrg3.
+      have[H6[H8[mrg4[mrg5 mrg6]]]]:=merge_distr mrg2 H7 mrg3.
       econstructor... }
     { inv H4.
       { have vl:=wr_free_dyn_val H3 wr. inv vl. }
@@ -306,13 +306,13 @@ Proof with eauto using
     inv rsn; asimpl.
     { have[wr1 wr2]:=wr_merge_inv H10 wr.
       have[H4[H5[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
-      have[H6[H7[mrg4[mrg5 mrg6]]]]:=hmrg_distr mrg2 H10 mrg3.
+      have[H6[H7[mrg4[mrg5 mrg6]]]]:=merge_distr mrg2 H10 mrg3.
       econstructor... }
     { inv H4.
       { have nfP:=free_wr_nf H3 wr. inv nfP.
         have[H4[fr mrg']]:=free_merge H3 mrg2.
         have[H6[H7[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
-        have[H9[H11[mrg4[mrg5 mrg6]]]]:=hmrg_distr mrg' H12 mrg3.
+        have[H9[H11[mrg4[mrg5 mrg6]]]]:=merge_distr mrg' H12 mrg3.
         have wr':=free_wr H3 wr.
         have[wr1 wr2]:=wr_merge_inv H12 wr'.
         have lx: 0 <= x by eauto.
@@ -325,7 +325,7 @@ Proof with eauto using
     inv rsn; asimpl.
     { have[wr1 wr2]:=wr_merge_inv H7 wr.
       have[H4[H5[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
-      have[H6[H8[mrg4[mrg5 mrg6]]]]:=hmrg_distr mrg2 H7 mrg3.
+      have[H6[H8[mrg4[mrg5 mrg6]]]]:=merge_distr mrg2 H7 mrg3.
       econstructor... }
     { inv H4.
       { have vl:=wr_free_dyn_val H3 wr. inv vl. }
@@ -334,7 +334,7 @@ Proof with eauto using
     inv rsn; asimpl.
     { have[wr1 wr2]:=wr_merge_inv H7 wr.
       have[H4[H5[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
-      have[H6[H8[mrg4[mrg5 mrg6]]]]:=hmrg_distr mrg2 H7 mrg3.
+      have[H6[H8[mrg4[mrg5 mrg6]]]]:=merge_distr mrg2 H7 mrg3.
       econstructor... }
     { inv H4.
       { have vl:=wr_free_dyn_val H3 wr. inv vl. }

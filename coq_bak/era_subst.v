@@ -15,7 +15,7 @@ Inductive era_agree_subst :
 | era_agree_subst_ty Γ1 Δ1 σ1 σ2 Γ2 Δ2 A s l :
   Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 ->
   Γ2 ⊢ A : Sort s l ->
-  (A.[σ1] :: Γ1) ; (A.[σ1] .{s} Δ1) ⊢ up σ1 ~ up σ2 ⊣ (A :: Γ2) ; (A .{s} Δ2)
+  (A.[σ1] :: Γ1) ; (A.[σ1] :{s} Δ1) ⊢ up σ1 ~ up σ2 ⊣ (A :: Γ2) ; (A :{s} Δ2)
 | era_agree_subst_n Γ1 Δ1 σ1 σ2 Γ2 Δ2 A s l :
   Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 ->
   Γ2 ⊢ A : Sort s l ->
@@ -29,7 +29,7 @@ Inductive era_agree_subst :
   Δa ∘ Δb => Δ1 ->
   Γ1 ; Δa ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2 ->
   Γ1 ; Δb ⊢ n ~ n' : A.[σ1] ->
-  Γ1 ; Δ1 ⊢ n .: σ1 ~ n' .: σ2 ⊣ (A :: Γ2) ; (A .{s} Δ2)
+  Γ1 ; Δ1 ⊢ n .: σ1 ~ n' .: σ2 ⊣ (A :: Γ2) ; (A :{s} Δ2)
 | era_agree_subst_conv0 Γ1 Δ1 σ1 σ2 Γ2 Δ2 A B s l :
   A === B ->
   Γ1 ⊢ B.[ren (+1)].[σ1] : Sort s l ->
@@ -40,8 +40,8 @@ Inductive era_agree_subst :
   A === B ->
   Γ1 ⊢ B.[ren (+1)].[σ1] : Sort s l ->
   Γ2 ⊢ B : Sort s l ->
-  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ (A :: Γ2) ; (A .{s} Δ2) ->
-  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ (B :: Γ2) ; (B .{s} Δ2)
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ (A :: Γ2) ; (A :{s} Δ2) ->
+  Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ (B :: Γ2) ; (B :{s} Δ2)
 where "Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ Γ2 ; Δ2" := (era_agree_subst Γ1 Δ1 σ1 σ2 Γ2 Δ2).
 
 Lemma era_agree_subst_key Γ1 Γ2 Δ1 Δ2 σ1 σ2 s :
@@ -74,8 +74,8 @@ Proof with eauto using era_agree_subst.
   { move=>Δ wf. inv wf... }
   { move=>A Γ ih Δ wf. inv wf.
     { have agr:=ih _ H1.
-      have:(A.[ids] :: Γ); A.[ids] .{s} Δ0 ⊢
-       up ids ~ up ids ⊣ (A :: Γ); A .{s} Δ0...
+      have:(A.[ids] :: Γ); A.[ids] :{s} Δ0 ⊢
+       up ids ~ up ids ⊣ (A :: Γ); A :{s} Δ0...
       by asimpl. }
     { have agr:=ih _ H1.
       have:(A.[ids] :: Γ); _: Δ0 ⊢ up ids ~ up ids ⊣ (A :: Γ); _: Δ0...
@@ -271,7 +271,7 @@ Qed.
 
 Lemma era_subst1 Γ Δ1 Δ2 Δ m m' n n' A B s :
   Δ2 ▷ s -> Δ1 ∘ Δ2 => Δ ->
-  (A :: Γ) ; A .{s} Δ1 ⊢ m ~ m' : B -> Γ ; Δ2 ⊢ n ~ n' : A -> Γ ; Δ ⊢ m.[n/] ~ m'.[n'/] : B.[n/].
+  (A :: Γ) ; A :{s} Δ1 ⊢ m ~ m' : B -> Γ ; Δ2 ⊢ n ~ n' : A -> Γ ; Δ ⊢ m.[n/] ~ m'.[n'/] : B.[n/].
 Proof with eauto using era_agree_subst_refl.
   move=>k mrg tym tyn.
   have wf:=dyn_type_wf (era_dyn_type tym). inv wf.
@@ -295,7 +295,7 @@ Lemma era_esubst1 Γ Δ1 Δ2 Δ m m' n n' v v' A B B' s :
   n' = n.[v'/] ->
   B' = B.[v/] ->
   Δ2 ▷ s -> Δ1 ∘ Δ2 => Δ ->
-  (A :: Γ) ; A .{s} Δ1 ⊢ m ~ n : B ->
+  (A :: Γ) ; A :{s} Δ1 ⊢ m ~ n : B ->
   Γ ; Δ2 ⊢ v ~ v' : A ->
   Γ ; Δ ⊢ m' ~ n' : B'.
 Proof.
@@ -319,11 +319,11 @@ Qed.
 
 Lemma era_ctx_conv1 Γ Δ m m' A B C s l :
   B === A ->
-  Γ ⊢ B : Sort s l -> (A :: Γ) ; A .{s} Δ ⊢ m ~ m' : C -> (B :: Γ) ; B .{s} Δ ⊢ m ~ m' : C.
+  Γ ⊢ B : Sort s l -> (A :: Γ) ; A :{s} Δ ⊢ m ~ m' : C -> (B :: Γ) ; B :{s} Δ ⊢ m ~ m' : C.
 Proof with eauto using dyn_wf, era_agree_subst_refl.
   move=>eq tyA tym.
   have wf:=dyn_type_wf (era_dyn_type tym). inv wf.
-  have:(B :: Γ) ; B .{s} Δ ⊢ m.[ids] ~ m'.[ids] : C.[ids].
+  have:(B :: Γ) ; B :{s} Δ ⊢ m.[ids] ~ m'.[ids] : C.[ids].
   apply: era_substitution...
   apply: era_agree_subst_conv1...
   apply: sta_eweaken...

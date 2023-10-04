@@ -85,7 +85,7 @@ Lemma era_lam1_invX Γ Δ A1 A2 A3 B C m1 m2 s1 s2 t l :
   Γ ; Δ ⊢ Lam1 A1 m1 s1 ~ Lam1 A2 m2 s1 : C ->
   C === Pi1 A3 B s2 ->
   (A3 :: Γ) ⊢ B : Sort t l ->
-  exists r, (A3 :: Γ) ; A3 .{r} Δ ⊢ m1 ~ m2 : B /\ A1 === A3.
+  exists r, (A3 :: Γ) ; A3 :{r} Δ ⊢ m1 ~ m2 : B /\ A1 === A3.
 Proof with eauto.
   move e1:(Lam1 A1 m1 s1)=>n1.
   move e2:(Lam1 A2 m2 s1)=>n2 tyL.
@@ -122,7 +122,7 @@ Qed.
 
 Lemma era_lam1_inv Γ Δ m m' A1 A2 A3 B s1 s2 :
   Γ ; Δ ⊢ Lam1 A1 m s2 ~ Lam1 A2 m' s2 : Pi1 A3 B s1 ->
-  exists r, (A3 :: Γ) ; A3 .{r} Δ ⊢ m ~ m' : B /\ A1 === A3.
+  exists r, (A3 :: Γ) ; A3 :{r} Δ ⊢ m ~ m' : B /\ A1 === A3.
 Proof with eauto.
   move=>ty.
   have[t[l/sta_pi1_inv[r[l1[l2[tyB _]]]]]]:=dyn_valid (era_dyn_type ty).

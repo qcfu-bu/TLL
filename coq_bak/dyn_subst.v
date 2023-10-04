@@ -14,7 +14,7 @@ Inductive dyn_agree_subst :
 | dyn_agree_subst_ty Γ1 Δ1 σ Γ2 Δ2 A s l :
   Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 ->
   Γ2 ⊢ A : Sort s l ->
-  (A.[σ] :: Γ1) ; (A.[σ] .{s} Δ1) ⊢ up σ ⊣ (A :: Γ2) ; (A .{s} Δ2)
+  (A.[σ] :: Γ1) ; (A.[σ] :{s} Δ1) ⊢ up σ ⊣ (A :: Γ2) ; (A :{s} Δ2)
 | dyn_agree_subst_n Γ1 Δ1 σ Γ2 Δ2 A s l :
   Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2 ->
   Γ2 ⊢ A : Sort s l ->
@@ -28,7 +28,7 @@ Inductive dyn_agree_subst :
   Δa ∘ Δb => Δ1 ->
   Γ1 ; Δa ⊢ σ ⊣ Γ2 ; Δ2 ->
   Γ1 ; Δb ⊢ n : A.[σ] ->
-  Γ1 ; Δ1 ⊢ n .: σ ⊣ (A :: Γ2) ; (A .{s} Δ2)
+  Γ1 ; Δ1 ⊢ n .: σ ⊣ (A :: Γ2) ; (A :{s} Δ2)
 | dyn_agree_subst_conv0 Γ1 Δ1 σ Γ2 Δ2 A B s l :
   A === B ->
   Γ1 ⊢ B.[ren (+1)].[σ] : Sort s l ->
@@ -39,8 +39,8 @@ Inductive dyn_agree_subst :
   A === B ->
   Γ1 ⊢ B.[ren (+1)].[σ] : Sort s l ->
   Γ2 ⊢ B : Sort s l ->
-  Γ1 ; Δ1 ⊢ σ ⊣ (A :: Γ2) ; (A .{s} Δ2) ->
-  Γ1 ; Δ1 ⊢ σ ⊣ (B :: Γ2) ; (B .{s} Δ2)
+  Γ1 ; Δ1 ⊢ σ ⊣ (A :: Γ2) ; (A :{s} Δ2) ->
+  Γ1 ; Δ1 ⊢ σ ⊣ (B :: Γ2) ; (B :{s} Δ2)
 where "Γ1 ; Δ1 ⊢ σ ⊣ Γ2 ; Δ2" := (dyn_agree_subst Γ1 Δ1 σ Γ2 Δ2).
 
 Lemma dyn_agree_subst_key Γ1 Γ2 Δ1 Δ2 σ s :
@@ -68,7 +68,7 @@ Proof with eauto using dyn_agree_subst.
   { move=>Δ wf. inv wf... }
   { move=>A Γ ih Δ wf. inv wf.
     { have agr:=ih _ H1.
-      have:(A.[ids] :: Γ); A.[ids] .{s} Δ0 ⊢ up ids ⊣ (A :: Γ); A .{s} Δ0...
+      have:(A.[ids] :: Γ); A.[ids] :{s} Δ0 ⊢ up ids ⊣ (A :: Γ); A :{s} Δ0...
       by asimpl. }
     { have agr:=ih _ H1.
       have:(A.[ids] :: Γ); _: Δ0 ⊢ up ids ⊣ (A :: Γ); _: Δ0...
@@ -170,12 +170,12 @@ Proof with eauto using dyn_wf.
 Qed.
 
 Lemma dyn_agree_subst_wf_ty Γ1 Γ2 Δ1 Δ2 A s σ :
-  Γ1; Δ1 ⊢ σ ⊣ (A :: Γ2); A .{s} Δ2 -> dyn_wf Γ2 Δ2 ->
+  Γ1; Δ1 ⊢ σ ⊣ (A :: Γ2); A :{s} Δ2 -> dyn_wf Γ2 Δ2 ->
   (∀ Γ1 Δ1 σ, Γ1; Δ1 ⊢ σ ⊣ Γ2; Δ2 → dyn_wf Γ1 Δ1) ->
   dyn_wf Γ1 Δ1.
 Proof with eauto using dyn_wf.
   move e1:(A :: Γ2)=>Γ0.
-  move e2:(A .{s} Δ2)=>Δ0 agr.
+  move e2:(A :{s} Δ2)=>Δ0 agr.
   elim: agr A Γ2 Δ2 s e1 e2=>//{Γ0 Δ0 Γ1 Δ1 σ}...
   { move=>Γ1 Δ1 σ Γ2 Δ2 A s l agr _ tyA A0 Γ0 Δ0 s0[e1 e2][_ e3 e4]wf h; subst.
     apply: dyn_wf_ty...
@@ -314,7 +314,7 @@ Qed.
 
 Lemma dyn_subst1 Γ Δ1 Δ2 Δ m n A B s :
   Δ2 ▷ s -> Δ1 ∘ Δ2 => Δ ->
-  (A :: Γ) ; A .{s} Δ1 ⊢ m : B -> Γ ; Δ2 ⊢ n : A -> Γ ; Δ ⊢ m.[n/] : B.[n/].
+  (A :: Γ) ; A :{s} Δ1 ⊢ m : B -> Γ ; Δ2 ⊢ n : A -> Γ ; Δ ⊢ m.[n/] : B.[n/].
 Proof with eauto using dyn_agree_subst_refl.
   move=>k mrg tym tyn.
   have wf:=dyn_type_wf tym. inv wf.
@@ -335,7 +335,7 @@ Lemma dyn_esubst1 Γ Δ1 Δ2 Δ m m' n A B B' s :
   m' = m.[n/] ->
   B' = B.[n/] ->
   Δ2 ▷ s -> Δ1 ∘ Δ2 => Δ ->
-  (A :: Γ) ; A .{s} Δ1 ⊢ m : B -> Γ ; Δ2 ⊢ n : A -> Γ ; Δ ⊢ m' : B'.
+  (A :: Γ) ; A :{s} Δ1 ⊢ m : B -> Γ ; Δ2 ⊢ n : A -> Γ ; Δ ⊢ m' : B'.
 Proof.
   move=>*; subst. apply: dyn_subst1; eauto.
 Qed.
@@ -357,11 +357,11 @@ Qed.
 
 Lemma dyn_ctx_conv1 Γ Δ m A B C s l :
   B === A ->
-  Γ ⊢ B : Sort s l -> (A :: Γ) ; A .{s} Δ ⊢ m : C -> (B :: Γ) ; B .{s} Δ ⊢ m : C.
+  Γ ⊢ B : Sort s l -> (A :: Γ) ; A :{s} Δ ⊢ m : C -> (B :: Γ) ; B :{s} Δ ⊢ m : C.
 Proof with eauto using dyn_wf, dyn_agree_subst_refl.
   move=>eq tyB tym.
   have wf:=dyn_type_wf tym. inv wf.
-  have:(B :: Γ) ; B .{s} Δ ⊢ m.[ids] : C.[ids].
+  have:(B :: Γ) ; B :{s} Δ ⊢ m.[ids] : C.[ids].
   apply: dyn_substitution...
   apply: dyn_agree_subst_conv1...
   apply: sta_eweaken...

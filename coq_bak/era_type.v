@@ -19,7 +19,7 @@ Inductive era_type : sta_ctx -> dyn_ctx -> term -> term -> term -> Prop :=
   Γ ; Δ ⊢ Lam0 A m s ~ Lam0 Box m' s : Pi0 A B s
 | era_lam1 Γ Δ A B m m' s t :
   Δ ▷ s ->
-  (A :: Γ) ; A .{t} Δ ⊢ m ~ m' : B ->
+  (A :: Γ) ; A :{t} Δ ⊢ m ~ m' : B ->
   Γ ; Δ ⊢ Lam1 A m s ~ Lam1 Box m' s : Pi1 A B s
 | era_app0 Γ Δ A B m m' n s :
   Γ ; Δ ⊢ m ~ m' : Pi0 A B s ->
@@ -45,13 +45,13 @@ Inductive era_type : sta_ctx -> dyn_ctx -> term -> term -> term -> Prop :=
   Δ1 ∘ Δ2 => Δ ->
   (Sig0 A B t :: Γ) ⊢ C : Sort s l ->
   Γ ; Δ1 ⊢ m ~ m' : Sig0 A B t ->
-  (B :: A :: Γ) ; _: A .{r} Δ2 ⊢ n ~ n' : C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] ->
+  (B :: A :: Γ) ; _: A :{r} Δ2 ⊢ n ~ n' : C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] ->
   Γ ; Δ ⊢ LetIn C m n ~ LetIn Box m' n' : C.[m/]
 | era_letin1 Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l :
   Δ1 ∘ Δ2 => Δ ->
   (Sig1 A B t :: Γ) ⊢ C : Sort s l ->
   Γ ; Δ1 ⊢ m ~ m' : Sig1 A B t ->
-  (B :: A :: Γ) ; B .{r2} A .{r1} Δ2 ⊢ n ~ n' : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
+  (B :: A :: Γ) ; B :{r2} A :{r1} Δ2 ⊢ n ~ n' : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   Γ ; Δ ⊢ LetIn C m n ~ LetIn Box m' n' : C.[m/]
 | era_apair Γ Δ A B m m' n n' t :
   Δ ▷ t ->

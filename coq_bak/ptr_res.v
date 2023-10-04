@@ -1,26 +1,29 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS era_type ptr_heap.
+Require Export AutosubstSsr ARS era_type.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Open Scope heap_scope.
+Inductive pad (H : dyn_ctx) : dyn_ctx -> Prop :=
+| pad_O : pad H H
+| pad_U H' m : pad H H' -> pad H (m :U H')
+| pad_N H' : pad H H' -> pad H (_: H').
 
-Definition pad (H1 H2 : heap) : Prop :=
-  exists H0, H0 ▷ U /\ domm H1 :#: domm H0 /\ H2 = unionm H1 H0.
-
-Definition free (H1 : heap) l m (H2 : heap) : Prop := 
-  match H1 l with
-  | Some (n, U) => m = n /\ H2 = H1
-  | Some (n, L) => m = n /\ H2 = remm H1 l
-  | None => false
-  end.
+Inductive free : dyn_ctx -> nat -> term -> dyn_ctx -> Prop :=
+| free_U H m l :
+  l = size H ->
+  free (m :U H) l m (m :U H)
+| free_L H m l :
+  l = size H ->
+  free (m :L H) l m (_: H)
+| free_S H H' m n l :
+  free H l m H' ->
+  free (n :: H) l m (n :: H').
 
 Reserved Notation "H ; m ~ n" (at level 50, m, n at next level).
-
-Inductive resolve : heap -> term -> term -> Prop :=
+Inductive resolve : dyn_ctx -> term -> term -> Prop :=
 | resolve_var H x :
   H ▷ U ->
   H ; Var x ~ Var x
@@ -114,68 +117,47 @@ Inductive resolved : term -> Prop :=
   resolved m ->
   resolved (Rw Box m Box).
 
-Lemma pad_refl H : pad H H.
-Proof.
-  rewrite/pad. exists emptym. rsplit.
-  apply/fdisjointP=>x _.
-  apply/dommP=>[[v]]. rewrite emptymE//.
-  apply eq_fmap=>x.
-  rewrite unionmE.
-  by case_eq (H x).
-Qed.
-
-Lemma pad_setm H m l : l \notin domm H -> pad H (setm H l (m, U)).
-Proof.
-  rewrite/pad.
-  exists (mkfmap [:: (l, (m, U))]). rsplit.
-  move=>x. rewrite mkfmapE=>/=. by case (x == l).
-  rewrite fdisjointC. apply/fdisjointP=>x.
-  rewrite domm_mkfmap. rewrite/unzip1=>/=. rewrite in_fset1.
-  move=>/eqP e. by subst.
-  apply eq_fmap=>x.
-  rewrite setmE.
-  rewrite unionmE.
-  move: H0=>/dommPn H0.
-  case_eq (x == l)=>[/eqP e|e]; subst.
-  rewrite H0=>//=. by rewrite setmE eq_refl.
-  case_eq (H x); rmatch_case. rewrite setmE e.
-  by rewrite emptymE.
-Qed.
-
 Lemma pad_key H H' s : pad H H' -> H ▷ s -> H' ▷ s.
-Proof.
-  rewrite/pad.
-  move=>[H0[k1[d0->]]] k2 l. move: (k1 l). move: (k2 l).
-  rmatch_case.
-  { rewrite unionmE in H3.
-    rewrite H10 in H3. simpl in H3. inv H3. }
-  { rewrite unionmE in H3.
-    rewrite H8 in H3. simpl in H3. inv H3. }
-  { rewrite unionmE in H4.
-    rewrite H8 in H4. simpl in H4.
-    rewrite H4 in H7. inv H7. }
-  { rewrite unionmE in H4.
-    rewrite H6 in H4. simpl in H4.
-    rewrite H4 in H5. inv H5. }
+Proof with eauto using key.
+  move=>pd. elim: pd s=>//{H'}...
+  move=>H' m pd ih [|] k...
+Qed.
+
+Lemma pad_mergeL H1 H2 H H1p :
+  pad H1 H1p -> H1 ∘ H2 => H ->
+  exists H2p Hp, pad H2 H2p /\ pad H Hp /\ H1p ∘ H2p => Hp.
+Proof with eauto 6 using pad, merge.
+  move=>pd. elim: pd H2 H=>{H1p}.
+  { move=>H2 H mrg. exists H2. exists H... }
+  { move=>H' m pd1 ih H2 H mrg.
+    have[H2p[Hp[pd2[pd mrg']]]]:=ih _ _ mrg.
+    exists (m :U H2p). exists (m :U Hp)... }
+  { move=>H' pd1 ih H2 H mrg.
+    have[H2p[Hp[pd2[pd mrg']]]]:=ih _ _ mrg.
+    exists (_: H2p). exists (_: Hp)... }
+Qed.
+
+Lemma pad_mergeR H1 H2 H H2p :
+  pad H2 H2p -> H1 ∘ H2 => H ->
+  exists H1p Hp, pad H1 H1p /\ pad H Hp /\ H1p ∘ H2p => Hp.
+Proof with eauto.
+  move=>pd/merge_sym mrg.
+  have[H1p[Hp[pd1[pd2/merge_sym mrg']]]]:=pad_mergeL pd mrg.
+  exists H1p. exists Hp...
 Qed.
 
 Lemma pad_merge H1 H2 H Hp :
   pad H Hp -> H1 ∘ H2 => H ->
   exists H1p H2p, pad H1 H1p /\ pad H2 H2p /\ H1p ∘ H2p => Hp.
-Proof.
-  move=>[H0[k0[d0 e0]]] mrg; subst.
-  exists (unionm H1 H0). exists (unionm H2 H0). rsplit.
-  { exists H0. rsplit=>//.
-    apply/fdisjointP=>x h.
-    have{}h:=hmrg_domm mrg h.
-    move: d0=>/fdisjointP h0.
-    exact: h0. }
-  { exists H0. rsplit=>//.
-    apply/fdisjointP=>x h.
-    have{}h:=hmrg_domm (hmrg_sym mrg) h.
-    move: d0=>/fdisjointP h0.
-    exact: h0. }
-  { exact: hmrg_unionm. }
+Proof with eauto 6 using pad, merge.
+  move=>pd. elim: pd H1 H2=>{Hp}.
+  { move=>H1 H2 mrg. exists H1. exists H2... }
+  { move=>H' m pd ih H1 H2 mrg.
+    have[H1p[H2p[pd1[pd2 mrg']]]]:=ih _ _ mrg.
+    exists (m :U H1p). exists (m :U H2p)... }
+  { move=>H' pd ih H1 H2 mrg.
+    have[H1p[H2p[pd1[pd2 mrg']]]]:=ih _ _ mrg.
+    exists (_: H1p). exists (_: H2p)... }
 Qed.
 
 Lemma ptr_resolve_resolved H m m' : H ; m ~ m' -> resolved m'.
@@ -183,140 +165,42 @@ Proof with eauto using resolved. elim=>{H m m'}... Qed.
 
 Reserved Notation "H ; x ~ y ~ z : A" (at level 50, x, y, z, A at next level).
 Inductive ptr_well_resolved :
-  heap -> term -> term -> term -> term -> Prop :=
+  dyn_ctx -> term -> term -> term -> term -> Prop :=
 | Ptr_well_resolved H x y z A :
   nil ; nil ⊢ x ~ y : A ->
   H ; z ~ y ->
   H ; x ~ y ~ z : A
 where "H ; x ~ y ~ z : A" := (ptr_well_resolved H x y z A).
 
-Lemma free_domm H1 H2 l1 l2 m :
-  free H1 l1 m H2 -> l2 \notin domm H1 -> l2 \notin domm H2.
-Proof.
-  move=>fr/dommPn h. apply/dommPn.
-  move:fr. rewrite/free.
-  rmatch_case.
-  rewrite remmE.
-  case_eq (l2 == l1)=>//.
+Lemma resolve_wkU H m m' n : H ; m ~ m' -> (n :U H) ; m ~ m'.
+Proof with eauto using resolve, key, merge.
+  move=>rs. elim: rs n=>{H m m'}...
+  { move=>H m m' [|] k rs ih n... }
+  { move=>H m m' [|] k rs ih n... }
+  { move=>H m m' n n' [|] k rsm ihm rsn ihn x... }
+  { move=>H H' l m m' fr rsm ihm n.
+    have{}ih:=ihm n.
+    apply: resolve_ptr...
+    constructor... }
 Qed.
 
-Lemma free_setm H1 H2 l1 l2 m n :
-  l1 \notin domm H1 ->
-  free H1 l2 m H2 ->
-  free (setm H1 l1 (n, U)) l2 m (setm H2 l1 (n, U)).
-Proof.
-  move=>/dommPn h. rewrite/free.
-  rewrite setmE. case_eq (l2 == l1); rmatch_case.
-  move: H4=>/eqP e; subst. rewrite H3 in h. by inv h.
-  move: H4=>/eqP e; subst. rewrite H3 in h. by inv h.
-  move: H4=>/eqP e; subst. rewrite H3 in h. by inv h.
-  apply/eq_fmap=>l. rewrite!setmE. rewrite!remmE. rewrite setmE.
-  case_eq (l == l1); case_eq (l == l2)=>//=/eqP e1/eqP e2; subst.
-  rewrite h in H3. by inv H3.
-Qed.
-
-Lemma free_unionm H0 H1 H2 l m :
-  domm H0 :#: domm H1 ->
-  free H1 l m H2 ->
-  free (unionm H1 H0) l m (unionm H2 H0).
-Proof.
-  move=>d0. rewrite/free. rewrite unionmE.
-  case_eq (H1 l)=>/=; rmatch_case.
-  apply eq_fmap=>x.
-  rewrite!unionmE. rewrite!remmE. rewrite!unionmE.
-  case_eq (x == l)=>//=/eqP e. subst.
-  rewrite fdisjointC in d0.
-  move: d0=>/fdisjointP d0.
-  apply/dommPn.
-  apply: d0.
-  apply/dommP. by exists (t, L).
-Qed.
-
-Lemma resolve_wkU H m m' n l : H ; m ~ m' -> l \notin domm H -> (setm H l (n, U)) ; m ~ m'.
-Proof with eauto using resolve, hkey_setm.
-  move=>rs. elim: rs n l=>{H m m'}...
-  { move=>H1 H2 H m m' n n' mrg rsm ihm rsn ihn n0 l h.
-    have[h1 h2]:=hmrg_none mrg h. econstructor.
-    apply: hmrg_setmU...
-    apply: ihm...
-    apply: ihn... }
-  { move=>H1 H2 H m m' n n' t mrg rsm ihm rsn ihn n0 l h.
-    have[h1 h2]:=hmrg_none mrg h. econstructor.
-    apply: hmrg_setmU...
-    apply: ihm...
-    apply: ihn... }
-  { move=>H1 H2 H m m' n n' mrg rsm ihm rsn ihn n0 l h.
-    have[h1 h2]:=hmrg_none mrg h. econstructor.
-    apply: hmrg_setmU...
-    apply: ihm...
-    apply: ihn... }
-  { move=>H H' l m m' fr rsm ihm n l0 h. econstructor.
-    2:{ apply: ihm. shelve. apply: free_domm... }
-    by apply: free_setm. }
+Lemma resolve_wkN H m m' : H ; m ~ m' -> (_: H) ; m ~ m'.
+Proof with eauto using resolve, key, merge.
+  move=>rs. elim: rs=>{H m m'}...
+  move=>H H' l m m' fr rs ih.
+  apply: resolve_ptr...
+  constructor...
 Qed.
 
 Lemma resolve_pad H H' m m' :
   pad H H' -> H ; m ~ m' -> H' ; m ~ m'.
-Proof with eauto using resolve, resolve_wkU, hkey_unionm.
-  move=>[H0[k0[d0 e]]] rsm. subst.
-  elim: rsm d0=>{H m m'}...
-  { move=>H1 H2 H m m' n n' mrg rsm ihm rsn ihn d0. econstructor.
-    apply: hmrg_unionm...
-    { apply: ihm...
-      apply/fdisjointP=>x h.
-      move: d0=>/fdisjointP d0.
-      apply: d0.
-      apply: hmrg_domm... }
-    { apply: ihn...
-      apply/fdisjointP=>x h.
-      move: d0=>/fdisjointP d0.
-      apply: d0.
-      apply: hmrg_domm.
-      apply: hmrg_sym...
-      exact: h. } }
-  { move=>H1 H2 H m m' n n' t mrg rsm ihm rsn ihn d0. econstructor.
-    apply: hmrg_unionm...
-    { apply: ihm...
-      apply/fdisjointP=>x h.
-      move: d0=>/fdisjointP d0.
-      apply: d0.
-      apply: hmrg_domm... }
-    { apply: ihn...
-      apply/fdisjointP=>x h.
-      move: d0=>/fdisjointP d0.
-      apply: d0.
-      apply: hmrg_domm.
-      apply: hmrg_sym...
-      exact: h. } }
-  { move=>H1 H2 H m m' n n' mrg rsm ihm rsn ihn d0. econstructor.
-    apply: hmrg_unionm...
-    { apply: ihm...
-      apply/fdisjointP=>x h.
-      move: d0=>/fdisjointP d0.
-      apply: d0.
-      apply: hmrg_domm... }
-    { apply: ihn...
-      apply/fdisjointP=>x h.
-      move: d0=>/fdisjointP d0.
-      apply: d0.
-      apply: hmrg_domm.
-      apply: hmrg_sym...
-      exact: h. } }
-  { move=>H H' l m m' fr rsm ih d0. econstructor.
-    apply: free_unionm...
-    by rewrite fdisjointC.
-    apply: ih.
-    rewrite fdisjointC.
-    apply/fdisjointP=>x h.
-    rewrite fdisjointC in d0.
-    move: d0=>/fdisjointP d0.
-    have{d0}h:=d0 _ h.
-    apply: free_domm... }
+Proof with eauto using resolve_wkU, resolve_wkN.
+  move=>pd. elim: pd m m'=>{H'}...
 Qed.
 
 Lemma resolve_era_refl H Γ Δ m n A :
   Γ ; Δ ⊢ m ~ n : A -> H ▷ U -> H ; n ~ n.
-Proof with eauto using resolve, hkey_impure, hmrg_pure_refl.
+Proof with eauto using resolve, key_impure, merge_pure_refl.
   move=>er. elim: er H=>//{Γ Δ m n A}...
   { move=>Γ Δ A B m m' [|] k1 erm ihm k2... }
   { move=>Γ Δ A B m m' [|] t k1 erm ihm k2... }
@@ -361,105 +245,169 @@ Proof with eauto using resolve.
     f_equal... }
 Qed.
 
-Lemma free_inv H H' m n l t :
-  free (setm H l (m, t)) l n H' ->
-  m = n /\ match t with
-          | U => setm H l (m, t) = H'
-          | L => remm H l = H'
-          end.
+Lemma free_size H l m H' : free H l m H' -> l < size H.
 Proof with eauto.
-  rewrite/free.
-  rewrite setmE.
-  rewrite eq_refl.
-  case: t.
-  { move=>[e1 e2]. by subst. }
-  { move=>[e1 e2]. subst. split=>//.
-    apply eq_fmap=>x.
-    rewrite!remmE. rewrite!setmE.
-    by case_eq (x == l). }
+  elim=>{H l m H'}.
+  { move=>H m l->//. }
+  { move=>H m l->//. }
+  { move=>H H' m n l fr lt//=.
+    apply: leq_trans... }
+Qed.
+
+Lemma free_inv H H' m n t :
+  free (m :{t} H) (size H) n H' ->
+  m = n /\
+  match t with
+  | U => m :{t} H
+  | L => _: H
+  end = H'.
+Proof with eauto.
+  elim: H H' m n t=>//=.
+  { move=>H' m n t fr. inv fr=>//. inv H5. }
+  { move=>a H ih H' m n t fr. inv fr=>//. exfalso. inv H6.
+    { have:(size H).+1 - size H = size H - size H by rewrite H7.
+      rewrite subnn.
+      rewrite subSnn=>//. }
+    { have:(size H).+1 - size H = size H - size H by rewrite H7.
+      rewrite subnn.
+      rewrite subSnn=>//. }
+    { move/free_size in H7.
+      have lt : size H < (size H).+2 by eauto.
+      have h:=leq_trans H7 lt.
+      unfold leq in h.
+      rewrite subSnn in h.
+      move/eqnP in h. inv h. } }
+Qed.
+
+Lemma free_empty H H' n : ~free (_: H) (size H) n H'.
+Proof with eauto.
+  elim: H H' n=>//=.
+  { move=>H' n fr. inv fr. inv H5. }
+  { move=>a H ih H' n fr. inv fr. inv H6.
+    { have:(size H).+1 - size H = size H - size H by rewrite H7.
+      rewrite subnn.
+      rewrite subSnn=>//. }
+    { have:(size H).+1 - size H = size H - size H by rewrite H7.
+      rewrite subnn.
+      rewrite subSnn=>//. }
+    { move/free_size in H7.
+      have lt : size H < (size H).+2 by eauto.
+      have h:=leq_trans H7 lt.
+      unfold leq in h.
+      rewrite subSnn in h.
+      move/eqnP in h. inv h. } }
 Qed.
 
 Lemma free_merge H1 H2 H3 H l m :
   free H1 l m H3 -> H1 ∘ H2 => H ->
   exists H4, free H l m H4 /\ H3 ∘ H2 => H4.
-Proof with eauto using free.
-  rewrite/free.
-  case_eq (H1 l)=>//.
-  move=>[n[|]]e[e1 e2]mrg; subst.
-  { have{}:=mrg l. rewrite e.
-    case_eq (H2 l); case_eq (H l); rmatch_case.
-    by exists H. }
-  { have:=mrg l. rewrite e.
-    case_eq (H2 l); case_eq (H l); rmatch_case.
-    exists (remm H l). rsplit.
-    move=>x. rewrite!remmE.
-    case_eq (x == l)=>/eqP e0. subst. by rewrite H5.
-    have:=mrg x. rmatch_case. }
+Proof with eauto using free, merge.
+  move=>fr. elim: fr H2 H=>{H1 H3 l m}.
+  { move=>H m l e H2 H0 mrg; subst. inv mrg.
+    exists (m :U Δ). split...
+    econstructor.
+    have[->_]//:=merge_size H6. }
+  { move=>H m l e H2 H0 mrg; subst. inv mrg.
+    exists (_: Δ). split...
+    econstructor.
+    have[->_]//:=merge_size H6. }
+  { move=>H H' m n l fr ih H2 H0 mrg. inv mrg.
+    { have[H4[fr0 mrg]]:=ih _ _ H6. exists (m0 :U H4). split... }
+    { have[H4[fr0 mrg]]:=ih _ _ H6. exists (m0 :L H4). split... }
+    { have[H4[fr0 mrg]]:=ih _ _ H6. exists (m0 :L H4). split... }
+    { have[H4[fr0 mrg]]:=ih _ _ H6. exists (_: H4). split... } }
 Qed.
 
 Lemma free_pure H H' m l : free H l m H' -> H ▷ U -> H' ▷ U.
-Proof with eauto.
-  rewrite/free.
-  rmatch_case.
-  exact: hkey_remm.
+Proof with eauto using key.
+  elim=>//{H H' m l}.
+  { move=>H m l e k. inv k. }
+  { move=>H H' m n l fr ih k. inv k... }
 Qed.
 
 Lemma free_subheap H H1 H2 H' H1' l m n :
   H1 ∘ H2 => H -> free H l m H' -> free H1 l n H1' -> m = n /\ H1' ∘ H2 => H'.
-Proof with eauto.
-  move=>mrg. have:=mrg l. rewrite/free.
-  rmatch_case.
-  move=>x. rewrite!remmE.
-  case_eq (x == l)=>/eqP e; subst.
-  by rewrite H5.
-  have:=mrg x. rmatch_case.
+Proof with eauto 6 using merge.
+  move=>mrg. elim: mrg l m n H' H1'=>{H H1 H2}.
+  { move=>l m n H' H1' fr. inv fr. }
+  { move=>Δ1 Δ2 Δ m mrg ih l m0 n H' H1' fr1 fr2.
+    have[e1 e2]:=merge_size mrg.
+    inv fr1; inv fr2...
+    { move/free_size in H5.
+      rewrite e1 in H5.
+      rewrite ltnn in H5. inv H5. }
+    { move/free_size in H5.
+      rewrite e1 in H5.
+      rewrite ltnn in H5. inv H5. }
+    { have[e mrg']:=ih _ _ _ _ _ H5 H6. split... } }
+  { move=>Δ1 Δ2 Δ m mrg ih l m0 n H' H1' fr1 fr2.
+    have[e1 e2]:=merge_size mrg.
+    inv fr1; inv fr2...
+    { move/free_size in H5.
+      rewrite e1 in H5.
+      rewrite ltnn in H5. inv H5. }
+    { move/free_size in H5.
+      rewrite e1 in H5.
+      rewrite ltnn in H5. inv H5. }
+    { have[e mrg']:=ih _ _ _ _ _ H5 H6. split... } }
+  { move=>Δ1 Δ2 Δ m mrg ih l m0 n H' H1' fr1 fr2.
+    have[e1 e2]:=merge_size mrg.
+    inv fr1; inv fr2.
+    { move/free_size in H5.
+      rewrite e1 in H5.
+      rewrite ltnn in H5. inv H5. }
+    { have[e mrg']:=ih _ _ _ _ _ H5 H6. split... } }
+  { move=>Δ1 Δ2 Δ mrg ih l m n H' H1' fr1 fr2.
+    inv fr1; inv fr2.
+    have[e mrg']:=ih _ _ _ _ _ H5 H6. split... }
 Qed.
 
 Lemma resolve_merge_pure H1 H2 H m m' :
   H1 ; m ~ m' -> H1 ∘ H2 => H -> H2 ▷ U -> H ; m ~ m'.
-Proof with eauto using resolve, resolve_wkU.
+Proof with eauto using resolve, resolve_wkU, resolve_wkN.
   move=>rs. elim: rs H2 H=>{H1 m m'}...
   { move=>H x k1 H2 H0 mrg k2.
     constructor...
-    apply: hmrg_pure... }
+    apply: merge_pure... }
   { move=>H m m' s k1 rm ihm H2 H0 mrg k2.
     constructor...
-    have->//:=hmrg_pureR mrg k2. }
+    have->//:=merge_pureR mrg k2. }
   { move=>H m m' s k1 rm ihm H2 H0 mrg k2.
     constructor...
-    have->//:=hmrg_pureR mrg k2. }
+    have->//:=merge_pureR mrg k2. }
   { move=>H1 H2 H m m' n n' mrg1 erm ihm ern ihn H0 H3 mrg2 k.
-    have[H4[mrg3 mrg4]]:=hmrg_splitL mrg2 mrg1.
+    have[H4[mrg3 mrg4]]:=merge_splitL mrg2 mrg1.
     econstructor.
     apply: mrg4.
     apply: ihm...
     apply: ern. }
   { move=>H1 H2 H m m' n n' t mrg1 erm ihm ern ihn H0 H3 mrg2 k.
-    have[H4[mrg3 mrg4]]:=hmrg_splitL mrg2 mrg1.
+    have[H4[mrg3 mrg4]]:=merge_splitL mrg2 mrg1.
     econstructor.
     apply: mrg4.
     apply: ihm...
     apply: ern. }
   { move=>H1 H2 H m m' n n' mrg1 erm ihm ern ihn H0 H3 mrg2 k.
-    have[H4[mrg3 mrg4]]:=hmrg_splitL mrg2 mrg1.
+    have[H4[mrg3 mrg4]]:=merge_splitL mrg2 mrg1.
     econstructor.
     apply: mrg4.
     apply: ihm...
     apply: ern. }
   { move=>H m m' n n' t k1 erm ihm ern ihn H2 H0 mrg k2.
     econstructor...
-    have->//:=hmrg_pureR mrg k2. }
+    have->//:=merge_pureR mrg k2. }
   { move=>H H' l m m' fr erm ihm H2 H0 mrg k.
     econstructor...
-    have->//:=hmrg_pureR mrg k. }
+    have->//:=merge_pureR mrg k. }
 Qed.
 
 Lemma resolve_free H1 H2 H H' l m n :
   free H l m H' -> H1 ; Ptr l ~ n -> H1 ∘ H2 => H ->
   exists H1', H1' ∘ H2 => H' /\ H1' ; m ~ n.
-Proof with eauto.
+Proof with eauto using merge.
   move=>fr rs mrg. inv rs.
-  have[->mrg']:=free_subheap mrg fr H4. exists H'0...
+  have[->mrg']:=free_subheap mrg fr H4.
+  exists H'0...
 Qed.
 
 Inductive nf : nat -> term -> Prop :=
@@ -506,16 +454,30 @@ Inductive nf : nat -> term -> Prop :=
 | nf_ptr i l :
   nf i (Ptr l).
 
-Definition wr_heap (H : heap) : Prop :=
-  forall l, match H l with
-       | None => True
-       | Some (Lam0 Box m s1, s2) => nf 1 m /\ s1 = s2
-       | Some (Lam1 Box m s1, s2) => nf 1 m /\ s1 = s2
-       | Some (Pair0 (Ptr _) Box s1, s2) => s1 = s2
-       | Some (Pair1 (Ptr _) (Ptr _) s1, s2) => s1 = s2
-       | Some (APair m n s1, s2) => nf 0 m /\ nf 0 n /\ s1 = s2
-       | _ => False
-       end.
+Inductive wr_heap : dyn_ctx -> Prop :=
+| wr_nil : wr_heap nil
+| wr_lam0 H m s :
+  nf 1 m ->
+  wr_heap H ->
+  wr_heap (Lam0 Box m s :{s} H)
+| wr_lam1 H m s :
+  nf 1 m ->
+  wr_heap H ->
+  wr_heap (Lam1 Box m s :{s} H)
+| wr_pair0 H lm t :
+  wr_heap H ->
+  wr_heap (Pair0 (Ptr lm) Box t :{t} H)
+| wr_pair1 H lm ln t :
+  wr_heap H ->
+  wr_heap (Pair1 (Ptr lm) (Ptr ln) t :{t} H)
+| wr_apair H m n t :
+  nf 0 m ->
+  nf 0 n ->
+  wr_heap H ->
+  wr_heap (APair m n t :{t} H)
+| wr_N H :
+  wr_heap H ->
+  wr_heap (_: H).
 
 Lemma nf_typing Γ Δ m n A :
   Γ ; Δ ⊢ m ~ n : A -> nf (size Γ) n.
@@ -529,61 +491,57 @@ Qed.
 Lemma free_wr_nf H l m H' :
   free H l m H' -> wr_heap H -> nf 0 m.
 Proof with eauto using nf.
-  rewrite/free. rmatch_case.
-  { have{H4}:=H4 l. rewrite H2. rmatch_case... }
-  { have{H4}:=H4 l. rewrite H2. rmatch_case... }
+  elim=>//{H l m H'}.
+  { move=>H m l e wr. inv wr... }
+  { move=>H m l e wr. inv wr... }
+  { move=>H H' m n l fr ih wr. inv wr... }
 Qed.
 
 Lemma wr_merge H1 H2 H :
   H1 ∘ H2 => H -> wr_heap H1 -> wr_heap H2 -> wr_heap H.
-Proof with eauto.
-  move=>mrg wr1 wr2 l.
-  have:=wr2 l. have:=wr1 l. have:=mrg l.
-  case_eq (H1 l)=>[[m1[|]]|]e1.
-  { case_eq (H2 l)=>[[m2[|]]|]e2//.
-    case_eq (H l)=>[[m[|]]|]e[e3 e4]//. by subst. }
-  { case_eq (H2 l)=>[[m2[|]]|]e2//.
-    case_eq (H l)=>[[m[|]]|]e[e3 e4]//. by subst. }
-  { case_eq (H2 l)=>[[m2[|]]|]e2//.
-    case_eq (H l)=>[[m[|]]|]e[e3 e4]//. by subst.
-    by case_eq (H l)=>[[m[|]]|]//. }
+Proof with eauto using wr_heap.
+  elim=>{H1 H2 H}...
+  { move=>H1 H2 H m mrg ih wr1 wr2.
+    inv wr1; inv wr2; constructor... }
+  { move=>H1 H2 H m mrg ih wr1 wr2.
+    inv wr1; inv wr2; constructor... }
+  { move=>H1 H2 H m mrg ih wr1 wr2.
+    inv wr1; inv wr2; constructor... }
+  { move=>H1 H2 H mrg ih wr1 wr2.
+    inv wr1; inv wr2; constructor... }
 Qed.
 
 Lemma wr_merge_inv H1 H2 H :
   H1 ∘ H2 => H -> wr_heap H -> wr_heap H1 /\ wr_heap H2.
-Proof with eauto.
-  move=>mrg wr. split.
-  { move=>l.
-    have:=wr l. have:=mrg l.
-    case_eq (H l)=>[[m[|]]|]e.
-    { case_eq (H1 l)=>[[m1[|]]|]e1//.
-      case_eq (H2 l)=>[[m2[|]]|]e2[e3 e4]//. by subst.
-      by case_eq (H2 l)=>[[m2[|]]|]e2[e3 e4]//. }
-    { case_eq (H1 l)=>[[m1[|]]|]e1//.
-      case_eq (H2 l)=>[[m2[|]]|]e2[e3 e4]//.
-      case_eq (H2 l)=>[[m2[|]]|]e2[e3 e4]//. by subst. }
-    { case_eq (H1 l)=>[[m1[|]]|]e1//.
-      case_eq (H2 l)=>[[m2[|]]|]e2[e3 e4]//.
-      by case_eq (H2 l)=>[[m2[|]]|]e2[e3 e4]//. } }
-  { move=>l.
-    have:=wr l. have:=mrg l.
-    case_eq (H l)=>[[m[|]]|]e.
-    { case_eq (H2 l)=>[[m1[|]]|]e1//.
-      case_eq (H1 l)=>[[m2[|]]|]e2[e3 e4]//. by subst.
-      by case_eq (H1 l)=>[[m2[|]]|]e2[e3 e4]//. }
-    { case_eq (H2 l)=>[[m1[|]]|]e1//.
-      case_eq (H1 l)=>[[m2[|]]|]e2[e3 e4]//.
-      case_eq (H1 l)=>[[m2[|]]|]e2[e3 e4]//. by subst. }
-    { case_eq (H2 l)=>[[m1[|]]|]e1//.
-      case_eq (H1 l)=>[[m2[|]]|]e2[e3 e4]//.
-      by case_eq (H1 l)=>[[m2[|]]|]e2[e3 e4]//. } }
+Proof with eauto using wr_heap.
+  elim=>{H1 H2 H}...
+  { move=>H1 H2 H m mrg ih wr. inv wr.
+    { have[wr1 wr2]:=ih H7... }
+    { have[wr1 wr2]:=ih H7... }
+    { have[wr1 wr2]:=ih H4... }
+    { have[wr1 wr2]:=ih H4... }
+    { have[wr1 wr2]:=ih H8... } }
+  { move=>H1 H2 H m mrg ih wr. inv wr.
+    { have[wr1 wr2]:=ih H7... }
+    { have[wr1 wr2]:=ih H7... }
+    { have[wr1 wr2]:=ih H4... }
+    { have[wr1 wr2]:=ih H4... }
+    { have[wr1 wr2]:=ih H8... } }
+  { move=>H1 H2 H m mrg ih wr. inv wr.
+    { have[wr1 wr2]:=ih H7... }
+    { have[wr1 wr2]:=ih H7... }
+    { have[wr1 wr2]:=ih H4... }
+    { have[wr1 wr2]:=ih H4... }
+    { have[wr1 wr2]:=ih H8... } }
+  { move=>H1 H2 H mrg ih wr. inv wr.
+    have[wr1 wr2]:=ih H4... }
 Qed.
 
 Lemma free_wr H H' l m : free H l m H' -> wr_heap H -> wr_heap H'.
-Proof with eauto.
-  move=>fr wr x. move: fr (wr x). rewrite/free.
-  case_eq (H l)=>[[n[e[e1 e2]|e[e1 e2]]]|]//; subst=>//.
-  rewrite remmE. by case_eq (x == l)=>/eqP e0.
+Proof with eauto using wr_heap.
+  elim=>{H l m H'}...
+  { move=>H m l e wr. inv wr... }
+  { move=>H H' m n l fr ih wr. inv wr... }
 Qed.
 
 Lemma nf_weaken i j m : nf i m -> i <= j -> nf j m.
@@ -653,63 +611,65 @@ Qed.
 Lemma free_wr_ptr H H' l i :
   free H l (Ptr i) H' -> wr_heap H -> False.
 Proof with eauto.
-  move e:(Ptr i)=>m fr wr; subst.
-  move: fr. rewrite/free.
-  rmatch_case.
-  have:=wr l. by rewrite H2.
-  have:=wr l. by rewrite H2.
+  move e:(Ptr i)=>m fr. elim: fr i e=>{H H' l m}.
+  { move=>H m l e1 i e2 wr; subst. inv wr. }
+  { move=>H m l e1 i e2 wr; subst. inv wr. }
+  { move=>H H' m n l fr ih i e wr; subst. inv wr... }
 Qed.
 
 Lemma free_wr_var H H' l x :
   free H l (Var x) H' -> wr_heap H -> False.
 Proof with eauto.
-  move e:(Var x)=>m fr wr; subst.
-  move: fr. rewrite/free.
-  rmatch_case.
-  have:=wr l. by rewrite H2.
-  have:=wr l. by rewrite H2.
+  move e:(Var x)=>m fr. elim: fr x e=>//{H H' l m}.
+  { move=>H m l e1 x e2 wr; subst. inv wr. }
+  { move=>H m l e1 x e2 wr; subst. inv wr. }
+  { move=>H H' m n l fr ih x e wr; subst.
+    apply: ih... inv wr... }
 Qed.
 
 Lemma free_wr_lam0 H H' l A m :
   free H l (Lam0 A m U) H' -> wr_heap H -> H = H'.
 Proof with eauto.
-  move e:(Lam0 A m U)=>n fr wr; subst.
-  move: fr. rewrite/free.
-  rmatch_case.
-  have:=wr l. rewrite H2.
-  case A=>//. move=>[_ e]. by inv e.
+  move e:(Lam0 A m U)=>n fr. elim: fr A m e=>//{H H' l n}.
+  { move=>H m l e1 A m0 e2 wr; subst. inv wr. inv H5. }
+  { move=>H H' m n l fr ih A m0 e wr; subst.
+    f_equal. apply: ih... inv wr... }
 Qed.
 
 Lemma free_wr_lam1 H H' l A m :
   free H l (Lam1 A m U) H' -> wr_heap H -> H = H'.
 Proof with eauto.
-  move e:(Lam1 A m U)=>n fr wr; subst.
-  move: fr. rewrite/free. rmatch_case.
-  have:=wr l. rewrite H2. rmatch_case.
+  move e:(Lam1 A m U)=>n fr. elim: fr A m e=>//{H H' l n}.
+  { move=>H m l e1 A m0 e2 wr; subst. inv wr. inv H5. }
+  { move=>H H' m n l fr ih A m0 e wr; subst.
+    f_equal. apply: ih... inv wr... }
 Qed.
 
 Lemma free_wr_pair0 H H' l m n :
   free H l (Pair0 m n U) H' -> wr_heap H -> H = H'.
 Proof with eauto.
-  move e:(Pair0 m n U)=>x fr wr; subst.
-  move: fr. rewrite/free. rmatch_case.
-  have:=wr l. rewrite H2. rmatch_case.
+  move e:(Pair0 m n U)=>x fr. elim: fr m n e=>//{H H' l x}.
+  { move=>H m l e1 m0 n e2 wr; subst. inv wr. inv H5. }
+  { move=>H H' m n l fr ih m0 n0 e wr; subst.
+    f_equal. apply: ih... inv wr... }
 Qed.
 
 Lemma free_wr_pair1 H H' l m n :
   free H l (Pair1 m n U) H' -> wr_heap H -> H = H'.
 Proof with eauto.
-  move e:(Pair1 m n U)=>x fr wr; subst.
-  move: fr. rewrite/free. rmatch_case.
-  have:=wr l. rewrite H2. rmatch_case.
+  move e:(Pair1 m n U)=>x fr. elim: fr m n e=>//{H H' l x}.
+  { move=>H m l e1 m0 n e2 wr; subst. inv wr. inv H5. }
+  { move=>H H' m n l fr ih m0 n0 e wr; subst.
+    f_equal. apply: ih... inv wr... }
 Qed.
 
 Lemma free_wr_apair H H' l m n :
   free H l (APair m n U) H' -> wr_heap H -> H = H'.
 Proof with eauto.
-  move e:(APair m n U)=>x fr wr; subst.
-  move: fr. rewrite/free. rmatch_case.
-  have:=wr l. rewrite H2. rmatch_case.
+  move e:(APair m n U)=>x fr. elim: fr m n e=>//{H H' l x}.
+  { move=>H m l e1 m0 n e2 wr; subst. inv wr. inv H5. }
+  { move=>H H' m n l fr ih m0 n0 e wr.
+    f_equal. apply: ih... inv wr... }
 Qed.
 
 Lemma resolve_var_inv H m x :
@@ -725,7 +685,7 @@ Qed.
 
 Lemma resolve_lam0_inv H m A n s :
   wr_heap H -> H ; m ~ Lam0 A n s -> H ▷ s.
-Proof with eauto using hkey_impure.
+Proof with eauto using key_impure.
   move e:(Lam0 A n s)=>v wr rs.
   elim: rs A n s e wr=>//{H m v}.
   { move=>H m m' s k rsm ihm A n s0[e1 e2 e3]; subst... }
@@ -737,7 +697,7 @@ Qed.
 
 Lemma resolve_lam1_inv H m A n s :
   wr_heap H -> H ; m ~ Lam1 A n s -> H ▷ s.
-Proof with eauto using hkey_impure.
+Proof with eauto using key_impure.
   move e:(Lam1 A n s)=>v wr rs.
   elim: rs A n s e wr=>//{H m v}.
   { move=>H m m' s k rsm ihm A n s0[e1 e2 e3]; subst... }
@@ -749,10 +709,11 @@ Qed.
 
 Lemma resolve_apair_inv H m n1 n2 t :
   wr_heap H -> H ; m ~ APair n1 n2 t -> H ▷ t.
-Proof with eauto using hkey_impure.
+Proof with eauto using key_impure.
   move e:(APair n1 n2 t)=>v wr rs.
   elim: rs n1 n2 t e wr=>//{H m v}.
-  { move=>H m m' n n' s k rsm ihm rsn ihn n1 n2 t [e1 e2 e3] wr; subst... }
+  { move=>H m m' n n' s k rsm ihm rsn ihn n1 n2 t
+      [e1 e2 e3] wr; subst... }
   { move=>H H' l m m' fr rsm ihm n1 n2 t e wr; subst.
     destruct m; inv rsm.
     { destruct t... have->//:=free_wr_apair fr wr. }
@@ -763,13 +724,14 @@ Theorem resolution H x y z A s l :
   H ; x ~ y ~ z : A ->
   nil ⊢ A : Sort s l ->
   dyn_val y -> wr_heap H -> H ▷ s.
-Proof with eauto using hkey_impure.
+Proof with eauto using key_impure.
   move=>wr. inv wr.
   move:H1 H2.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty.
   elim: ty H z s l e1 e2=>{Γ Δ x y A}.
-  { move=>Γ Δ x s A wf shs dhs H z s0 l e1 e2 rs tyA vl wr; subst. inv shs. }
+  { move=>Γ Δ x s A wf shs dhs H z s0 l e1 e2 rs tyA vl wr; subst.
+    inv shs. }
   { move=>Γ Δ A B m m' s k erm _ H z s0 l e1 e2 rs tyP vl wr; subst.
     have[t[l1[l2[tyB/sort_inj[e1 e2]]]]]:=sta_pi0_inv tyP. subst.
     destruct s...
@@ -801,7 +763,7 @@ Proof with eauto using hkey_impure.
       have tyBm:=sta_subst tyB tym. asimpl in tyBm.
       have k1:=ihm _ _ _ _ erefl erefl H11 tyA H2 wr1.
       have k2:=ihn _ _ _ _ erefl erefl H12 tyBm H4 wr2.
-      apply: hmrg_pure... }
+      apply: merge_pure... }
     { have wr':=free_wr H1 wr. inv H3.
       { have[wr1 wr2]:=wr_merge_inv H12 wr'.
         have tym:=dyn_sta_type (era_dyn_type erm).
@@ -809,7 +771,7 @@ Proof with eauto using hkey_impure.
         have k1:=ihm _ _ _ _ erefl erefl H13 tyA H2 wr1.
         have k2:=ihn _ _ _ _ erefl erefl H14 tyBm H4 wr2.
         have->:=free_wr_pair1 H1 wr.
-        apply: hmrg_pure... }
+        apply: merge_pure... }
       { exfalso. apply: free_wr_ptr... } } }
   { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l mrg tyC1 erm _ ern _
       H z s0 l0 e1 e2 rs tyC2 vl. inv vl. }
@@ -834,9 +796,11 @@ Qed.
 
 Lemma wr_free_dyn_val H l m H' :
   free H l m H' -> wr_heap H -> dyn_val m.
-Proof with eauto using dyn_val.
-  move=>fr wr. move: fr (wr l). rewrite/free.
-  rmatch_case...
+Proof with eauto using wr_heap, dyn_val.
+  elim=>{H l m H'}.
+  { move=>H m l e wr. inv wr... }
+  { move=>H m l e wr. inv wr... }
+  { move=>H H' m n l fr ih wr. inv wr... }
 Qed.
 
 Lemma resolve_dyn_val H m n :
