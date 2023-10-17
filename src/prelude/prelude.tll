@@ -155,10 +155,10 @@ def free_list‹s,t› ?{A : Type‹s›} (f : A -> unit) : list‹_,t›A -> un
 
 
 -- sort-polymorphic existential
-notation ( ⊗ ) := tensor %1 %2
+notation ( ⊗ )       := tensor %1 %2
 notation ( ⟨ ,{ }⟩ ) := ex %1 %2
 notation ( ⟨{ }, ⟩ ) := ex0 %1 %2
-notation ( ⟨ , ⟩ ) := pair %1 %2
+notation ( ⟨ , ⟩ )   := ex1 %1 %2
 
 inductive exists‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : L where
   | ex (m : A) {n : B m} : @exists A B
@@ -169,8 +169,9 @@ inductive exists0‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : L where
 inductive exists1‹s,r› ?(A : Type‹s›) (B : A -> Type‹r›) : L where
   | ex1 (m : A) (n : B m) : @exists1 A B
 
-inductive tensor‹s,r› (A : Type‹s›) (B : Type‹r›) : L where
-  | pair (m : A) (n : B) : tensor A B
+#[logical]
+def tensor‹s,r› (A : Type‹s›) (B : Type‹r›) : L :=
+  exists1 (fn (_ : A) => B)
 
 
 

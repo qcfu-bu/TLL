@@ -1,0 +1,103 @@
+inductive tree : U where
+  | Leaf : tree
+  | Node (_ : int) (l r : tree) : tree
+
+inductive opr : U where
+  | Free : opr
+  | Lookup (k : int) : opr
+
+def lookup (n : int) : tree -> bool
+  | Leaf => false
+  | Node x l r =>
+    if x == n then true
+    else lookup n l || lookup n r
+
+#[logical]
+def tree_p (t : tree) : proto :=
+  ⇓(o : opr) ->
+    match o with
+    | Free   => •
+    | Lookup k =>  ⇑(_ : `(lookup k t)) → tree_p t
+
+#[logical]def ctree_ch (t : tree) : L := ch⟨tree_p t⟩
+#[logical]def ctree_hc (t : tree) : L := hc⟨tree_p t⟩
+#[logical]def ctree (t : tree) : L := IO (ctree_hc t)
+
+def leaf_worker (c : ctree_ch Leaf) : IO unit := 
+  let* ⟨o, c⟩ := recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+           | Free => •
+           | Lookup _ => ⇑(_ : `false) → tree_p Leaf⟩
+  with
+  | Free,   c => close c
+  | Lookup _, c =>
+    let* c := send c (just false) in    
+    leaf_worker c
+
+def node_worker (x : int) ?{l r : tree} : ctree_hc l .-> ctree_hc r .-> ctree_ch (Node x l r) .-> IO unit
+  | l_ch, r_ch, c =>
+    let* ⟨o, c⟩ := recv c in
+    match o as o0
+        , c as _ :
+          ch⟨match o0 with
+             | Free => •
+             | Lookup k => ⇑(_ : `(lookup k (Node x l r))) → tree_p (Node x l r)⟩
+    with
+    | Free,   c =>
+      let* l_ch := send l_ch Free in
+      let* r_ch := send r_ch Free in
+      close l_ch; close r_ch; close c
+    | Lookup k, c =>
+      (match x == k as b0
+           , c      as _ :
+             ch⟨⇑(_ : `(if b0 then true else lookup k l || lookup k r)) → tree_p (Node x l r)⟩
+       with
+       | true,  c =>
+         let* c := send c (just true) in
+         node_worker x l_ch r_ch c
+       | false, c =>
+         let* l_ch := send l_ch (Lookup k) in
+         let* r_ch := send r_ch (Lookup k) in
+         let* ⟨just l_b, l_ch⟩ := recv l_ch in
+         let* ⟨just r_b, r_ch⟩ := recv r_ch in
+         let* c := send c (just (l_b || r_b)) in
+         node_worker x l_ch r_ch c)
+        
+def cleaf (_ : unit) : ctree Leaf := 
+  fork (c : ctree_ch Leaf) => leaf_worker c
+
+def cnode (x : int) ?{l r : tree} : ctree l .-> ctree r .-> ctree (Node x l r)
+  | l0, r0 =>
+    let* l_ch := l0 in
+    let* r_ch := r0 in
+    fork (c : ctree_ch (Node x l r)) => node_worker x l_ch r_ch c
+
+def cfree ?{t : tree} (ct : ctree t) : IO unit :=
+  let* c := ct in
+  let* c := send c Free in
+  close c
+
+def clookup (k : int) ?{t : tree} (ct : ctree t) : IO ((`lookup k t) ⊗ ctree t) :=
+  let* c := ct in
+  let* c := send c (Lookup k) in
+  let* ⟨x, ct⟩ := recv c in
+  return ⟨x, return ct⟩
+
+def mytree1 (x : int) : _ := cnode x (cleaf tt) (cleaf tt)
+def mytree2 (x : int) : _ := cnode x (mytree1 1) (mytree1 2)
+def mytree3 (x : int) : _ := cnode x (mytree2 3) (mytree2 4)
+def mytree4 (x : int) : _ := cnode x (mytree3 8) (mytree3 7)
+def mytree5 (x : int) : _ := cnode x (mytree4 9) (mytree4 10)
+def mytree6 (x : int) : _ := cnode x (mytree5 11) (mytree5 12)
+
+def main : IO unit :=
+  let ct := mytree6 100 in
+  let* ⟨just b, ct⟩ := clookup 1 ct in
+  let* _ :=
+    if b
+    then print "true"
+    else print "false"
+  in cfree ct
+ 
