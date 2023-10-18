@@ -4,7 +4,21 @@ inductive tree : U where
 
 inductive opr : U where
   | Free : opr
+  | Height : opr
+  | Size : opr
   | Lookup (k : int) : opr
+
+def height : tree -> int
+  | Leaf => 0
+  | Node _ l r =>
+    let x := height l in
+    let y := height r in
+    if x < y then y + 1 else x + 1
+
+def size : tree -> int
+  | Leaf => 0
+  | Node _ l r =>
+    1 + size l + size r
 
 def lookup (n : int) : tree -> bool
   | Leaf => false
@@ -16,8 +30,10 @@ def lookup (n : int) : tree -> bool
 def tree_p (t : tree) : proto :=
   ⇓(o : opr) ->
     match o with
-    | Free   => •
-    | Lookup k =>  ⇑(_ : `(lookup k t)) → tree_p t
+    | Free     => •
+    | Height   => ⇑(_ : `height t) -> tree_p t
+    | Size     => ⇑(_ : `size t) -> tree_p t
+    | Lookup k => ⇑(_ : `lookup k t) → tree_p t
 
 #[logical]def ctree_ch (t : tree) : L := ch⟨tree_p t⟩
 #[logical]def ctree_hc (t : tree) : L := hc⟨tree_p t⟩
@@ -28,13 +44,15 @@ def leaf_worker (c : ctree_ch Leaf) : IO unit :=
   match o as o0
       , c as _ :
         ch⟨match o0 with
-           | Free => •
+           | Free     => •
+           | Height   => ⇑(_ : `0) -> tree_p Leaf
+           | Size     => ⇑(_ : `0) -> tree_p Leaf
            | Lookup _ => ⇑(_ : `false) → tree_p Leaf⟩
   with
-  | Free,   c => close c
-  | Lookup _, c =>
-    let* c := send c (just false) in    
-    leaf_worker c
+  | Free    , c => close c
+  | Height  , c => let* c := send c (just 0) in leaf_worker c
+  | Size    , c => let* c := send c (just 0) in leaf_worker c
+  | Lookup _, c => let* c := send c (just false) in leaf_worker c
 
 def node_worker (x : int) ?{l r : tree} : ctree_hc l .-> ctree_hc r .-> ctree_ch (Node x l r) .-> IO unit
   | l_ch, r_ch, c =>
@@ -42,19 +60,43 @@ def node_worker (x : int) ?{l r : tree} : ctree_hc l .-> ctree_hc r .-> ctree_ch
     match o as o0
         , c as _ :
           ch⟨match o0 with
-             | Free => •
-             | Lookup k => ⇑(_ : `(lookup k (Node x l r))) → tree_p (Node x l r)⟩
+             | Free     => •
+             | Height   => ⇑(_ : `height (Node x l r)) -> tree_p (Node x l r)
+             | Size     => ⇑(_ : `size (Node x l r)) -> tree_p (Node x l r)
+             | Lookup k => ⇑(_ : `lookup k (Node x l r)) → tree_p (Node x l r)⟩
     with
-    | Free,   c =>
+    | Free, c =>
       let* l_ch := send l_ch Free in
       let* r_ch := send r_ch Free in
       close l_ch; close r_ch; close c
+    | Height, c =>
+      let* l_ch := send l_ch Height in
+      let* r_ch := send r_ch Height in
+      let* ⟨just l_h, l_ch⟩ := recv l_ch in
+      let* ⟨just r_h, r_ch⟩ := recv r_ch in
+      (match l_h < r_h as b0
+           , c     as _ :
+             ch⟨⇑(_ : `(if b0 then r_h + 1 else l_h + 1)) -> tree_p (Node x l r)⟩
+       with
+       | true , c =>
+         let* c := send c (just (r_h + 1)) in
+         node_worker x l_ch r_ch c
+       | false, c =>
+         let* c := send c (just (l_h + 1)) in
+         node_worker x l_ch r_ch c)
+    | Size, c =>
+      let* l_ch := send l_ch Size in
+      let* r_ch := send r_ch Size in
+      let* ⟨just l_sz, l_ch⟩ := recv l_ch in
+      let* ⟨just r_sz, r_ch⟩ := recv r_ch in
+      let* c := send c (just (1 + l_sz + r_sz)) in
+      node_worker x l_ch r_ch c
     | Lookup k, c =>
       (match x == k as b0
            , c      as _ :
              ch⟨⇑(_ : `(if b0 then true else lookup k l || lookup k r)) → tree_p (Node x l r)⟩
        with
-       | true,  c =>
+       | true , c =>
          let* c := send c (just true) in
          node_worker x l_ch r_ch c
        | false, c =>
@@ -79,6 +121,18 @@ def cfree ?{t : tree} (ct : ctree t) : IO unit :=
   let* c := send c Free in
   close c
 
+def cheight ?{t : tree} (ct : ctree t) : IO ((`height t) ⊗ ctree t) :=
+  let* c := ct in
+  let* c := send c Height in
+  let* ⟨x, ct⟩ := recv c in
+  return ⟨x, return ct⟩
+
+def csize ?{t : tree} (ct : ctree t) : IO ((`size t) ⊗ ctree t) :=
+  let* c := ct in
+  let* c := send c Size in
+  let* ⟨x, ct⟩ := recv c in
+  return ⟨x, return ct⟩
+
 def clookup (k : int) ?{t : tree} (ct : ctree t) : IO ((`lookup k t) ⊗ ctree t) :=
   let* c := ct in
   let* c := send c (Lookup k) in
@@ -94,10 +148,11 @@ def mytree6 (x : int) : _ := cnode x (mytree5 11) (mytree5 12)
 
 def main : IO unit :=
   let ct := mytree6 100 in
-  let* ⟨just b, ct⟩ := clookup 1 ct in
-  let* _ :=
-    if b
-    then print "true"
-    else print "false"
-  in cfree ct
+  let* ⟨just h, ct⟩  := cheight ct   in
+  let* ⟨just sz, ct⟩ := csize ct     in
+  let* ⟨just b, ct⟩  := clookup 1 ct in
+  let* tt := cfree ct in
+  print ("height := " ++ string_of_int h  ++ "\n" ++
+         "size   := " ++ string_of_int sz ++ "\n" ++
+         "lookup := " ++ string_of_bool b ++ "\n")
  
