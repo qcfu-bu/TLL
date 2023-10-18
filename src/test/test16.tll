@@ -139,12 +139,12 @@ def clookup (k : int) ?{t : tree} (ct : ctree t) : IO ((`lookup k t) ⊗ ctree t
   let* ⟨x, ct⟩ := recv c in
   return ⟨x, return ct⟩
 
-def mytree1 (x : int) : _ := cnode x (cleaf tt) (cleaf tt)
-def mytree2 (x : int) : _ := cnode x (mytree1 1) (mytree1 2)
-def mytree3 (x : int) : _ := cnode x (mytree2 3) (mytree2 4)
-def mytree4 (x : int) : _ := cnode x (mytree3 8) (mytree3 7)
-def mytree5 (x : int) : _ := cnode x (mytree4 9) (mytree4 10)
-def mytree6 (x : int) : _ := cnode x (mytree5 11) (mytree5 12)
+def mytree1 (x : int) := cnode x (cleaf tt) (cleaf tt)
+def mytree2 (x : int) := cnode x (mytree1 1) (mytree1 2)
+def mytree3 (x : int) := cnode x (mytree2 3) (mytree2 4)
+def mytree4 (x : int) := cnode x (mytree3 8) (mytree3 7)
+def mytree5 (x : int) := cnode x (mytree4 9) (mytree4 10)
+def mytree6 (x : int) := cnode x (mytree5 11) (mytree5 12)
 
 def main : IO unit :=
   let ct := mytree6 100 in
