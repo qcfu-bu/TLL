@@ -12,18 +12,18 @@ Inductive sta_agree_subst :
   sta_ctx -> (var -> term) -> sta_ctx -> Prop :=
 | sta_agree_subst_nil σ :
   nil ⊢ σ ⊣ nil
-| sta_agree_subst_ty Γ1 σ Γ2 A s l :
+| sta_agree_subst_ty Γ1 σ Γ2 A :
   Γ1 ⊢ σ ⊣ Γ2 ->
-  Γ2 ⊢ A : Sort s l ->
+  Γ2 ⊢ A : Ty ->
   (A.[σ] :: Γ1) ⊢ up σ ⊣ (A :: Γ2)
 | sta_agree_subst_wk Γ1 σ Γ2 n A :
   Γ1 ⊢ σ ⊣ Γ2 ->
   Γ1 ⊢ n : A.[σ] ->
   Γ1 ⊢ n .: σ ⊣ (A :: Γ2)
-| sta_agree_subst_conv Γ1 σ Γ2 A B s l :
+| sta_agree_subst_conv Γ1 σ Γ2 A B :
   A === B ->
-  Γ1 ⊢ B.[ren (+1)].[σ] : Sort s l ->
-  Γ2 ⊢ B : Sort s l ->
+  Γ1 ⊢ B.[ren (+1)].[σ] : Ty ->
+  Γ2 ⊢ B : Ty ->
   Γ1 ⊢ σ ⊣ (A :: Γ2) ->
   Γ1 ⊢ σ ⊣ (B :: Γ2)
 where "Γ1 ⊢ σ ⊣ Γ2" := (sta_agree_subst Γ1 σ Γ2).
@@ -31,7 +31,7 @@ where "Γ1 ⊢ σ ⊣ Γ2" := (sta_agree_subst Γ1 σ Γ2).
 Lemma sta_agree_subst_refl Γ : sta_wf Γ -> Γ ⊢ ids ⊣ Γ.
 Proof with eauto using sta_agree_subst.
   elim=>{Γ}...
-  move=>Γ A s l wf agr tyA.
+  move=>Γ A wf agr tyA.
   have: (A.[ids] :: Γ) ⊢ up ids ⊣ (A :: Γ)...
   by asimpl...
 Qed.
@@ -42,7 +42,7 @@ Lemma sta_agree_subst_has Γ1 σ Γ2 x A :
 Proof with eauto using sta_agree_subst.
   move=>agr. elim: agr x A=>{Γ1 σ Γ2}.
   { move=>σ x A wf hs. inv hs. }
-  { move=>Γ1 σ Γ2 A s l agr ih tyA x B wf hs.
+  { move=>Γ1 σ Γ2 A agr ih tyA x B wf hs.
     inv hs; asimpl.
     replace A.[σ >> ren (+1)] with A.[σ].[ren (+1)] by autosubst.
     apply: sta_var...
@@ -50,7 +50,7 @@ Proof with eauto using sta_agree_subst.
     replace A0.[σ >> ren (+1)] with A0.[σ].[ren (+1)] by autosubst.
     inv wf. apply: sta_eweaken... }
   { move=>Γ1 σ Γ2 n A agr ih tyn x B wf hs. inv hs; asimpl... }
-  { move=>Γ1 σ Γ2 A B s l eq tyB1 tyB2 agr ih x C wf hs. inv hs.
+  { move=>Γ1 σ Γ2 A B eq tyB1 tyB2 agr ih x C wf hs. inv hs.
     { apply: sta_conv.
       apply: sta_conv_subst.
       apply: sta_conv_subst.
@@ -67,15 +67,15 @@ Proof with eauto using sta_wf.
   move e:(nil)=>Γ2 agr. elim: agr e=>//{Γ1 Γ2 σ}...
 Qed.
 
-Lemma sta_agree_subst_wf_cons Γ1 Γ2 A s σ :
+Lemma sta_agree_subst_wf_cons Γ1 Γ2 A σ :
   Γ1 ⊢ σ ⊣ (A :: Γ2) -> sta_wf Γ2 ->
   (∀ Γ1 σ, Γ1 ⊢ σ ⊣ Γ2 → sta_wf Γ1) ->
-  (∀ Γ1 σ, Γ1 ⊢ σ ⊣ Γ2 → exists l, Γ1 ⊢ A.[σ] : Sort s l) ->
+  (∀ Γ1 σ, Γ1 ⊢ σ ⊣ Γ2 → Γ1 ⊢ A.[σ] : Ty) ->
   sta_wf Γ1.
 Proof with eauto using sta_wf.
-  move e:(A :: Γ2)=>Γ0 agr. elim: agr Γ2 A s e=>//{Γ0 Γ1 σ}...
-  move=>Γ1 σ Γ2 A s l agr ih tyA Γ0 A0 s0 [e1 e2] wf h1 h2; subst.
-  have[l0 tyA']:=h2 _ _ agr.
+  move e:(A :: Γ2)=>Γ0 agr. elim: agr Γ2 A e=>//{Γ0 Γ1 σ}...
+  move=>Γ1 σ Γ2 A agr ih tyA Γ0 A0 [e1 e2] wf h1 h2; subst.
+  have tyA':=h2 _ _ agr.
   apply: sta_wf_cons...
 Qed.
 
@@ -86,82 +86,22 @@ Proof with eauto using sta_agree_subst, sta_type.
   apply: (@sta_type_mut _ (fun Γ2 wf => forall Γ1 σ, Γ1 ⊢ σ ⊣ Γ2 -> sta_wf Γ1))...
   { move=>Γ2 x A wf h hs Γ1 σ agr. asimpl.
     apply: sta_agree_subst_has... }
-  { move=>Γ2 A B m s tym ihm Γ1 σ agr. asimpl.
-    have wf:=sta_type_wf tym. inv wf.
-    apply: sta_lam0... }
-  { move=>Γ2 A B m s tym ihm Γ1 σ agr. asimpl.
-    have wf:=sta_type_wf tym. inv wf.
-    apply: sta_lam1... }
-  { move=>Γ2 A B m n s tym ihm tyn ihn Γ1 σ agr. asimpl.
+  { move=>Γ2 A B tyA ihA tyB ihB Γ1 σ agr. asimpl.
+    have{}ihB:=ihB _ _ (sta_agree_subst_ty agr tyA).
+    apply: sta_arrow...
+    asimpl in ihB. by asimpl. }
+  { move=>Γ2 A B m tyA ihA tym ihm Γ1 σ agr. asimpl.
+    have{}ihm:=ihm _ _ (sta_agree_subst_ty agr tyA).
+    apply: sta_fun...
+    asimpl in ihm. by asimpl. }
+  { move=>Γ2 A B m n tym ihm tyn ihn Γ1 σ agr. asimpl.
     replace B.[n.[σ] .: σ] with B.[up σ].[n.[σ]/] by autosubst.
     have{}ihm:=ihm _ _ agr.
     have{}ihn:=ihn _ _ agr.
-    apply: sta_app0.
+    apply: sta_inst.
     asimpl in ihm...
     asimpl in ihn... }
-  { move=>Γ2 A B m n s tym ihm tyn ihn Γ1 σ agr. asimpl.
-    replace B.[n.[σ] .: σ] with B.[up σ].[n.[σ]/] by autosubst.
-    have{}ihm:=ihm _ _ agr.
-    have{}ihn:=ihn _ _ agr.
-    apply: sta_app1.
-    asimpl in ihm...
-    asimpl in ihn... }
-  { move=>Γ A B m n t l tyS ihS tym ihm tyn ihn Γ1 σ agr. asimpl.
-    have{}ihS:=ihS _ _ agr.
-    have{}ihm:=ihm _ _ agr.
-    have{}ihn:=ihn _ _ agr.
-    apply: sta_pair0.
-    asimpl in ihS...
-    asimpl in ihm...
-    asimpl in ihn...
-    by autosubst. }
-  { move=>Γ A B m n t l tyS ihS tym ihm tyn ihn Γ1 σ agr. asimpl.
-    have{}ihS:=ihS _ _ agr.
-    have{}ihm:=ihm _ _ agr.
-    have{}ihn:=ihn _ _ agr.
-    apply: sta_pair1.
-    asimpl in ihS...
-    asimpl in ihm...
-    asimpl in ihn...
-    by autosubst. }
-  { move=>Γ A B C m n s t l tyC ihC tym ihm tyn ihn Γ1 σ agr. asimpl.
-    replace C.[m.[σ] .: σ] with C.[up σ].[m.[σ]/] by autosubst.
-    have wf:=sta_type_wf tyC. inv wf.
-    have wf:=sta_type_wf tyn. inv wf. inv H3.
-    have{}ihC:=ihC _ _ (sta_agree_subst_ty agr H2).
-    have{}ihm:=ihm _ _ agr.
-    have{}ihn:=ihn _ _ (sta_agree_subst_ty (sta_agree_subst_ty agr H6) H4).
-    apply: sta_letin0.
-    asimpl in ihC...
-    asimpl in ihm...
-    asimpl in ihn...
-    by asimpl. }
-  { move=>Γ A B C m n s t l tyC ihC tym ihm tyn ihn Γ1 σ agr. asimpl.
-    replace C.[m.[σ] .: σ] with C.[up σ].[m.[σ]/] by autosubst.
-    have wf:=sta_type_wf tyC. inv wf.
-    have wf:=sta_type_wf tyn. inv wf. inv H3.
-    have{}ihC:=ihC _ _ (sta_agree_subst_ty agr H2).
-    have{}ihm:=ihm _ _ agr.
-    have{}ihn:=ihn _ _ (sta_agree_subst_ty (sta_agree_subst_ty agr H6) H4).
-    apply: sta_letin1.
-    asimpl in ihC...
-    asimpl in ihm...
-    asimpl in ihn...
-    by asimpl. }
-  { move=>Γ2 A B H P m n s l tyB ihB tyH ihH tyP ihP Γ1 σ agr. asimpl.
-    replace B.[P.[σ] .: n.[σ] .: σ] with B.[upn 2 σ].[P.[σ],n.[σ]/] by autosubst.
-    have wf:=sta_type_wf tyB. inv wf. inv H2.
-    have{}ihB:=ihB _ _ (sta_agree_subst_ty (sta_agree_subst_ty agr H5) H3).
-    have{}ihH:=ihH _ _ agr.
-    have{}ihP:=ihP _ _ agr.
-    apply: sta_rw.
-    asimpl in ihB.
-    replace A.[σ >> ren (+1)] with A.[σ].[ren (+1)] in ihB by autosubst.
-    replace m.[σ >> ren (+1)] with m.[σ].[ren (+1)] in ihB by autosubst.
-    exact: ihB.
-    asimpl. asimpl in ihH...
-    asimpl in ihP... }
-  { move=>Γ2 A B m s l eq tym ihm tyB ihB Γ1 σ agr.
+  { move=>Γ2 A B m eq tym ihm tyB ihB Γ1 σ agr.
     apply: sta_conv.
     apply: sta_conv_subst.
     apply: eq.
@@ -169,7 +109,7 @@ Proof with eauto using sta_agree_subst, sta_type.
     apply: ihB... }
   { move=>Γ1 σ agr.
     apply: sta_agree_subst_wf_nil... }
-  { move=>Γ A s l wf ih tyA h Γ1 σ agr.
+  { move=>Γ A wf ih tyA h Γ1 σ agr.
     apply: sta_agree_subst_wf_cons... }
 Qed.
 
@@ -190,9 +130,9 @@ Proof.
   move=>*; subst. apply: sta_subst; eauto.
 Qed.
 
-Lemma sta_ctx_conv Γ m A B C s l :
+Lemma sta_ctx_conv Γ m A B C :
   B === A ->
-  Γ ⊢ B : Sort s l -> (A :: Γ) ⊢ m : C -> (B :: Γ) ⊢ m : C.
+  Γ ⊢ B : Ty -> (A :: Γ) ⊢ m : C -> (B :: Γ) ⊢ m : C.
 Proof with eauto using sta_wf, sta_agree_subst_refl.
   move=>eq tyB tym.
   have wf:=sta_type_wf tym. inv wf.
