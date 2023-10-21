@@ -1,0 +1,117 @@
+inductive opr : U where
+  | Free : opr
+  | Enqueue (n : int) : opr
+  | Dequeue : opr
+
+#[logical]
+def queue_p (_ : unit) : proto :=
+  ⇓(o : opr) ->
+    match o with
+    | Free      => •
+    | Enqueue n => queue_p tt
+    | Dequeue   =>
+      ⇑(opt : option int) ->
+       match opt with
+       | Some _ => ⇑(hc⟨queue_p tt⟩) -> •
+       | None   => queue_p tt
+
+#[logical]def queue_ch : L := ch⟨queue_p tt⟩
+#[logical]def queue_hc : L := hc⟨queue_p tt⟩
+#[logical]def queue : L := IO (queue_hc)
+
+def node_worker (x : int) : queue_hc .-> queue_ch .-> IO unit
+  | c_next, c =>
+    let* ⟨o, c⟩ := recv c in
+    match o as o0
+        , c as _ :
+          ch⟨match o0 with
+             | Free => •
+             | Enqueue n => queue_p tt
+             | Dequeue   =>
+               ⇑(opt : option int) ->
+                match opt with
+                | Some _ => ⇑(hc⟨queue_p tt⟩) -> •
+                | None   => queue_p tt⟩
+    with
+    | Free, c => 
+      let* c_next := send c_next Free in
+      close c_next; close c
+    | Enqueue n, c =>
+      let* c_next := send c_next (Enqueue n) in
+      node_worker x c_next c
+    | Dequeue, c =>
+      let* c := send c (Some x) in
+      let* c := send c c_next in
+      close c
+
+def empty_worker (c : queue_ch) : IO unit :=
+  let* ⟨o, c⟩ := recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+           | Free => •
+           | Enqueue n => queue_p tt
+           | Dequeue   =>
+             ⇑(opt : option int) ->
+              match opt with
+              | Some _ => ⇑(hc⟨queue_p tt⟩) -> •
+              | None   => queue_p tt⟩
+  with
+  | Free, c => close c
+  | Enqueue n, c =>
+    let* c0 := fork (c0 : queue_hc) => node_worker n c0 c in
+    empty_worker c0
+  | Dequeue, c =>
+    let* c := send c None in
+    empty_worker c
+
+def q_empty (_ : unit) : queue :=
+  fork (c : queue_ch) => empty_worker c
+
+def q_free (q : queue) : IO unit :=
+  let* q := q in
+  let* q := send q Free in
+  close q
+
+def q_enqueue (n : int) (q : queue) : queue :=
+  let* q := q in
+  let* q := send q (Enqueue n) in
+  return q
+
+def q_dequeue (q : queue) : IO (option int ⊗ queue) :=
+  let* q := q in
+  let* q := send q Dequeue in
+  let* ⟨opt, q⟩ := recv q in
+  match opt as opt0
+      , q as _ :  
+        hc⟨match opt0 with
+           | Some _ => ⇑(hc⟨queue_p tt⟩) -> •
+           | None   => queue_p tt⟩
+  with
+  | Some n, q =>
+    let* ⟨q0, q⟩ := recv q in
+    close q; return ⟨opt, return q0⟩
+  | None, q =>
+    return ⟨opt, return q⟩
+
+def myqueue := q_empty tt
+def myqueue := q_enqueue 0 myqueue
+def myqueue := q_enqueue 1 myqueue
+def myqueue := q_enqueue 2 myqueue
+def myqueue := q_enqueue 3 myqueue
+def myqueue := q_enqueue 4 myqueue
+def myqueue := q_enqueue 5 myqueue
+def myqueue := q_enqueue 6 myqueue
+
+def main : IO unit :=
+  let* ⟨opt1, myqueue⟩ := q_dequeue myqueue in
+  let* ⟨opt2, myqueue⟩ := q_dequeue myqueue in
+  let* ⟨opt3, myqueue⟩ := q_dequeue myqueue in
+  let* tt := q_free myqueue in
+  match opt1, opt2, opt3 with
+  | Some x, Some y, Some z =>
+    print ("x := " ++ string_of_int x ++ "\n" ++
+           "y := " ++ string_of_int y ++ "\n" ++
+           "z := " ++ string_of_int z ++ "\n")
+  | _, _, _ => return tt
+

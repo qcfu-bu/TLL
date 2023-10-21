@@ -3,6 +3,8 @@ open Names
 open Syntax1
 open Context1e
 open Prelude1
+open Fmt
+open Pprint1
 
 
 let rec whnf ?(expand = true) (env : Env.t) m = 
@@ -283,7 +285,10 @@ let rec eq_tm ?(expand = false) env m1 m2 =
         relv1 = relv2 && eq_sort s1 s2 && equal a1 a2 && eq_binder equal bnd1 bnd2
       | Fun (_, a1, bnd1), Fun (_, a2, bnd2) ->
         equal a1 a2 && eq_binder (List.equal (eq_pbinder (Option.equal equal))) bnd1 bnd2
-      | App (m1, n1), App (m2, n2) -> equal m1 m2 && equal n1 n2
+      | App (m1, n1), App (m2, n2) ->
+        Debug.exec (fun _ -> pr "eq_tm(%a, %a)@." pp_tm m1 pp_tm m2);
+        Debug.exec (fun _ -> pr "eq_tm(%a, %a)@." pp_tm n1 pp_tm n2);
+        equal m1 m2 && equal n1 n2
       | Let (relv1, m1, bnd1), Let (relv2, m2, bnd2) ->
         relv1 = relv2 && equal m1 m2 && eq_binder equal bnd1 bnd2
       (* inductive *)

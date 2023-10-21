@@ -143,6 +143,13 @@ def rem (x : nat) (y : nat) :=
 
 
 
+-- sort-polymorphic option
+inductive option‹s› (A : Type‹s›) : Type‹s› where
+  | None : option A
+  | Some (m : A) : option A
+
+
+
 
 -- sort-polymorphic lists
 notation ( :: ) := cons %1 %2
@@ -150,6 +157,10 @@ notation ( :: ) := cons %1 %2
 inductive list‹s,t› (A : Type‹s›) : Type‹t› where
   | nil : list A
   | cons (hd : A) (tl : list‹_,t› A) : list A
+
+def rcons‹s,t› ?{A : Type‹s›} : list‹_,t› A .-> A .-> list‹_,t› A 
+  | nil, n => n :: nil
+  | x :: xs, n => x :: (rcons xs n)
 
 def free_list‹s,t› ?{A : Type‹s›} (f : A -> unit) : list‹_,t›A -> unit
   | nil => tt

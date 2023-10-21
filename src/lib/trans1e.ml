@@ -94,14 +94,7 @@ let assert_equal0 s1 s2 =
 let assert_equal1 env m1 m2 =
   Debug.exec (fun () ->
       pr "@[assert_equal1(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m1 pp_tm m2);
-  match eq_tm env m1 m2 with
-  | true ->
-    Debug.exec (fun () ->
-        pr "@[assert_equal1_ok(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m1 pp_tm m2)
-  | false ->
-    Debug.exec (fun () ->
-        pr "@[assert_equal1_extend(@;<1 2>%a,@;<1 2>%a)@]@." pp_tm m1 pp_tm m2);
-    State.add_eqn (EqualTerm (env, m1, m2))
+  State.add_eqn (EqualTerm (env, m1, m2))
 
 let rec assert_type ctx env a : tm box =
   Debug.exec (fun () -> pr "assert_type(%a)@." pp_tm a);

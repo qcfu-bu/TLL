@@ -116,6 +116,10 @@ def cnode (x : int) ?{l r : tree} : ctree l .-> ctree r .-> ctree (Node x l r)
     let* r_ch := r0 in
     fork (c : ctree_ch (Node x l r)) => node_worker x l_ch r_ch c
 
+def ctree_of_tree : ∀ (x : tree) -> ctree x
+  | Leaf       => cleaf tt
+  | Node x l r => cnode x (ctree_of_tree l) (ctree_of_tree r)
+
 def cfree ?{t : tree} (ct : ctree t) : IO unit :=
   let* c := ct in
   let* c := send c Free in
