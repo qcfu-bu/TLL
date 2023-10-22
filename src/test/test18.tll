@@ -13,7 +13,7 @@ def queue_p (xs : llist int) : proto :=
     | Enqueue x => queue_p (rcons xs x)
     | Dequeue   =>
       match xs with
-      | x :: xs => ⇑(`x) -> ⇑(hc⟨queue_p xs⟩) → •
+      | x :: xs => ⇑(`x) -> ⇑(hc⟨queue_p xs⟩) -> •
       | nil     => queue_p xs
 
 #[logical]def queue_ch (xs : llist int) : L := ch⟨queue_p xs⟩
