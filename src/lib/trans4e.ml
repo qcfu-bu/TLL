@@ -145,7 +145,16 @@ let rec trans_cmds mem cmds =
     (Magic :: rest, mem)
 
 and trans_match0 mem cases = 
-  let cases, mems =
+  let rem =
+    cases
+    |> List.map (function
+        | Case (ctag, rhs) -> snd (trans_cmds (Mem.new_scope mem) rhs)
+        | Default rhs -> snd (trans_cmds (Mem.new_scope mem) rhs))
+    |> Mem.union
+  in
+  (* greatest common fip subset *)
+  let mem = Mem.diff mem rem in
+  let cases, _ =
     cases
     |> List.map (function
         | Case (ctag, rhs) ->
@@ -156,40 +165,37 @@ and trans_match0 mem cases =
           (Default rhs, mem))
     |> List.split
   in
-  (cases, Mem.union mems)
+  (cases, rem)
 
 and trans_match1 mem cases e sort =
-  match sort with
-  | U ->
-    let cases, mems =
-      cases
-      |> List.map (fun { ctag; args; rhs } ->
-          let rhs, mem = trans_cmds (Mem.new_scope mem) rhs in
-          ({ ctag; args; rhs }, mem))
-      |> List.split
-    in
-    (cases, Mem.union mems)
-  | L ->
-    let rem =
-      cases
-      |> List.map (fun { ctag; args; rhs } ->
-          let mem = Mem.new_scope mem in
-          let mem = Mem.push_stack (List.length args) e mem in
-          snd (trans_cmds mem rhs))
-      |> Mem.union
-    in
-    (* greatest common fip subset *)
-    let mem = Mem.diff mem rem in
-    let cases, _ =
-      cases
-      |> List.map (fun { ctag; args; rhs } ->
-          let mem = Mem.new_scope mem in
-          let mem = Mem.push_stack (List.length args) e mem in
-          let rhs, mem = trans_cmds mem rhs in
-          ({ ctag; args; rhs }, mem))
-      |> List.split
-    in
-    (cases, rem)
+  let rem =
+    cases
+    |> List.map (fun { ctag; args; rhs } ->
+        let mem = Mem.new_scope mem in
+        let mem =
+          match sort with
+          | U -> mem
+          | L -> Mem.push_stack (List.length args) e mem
+        in
+        snd (trans_cmds mem rhs))
+    |> Mem.union
+  in
+  (* greatest common fip subset *)
+  let mem = Mem.diff mem rem in
+  let cases, _ =
+    cases
+    |> List.map (fun { ctag; args; rhs } ->
+        let mem = Mem.new_scope mem in
+        let mem =
+          match sort with
+          | U -> mem
+          | L -> Mem.push_stack (List.length args) e mem
+        in
+        let rhs, mem = trans_cmds mem rhs in
+        ({ ctag; args; rhs }, mem))
+    |> List.split
+  in
+  (cases, rem)
 
 let trans_dcls dcls = 
   let rec aux = function

@@ -1178,7 +1178,7 @@ intptr_t lazy__628(intptr_t* env) {
   node_worker_310 = env[0];
   empty_worker_339 = env[1];
   c_340 = env[2];
-  x_343 = __recv0__(c_340);
+  x_343 = __recv1__(c_340);
   _342 = x_343;
   m_345 = getbox(_342, 0);
   n_346 = getbox(_342, 1);
@@ -1205,6 +1205,7 @@ intptr_t lazy__628(intptr_t* env) {
       x_359 = force(x_360);
       ffree(x_360);
       x_351 = x_359;
+      ffree(m_345);
       x_347 = x_351;
       break;
   }
@@ -1237,7 +1238,7 @@ intptr_t lazy__624(intptr_t* env) {
   x_312 = env[1];
   __313 = env[2];
   __314 = env[3];
-  x_317 = __recv0__(__314);
+  x_317 = __recv1__(__314);
   _316 = x_317;
   m_319 = getbox(_316, 0);
   n_320 = getbox(_316, 1);
@@ -1260,7 +1261,7 @@ intptr_t lazy__624(intptr_t* env) {
       break;
     default:
       n_333 = getbox(m_319, 0);
-      x_336 = mkbox(16, 1); //Enqueue_16
+      x_336 = rebox(m_319, 16); //Enqueue_16
       setbox(x_336, n_333, 0);
       x_335 = __send__(__313, x_336);
       c_next_334 = x_335;
