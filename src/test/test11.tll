@@ -37,8 +37,8 @@ def cmsort_worker‹t› : int -> ∀ (zs : list‹_,t›int) -> cmsort_ch‹t�
                           (let ⟨xs, ys⟩ := split zs in merge (msort xs) (msort ys))
     with
     | ⟨xs0, ys0⟩, pf => 
-      let* r1 := fork c1 => cmsort_worker (i - 1) xs0 c1 in
-      let* r2 := fork c2 => cmsort_worker (i - 1) ys0 c2 in
+      let* r1 := fork (c1 : cmsort_ch xs0) => cmsort_worker (i - 1) xs0 c1 in
+      let* r2 := fork (c2 : cmsort_ch ys0) => cmsort_worker (i - 1) ys0 c2 in
       let* ⟨just xs1, c1⟩ := recv r1 in
       let* ⟨just ys1, c2⟩ := recv r2 in
       let zs1 := just (merge xs1 ys1) in
