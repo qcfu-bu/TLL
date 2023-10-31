@@ -402,9 +402,9 @@ Proof with eauto using dyn_agree_subst, dyn_type, key_merge.
     apply: dyn_send0... }
   { move=>Θ Γ Δ r1 r2 A B m xor tym ihm Θ1 Θ0 Γ1 Δ1 σ mrg agr. asimpl.
     apply: dyn_send1... }
-  { move=>Θ Γ Δ r1 r2 m xor tym ihm Θ1 Θ0 Γ1 Δ1 σ mrg agr. asimpl.
+  { move=>Θ Γ Δ m tym ihm Θ1 Θ0 Γ1 Δ1 σ mrg agr. asimpl.
     apply: dyn_wait... }
-  { move=>Θ Γ Δ r1 r2 m xor tym ihm Θ1 Θ0 Γ1 Δ1 σ mrg agr. asimpl.
+  { move=>Θ Γ Δ m tym ihm Θ1 Θ0 Γ1 Δ1 σ mrg agr. asimpl.
     apply: dyn_close... }
   { move=>Θ Γ Δ A B m s eq tym ihm tyB Θ1 Θ0 Γ1 Δ1 σ mrg agr.
     apply: dyn_conv.

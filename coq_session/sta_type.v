@@ -112,9 +112,9 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
 | sta0_proto Γ :
   sta0_wf Γ ->
   sta0_type Γ Proto (Sort U)
-| sta0_stop Γ r :
+| sta0_stop Γ :
   sta0_wf Γ ->
-  sta0_type Γ (Stop r) Proto
+  sta0_type Γ Stop Proto
 | sta0_act0 Γ r A B s :
   sta0_type Γ A (Sort s) ->
   sta0_type (A :: Γ) B Proto ->
@@ -150,13 +150,11 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
   r1 (+) r2 = true ->
   sta0_type Γ m (Ch r1 (Act1 r2 A B)) ->
   sta0_type Γ (Send1 m) (Pi1 A (IO (Ch r1 B)) L)
-| sta0_wait Γ r1 r2 m :
-  r1 (+) r2 = false ->
-  sta0_type Γ m (Ch r1 (Stop r2)) ->
+| sta0_wait Γ m :
+  sta0_type Γ m (Ch false Stop) ->
   sta0_type Γ (Wait m) (IO Unit)
-| sta0_close Γ r1 r2 m :
-  r1 (+) r2 = true ->
-  sta0_type Γ m (Ch r1 (Stop r2)) ->
+| sta0_close Γ m :
+  sta0_type Γ m (Ch true Stop) ->
   sta0_type Γ (Close m) (IO Unit)
 (* conversion *)
 | sta0_conv Γ A B m s :
@@ -283,9 +281,9 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
 | sta_proto Γ :
   sta_wf Γ ->
   Γ ⊢ Proto : Sort U
-| sta_stop Γ r :
+| sta_stop Γ :
   sta_wf Γ ->
-  Γ ⊢ Stop r : Proto
+  Γ ⊢ Stop : Proto
 | sta_act0 Γ r A B :
   (A :: Γ) ⊢ B : Proto ->
   Γ ⊢ Act0 r A B : Proto
@@ -318,13 +316,11 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
   r1 (+) r2 = true ->
   Γ ⊢ m : Ch r1 (Act1 r2 A B) ->
   Γ ⊢ Send1 m : Pi1 A (IO (Ch r1 B)) L
-| sta_wait Γ r1 r2 m :
-  r1 (+) r2 = false ->
-  Γ ⊢ m : Ch r1 (Stop r2) ->
+| sta_wait Γ m :
+  Γ ⊢ m : Ch false Stop ->
   Γ ⊢ Wait m : IO Unit
-| sta_close Γ r1 r2 m :
-  r1 (+) r2 = true ->
-  Γ ⊢ m : Ch r1 (Stop r2) ->
+| sta_close Γ m :
+  Γ ⊢ m : Ch true Stop ->
   Γ ⊢ Close m : IO Unit
 (* conversion *)
 | sta_conv Γ A B m s :
@@ -394,4 +390,3 @@ Proof with eauto using sta_wf.
   econstructor...
   apply: sta0_sta_type...
 Qed.
-  

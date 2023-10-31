@@ -44,7 +44,7 @@ Fixpoint dyn_occurs (i : cvar) (m : term) : nat :=
   | Return m => dyn_occurs i m
   | Bind m n => dyn_occurs i m + dyn_occurs i n
   | Proto => 0
-  | Stop _ => 0
+  | Stop => 0
   | Act0 _ _ _ => 0
   | Act1 _ _ _ => 0
   | Ch _ _ => 0
@@ -316,9 +316,9 @@ Proof with eauto using dyn_occurs.
     destruct m0; inv e... }
   { move=>Θ Γ Δ r1 r2 A B m xor tym ihm m0 ξ e i h.
     destruct m0; inv e... }
-  { move=>Θ Γ Δ r1 r2 m xor tym ihm m0 ξ e i h.
+  { move=>Θ Γ Δ m tym ihm m0 ξ e i h.
     destruct m0; inv e... }
-  { move=>Θ Γ Δ r1 r2 m xor tym ihm m0 ξ e i h.
+  { move=>Θ Γ Δ m tym ihm m0 ξ e i h.
     destruct m0; inv e... }
 Qed.
 

@@ -386,17 +386,14 @@ Qed.
 
 Lemma dyn_wait_inv Θ Γ Δ m C :
   Θ ; Γ ; Δ ⊢ Wait m : C ->
-  exists r1 r2,
-    r1 (+) r2 = false /\
-    C === IO Unit /\
-    Θ ; Γ ; Δ ⊢ m : Ch r1 (Stop r2).
+  C === IO Unit /\
+  Θ ; Γ ; Δ ⊢ m : Ch false Stop.
  Proof with eauto. 
    move e:(Wait m)=>x ty. elim: ty m e=>//{Θ Γ Δ x C}.
-   { move=>Θ Γ Δ r1 r2 m xor tym ihm m0[e]. subst.
-     exists r1. exists r2. repeat split... }
+   { move=>Θ Γ Δ m tym ihm m0[e]. subst.
+     repeat split... }
    { move=>Θ Γ Δ A B m s eq1 tym ihm tyB m0 e. subst.
-     have[r1[r2[xor[eq2 tym0]]]]:=ihm _ erefl.
-     exists r1. exists r2.
+     have[eq2 tym0]:=ihm _ erefl.
      repeat split...
      apply: conv_trans.
      apply: conv_sym...
@@ -405,17 +402,14 @@ Lemma dyn_wait_inv Θ Γ Δ m C :
 
 Lemma dyn_close_inv Θ Γ Δ m C :
   Θ ; Γ ; Δ ⊢ Close m : C ->
-  exists r1 r2,
-    r1 (+) r2 = true /\
-    C === IO Unit /\
-    Θ ; Γ ; Δ ⊢ m : Ch r1 (Stop r2).
+  C === IO Unit /\
+  Θ ; Γ ; Δ ⊢ m : Ch true Stop.
  Proof with eauto. 
    move e:(Close m)=>x ty. elim: ty m e=>//{Θ Γ Δ x C}.
-   { move=>Θ Γ Δ r1 r2 m xor tym ihm m0[e]. subst.
-     exists r1. exists r2. repeat split... }
+   { move=>Θ Γ Δ m tym ihm m0[e]. subst.
+     repeat split... }
    { move=>Θ Γ Δ A B m s eq1 tym ihm tyB m0 e. subst.
-     have[r1[r2[xor[eq2 tym0]]]]:=ihm _ erefl.
-     exists r1. exists r2.
+     have[eq2 tym0]:=ihm _ erefl.
      repeat split...
      apply: conv_trans.
      apply: conv_sym...

@@ -130,13 +130,11 @@ Inductive dyn_type : dyn_ctx -> sta_ctx -> dyn_ctx -> term -> term -> Prop :=
   r1 (+) r2 = true ->
   Θ ; Γ ; Δ ⊢ m : Ch r1 (Act1 r2 A B) ->
   Θ ; Γ ; Δ ⊢ Send1 m : Pi1 A (IO (Ch r1 B)) L
-| dyn_wait Θ Γ Δ r1 r2 m :
-  r1 (+) r2 = false ->
-  Θ ; Γ ; Δ ⊢ m : Ch r1 (Stop r2) ->
+| dyn_wait Θ Γ Δ m :
+  Θ ; Γ ; Δ ⊢ m : Ch false Stop ->
   Θ ; Γ ; Δ ⊢ Wait m : IO Unit
-| dyn_close Θ Γ Δ r1 r2 m :
-  r1 (+) r2 = true ->
-  Θ ; Γ ; Δ ⊢ m : Ch r1 (Stop r2) ->
+| dyn_close Θ Γ Δ m :
+  Θ ; Γ ; Δ ⊢ m : Ch true Stop ->
   Θ ; Γ ; Δ ⊢ Close m : IO Unit
 (* conversion *)
 | dyn_conv Θ Γ Δ A B m s :

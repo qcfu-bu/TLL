@@ -28,8 +28,8 @@ Proof with eauto using sta_step, star1 with sta_red_congr.
   { move=>Γ r1 r2 A B m xor tym ihm e n st. inv st... }
   { move=>Γ r1 r2 A B m xor tym ihm e n st. inv st... }
   { move=>Γ r1 r2 A B m xor tym ihm e n st. inv st... }
-  { move=>Γ r1 r2 m xor tym ihm e n st. inv st... }
-  { move=>Γ r1 r2 m xor tym ihm e n st. inv st... }
+  { move=>Γ m tym ihm e n st. inv st... }
+  { move=>Γ m tym ihm e n st. inv st... }
   { move=>Γ A B m s eq tym ihm tyB ihB e n st. subst... }
 Qed.
 
@@ -128,9 +128,9 @@ Proof with eauto using key_impure, key_empty, key_merge.
     have[_[_/sort_inj e]]//:=sta_pi0_inv ty. }
   { move=>Θ Γ Δ r1 r2 A B m xor tym ihm ty vl.
     have[_[_/sort_inj e]]//:=sta_pi1_inv ty. }
-  { move=>Θ Γ Δ r1 r2 m xor tym ihm ty vl.
+  { move=>Θ Γ Δ m tym ihm ty vl.
     have[_[_/sort_inj e]]//:=sta_io_inv ty. }
-  { move=>Θ Γ Δ r1 r2 m xor tym ihm ty vl.
+  { move=>Θ Γ Δ m tym ihm ty vl.
     have[_[_/sort_inj e]]//:=sta_io_inv ty. }
   { move=>Θ Γ Δ A B m s eq tym ihm tyB1 tyB2 vl.
     have[r tyA]:=dyn_valid tym.
@@ -294,8 +294,8 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
   { move=>Θ Γ Δ r1 r2 A B m xor tym ihm e1 e2 n st. inv st... }
   { move=>Θ Γ Δ r1 r2 A B m xor tym ihm e1 e2 n st. inv st... }
   { move=>Θ Γ Δ r1 r2 A B m xor tym ihm e1 e2 n st. inv st... }
-  { move=>Θ Γ Δ r1 r2 m xor tym ihm e1 e2 n st. inv st... }
-  { move=>Θ Γ Δ r1 r2 m xor tym ihm e1 e2 n st. inv st... }
+  { move=>Θ Γ Δ m tym ihm e1 e2 n st. inv st... }
+  { move=>Θ Γ Δ m tym ihm e1 e2 n st. inv st... }
 Qed.
 
 Theorem dyn_rd Θ m n A :

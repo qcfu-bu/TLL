@@ -798,7 +798,7 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
     { inv H5.
       have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyW/=tyn]]]]]]]]]:=
         dyn_bind_inv H1. inv mrg2. inv mrg1. inv H5.
-      have[r3[r4[xor[_ tyv]]]]:=dyn_wait_inv tyW.
+      have[_ tyv]:=dyn_wait_inv tyW.
       have[r[A1[js _]]]:=dyn_cvar_inv tyv.
       inv js. inv H5. }
     { inv H4. inv H5.
@@ -806,7 +806,7 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       { have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyC/=tyn]]]]]]]]]:=
           dyn_bind_inv H1. inv mrg2. inv mrg1; inv H5.
         { have wf:=dyn_type_wf tyn. inv wf.
-          have[r3[r4[xor[/io_inj eq2 tyv]]]]:=dyn_close_inv tyC.
+          have[/io_inj eq2 tyv]:=dyn_close_inv tyC.
           have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. inv H7.
           have e:=merge_emptyL H6 H0. subst.
           have[x rd1 rd2]:=church_rosser eq2.
@@ -819,13 +819,13 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
           apply: conv_sym...
           repeat constructor...
           apply: H8. }
-        { have[r3[r4[xor[_ tyv]]]]:=dyn_close_inv tyC.
+        { have[_ tyv]:=dyn_close_inv tyC.
           have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. } }
       have{H3}ty2:_: _: Δ3; [::]; [::] ⊢ Bind (Return II) n : IO Unit.
       { have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyW/=tyn]]]]]]]]]:=
           dyn_bind_inv H3. inv mrg2. inv mrg1; inv H4.
         { have wf:=dyn_type_wf tyn. inv wf.
-          have[r3[r4[xor[/io_inj eq2 tyv]]]]:=dyn_wait_inv tyW.
+          have[/io_inj eq2 tyv]:=dyn_wait_inv tyW.
           have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. inv H6.
           have e:=merge_emptyL H5 H0. subst.
           have[x rd1 rd2]:=church_rosser eq2.
@@ -838,7 +838,7 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
           apply: conv_sym...
           repeat constructor...
           apply: H7. }
-        { have[r3[r4[xor[_ tyv]]]]:=dyn_wait_inv tyW.
+        { have[_ tyv]:=dyn_wait_inv tyW.
           have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. inv H4. } }
       have e: ( - 2) = ((-1) >>> ((-1) >>> id)).
       { f_ext. move=>x. asimpl. lia. }
@@ -860,30 +860,30 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
     { inv H4.
       have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyC/=tyn]]]]]]]]]:=
         dyn_bind_inv H1. inv mrg2. inv mrg1.
-      have[r3[r4[_[_ tyv]]]]:=dyn_close_inv tyC.
+      have[_ tyv]:=dyn_close_inv tyC.
       have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. }
     { inv H4.
       have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyC/=tyn]]]]]]]]]:=
         dyn_bind_inv H1. inv mrg2. inv mrg1.
-      have[r3[r4[_[_ tyv]]]]:=dyn_close_inv tyC.
+      have[_ tyv]:=dyn_close_inv tyC.
       have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. } }
   { move=>m m' n n' e1 e2 Θ ty. inv ty. inv H2. inv H1; inv H3.
     { inv H5.
       have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyW/=tyn]]]]]]]]]:=
         dyn_bind_inv H1. inv mrg2. inv mrg1.
-      have[r3[r4[_[_ tyv]]]]:=dyn_wait_inv tyW.
+      have[_ tyv]:=dyn_wait_inv tyW.
       have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. }
     { inv H5.
       have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyW/=tyn]]]]]]]]]:=
         dyn_bind_inv H1. inv mrg2. inv mrg1.
-      have[r3[r4[_[_ tyv]]]]:=dyn_wait_inv tyW.
+      have[_ tyv]:=dyn_wait_inv tyW.
       have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. }
     { inv H4. inv H5.
       have{H1}ty1:_: _: Δ0; [::]; [::] ⊢ Bind (Return II) m : IO Unit.
       { have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyC/=tym]]]]]]]]]:=
           dyn_bind_inv H1. inv mrg2. inv mrg1; inv H5.
         { have wf:=dyn_type_wf tym. inv wf.
-          have[r3[r4[xor[/io_inj eq2 tyv]]]]:=dyn_close_inv tyC.
+          have[/io_inj eq2 tyv]:=dyn_close_inv tyC.
           have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. inv H7.
           have e:=merge_emptyL H6 H0. subst.
           have[x rd1 rd2]:=church_rosser eq2.
@@ -896,13 +896,13 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
           apply: conv_sym...
           repeat constructor...
           apply: H8. }
-        { have[r3[r4[xor[_ tyv]]]]:=dyn_close_inv tyC.
+        { have[_ tyv]:=dyn_close_inv tyC.
           have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. inv H5. } }
       have{H3}ty2:_: _: Δ3; [::]; [::] ⊢ Bind (Return II) n : IO Unit.
       { have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyW/=tyn]]]]]]]]]:=
           dyn_bind_inv H3. inv mrg2. inv mrg1; inv H4.
         { have wf:=dyn_type_wf tyn. inv wf.
-          have[r3[r4[xor[/io_inj eq2 tyv]]]]:=dyn_wait_inv tyW.
+          have[/io_inj eq2 tyv]:=dyn_wait_inv tyW.
           have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. inv H6.
           have e:=merge_emptyL H5 H0. subst.
           have[x rd1 rd2]:=church_rosser eq2.
@@ -915,7 +915,7 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
           apply: conv_sym...
           repeat constructor...
           apply: H7. }
-        { have[r3[r4[xor[_ tyv]]]]:=dyn_wait_inv tyW.
+        { have[_ tyv]:=dyn_wait_inv tyW.
           have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. } }
       have e: ( - 2) = ((-1) >>> ((-1) >>> id)).
       { f_ext. move=>x. asimpl. lia. }
@@ -937,7 +937,7 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
     { inv H4.
       have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyC/=tyn]]]]]]]]]:=
         dyn_bind_inv H1. inv mrg2. inv mrg1. inv H4.
-      have[r3[r4[_[_ tyv]]]]:=dyn_close_inv tyC.
+      have[_ tyv]:=dyn_close_inv tyC.
       have[r[A1[js _]]]:=dyn_cvar_inv tyv. inv js. inv H4. } }
   { move=>o p q st ih Θ ty... inv ty. econstructor... }
   { move=>p q st ih Θ ty. inv ty. econstructor... }

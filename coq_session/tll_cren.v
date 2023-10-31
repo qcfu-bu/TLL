@@ -47,7 +47,7 @@ Fixpoint term_cren (m : term) (ξ : cvar -> cvar) : term :=
   | Bind m n => Bind (term_cren m ξ) (term_cren n ξ)
   (* session *)
   | Proto => Proto
-  | Stop r => Stop r
+  | Stop => Stop
   | Act0 r A B => Act0 r (term_cren A ξ) (term_cren B ξ)
   | Act1 r A B => Act1 r (term_cren A ξ) (term_cren B ξ)
   | Ch r A => Ch r (term_cren A ξ)

@@ -278,8 +278,8 @@ Proof with eauto using dyn_type, dyn_agree_ren, dyn_agree_ren_key.
   { move=>Θ Γ Δ r1 r2 A B m xor tym ihm Γ' Δ' ξ agr... }
   { move=>Θ Γ Δ r1 r2 A B m xor tym ihm Γ' Δ' ξ agr... }
   { move=>Θ Γ Δ r1 r2 A B m xor tym ihm Γ' Δ' ξ agr... }
-  { move=>Θ Γ Δ r1 r2 m xor tym ihm Γ' Δ' ξ agr... }
-  { move=>Θ Γ Δ r1 r2 m xor tym ihm Γ' Δ' ξ agr... }
+  { move=>Θ Γ Δ m tym ihm Γ' Δ' ξ agr... }
+  { move=>Θ Γ Δ m tym ihm Γ' Δ' ξ agr... }
   { move=>Θ Γ Δ A B m s eq tym ihm tyB Γ' Δ' ξ agr.
     apply: dyn_conv.
     apply: sta_conv_subst...

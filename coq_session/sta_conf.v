@@ -119,7 +119,7 @@ Inductive sta_pstep : term -> term -> Prop :=
   Bind (Return m) n ≈> n'.[m'/]
 (* session *) 
 | sta_pstep_proto : Proto ≈> Proto
-| sta_pstep_stop r : Stop r ≈> Stop r
+| sta_pstep_stop : Stop ≈> Stop
 | sta_pstep_act0 r A A' B B' :
   A ≈> A' ->
   B ≈> B' ->
@@ -1179,7 +1179,7 @@ Proof.
   move=>y z rd e st. subst. by inv st.
 Qed.
 
-Lemma sta_pred_stop_inv r x : Stop r ≈>* x -> x = Stop r.
+Lemma sta_pred_stop_inv x : Stop ≈>* x -> x = Stop.
 Proof.
   elim=>//.
   move=>y z rd e st. subst. by inv st.

@@ -386,7 +386,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       have tynm:=sta_subst ihn tym'. asimpl in tynm.
       apply: sta_sta0_type... } }
   { move=>Γ wf n st. inv st... }
-  { move=>Γ r wf n st. inv st... }
+  { move=>Γ wf n st. inv st... }
   { move=>Γ r A B s tyA ihA tyB ihB n st. inv st...
     have tyA':=ihA _ H3.
     have tyB':=ihB _ H4.
@@ -428,8 +428,8 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
   { move=>Γ r1 r2 A B m xor tym ihm n st. inv st... }
   { move=>Γ r1 r2 A B m xor tym ihm n st. inv st... }
   { move=>Γ r1 r2 A B m xor tym ihm n st. inv st... }
-  { move=>Γ r1 r2 m xor tym ihm n st. inv st... }
-  { move=>Γ r1 r2 m xor tym ihm n st. inv st... }
+  { move=>Γ m tym ihm n st. inv st... }
+  { move=>Γ m tym ihm n st. inv st... }
 Qed.
 
 Theorem sta_prd Γ m n A :

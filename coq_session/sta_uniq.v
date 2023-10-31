@@ -37,7 +37,7 @@ Inductive head_sim : term -> term -> Prop :=
 | head_sim_return m : head_sim (Return m) (Return m)
 | head_sim_bind m n : head_sim (Bind m n) (Bind m n)
 | head_sim_proto : head_sim Proto Proto
-| head_sim_stop r : head_sim (Stop r) (Stop r)
+| head_sim_stop : head_sim Stop Stop
 | head_sim_act0 r A B : head_sim (Act0 r A B) (Act0 r A B)
 | head_sim_act1 r A B : head_sim (Act1 r A B) (Act1 r A B)
 | head_sim_ch r1 r2 A1 A2 : head_sim (Ch r1 A1) (Ch r2 A2)
@@ -507,12 +507,12 @@ Proof with eauto.
   apply: sim_transL...
 Qed.
 
-Lemma sta_stop_uniq Γ B r :
-  Γ ⊢ Stop r : B -> sim (Proto) B.
+Lemma sta_stop_uniq Γ B :
+  Γ ⊢ Stop : B -> sim (Proto) B.
 Proof with eauto.  
-  move e:(Stop r)=>x ty. elim: ty r e=>//{Γ x B}.
-  move=>Γ A B m s eq tym ih tyB _ r e; subst.
-  have eq':=ih _ erefl.
+  move e:(Stop)=>x ty. elim: ty e=>//{Γ x B}.
+  move=>Γ A B m s eq tym ih tyB _ e; subst.
+  have eq':=ih erefl.
   apply: sim_transL...
 Qed.
 

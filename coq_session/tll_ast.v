@@ -52,7 +52,7 @@ Inductive term : Type :=
 | Bind (m : term) (n : {bind term})
 (* session *)
 | Proto
-| Stop (r : bool)
+| Stop
 | Act0 (r : bool) (A : term) (B : {bind term}) (* ρ{x : A}.B *)
 | Act1 (r : bool) (A : term) (B : {bind term}) (* ρ(x : A).B *)
 | Ch (r : bool) (A : term)
