@@ -56,40 +56,40 @@ def empty_worker (c : queue_ch nil) : IO unit :=
     empty_worker c0
   | Dequeue, c => empty_worker c
 
-def q_empty (_ : unit) : queue nil :=
+def empty (_ : unit) : queue nil :=
   fork (c : queue_ch nil) => empty_worker c
 
-def q_free ?{xs : llist int} (q : queue xs) : IO unit :=
+def free ?{xs : llist int} (q : queue xs) : IO unit :=
   let* q := q in
   let* q := send q Free in
   close q
 
-def q_enqueue ?{xs : llist int} (n : int) (q : queue xs) : queue (rcons xs n) :=
+def enqueue ?{xs : llist int} (n : int) (q : queue xs) : queue (rcons xs n) :=
   let* q := q in
   let* q := send q (Enqueue n) in
   return q
 
-def q_dequeue ?{x : int} ?{xs : llist int} (q : queue (x :: xs)) : IO (`x ⊗ queue xs) :=
+def dequeue ?{x : int} ?{xs : llist int} (q : queue (x :: xs)) : IO (`x ⊗ queue xs) :=
   let* q := q in
   let* q := send q Dequeue in
   let* ⟨n, q⟩ := recv q in
   let* ⟨q0, q⟩ := recv q in
   close q; return ⟨n, return q0⟩
 
-def myqueue := q_empty tt
-def myqueue := q_enqueue 0 myqueue
-def myqueue := q_enqueue 1 myqueue
-def myqueue := q_enqueue 2 myqueue
-def myqueue := q_enqueue 3 myqueue
-def myqueue := q_enqueue 4 myqueue
-def myqueue := q_enqueue 5 myqueue
-def myqueue := q_enqueue 6 myqueue
+def myqueue := empty tt
+def myqueue := enqueue 0 myqueue
+def myqueue := enqueue 1 myqueue
+def myqueue := enqueue 2 myqueue
+def myqueue := enqueue 3 myqueue
+def myqueue := enqueue 4 myqueue
+def myqueue := enqueue 5 myqueue
+def myqueue := enqueue 6 myqueue
 
 def main : IO unit :=
-  let* ⟨just x, myqueue⟩ := q_dequeue myqueue in
-  let* ⟨just y, myqueue⟩ := q_dequeue myqueue in
-  let* ⟨just z, myqueue⟩ := q_dequeue myqueue in
-  let* tt := q_free myqueue in
+  let* ⟨just x, myqueue⟩ := dequeue myqueue in
+  let* ⟨just y, myqueue⟩ := dequeue myqueue in
+  let* ⟨just z, myqueue⟩ := dequeue myqueue in
+  let* tt := free myqueue in
   print ("x := " ++ string_of_int x ++ "\n" ++
          "y := " ++ string_of_int y ++ "\n" ++
          "z := " ++ string_of_int z ++ "\n")
