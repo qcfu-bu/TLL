@@ -1,0 +1,104 @@
+inductive tree : U where
+| Leaf : tree
+| Node (_ : int) (l r : tree) : tree
+
+inductive opr‹s› : L where
+| Free : opr
+| Fold ?{A : Type‹s›} (a : A) (f : int -> A -> A -> A) : opr
+
+def fold ?{A : U} (a : A) (f : int -> A -> A -> A) : tree -> A
+  | Leaf => a
+  | Node x l r => f x (fold a f l) (fold a f r)
+
+#[logical]
+def tree_p (t : tree) : proto :=
+  ⇓(o : opr) ->
+    match o with
+    | Free => •
+    | Fold _ a f => ⇑(`fold a f t) → tree_p t
+
+#[logical]def ctree_ch (t : tree) : L := ch⟨tree_p t⟩
+#[logical]def ctree_hc (t : tree) : L := hc⟨tree_p t⟩
+#[logical]def ctree (t : tree) : L := IO (ctree_hc t)
+
+def leaf_worker (c : ctree_ch Leaf) : IO unit := 
+  let* ⟨o, c⟩ := recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+           | Free => •
+           | Fold A a _ => ⇑(@sing A a) → tree_p Leaf⟩
+  with
+  | Free, c => close c
+  | Fold _ a _, c => let* c := send c (just a) in leaf_worker c
+
+def node_worker (x : int) ?{l r : tree} : ctree_hc l .-> ctree_hc r .-> ctree_ch (Node x l r) .-> IO unit :=
+  ln l_ch r_ch c =>
+    let* ⟨o, c⟩ := recv c in
+    match o as o0
+        , c as _ :
+          ch⟨match o0 with
+             | Free => •
+             | Fold A a f => ⇑(@sing A (@fold A a f (Node x l r))) → tree_p (Node x l r)⟩
+    with
+    | Free, c =>
+      let* l_ch := send l_ch Free in
+      let* r_ch := send r_ch Free in
+      close l_ch; close r_ch; close c
+    | Fold A a f, c => 
+      let* l_ch := send l_ch (Fold a f) in
+      let* r_ch := send r_ch (Fold a f) in
+      let* ⟨just vl, l_ch⟩ := recv l_ch in
+      let* ⟨just vr, r_ch⟩ := recv r_ch in
+      let* c := send c (just (f x vl vr)) in
+      node_worker x l_ch r_ch c
+
+def cleaf (_ : unit) : ctree Leaf := 
+  fork (c : ctree_ch Leaf) => leaf_worker c
+
+def cnode (x : int) ?{l r : tree} : ctree l .-> ctree r .-> ctree (Node x l r)
+  | l0, r0 =>
+    let* l_ch := l0 in
+    let* r_ch := r0 in
+    fork (c : ctree_ch (Node x l r)) => node_worker x l_ch r_ch c
+
+def ctree_of_tree : ∀ (x : tree) -> ctree x
+  | Leaf       => cleaf tt
+  | Node x l r => cnode x (ctree_of_tree l) (ctree_of_tree r)
+
+def cfree ?{t : tree} (ct : ctree t) : IO unit :=
+  let* c := ct in
+  let* c := send c Free in
+  close c
+
+def cfold ?{A : U} ?{t : tree} (a : A) (f : int -> A -> A -> A) (ct : ctree t) : IO (`fold a f t ⊗ ctree t) :=
+  let* c := ct in
+  let* c := send c (Fold a f) in
+  let* ⟨x, ct⟩ := recv c in
+  return ⟨x, return ct⟩
+
+def cheight ?{t : tree} (ct : ctree t) :=
+  cfold 0 (fn _ x y => if x < y then y + 1 else x + 1) ct
+
+def csize ?{t : tree} (ct : ctree t) :=
+  cfold 0 (fn _ x y => 1 + x + y) ct
+
+def cfind (n : int) ?{t : tree} (ct : ctree t) :=
+  cfold false (fn k x y => k == n || x || y) ct
+
+def mytree1 (x : int) := cnode x (cleaf tt) (cleaf tt)
+def mytree2 (x : int) := cnode x (mytree1 1) (mytree1 2)
+def mytree3 (x : int) := cnode x (mytree2 3) (mytree2 4)
+def mytree4 (x : int) := cnode x (mytree3 8) (mytree3 7)
+def mytree5 (x : int) := cnode x (mytree4 9) (mytree4 10)
+def mytree6 (x : int) := cnode x (mytree5 11) (mytree5 12)
+
+def main : IO unit :=
+  let ct := mytree6 100 in
+  let* ⟨just h, ct⟩  := cheight ct   in
+  let* ⟨just sz, ct⟩ := csize ct     in
+  let* ⟨just b, ct⟩  := cfind 1 ct in
+  let* tt := cfree ct in
+  print ("height := " ++ string_of_int h  ++ "\n" ++
+         "size   := " ++ string_of_int sz ++ "\n" ++
+         "find   := " ++ string_of_bool b ++ "\n")
