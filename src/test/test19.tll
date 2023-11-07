@@ -40,31 +40,32 @@ def leaf_worker ?{A : U} (c : @ctree_ch A Leaf) : IO unit :=
   | Map _ _, c => leaf_worker c
   | Fold _ b _, c => let* c := send c (just b) in leaf_worker c
 
-def node_worker ?{A : U} (a : A) ?{l r : tree A} : ctree_hc l .-> ctree_hc r .-> ctree_ch (Node a l r) .-> IO unit
-  | l_ch, r_ch, c =>
-    let* ⟨o, c⟩ := recv c in
-    match o as o0
-        , c as _ :
-          ch⟨match o0 with
-             | Free => •
-             | Map B f => @tree_p B (@map _ B f (Node a l r))
-             | Fold B b f => ⇑(@sing B (@fold _ B b f (Node a l r))) → tree_p (Node a l r)⟩
-    with
-    | Free, c =>
-      let* l_ch := send l_ch Free in
-      let* r_ch := send r_ch Free in
-      close l_ch; close r_ch; close c
-    | Map _ f, c =>
-      let* l_ch := send l_ch (Map f) in
-      let* r_ch := send r_ch (Map f) in
-      node_worker (f a) l_ch r_ch c 
-    | Fold _ b f, c =>
-      let* l_ch := send l_ch (Fold b f) in
-      let* r_ch := send r_ch (Fold b f) in
-      let* ⟨just vl, l_ch⟩ := recv l_ch in
-      let* ⟨just vr, r_ch⟩ := recv r_ch in
-      let* c := send c (just (f a vl vr)) in
-      node_worker a l_ch r_ch c
+def node_worker ?{A : U} (a : A) ?{l r : tree A}
+: ctree_hc l .-> ctree_hc r .-> ctree_ch (Node a l r) .-> IO unit
+| l_ch, r_ch, c =>
+  let* ⟨o, c⟩ := recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+           | Free => •
+           | Map B f => @tree_p B (@map _ B f (Node a l r))
+           | Fold B b f => ⇑(@sing B (@fold _ B b f (Node a l r))) → tree_p (Node a l r)⟩
+  with
+  | Free, c =>
+    let* l_ch := send l_ch Free in
+    let* r_ch := send r_ch Free in
+    close l_ch; close r_ch; close c
+  | Map _ f, c =>
+    let* l_ch := send l_ch (Map f) in
+    let* r_ch := send r_ch (Map f) in
+    node_worker (f a) l_ch r_ch c 
+  | Fold _ b f, c =>
+    let* l_ch := send l_ch (Fold b f) in
+    let* r_ch := send r_ch (Fold b f) in
+    let* ⟨just vl, l_ch⟩ := recv l_ch in
+    let* ⟨just vr, r_ch⟩ := recv r_ch in
+    let* c := send c (just (f a vl vr)) in
+    node_worker a l_ch r_ch c
 
 def cleaf ?{A : U} (_ : unit) : ctree (@Leaf A) := 
   fork (c : ctree_ch Leaf) => leaf_worker c
