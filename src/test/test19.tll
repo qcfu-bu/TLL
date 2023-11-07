@@ -1,6 +1,6 @@
 inductive tree : U where
 | Leaf : tree
-| Node (_ : int) (l r : tree) : tree
+| Node (x : int) (l r : tree) : tree
 
 inductive opr : L where
 | Free : opr
@@ -45,7 +45,7 @@ def node_worker (x : int) ?{l r : tree} : ctree_hc l .-> ctree_hc r .-> ctree_ch
       let* l_ch := send l_ch Free in
       let* r_ch := send r_ch Free in
       close l_ch; close r_ch; close c
-    | Fold A a f, c => 
+    | Fold _ a f, c => 
       let* l_ch := send l_ch (Fold a f) in
       let* r_ch := send r_ch (Fold a f) in
       let* ⟨just vl, l_ch⟩ := recv l_ch in
