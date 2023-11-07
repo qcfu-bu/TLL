@@ -103,7 +103,7 @@ def cheight ?{A : U} ?{t : tree A} (ct : ctree t) :=
 def csize ?{A : U} ?{t : tree A} (ct : ctree t) :=
   cfold 0 (fn _ x y => 1 + x + y) ct
 
-def cexists ?{A : U} (pred : A -> bool) ?{t : tree A} (ct : ctree t) :=
+def cexists ?{A : U} ?{t : tree A} (pred : A -> bool) (ct : ctree t) :=
   cfold false (fn k x y => pred k || x || y) ct
 
 def mytree1 (x : int) := cnode x (cleaf tt) (cleaf tt)
