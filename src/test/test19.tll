@@ -40,16 +40,16 @@ def leaf_worker ?{A : U} (c : @ctree_ch A Leaf) : IO unit :=
   | Map B _, c => @leaf_worker B c
   | Fold _ b _, c => let* c := send c (just b) in leaf_worker c
 
-def node_worker ?{A : U} ?{l r : tree A} (a : A)
-: ctree_hc l .-> ctree_hc r .-> ctree_ch (Node a l r) .-> IO unit
+def node_worker ?{A : U} ?{l r : tree A} (x : A)
+: ctree_hc l .-> ctree_hc r .-> ctree_ch (Node x l r) .-> IO unit
 | l_ch, r_ch, c =>
   let* ⟨o, c⟩ := recv c in
   match o as o0
       , c as _ :
         ch⟨match o0 with
            | Free => •
-           | Map B f => @tree_p B (@map _ B f (Node a l r))
-           | Fold B b f => ⇑(@sing B (@fold _ B b f (Node a l r))) → tree_p (Node a l r)⟩
+           | Map B f => @tree_p B (@map _ B f (Node x l r))
+           | Fold B b f => ⇑(@sing B (@fold _ B b f (Node x l r))) → tree_p (Node x l r)⟩
   with
   | Free, c =>
     let* l_ch := send l_ch Free in
@@ -58,14 +58,14 @@ def node_worker ?{A : U} ?{l r : tree A} (a : A)
   | Map _ f, c =>
     let* l_ch := send l_ch (Map f) in
     let* r_ch := send r_ch (Map f) in
-    node_worker (f a) l_ch r_ch c 
+    node_worker (f x) l_ch r_ch c 
   | Fold _ b f, c =>
     let* l_ch := send l_ch (Fold b f) in
     let* r_ch := send r_ch (Fold b f) in
     let* ⟨just vl, l_ch⟩ := recv l_ch in
     let* ⟨just vr, r_ch⟩ := recv r_ch in
-    let* c := send c (just (f a vl vr)) in
-    node_worker a l_ch r_ch c
+    let* c := send c (just (f x vl vr)) in
+    node_worker x l_ch r_ch c
 
 def cleaf ?{A : U} (_ : unit) : ctree (@Leaf A) := 
   fork (c : ctree_ch Leaf) => leaf_worker c
