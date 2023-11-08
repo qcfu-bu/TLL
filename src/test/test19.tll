@@ -37,10 +37,10 @@ def leaf_worker ?{A : U} (c : @ctree_ch A Leaf) : IO unit :=
            | Fold B b _ => ⇑(@sing B b) → tree_p Leaf⟩
   with
   | Free, c => close c
-  | Map _ _, c => leaf_worker c
+  | Map B _, c => @leaf_worker B c
   | Fold _ b _, c => let* c := send c (just b) in leaf_worker c
 
-def node_worker ?{A : U} (a : A) ?{l r : tree A}
+def node_worker ?{A : U} ?{l r : tree A} (a : A)
 : ctree_hc l .-> ctree_hc r .-> ctree_ch (Node a l r) .-> IO unit
 | l_ch, r_ch, c =>
   let* ⟨o, c⟩ := recv c in
