@@ -70,7 +70,7 @@ def node_worker ?{A : U} ?{l r : tree A} (x : A)
 def cleaf ?{A : U} (_ : unit) : ctree (@Leaf A) := 
   fork (c : ctree_ch Leaf) => leaf_worker c
 
-def cnode ?{A : U} (a : A) ?{l r : tree A} : ctree l .-> ctree r .-> ctree (Node a l r)
+def cnode ?{A : U} ?{l r : tree A} (a : A) : ctree l .-> ctree r .-> ctree (Node a l r)
   | l0, r0 =>
     let* l_ch := l0 in
     let* r_ch := r0 in
