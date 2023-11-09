@@ -139,31 +139,6 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
   move=>ty st. elim: st Θ ty=>{p q}.
   { move=>m m' st Θ ty. inv ty.
     constructor. apply: dyn_sr... }
-  { move=>v n vl Θ ty. inv ty.
-    have[Θ1[Θ2[Δ1[Δ2[A0[s[/merge_sym mrg1[mrg2[tyR/=tyn]]]]]]]]]:=
-      dyn_bind_inv H1. inv mrg2.
-    have wf:=dyn_type_wf tyn. inv wf.
-    have tyv:=dyn_return_inv tyR.
-    have[r tyA]:=dyn_valid tyv.
-    have e:=sta_unicity H5 tyA. subst.
-    have[k1 k2]:=dyn_val_stability tyv tyA vl.
-    have tyIO:(A0 :: nil) ⊢ (IO Unit).[ren (+1)] : (Sort L).[ren (+1)].
-    { apply: sta_weaken... }
-    constructor.
-    replace (IO Unit) with (IO Unit).[v/] by eauto.
-    apply: dyn_subst1.
-    apply: k1.
-    apply: mrg1.
-    apply: k2.
-    constructor.
-    replace (IO Unit) with (IO Unit.[ren (+1)]) by eauto.
-    apply: dyn_conv.
-    apply: sta_conv_io. apply: sta_conv_subst. apply: conv_sym...
-    apply: tyn.
-    apply: tyIO.
-    apply: dyn_conv.
-    apply: conv_sym...
-    all: eauto. }
   { move=>A m m' n n' e1 e2 Θ ty. inv ty.
     have{H1}ty:=dyn_cweaken (dyn_cweaken H1).
     rewrite<-!term_cren_comp in ty.

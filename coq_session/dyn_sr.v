@@ -287,7 +287,12 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       have e:=merge_emptyL mrg1 emp. subst... } }
   { move=>Θ Γ Δ m A tym ihm e1 e2 n st. inv st... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2 tyB tym ihm tyn ihn e1 e2 n0 st.
-    subst. inv mrg2. inv st... }
+    subst. inv mrg2. inv st...
+    have tyv:=dyn_return_inv tym.
+    have wf:=dyn_type_wf tyn. inv wf.
+    have[k1 _]:=dyn_val_stability tyv H5 H2.
+    have:=dyn_subst1 k1 (merge_sym mrg1) (key_nil s) merge_nil tyn tyv.
+    by asimpl. }
   { move=>Θ Γ Δ r x A js wf k tyA e1 e2 n st. inv st. }
   { move=>Θ Γ Δ m A tym ihm e1 e2 n st. inv st. }
   { move=>Θ Γ Δ r1 r2 A B m xor tym ihm e1 e2 n st. inv st... }

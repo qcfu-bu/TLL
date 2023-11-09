@@ -90,6 +90,9 @@ Inductive dyn_step : term -> term -> Prop :=
 | dyn_step_bindL m m' n :
   m ~>> m' ->
   Bind m n ~>> Bind m' n
+| dyn_step_bindE v n : 
+  dyn_val v ->
+  Bind (Return v) n ~>> n.[v/]
 (* session *)
 | dyn_step_recv0 m m' :
   m ~>> m' ->

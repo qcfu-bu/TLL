@@ -34,9 +34,6 @@ Inductive proc_step : proc -> proc -> Prop :=
 | proc_step_exp m m' :
   m ~>> m' ->
   ⟨ m ⟩ ≈>> ⟨ m' ⟩
-| proc_step_bind v n :
-  dyn_val v ->
-  ⟨ Bind (Return v) n ⟩ ≈>> ⟨ n.[v/] ⟩
 (* session *)
 | proc_step_fork A m m' n n' :
   m' = term_cren m (+2) ->
