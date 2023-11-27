@@ -24,4 +24,6 @@ clean:: ; $(RMF) *.gch
 clean:: ; $(RMF) *.out
 
 cleanall: clean
+	$(RMF) prelude.h
+	$(RMF) main.h
 	$(RMF) main.c
