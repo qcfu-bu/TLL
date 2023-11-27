@@ -35,7 +35,7 @@ Proof with eauto using mltt_agree_subst.
   have: (A.[ids] :: Γ) ⊢ up ids ⊣ (A :: Γ)...
   by asimpl...
 Qed.
-#[global] Hint Resolve mltt_agree_subst_refl.
+#[global] Hint Resolve mltt_agree_subst_refl : core.
 
 Lemma mltt_agree_subst_has Γ1 σ Γ2 x A :
   Γ1 ⊢ σ ⊣ Γ2 -> mltt_wf Γ1 -> mltt_has Γ2 x A -> Γ1 ⊢ σ x : A.[σ].
