@@ -144,15 +144,6 @@ Inductive era_type
   Θ ; Γ ; Δ ⊢ m ~ m' : B
 where "Θ ; Γ ; Δ ⊢ m ~ n : A" := (era_type Θ Γ Δ m n A).
 
-Lemma era_dyn_type Θ Γ Δ m m' A :
-  Θ ; Γ ; Δ ⊢ m ~ m' : A -> Θ ; Γ ; Δ ⊢ m : A.
-Proof with eauto using dyn_type. elim... Qed.
-#[global] Hint Resolve era_dyn_type.
-
-Lemma era_type_wf Θ Γ Δ m m' A :
-  Θ ; Γ ; Δ ⊢ m ~ m' : A -> dyn_wf Γ Δ. 
-Proof with eauto. move=>erm. apply: dyn_type_wf... Qed.
-
 Lemma dyn_era_type Θ Γ Δ m A :
   Θ ; Γ ; Δ ⊢ m : A -> exists m', Θ ; Γ ; Δ ⊢ m ~ m' : A. 
 Proof with eauto using era_type.
