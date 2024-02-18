@@ -249,3 +249,66 @@ Proof with eauto using era_type, dyn_empty, dyn_ctx_cren.
     econstructor.
     eauto. }
 Qed.
+
+Lemma era_cren_inv Θ Γ Δ m x A ξ :
+  Θ ; Γ ; Δ ⊢ term_cren m ξ ~ x : A -> exists m', x = term_cren m' ξ.
+Proof with eauto.
+  move e:(term_cren m ξ)=>n er. elim: er m ξ e=>{Θ Γ Δ n x A}...
+  { move=>Θ Γ Δ A B m m' s k1 k2 erm ihm m0 ξ e. destruct m0; inv e.
+    have[n' e]:=ihm _ _ erefl. subst. by exists (Lam0 Box n' s). }
+  { move=>Θ Γ Δ A B m m' s t k1 k2 erm ihm m0 ξ e. destruct m0; inv e.
+    have[n' e]:=ihm _ _ erefl. subst. by exists (Lam1 Box n' s). }
+  { move=>Θ Γ Δ A B m m' n s erm ihm tyn m0 ξ e. destruct m0; inv e.
+    have[n' e]:=ihm _ _ erefl. subst. by exists (App0 n' Box). }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' s mrg1 mrg2
+           erm ihm ern ihn m0 ξ e. destruct m0; inv e.
+    have[m1 e]:=ihm _ _ erefl. subst.
+    have[n1 e]:=ihn _ _ erefl. subst.
+    by exists (App1 m1 n1). }
+  { move=>Θ Γ Δ A B m n n' t tyS tym ern ihn m0 ξ e. destruct m0; inv e.
+    have[n1 e]:=ihn _ _ erefl. subst. by exists (Pair0 Box n1 t). }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 mrg2 tyS erm ihm ern ihn m0 ξ e.
+    destruct m0; inv e.
+    have[m1 e]:=ihm _ _ erefl. subst.
+    have[n1 e]:=ihn _ _ erefl. subst.
+    by exists (Pair1 m1 n1 t). }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg1 mrg2 tyS erm ihm ern ihn m0 ξ e.
+    destruct m0; inv e.
+    have[m1 e]:=ihm _ _ erefl. subst.
+    have[n1 e]:=ihn _ _ erefl. subst.
+    by exists (LetIn Box m1 n1). }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg1 mrg2 tyC erm ihm ern ihn m0 ξ e.
+    destruct m0; inv e.
+    have[m1 e]:=ihm _ _ erefl. subst.
+    have[n1 e]:=ihn _ _ erefl. subst.
+    by exists (LetIn Box m1 n1). }
+  { move=>Θ Γ Δ A m m' k1 k2 erm ihm m0 ξ e. destruct m0; inv e.
+    have[m2 e]:=ihm _ _ erefl. subst. by exists (Fix Box m2). }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s mrg1 mrg2
+           tyA erm ihm ern1 ihn1 ern2 ihn2 m0 ξ e. destruct m0; inv e.
+    have[m1 e]:=ihm _ _ erefl. subst.
+    have[n1 e]:=ihn1 _ _ erefl. subst.
+    have[n2 e]:=ihn2 _ _ erefl. subst.
+    by exists (Ifte Box m1 n1 n2). }
+  { move=>Θ Γ Δ m m' A erm ihm m0 ξ e. destruct m0; inv e.
+    have[m1 e]:=ihm _ _ erefl. subst. by exists (Return m1). }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m m' n n' A B s t mrg1 mrg2 tyB erm ihm ern ihn m0 ξ e.
+    destruct m0; inv e.
+    have[m1 e]:=ihm _ _ erefl. subst.
+    have[n1 e]:=ihn _ _ erefl. subst.
+    by exists (Bind m1 n1). }
+  { move=>Θ Γ Δ m m' A erm ihm m0 ξ e. destruct m0; inv e.
+    have[m e]:=ihm _ _ erefl. subst. by exists (Fork Box m). }
+  { move=>Θ Γ Δ r1 r2 A B m m' xor erm ihm m0 ξ e. destruct m0; inv e.
+    have[m e]:=ihm _ _ erefl. subst. by exists (Recv0 m). }
+  { move=>Θ Γ Δ r1 r2 A B m m' xor erm ihm m0 ξ e. destruct m0; inv e.
+    have[m e]:=ihm _ _ erefl. subst. by exists (Recv1 m). }
+  { move=>Θ Γ Δ r1 r2 A B m m' xor erm ihm m0 ξ e. destruct m0; inv e.
+    have[m e]:=ihm _ _ erefl. subst. by exists (Send0 m). }
+  { move=>Θ Γ Δ r1 r2 A B m m' xor erm ihm m0 ξ e. destruct m0; inv e.
+    have[m e]:=ihm _ _ erefl. subst. by exists (Send1 m). }
+  { move=>Θ Γ Δ m m' erm ihm m0 ξ e. destruct m0; inv e.
+    have[m e]:=ihm _ _ erefl. subst. by exists (Wait m). }
+  { move=>Θ Γ Δ m m' erm ihm m0 ξ e. destruct m0; inv e.
+    have[m e]:=ihm _ _ erefl. subst. by exists (Close m). }
+Qed.

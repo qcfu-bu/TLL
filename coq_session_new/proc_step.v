@@ -11,12 +11,8 @@ Inductive proc_congr0 : proc -> proc -> Prop :=
   proc_congr0 (p ∣ q) (q ∣ p)
 | proc_congr0_assoc o p q :
   proc_congr0 (o ∣ (p ∣ q)) ((o ∣ p) ∣ q)
-| proc_congr0_extrude p (q : proc) :
+| proc_congr0_scope p (q : proc) :
   proc_congr0 ((ν.p) ∣ q) (ν.(p ∣ proc_cren q (+2)))
-| proc_congr0_contract p (q : proc) :
-  proc_occurs 0 q = 0 ->
-  proc_occurs 1 q = 0 ->
-  proc_congr0 (ν.(p ∣ q)) ((ν.p) ∣ proc_cren q (-2)) 
 | proc_congr0_par p p' q q' :
   proc_congr0 p p' ->
   proc_congr0 q q' ->

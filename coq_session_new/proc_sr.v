@@ -55,42 +55,6 @@ Proof with eauto using proc_type, proc_congr0.
       have->//:proc_occurs 0 (proc_cren q (+2)) = 1.
       apply: proc_type_occurs1...
       repeat constructor. } }
-  { move=>p q oc0 oc1 Θ. split.
-    { move=>ty. inv ty. inv H2.
-      inv H1; inv H3.
-      { econstructor...
-        replace (proc_cren q (-2))
-          with (proc_cren q ((-1) >>> ((-1) >>> id))).
-        2:{ f_equal. f_ext. move=>x. asimpl. lia. }
-        apply: proc_crename...
-        repeat constructor. }
-      { have pos: cvar_pos (_: Ch r2 A :L Δ3) 1 true.
-        repeat constructor.
-        have e:=proc_type_occurs1 H5 pos.
-        rewrite e in oc1. inv oc1. }
-      { have pos: cvar_pos (Ch (~~ r2) (term_cren A (+1)) :L _: Δ3) 0 true.
-        repeat constructor.
-        have e:=proc_type_occurs1 H5 pos.
-        rewrite e in oc0. inv oc0. }
-      { have pos: cvar_pos (Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L Δ3) 0 true.
-        repeat constructor.
-        have e:=proc_type_occurs1 H5 pos.
-        rewrite e in oc0. inv oc0. } }
-    { move=>ty. inv ty. inv H3.
-      econstructor...
-      econstructor...
-      econstructor.
-      econstructor.
-      eauto.
-      have tyq:=proc_cweaken (proc_cweaken H4).
-      rewrite<-!proc_cren_comp in tyq. asimpl in tyq.
-      apply: proc_occurs_cren_id.
-      eauto.
-      apply: oc0.
-      apply: oc1.
-      move=>x.
-      case_eq (x == 0); case_eq (x == 1)=>//e1 e2 _ _.
-      asimpl. lia. } }
   { move=>p p' q q' cgrp ihp cgrq ihq Θ. split.
     move=>ty. inv ty.
     econstructor...

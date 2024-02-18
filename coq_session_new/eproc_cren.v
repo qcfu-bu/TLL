@@ -57,3 +57,18 @@ Proof with eauto.
   constructor.
   constructor.
 Qed.
+
+Lemma eproc_cren_inv Θ p x ξ :
+  Θ ⊢ proc_cren p ξ ~ x -> exists p', x = proc_cren p' ξ. 
+Proof with eauto.
+  move e:(proc_cren p ξ)=>n er. elim: er p ξ e=>{Θ x n}.
+  { move=>Θ m m' erm p ξ e. destruct p; inv e.
+    have[m1 e]:=era_cren_inv erm. subst. by exists ⟨ m1 ⟩. }
+  { move=>Θ1 Θ2 Θ p p' q q' mrg erp ihp erq ihq p0 ξ e.
+    destruct p0; inv e.
+    have[p1 e1]:=ihp _ _ erefl.
+    have[q1 e2]:=ihq _ _ erefl.
+    subst. by exists (p1 ∣ q1). }
+  { move=>Θ p p' r1 r2 A _ erp ihp p0 ξ e. destruct p0; inv e.
+    have[p1 e1]:=ihp _ _ erefl. subst. by exists (ν.p1). }
+Qed.
