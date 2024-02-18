@@ -250,6 +250,30 @@ Proof with eauto using era_type, dyn_empty, dyn_ctx_cren.
     eauto. }
 Qed.
 
+Lemma era_cstrengthen Θ Γ Δ m m' A :
+  _: Θ ; Γ ; Δ ⊢ term_cren m (+1) ~ term_cren m' (+1) : A ->
+  Θ ; Γ ; Δ ⊢ m ~ m' : A.
+Proof with eauto using dyn_empty, era_type, dyn_ctx_cren.
+  move=>ty.
+  have e:((+1) >>> (-1)) = id.
+  { f_ext. move=>x. asimpl. fold subn. lia. }
+  replace m with (term_cren (term_cren m (+1)) ((-1) >>> id)).
+  replace m' with (term_cren (term_cren m' (+1)) ((-1) >>> id)).
+  apply: era_crename.
+  apply: ty.
+  constructor.
+  constructor.
+  rewrite<-term_cren_comp. asimpl. rewrite e. apply: term_cren_id.
+  rewrite<-term_cren_comp. asimpl. rewrite e. apply: term_cren_id.
+Qed.
+
+Lemma era_cweaken Θ Γ Δ m m' A :
+  Θ ; Γ ; Δ ⊢ m ~ m' : A ->
+  _: Θ ; Γ ; Δ ⊢ term_cren m (+1) ~ term_cren m' (+1) : A.
+Proof with eauto using dyn_empty, era_type, dyn_ctx_cren.
+  move=>ty. apply: era_crename...
+Qed.
+
 Lemma era_cren_inv Θ Γ Δ m x A ξ :
   Θ ; Γ ; Δ ⊢ term_cren m ξ ~ x : A -> exists m', x = term_cren m' ξ.
 Proof with eauto.
