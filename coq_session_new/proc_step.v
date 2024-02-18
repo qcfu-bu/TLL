@@ -60,13 +60,13 @@ Inductive proc_step : proc -> proc -> Prop :=
   ν.(⟨ Bind (Close (CVar 1)) m ⟩ ∣ ⟨ Bind (Wait (CVar 0)) n ⟩) ≈>>
   ⟨ Bind (Return II) m' ⟩ ∣ ⟨ Bind (Return II) n' ⟩
 (* congruence *)
-| proc_par o p q :
+| proc_step_par o p q :
   p ≈>> q ->
   o ∣ p ≈>> o ∣ q
-| proc_nu p q :
+| proc_step_nu p q :
   p ≈>> q ->
   ν.p ≈>> ν.q
-| proc_congr p p' q q' :
+| proc_step_congr p p' q q' :
   p ≡ p' ->
   p' ≈>> q' ->
   q' ≡ q ->
