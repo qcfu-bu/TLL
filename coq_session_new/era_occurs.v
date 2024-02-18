@@ -6,187 +6,75 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Lemma era_dyn_occurs Θ Γ Δ m m' A i x :
+  Θ ; Γ ; Δ ⊢ m ~ m' : A -> dyn_occurs i m = x -> dyn_occurs i m' = x. 
+Proof.
+  move=>er. elim: er i x=>{Θ Γ Δ m m' A}//=.
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' s mrg1 mrg2 erm ihm ern ihn i x.
+    move e1:(dyn_occurs i m)=>v1.
+    move e2:(dyn_occurs i n)=>v2 e0.
+    have->:=ihm _ _ e1.
+    have->:=ihn _ _ e2.
+    by []. }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 mrg2 tyS erm ihm ern ihn i x.
+    move e1:(dyn_occurs i m)=>v1.
+    move e2:(dyn_occurs i n)=>v2 e0.
+    have->:=ihm _ _ e1.
+    have->:=ihn _ _ e2.
+    by []. }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg1 mrg2 tyS erm ihm ern ihn i x.
+    move e1:(dyn_occurs i m)=>v1.
+    move e2:(dyn_occurs i n)=>v2 e0.
+    have->:=ihm _ _ e1.
+    have->:=ihn _ _ e2.
+    by []. }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg1 mrg2 tyS erm ihm ern ihn i x.
+    move e1:(dyn_occurs i m)=>v1.
+    move e2:(dyn_occurs i n)=>v2 e0.
+    have->:=ihm _ _ e1.
+    have->:=ihn _ _ e2.
+    by []. }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s mrg1 mrg2 tyA erm ihm ern1 ihn1 ern2 ihn2 i x.
+    move e1:(dyn_occurs i m)=>v1.
+    move e2:(dyn_occurs i n1)=>v2.
+    move e3:(dyn_occurs i n2)=>v3 e0.
+    have->:=ihm _ _ e1.
+    have->:=ihn1 _ _ e2.
+    have->:=ihn2 _ _ e3.
+    by []. }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m m' n n' A B s t mrg1 mrg2 tyB erm ihm ern ihn i x.
+    move e1:(dyn_occurs i m)=>v1.
+    move e2:(dyn_occurs i n)=>v2 e0.
+    have->:=ihm _ _ e1.
+    have->:=ihn _ _ e2.
+    by []. }
+Qed.
+  
 Lemma era_type_occurs0 Θ Γ Δ m m' A i :
   Θ ; Γ ; Δ ⊢ m ~ m' : A -> cvar_pos Θ i false ->
   dyn_occurs i m = 0 /\ dyn_occurs i m' = 0.
-Proof with eauto using dyn_occurs.
-  move=>ty. elim: ty i=>//={Θ Γ Δ m m' A}...
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' s mrg1 mrg2 tym ihm tyn ihn i pos.
-    have[pos1 pos2]:=cvar_pos_split_false mrg1 pos.
-    have[e1 e2]:=ihm _ pos1.
-    have[e3 e4]:=ihn _ pos2. lia. }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 mrg2 tyS tym ihm tyn ihn i pos.
-    have[pos1 pos2]:=cvar_pos_split_false mrg1 pos.
-    have[e1 e2]:=ihm _ pos1.
-    have[e3 e4]:=ihn _ pos2. lia. }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg1 mrg2
-           tyC tym ihm tyn ihn i pos.
-    have[pos1 pos2]:=cvar_pos_split_false mrg1 pos.
-    have[e1 e2]:=ihm _ pos1.
-    have[e3 e4]:=ihn _ pos2. lia. }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg1 mrg2
-           tyC tym ihm tyn ihn i pos.
-    have[pos1 pos2]:=cvar_pos_split_false mrg1 pos.
-    have[e1 e2]:=ihm _ pos1.
-    have[e3 e4]:=ihn _ pos2. lia. }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s mrg1 mrg2
-            tyA tym ihm tyn1 ihn1 tyn2 ihn2 i pos.
-    have[pos1 pos2]:=cvar_pos_split_false mrg1 pos.
-    have[e1 e2]:=ihm _ pos1.
-    have[e3 e4]:=ihn1 _ pos2.
-    have[e5 e6]:=ihn2 _ pos2. lia. }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m m' n n' A B s t mrg1 mrg2
-           tyB tym ihm tyn ihn i pos.
-    have[pos1 pos2]:=cvar_pos_split_false mrg1 pos.
-    have[e1 e2]:=ihm _ pos1.
-    have[e3 e4]:=ihn _ pos2. lia. }
-  { move=>Θ Γ Δ r x A js wf k tyA i pos.
-    move/(dyn_just_pos_false _ js) in pos.
-    by rewrite pos. }
+Proof with eauto using era_dyn_occurs.
+  move=>erm h.
+  have oc:=dyn_type_occurs0 (era_dyn_type erm) h.
+  split...
 Qed.
 
 Lemma era_type_occurs1 Θ Γ Δ m m' A i :
   Θ ; Γ ; Δ ⊢ m ~ m' : A -> cvar_pos Θ i true ->
   dyn_occurs i m = 1 /\ dyn_occurs i m' = 1.
-Proof with eauto using dyn_occurs, era_type_occurs0.
-  move=>er. elim: er i=>//={Θ Γ Δ m m' A}...
-  { move=>Θ Γ Δ x s A emp wf shs dhs i pos.
-    exfalso. apply: dyn_empty_pos_true... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' s mrg1 mrg2 tym ihm tyn ihn i pos.
-    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
-    { have[->->]:=ihn _ pos2.
-      have[->->]:=era_type_occurs0 tym pos1. lia. }
-    { have[->->]:=ihm _ pos1.
-      have[->->]:=era_type_occurs0 tyn pos2. lia. } }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 mrg2
-            tyS tym ihm tyn ihn i pos.
-    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
-    { have[->->]:=ihn _ pos2.
-      have[->->]:=era_type_occurs0 tym pos1. lia. }
-    { have[->->]:=ihm _ pos1.
-      have[->->]:=era_type_occurs0 tyn pos2. lia. } }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg1 mrg2
-            tyC tym ihm tyn ihn i pos.
-    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
-    { have[->->]:=ihn _ pos2.
-      have[->->]:=era_type_occurs0 tym pos1. lia. }
-    { have[->->]:=ihm _ pos1.
-      have[->->]:=era_type_occurs0 tyn pos2. lia. } }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg1 mrg2
-            tyC tym ihm tyn ihn i pos.
-    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
-    { have[->->]:=ihn _ pos2.
-      have[->->]:=era_type_occurs0 tym pos1. lia. }
-    { have[->->]:=ihm _ pos1.
-      have[->->]:=era_type_occurs0 tyn pos2. lia. } }
-  { move=>Θ Γ Δ emp wf k i pos.
-    exfalso. apply: dyn_empty_pos_true... }
-  { move=>Θ Γ Δ emp wf k i pos.
-    exfalso. apply: dyn_empty_pos_true... }
-  { move=>Θ Γ Δ emp wf k i pos.
-    exfalso. apply: dyn_empty_pos_true... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s mrg1 mrg2
-           tyA tym ihm tyn1 ihn1 tyn2 ihn2 i pos.
-    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
-    { have[->->]:=ihn1 _ pos2.
-      have[->->]:=ihn2 _ pos2.
-      have[->->]:=era_type_occurs0 tym pos1. lia. }
-    { have[->->]:=ihm _ pos1.
-      have[->->]:=era_type_occurs0 tyn1 pos2.
-      have[->->]:=era_type_occurs0 tyn2 pos2. lia. } }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m m' n n' A B s t mrg1 mrg2
-           tyB tym ihm tyn ihn i pos.
-    have[[pos1 pos2]|[pos1 pos2]]:=cvar_pos_split_true mrg1 pos.
-    { have[->->]:=ihn _ pos2.
-      have[->->]:=era_type_occurs0 tym pos1. lia. }
-    { have[->->]:=ihm _ pos1.
-      have[->->]:=era_type_occurs0 tyn pos2. lia. } }
-  { move=>Θ Γ Δ r x A js wf k tyA i pos.
-    move/(dyn_just_pos_true _ js) in pos.
-    by rewrite pos. }
+Proof with eauto using era_dyn_occurs.
+  move=>erm h.
+  have oc:=dyn_type_occurs1 (era_dyn_type erm) h.
+  split...
 Qed.
 
 Lemma era_occurs_iren Θ Γ Δ m m' A i ξ :
   Θ ; Γ ; Δ ⊢ term_cren m ξ ~ term_cren m' ξ : A -> iren i ξ ->
   dyn_occurs i (term_cren m ξ) = 0 /\ dyn_occurs i (term_cren m' ξ) = 0.
-Proof with eauto using dyn_occurs.
-  move e1:(term_cren m ξ)=>x.
-  move e2:(term_cren m' ξ)=>y er.
-  elim: er m m' ξ e1 e2 i=>//={Θ Γ Δ x y A}...
-  { move=>Θ Γ Δ A B m m' s k1 k2 tym ihm m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
-  { move=>Θ Γ Δ A B m m' s t k1 k2 tym ihm m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
-  { move=>Θ Γ Δ A B m m' n s tym ihm tyn m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' s mrg1 mrg2 tym ihm tyn ihn m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2.
-    have[->->]:=ihm _ _ _ erefl erefl _ h... }
-  { move=>Θ Γ Δ A B m n n' t tyS tym tyn ihn m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 mrg2
-           tyS tym ihm tyn ihn m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2.
-    have[->->]:=ihm _ _ _ erefl erefl _ h... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg1 mrg2
-           tyC tym ihm tyn ihn m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2.
-    have[->->]:=ihm _ _ _ erefl erefl _ h... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg1 mrg2
-           tyC tym ihm tyn ihn m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2.
-    have[->->]:=ihm _ _ _ erefl erefl _ h... }
-  { move=>Θ Γ Δ A m m' k1 k2 tym ihm m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s mrg1 mrg2
-           tyA tym ihm tyn1 ihn1 tyn2 ihn2 m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2.
-    have[->->]:=ihm _ _ _ erefl erefl _ h...
-    have[->->]:=ihn1 _ _ _ erefl erefl _ h...
-    have[->->]:=ihn2 _ _ _ erefl erefl _ h... }
-  { move=>Θ Γ Δ m m' A tym ihm m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
-  { move=>θ1 Θ2 Θ Γ Δ1 Δ2 Δ m m' n n' A B s t mrg1 mrg2
-           tyB tym ihm tyn ihn m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2.
-    have[->->]:=ihm _ _ _ erefl erefl _ h... }
-  { move=>Θ Γ Δ r x A js wf k tyA m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2.
-    by rewrite h. }
-  { move=>Θ Γ Δ m m' A tym ihm m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
-  { move=>Θ Γ Δ r1 r2 A B m m' xor tym ihm m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
-  { move=>Θ Γ Δ r1 r2 A B m m' xor tym ihm m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
-  { move=>Θ Γ Δ r1 r2 A B m m' xor tym ihm m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
-  { move=>Θ Γ Δ r1 r2 A B m m' xor tym ihm m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
-  { move=>Θ Γ Δ m m' tym ihm m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
-  { move=>Θ Γ Δ m m' tym ihm m1 m2 ξ e1 e2 i h.
-    destruct m1; inv e1.
-    destruct m2; inv e2... }
+Proof with eauto using era_dyn_occurs.
+  move=>erm h.
+  have oc:=dyn_occurs_iren (era_dyn_type erm) h.
+  split...
 Qed.
 
 Lemma era_occurs_cren_id Θ Γ Δ m m' A i j ξ :
