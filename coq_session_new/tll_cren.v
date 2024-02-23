@@ -178,11 +178,11 @@ Proof with eauto.
   { move=>m ihm ξ1 ξ2. by rewrite ihm. }
 Qed.
 
-Definition term_csubst (σ σ' : var -> term) ξ :=
+Definition cren_subst_agree (σ σ' : var -> term) ξ :=
   forall x, σ' x = term_cren (σ x) ξ.
 
-Lemma term_csubst1 n ξ :
-  term_csubst (n .: ids) (term_cren n ξ .: ids) ξ.
+Lemma term_cren_subst1 n ξ :
+  cren_subst_agree (n .: ids) (term_cren n ξ .: ids) ξ.
 Proof with eauto.
   move=>x.
   elim: x n ξ.
@@ -190,30 +190,30 @@ Proof with eauto.
   { move=>n ihn n0 ξ. by asimpl. }
 Qed.
 
-Lemma term_csubst2 n1 n2 ξ :
-  term_csubst (n1 .: n2 .: ids) (term_cren n1 ξ .: term_cren n2 ξ .: ids) ξ.
+Lemma term_cren_subst2 n1 n2 ξ :
+  cren_subst_agree (n1 .: n2 .: ids) (term_cren n1 ξ .: term_cren n2 ξ .: ids) ξ.
 Proof with eauto.
   move=>x.
   elim: x n1 n2 ξ.
   { move=>n1 n2 ξ. asimpl... }
   { move=>n ihn n1 n2 ξ. asimpl.
-    rewrite term_csubst1... }
+    rewrite term_cren_subst1... }
 Qed.
 
-Lemma term_csubst_pair0 ξ t :
-  term_csubst
+Lemma term_cren_subst_pair0 ξ t :
+  cren_subst_agree
     (Pair0 (Var 1) (Var 0) t .: ren (+2))
     (Pair0 (Var 1) (Var 0) t .: ren (+2)) ξ.
 Proof. move=>x. elim: x ξ t=>//. Qed.
 
-Lemma term_csubst_pair1 ξ t :
-  term_csubst
+Lemma term_cren_subst_pair1 ξ t :
+  cren_subst_agree
     (Pair1 (Var 1) (Var 0) t .: ren (+2))
     (Pair1 (Var 1) (Var 0) t .: ren (+2)) ξ.
 Proof. move=>x. elim: x ξ t=>//. Qed.
 
-Lemma term_csubst_up σ σ' ξ :
-  term_csubst σ σ' ξ -> term_csubst (up σ) (up σ') ξ.
+Lemma term_cren_subst_up σ σ' ξ :
+  cren_subst_agree σ σ' ξ -> cren_subst_agree (up σ) (up σ') ξ.
 Proof.
   move=>h x.
   elim: x σ σ' ξ h.
@@ -223,22 +223,22 @@ Proof.
 Qed.
 
 Lemma term_cren_subst m σ σ' ξ :
-  term_csubst σ σ' ξ -> term_cren m.[σ] ξ = (term_cren m ξ).[σ'].
+  cren_subst_agree σ σ' ξ -> term_cren m.[σ] ξ = (term_cren m ξ).[σ'].
 Proof.
   elim: m σ σ' ξ.
-  all: solve[intros; asimpl; f_equal; eauto using term_csubst_up].
+  all: solve[intros; asimpl; f_equal; eauto using term_cren_subst_up].
 Qed.
 
 Lemma term_cren_beta1 m n ξ :
   term_cren m.[n/] ξ = (term_cren m ξ).[term_cren n ξ/].
 Proof.
   apply: term_cren_subst.
-  apply: term_csubst1.
+  apply: term_cren_subst1.
 Qed.
 
 Lemma term_cren_beta2 m n1 n2 ξ :
   term_cren m.[n1,n2/] ξ = (term_cren m ξ).[term_cren n1 ξ,term_cren n2 ξ/].
 Proof.
   apply: term_cren_subst.
-  apply: term_csubst2.
+  apply: term_cren_subst2.
 Qed.

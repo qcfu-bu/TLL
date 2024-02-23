@@ -454,7 +454,7 @@ Proof with eauto using sta_type, sta0_sta_wf.
     destruct m0; inv e.
     have wf:=sta_type_wf tyS. inv wf.
     have[s1[r[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv H2. subst.
-    have cs: term_csubst (m0 .: ids) (term_cren m0 ξ .: ids) ξ.
+    have cs: cren_subst_agree (m0 .: ids) (term_cren m0 ξ .: ids) ξ.
     move=>[|x]...
     erewrite<-(term_cren_subst _ cs).
     have agr:sta_agree_subst (B :: A :: Γ) (Pair0 (Var 1) (Var 0) t .: ren (+2)) (Sig0 A B t :: Γ).
@@ -492,7 +492,7 @@ Proof with eauto using sta_type, sta0_sta_wf.
     destruct m0; inv e.
     have wf:=sta_type_wf tyS. inv wf.
     have[s1[r[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv H2. subst.
-    have cs: term_csubst (m0 .: ids) (term_cren m0 ξ .: ids) ξ.
+    have cs: cren_subst_agree (m0 .: ids) (term_cren m0 ξ .: ids) ξ.
     move=>[|x]...
     erewrite<-(term_cren_subst _ cs).
     have agr:sta_agree_subst (B :: A :: Γ) (Pair1 (Var 1) (Var 0) t .: ren (+2)) (Sig1 A B t :: Γ).
