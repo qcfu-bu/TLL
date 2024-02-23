@@ -1,10 +1,82 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq zify.
 From Coq Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS era_cren era_sr proc_sr eproc_occurs.
+Require Export AutosubstSsr ARS era_cren era_sr proc_sr eproc_occurs eproc_csubst.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
+
+Lemma eproc_exch_type Θ p p' :
+  Θ ⊢ Nu (Nu p) ~ Nu (Nu p') →
+  Θ ⊢ Nu (Nu (proc_csubst p exch)) ~ Nu (Nu (proc_csubst p' exch)).
+Proof with eauto using dyn_wf, key.
+  move=>ty. inv ty. inv H3.
+  have wf:=eproc_type_wf H4. inv wf. inv H1. inv H2. inv H1.
+  have[Θ0[emp mrg0]]:=proc_wf_empty H2.
+  econstructor... econstructor...
+  apply: eproc_csubstitution. apply: H4.
+  have mrg:
+    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L _: Ch r0 A0 :L Θ ∘
+    _: _: Ch (~~ r0) (term_cren A0 (+1)) :L _: Θ0 =>
+    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L
+    Ch (~~ r0) (term_cren A0 (+1)) :L Ch r0 A0 :L Θ.
+  { repeat constructor. apply: merge_sym... }
+  econstructor...
+  2:{ have//=js:
+        dyn_just (_: _: Ch (~~ r0) (term_cren A0 (+1)) :L _: Θ0) 2
+        (term_cren (term_cren (term_cren (Ch (~~ r0) (term_cren A0 (+1))) (+1)) (+1)) (+1)).
+      { repeat constructor... }
+      apply: dyn_conv.
+      2:{ constructor... repeat apply: sta_crename... }
+      asimpl. apply: sta_conv_ch.
+      apply: conv_trans. repeat apply: sta_cren_conv0. eauto.
+      apply: conv_sym. apply: sta_cren_conv0. eauto.
+      constructor... }
+  have{}mrg:
+    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L _: _: Θ ∘
+    _: _: _: Ch r0 A0 :L Θ0 =>
+    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L _: Ch r0 A0 :L Θ.
+  { repeat constructor. apply: merge_sym... }
+  econstructor...
+  2:{ have//=js:
+        dyn_just (_: _: _: Ch r0 A0 :L Θ0) 3
+        (term_cren (term_cren (term_cren (term_cren (Ch r0 A0) (+1)) (+1)) (+1)) (+1)).
+      { repeat constructor... }
+      apply: dyn_conv.
+      2:{ constructor... repeat apply: sta_crename... }
+      asimpl. apply: sta_conv_ch.
+      apply: conv_trans. repeat apply: sta_cren_conv0. eauto. eauto.
+      constructor... }
+  have{}mrg:
+    _: Ch r2 A :L _: _: Θ ∘
+    Ch (~~ r2) (term_cren A (+1)) :L _: _: _: Θ0 =>
+    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L _: _: Θ.
+  { repeat constructor. apply: merge_sym... }
+  econstructor...
+  2:{ have//=js:
+        dyn_just (Ch (~~ r2) (term_cren A (+1)) :L _: _: _: Θ0) 0
+        (term_cren (Ch (~~ r2) (term_cren A (+1))) (+1)).
+      { repeat constructor... }
+      apply: dyn_conv.
+      2:{ constructor... apply: sta_crename... }
+      asimpl. apply: sta_conv_ch. apply: sta_cren_conv0...
+      constructor... }
+  have{}mrg: _: _: _: _: Θ ∘ _: Ch r2 A :L _: _: Θ0 => _: Ch r2 A :L _: _: Θ.
+  { repeat constructor. apply: merge_sym... }
+  econstructor...
+  2:{ have//=js:
+        dyn_just (_: Ch r2 A :L _: _: Θ0) 1 (term_cren (term_cren (Ch r2 A) (+1)) (+1)).
+      { repeat constructor... }
+      apply: dyn_conv.
+      2:{ constructor... apply: sta_crename... }
+      asimpl. apply: sta_conv_ch. repeat apply: sta_cren_conv0...
+      constructor... }
+  have->: (fun x => CVar x.+4) =
+          (cids >>> term_cren^~(+1) >>> term_cren^~(+1)
+                >>> term_cren^~(+1) >>> term_cren^~(+1)).
+  { f_ext. move=>x. by simpl. }
+  repeat constructor...
+Qed.
 
 Lemma eproc_congr0_type Θ p p' q :
   proc_congr0 p q -> Θ ⊢ p ~ p' -> exists2 q', proc_congr0 p' q' & Θ ⊢ q ~ q'.
@@ -36,6 +108,9 @@ Proof with eauto using era_type, eproc_type, proc_congr0.
         rewrite<-proc_cren_comp. by asimpl.
         rewrite<-proc_cren_comp. by asimpl. }
     repeat constructor... }
+  { move=>p Θ p' ty. have ty0:=ty. inv ty. inv H2.
+    exists (Nu (Nu (proc_csubst p' exch))). constructor.
+    apply: eproc_exch_type... }
   { move=>p p' q q' cgr1 ih1 cgr2 ih2 Θ p0 er. inv er.
     have[p1 cgr3 erp]:=ih1 _ _ H3.
     have[q1 cgr4 erq]:=ih2 _ _ H5.
@@ -101,6 +176,15 @@ Proof with eauto using era_type, eproc_type, proc_congr0.
       apply: eproc_type_occurs1...
       repeat constructor.
       by move=>[]. } }
+  { move=>p Θ q' ty. have ty0:=ty. inv ty. inv H2.
+    exists (Nu (Nu (proc_csubst p'0 exch))).
+    replace (Nu (Nu p'0)) with (Nu (Nu (proc_csubst (proc_csubst p'0 exch) exch))).
+    constructor.
+    rewrite proc_csubst_comp.
+    rewrite exch_invo. rewrite proc_csubst_cids...
+    have:=eproc_exch_type ty0.
+    rewrite proc_csubst_comp.
+    rewrite exch_invo. rewrite proc_csubst_cids... }
   { move=>p p' q q' cgr1 ih1 crg2 ih2 Θ q0 er. inv er.
     have[p2 cgr3 erp]:=ih1 _ _ H3.
     have[q2 cgr4 erq]:=ih2 _ _ H5.
