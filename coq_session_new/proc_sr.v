@@ -7,9 +7,76 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma proc_exch Θ p :
+Lemma proc_exch_type Θ p :
   Θ ⊢ Nu (Nu p) → Θ ⊢ Nu (Nu (proc_csubst p exch)).
-Proof. Admitted.
+Proof with eauto using dyn_wf, key.
+  move=>ty. inv ty. inv H2.
+  have wf:=proc_type_wf H3. inv wf. inv H1. inv H2. inv H1.
+  have[Θ0[emp mrg0]]:=proc_wf_empty H2.
+  econstructor... econstructor...
+  apply: proc_csubstitution. apply: H3.
+  have mrg:
+    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L _: Ch r0 A0 :L Θ ∘
+    _: _: Ch (~~ r0) (term_cren A0 (+1)) :L _: Θ0 =>
+    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L
+    Ch (~~ r0) (term_cren A0 (+1)) :L Ch r0 A0 :L Θ.
+  { repeat constructor. apply: merge_sym... }
+  econstructor...
+  2:{ have//=js:
+        dyn_just (_: _: Ch (~~ r0) (term_cren A0 (+1)) :L _: Θ0) 2
+        (term_cren (term_cren (term_cren (Ch (~~ r0) (term_cren A0 (+1))) (+1)) (+1)) (+1)).
+      { repeat constructor... }
+      apply: dyn_conv.
+      2:{ constructor... repeat apply: sta_crename... }
+      asimpl. apply: sta_conv_ch.
+      apply: conv_trans. repeat apply: sta_cren_conv0. eauto.
+      apply: conv_sym. apply: sta_cren_conv0. eauto.
+      constructor... }
+  have{}mrg:
+    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L _: _: Θ ∘
+    _: _: _: Ch r0 A0 :L Θ0 =>
+    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L _: Ch r0 A0 :L Θ.
+  { repeat constructor. apply: merge_sym... }
+  econstructor...
+  2:{ have//=js:
+        dyn_just (_: _: _: Ch r0 A0 :L Θ0) 3
+        (term_cren (term_cren (term_cren (term_cren (Ch r0 A0) (+1)) (+1)) (+1)) (+1)).
+      { repeat constructor... }
+      apply: dyn_conv.
+      2:{ constructor... repeat apply: sta_crename... }
+      asimpl. apply: sta_conv_ch.
+      apply: conv_trans. repeat apply: sta_cren_conv0. eauto. eauto.
+      constructor... }
+  have{}mrg:
+    _: Ch r2 A :L _: _: Θ ∘
+    Ch (~~ r2) (term_cren A (+1)) :L _: _: _: Θ0 =>
+    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L _: _: Θ.
+  { repeat constructor. apply: merge_sym... }
+  econstructor...
+  2:{ have//=js:
+        dyn_just (Ch (~~ r2) (term_cren A (+1)) :L _: _: _: Θ0) 0
+        (term_cren (Ch (~~ r2) (term_cren A (+1))) (+1)).
+      { repeat constructor... }
+      apply: dyn_conv.
+      2:{ constructor... apply: sta_crename... }
+      asimpl. apply: sta_conv_ch. apply: sta_cren_conv0...
+      constructor... }
+  have{}mrg: _: _: _: _: Θ ∘ _: Ch r2 A :L _: _: Θ0 => _: Ch r2 A :L _: _: Θ.
+  { repeat constructor. apply: merge_sym... }
+  econstructor...
+  2:{ have//=js:
+        dyn_just (_: Ch r2 A :L _: _: Θ0) 1 (term_cren (term_cren (Ch r2 A) (+1)) (+1)).
+      { repeat constructor... }
+      apply: dyn_conv.
+      2:{ constructor... apply: sta_crename... }
+      asimpl. apply: sta_conv_ch. repeat apply: sta_cren_conv0...
+      constructor... }
+  have->: (fun x => CVar x.+4) =
+          (cids >>> term_cren^~(+1) >>> term_cren^~(+1)
+                >>> term_cren^~(+1) >>> term_cren^~(+1)).
+  { f_ext. move=>x. by simpl. }
+  repeat constructor...
+Qed.
 
 Lemma proc_congr0_type Θ p q :  proc_congr0 p q -> Θ ⊢ p <-> Θ ⊢ q.
 Proof with eauto using proc_type, proc_congr0.
@@ -60,8 +127,8 @@ Proof with eauto using proc_type, proc_congr0.
       apply: proc_type_occurs1...
       repeat constructor. } }
   { move=>p Θ. split.
-    apply: proc_exch.
-    move=>ty. apply proc_exch in ty.
+    apply: proc_exch_type.
+    move=>ty. apply proc_exch_type in ty.
     rewrite proc_csubst_comp in ty.
     rewrite exch_invo in ty.
     by rewrite proc_csubst_cids in ty. }
