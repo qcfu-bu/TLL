@@ -19,7 +19,7 @@ Inductive dyn_agree_csubst :
 | dyn_agree_csubst_ty Θ1 σ Θ2 r A :
   Θ1 ⊩ σ ⫣ Θ2 ->
   nil ⊢ A : Proto ->
-  Ch r (term_csubst A σ) :L Θ1 ⊩ upp σ ⫣ (Ch r A) :L Θ2
+  Ch r A :L Θ1 ⊩ upp σ ⫣ Ch r A :L Θ2
 | dyn_agree_csubst_n Θ1 σ Θ2 :
   Θ1 ⊩ σ ⫣ Θ2 ->
   _: Θ1 ⊩ upp σ ⫣ _: Θ2
@@ -119,9 +119,9 @@ Proof with eauto 6 using merge, dyn_agree_csubst, dyn_agree_csubst_key.
     exists (_: Θa'). exists (_: Θb'). repeat split... }
   { move=>Θ1 σ Θ2 r A agr ih tyA Θa Θb mrg. inv mrg.
     { have[Θa[Θb[mrg'[agr1 agr2]]]]:=ih _ _ H2.
-      exists (Ch r (term_csubst A σ) :L Θa). exists (_: Θb)... }
+      exists (Ch r A :L Θa). exists (_: Θb)... }
     { have[Θa[Θb[mrg'[agr1 agr2]]]]:=ih _ _ H2.
-      exists (_: Θa). exists (Ch r (term_csubst A σ) :L Θb)... } }
+      exists (_: Θa). exists (Ch r A :L Θb)... } }
   { move=>Θ1 σ Θ2 agr ih Θa Θb mrg. inv mrg.
     have[Θa[Θb[mrg'[agr1 agr2]]]]:=ih _ _ H2.
     exists (_: Θa). exists (_: Θb)... }
@@ -167,21 +167,11 @@ Proof with eauto using dyn_agree_csubst_empty, dyn_sta_agree_csubst, dyn_wf, key
   { move=>Θ1 σ Θ2 agr ih x r A tyA js. asimpl.
     apply: dyn_cweaken... }
   { move=>Θ1 σ Θ2 r A agr ih x tyA r0 A0 tyA0 js. inv js. asimpl.
-    have/=js:dyn_just (Ch r0 (term_csubst A σ) :L Θ1) 0 (term_cren (Ch r0 (term_csubst A σ)) (+1)).
+    have/=js:dyn_just (Ch r0 A :L Θ1) 0 (term_cren (Ch r0 A) (+1)).
     {  constructor... } 
     apply: dyn_conv.
-    2:{ constructor...
-        apply: sta_crename.
-        apply: sta_csubstitution... }
-    asimpl. apply: sta_conv_ch.
-    apply: conv_trans.
-    apply: sta_cren_conv0.
-    rewrite<-sta_csubst_cren.
-    apply: sta_cren_conv0...
-    apply: dyn_sta_agree_csubst...
-    apply: conv_sym.
-    apply: sta_cren_conv0...
-    constructor... }
+    2:{ constructor... }
+    asimpl... constructor... }
   { move=>Θ1 σ Θ2 agr ih x r A tyA js. inv js.
     destruct A0; inv H0. asimpl.
     have tyA0: [::] ⊢ A0 : Proto.
@@ -189,7 +179,7 @@ Proof with eauto using dyn_agree_csubst_empty, dyn_sta_agree_csubst, dyn_wf, key
       rewrite<-term_cren_comp in tyA.
       move:tyA. 
       have->:(+1) >>> ( - 1) = id.
-      { f_ext. move=>x. asimpl. lia.}
+      { f_ext. move=>x. asimpl. lia. }
       by rewrite term_cren_id. }
     have tyx:=ih _ _ _ tyA0 H2.
     apply: dyn_conv.
@@ -203,7 +193,7 @@ Proof with eauto using dyn_agree_csubst_empty, dyn_sta_agree_csubst, dyn_wf, key
       rewrite<-term_cren_comp in tyA.
       move:tyA. 
       have->:(+1) >>> ( - 1) = id.
-      { f_ext. move=>i. asimpl. lia.}
+      { f_ext. move=>i. asimpl. lia. }
       by rewrite term_cren_id. }
     have tyx:=ih _ _ _ tyA0 H2.
     apply: dyn_conv.
@@ -216,7 +206,7 @@ Proof with eauto using dyn_agree_csubst_empty, dyn_sta_agree_csubst, dyn_wf, key
       rewrite<-term_cren_comp in tyA0.
       move:tyA0. 
       have->:(+1) >>> ( - 1) = id.
-      { f_ext. move=>i. asimpl. lia.}
+      { f_ext. move=>i. asimpl. lia. }
       by rewrite term_cren_id. }
     have emp:=dyn_agree_csubst_empty agr H2.
     have e:=merge_emptyL mrg emp. subst.
@@ -515,48 +505,4 @@ Proof with eauto using dyn_agree_csubst_key, dyn_sta_agree_csubst, dyn_agree_csu
   { move=>Θ Γ Δ m tym ihm Θ1 σ agr. econstructor... }
   { move=>Θ Γ Δ m tym ihm Θ1 σ agr. econstructor... }
   { move=>Θ Γ Δ A B m s eq tym ihm tyB Θ1 σ agr. apply: dyn_conv... }
-Qed.
-
-Definition exch := CVar 1 .: CVar 0 .: (fun x => CVar x.+2).
-
-Lemma dyn_csubst_exch Θ Γ Δ m A X Y :
-  X :L Y :L Θ ; Γ ; Δ ⊢ m : A ->
-  Y :L X :L Θ ; Γ ; Δ ⊢ term_csubst m exch : A.
-Proof with eauto using key_impure, dyn_agree_csubst, dyn_wf, key.
-  move=>ty. apply: dyn_csubstitution...
-  have wf:=dyn_type_proc_wf ty. inv wf. inv H1.
-  have[Θ0[emp mrg]]:=dyn_type_empty ty.
-  inv mrg. inv H1. inv emp. inv H0.
-  have agr0:sta_agree_csubst (λ x : var, CVar x.+2).
-  { move=>x. by exists x.+2. }
-  unfold exch.
-  apply: dyn_agree_csubst_conv.
-  apply: (sta_cren_conv0 (+1)).
-  eauto. apply: H2.
-  econstructor.
-  2:{ apply: dyn_agree_csubst_conv.
-      apply: (sta_cren_conv0 (+1)).
-      eauto. apply: H4.
-      econstructor.
-      2:{ have->: (fun x => CVar x.+2) = (cids >>> term_cren^~ (+1)) >>> term_cren^~ (+1)
-            by autosubst.
-          apply: dyn_agree_csubst_pad.
-          apply: dyn_agree_csubst_pad.
-          constructor... }
-      2:{ replace (term_cren A1 (+1))
-            with (term_cren A1 (+1)).[ren (+0)] by autosubst.
-          constructor...
-          replace (Ch r0 (term_cren A1 (+1)))
-            with (term_cren (Ch r0 A1) (+1)) by eauto.
-          constructor. apply: dyn_empty_n. apply: H1.
-          apply: sta_crename... }
-      repeat constructor. apply: merge_sym... }
-  repeat constructor. apply: merge_sym...
-  replace (CVar 1) with (term_cren (CVar 0) (+1)) by eauto.
-  apply: dyn_cweaken.
-  replace (term_cren A0 (+1)) with (term_cren A0 (+1)).[ren (+0)] by autosubst.
-  constructor... 
-  replace (Ch r (term_cren A0 (+1))) with (term_cren (Ch r A0) (+1)) by eauto.
-  constructor...
-  apply: sta_crename...
 Qed.

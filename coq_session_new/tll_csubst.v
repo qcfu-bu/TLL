@@ -59,6 +59,14 @@ Fixpoint term_csubst (m : term) (σ : cvar -> term) :=
 
 Definition cids x := CVar x.
 Definition upp (σ : cvar -> term) := cids 0 .: σ >>> term_cren^~ (+1).
+Fixpoint uppn n σ := 
+  match n with
+  | O => σ
+  | S n => upp (uppn n σ)
+  end.
+
+Lemma uppn_unfold n σ : uppn n.+1 σ = upp (uppn n σ).
+Proof. eauto. Qed.
 
 Lemma upp_cids : upp cids = cids.
 Proof. f_ext. elim=>//. Qed.
@@ -86,4 +94,24 @@ Lemma term_csubst_cren_comp2 m x σ :
   term_csubst (term_cren m (+1)) (CVar x .: σ) = term_csubst m σ.
 Proof with eauto.
   elim: m σ. all: try solve[intros; asimpl; autorew; eauto].
+Qed.
+
+Lemma term_upp_comp σ1 σ2 :
+  upp σ1 >>> term_csubst^~ (upp σ2) = upp (σ1 >>> term_csubst^~ σ2).
+Proof. 
+  f_ext. move=>[|x]. by simpl. simpl.
+  by rewrite term_csubst_cren_comp1.
+Qed.
+
+Lemma term_uppn_comp σ1 σ2 n :
+  uppn n σ1 >>> term_csubst^~ (uppn n σ2) = uppn n (σ1 >>> term_csubst^~ σ2).
+Proof with eauto.
+  elim: n σ1 σ2... 
+  move=>n ih σ1 σ2//=. rewrite term_upp_comp. f_equal...
+Qed.
+
+Lemma term_csubst_comp m σ1 σ2 :
+  term_csubst (term_csubst m σ1) σ2 = term_csubst m (σ1 >>> term_csubst^~ σ2).
+Proof with eauto.
+  elim: m σ1 σ2. all: try solve[intros; asimpl; autorew; eauto].
 Qed.

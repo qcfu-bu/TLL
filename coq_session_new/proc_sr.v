@@ -1,11 +1,15 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq zify.
 From Coq Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS
-  dyn_sr proc_type proc_step proc_occurs.
+  dyn_sr proc_type proc_step proc_occurs proc_csubst.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
+
+Lemma proc_exch Θ p :
+  Θ ⊢ Nu (Nu p) → Θ ⊢ Nu (Nu (proc_csubst p exch)).
+Proof. Admitted.
 
 Lemma proc_congr0_type Θ p q :  proc_congr0 p q -> Θ ⊢ p <-> Θ ⊢ q.
 Proof with eauto using proc_type, proc_congr0.
@@ -55,6 +59,12 @@ Proof with eauto using proc_type, proc_congr0.
       have->//:proc_occurs 0 (proc_cren q (+2)) = 1.
       apply: proc_type_occurs1...
       repeat constructor. } }
+  { move=>p Θ. split.
+    apply: proc_exch.
+    move=>ty. apply proc_exch in ty.
+    rewrite proc_csubst_comp in ty.
+    rewrite exch_invo in ty.
+    by rewrite proc_csubst_cids in ty. }
   { move=>p p' q q' cgrp ihp cgrq ihq Θ. split.
     move=>ty. inv ty.
     econstructor...

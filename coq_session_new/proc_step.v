@@ -1,10 +1,19 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS tllc_cren proc_occurs.
+Require Export AutosubstSsr ARS tllc_csubst proc_occurs.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
+
+Definition exch :=
+  CVar 2 .: CVar 3 .: CVar 0 .: CVar 1 .: (fun x => CVar x.+4).
+Example ex0 : (exch 0 = CVar 2). by eauto. Qed.
+Example ex1 : (exch 1 = CVar 3). by eauto. Qed.
+Example ex2 : (exch 2 = CVar 0). by eauto. Qed.
+Example ex3 : (exch 3 = CVar 1). by eauto. Qed.
+Example ex4 : (exch 4 = CVar 4). by eauto. Qed.
+Example ex5 : (exch 5 = CVar 5). by eauto. Qed.
 
 Inductive proc_congr0 : proc -> proc -> Prop :=
 | proc_congr0_par_sym p q :
@@ -13,6 +22,8 @@ Inductive proc_congr0 : proc -> proc -> Prop :=
   proc_congr0 (o ∣ (p ∣ q)) ((o ∣ p) ∣ q)
 | proc_congr0_scope p (q : proc) :
   proc_congr0 ((ν.p) ∣ q) (ν.(p ∣ proc_cren q (+2)))
+| proc_conrg0_exch p :
+  proc_congr0 (ν.ν.p) (ν.ν.(proc_csubst p exch))
 | proc_congr0_par p p' q q' :
   proc_congr0 p p' ->
   proc_congr0 q q' ->
@@ -72,3 +83,6 @@ Inductive proc_step : proc -> proc -> Prop :=
   q' ≡ q ->
   p ≈>> q
 where "p ≈>> q" := (proc_step p q).
+
+Lemma exch_invo : (exch >>> term_csubst^~ exch) = cids.
+Proof with eauto. f_ext. move=>[|[|[|[|]]]]//=. Qed.
