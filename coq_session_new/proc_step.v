@@ -21,9 +21,9 @@ Inductive proc_congr0 : proc -> proc -> Prop :=
 | proc_congr0_assoc o p q :
   proc_congr0 (o ∣ (p ∣ q)) ((o ∣ p) ∣ q)
 | proc_congr0_scope p (q : proc) :
-  proc_congr0 ((ν.p) ∣ q) (ν.(p ∣ proc_cren q (+2)))
+  proc_congr0 ((ν.p) ∣ q) (ν.(p ∣ cren (+2) q))
 | proc_conrg0_exch p :
-  proc_congr0 (ν.ν.p) (ν.ν.(proc_csubst p exch))
+  proc_congr0 (ν.ν.p) (ν.ν.(csubst exch p))
 | proc_congr0_par p p' q q' :
   proc_congr0 p p' ->
   proc_congr0 q q' ->
@@ -43,8 +43,8 @@ Inductive proc_step : proc -> proc -> Prop :=
   ⟨ m ⟩ ≈>> ⟨ m' ⟩
 (* session *)
 | proc_step_fork A m m' n n' :
-  m' = term_cren m (+2) ->
-  n' = term_cren n (+2) ->
+  m' = cren (+2) m ->
+  n' = cren (+2) n ->
   ⟨ Bind (Fork A m) n ⟩ ≈>> ν.(⟨ n'.[CVar 0/] ⟩ ∣ ⟨ m'.[CVar 1/] ⟩)
 | proc_step_com0 m n1 n2 :
   ν.(⟨ Bind (App0 (Send0 (CVar 0)) m) n1 ⟩ ∣ ⟨ Bind (Recv0 (CVar 1)) n2 ⟩) ≈>>
@@ -61,13 +61,13 @@ Inductive proc_step : proc -> proc -> Prop :=
   ν.(⟨ Bind (App1 (Send1 (CVar 1)) v) n1 ⟩ ∣ ⟨ Bind (Recv1 (CVar 0)) n2 ⟩) ≈>>
   ν.(⟨ Bind (Return (CVar 1)) n1 ⟩ ∣ ⟨ Bind (Return (Pair1 v (CVar 0) L)) n2 ⟩)
 | proc_step_end m m' n n' :
-  m' = term_cren m (-2) ->
-  n' = term_cren n (-2) ->
+  m' = cren (-2) m ->
+  n' = cren (-2) n ->
   ν.(⟨ Bind (Close (CVar 0)) m ⟩ ∣ ⟨ Bind (Wait (CVar 1)) n ⟩) ≈>>
   ⟨ Bind (Return II) m' ⟩ ∣ ⟨ Bind (Return II) n' ⟩
 | proc_step_endi m m' n n' :
-  m' = term_cren m (-2) ->
-  n' = term_cren n (-2) ->
+  m' = cren (-2) m ->
+  n' = cren (-2) n ->
   ν.(⟨ Bind (Close (CVar 1)) m ⟩ ∣ ⟨ Bind (Wait (CVar 0)) n ⟩) ≈>>
   ⟨ Bind (Return II) m' ⟩ ∣ ⟨ Bind (Return II) n' ⟩
 (* congruence *)
@@ -84,5 +84,5 @@ Inductive proc_step : proc -> proc -> Prop :=
   p ≈>> q
 where "p ≈>> q" := (proc_step p q).
 
-Lemma exch_invo : (exch >>> term_csubst^~ exch) = cids.
+Lemma exch_invo : (exch >>> csubst exch) = cids.
 Proof with eauto. f_ext. move=>[|[|[|[|]]]]//=. Qed.

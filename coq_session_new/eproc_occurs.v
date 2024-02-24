@@ -51,12 +51,12 @@ Proof with eauto using cvar_pos, proc_occurs, eproc_type_occurs0.
 Qed.
 
 Lemma eproc_occurs_iren Θ p p' i ξ :
-  Θ ⊢ proc_cren p ξ ~ proc_cren p' ξ -> iren i ξ ->
-  proc_occurs i (proc_cren p ξ) = 0 /\
-  proc_occurs i (proc_cren p' ξ) = 0.
+  Θ ⊢ cren ξ p ~ cren ξ p' -> iren i ξ ->
+  proc_occurs i (cren ξ p) = 0 /\
+  proc_occurs i (cren ξ p') = 0.
 Proof with eauto using proc_occurs.
-  move e1:(proc_cren p ξ)=>x.
-  move e2:(proc_cren p' ξ)=>y ty.
+  move e1:(cren ξ p)=>x.
+  move e2:(cren ξ p')=>y ty.
   elim: ty p p' ξ e1 e2 i=>//={Θ x y}.
   { move=>Θ m m' tym p p' ξ e1 e2 i h.
     destruct p; inv e1.
@@ -74,33 +74,3 @@ Proof with eauto using proc_occurs.
     apply: iren_upren.
     by apply: iren_upren. }
 Qed.
-
-(* Lemma eproc_occurs_cren_id Θ p p' i j ξ : *)
-(*   Θ ⊢ proc_cren p ξ ~ proc_cren p' ξ -> *)
-(*   proc_occurs i p = 0 -> *)
-(*   proc_occurs j p = 0 -> *)
-(*   (forall x, x == i = false -> x == j = false -> ξ x = x) -> *)
-(*   Θ ⊢ p. *)
-(* Proof with eauto using proc_type. *)
-(*   move e:(proc_cren p ξ)=>p' ty. *)
-(*   elim: ty p ξ e i j=>{Θ p'}. *)
-(*   { move=>Θ m tym p ξ e i j oc1 oc2 h. *)
-(*     destruct p; inv e. simpl in oc1. simpl in oc2. *)
-(*     constructor. *)
-(*     apply: dyn_occurs_cren_id. *)
-(*     eauto. *)
-(*     apply: oc1. *)
-(*     apply: oc2. *)
-(*     eauto. } *)
-(*   { move=>Θ1 Θ2 Θ p q mrg typ ihp tyq ihq p0 ξ e i j oc1 oc2 h. *)
-(*     destruct p0; inv e. simpl in oc1. simpl in oc2. *)
-(*     move: oc1. case_eq (proc_occurs i p0_1); case_eq (proc_occurs i p0_2)=>//=e1 e2 _. *)
-(*     move: oc2. case_eq (proc_occurs j p0_1); case_eq (proc_occurs j p0_2)=>//=e3 e4 _. *)
-(*     have{}ihp:=ihp _ _ erefl _ _ e2 e4 h. *)
-(*     have{}ihq:=ihq _ _ erefl _ _ e1 e3 h. *)
-(*     econstructor... } *)
-(*   { move=>Θ p r1 r2 A e0 typ ihp p0 ξ e i j oc1 oc2 h. *)
-(*     destruct p0; inv e. simpl in oc1. simpl in oc2. *)
-(*     have{}ihp:=ihp _ _ erefl _ _ oc1 oc2 (cren_id_up2 h). *)
-(*     econstructor... } *)
-(* Qed. *)

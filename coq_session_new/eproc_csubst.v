@@ -7,7 +7,7 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Lemma eproc_csubstitution Θ2 Θ1 p p' σ :
-  Θ2 ⊢ p ~ p' -> Θ1 ⊩ σ ⫣ Θ2 -> Θ1 ⊢ proc_csubst p σ ~ proc_csubst p' σ. 
+  Θ2 ⊢ p ~ p' -> Θ1 ⊩ σ ⫣ Θ2 -> Θ1 ⊢ csubst σ p ~ csubst σ p'. 
 Proof with eauto.
   move=>ty. elim: ty Θ1 σ=>{Θ2 p p'}.
   { move=>Θ m m' tym Θ1 σ agr. constructor.

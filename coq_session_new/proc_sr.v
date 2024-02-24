@@ -8,7 +8,7 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Lemma proc_exch_type Θ p :
-  Θ ⊢ Nu (Nu p) → Θ ⊢ Nu (Nu (proc_csubst p exch)).
+  Θ ⊢ Nu (Nu p) → Θ ⊢ Nu (Nu (csubst exch p)).
 Proof with eauto using dyn_wf, key.
   move=>ty. inv ty. inv H2.
   have wf:=proc_type_wf H3. inv wf. inv H1. inv H2. inv H1.
@@ -16,15 +16,15 @@ Proof with eauto using dyn_wf, key.
   econstructor... econstructor...
   apply: proc_csubstitution. apply: H3.
   have mrg:
-    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L _: Ch r0 A0 :L Θ ∘
-    _: _: Ch (~~ r0) (term_cren A0 (+1)) :L _: Θ0 =>
-    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L
-    Ch (~~ r0) (term_cren A0 (+1)) :L Ch r0 A0 :L Θ.
+    Ch (~~ r2) (cren (+1) A) :L Ch r2 A :L _: Ch r0 A0 :L Θ ∘
+    _: _: Ch (~~ r0) (cren (+1) A0) :L _: Θ0 =>
+    Ch (~~ r2) (cren (+1) A) :L Ch r2 A :L
+    Ch (~~ r0) (cren (+1) A0) :L Ch r0 A0 :L Θ.
   { repeat constructor. apply: merge_sym... }
   econstructor...
   2:{ have//=js:
-        dyn_just (_: _: Ch (~~ r0) (term_cren A0 (+1)) :L _: Θ0) 2
-        (term_cren (term_cren (term_cren (Ch (~~ r0) (term_cren A0 (+1))) (+1)) (+1)) (+1)).
+        dyn_just (_: _: Ch (~~ r0) (cren (+1) A0) :L _: Θ0) 2
+        (cren (+1) (cren (+1) (cren (+1) (Ch (~~ r0) (cren (+1) A0))))).
       { repeat constructor... }
       apply: dyn_conv.
       2:{ constructor... repeat apply: sta_crename... }
@@ -33,14 +33,14 @@ Proof with eauto using dyn_wf, key.
       apply: conv_sym. apply: sta_cren_conv0. eauto.
       constructor... }
   have{}mrg:
-    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L _: _: Θ ∘
+    Ch (~~ r2) (cren (+1) A) :L Ch r2 A :L _: _: Θ ∘
     _: _: _: Ch r0 A0 :L Θ0 =>
-    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L _: Ch r0 A0 :L Θ.
+    Ch (~~ r2) (cren (+1) A) :L Ch r2 A :L _: Ch r0 A0 :L Θ.
   { repeat constructor. apply: merge_sym... }
   econstructor...
   2:{ have//=js:
         dyn_just (_: _: _: Ch r0 A0 :L Θ0) 3
-        (term_cren (term_cren (term_cren (term_cren (Ch r0 A0) (+1)) (+1)) (+1)) (+1)).
+        (cren (+1) (cren (+1) (cren (+1) (cren (+1) (Ch r0 A0))))).
       { repeat constructor... }
       apply: dyn_conv.
       2:{ constructor... repeat apply: sta_crename... }
@@ -49,13 +49,13 @@ Proof with eauto using dyn_wf, key.
       constructor... }
   have{}mrg:
     _: Ch r2 A :L _: _: Θ ∘
-    Ch (~~ r2) (term_cren A (+1)) :L _: _: _: Θ0 =>
-    Ch (~~ r2) (term_cren A (+1)) :L Ch r2 A :L _: _: Θ.
+    Ch (~~ r2) (cren (+1) A) :L _: _: _: Θ0 =>
+    Ch (~~ r2) (cren (+1) A) :L Ch r2 A :L _: _: Θ.
   { repeat constructor. apply: merge_sym... }
   econstructor...
   2:{ have//=js:
-        dyn_just (Ch (~~ r2) (term_cren A (+1)) :L _: _: _: Θ0) 0
-        (term_cren (Ch (~~ r2) (term_cren A (+1))) (+1)).
+        dyn_just (Ch (~~ r2) (cren (+1) A) :L _: _: _: Θ0) 0
+        (cren (+1) (Ch (~~ r2) (cren (+1) A))).
       { repeat constructor... }
       apply: dyn_conv.
       2:{ constructor... apply: sta_crename... }
@@ -65,15 +65,15 @@ Proof with eauto using dyn_wf, key.
   { repeat constructor. apply: merge_sym... }
   econstructor...
   2:{ have//=js:
-        dyn_just (_: Ch r2 A :L _: _: Θ0) 1 (term_cren (term_cren (Ch r2 A) (+1)) (+1)).
+        dyn_just (_: Ch r2 A :L _: _: Θ0) 1 (cren (+1) (cren (+1) (Ch r2 A))).
       { repeat constructor... }
       apply: dyn_conv.
       2:{ constructor... apply: sta_crename... }
       asimpl. apply: sta_conv_ch. repeat apply: sta_cren_conv0...
       constructor... }
   have->: (fun x => CVar x.+4) =
-          (cids >>> term_cren^~(+1) >>> term_cren^~(+1)
-                >>> term_cren^~(+1) >>> term_cren^~(+1)).
+          (cids >>> cren (+1) >>> cren (+1)
+                >>> cren (+1) >>> cren (+1)).
   { f_ext. move=>x. by simpl. }
   repeat constructor...
 Qed.
@@ -108,22 +108,22 @@ Proof with eauto using proc_type, proc_congr0.
     2:{ eauto. }
     repeat constructor...
     move=>ty. inv ty. inv H2. inv H1; inv H3.
-    { replace (proc_cren q (+2))
-        with (proc_cren (proc_cren q (+1)) (+1)) in H5.
+    { replace (cren (+2) q)
+        with (cren (+1) (cren (+1) q)) in H5.
       have tyq:=proc_cstrengthen (proc_cstrengthen H5).
       econstructor...
       rewrite<-proc_cren_comp.
       by asimpl. }
     { have:=proc_occurs_iren H5 iren1.
-      have->//:proc_occurs 1 (proc_cren q (+2)) = 1.
+      have->//:proc_occurs 1 (cren (+2) q) = 1.
       apply: proc_type_occurs1...
       repeat constructor. }
     { have:=proc_occurs_iren H5 iren0.
-      have->//:proc_occurs 0 (proc_cren q (+2)) = 1.
+      have->//:proc_occurs 0 (cren (+2) q) = 1.
       apply: proc_type_occurs1...
       repeat constructor. }
     { have:=proc_occurs_iren H5 iren0.
-      have->//:proc_occurs 0 (proc_cren q (+2)) = 1.
+      have->//:proc_occurs 0 (cren (+2) q) = 1.
       apply: proc_type_occurs1...
       repeat constructor. } }
   { move=>p Θ. split.
@@ -187,8 +187,8 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
     have[Θ1[Θ2[Δ1[Δ2[A0[s[mrg1[mrg2[tyF/=tyn]]]]]]]]]:=
       dyn_bind_inv ty. inv mrg2. inv mrg1. inv H2.
     have[tym/io_inj eq2]:=dyn_fork_inv tyF.
-    have mrg0: Ch (~~ true) (term_cren A (+1)) :L _: Δ3 ∘ _: Ch true A :L Δ0 =>
-               Ch (~~ true) (term_cren A (+1)) :L Ch true A :L Θ.
+    have mrg0: Ch (~~ true) (cren (+1) A) :L _: Δ3 ∘ _: Ch true A :L Δ0 =>
+               Ch (~~ true) (cren (+1) A) :L Ch true A :L Θ.
     { econstructor. econstructor. apply: merge_sym... }
     econstructor...
     econstructor...
@@ -196,8 +196,8 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       have wf:=dyn_type_wf tym. inv wf.
       have wf:=dyn_type_proc_wf tyn. inv wf. inv H0.
       have[Θ0[emp mrg1]]:=proc_wf_empty H1.
-      have{}mrg1: _: _: Δ3 ∘ Ch (~~ true) (term_cren A (+1)) :L _: Θ0 =>
-                  Ch (~~ true) (term_cren A (+1)) :L _: Δ3...
+      have{}mrg1: _: _: Δ3 ∘ Ch (~~ true) (cren (+1) A) :L _: Θ0 =>
+                  Ch (~~ true) (cren (+1) A) :L _: Δ3...
       have[tyA _]:=sta_ch_inv H7.
       have[x eq3 eq4]:=church_rosser eq2.
       have tyx1:=sta_prd H5 eq3.
@@ -206,8 +206,8 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       have tyIO:(A0 :: nil) ⊢ (IO Unit).[ren (+1)] : (Sort L).[ren (+1)].
       { apply: sta_weaken... }
       have/=js: dyn_just
-                  (Ch (~~ true) (term_cren A (+1)) :L _: Θ0) 0
-                  (term_cren (Ch (~~ true) (term_cren A (+1))) (+1)).
+                  (Ch (~~ true) (cren (+1) A) :L _: Θ0) 0
+                  (cren (+1) (Ch (~~ true) (cren (+1) A))).
       { constructor. constructor... }
       rewrite<-term_cren_comp in js. asimpl in js.
       econstructor.
@@ -219,8 +219,8 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       replace (IO Unit) with (IO Unit.[ren (+1)]) by eauto.
       apply: dyn_conv.
       apply: conv_sym...
-      replace (Ch false (term_cren A (+2)))
-        with (Ch false (term_cren A (+2)).[ren (+0)])
+      replace (Ch false (cren (+2) A))
+        with (Ch false (cren (+2) A).[ren (+0)])
         by autosubst.
       repeat constructor...
       apply: H5. }
@@ -239,12 +239,12 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       apply: dyn_esubst1...
       apply: key_impure.
       apply: key_impure.
-      replace (Ch true (term_cren A (+2)))
-        with (Ch true (term_cren A (+2)).[ren (+0)])
+      replace (Ch true (cren (+2) A))
+        with (Ch true (cren (+2) A).[ren (+0)])
         by autosubst.
       repeat constructor...
-      replace (Ch true (term_cren A (+2)))
-        with (term_cren (Ch true (term_cren A (+1))) (+1)).
+      replace (Ch true (cren (+2) A))
+        with (cren (+1) (Ch true (cren (+1) A))).
       repeat constructor...
       simpl. rewrite<-term_cren_comp.
       by autosubst. } }
@@ -309,11 +309,11 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
               apply: convR _.
               apply: conv_sym...
               simpl.
-              replace (term_cren B2.[m/] (+2))
-                with (term_cren B2.[m/] (+2)).[ren (+0)] by autosubst.
+              replace (cren (+2) B2.[m/])
+                with (cren (+2) B2.[m/]).[ren (+0)] by autosubst.
               repeat constructor.
-              replace (Ch (~~ r) (term_cren B2.[m/] (+2)))
-                with (term_cren (Ch (~~ r) (term_cren B2.[m/] (+1))) (+1)).
+              replace (Ch (~~ r) (cren (+2) B2.[m/]))
+                with (cren (+1) (Ch (~~ r) (cren (+1) B2.[m/]))).
               2:{ simpl. rewrite<-term_cren_comp. autosubst. }
               eapply dyn_just_O.
               apply: dyn_empty_n...
@@ -352,12 +352,12 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       eauto.
       rewrite term_cren_beta1.
       simpl.
-      replace (term_cren B2 (+2)).[term_cren m (+2)/]
-        with (term_cren B2 (+2)).[term_cren m (+2)/].[ren (+0)] by autosubst.
+      replace (cren (+2) B2).[cren (+2) m/]
+        with (cren (+2) B2).[cren (+2) m/].[ren (+0)] by autosubst.
       repeat constructor.
       rewrite<-term_cren_beta1.
-      replace (Ch r (term_cren B2.[m/] (+2)))
-        with (term_cren (Ch r (term_cren B2.[m/] (+1))) (+1)).
+      replace (Ch r (cren (+2) B2.[m/]))
+        with (cren (+1) (Ch r (cren (+1) B2.[m/]))).
       repeat constructor...
       simpl. rewrite<-term_cren_comp. asimpl...
       rewrite<-term_cren_beta1.
@@ -449,11 +449,11 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
               apply: conv_sym...
               2:{ eauto. }
               simpl.
-              replace (Ch r (term_cren B4.[m/] (+2)))
-                with (Ch r (term_cren B4.[m/] (+2))).[ren (+0)] by autosubst.
+              replace (Ch r (cren (+2) B4.[m/]))
+                with (Ch r (cren (+2) B4.[m/])).[ren (+0)] by autosubst.
               econstructor...
-              replace (Ch r (term_cren B4.[m/] (+2)))
-                with (term_cren (term_cren (Ch r B4.[m/]) (+1)) (+1)).
+              replace (Ch r (cren (+2) B4.[m/]))
+                with (cren (+1) (cren (+1) (Ch r B4.[m/]))).
               constructor.
               constructor...
               rewrite<-term_cren_comp. asimpl...
@@ -495,11 +495,11 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
           apply: sta_conv_subst.
           apply: conv_sym...
           asimpl.
-          replace (Ch (~~r) (term_cren B4.[m/] (+2)))
-            with (Ch (~~r) (term_cren B4.[m/] (+2))).[ren (+0)] by autosubst.
+          replace (Ch (~~r) (cren (+2) B4.[m/]))
+            with (Ch (~~r) (cren (+2) B4.[m/])).[ren (+0)] by autosubst.
           econstructor...
-          replace (Ch (~~r) (term_cren B4.[m/] (+2)))
-            with (term_cren (term_cren (Ch (~~r) B4.[m/]) (+1)) (+1)).
+          replace (Ch (~~r) (cren (+2) B4.[m/]))
+            with (cren (+1) (cren (+1) (Ch (~~r) B4.[m/]))).
           constructor.
           apply: dyn_empty_n...
           rewrite<-term_cren_comp...
@@ -590,13 +590,13 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
               apply: conv_sym...
               2:{ apply: H9. }
               simpl.
-              replace (term_cren B4.[v/] (+2))
-                with (term_cren B4.[v/] (+2)).[ren (+0)] by autosubst.
+              replace (cren (+2) B4.[v/])
+                with (cren (+2) B4.[v/]).[ren (+0)] by autosubst.
               constructor...
               2:{ constructor. }
               2:{ apply: sta_crename... }
-              replace (Ch (~~ r5) (term_cren B4.[v/] (+2)))
-                with (term_cren (Ch (~~ r5) (term_cren B4.[v/] (+1))) (+1)).
+              replace (Ch (~~ r5) (cren (+2) B4.[v/]))
+                with (cren (+1) (Ch (~~ r5) (cren (+1) B4.[v/]))).
               constructor.
               apply: dyn_empty_n...
               simpl. rewrite<-term_cren_comp. by asimpl. }
@@ -623,7 +623,7 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
                   eauto. }
               2:{ econstructor... }
               2:{ asimpl.
-                  have eq:term_cren (Ch r5 B4.[v/]) (+2) === Ch r5 B2.[v/].
+                  have eq:cren (+2) (Ch r5 B4.[v/]) === Ch r5 B2.[v/].
                   { apply: conv_trans.
                     apply: sta_cren_conv0.
                     apply: sta_conv_ch.
@@ -634,11 +634,11 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
                   apply: eq.
                   2:{ constructor... }
                   simpl.
-                  replace (Ch r5 (term_cren B4.[v/] (+2)))
-                    with (Ch r5 (term_cren B4.[v/] (+2))).[ren (+0)] by autosubst.
+                  replace (Ch r5 (cren (+2) B4.[v/]))
+                    with (Ch r5 (cren (+2) B4.[v/])).[ren (+0)] by autosubst.
                   constructor...
-                  replace (Ch r5 (term_cren B4.[v/] (+2)))
-                    with (term_cren (term_cren (Ch r5 B4.[v/]) (+1)) (+1)).
+                  replace (Ch r5 (cren (+2) B4.[v/]))
+                    with (cren (+1) (cren (+1) (Ch r5 B4.[v/]))).
                   constructor.
                   constructor.
                   eauto.
@@ -746,13 +746,13 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
               apply: conv_sym...
               2:{ eauto. }
               simpl.
-              replace (Ch r (term_cren B5.[v/] (+2)))
-                with (Ch r (term_cren B5.[v/] (+2))).[ren (+0)] by autosubst.
+              replace (Ch r (cren (+2) B5.[v/]))
+                with (Ch r (cren (+2) B5.[v/])).[ren (+0)] by autosubst.
               constructor.
               2:{ constructor. }
               2:{ constructor. }
-              replace (Ch r (term_cren B5.[v/] (+2)))
-                with (term_cren (term_cren (Ch r B5.[v/]) (+1)) (+1)).
+              replace (Ch r (cren (+2) B5.[v/]))
+                with (cren (+1) (cren (+1) (Ch r B5.[v/]))).
               constructor.
               constructor.
               eauto.
@@ -786,14 +786,14 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
                   apply: eqB5.
                   2:{ constructor... }
                   simpl.
-                  replace (Ch (~~r) (term_cren B5.[v/] (+2)))
-                    with (Ch (~~r) (term_cren B5.[v/] (+2))).[ren (+0)] by autosubst.
+                  replace (Ch (~~r) (cren (+2) B5.[v/]))
+                    with (Ch (~~r) (cren (+2) B5.[v/])).[ren (+0)] by autosubst.
                   constructor.
                   2:{ constructor. }
                   2:{ constructor. }
                   2:{ apply: sta_crename... }
-                  replace (Ch (~~r) (term_cren B5.[v/] (+2)))
-                    with (term_cren (term_cren (Ch (~~r) B5.[v/]) (+1)) (+1)).
+                  replace (Ch (~~r) (cren (+2) B5.[v/]))
+                    with (cren (+1) (cren (+1) (Ch (~~r) B5.[v/]))).
                   constructor.
                   apply: dyn_empty_n...
                   rewrite<-term_cren_comp. asimpl... }
@@ -860,16 +860,16 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       { f_ext. move=>x. asimpl. lia. }
       econstructor...
       { constructor.
-        replace (IO Unit) with (term_cren (IO Unit) (-2)) by eauto.
-        replace (Bind (Return II) (term_cren m (-2)))
-          with (term_cren (Bind (Return II) m) (-2)) by eauto.
+        replace (IO Unit) with (cren (-2) (IO Unit)) by eauto.
+        replace (Bind (Return II) (cren (-2) m))
+          with (cren (-2) (Bind (Return II) m)) by eauto.
         rewrite e.
         apply: dyn_crename...
         repeat constructor. }
       { constructor.
-        replace (IO Unit) with (term_cren (IO Unit) (-2)) by eauto.
-        replace (Bind (Return II) (term_cren n (-2)))
-          with (term_cren (Bind (Return II) n) (-2)) by eauto.
+        replace (IO Unit) with (cren (-2) (IO Unit)) by eauto.
+        replace (Bind (Return II) (cren (-2) n))
+          with (cren (-2) (Bind (Return II) n)) by eauto.
         rewrite e.
         apply: dyn_crename...
         repeat constructor. } }
@@ -937,16 +937,16 @@ Proof with eauto using merge, merge_sym, sta_type, dyn_type.
       { f_ext. move=>x. asimpl. lia. }
       econstructor...
       { constructor.
-        replace (IO Unit) with (term_cren (IO Unit) (-2)) by eauto.
-        replace (Bind (Return II) (term_cren m (-2)))
-          with (term_cren (Bind (Return II) m) (-2)) by eauto.
+        replace (IO Unit) with (cren (-2) (IO Unit)) by eauto.
+        replace (Bind (Return II) (cren (-2) m))
+          with (cren (-2) (Bind (Return II) m)) by eauto.
         rewrite e.
         apply: dyn_crename...
         repeat constructor. }
       { constructor.
-        replace (IO Unit) with (term_cren (IO Unit) (-2)) by eauto.
-        replace (Bind (Return II) (term_cren n (-2)))
-          with (term_cren (Bind (Return II) n) (-2)) by eauto.
+        replace (IO Unit) with (cren (-2) (IO Unit)) by eauto.
+        replace (Bind (Return II) (cren (-2) n))
+          with (cren (-2) (Bind (Return II) n)) by eauto.
         rewrite e.
         apply: dyn_crename...
         repeat constructor. } }

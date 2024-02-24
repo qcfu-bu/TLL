@@ -6,112 +6,106 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Fixpoint term_csubst (m : term) (σ : cvar -> term) :=
-  match m with
-  (* core *)
-  | Var x => Var x
-  | Sort s => Sort s
-  | Pi0 A B s => Pi0 (term_csubst A σ) (term_csubst B σ) s
-  | Pi1 A B s => Pi1 (term_csubst A σ) (term_csubst B σ) s
-  | Lam0 A m s => Lam0 (term_csubst A σ) (term_csubst m σ) s
-  | Lam1 A m s => Lam1 (term_csubst A σ) (term_csubst m σ) s
-  | App0 m n => App0 (term_csubst m σ) (term_csubst n σ)
-  | App1 m n => App1 (term_csubst m σ) (term_csubst n σ)
-  | Sig0 A B s => Sig0 (term_csubst A σ) (term_csubst B σ) s
-  | Sig1 A B s => Sig1 (term_csubst A σ) (term_csubst B σ) s
-  | Pair0 m n s => Pair0 (term_csubst m σ) (term_csubst n σ) s
-  | Pair1 m n s => Pair1 (term_csubst m σ) (term_csubst n σ) s
-  | LetIn A m n => LetIn (term_csubst A σ) (term_csubst m σ) (term_csubst n σ)
-  | Fix A m => Fix (term_csubst A σ) (term_csubst m σ)
-  (* data *)
-  | Unit => Unit
-  | II => II
-  | Bool => Bool
-  | TT => TT
-  | FF => FF
-  | Ifte A m n1 n2 => 
-    Ifte 
-      (term_csubst A σ) 
-      (term_csubst m σ) 
-      (term_csubst n1 σ) 
-      (term_csubst n2 σ)
-  (* monadic *)
-  | IO A => IO (term_csubst A σ)
-  | Return m => Return (term_csubst m σ)
-  | Bind m n => Bind (term_csubst m σ) (term_csubst n σ)
-  (* session *)
-  | Proto => Proto
-  | Stop => Stop
-  | Act0 r A B => Act0 r (term_csubst A σ) (term_csubst B σ)
-  | Act1 r A B => Act1 r (term_csubst A σ) (term_csubst B σ)
-  | Ch r A => Ch r (term_csubst A σ)
-  | CVar x => σ x
-  | Fork A m => Fork (term_csubst A σ) (term_csubst m σ)
-  | Recv0 m => Recv0 (term_csubst m σ)
-  | Recv1 m => Recv1 (term_csubst m σ)
-  | Send0 m => Send0 (term_csubst m σ)
-  | Send1 m => Send1 (term_csubst m σ)
-  | Close m => Close (term_csubst m σ)
-  | Wait m => Wait (term_csubst m σ)
-  (* erasure *)
-  | Box => Box
-  end.
+#[global] Instance CSubst_term : CSubst term :=
+  fix dummy (σ : cvar -> term) (m : term) : term :=
+    let term_csubst := @csubst term dummy in
+    match m with
+    (* core *)
+    | Var x => Var x
+    | Sort s => Sort s
+    | Pi0 A B s => Pi0 (term_csubst σ A) (term_csubst σ B) s
+    | Pi1 A B s => Pi1 (term_csubst σ A) (term_csubst σ B) s
+    | Lam0 A m s => Lam0 (term_csubst σ A) (term_csubst σ m) s
+    | Lam1 A m s => Lam1 (term_csubst σ A) (term_csubst σ m) s
+    | App0 m n => App0 (term_csubst σ m) (term_csubst σ n)
+    | App1 m n => App1 (term_csubst σ m) (term_csubst σ n)
+    | Sig0 A B s => Sig0 (term_csubst σ A) (term_csubst σ B) s
+    | Sig1 A B s => Sig1 (term_csubst σ A) (term_csubst σ B) s
+    | Pair0 m n s => Pair0 (term_csubst σ m) (term_csubst σ n) s
+    | Pair1 m n s => Pair1 (term_csubst σ m) (term_csubst σ n) s
+    | LetIn A m n => LetIn (term_csubst σ A) (term_csubst σ m) (term_csubst σ n)
+    | Fix A m => Fix (term_csubst σ A) (term_csubst σ m)
+    (* data *)
+    | Unit => Unit | II => II | Bool => Bool | TT => TT | FF => FF
+    | Ifte A m n1 n2 => 
+      Ifte (term_csubst σ A) (term_csubst σ m) (term_csubst σ n1) (term_csubst σ n2)
+    (* monadic *)
+    | IO A => IO (term_csubst σ A)
+    | Return m => Return (term_csubst σ m)
+    | Bind m n => Bind (term_csubst σ m) (term_csubst σ n)
+    (* session *)
+    | Proto => Proto
+    | Stop => Stop
+    | Act0 r A B => Act0 r (term_csubst σ A) (term_csubst σ B)
+    | Act1 r A B => Act1 r (term_csubst σ A) (term_csubst σ B)
+    | Ch r A => Ch r (term_csubst σ A)
+    | CVar x => σ x
+    | Fork A m => Fork (term_csubst σ A) (term_csubst σ m)
+    | Recv0 m => Recv0 (term_csubst σ m)
+    | Recv1 m => Recv1 (term_csubst σ m)
+    | Send0 m => Send0 (term_csubst σ m)
+    | Send1 m => Send1 (term_csubst σ m)
+    | Close m => Close (term_csubst σ m)
+    | Wait m => Wait (term_csubst σ m)
+    (* erasure *)
+    | Box => Box
+    end.
 
 Definition cids x := CVar x.
-Definition upp (σ : cvar -> term) := cids 0 .: σ >>> term_cren^~ (+1).
-Fixpoint uppn n σ := 
+Definition cup (σ : cvar -> term) := cids 0 .: σ >>> cren (+1).
+Fixpoint cupn n σ := 
   match n with
   | O => σ
-  | S n => upp (uppn n σ)
+  | S n => cup (cupn n σ)
   end.
 
-Lemma uppn_unfold n σ : uppn n.+1 σ = upp (uppn n σ).
+Lemma cupn_unfold n σ : cupn n.+1 σ = cup (cupn n σ).
 Proof. eauto. Qed.
 
-Lemma upp_cids : upp cids = cids.
+Lemma cup_cids : cup cids = cids.
 Proof. f_ext. elim=>//. Qed.
 
-Lemma term_csubst_cids m : term_csubst m cids = m. 
+Lemma term_csubst_cids m : csubst cids m = m. 
 Proof with eauto.
   elim: m=>//=...
   all: solve[intros; autorew; eauto].
 Qed.
   
 Lemma term_csubst_cren_comp0 m σ ξ :
-  term_cren (term_csubst m σ) ξ = term_csubst m (σ >>> term_cren^~ ξ).
+  cren ξ (csubst σ m) = csubst (σ >>> cren ξ) m.
 Proof with eauto.
   elim: m σ ξ.
   all: try solve[intros; asimpl; autorew; eauto].
 Qed.
 
 Lemma term_csubst_cren_comp1 m σ :
-  term_cren (term_csubst m σ) (+1) = term_csubst (term_cren m (+1)) (upp σ).
+  cren (+1) (csubst σ m) = csubst (cup σ) (cren (+1) m).
 Proof with eauto.
   elim: m σ. all: try solve[intros; asimpl; autorew; eauto].
 Qed.
 
 Lemma term_csubst_cren_comp2 m x σ :
-  term_csubst (term_cren m (+1)) (CVar x .: σ) = term_csubst m σ.
+  csubst (CVar x .: σ) (cren (+1) m) = csubst σ m.
 Proof with eauto.
   elim: m σ. all: try solve[intros; asimpl; autorew; eauto].
 Qed.
 
-Lemma term_upp_comp σ1 σ2 :
-  upp σ1 >>> term_csubst^~ (upp σ2) = upp (σ1 >>> term_csubst^~ σ2).
+Lemma term_cup_comp σ1 σ2 :
+  cup σ1 >>> csubst (cup σ2) = cup (σ1 >>> csubst σ2).
 Proof. 
   f_ext. move=>[|x]. by simpl. simpl.
   by rewrite term_csubst_cren_comp1.
 Qed.
 
-Lemma term_uppn_comp σ1 σ2 n :
-  uppn n σ1 >>> term_csubst^~ (uppn n σ2) = uppn n (σ1 >>> term_csubst^~ σ2).
+Lemma term_cupn_comp σ1 σ2 n :
+  cupn n σ1 >>> csubst (cupn n σ2) = cupn n (σ1 >>> csubst σ2).
 Proof with eauto.
   elim: n σ1 σ2... 
-  move=>n ih σ1 σ2//=. rewrite term_upp_comp. f_equal...
+  move=>n ih σ1 σ2//=. rewrite term_cup_comp. f_equal...
 Qed.
 
 Lemma term_csubst_comp m σ1 σ2 :
-  term_csubst (term_csubst m σ1) σ2 = term_csubst m (σ1 >>> term_csubst^~ σ2).
+  csubst σ2 (csubst σ1 m) = csubst (σ1 >>> csubst σ2) m.
 Proof with eauto.
   elim: m σ1 σ2. all: try solve[intros; asimpl; autorew; eauto].
 Qed.

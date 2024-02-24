@@ -6,14 +6,16 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Fixpoint proc_cren (p : proc) (ξ : cvar -> cvar) : proc :=
-  match p with
-  | ⟨ m ⟩ => ⟨ term_cren m ξ ⟩
-  | p ∣ q => (proc_cren p ξ) ∣ (proc_cren q ξ)
-  | ν.p => ν.(proc_cren p (upren (upren ξ)))
-  end.
+#[global] Instance CRename_proc : CRename proc :=
+  fix dummy (ξ : cvar -> cvar) (p : proc) : proc :=
+    let proc_cren := @cren proc dummy in
+    match p with
+    | ⟨ m ⟩ => ⟨ cren ξ m ⟩
+    | p ∣ q => (proc_cren ξ p) ∣ (proc_cren ξ q)
+    | ν.p => ν.(proc_cren (upren (upren ξ)) p)
+    end.
 
-Lemma proc_cren_id p : proc_cren p id = p.
+Lemma proc_cren_id p : cren id p = p.
 Proof with eauto.
   elim: p=>//=.
   { move=>m. by rewrite term_cren_id. }
@@ -22,7 +24,7 @@ Proof with eauto.
 Qed.
 
 Lemma proc_cren_comp ξ1 ξ2 p :
-  proc_cren p (ξ1 >>> ξ2) = proc_cren (proc_cren p ξ1) ξ2.
+  cren (ξ1 >>> ξ2) p = cren ξ2 (cren ξ1 p).
 Proof with eauto.
   elim: p ξ1 ξ2=>/=.
   { move=>m ξ1 ξ2. by rewrite term_cren_comp. }

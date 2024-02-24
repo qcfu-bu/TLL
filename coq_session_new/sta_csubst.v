@@ -13,7 +13,7 @@ Definition csubst_ren (σ : var -> term) :=
   fun x => match σ x with CVar y => y | _ => 0 end.
 
 Lemma sta_csubst_cren m (σ : var -> term) :
-  sta_agree_csubst σ -> term_cren m (csubst_ren σ) = term_csubst m σ.
+  sta_agree_csubst σ -> cren (csubst_ren σ) m = csubst σ m.
 Proof with eauto.
   move=>agr.
   elim: m σ agr=>//=...
@@ -48,7 +48,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_csubstitution Γ m A σ :
-  Γ ⊢ m : A -> sta_agree_csubst σ -> Γ ⊢ term_csubst m σ : A.
+  Γ ⊢ m : A -> sta_agree_csubst σ -> Γ ⊢ csubst σ m : A.
 Proof with eauto using sta_type.
   move=>ty agr.
   have e:=sta_csubst_cren m agr.
@@ -59,7 +59,7 @@ Qed.
 Lemma sta_csubst_comm σ1 σ2 m :
   sta_agree_csubst σ1 ->
   cren_subst_agree σ2 σ2 (csubst_ren σ1) ->
-  (term_csubst m σ1).[σ2] = term_csubst m.[σ2] σ1.
+  (csubst σ1 m).[σ2] = csubst σ1 m.[σ2].
 Proof with eauto.
   move=>agr1 agr2.
   have<-:=sta_csubst_cren m agr1.
@@ -68,8 +68,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_csubst_comp σ ξ m : 
-  sta_agree_csubst σ ->
-  (term_csubst m σ).[ren ξ] = term_csubst m.[ren ξ] σ.
+  sta_agree_csubst σ -> (csubst σ m).[ren ξ] = csubst σ m.[ren ξ].
 Proof with eauto.
   elim: m σ ξ...
   all: try solve[intros; asimpl; autorew; eauto].
@@ -78,7 +77,7 @@ Proof with eauto.
 Qed.
 
 Definition sta_anti_csubst (σ : var -> term) :=
-  forall x σ', sta_agree_csubst σ' -> σ x = term_csubst (σ x) σ'.
+  forall x σ', sta_agree_csubst σ' -> σ x = csubst σ' (σ x).
 
 Lemma sta_anti_csubst_up σ :
   sta_anti_csubst σ -> sta_anti_csubst (up σ).
@@ -92,7 +91,7 @@ Qed.
 Lemma sta_csubst_comp' σ σ' m : 
   sta_agree_csubst σ ->
   sta_anti_csubst σ' ->
-  (term_csubst m σ).[σ'] = term_csubst m.[σ'] σ.
+  (csubst σ m).[σ'] = csubst σ m.[σ'].
 Proof with eauto using sta_anti_csubst_up.
   elim: m σ σ'...
   all: try solve[intros; asimpl; autorew; eauto].

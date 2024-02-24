@@ -15,14 +15,14 @@ Inductive dyn_agree_csubst :
   Θ ⊩ cids ⫣ Θ
 | dyn_agree_csubst_pad Θ1 σ Θ2 :
   Θ1 ⊩ σ ⫣ Θ2 ->
-  _: Θ1 ⊩ (σ >>> term_cren^~(+1)) ⫣ Θ2
+  _: Θ1 ⊩ (σ >>> cren (+1)) ⫣ Θ2
 | dyn_agree_csubst_ty Θ1 σ Θ2 r A :
   Θ1 ⊩ σ ⫣ Θ2 ->
   nil ⊢ A : Proto ->
-  Ch r A :L Θ1 ⊩ upp σ ⫣ Ch r A :L Θ2
+  Ch r A :L Θ1 ⊩ cup σ ⫣ Ch r A :L Θ2
 | dyn_agree_csubst_n Θ1 σ Θ2 :
   Θ1 ⊩ σ ⫣ Θ2 ->
-  _: Θ1 ⊩ upp σ ⫣ _: Θ2
+  _: Θ1 ⊩ cup σ ⫣ _: Θ2
 | dyn_agree_csubst_wk0 Θ1 σ Θ2 x :
   Θ1 ⊩ σ ⫣ Θ2 ->
   Θ1 ⊩ CVar x .: σ ⫣ _: Θ2
@@ -58,7 +58,7 @@ Proof with eauto.
 Qed.
 
 Lemma dyn_csubst_cren Θ1 Θ2 σ m :
-  Θ1 ⊩ σ ⫣ Θ2 -> term_cren m (csubst_ren σ) = term_csubst m σ.
+  Θ1 ⊩ σ ⫣ Θ2 -> cren (csubst_ren σ) m = csubst σ m.
 Proof.
   move=>agr. apply: sta_csubst_cren.
   apply: dyn_sta_agree_csubst.
@@ -167,7 +167,7 @@ Proof with eauto using dyn_agree_csubst_empty, dyn_sta_agree_csubst, dyn_wf, key
   { move=>Θ1 σ Θ2 agr ih x r A tyA js. asimpl.
     apply: dyn_cweaken... }
   { move=>Θ1 σ Θ2 r A agr ih x tyA r0 A0 tyA0 js. inv js. asimpl.
-    have/=js:dyn_just (Ch r0 A :L Θ1) 0 (term_cren (Ch r0 A) (+1)).
+    have/=js:dyn_just (Ch r0 A :L Θ1) 0 (cren (+1) (Ch r0 A)).
     {  constructor... } 
     apply: dyn_conv.
     2:{ constructor... }
@@ -217,7 +217,7 @@ Proof with eauto using dyn_agree_csubst_empty, dyn_sta_agree_csubst, dyn_wf, key
     constructor... }
   { move=>Θ1 σ Θ2 A B s eq tyB agr ih x r A0 tyA0 js. inv js.
     have wf:=dyn_agree_csubst_wf agr. inv wf.
-    have/=js:dyn_just (Ch r A :L Θ2) 0 (term_cren (Ch r A) (+1)).
+    have/=js:dyn_just (Ch r A :L Θ2) 0 (cren (+1) (Ch r A)).
     { constructor... }
     apply: dyn_conv.
     2:{ apply: ih. 2:{ apply: js. }
@@ -230,7 +230,7 @@ Qed.
 
 Lemma dyn_csubstitution Θ1 Θ2 Γ Δ m A σ :
   Θ2 ; Γ ; Δ ⊢ m : A -> Θ1 ⊩ σ ⫣ Θ2 ->
-  Θ1 ; Γ ; Δ ⊢ term_csubst m σ : A.
+  Θ1 ; Γ ; Δ ⊢ csubst σ m : A.
 Proof with eauto using dyn_agree_csubst_key, dyn_sta_agree_csubst, dyn_agree_csubst_empty.
   move=>ty. elim: ty Θ1 σ=>{Θ2 Γ Δ m A}//=.
   { move=>Θ Γ Δ x s A emp wf shs dhs Θ1 σ agr. econstructor... }
@@ -320,8 +320,8 @@ Proof with eauto using dyn_agree_csubst_key, dyn_sta_agree_csubst, dyn_agree_csu
     have wf:=dyn_type_wf tyn. inv wf. inv H4.
     have[r0 tys]:=sta_valid tyC.
     have[s2[r1[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv H2. subst.
-    have h:(term_csubst C σ).[Pair0 (Var 1) (Var 0) t .: ren (+2)] =
-           term_csubst C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] σ.
+    have h:(csubst σ C).[Pair0 (Var 1) (Var 0) t .: ren (+2)] =
+           csubst σ C.[Pair0 (Var 1) (Var 0) t .: ren (+2)].
     { apply: sta_csubst_comm...
       apply: term_cren_subst_pair0. }
     apply: dyn_conv.
@@ -369,8 +369,8 @@ Proof with eauto using dyn_agree_csubst_key, dyn_sta_agree_csubst, dyn_agree_csu
     have wf:=dyn_type_wf tyn. inv wf. inv H4.
     have[r0 tys]:=sta_valid tyC.
     have[s2[rx[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv H2. subst.
-    have h:(term_csubst C σ).[Pair1 (Var 1) (Var 0) t .: ren (+2)] =
-           term_csubst C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] σ.
+    have h:(csubst σ C).[Pair1 (Var 1) (Var 0) t .: ren (+2)] =
+           csubst σ C.[Pair1 (Var 1) (Var 0) t .: ren (+2)].
     { apply: sta_csubst_comm...
       apply: term_cren_subst_pair1. }
     apply: dyn_conv.

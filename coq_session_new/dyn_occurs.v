@@ -270,9 +270,9 @@ Proof.
 Qed.
 
 Lemma dyn_occurs_iren Θ Γ Δ m A i ξ :
-  Θ ; Γ ; Δ ⊢ term_cren m ξ : A -> iren i ξ -> dyn_occurs i (term_cren m ξ) = 0.
+  Θ ; Γ ; Δ ⊢ cren ξ m : A -> iren i ξ -> dyn_occurs i (cren ξ m) = 0.
 Proof with eauto using dyn_occurs.
-  move e:(term_cren m ξ)=>x ty.
+  move e:(cren ξ m)=>x ty.
   elim: ty m ξ e i=>//={Θ Γ Δ x A}...
   { move=>Θ Γ Δ A B m s k1 k2 tym ihm m0 ξ e i h.
     destruct m0; inv e... }

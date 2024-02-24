@@ -69,8 +69,8 @@ Proof with eauto using era_dyn_occurs.
 Qed.
 
 Lemma era_occurs_iren Θ Γ Δ m m' A i ξ :
-  Θ ; Γ ; Δ ⊢ term_cren m ξ ~ term_cren m' ξ : A -> iren i ξ ->
-  dyn_occurs i (term_cren m ξ) = 0 /\ dyn_occurs i (term_cren m' ξ) = 0.
+  Θ ; Γ ; Δ ⊢ cren ξ m ~ cren ξ m' : A -> iren i ξ ->
+  dyn_occurs i (cren ξ m) = 0 /\ dyn_occurs i (cren ξ m') = 0.
 Proof with eauto using era_dyn_occurs.
   move=>erm h.
   have oc:=dyn_occurs_iren (era_dyn_type erm) h.
@@ -78,7 +78,7 @@ Proof with eauto using era_dyn_occurs.
 Qed.
 
 Lemma era_occurs_cren_id Θ Γ Δ m m' A i j ξ :
-  Θ ; Γ ; Δ ⊢ term_cren m ξ ~ term_cren m' ξ : A ->
+  Θ ; Γ ; Δ ⊢ cren ξ m ~ cren ξ m' : A ->
   dyn_occurs i m = 0 ->
   dyn_occurs j m = 0 ->
   dyn_occurs i m' = 0 ->
@@ -86,8 +86,8 @@ Lemma era_occurs_cren_id Θ Γ Δ m m' A i j ξ :
   (forall x, x == i = false -> x == j = false -> ξ x = x) ->
   Θ ; Γ ; Δ ⊢ m ~ m' : A.
 Proof with eauto using era_type.
-  move e1:(term_cren m ξ)=>m1.
-  move e2:(term_cren m' ξ)=>m2 er.
+  move e1:(cren ξ m)=>m1.
+  move e2:(cren ξ m')=>m2 er.
   elim: er m m' ξ e1 e2 i j=>{Θ Γ Δ m1 m2 A}.
   { move=>Θ Γ Δ x s A emp wf shs dhs m m' ξ e1 e2 i j oc1 oc2 oc3 oc4 h0.
     destruct m; inv e1. destruct m'; inv e2... }
@@ -210,7 +210,7 @@ Proof with eauto using era_type.
       repeat constructor.
       asimpl.
       repeat constructor... }
-    have eq: A0.[m1/] === (term_cren A0 ξ).[term_cren m1 ξ/].
+    have eq: A0.[m1/] === (cren ξ A0).[cren ξ m1/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: conv_sym.
@@ -257,7 +257,7 @@ Proof with eauto using era_type.
       repeat constructor.
       asimpl.
       repeat constructor... }
-    have eq: A0.[m1/] === (term_cren A0 ξ).[term_cren m1 ξ/].
+    have eq: A0.[m1/] === (cren ξ A0).[cren ξ m1/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: conv_sym.
@@ -337,7 +337,7 @@ Proof with eauto using era_type.
     have{}ihm:=ihm _ _ _ erefl erefl _ _ e13 e23 e33 e43 h.
     have{}ihn1:=ihn1 _ _ _ erefl erefl _ _ e12 e22 e32 e42 h.
     have{}ihn2:=ihn2 _ _ _ erefl erefl _ _ e11 e21 e31 e41 h.
-    have eq: A0.[m1_1/] === (term_cren A0 ξ).[term_cren m1_1 ξ/].
+    have eq: A0.[m1_1/] === (cren ξ A0).[cren ξ m1_1/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: conv_sym.

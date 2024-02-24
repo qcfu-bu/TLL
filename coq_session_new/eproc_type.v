@@ -19,7 +19,7 @@ Inductive eproc_type : dyn_ctx -> proc -> proc -> Prop :=
   Θ ⊢ p ∣ q ~ p' ∣ q'
 | eproc_scope Θ p p' r1 r2 A :
   r1 = ~~r2 ->
-  Ch r1 (term_cren A (+1)) :L Ch r2 A :L Θ ⊢ p ~ p' ->
+  Ch r1 (cren (+1) A) :L Ch r2 A :L Θ ⊢ p ~ p' ->
   Θ ⊢ ν.p ~ ν.p'
 where "Θ ⊢ p ~ p'" := (eproc_type Θ p p').
 
@@ -45,4 +45,3 @@ Proof with eauto using eproc_type.
   { move=>Θ1 Θ2 Θ p q mrg typ[p' erp]tyq[q' erq]. exists (p' ∣ q')... }
   { move=>Θ p r1 r2 A e typ[p' erp]. exists (ν.p')... }
 Qed.
-

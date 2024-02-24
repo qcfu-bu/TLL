@@ -8,7 +8,7 @@ Unset Printing Implicit Defensive.
 
 Lemma era_csubstitution Θ1 Θ2 Γ Δ m m' A σ :
   Θ2 ; Γ ; Δ ⊢ m ~ m' : A -> Θ1 ⊩ σ ⫣ Θ2 ->
-  Θ1 ; Γ ; Δ ⊢ term_csubst m σ ~ term_csubst m' σ : A.
+  Θ1 ; Γ ; Δ ⊢ csubst σ m ~ csubst σ m' : A.
 Proof with eauto using dyn_agree_csubst_key, dyn_sta_agree_csubst, dyn_agree_csubst_empty, key.
   move=>ty. elim: ty Θ1 σ=>{Θ2 Γ Δ m m' A}//=.
   { move=>Θ Γ Δ x s A emp wf shs dhs Θ1 σ agr. econstructor... }
@@ -98,8 +98,8 @@ Proof with eauto using dyn_agree_csubst_key, dyn_sta_agree_csubst, dyn_agree_csu
     have wf:=era_type_wf tyn. inv wf. inv H4.
     have[r0 tys]:=sta_valid tyC.
     have[s2[r1[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv H2. subst.
-    have h:(term_csubst C σ).[Pair0 (Var 1) (Var 0) t .: ren (+2)] =
-           term_csubst C.[Pair0 (Var 1) (Var 0) t .: ren (+2)] σ.
+    have h:(csubst σ C).[Pair0 (Var 1) (Var 0) t .: ren (+2)] =
+            csubst σ C.[Pair0 (Var 1) (Var 0) t .: ren (+2)].
     { apply: sta_csubst_comm...
       apply: term_cren_subst_pair0. }
     apply: era_conv.
@@ -147,8 +147,8 @@ Proof with eauto using dyn_agree_csubst_key, dyn_sta_agree_csubst, dyn_agree_csu
     have wf:=era_type_wf tyn. inv wf. inv H4.
     have[r0 tys]:=sta_valid tyC.
     have[s2[rx[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv H2. subst.
-    have h:(term_csubst C σ).[Pair1 (Var 1) (Var 0) t .: ren (+2)] =
-           term_csubst C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] σ.
+    have h:(csubst σ C).[Pair1 (Var 1) (Var 0) t .: ren (+2)] =
+            csubst σ C.[Pair1 (Var 1) (Var 0) t .: ren (+2)].
     { apply: sta_csubst_comm...
       apply: term_cren_subst_pair1. }
     apply: era_conv.

@@ -8,7 +8,7 @@ Unset Printing Implicit Defensive.
 
 Lemma era_crename Θ Θ' Γ Δ m m' A ξ :
   Θ ; Γ ; Δ ⊢ m ~ m' : A -> dyn_ctx_cren ξ Θ Θ' ->
-  Θ' ; Γ ; Δ ⊢ term_cren m ξ ~ term_cren m' ξ : A.
+  Θ' ; Γ ; Δ ⊢ cren ξ m ~ cren ξ m' : A.
 Proof with eauto using era_type, dyn_empty, dyn_ctx_cren.
   move=>er. elim: er Θ' ξ=>/={Θ Γ Δ m m' A}...
   { move=>Θ Γ Δ x s A wmp wf shs dhs Θ' ξ agr.
@@ -48,7 +48,7 @@ Proof with eauto using era_type, dyn_empty, dyn_ctx_cren.
   { move=>Θ Γ Δ A B m m' n s tym ihm tyn Θ' ξ agr.
     have[r tyP]:=era_valid tym.
     have[t[tyB/sort_inj e]]:=sta_pi0_inv tyP. subst.
-    have eq:B.[term_cren n ξ/] === B.[n/].
+    have eq:B.[cren ξ n/] === B.[n/].
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
     apply: era_conv...
@@ -59,14 +59,14 @@ Proof with eauto using era_type, dyn_empty, dyn_ctx_cren.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
     have[r tyP]:=era_valid tym.
     have[t[tyB/sort_inj e]]:=sta_pi1_inv tyP. subst.
-    have eq:B.[term_cren n ξ/] === B.[n/].
+    have eq:B.[cren ξ n/] === B.[n/].
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
     apply: era_conv...
     have:=sta_subst tyB (era_sta_type tyn)... }
   { move=>Θ Γ Δ A B m n n' t tyS tym tyn ihn Θ' ξ agr.
     have[s[r[ord[tyA[tyB _]]]]]:=sta_sig0_inv tyS.
-    have eq: B.[m/] === B.[term_cren m ξ/].
+    have eq: B.[m/] === B.[cren ξ m/].
     apply: sta_conv_beta.
     apply: conv_sym.
     apply: sta_cren_conv0...
@@ -77,7 +77,7 @@ Proof with eauto using era_type, dyn_empty, dyn_ctx_cren.
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 mrg2 tyS tym ihm tyn ihn Θ' ξ agr.
     have[s[r[ord1[ord2[tyA[tyB _]]]]]]:=sta_sig1_inv tyS.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
-    have eq: B.[m/] === B.[term_cren m ξ/].
+    have eq: B.[m/] === B.[cren ξ m/].
     apply: sta_conv_beta.
     apply: conv_sym.
     apply: sta_cren_conv0...
@@ -88,7 +88,7 @@ Proof with eauto using era_type, dyn_empty, dyn_ctx_cren.
     have wf:=sta_type_wf tyC. inv wf.
     have[s1[r1[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv H2. subst.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
-    have eq: (term_cren C ξ).[term_cren m ξ/] === C.[m/].
+    have eq: (cren ξ C).[cren ξ m/] === C.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -129,7 +129,7 @@ Proof with eauto using era_type, dyn_empty, dyn_ctx_cren.
     have wf:=sta_type_wf tyC. inv wf.
     have[s1[r3[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv H2. subst.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
-    have eq: (term_cren C ξ).[term_cren m ξ/] === C.[m/].
+    have eq: (cren ξ C).[cren ξ m/] === C.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -193,7 +193,7 @@ Proof with eauto using era_type, dyn_empty, dyn_ctx_cren.
            tyA tym ihm tyn1 ihn1 tyn2 ihn2 Θ' ξ agr.
     have wf:=sta_type_wf (era_sta_type tym).
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
-    have eq:(term_cren A ξ).[term_cren m ξ/] === A.[m/].
+    have eq:(cren ξ A).[cren ξ m/] === A.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -251,33 +251,31 @@ Proof with eauto using era_type, dyn_empty, dyn_ctx_cren.
 Qed.
 
 Lemma era_cstrengthen Θ Γ Δ m m' A :
-  _: Θ ; Γ ; Δ ⊢ term_cren m (+1) ~ term_cren m' (+1) : A ->
+  _: Θ ; Γ ; Δ ⊢ cren (+1) m ~ cren (+1) m' : A ->
   Θ ; Γ ; Δ ⊢ m ~ m' : A.
 Proof with eauto using dyn_empty, era_type, dyn_ctx_cren.
   move=>ty.
   have e:((+1) >>> (-1)) = id.
   { f_ext. move=>x. asimpl. fold subn. lia. }
-  replace m with (term_cren (term_cren m (+1)) ((-1) >>> id)).
-  replace m' with (term_cren (term_cren m' (+1)) ((-1) >>> id)).
+  replace m with (cren ((-1) >>> id) (cren (+1) m)).
+  replace m' with (cren ((-1) >>> id) (cren (+1) m')).
   apply: era_crename.
-  apply: ty.
-  constructor.
-  constructor.
+  apply: ty. constructor. constructor.
   rewrite<-term_cren_comp. asimpl. rewrite e. apply: term_cren_id.
   rewrite<-term_cren_comp. asimpl. rewrite e. apply: term_cren_id.
 Qed.
 
 Lemma era_cweaken Θ Γ Δ m m' A :
   Θ ; Γ ; Δ ⊢ m ~ m' : A ->
-  _: Θ ; Γ ; Δ ⊢ term_cren m (+1) ~ term_cren m' (+1) : A.
+  _: Θ ; Γ ; Δ ⊢ cren (+1) m ~ cren (+1) m' : A.
 Proof with eauto using dyn_empty, era_type, dyn_ctx_cren.
   move=>ty. apply: era_crename...
 Qed.
 
 Lemma era_cren_inv Θ Γ Δ m x A ξ :
-  Θ ; Γ ; Δ ⊢ term_cren m ξ ~ x : A -> exists m', x = term_cren m' ξ.
+  Θ ; Γ ; Δ ⊢ cren ξ m ~ x : A -> exists m', x = cren ξ m'.
 Proof with eauto.
-  move e:(term_cren m ξ)=>n er. elim: er m ξ e=>{Θ Γ Δ n x A}...
+  move e:(cren ξ m)=>n er. elim: er m ξ e=>{Θ Γ Δ n x A}...
   { move=>Θ Γ Δ A B m m' s k1 k2 erm ihm m0 ξ e. destruct m0; inv e.
     have[n' e]:=ihm _ _ erefl. subst. by exists (Lam0 Box n' s). }
   { move=>Θ Γ Δ A B m m' s t k1 k2 erm ihm m0 ξ e. destruct m0; inv e.

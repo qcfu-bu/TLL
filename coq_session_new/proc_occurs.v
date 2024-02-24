@@ -42,9 +42,9 @@ Proof with eauto using cvar_pos, proc_occurs, proc_type_occurs0.
 Qed.
 
 Lemma proc_occurs_iren Θ p i ξ :
-  Θ ⊢ proc_cren p ξ -> iren i ξ -> proc_occurs i (proc_cren p ξ) = 0.
+  Θ ⊢ cren ξ p -> iren i ξ -> proc_occurs i (cren ξ p) = 0.
 Proof with eauto using proc_occurs.
-  move e:(proc_cren p ξ)=>x ty.
+  move e:(cren ξ p)=>x ty.
   elim: ty p ξ e i=>//={Θ x}.
   { move=>Θ m tym p ξ e i h.
     destruct p; inv e.
