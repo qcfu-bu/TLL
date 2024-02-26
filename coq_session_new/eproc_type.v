@@ -1,6 +1,6 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq zify.
 From Coq Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS era_valid proc_type.
+Require Export AutosubstSsr ARS era_valid era_uniq proc_type.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -35,13 +35,4 @@ Qed.
 Lemma eproc_type_wf Θ p p' : Θ ⊢ p ~ p' -> proc_wf Θ.
 Proof with eauto.
   move=>er. apply: proc_type_wf. apply: eproc_proc_type...
-Qed.
-
-Lemma proc_eproc_type Θ p : Θ ⊢ p -> exists p', Θ ⊢ p ~ p'. 
-Proof with eauto using eproc_type.
-  elim=>{Θ p}.
-  { move=>Θ m tym.
-    have[m' erm]:=dyn_era_type tym. exists ⟨ m' ⟩... }
-  { move=>Θ1 Θ2 Θ p q mrg typ[p' erp]tyq[q' erq]. exists (p' ∣ q')... }
-  { move=>Θ p r1 r2 A e typ[p' erp]. exists (ν.p')... }
 Qed.

@@ -6,6 +6,15 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Lemma proc_eproc_type Θ p : Θ ⊢ p -> exists p', Θ ⊢ p ~ p'. 
+Proof with eauto using eproc_type.
+  elim=>{Θ p}.
+  { move=>Θ m tym.
+    have[m' erm]:=dyn_era_type tym. exists ⟨ m' ⟩... }
+  { move=>Θ1 Θ2 Θ p q mrg typ[p' erp]tyq[q' erq]. exists (p' ∣ q')... }
+  { move=>Θ p r1 r2 A e typ[p' erp]. exists (ν.p')... }
+Qed.
+
 Fixpoint erasep (p : proc) : proc :=
   match p with
   | Exp m => Exp (erase m)
