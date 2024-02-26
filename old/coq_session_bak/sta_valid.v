@@ -63,7 +63,7 @@ Qed.
 
 Lemma sta_lam0_invX Γ A1 A2 B C m s1 s2 t :
   Γ ⊢ Lam0 A1 m s1 : C ->
-  C ≃ Pi0 A2 B s2 ->
+  C === Pi0 A2 B s2 ->
   (A2 :: Γ) ⊢ B : Sort t ->
   (A2 :: Γ) ⊢ m : B.
 Proof with eauto.
@@ -86,7 +86,7 @@ Qed.
 
 Lemma sta_lam1_invX Γ A1 A2 B C m s1 s2 t :
   Γ ⊢ Lam1 A1 m s1 : C ->
-  C ≃ Pi1 A2 B s2 ->
+  C === Pi1 A2 B s2 ->
   (A2 :: Γ) ⊢ B : Sort t ->
   (A2 :: Γ) ⊢ m : B.
 Proof with eauto.
@@ -126,7 +126,7 @@ Qed.
 Lemma sta_pair0_invX Γ m n s C :
   Γ ⊢ Pair0 m n s : C ->
   forall A B r t,
-    C ≃ Sig0 A B r ->
+    C === Sig0 A B r ->
     Γ ⊢ Sig0 A B r : Sort t ->
     s = r /\ Γ ⊢ m : A /\ Γ ⊢ n : B.[m/].
 Proof with eauto.
@@ -150,7 +150,7 @@ Qed.
 Lemma sta_pair1_invX Γ m n s C :
   Γ ⊢ Pair1 m n s : C ->
   forall A B r t,
-    C ≃ Sig1 A B r ->
+    C === Sig1 A B r ->
     Γ ⊢ Sig1 A B r : Sort t ->
     s = r /\ Γ ⊢ m : A /\ Γ ⊢ n : B.[m/].
 Proof with eauto.

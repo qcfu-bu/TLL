@@ -158,7 +158,7 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
   sta0_type Γ (Close m) (IO Unit)
 (* conversion *)
 | sta0_conv Γ A B m s :
-  A === B ->
+  A ≃ B ->
   sta0_type Γ m A ->
   sta0_type Γ B (Sort s) ->
   sta0_type Γ m B
@@ -324,7 +324,7 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
   Γ ⊢ Close m : IO Unit
 (* conversion *)
 | sta_conv Γ A B m s :
-  A === B ->
+  A ≃ B ->
   Γ ⊢ m : A ->
   Γ ⊢ B : Sort s ->
   Γ ⊢ m : B

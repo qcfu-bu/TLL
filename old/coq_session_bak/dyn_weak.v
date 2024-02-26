@@ -35,18 +35,6 @@ Proof with eauto using sta_agree_ren.
   elim=>{Γ Γ' Δ Δ' ξ}...
 Qed.
 
-Lemma dyn_wf_agree_ren Γ Δ :
-  dyn_wf Γ Δ -> Δ ▷ U -> dyn_agree_ren (+size Γ) nil nil Γ Δ.
-Proof with eauto using dyn_agree_ren.
-  elim=>{Γ Δ}...
-  { move=>Γ Δ A s wf ih tyA k. inv k. simpl.
-    replace (+(size Γ).+1) with ((+size Γ) >>> (+1)). 2:{ by f_ext. }
-    apply: dyn_agree_ren_wkU... }
-  { move=>Γ Δ A s wf ih tyA k. inv k. simpl.
-    replace (+(size Γ).+1) with ((+size Γ) >>> (+1)). 2:{ by f_ext. }
-    apply: dyn_agree_ren_wkN... }
-Qed.
-
 Lemma dyn_agree_ren_refl Γ Δ :
   dyn_wf Γ Δ -> dyn_agree_ren id Γ Δ Γ Δ.
 Proof with eauto using dyn_agree_ren.

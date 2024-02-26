@@ -12,7 +12,7 @@ Inductive dyn_ctx_cren : (cvar -> cvar) -> dyn_ctx -> dyn_ctx -> Prop :=
 | dyn_ctx_cren_ty ξ r A Θ Θ' :
   nil ⊢ A : Proto ->
   dyn_ctx_cren ξ Θ Θ' ->
-  dyn_ctx_cren (upren ξ) (Ch r A :L Θ) (Ch r (cren ξ A) :L Θ')
+  dyn_ctx_cren (upren ξ) (Ch r A :L Θ) (Ch r (term_cren A ξ) :L Θ')
 | dyn_ctx_cren_n ξ Θ Θ' :
   dyn_ctx_cren ξ Θ Θ' ->
   dyn_ctx_cren (upren ξ) (_: Θ) (_: Θ')
@@ -44,7 +44,7 @@ Qed.
 Lemma dyn_ctx_cren_just Θ Θ' A x ξ :
   dyn_ctx_cren ξ Θ Θ' ->
   dyn_just Θ x A ->
-  dyn_just Θ' (ξ x) (cren ξ A).
+  dyn_just Θ' (ξ x) (term_cren A ξ).
 Proof with eauto.
   move=>agr. elim: agr A x=>//={Θ Θ' ξ}...
   { move=>Θ A x js.
@@ -53,7 +53,7 @@ Proof with eauto.
     asimpl.
     rewrite<-term_cren_comp.
     have->:((+1) >>> upren ξ) = (ξ >>> (+1)) by autosubst.
-    have->:(cren (ξ >>> (+1)) A) = (cren (+1) (cren ξ A)).
+    have->:(term_cren A (ξ >>> (+1))) = (term_cren (term_cren A ξ) (+1)).
     by rewrite<-term_cren_comp.
     constructor.
     apply: dyn_ctx_cren_empty... }
@@ -61,7 +61,7 @@ Proof with eauto.
     asimpl.
     rewrite<-term_cren_comp.
     have->:((+1) >>> upren ξ) = (ξ >>> (+1)) by autosubst.
-    have->:(cren (ξ >>> (+1)) A0) = (cren (+1) (cren ξ A0)).
+    have->:(term_cren A0 (ξ >>> (+1))) = (term_cren (term_cren A0 ξ) (+1)).
     by rewrite<-term_cren_comp.
     constructor... }
   { move=>ξ Θ Θ' agr ih A x js.
@@ -88,10 +88,10 @@ Proof with eauto using dyn_ctx_cren.
   { move=>Θ Θ1 Θ2 mrg. exists Θ1. exists Θ2... }
   { move=>ξ r A Θ Θ' tyA agr ih Θ1 Θ2 mrg. inv mrg.
     { have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=ih _ _ H2.
-      exists (Ch r (cren ξ A) :L Θ1'). exists (_: Θ2').
+      exists (Ch r (term_cren A ξ) :L Θ1'). exists (_: Θ2').
       repeat constructor... }
     { have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=ih _ _ H2.
-      exists (_: Θ1'). exists (Ch r (cren ξ A) :L Θ2').
+      exists (_: Θ1'). exists (Ch r (term_cren A ξ) :L Θ2').
       repeat constructor... } }
   { move=>ξ Θ Θ' agr ih Θ1 Θ2 mrg. inv mrg.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=ih _ _ H2.
@@ -109,7 +109,7 @@ Qed.
 
 Lemma dyn_crename Θ Θ' Γ Δ m A ξ :
   Θ ; Γ ; Δ ⊢ m : A -> dyn_ctx_cren ξ Θ Θ' ->
-  Θ' ; Γ ; Δ ⊢ cren ξ m : A.
+  Θ' ; Γ ; Δ ⊢ term_cren m ξ : A.
 Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
   move=>ty. elim: ty Θ' ξ=>/={Θ Γ Δ m A}...
   { move=>Θ Γ Δ x s A wmp wf shs dhs Θ' ξ agr.
@@ -149,7 +149,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
   { move=>Θ Γ Δ A B m n s tym ihm tyn Θ' ξ agr.
     have[r tyP]:=dyn_valid tym.
     have[t[tyB/sort_inj e]]:=sta_pi0_inv tyP. subst.
-    have eq:B.[cren ξ n/] ≃ B.[n/].
+    have eq:B.[term_cren n ξ/] === B.[n/].
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
     apply: dyn_conv...
@@ -160,14 +160,14 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
     have[r tyP]:=dyn_valid tym.
     have[t[tyB/sort_inj e]]:=sta_pi1_inv tyP. subst.
-    have eq:B.[cren ξ n/] ≃ B.[n/].
+    have eq:B.[term_cren n ξ/] === B.[n/].
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
     apply: dyn_conv...
     have:=sta_subst tyB (dyn_sta_type tyn)... }
   { move=>Θ Γ Δ A B m n t tyS tym tyn ihn Θ' ξ agr.
     have[s[r[ord[tyA[tyB _]]]]]:=sta_sig0_inv tyS.
-    have eq: B.[m/] ≃ B.[cren ξ m/].
+    have eq: B.[m/] === B.[term_cren m ξ/].
     apply: sta_conv_beta.
     apply: conv_sym.
     apply: sta_cren_conv0...
@@ -178,7 +178,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2 tyS tym ihm tyn ihn Θ' ξ agr.
     have[s[r[ord1[ord2[tyA[tyB _]]]]]]:=sta_sig1_inv tyS.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
-    have eq: B.[m/] ≃ B.[cren ξ m/].
+    have eq: B.[m/] === B.[term_cren m ξ/].
     apply: sta_conv_beta.
     apply: conv_sym.
     apply: sta_cren_conv0...
@@ -189,7 +189,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
     have wf:=sta_type_wf tyC. inv wf.
     have[s1[r1[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv H2. subst.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
-    have eq: (cren ξ C).[cren ξ m/] ≃ C.[m/].
+    have eq: (term_cren C ξ).[term_cren m ξ/] === C.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -230,7 +230,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
     have wf:=sta_type_wf tyC. inv wf.
     have[s1[r3[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv H2. subst.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
-    have eq: (cren ξ C).[cren ξ m/] ≃ C.[m/].
+    have eq: (term_cren C ξ).[term_cren m ξ/] === C.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -293,7 +293,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2 tyA tym ihm tyn1 ihn1 tyn2 ihn2 Θ' ξ agr.
     have wf:=sta_type_wf (dyn_sta_type tym).
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
-    have eq:(cren ξ A).[cren ξ m/] ≃ A.[m/].
+    have eq:(term_cren A ξ).[term_cren m ξ/] === A.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -351,12 +351,12 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
 Qed.
 
 Lemma dyn_cstrengthen Θ Γ Δ m A :
-  _: Θ ; Γ ; Δ ⊢ cren (+1) m : A -> Θ ; Γ ; Δ ⊢ m : A.
+  _: Θ ; Γ ; Δ ⊢ term_cren m (+1) : A -> Θ ; Γ ; Δ ⊢ m : A.
 Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
   move=>ty.
   have e:((+1) >>> (-1)) = id.
   { f_ext. move=>x. asimpl. fold subn. lia. }
-  replace m with (cren ((-1) >>> id) (cren (+1) m)).
+  replace m with (term_cren (term_cren m (+1)) ((-1) >>> id)).
   apply: dyn_crename.
   apply: ty.
   constructor.
@@ -366,7 +366,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
 Qed.
 
 Lemma dyn_cweaken Θ Γ Δ m A :
-  Θ ; Γ ; Δ ⊢ m : A -> _: Θ ; Γ ; Δ ⊢ cren (+1) m : A.
+  Θ ; Γ ; Δ ⊢ m : A -> _: Θ ; Γ ; Δ ⊢ term_cren m (+1) : A.
 Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
   move=>ty. apply: dyn_crename...
 Qed.

@@ -51,19 +51,17 @@ Inductive term : Type :=
 | Return (m : term)
 | Bind (m : term) (n : {bind term})
 (* session *)
-| Proto
-| Stop
+| Proto | Stop
 | Act0 (r : bool) (A : term) (B : {bind term}) (* ρ{x : A}.B *)
 | Act1 (r : bool) (A : term) (B : {bind term}) (* ρ(x : A).B *)
 | Ch (r : bool) (A : term)
 | CVar (x : cvar)
 | Fork (A : term) (m : {bind term})
-| Recv0 (m : term)
-| Recv1 (m : term)
-| Send0 (m : term)
-| Send1 (m : term)
-| Close (m : term)
-| Wait (m : term).
+| Recv0 (m : term) | Recv1 (m : term)
+| Send0 (m : term) | Send1 (m : term)
+| Close (m : term) | Wait (m : term)
+(* erasure *)
+| Box.
 
 #[global] Instance Ids_term : Ids term. derive. Defined.
 #[global] Instance Rename_term : Rename term. derive. Defined.

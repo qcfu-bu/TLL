@@ -72,10 +72,10 @@ Inductive dyn_has : dyn_ctx -> var -> sort -> term -> Prop :=
 Inductive dyn_just : dyn_ctx -> var -> term -> Prop :=
 | dyn_just_O Δ A :
   dyn_empty Δ ->
-  dyn_just (A :L Δ) 0 (term_cren A (+1))
+  dyn_just (A :L Δ) 0 (cren (+1) A)
 | dyn_just_N Δ A x :
   dyn_just Δ x A ->
-  dyn_just (_: Δ) x.+1 (term_cren A (+1)).
+  dyn_just (_: Δ) x.+1 (cren (+1) A).
 
 Lemma key_impure Δ : Δ ▷ L.
 Proof with eauto using key.

@@ -6,10 +6,10 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma sta_cren_pstep0 m n ξ : m ≈> n -> term_cren m ξ ≈> n.
+Lemma sta_cren_pstep0 m n ξ : m ≈> n -> cren ξ m ≈> n.
 Proof with eauto using sta_pstep. move=>st. elim: st ξ=>//={m n}... Qed.
 
-Lemma sta_cren_pstep m n ξ : m ≈> n -> term_cren m ξ ≈> term_cren n ξ.
+Lemma sta_cren_pstep m n ξ : m ≈> n -> cren ξ m ≈> cren ξ n.
 Proof with eauto using sta_pstep.
   move=>st. elim: st ξ=>//={m n}...
   { move=>A m m' n n' s pm ihm pn ihn ξ.
@@ -32,7 +32,7 @@ Proof with eauto using sta_pstep.
     constructor... }
 Qed.
 
-Lemma sta_cren_pred0 m n ξ : m ≈>* n -> term_cren m ξ ≈>* n.
+Lemma sta_cren_pred0 m n ξ : m ≈>* n -> cren ξ m ≈>* n.
 Proof with eauto using sta_pstep.
   move=>rd. elim: rd ξ=>{n}...
   move=>ξ. apply: star1. apply: sta_cren_pstep0...
@@ -40,7 +40,7 @@ Proof with eauto using sta_pstep.
   apply: starSE...
 Qed.
 
-Lemma sta_cren_pred m n ξ : m ≈>* n -> term_cren m ξ ≈>* term_cren n ξ.
+Lemma sta_cren_pred m n ξ : m ≈>* n -> cren ξ m ≈>* cren ξ n.
 Proof with eauto using sta_pstep.
   move=>rd. elim: rd ξ=>{n}...
   move=>y z rd ih st ξ.
@@ -49,7 +49,7 @@ Proof with eauto using sta_pstep.
   by apply: sta_cren_pstep.
 Qed.
 
-Lemma sta_cren_conv0 m n ξ : m === n -> term_cren m ξ === n.
+Lemma sta_cren_conv0 m n ξ : m ≃ n -> cren ξ m ≃ n.
 Proof with eauto using sta_pstep.
   move=>rd. elim: rd ξ=>{n}...
   { move=>ξ. apply: conv1. apply:sta_cren_pstep0... }
@@ -61,7 +61,7 @@ Proof with eauto using sta_pstep.
     by apply: conv1i. }
 Qed.
 
-Lemma sta_cren_conv m n ξ : m === n -> term_cren m ξ === term_cren n ξ.
+Lemma sta_cren_conv m n ξ : m ≃ n -> cren ξ m ≃ cren ξ n.
 Proof with eauto using sta_pstep.
   move=>rd. elim: rd ξ=>{n}...
   { move=>y z rd ih st ξ.
@@ -76,7 +76,7 @@ Proof with eauto using sta_pstep.
 Qed.
 
 Lemma sta_crename Γ m A ξ :
-  Γ ⊢ m : A -> Γ ⊢ term_cren m ξ : A.
+  Γ ⊢ m : A -> Γ ⊢ cren ξ m : A.
 Proof with eauto using sta_type, sta0_sta_wf.
   move=>ty. have{}ty:=sta_sta0_type ty.
   elim: ty ξ=>//={Γ m A}...
@@ -172,7 +172,7 @@ Proof with eauto using sta_type, sta0_sta_wf.
   { move=>Γ A B C m n s t/sta0_sta_type tyS ihS/sta0_sta_type tym ihm/sta0_sta_type tyn ihn ξ.
     have wf:=sta_type_wf tyS. inv wf.
     have[s1[r[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv H2. subst.
-    have eq: (term_cren C ξ).[term_cren m ξ/] === C.[m/].
+    have eq: (cren ξ C).[cren ξ m/] ≃ C.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -214,7 +214,7 @@ Proof with eauto using sta_type, sta0_sta_wf.
   { move=>Γ A B C m n s t/sta0_sta_type tyS ihS/sta0_sta_type tym ihm/sta0_sta_type tyn ihn ξ.
     have wf:=sta_type_wf tyS. inv wf.
     have[s1[r[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv H2. subst.
-    have eq: (term_cren C ξ).[term_cren m ξ/] === C.[m/].
+    have eq: (cren ξ C).[cren ξ m/] ≃ C.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -270,7 +270,7 @@ Proof with eauto using sta_type, sta0_sta_wf.
   { move=>Γ A m n1 n2 s/sta0_sta_type tyA ihA/sta0_sta_type tym ihm
            /sta0_sta_type tyn1 ihn1/sta0_sta_type tyn2 ihn2 ξ.
     have wf:=sta_type_wf tym.
-    have eq:(term_cren A ξ).[term_cren m ξ/] === A.[m/].
+    have eq:(cren ξ A).[cren ξ m/] ≃ A.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -327,7 +327,7 @@ Proof with eauto using sta_type, sta0_sta_wf.
 Qed.
 
 Lemma sta_ecrename Γ m m' A ξ :
-  m' = term_cren m ξ ->
+  m' = cren ξ m ->
   Γ ⊢ m : A -> Γ ⊢ m' : A.
 Proof. move=>->. apply: sta_crename. Qed.
 
@@ -338,13 +338,13 @@ Ltac sta0_to_sta :=
     end.
 
 Lemma sta_crename_inv Γ m A ξ :
-  Γ ⊢ term_cren m ξ : A -> Γ ⊢ m : A.
+  Γ ⊢ cren ξ m : A -> Γ ⊢ m : A.
 Proof with eauto using sta_type, sta0_sta_wf.
-  move e:(term_cren m ξ)=>n/sta_sta0_type ty.
+  move e:(cren ξ m)=>n/sta_sta0_type ty.
   elim: ty m ξ e=>//={Γ n A}...
   all: try solve[intros; sta0_to_sta;
                  match goal with
-                 | [ H : term_cren ?m _ = _ |- _ ] =>
+                 | [ H : cren _ ?m = _ |- _ ] =>
                      destruct m; inv H; eauto using sta_type, sta_wf
                  end].
   { move=>Γ A B s r t tyA ihA tyB ihB m ξ e. sta0_to_sta.
@@ -454,7 +454,7 @@ Proof with eauto using sta_type, sta0_sta_wf.
     destruct m0; inv e.
     have wf:=sta_type_wf tyS. inv wf.
     have[s1[r[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv H2. subst.
-    have cs: term_csubst (m0 .: ids) (term_cren m0 ξ .: ids) ξ.
+    have cs: cren_subst_agree (m0 .: ids) (cren ξ m0 .: ids) ξ.
     move=>[|x]...
     erewrite<-(term_cren_subst _ cs).
     have agr:sta_agree_subst (B :: A :: Γ) (Pair0 (Var 1) (Var 0) t .: ren (+2)) (Sig0 A B t :: Γ).
@@ -492,7 +492,7 @@ Proof with eauto using sta_type, sta0_sta_wf.
     destruct m0; inv e.
     have wf:=sta_type_wf tyS. inv wf.
     have[s1[r[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv H2. subst.
-    have cs: term_csubst (m0 .: ids) (term_cren m0 ξ .: ids) ξ.
+    have cs: cren_subst_agree (m0 .: ids) (cren ξ m0 .: ids) ξ.
     move=>[|x]...
     erewrite<-(term_cren_subst _ cs).
     have agr:sta_agree_subst (B :: A :: Γ) (Pair1 (Var 1) (Var 0) t .: ren (+2)) (Sig1 A B t :: Γ).

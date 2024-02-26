@@ -34,13 +34,13 @@ Inductive dyn_agree_subst :
   Θb ; Γ1 ; Δb ⊢ n : A.[σ] ->
   Θ1 ; Γ1 ; Δ1 ⊢ n .: σ ⊣ (A :: Γ2) ; (A .{s} Δ2)
 | dyn_agree_subst_conv0 Θ1 Γ1 Δ1 σ Γ2 Δ2 A B s :
-  A ≃ B ->
+  A === B ->
   Γ1 ⊢ B.[ren (+1)].[σ] : Sort s ->
   Γ2 ⊢ B : Sort s ->
   Θ1 ; Γ1 ; Δ1 ⊢ σ ⊣ (A :: Γ2) ; (_: Δ2) ->
   Θ1 ; Γ1 ; Δ1 ⊢ σ ⊣ (B :: Γ2) ; (_: Δ2)
 | dyn_agree_subst_conv1 Θ1 Γ1 Δ1 σ Γ2 Δ2 A B s :
-  A ≃ B ->
+  A === B ->
   Γ1 ⊢ B.[ren (+1)].[σ] : Sort s ->
   Γ2 ⊢ B : Sort s ->
   Θ1 ; Γ1 ; Δ1 ⊢ σ ⊣ (A :: Γ2) ; (A .{s} Δ2) ->
@@ -486,7 +486,7 @@ Proof.
 Qed.
 
 Lemma dyn_ctx_conv0 Θ Γ Δ m A B C s :
-  B ≃ A ->
+  B === A ->
   Γ ⊢ B : Sort s ->
   Θ ; (A :: Γ) ; _: Δ ⊢ m : C ->
   Θ ; (B :: Γ) ; _: Δ ⊢ m : C.
@@ -502,7 +502,7 @@ Proof with eauto using dyn_wf, dyn_agree_subst_refl.
 Qed.
 
 Lemma dyn_ctx_conv1 Θ Γ Δ m A B C s :
-  B ≃ A ->
+  B === A ->
   Γ ⊢ B : Sort s ->
   Θ ; (A :: Γ) ; A .{s} Δ ⊢ m : C ->
   Θ ; (B :: Γ) ; B .{s} Δ ⊢ m : C.

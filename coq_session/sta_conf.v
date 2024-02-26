@@ -155,11 +155,13 @@ Inductive sta_pstep : term -> term -> Prop :=
 | sta_pstep_wait m m' :
   m ≈> m' ->
   Wait m ≈> Wait m'
+| sta_pstep_box :
+  Box ≈> Box
 where "m ≈> n" := (sta_pstep m n).
 
 Notation sta_pred := (star sta_pstep).
 Notation "m ≈>* n" := (sta_pred m n) (at level 50).
-Notation "m === n" := (conv sta_pstep m n) (at level 50).
+Notation "m ≃ n" := (conv sta_pstep m n) (at level 50).
 
 Definition sred σ τ := forall x : var, (σ x) ~>* (τ x).
 
@@ -464,7 +466,7 @@ Proof with eauto using sta_pstep, sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_pi0 A A' B B' s :
-  A === A' -> B === B' -> Pi0 A B s === Pi0 A' B' s.
+  A ≃ A' -> B ≃ B' -> Pi0 A B s ≃ Pi0 A' B' s.
 Proof with eauto using sta_pstep_refl.
   move=> r1 r2.
   apply: (conv_trans (Pi0 A' B s)).
@@ -473,7 +475,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_pi1 A A' B B' s :
-  A === A' -> B === B' -> Pi1 A B s === Pi1 A' B' s.
+  A ≃ A' -> B ≃ B' -> Pi1 A B s ≃ Pi1 A' B' s.
 Proof with eauto using sta_pstep_refl.
   move=> r1 r2.
   apply: (conv_trans (Pi1 A' B s)).
@@ -482,7 +484,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_lam0 A A' m m' s :
-  A === A' -> m === m' -> Lam0 A m s === Lam0 A' m' s.
+  A ≃ A' -> m ≃ m' -> Lam0 A m s ≃ Lam0 A' m' s.
 Proof with eauto using sta_pstep_refl.
   move=> r1 r2.
   apply: (conv_trans (Lam0 A' m s)).
@@ -491,7 +493,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_lam1 A A' m m' s :
-  A === A' -> m === m' -> Lam1 A m s === Lam1 A' m' s.
+  A ≃ A' -> m ≃ m' -> Lam1 A m s ≃ Lam1 A' m' s.
 Proof with eauto using sta_pstep_refl.
   move=> r1 r2.
   apply: (conv_trans (Lam1 A' m s)).
@@ -500,7 +502,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_app0 m m' n n' :
-  m === m' -> n === n' -> App0 m n === App0 m' n'.
+  m ≃ m' -> n ≃ n' -> App0 m n ≃ App0 m' n'.
 Proof with eauto using sta_pstep_refl.
   move=> r1 r2.
   apply: (conv_trans (App0 m' n)).
@@ -509,7 +511,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_app1 m m' n n' :
-  m === m' -> n === n' -> App1 m n === App1 m' n'.
+  m ≃ m' -> n ≃ n' -> App1 m n ≃ App1 m' n'.
 Proof with eauto using sta_pstep_refl.
   move=> r1 r2.
   apply: (conv_trans (App1 m' n)).
@@ -518,7 +520,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_sig0 A A' B B' s :
-  A === A' -> B === B' -> Sig0 A B s === Sig0 A' B' s.
+  A ≃ A' -> B ≃ B' -> Sig0 A B s ≃ Sig0 A' B' s.
 Proof with eauto using sta_pstep_refl.
   move=> r1 r2.
   apply: (conv_trans (Sig0 A' B s)).
@@ -527,7 +529,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_sig1 A A' B B' s :
-  A === A' -> B === B' -> Sig1 A B s === Sig1 A' B' s.
+  A ≃ A' -> B ≃ B' -> Sig1 A B s ≃ Sig1 A' B' s.
 Proof with eauto using sta_pstep_refl.
   move=> r1 r2.
   apply: (conv_trans (Sig1 A' B s)).
@@ -536,7 +538,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_pair0 m m' n n' t :
-  m === m' -> n === n' -> Pair0 m n t === Pair0 m' n' t.
+  m ≃ m' -> n ≃ n' -> Pair0 m n t ≃ Pair0 m' n' t.
 Proof with eauto using sta_pstep_refl.
   move=>r1 r2.
   apply: (conv_trans (Pair0 m' n t)).
@@ -545,7 +547,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_pair1 m m' n n' t :
-  m === m' -> n === n' -> Pair1 m n t === Pair1 m' n' t.
+  m ≃ m' -> n ≃ n' -> Pair1 m n t ≃ Pair1 m' n' t.
 Proof with eauto using sta_pstep_refl.
   move=>r1 r2.
   apply: (conv_trans (Pair1 m' n t)).
@@ -554,7 +556,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_letin A A' m m' n n' :
-  A === A' -> m === m' -> n === n' -> LetIn A m n === LetIn A' m' n'.
+  A ≃ A' -> m ≃ m' -> n ≃ n' -> LetIn A m n ≃ LetIn A' m' n'.
 Proof with eauto using sta_pstep_refl.
   move=>r1 r2 r3.
   apply: (conv_trans (LetIn A' m n)).
@@ -565,7 +567,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_fix A A' m m' :
-  A === A' -> m === m' -> Fix A m === Fix A' m'.
+  A ≃ A' -> m ≃ m' -> Fix A m ≃ Fix A' m'.
 Proof with eauto using sta_pstep_refl.
   move=> r1 r2.
   apply: (conv_trans (Fix A' m)).
@@ -574,8 +576,8 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_ifte A A' m m' n1 n1' n2 n2' :
-  A === A' -> m === m' -> n1 === n1' -> n2 === n2' ->
-  Ifte A m n1 n2 === Ifte A' m' n1' n2'.
+  A ≃ A' -> m ≃ m' -> n1 ≃ n1' -> n2 ≃ n2' ->
+  Ifte A m n1 n2 ≃ Ifte A' m' n1' n2'.
 Proof with eauto using sta_pstep_refl.
   move=> r1 r2 r3 r4.
   apply: (conv_trans (Ifte A' m n1 n2)).
@@ -587,14 +589,14 @@ Proof with eauto using sta_pstep_refl.
   apply: (conv_hom (Ifte A' m' n1')) r4=>x y p. apply: sta_pstep_ifte...
 Qed.
 
-Lemma sta_conv_io A A' : A === A' -> IO A === IO A'.
+Lemma sta_conv_io A A' : A ≃ A' -> IO A ≃ IO A'.
 Proof. move=>r. apply: (conv_hom IO) r=>x y p. exact: sta_pstep_io. Qed.
 
-Lemma sta_conv_return m m' : m === m' -> Return m === Return m'.
+Lemma sta_conv_return m m' : m ≃ m' -> Return m ≃ Return m'.
 Proof. move=>r. apply: (conv_hom Return) r=>x y p. exact: sta_pstep_return. Qed.
 
 Lemma sta_conv_bind m m' n n' :
-  m === m' -> n === n' -> Bind m n === Bind m' n'.
+  m ≃ m' -> n ≃ n' -> Bind m n ≃ Bind m' n'.
 Proof with eauto using sta_pstep_refl.
   move=>r1 r2.
   apply: (conv_trans (Bind m' n)).
@@ -603,7 +605,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_act0 r A A' B B' :
-  A === A' -> B === B' -> Act0 r A B === Act0 r A' B'.
+  A ≃ A' -> B ≃ B' -> Act0 r A B ≃ Act0 r A' B'.
 Proof with eauto using sta_pstep_refl.
   move=>r1 r2.
   apply: (conv_trans (Act0 r A' B)).
@@ -612,7 +614,7 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_act1 r A A' B B' :
-  A === A' -> B === B' -> Act1 r A B === Act1 r A' B'.
+  A ≃ A' -> B ≃ B' -> Act1 r A B ≃ Act1 r A' B'.
 Proof with eauto using sta_pstep_refl.
   move=>r1 r2.
   apply: (conv_trans (Act1 r A' B)).
@@ -621,13 +623,13 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_ch r A A' :
-  A === A' -> Ch r A === Ch r A'.
+  A ≃ A' -> Ch r A ≃ Ch r A'.
 Proof.
   move=>c. apply: (conv_hom (Ch r)) c=>x y. exact: sta_pstep_ch.
 Qed.
 
 Lemma sta_conv_fork A A' m m' :
-  A === A' -> m === m' ->  Fork A m === Fork A' m'. 
+  A ≃ A' -> m ≃ m' ->  Fork A m ≃ Fork A' m'. 
 Proof with eauto using sta_pstep_refl.
   move=>r1 r2.
   apply: (conv_trans (Fork A' m)).
@@ -636,38 +638,38 @@ Proof with eauto using sta_pstep_refl.
 Qed.
 
 Lemma sta_conv_recv0 m m' :
-  m === m' -> Recv0 m === Recv0 m'.
+  m ≃ m' -> Recv0 m ≃ Recv0 m'.
 Proof. move=>r. apply: (conv_hom Recv0) r=>x y. exact: sta_pstep_recv0. Qed.
 
 Lemma sta_conv_recv1 m m' :
-  m === m' -> Recv1 m === Recv1 m'.
+  m ≃ m' -> Recv1 m ≃ Recv1 m'.
 Proof. move=>r. apply: (conv_hom Recv1) r=>x y. exact: sta_pstep_recv1. Qed.
 
 Lemma sta_conv_send0 m m' :
-  m === m' -> Send0 m === Send0 m'.
+  m ≃ m' -> Send0 m ≃ Send0 m'.
 Proof. move=>r. apply: (conv_hom Send0) r=>x y. exact: sta_pstep_send0. Qed.
 
 Lemma sta_conv_send1 m m' :
-  m === m' -> Send1 m === Send1 m'.
+  m ≃ m' -> Send1 m ≃ Send1 m'.
 Proof. move=>r. apply: (conv_hom Send1) r=>x y. exact: sta_pstep_send1. Qed.
 
 Lemma sta_conv_close m m' :
-  m === m' -> Close m === Close m'.
+  m ≃ m' -> Close m ≃ Close m'.
 Proof. move=>r. apply: (conv_hom Close) r=>x y. exact: sta_pstep_close. Qed.
 
 Lemma sta_conv_wait m m' :
-  m === m' -> Wait m === Wait m'.
+  m ≃ m' -> Wait m ≃ Wait m'.
 Proof. move=>r. apply: (conv_hom Wait) r=>x y. exact: sta_pstep_wait. Qed.
 
 Lemma sta_conv_subst σ m n :
-  m === n -> m.[σ] === n.[σ].
+  m ≃ n -> m.[σ] ≃ n.[σ].
 Proof.
   move=>c.
   apply: conv_hom c=>x y.
   exact: sta_pstep_subst.
 Qed.
 
-Definition sconv (σ τ : var -> term) := forall x, σ x === τ x.
+Definition sconv (σ τ : var -> term) := forall x, σ x ≃ τ x.
 
 Lemma sconv_up σ τ : sconv σ τ -> sconv (up σ) (up τ).
 Proof. move=> A [|x] //=. asimpl. exact: sta_conv_subst. Qed.
@@ -695,10 +697,10 @@ Qed.
   sconv_up sconv_upn : sta_conv_congr.
 
 Lemma sta_conv_compat σ τ s :
-  sconv σ τ -> s.[σ] === s.[τ].
+  sconv σ τ -> s.[σ] ≃ s.[τ].
 Proof. elim: s σ τ => *; asimpl; eauto 8 with sta_conv_congr. Qed.
 
-Lemma sta_conv_beta m n1 n2 : n1 === n2 -> m.[n1/] === m.[n2/].
+Lemma sta_conv_beta m n1 n2 : n1 ≃ n2 -> m.[n1/] ≃ m.[n2/].
 Proof. move=> c. by apply: sta_conv_compat => -[]. Qed.
 
 Definition sta_psstep (σ τ : var -> term) := forall x, (σ x) ≈> (τ x).
@@ -1311,14 +1313,14 @@ Proof.
 Qed.
 
 Lemma sort_inj s1 s2 :
-  Sort s1 === Sort s2 -> s1 = s2.
+  Sort s1 ≃ Sort s2 -> s1 = s2.
 Proof.
   move/church_rosser=>[x/sta_pred_sort_inv->/sta_pred_sort_inv[->]]//.
 Qed.
 
 Lemma pi0_inj A A' B B' s s' :
-  Pi0 A B s === Pi0 A' B' s' ->
-    A === A' /\ B === B' /\ s = s'.
+  Pi0 A B s ≃ Pi0 A' B' s' ->
+    A ≃ A' /\ B ≃ B' /\ s = s'.
 Proof.
   move/church_rosser=>
     [x/sta_pred_pi0_inv[A1[B1[rA1[rB1->]]]]
@@ -1333,8 +1335,8 @@ Proof.
 Qed.
 
 Lemma pi1_inj A A' B B' s s' :
-  Pi1 A B s === Pi1 A' B' s' ->
-    A === A' /\ B === B' /\ s = s'.
+  Pi1 A B s ≃ Pi1 A' B' s' ->
+    A ≃ A' /\ B ≃ B' /\ s = s'.
 Proof.
   move/church_rosser=>
     [x/sta_pred_pi1_inv[A1[B1[rA1[rB1->]]]]
@@ -1349,8 +1351,8 @@ Proof.
 Qed.
 
 Lemma sig0_inj A A' B B' s s' :
-  Sig0 A B s === Sig0 A' B' s' ->
-    A === A' /\ B === B' /\ s = s'.
+  Sig0 A B s ≃ Sig0 A' B' s' ->
+    A ≃ A' /\ B ≃ B' /\ s = s'.
 Proof.
   move/church_rosser=>
     [x/sta_pred_sig0_inv[A1[B1[rA1[rB1->]]]]
@@ -1365,8 +1367,8 @@ Proof.
 Qed.
 
 Lemma sig1_inj A A' B B' s s' :
-  Sig1 A B s === Sig1 A' B' s' ->
-    A === A' /\ B === B' /\ s = s'.
+  Sig1 A B s ≃ Sig1 A' B' s' ->
+    A ≃ A' /\ B ≃ B' /\ s = s'.
 Proof.
   move/church_rosser=>
     [x/sta_pred_sig1_inv[A1[B1[rA1[rB1->]]]]
@@ -1380,7 +1382,7 @@ Proof.
   apply: conv_sym. by apply: star_conv.
 Qed.
 
-Lemma io_inj A A' : IO A === IO A' -> A === A'.
+Lemma io_inj A A' : IO A ≃ IO A' -> A ≃ A'.
 Proof.
   move/church_rosser=>
     [x/sta_pred_io_inv[A1[r1->]]/sta_pred_io_inv[A2[r2[e]]]]; subst.
@@ -1390,8 +1392,8 @@ Proof.
 Qed.
 
 Lemma act0_inj r r' A A' B B' :
-  Act0 r A B === Act0 r' A' B' ->
-  A === A' /\ B === B' /\ r = r'.
+  Act0 r A B ≃ Act0 r' A' B' ->
+  A ≃ A' /\ B ≃ B' /\ r = r'.
 Proof.
   move/church_rosser=>[x/sta_pred_act0_inv r1/sta_pred_act0_inv r2].
   move:r1=>[A1[B1[rA1[rB1 e1]]]].
@@ -1400,8 +1402,8 @@ Proof.
 Qed.
 
 Lemma act1_inj r r' A A' B B' :
-  Act1 r A B === Act1 r' A' B' ->
-  A === A' /\ B === B' /\ r = r'.
+  Act1 r A B ≃ Act1 r' A' B' ->
+  A ≃ A' /\ B ≃ B' /\ r = r'.
 Proof.
   move/church_rosser=>[x/sta_pred_act1_inv r1/sta_pred_act1_inv r2].
   move:r1=>[A1[B1[rA1[rB1 e1]]]].
@@ -1410,7 +1412,7 @@ Proof.
 Qed.
 
 Lemma ch_inj r r' A A' :
-  Ch r A === Ch r' A' -> r = r' /\ A === A'.
+  Ch r A ≃ Ch r' A' -> r = r' /\ A ≃ A'.
 Proof.
   move/church_rosser=>[x/sta_pred_ch_inv r1/sta_pred_ch_inv r2].
   move:r1=>[A1[rA1 e1]].
@@ -1455,7 +1457,7 @@ Ltac pred_inv m H :=
 Ltac solve_conv' :=
   unfold not; intros;
   match goal with
-  | [ H : _ === _ |- _ ] =>
+  | [ H : _ ≃ _ |- _ ] =>
     apply church_rosser in H; inv H
   end;
   repeat match goal with
@@ -1473,6 +1475,6 @@ Ltac solve_conv' :=
 
 Ltac solve_conv :=
   match goal with
-  | [ H : ?t1 === ?t2 |- _ ] =>
-    assert (~ t1 === t2) by solve_conv'
+  | [ H : ?t1 ≃ ?t2 |- _ ] =>
+    assert (~ t1 ≃ t2) by solve_conv'
   end; eauto.

@@ -1,6 +1,6 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq zify.
 From Coq Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS proc_ast dyn_cren.
+Require Export AutosubstSsr ARS tllc_ast dyn_cren.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -19,7 +19,7 @@ Inductive proc_type : dyn_ctx -> proc -> Prop :=
   Θ ⊢ p ∣ q
 | proc_scope Θ p r1 r2 A :
   r1 = ~~r2 ->
-  Ch r1 (term_cren A (+1)) :L Ch r2 A :L Θ ⊢ p ->
+  Ch r1 (cren (+1) A) :L Ch r2 A :L Θ ⊢ p ->
   Θ ⊢ ν.p
 where "Θ ⊢ p" := (proc_type Θ p).
 
@@ -98,5 +98,3 @@ Proof with eauto using merge, dyn_empty.
   move=>Θ r A wf[Θ'[emp mrg]]tyA. exists (_: Θ')...
   move=>Θ wf[Θ'[emp mrg]]. exists (_: Θ')...
 Qed.
-
-         

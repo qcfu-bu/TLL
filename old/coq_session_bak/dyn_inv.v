@@ -8,7 +8,7 @@ Unset Printing Implicit Defensive.
 
 Lemma dyn_lam0_invX Θ Γ Δ A1 A2 B C m s1 s2 t :
   Θ ; Γ ; Δ ⊢ Lam0 A1 m s1 : C ->
-  C ≃ Pi0 A2 B s2 ->
+  C === Pi0 A2 B s2 ->
   (A2 :: Γ) ⊢ B : Sort t ->
   Θ ; (A2 :: Γ) ; _: Δ ⊢ m : B.
 Proof with eauto.
@@ -31,7 +31,7 @@ Qed.
 
 Lemma dyn_lam1_invX Θ Γ Δ A1 A2 B C m s1 s2 t :
   Θ ; Γ ; Δ ⊢ Lam1 A1 m s1 : C ->
-  C ≃ Pi1 A2 B s2 ->
+  C === Pi1 A2 B s2 ->
   (A2 :: Γ) ⊢ B : Sort t ->
   exists r, Θ ; (A2 :: Γ) ; A2 .{r} Δ ⊢ m : B.
 Proof with eauto.
@@ -75,7 +75,7 @@ Qed.
 
 Lemma dyn_pair0_invX Θ Γ Δ A B m n s r t C :
   Θ ; Γ ; Δ ⊢ Pair0 m n s : C ->
-  C ≃ Sig0 A B r ->
+  C === Sig0 A B r ->
   Γ ⊢ Sig0 A B r : Sort t ->
   s = r /\ Γ ⊢ m : A /\ Θ ; Γ ; Δ ⊢ n : B.[m/].
 Proof with eauto.
@@ -98,7 +98,7 @@ Qed.
 
 Lemma dyn_pair1_invX Θ Γ Δ A B m n s r t C :
   Θ ; Γ ; Δ ⊢ Pair1 m n s : C ->
-  C ≃ Sig1 A B r ->
+  C === Sig1 A B r ->
   Γ ⊢ Sig1 A B r : Sort t ->
   exists Θ1 Θ2 Δ1 Δ2,
     s = r /\
@@ -151,7 +151,7 @@ Qed.
 Lemma dyn_app0_inv Θ Γ Δ m n C :
   Θ ; Γ ; Δ ⊢ App0 m n : C ->
   exists A B s,
-    Θ ; Γ ; Δ ⊢ m : Pi0 A B s /\ Γ ⊢ n : A /\ C ≃ B.[n/].
+    Θ ; Γ ; Δ ⊢ m : Pi0 A B s /\ Γ ⊢ n : A /\ C === B.[n/].
 Proof with eauto.
   move e:(App0 m n)=>x ty.
   elim: ty m n e=>//{Θ Γ Δ x C}.
@@ -172,7 +172,7 @@ Lemma dyn_app1_inv Θ Γ Δ m n C :
     Δ1 ∘ Δ2 => Δ /\
     Θ1 ; Γ ; Δ1 ⊢ m : Pi1 A B s /\
     Θ2 ; Γ ; Δ2 ⊢ n : A /\
-    C ≃ B.[n/].
+    C === B.[n/].
 Proof with eauto.
   move e:(App1 m n)=>x ty.
   elim: ty m n e=>//{Θ Γ Δ x C}.
@@ -197,7 +197,7 @@ Proof with eauto. move e:(FF)=>m ty. elim: ty e=>//{Θ Γ Δ A}. Qed.
 
 Lemma dyn_return_invX Θ Γ Δ m B :
   Θ ; Γ ; Δ ⊢ Return m : B ->
-  exists A, Θ ; Γ ; Δ ⊢ m : A /\ B ≃ IO A.
+  exists A, Θ ; Γ ; Δ ⊢ m : A /\ B === IO A.
 Proof with eauto.
   move e:(Return m)=>x ty.
   elim: ty m e=>//{Θ Γ Δ B x}.
@@ -231,7 +231,7 @@ Lemma dyn_bind_invX Θ Γ Δ m n C :
     Γ ⊢ B : Sort t /\
     Θ1 ; Γ ; Δ1 ⊢ m : IO A /\
     Θ2 ; (A :: Γ) ; (A .{s} Δ2) ⊢ n : IO B.[ren (+1)] /\
-    C ≃ IO B.                    
+    C === IO B.                    
 Proof with eauto.
   move e:(Bind m n)=>x ty. elim: ty m n e=>//{Θ Γ Δ x C}.
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2 tyB
@@ -277,7 +277,7 @@ Lemma dyn_cvar_inv Θ Γ Δ x B :
   exists r A,
     dyn_just Θ x (Ch r A) /\
     nil ⊢ A : Proto /\
-    B ≃ Ch r A.[ren (+size Γ)].
+    B === Ch r A.[ren (+size Γ)].
 Proof with eauto.
   move e:(CVar x)=>m ty. elim: ty x e=>//{Θ Γ Δ m B}.
   { move=>Θ Γ Δ r x A js _ _ tyA x0[e]. subst.
@@ -294,7 +294,7 @@ Qed.
 Lemma dyn_fork_inv Θ Γ Δ A m B :
   Θ ; Γ ; Δ ⊢ Fork A m : B ->
   Θ ; (Ch true A :: Γ) ; Ch true A :L Δ ⊢ m : IO Unit /\
-  B ≃ IO (Ch false A).
+  B === IO (Ch false A).
 Proof with eauto.
   move e:(Fork A m)=>x ty. elim: ty A m e=>//{Θ Γ Δ x B}.
   { move=>Θ Γ Δ m A tym ihm A0 m0[e1 e2]. subst... }
@@ -310,7 +310,7 @@ Lemma dyn_recv0_inv Θ Γ Δ m C :
   Θ ; Γ ; Δ ⊢ Recv0 m : C ->
   exists r1 r2 A B,
     r1 (+) r2 = false /\
-    C ≃ IO (Sig0 A (Ch r1 B) L) /\
+    C === IO (Sig0 A (Ch r1 B) L) /\
     Θ ; Γ ; Δ ⊢ m : Ch r1 (Act0 r2 A B).
 Proof with eauto.
   move e:(Recv0 m)=>n ty. elim: ty m e=>//{Θ Γ Δ n C}.
@@ -329,7 +329,7 @@ Lemma dyn_recv1_inv Θ Γ Δ m C :
   Θ ; Γ ; Δ ⊢ Recv1 m : C ->
   exists r1 r2 A B,
     r1 (+) r2 = false /\
-    C ≃ IO (Sig1 A (Ch r1 B) L) /\
+    C === IO (Sig1 A (Ch r1 B) L) /\
     Θ ; Γ ; Δ ⊢ m : Ch r1 (Act1 r2 A B).
 Proof with eauto.
   move e:(Recv1 m)=>n ty. elim: ty m e=>//{Θ Γ Δ n C}.
@@ -348,7 +348,7 @@ Lemma dyn_send0_inv Θ Γ Δ m C :
   Θ ; Γ ; Δ ⊢ Send0 m : C ->
   exists r1 r2 A B,
     r1 (+) r2 = true /\
-    C ≃ Pi0 A (IO (Ch r1 B)) L /\
+    C === Pi0 A (IO (Ch r1 B)) L /\
     Θ ; Γ ; Δ ⊢ m : Ch r1 (Act0 r2 A B).
 Proof with eauto.
   move e:(Send0 m)=>n ty. elim: ty m e=>//{Θ Γ Δ n C}.
@@ -368,7 +368,7 @@ Lemma dyn_send1_inv Θ Γ Δ m C :
   Θ ; Γ ; Δ ⊢ Send1 m : C ->
   exists r1 r2 A B,
     r1 (+) r2 = true /\
-    C ≃ Pi1 A (IO (Ch r1 B)) L /\
+    C === Pi1 A (IO (Ch r1 B)) L /\
     Θ ; Γ ; Δ ⊢ m : Ch r1 (Act1 r2 A B).
 Proof with eauto.
   move e:(Send1 m)=>n ty. elim: ty m e=>//{Θ Γ Δ n C}.
@@ -386,7 +386,7 @@ Qed.
 
 Lemma dyn_wait_inv Θ Γ Δ m C :
   Θ ; Γ ; Δ ⊢ Wait m : C ->
-  C ≃ IO Unit /\
+  C === IO Unit /\
   Θ ; Γ ; Δ ⊢ m : Ch false Stop.
  Proof with eauto. 
    move e:(Wait m)=>x ty. elim: ty m e=>//{Θ Γ Δ x C}.
@@ -402,7 +402,7 @@ Lemma dyn_wait_inv Θ Γ Δ m C :
 
 Lemma dyn_close_inv Θ Γ Δ m C :
   Θ ; Γ ; Δ ⊢ Close m : C ->
-  C ≃ IO Unit /\
+  C === IO Unit /\
   Θ ; Γ ; Δ ⊢ m : Ch true Stop.
  Proof with eauto. 
    move e:(Close m)=>x ty. elim: ty m e=>//{Θ Γ Δ x C}.

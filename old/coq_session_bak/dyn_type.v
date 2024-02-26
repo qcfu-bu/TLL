@@ -138,7 +138,7 @@ Inductive dyn_type : dyn_ctx -> sta_ctx -> dyn_ctx -> term -> term -> Prop :=
   Θ ; Γ ; Δ ⊢ Close m : IO Unit
 (* conversion *)
 | dyn_conv Θ Γ Δ A B m s :
-  A ≃ B ->
+  A === B ->
   Θ ; Γ ; Δ ⊢ m : A ->
   Γ ⊢ B : Sort s ->
   Θ ; Γ ; Δ ⊢ m : B

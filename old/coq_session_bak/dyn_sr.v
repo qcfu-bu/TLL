@@ -79,7 +79,7 @@ Proof with eauto using key_impure, key_empty, key_merge.
     have[s tyA]:=sta_valid tyn.
     have{}tyB0:=sta_ctx_conv eqA tyA tyB0.
     have/={}tyIO:=sta_io (sta_ch r1 (sta_subst tyB0 tyn)).
-    have/church_rosser[x rd1 rd2]:B.[n/] ≃ (IO (Ch r1 B0)).[n/].
+    have/church_rosser[x rd1 rd2]:B.[n/] === (IO (Ch r1 B0)).[n/].
     apply: sta_conv_subst...
     have tyx1:=sta_prd tyB rd1.
     have tyx2:=sta_prd tyIO rd2.
@@ -92,7 +92,7 @@ Proof with eauto using key_impure, key_empty, key_merge.
     have[s tyA]:=dyn_valid tyn.
     have{}tyB0:=sta_ctx_conv eqA tyA tyB0.
     have/={}tyIO:=sta_io (sta_ch r1 (sta_subst tyB0 (dyn_sta_type tyn))).
-    have/church_rosser[x rd1 rd2]:B.[n/] ≃ (IO (Ch r1 B0)).[n/].
+    have/church_rosser[x rd1 rd2]:B.[n/] === (IO (Ch r1 B0)).[n/].
     apply: sta_conv_subst...
     have tyx1:=sta_prd tyB rd1.
     have tyx2:=sta_prd tyIO rd2.

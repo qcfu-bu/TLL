@@ -8,7 +8,7 @@ Unset Printing Implicit Defensive.
 
 Lemma sta_pi0_inv Γ A B C s :
   Γ ⊢ Pi0 A B s : C ->
-  exists t, (A :: Γ) ⊢ B : Sort t /\ C === Sort s.
+  exists t, (A :: Γ) ⊢ B : Sort t /\ C ≃ Sort s.
 Proof with eauto.
   move e:(Pi0 A B s)=>m ty.
   elim: ty A B s e=>//{Γ C m}.
@@ -24,7 +24,7 @@ Qed.
 
 Lemma sta_pi1_inv Γ A B C s :
   Γ ⊢ Pi1 A B s : C ->
-  exists t, (A :: Γ) ⊢ B : Sort t /\ C === Sort s.
+  exists t, (A :: Γ) ⊢ B : Sort t /\ C ≃ Sort s.
 Proof with eauto.
   move e:(Pi1 A B s)=>m ty.
   elim: ty A B s e=>//{Γ C m}.
@@ -40,7 +40,7 @@ Qed.
 
 Lemma sta_sig0_inv Γ A B C t :
   Γ ⊢ Sig0 A B t : C ->
-  exists s r, r ⊑ t /\ Γ ⊢ A : Sort s /\ (A :: Γ) ⊢ B : Sort r /\ C === Sort t.
+  exists s r, r ⊑ t /\ Γ ⊢ A : Sort s /\ (A :: Γ) ⊢ B : Sort r /\ C ≃ Sort t.
 Proof with eauto.
   move e:(Sig0 A B t)=>m ty.
   elim: ty A B t e=>//{Γ C m}.
@@ -58,7 +58,7 @@ Lemma sta_sig1_inv Γ A B C t :
   Γ ⊢ Sig1 A B t : C ->
   exists s r,
     s ⊑ t /\ r ⊑ t /\
-    Γ ⊢ A : Sort s /\ (A :: Γ) ⊢ B : Sort r /\ C === Sort t.
+    Γ ⊢ A : Sort s /\ (A :: Γ) ⊢ B : Sort r /\ C ≃ Sort t.
 Proof with eauto.
   move e:(Sig1 A B t)=>m ty.
   elim: ty A B t e=>//{Γ C m}.
@@ -74,7 +74,7 @@ Qed.
 
 Lemma sta_ifte_inv Γ m n1 n2 A C :
   Γ ⊢ Ifte A m n1 n2 : C ->
-  A.[m/] === C /\
+  A.[m/] ≃ C /\
   Γ ⊢ m : Bool /\
   Γ ⊢ n1 : A.[TT/] /\
   Γ ⊢ n2 : A.[FF/].
@@ -91,7 +91,7 @@ Qed.
 
 Lemma sta_io_inv Γ A B :
   Γ ⊢ IO A : B ->
-  exists s, Γ ⊢ A : Sort s /\ B === Sort L.
+  exists s, Γ ⊢ A : Sort s /\ B ≃ Sort L.
 Proof with eauto.
   move e:(IO A)=>m ty.
   elim: ty A e=>//{Γ B m}.
@@ -106,7 +106,7 @@ Qed.
 
 Lemma sta_return_inv Γ m B :
   Γ ⊢ Return m : B ->
-  exists A, Γ ⊢ m : A /\ B === IO A.
+  exists A, Γ ⊢ m : A /\ B ≃ IO A.
 Proof with eauto.
   move e:(Return m)=>x ty.
   elim: ty m e=>//{Γ B x}.
@@ -134,7 +134,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_ch_inv Γ r A B :
-  Γ ⊢ Ch r A : B -> Γ ⊢ A : Proto /\ B === Sort L.
+  Γ ⊢ Ch r A : B -> Γ ⊢ A : Proto /\ B ≃ Sort L.
 Proof with eauto.
   move e:(Ch r A)=>n tp. elim: tp r A e=>//{Γ B n}.
   { move=>Γ r A tyA ihA r0 A0[e1 e2]; subst=>//. }
@@ -146,7 +146,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_lam0_pi1_false Γ A1 A2 B C m s1 s2 :
-  Γ ⊢ Lam0 A1 m s1 : C -> C === Pi1 A2 B s2 -> False.
+  Γ ⊢ Lam0 A1 m s1 : C -> C ≃ Pi1 A2 B s2 -> False.
 Proof with eauto.
   move e:(Lam0 A1 m s1)=>n tyL.
   elim: tyL A1 A2 B m s1 s2 e=>//{Γ C n}.
@@ -159,7 +159,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_lam1_pi0_false Γ A1 A2 B C m s1 s2 :
-  Γ ⊢ Lam1 A1 m s1 : C -> C === Pi0 A2 B s2 -> False.
+  Γ ⊢ Lam1 A1 m s1 : C -> C ≃ Pi0 A2 B s2 -> False.
 Proof with eauto.
   move e:(Lam1 A1 m s1)=>n tyL.
   elim: tyL A1 A2 B m s1 s2 e=>//{Γ C n}.
@@ -172,7 +172,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_pair0_sig1_false Γ A B C m1 m2 s1 s2 :
-  Γ ⊢ Pair0 m1 m2 s1 : C -> C === Sig1 A B s2 -> False.
+  Γ ⊢ Pair0 m1 m2 s1 : C -> C ≃ Sig1 A B s2 -> False.
 Proof with eauto.
   move e:(Pair0 m1 m2 s1)=>n tyP.
   elim: tyP A B m1 m2 s1 s2 e=>//{Γ C n}.
@@ -183,7 +183,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_pair1_sig0_false Γ A B C m1 m2 s1 s2 :
-  Γ ⊢ Pair1 m1 m2 s1 : C -> C === Sig0 A B s2 -> False.
+  Γ ⊢ Pair1 m1 m2 s1 : C -> C ≃ Sig0 A B s2 -> False.
 Proof with eauto.
   move e:(Pair1 m1 m2 s1)=>n tyP.
   elim: tyP A B m1 m2 s1 s2 e=>//{Γ C n}.
