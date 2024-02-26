@@ -202,7 +202,7 @@ Proof with eauto using era_type, eproc_type, proc_congr0.
     repeat constructor... }
 Qed.
 
-Lemma eproc_congr_type Θ p p' q :
+Theorem eproc_congr_type Θ p p' q :
   p ≡ q -> Θ ⊢ p ~ p' -> exists2 q', p' ≡ q' & Θ ⊢ q ~ q'.
 Proof with eauto.
   move=>eq. elim: eq Θ p'=>{q}...

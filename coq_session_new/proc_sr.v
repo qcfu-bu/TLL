@@ -162,7 +162,7 @@ Proof with eauto using proc_type, proc_congr0.
     repeat constructor... }
 Qed.
 
-Lemma proc_congr_type Θ p q : Θ ⊢ p -> p ≡ q -> Θ ⊢ q.
+Theorem proc_congr_type Θ p q : Θ ⊢ p -> p ≡ q -> Θ ⊢ q.
 Proof with eauto.
   move=>ty e. elim: e Θ ty=>//={q}.
   { move=>y z e ih cr Θ typ.
