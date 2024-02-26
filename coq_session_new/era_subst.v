@@ -34,13 +34,13 @@ Inductive era_agree_subst :
   Θb ; Γ1 ; Δb ⊢ n ~ n' : A.[σ1] ->
   Θ1 ; Γ1 ; Δ1 ⊢ n .: σ1 ~ n' .: σ2 ⊣ (A :: Γ2) ; (A .{s} Δ2)
 | era_agree_subst_conv0 Θ1 Γ1 Δ1 σ1 σ2 Γ2 Δ2 A B s :
-  A === B ->
+  A ≃ B ->
   Γ1 ⊢ B.[ren (+1)].[σ1] : Sort s ->
   Γ2 ⊢ B : Sort s ->
   Θ1 ; Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ (A :: Γ2) ; (_: Δ2) ->
   Θ1 ; Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ (B :: Γ2) ; (_: Δ2)
 | era_agree_subst_conv1 Θ1 Γ1 Δ1 σ1 σ2 Γ2 Δ2 A B s :
-  A === B ->
+  A ≃ B ->
   Γ1 ⊢ B.[ren (+1)].[σ1] : Sort s ->
   Γ2 ⊢ B : Sort s ->
   Θ1 ; Γ1 ; Δ1 ⊢ σ1 ~ σ2 ⊣ (A :: Γ2) ; (A .{s} Δ2) ->
@@ -411,7 +411,7 @@ Proof.
 Qed.
 
 Lemma era_ctx_conv0 Θ Γ Δ m m' A B C s :
-  B === A ->
+  B ≃ A ->
   Γ ⊢ B : Sort s ->
   Θ ; (A :: Γ) ; _: Δ ⊢ m ~ m' : C ->
   Θ ; (B :: Γ) ; _: Δ ⊢ m ~ m' : C.
@@ -427,7 +427,7 @@ Proof with eauto using dyn_wf, era_agree_subst_refl.
 Qed.
 
 Lemma era_ctx_conv1 Θ Γ Δ m m' A B C s :
-  B === A ->
+  B ≃ A ->
   Γ ⊢ B : Sort s ->
   Θ ; (A :: Γ) ; A .{s} Δ ⊢ m ~ m' : C ->
   Θ ; (B :: Γ) ; B .{s} Δ ⊢ m ~ m' : C.

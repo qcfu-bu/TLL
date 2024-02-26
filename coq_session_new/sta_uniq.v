@@ -52,7 +52,7 @@ Inductive head_sim : term -> term -> Prop :=
 | head_sim_box : head_sim Box Box.
 
 Inductive sim (m n : term) : Prop :=
-| Sim x y : m === x -> head_sim x y -> y === n -> sim m n.
+| Sim x y : m ≃ x -> head_sim x y -> y ≃ n -> sim m n.
 
 Inductive sta_ctx_sim : sta_ctx -> sta_ctx -> Prop :=
 | sta_ctx_sim_nil : sta_ctx_sim nil nil
@@ -77,14 +77,14 @@ Lemma sim_reflexive m : sim m m.
 Proof with eauto. econstructor... Qed.
 #[global] Hint Resolve sim_reflexive.
 
-Lemma sim_transL x y z : sim x y -> y === z -> sim x z.
+Lemma sim_transL x y z : sim x y -> y ≃ z -> sim x z.
 Proof with eauto.
   move=>sm eq. inv sm.
   econstructor...
   apply: conv_trans...
 Qed.
 
-Lemma sim_transR x y z : sim x y -> z === x -> sim z y.
+Lemma sim_transR x y z : sim x y -> z ≃ x -> sim z y.
 Proof with eauto using head_sim.
   move=>sm eq. inv sm.
   econstructor.
@@ -127,7 +127,7 @@ Ltac solve_sim :=
   end;
   try solve[solve_conv];
   match goal with
-  | [ eq1 : ?x === ?z, eq2 : ?z === ?y |- _ ] =>
+  | [ eq1 : ?x ≃ ?z, eq2 : ?z ≃ ?y |- _ ] =>
     pose proof (conv_trans _ eq1 eq2); solve_conv
   end.
 
@@ -223,7 +223,7 @@ Qed.
 
 Lemma sim_act0_inj A1 A2 B1 B2 r1 r2 :
   sim (Act0 r1 A1 B1) (Act0 r2 A2 B2) ->
-    A1 === A2 /\ B1 === B2 /\  r1 = r2.
+    A1 ≃ A2 /\ B1 ≃ B2 /\  r1 = r2.
 Proof with eauto.
   move=>sm. inv sm.
   elim: H0 A1 A2 B1 B2 r1 r2 H H1=>{x y}.

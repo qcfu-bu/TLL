@@ -149,7 +149,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
   { move=>Θ Γ Δ A B m n s tym ihm tyn Θ' ξ agr.
     have[r tyP]:=dyn_valid tym.
     have[t[tyB/sort_inj e]]:=sta_pi0_inv tyP. subst.
-    have eq:B.[cren ξ n/] === B.[n/].
+    have eq:B.[cren ξ n/] ≃ B.[n/].
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
     apply: dyn_conv...
@@ -160,14 +160,14 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
     have[r tyP]:=dyn_valid tym.
     have[t[tyB/sort_inj e]]:=sta_pi1_inv tyP. subst.
-    have eq:B.[cren ξ n/] === B.[n/].
+    have eq:B.[cren ξ n/] ≃ B.[n/].
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
     apply: dyn_conv...
     have:=sta_subst tyB (dyn_sta_type tyn)... }
   { move=>Θ Γ Δ A B m n t tyS tym tyn ihn Θ' ξ agr.
     have[s[r[ord[tyA[tyB _]]]]]:=sta_sig0_inv tyS.
-    have eq: B.[m/] === B.[cren ξ m/].
+    have eq: B.[m/] ≃ B.[cren ξ m/].
     apply: sta_conv_beta.
     apply: conv_sym.
     apply: sta_cren_conv0...
@@ -178,7 +178,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2 tyS tym ihm tyn ihn Θ' ξ agr.
     have[s[r[ord1[ord2[tyA[tyB _]]]]]]:=sta_sig1_inv tyS.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
-    have eq: B.[m/] === B.[cren ξ m/].
+    have eq: B.[m/] ≃ B.[cren ξ m/].
     apply: sta_conv_beta.
     apply: conv_sym.
     apply: sta_cren_conv0...
@@ -189,7 +189,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
     have wf:=sta_type_wf tyC. inv wf.
     have[s1[r1[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv H2. subst.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
-    have eq: (cren ξ C).[cren ξ m/] === C.[m/].
+    have eq: (cren ξ C).[cren ξ m/] ≃ C.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -230,7 +230,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
     have wf:=sta_type_wf tyC. inv wf.
     have[s1[r3[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv H2. subst.
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
-    have eq: (cren ξ C).[cren ξ m/] === C.[m/].
+    have eq: (cren ξ C).[cren ξ m/] ≃ C.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -293,7 +293,7 @@ Proof with eauto using dyn_empty, dyn_type, dyn_ctx_cren.
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2 tyA tym ihm tyn1 ihn1 tyn2 ihn2 Θ' ξ agr.
     have wf:=sta_type_wf (dyn_sta_type tym).
     have[Θ1'[Θ2'[mrg'[agr1 agr2]]]]:=dyn_ctx_cren_merge agr mrg1.
-    have eq:(cren ξ A).[cren ξ m/] === A.[m/].
+    have eq:(cren ξ A).[cren ξ m/] ≃ A.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...

@@ -32,7 +32,7 @@ Inductive dyn_agree_csubst :
   Θb ; nil ; nil ⊢ CVar x : Ch r A ->
   Θ1 ⊩ CVar x .: σ ⫣ Ch r A :L Θ2
 | dyn_agree_csubst_conv Θ1 σ Θ2 A B r :
-  A === B ->
+  A ≃ B ->
   nil ⊢ B : Proto ->
   Θ1 ⊩ σ ⫣ Ch r A :L Θ2 ->
   Θ1 ⊩ σ ⫣ Ch r B :L Θ2

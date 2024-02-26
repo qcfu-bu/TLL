@@ -217,7 +217,7 @@ Proof with eauto.
 Qed.
 
 Theorem eproc_sr Θ p p' q :
-  Θ ⊢ p ~ p' -> p ≈>> q -> exists2 q', Θ ⊢ q ~ q' & p' ≈>> q'.
+  Θ ⊢ p ~ p' -> p ⇛ q -> exists2 q', Θ ⊢ q ~ q' & p' ⇛ q'.
 Proof with eauto using merge, merge_sym, sta_type, era_type.
   move=>er st. elim: st Θ p' er=>{p q}.
   { move=>m m' st Θ p' ty. inv ty.
@@ -505,7 +505,7 @@ Proof with eauto using merge, merge_sym, sta_type, era_type.
       rewrite<-term_cren_comp in H4. asimpl in H4. inv H4.
       have{eq2 eq3}/act0_inj[eqA1[eqB1 e]]:=
         conv_trans _ eq2 (conv_sym eq3). subst.
-      have eqIO:IO A3 === (IO (Ch r B4)).[m/].
+      have eqIO:IO A3 ≃ (IO (Ch r B4)).[m/].
       { apply: conv_trans...
         apply: sta_conv_subst... }
       asimpl in eqIO.
@@ -667,7 +667,7 @@ Proof with eauto using merge, merge_sym, sta_type, era_type.
       have{mrg H7}[Δx[mrg _]]:=merge_splitL mrg H7.
       have e:=merge_emptyL mrg H1. subst.
       have e:=merge_emptyR mrg H0. subst.
-      have/=/io_inj eqA1:IO A1 === (IO (Ch (~~r5) B4)).[v/].
+      have/=/io_inj eqA1:IO A1 ≃ (IO (Ch (~~r5) B4)).[v/].
       { apply:conv_trans.
         apply: eq2.
         apply:sta_conv_subst... }
@@ -739,7 +739,7 @@ Proof with eauto using merge, merge_sym, sta_type, era_type.
                   eauto. }
               2:{ econstructor... }
               2:{ asimpl.
-                  have eq:cren (+2) (Ch r5 B4.[v/]) === Ch r5 B2.[v/].
+                  have eq:cren (+2) (Ch r5 B4.[v/]) ≃ Ch r5 B2.[v/].
                   { apply: conv_trans.
                     apply: sta_cren_conv0.
                     apply: sta_conv_ch.
@@ -855,7 +855,7 @@ Proof with eauto using merge, merge_sym, sta_type, era_type.
       have{tyAct}tyB5:=sta_act1_inv tyAct.
       have wf:=sta_type_wf tyB5. inv wf. inv H10.
       rewrite<-term_cren_comp in H3. asimpl in H3. inv H3.
-      have/=/io_inj eqA3:IO A3 === (IO (Ch r B5)).[v/].
+      have/=/io_inj eqA3:IO A3 ≃ (IO (Ch r B5)).[v/].
       { apply: conv_trans...
         apply: sta_conv_subst.
         eauto. }

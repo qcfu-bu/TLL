@@ -49,7 +49,7 @@ Proof with eauto using sta_pstep.
   by apply: sta_cren_pstep.
 Qed.
 
-Lemma sta_cren_conv0 m n ξ : m === n -> cren ξ m === n.
+Lemma sta_cren_conv0 m n ξ : m ≃ n -> cren ξ m ≃ n.
 Proof with eauto using sta_pstep.
   move=>rd. elim: rd ξ=>{n}...
   { move=>ξ. apply: conv1. apply:sta_cren_pstep0... }
@@ -61,7 +61,7 @@ Proof with eauto using sta_pstep.
     by apply: conv1i. }
 Qed.
 
-Lemma sta_cren_conv m n ξ : m === n -> cren ξ m === cren ξ n.
+Lemma sta_cren_conv m n ξ : m ≃ n -> cren ξ m ≃ cren ξ n.
 Proof with eauto using sta_pstep.
   move=>rd. elim: rd ξ=>{n}...
   { move=>y z rd ih st ξ.
@@ -172,7 +172,7 @@ Proof with eauto using sta_type, sta0_sta_wf.
   { move=>Γ A B C m n s t/sta0_sta_type tyS ihS/sta0_sta_type tym ihm/sta0_sta_type tyn ihn ξ.
     have wf:=sta_type_wf tyS. inv wf.
     have[s1[r[ord[tyA[tyB/sort_inj e]]]]]:=sta_sig0_inv H2. subst.
-    have eq: (cren ξ C).[cren ξ m/] === C.[m/].
+    have eq: (cren ξ C).[cren ξ m/] ≃ C.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -214,7 +214,7 @@ Proof with eauto using sta_type, sta0_sta_wf.
   { move=>Γ A B C m n s t/sta0_sta_type tyS ihS/sta0_sta_type tym ihm/sta0_sta_type tyn ihn ξ.
     have wf:=sta_type_wf tyS. inv wf.
     have[s1[r[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv H2. subst.
-    have eq: (cren ξ C).[cren ξ m/] === C.[m/].
+    have eq: (cren ξ C).[cren ξ m/] ≃ C.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...
@@ -270,7 +270,7 @@ Proof with eauto using sta_type, sta0_sta_wf.
   { move=>Γ A m n1 n2 s/sta0_sta_type tyA ihA/sta0_sta_type tym ihm
            /sta0_sta_type tyn1 ihn1/sta0_sta_type tyn2 ihn2 ξ.
     have wf:=sta_type_wf tym.
-    have eq:(cren ξ A).[cren ξ m/] === A.[m/].
+    have eq:(cren ξ A).[cren ξ m/] ≃ A.[m/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: sta_cren_conv0...

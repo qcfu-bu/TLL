@@ -210,7 +210,7 @@ Proof with eauto using era_type.
       repeat constructor.
       asimpl.
       repeat constructor... }
-    have eq: A0.[m1/] === (cren ξ A0).[cren ξ m1/].
+    have eq: A0.[m1/] ≃ (cren ξ A0).[cren ξ m1/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: conv_sym.
@@ -257,7 +257,7 @@ Proof with eauto using era_type.
       repeat constructor.
       asimpl.
       repeat constructor... }
-    have eq: A0.[m1/] === (cren ξ A0).[cren ξ m1/].
+    have eq: A0.[m1/] ≃ (cren ξ A0).[cren ξ m1/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: conv_sym.
@@ -337,7 +337,7 @@ Proof with eauto using era_type.
     have{}ihm:=ihm _ _ _ erefl erefl _ _ e13 e23 e33 e43 h.
     have{}ihn1:=ihn1 _ _ _ erefl erefl _ _ e12 e22 e32 e42 h.
     have{}ihn2:=ihn2 _ _ _ erefl erefl _ _ e11 e21 e31 e41 h.
-    have eq: A0.[m1_1/] === (cren ξ A0).[cren ξ m1_1/].
+    have eq: A0.[m1_1/] ≃ (cren ξ A0).[cren ξ m1_1/].
     apply: conv_trans.
     apply: sta_conv_beta.
     apply: conv_sym.

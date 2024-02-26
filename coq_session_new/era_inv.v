@@ -182,7 +182,7 @@ Proof. move e:(Box)=>n er. elim: er e=>//{Θ Γ Δ m n A}. Qed.
 
 Lemma era_lam0_invX Θ Γ Δ A1 A2 A3 B C m1 m2 s1 s2 t :
   Θ ; Γ ; Δ ⊢ Lam0 A1 m1 s1 ~ Lam0 A2 m2 s1 : C ->
-  C === Pi0 A3 B s2 ->
+  C ≃ Pi0 A3 B s2 ->
   (A3 :: Γ) ⊢ B : Sort t ->
   Θ ; (A3 :: Γ) ; _: Δ ⊢ m1 ~ m2 : B.
 Proof with eauto.
@@ -206,7 +206,7 @@ Qed.
        
 Lemma era_lam1_invX Θ Γ Δ A1 A2 A3 B C m1 m2 s1 s2 t :
   Θ ; Γ ; Δ ⊢ Lam1 A1 m1 s1 ~ Lam1 A2 m2 s1 : C ->
-  C === Pi1 A3 B s2 ->
+  C ≃ Pi1 A3 B s2 ->
   (A3 :: Γ) ⊢ B : Sort t ->
   exists r, Θ ; (A3 :: Γ) ; A3 .{r} Δ ⊢ m1 ~ m2 : B.
 Proof with eauto.
@@ -254,7 +254,7 @@ Qed.
 
 Lemma era_pair0_invX Θ Γ Δ A B m1 m2 n1 n2 s r t C :
   Θ ; Γ ; Δ ⊢ Pair0 m1 n1 s ~ Pair0 m2 n2 s  : C ->
-  C === Sig0 A B r ->
+  C ≃ Sig0 A B r ->
   Γ ⊢ Sig0 A B r : Sort t ->
   s = r /\ m2 = Box /\ Γ ⊢ m1 : A /\ Θ ; Γ ; Δ ⊢ n1 ~ n2 : B.[m1/].
 Proof with eauto.
@@ -279,7 +279,7 @@ Qed.
 
 Lemma era_pair1_invX Θ Γ Δ A B m1 m2 n1 n2 s r t C :
   Θ ; Γ ; Δ ⊢ Pair1 m1 n1 s ~ Pair1 m2 n2 s  : C ->
-  C === Sig1 A B r ->
+  C ≃ Sig1 A B r ->
   Γ ⊢ Sig1 A B r : Sort t ->
   exists Θ1 Θ2 Δ1 Δ2,
     s = r /\
@@ -336,7 +336,7 @@ Lemma era_app0_inv Θ Γ Δ m1 m2 n1 n2 C :
   exists A B s,
     n2 = Box /\
     Θ ; Γ ; Δ ⊢ m1 ~ m2 : Pi0 A B s /\
-    Γ ⊢ n1 : A /\ C === B.[n1/].
+    Γ ⊢ n1 : A /\ C ≃ B.[n1/].
 Proof with eauto.
   move e1:(App0 m1 n1)=>x.
   move e2:(App0 m2 n2)=>y er.
@@ -358,7 +358,7 @@ Lemma era_app1_inv Θ Γ Δ m1 m2 n1 n2 C :
     Δ1 ∘ Δ2 => Δ /\
     Θ1 ; Γ ; Δ1 ⊢ m1 ~ m2 : Pi1 A B s /\
     Θ2 ; Γ ; Δ2 ⊢ n1 ~ n2 : A /\
-    C === B.[n1/].
+    C ≃ B.[n1/].
 Proof with eauto.
   move e1:(App1 m1 n1)=>x.
   move e2:(App1 m2 n2)=>y er.
@@ -385,7 +385,7 @@ Proof with eauto. move e:(FF)=>m er. elim: er e=>//{Θ Γ Δ A}. Qed.
 
 Lemma era_return_invX Θ Γ Δ m1 m2 B :
   Θ ; Γ ; Δ ⊢ Return m1 ~ Return m2 : B ->
-  exists A, Θ ; Γ ; Δ ⊢ m1 ~ m2 : A /\ B === IO A.
+  exists A, Θ ; Γ ; Δ ⊢ m1 ~ m2 : A /\ B ≃ IO A.
 Proof with eauto.
   move e1:(Return m1)=>x.
   move e2:(Return m2)=>y ty.
@@ -419,7 +419,7 @@ Lemma era_bind_invX Θ Γ Δ m1 m2 n1 n2 C :
     Γ ⊢ B : Sort t /\
     Θ1 ; Γ ; Δ1 ⊢ m1 ~ m2 : IO A /\
     Θ2 ; (A :: Γ) ; (A .{s} Δ2) ⊢ n1 ~ n2 : IO B.[ren (+1)] /\
-    C === IO B.
+    C ≃ IO B.
 Proof with eauto.
   move e1:(Bind m1 n1)=>x.
   move e2:(Bind m2 n2)=>y er.
@@ -468,7 +468,7 @@ Lemma era_cvar_inv Θ Γ Δ x1 x2 B :
     x1 = x2 /\
     dyn_just Θ x1 (Ch r A) /\
     nil ⊢ A : Proto /\
-    B === Ch r A.[ren (+size Γ)].
+    B ≃ Ch r A.[ren (+size Γ)].
 Proof with eauto.
   move e1:(CVar x1)=>m1.
   move e2:(CVar x2)=>m2 ty.
@@ -488,7 +488,7 @@ Lemma era_fork_inv Θ Γ Δ A1 A2 m1 m2 B :
   Θ ; Γ ; Δ ⊢ Fork A1 m1 ~ Fork A2 m2 : B ->
   A2 = Box /\
   Θ ; (Ch true A1 :: Γ) ; Ch true A1 :L Δ ⊢ m1 ~ m2 : IO Unit /\
-  B === IO (Ch false A1).
+  B ≃ IO (Ch false A1).
 Proof with eauto.
   move e1:(Fork A1 m1)=>x.
   move e2:(Fork A2 m2)=>y er.
@@ -506,7 +506,7 @@ Lemma era_recv0_inv Θ Γ Δ m1 m2 C :
   Θ ; Γ ; Δ ⊢ Recv0 m1 ~ Recv0 m2 : C ->
   exists r1 r2 A B,
     r1 (+) r2 = false /\
-    C === IO (Sig0 A (Ch r1 B) L) /\
+    C ≃ IO (Sig0 A (Ch r1 B) L) /\
     Θ ; Γ ; Δ ⊢ m1 ~ m2 : Ch r1 (Act0 r2 A B).
 Proof with eauto.
   move e1:(Recv0 m1)=>x.
@@ -527,7 +527,7 @@ Lemma era_recv1_inv Θ Γ Δ m1 m2 C :
   Θ ; Γ ; Δ ⊢ Recv1 m1 ~ Recv1 m2 : C ->
   exists r1 r2 A B,
     r1 (+) r2 = false /\
-    C === IO (Sig1 A (Ch r1 B) L) /\
+    C ≃ IO (Sig1 A (Ch r1 B) L) /\
     Θ ; Γ ; Δ ⊢ m1 ~ m2 : Ch r1 (Act1 r2 A B).
 Proof with eauto.
   move e1:(Recv1 m1)=>x.
@@ -548,7 +548,7 @@ Lemma era_send0_inv Θ Γ Δ m1 m2 C :
   Θ ; Γ ; Δ ⊢ Send0 m1 ~ Send0 m2 : C ->
   exists r1 r2 A B,
     r1 (+) r2 = true /\
-    C === Pi0 A (IO (Ch r1 B)) L /\
+    C ≃ Pi0 A (IO (Ch r1 B)) L /\
     Θ ; Γ ; Δ ⊢ m1 ~ m2 : Ch r1 (Act0 r2 A B).
 Proof with eauto.
   move e1:(Send0 m1)=>x.
@@ -570,7 +570,7 @@ Lemma era_send1_inv Θ Γ Δ m1 m2 C :
   Θ ; Γ ; Δ ⊢ Send1 m1 ~ Send1 m2 : C ->
   exists r1 r2 A B,
     r1 (+) r2 = true /\
-    C === Pi1 A (IO (Ch r1 B)) L /\
+    C ≃ Pi1 A (IO (Ch r1 B)) L /\
     Θ ; Γ ; Δ ⊢ m1 ~ m2 : Ch r1 (Act1 r2 A B).
 Proof with eauto.
   move e1:(Send1 m1)=>x.
@@ -590,7 +590,7 @@ Qed.
 
 Lemma era_wait_inv Θ Γ Δ m1 m2 C :
   Θ ; Γ ; Δ ⊢ Wait m1 ~ Wait m2 : C ->
-  C === IO Unit /\
+  C ≃ IO Unit /\
   Θ ; Γ ; Δ ⊢ m1 ~ m2 : Ch false Stop.
  Proof with eauto. 
    move e1:(Wait m1)=>x.
@@ -608,7 +608,7 @@ Lemma era_wait_inv Θ Γ Δ m1 m2 C :
 
 Lemma era_close_inv Θ Γ Δ m1 m2 C :
   Θ ; Γ ; Δ ⊢ Close m1 ~ Close m2 : C ->
-  C === IO Unit /\
+  C ≃ IO Unit /\
   Θ ; Γ ; Δ ⊢ m1 ~ m2 : Ch true Stop.
  Proof with eauto. 
    move e1:(Close m1)=>x.

@@ -35,54 +35,54 @@ Inductive proc_congr0 : proc -> proc -> Prop :=
   proc_congr0 (p ∣ ⟨ Return II ⟩) p.
 Notation "p ≡ q" := (conv proc_congr0 p q) (at level 50).
 
-Reserved Notation "p ≈>> q" (at level 50).
+Reserved Notation "p ⇛ q" (at level 50).
 Inductive proc_step : proc -> proc -> Prop :=
 (* monadic *)
 | proc_step_exp m m' :
   m ~>> m' ->
-  ⟨ m ⟩ ≈>> ⟨ m' ⟩
+  ⟨ m ⟩ ⇛ ⟨ m' ⟩
 (* session *)
 | proc_step_fork A m m' n n' :
   m' = cren (+2) m ->
   n' = cren (+2) n ->
-  ⟨ Bind (Fork A m) n ⟩ ≈>> ν.(⟨ n'.[CVar 0/] ⟩ ∣ ⟨ m'.[CVar 1/] ⟩)
+  ⟨ Bind (Fork A m) n ⟩ ⇛ ν.(⟨ n'.[CVar 0/] ⟩ ∣ ⟨ m'.[CVar 1/] ⟩)
 | proc_step_com0 m n1 n2 :
-  ν.(⟨ Bind (App0 (Send0 (CVar 0)) m) n1 ⟩ ∣ ⟨ Bind (Recv0 (CVar 1)) n2 ⟩) ≈>>
+  ν.(⟨ Bind (App0 (Send0 (CVar 0)) m) n1 ⟩ ∣ ⟨ Bind (Recv0 (CVar 1)) n2 ⟩) ⇛
   ν.(⟨ Bind (Return (CVar 0)) n1 ⟩ ∣ ⟨ Bind (Return (Pair0 m (CVar 1) L)) n2 ⟩)
 | proc_step_com0i m n1 n2 :
-  ν.(⟨ Bind (App0 (Send0 (CVar 1)) m) n1 ⟩ ∣ ⟨ Bind (Recv0 (CVar 0)) n2 ⟩) ≈>>
+  ν.(⟨ Bind (App0 (Send0 (CVar 1)) m) n1 ⟩ ∣ ⟨ Bind (Recv0 (CVar 0)) n2 ⟩) ⇛
   ν.(⟨ Bind (Return (CVar 1)) n1 ⟩ ∣ ⟨ Bind (Return (Pair0 m (CVar 0) L)) n2 ⟩)
 | proc_step_com1 v n1 n2 :
   dyn_val v ->
-  ν.(⟨ Bind (App1 (Send1 (CVar 0)) v) n1 ⟩ ∣ ⟨ Bind (Recv1 (CVar 1)) n2 ⟩) ≈>>
+  ν.(⟨ Bind (App1 (Send1 (CVar 0)) v) n1 ⟩ ∣ ⟨ Bind (Recv1 (CVar 1)) n2 ⟩) ⇛
   ν.(⟨ Bind (Return (CVar 0)) n1 ⟩ ∣ ⟨ Bind (Return (Pair1 v (CVar 1) L)) n2 ⟩)
 | proc_step_com1i v n1 n2 :
   dyn_val v ->
-  ν.(⟨ Bind (App1 (Send1 (CVar 1)) v) n1 ⟩ ∣ ⟨ Bind (Recv1 (CVar 0)) n2 ⟩) ≈>>
+  ν.(⟨ Bind (App1 (Send1 (CVar 1)) v) n1 ⟩ ∣ ⟨ Bind (Recv1 (CVar 0)) n2 ⟩) ⇛
   ν.(⟨ Bind (Return (CVar 1)) n1 ⟩ ∣ ⟨ Bind (Return (Pair1 v (CVar 0) L)) n2 ⟩)
 | proc_step_end m m' n n' :
   m' = cren (-2) m ->
   n' = cren (-2) n ->
-  ν.(⟨ Bind (Close (CVar 0)) m ⟩ ∣ ⟨ Bind (Wait (CVar 1)) n ⟩) ≈>>
+  ν.(⟨ Bind (Close (CVar 0)) m ⟩ ∣ ⟨ Bind (Wait (CVar 1)) n ⟩) ⇛
   ⟨ Bind (Return II) m' ⟩ ∣ ⟨ Bind (Return II) n' ⟩
 | proc_step_endi m m' n n' :
   m' = cren (-2) m ->
   n' = cren (-2) n ->
-  ν.(⟨ Bind (Close (CVar 1)) m ⟩ ∣ ⟨ Bind (Wait (CVar 0)) n ⟩) ≈>>
+  ν.(⟨ Bind (Close (CVar 1)) m ⟩ ∣ ⟨ Bind (Wait (CVar 0)) n ⟩) ⇛
   ⟨ Bind (Return II) m' ⟩ ∣ ⟨ Bind (Return II) n' ⟩
 (* congruence *)
 | proc_step_par o p q :
-  p ≈>> q ->
-  o ∣ p ≈>> o ∣ q
+  p ⇛ q ->
+  o ∣ p ⇛ o ∣ q
 | proc_step_nu p q :
-  p ≈>> q ->
-  ν.p ≈>> ν.q
+  p ⇛ q ->
+  ν.p ⇛ ν.q
 | proc_step_congr p p' q q' :
   p ≡ p' ->
-  p' ≈>> q' ->
+  p' ⇛ q' ->
   q' ≡ q ->
-  p ≈>> q
-where "p ≈>> q" := (proc_step p q).
+  p ⇛ q
+where "p ⇛ q" := (proc_step p q).
 
 Lemma exch_invo : (exch >>> csubst exch) = cids.
 Proof with eauto. f_ext. move=>[|[|[|[|]]]]//=. Qed.

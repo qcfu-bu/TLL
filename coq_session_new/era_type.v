@@ -138,7 +138,7 @@ Inductive era_type
   Θ ; Γ ; Δ ⊢ Close m ~ Close m' : IO Unit
 (* conversion *)
 | era_conv Θ Γ Δ A B m m' s :
-  A === B ->
+  A ≃ B ->
   Θ ; Γ ; Δ ⊢ m ~ m' : A ->
   Γ ⊢ B : Sort s ->
   Θ ; Γ ; Δ ⊢ m ~ m' : B
