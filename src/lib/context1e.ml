@@ -84,11 +84,11 @@ module Env = struct
     let var =
       Var.Map.merge
         (fun x opt1 opt2 ->
-          match (opt1, opt2) with
-          | Some m, None -> Some m
-          | None, Some m -> Some m
-          | None, None -> None
-          | _ -> failwith "context1e.Env.merge_var(%a)" Var.pp x)
+           match (opt1, opt2) with
+           | Some m, None -> Some m
+           | None, Some m -> Some m
+           | None, None -> None
+           | _ -> failwith "context1e.Env.merge_var(%a)" Var.pp x)
         var_map env.var
     in
     { env with var }
@@ -133,7 +133,7 @@ end = struct
   let entries (mctx : t) =
     List.map
       (fun (x, (ctx, env, ss, xs, a)) ->
-        (ctx, env, IMeta (x, unbox ss, unbox xs), a))
+         (ctx, env, IMeta (x, unbox ss, unbox xs), a))
       (IMeta.Map.bindings mctx)
 
   let pp fmt (mctx : t) =
