@@ -8,11 +8,9 @@ let utf8_len s =
 let utf8_sub s start offset =
   let open Camomile.UTF8 in
   let buf = Buf.create offset in
-  let _ = 
-    for x = start to start + offset - 1 do
-      Buf.add_char buf (get s x)
-    done
-  in
+  for x = start to start + offset - 1 do
+    Buf.add_char buf (get s x)
+  done;
   Buf.contents buf
 
 exception
