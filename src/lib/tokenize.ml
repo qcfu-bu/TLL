@@ -2,17 +2,6 @@ open Fmt
 open Sedlexing
 open Spec
 
-let utf8_len s =
-  Camomile.UTF8.length s
-
-let utf8_sub s start offset =
-  let open Camomile.UTF8 in
-  let buf = Buf.create offset in
-  for x = start to start + offset - 1 do
-    Buf.add_char buf (get s x)
-  done;
-  Buf.contents buf
-
 exception
   LexError of
     { pos_lnum : int
@@ -384,23 +373,28 @@ let rec tokenize buf =
   (* identifiers *)
   | identifier -> ID (Utf8.lexeme buf)
   | constant0 ->
-    let s = Utf8.lexeme buf in
-    CONST0 (utf8_sub s 0 (utf8_len s - 1))
+    let len = lexeme_length buf - 1 in
+    let s = Utf8.sub_lexeme buf 0 len in
+    CONST0 s
   | constant1 ->
-    let s = Utf8.lexeme buf in
-    CONST1 (utf8_sub s 0 (utf8_len s - 1))
+    let len = lexeme_length buf - 1 in
+    let s = Utf8.sub_lexeme buf 0 len in
+    CONST1 s
   | at_constant0 ->
-    let s = Utf8.lexeme buf in
-    AT_CONSTANT0 (utf8_sub s 1 (utf8_len s - 2))
+    let len = lexeme_length buf - 2 in
+    let s = Utf8.sub_lexeme buf 1 len in
+    AT_CONSTANT0 s
   | at_constant1 ->
-    let s = Utf8.lexeme buf in
-    AT_CONSTANT1 (utf8_sub s 1 (utf8_len s - 2))
+    let len = lexeme_length buf - 2 in
+    let s = Utf8.sub_lexeme buf 1 len in
+    AT_CONSTANT1 s
   | at_identifier ->
-    let s = Utf8.lexeme buf in
-    AT_ID (utf8_sub s 1 (utf8_len s - 1))
+    let len = lexeme_length buf - 1 in
+    let s = Utf8.sub_lexeme buf 1 len in
+    AT_ID s
   | hole ->
-    let s = Utf8.lexeme buf in
-    let s = utf8_sub s 1 (utf8_len s - 1) in
+    let len = lexeme_length buf - 1 in
+    let s = Utf8.sub_lexeme buf 1 len in
     HOLE (int_of_string s)
   | _ ->
     let pos = fst (lexing_positions buf) in
