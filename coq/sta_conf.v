@@ -70,26 +70,24 @@ Inductive pstep : term -> term -> Prop :=
   pstep m2 m2' ->
   pstep n n' ->
   pstep (LetIn A (Pair1 m1 m2 s) n) (n'.[m2',m1'/])
-| pstep_with A A' B B' s :
+| pstep_bool :
+  pstep Bool Bool
+| pstep_tt :
+  pstep TT TT
+| pstep_ff :
+  pstep FF FF
+| pstep_ifte A A' m m' n1 n1' n2 n2' :
   pstep A A' ->
-  pstep B B' ->
-  pstep (With A B s) (With A' B' s)
-| pstep_apair m m' n n' s :
   pstep m m' ->
-  pstep n n' ->
-  pstep (APair m n s) (APair m' n' s)
-| pstep_fst m m' :
-  pstep m m' ->
-  pstep (Fst m) (Fst m')
-| pstep_snd m m' :
-  pstep m m' ->
-  pstep (Snd m) (Snd m')
-| pstep_proj1 m m' n s :
-  pstep m m' ->
-  pstep (Fst (APair m n s)) m'
-| pstep_proj2 m n n' s :
-  pstep n n' ->
-  pstep (Snd (APair m n s)) n'
+  pstep n1 n1' ->
+  pstep n2 n2' ->
+  pstep (Ifte A m n1 n2) (Ifte A' m' n1' n2')
+| pstep_ifteTT A n1 n1' n2 :
+  pstep n1 n1' ->
+  pstep (Ifte A TT n1 n2) n1'
+| pstep_ifteFF A n1 n2 n2' :
+  pstep n2 n2' ->
+  pstep (Ifte A FF n1 n2) n2'
 | pstep_id A A' m m' n n' :
   pstep A A' ->
   pstep m m' ->
@@ -220,36 +218,17 @@ Proof.
   apply: (star_hom (LetIn A' m')) r3=>x y. exact: sta_step_letinR.
 Qed.
 
-Lemma sta_red_with A A' B B' s :
-  A ~>* A' -> B ~>* B' -> With A B s ~>* With A' B' s.
+Lemma sta_red_ifte A A' m m' n1 n1' n2 n2' :
+  A ~>* A' -> m ~>* m' -> n1 ~>* n1' -> n2 ~>* n2' -> Ifte A m n1 n2 ~>* Ifte A' m' n1' n2'.
 Proof.
-  move=>r1 r2.
-  apply: (star_trans (With A' B s)).
-  apply: (star_hom ((With^~ B)^~ s)) r1=>x y. exact: sta_step_withL.
-  apply: (star_hom ((With A')^~ s)) r2=>x y. exact: sta_step_withR.
-Qed.
-
-Lemma sta_red_apair m m' n n' s :
-  m ~>* m' -> n ~>* n' -> APair m n s ~>* APair m' n' s.
-Proof.
-  move=>r1 r2.
-  apply: (star_trans (APair m' n s)).
-  apply: (star_hom ((APair^~ n)^~ s)) r1=>x y. exact: sta_step_apairL.
-  apply: (star_hom ((APair m')^~ s)) r2=>x y. exact: sta_step_apairR.
-Qed.
-
-Lemma sta_red_fst m m' :
-  m ~>* m' -> Fst m ~>* Fst m'.
-Proof.
-  move=>r.
-  apply: (star_hom Fst) r=>x y. exact: sta_step_fst.
-Qed.
-
-Lemma sta_red_snd m m' :
-  m ~>* m' -> Snd m ~>* Snd m'.
-Proof.
-  move=>r.
-  apply: (star_hom Snd) r=>x y. exact: sta_step_snd.
+  move=>rA rm rn1 rn2.
+  apply: (star_trans (Ifte A' m n1 n2)).
+  apply: (star_hom (((Ifte^~ m)^~ n1)^~ n2)) rA=>x y. exact: sta_step_ifteA.
+  apply: (star_trans (Ifte A' m' n1 n2)).
+  apply: (star_hom (((Ifte A')^~ n1)^~ n2)) rm=>x y. exact: sta_step_ifteM.
+  apply: (star_trans (Ifte A' m' n1' n2)).
+  apply: (star_hom ((Ifte A' m')^~ n2)) rn1=>x y. exact: sta_step_ifteN1.
+  apply: (star_hom (Ifte A' m' n1')) rn2=>x y. exact: sta_step_ifteN2.
 Qed.
 
 Lemma sta_red_id A A' m m' n n' :
@@ -309,9 +288,7 @@ Qed.
   sta_red_pi0 sta_red_pi1
   sta_red_sig0 sta_red_sig1
   sta_red_pair0 sta_red_pair1
-  sta_red_letin
-  sta_red_with sta_red_apair
-  sta_red_fst sta_red_snd
+  sta_red_letin sta_red_ifte
   sta_red_id sta_red_refl sta_red_rw
   sred_up sred_upn : sta_red_congr.
 
@@ -412,36 +389,17 @@ Proof.
   apply: (conv_hom (LetIn A' m')) r3=>x y. exact: sta_step_letinR.
 Qed.
 
-Lemma sta_conv_with A A' B B' s :
-  A === A' -> B === B' -> With A B s === With A' B' s.
+Lemma sta_conv_ifte A A' m m' n1 n1' n2 n2' :
+  A === A' -> m === m' -> n1 === n1' -> n2 === n2' -> Ifte A m n1 n2 === Ifte A' m' n1' n2'.
 Proof.
-  move=>r1 r2.
-  apply: (conv_trans (With A' B s)).
-  apply: (conv_hom ((With^~ B)^~ s)) r1=>x y. exact: sta_step_withL.
-  apply: (conv_hom ((With A')^~ s)) r2=>x y. exact: sta_step_withR.
-Qed.
-
-Lemma sta_conv_apair m m' n n' s :
-  m === m' -> n === n' -> APair m n s === APair m' n' s.
-Proof.
-  move=>r1 r2.
-  apply: (conv_trans (APair m' n s)).
-  apply: (conv_hom ((APair^~ n)^~ s)) r1=>x y. exact: sta_step_apairL.
-  apply: (conv_hom ((APair m')^~ s)) r2=>x y. exact: sta_step_apairR.
-Qed.
-
-Lemma sta_conv_fst m m' :
-  m === m' -> Fst m === Fst m'.
-Proof.
-  move=>r.
-  apply: (conv_hom Fst) r=>x y. exact: sta_step_fst.
-Qed.
-
-Lemma sta_conv_snd m m' :
-  m === m' -> Snd m === Snd m'.
-Proof.
-  move=>r.
-  apply: (conv_hom Snd) r=>x y. exact: sta_step_snd.
+  move=>rA rm rn1 rn2.
+  apply: (conv_trans (Ifte A' m n1 n2)).
+  apply: (conv_hom (((Ifte^~ m)^~ n1)^~ n2)) rA=>x y. exact: sta_step_ifteA.
+  apply: (conv_trans (Ifte A' m' n1 n2)).
+  apply: (conv_hom (((Ifte A')^~ n1)^~ n2)) rm=>x y. exact: sta_step_ifteM.
+  apply: (conv_trans (Ifte A' m' n1' n2)).
+  apply: (conv_hom ((Ifte A' m')^~ n2)) rn1=>x y. exact: sta_step_ifteN1.
+  apply: (conv_hom (Ifte A' m' n1')) rn2=>x y. exact: sta_step_ifteN2.
 Qed.
 
 Lemma sta_conv_id A A' m m' n n' :
@@ -497,9 +455,7 @@ Qed.
   sta_conv_pi0 sta_conv_pi1
   sta_conv_sig0 sta_conv_sig1
   sta_conv_pair0 sta_conv_pair1
-  sta_conv_letin
-  sta_conv_with sta_conv_apair
-  sta_conv_fst sta_conv_snd
+  sta_conv_letin sta_conv_ifte
   sta_conv_id sta_conv_refl sta_conv_rw
   sconv_up sconv_upn : sta_conv_congr.
 
@@ -601,6 +557,8 @@ Proof with eauto 6 using pstep, psstep_up.
   { move=>A m1 m1' m2 m2' n n' s pm1 ihm1 pm2 ihm2 pn ihn σ τ pss. asimpl.
     pose proof (pstep_iota1 A.[up σ] s (ihm1 _ _ pss) (ihm2 _ _ pss) (ihn _ _ (psstep_upn 2 pss))).
     by asimpl in H. }
+  { move=>A A' m m' n1 n1' n2 n2' pA ihA pm ihm pn1 ihn1 pn2 ihn2 σ τ pss. asimpl.
+    constructor... }
   { move=>A A' H H' P P' pA ihA pH ihH pP ihP σ τ pss. asimpl.
     pose proof (pstep_rw (ihA _ _ (psstep_upn 2 pss)) (ihH _ _ pss) (ihP _ _ pss)).
     by asimpl in H0. }
@@ -726,32 +684,30 @@ Proof with eauto 6 using
       have[m2x pm21 pm22]:=ihm2 _ H6.
       have[n0 pn1 pn2]:=ihn _ H7.
       exists n0.[m2x,m1x/]... } }
-  { move=> A A' B B' s pA ihA pB ihB m2 p. inv p.
-    have[A0 pA1 pA2]:=ihA _ H3.
-    have[B0 pB1 pB2]:=ihB _ H4.
-    exists (With A0 B0 s)... }
-  { move=>m m' n n' s pm ihm pn ihn m2 p. inv p.
-    have[m0 pm1 pm2]:=ihm _ H3.
-    have[n0 pn1 pn2]:=ihn _ H4.
-    exists (APair m0 n0 s)... }
-  { move=>m m' pm ihm m2 p. inv p.
-    { have[m0 pm1 pm2]:=ihm _ H0. exists (Fst m0)... }
+  { move=>A A' m m' n1 n1' n2 n2' pA ihA pm ihm pn1 ihn1 pn2 ihn2 m2 p. inv p.
+    { have[Ax pA1 pA2]:=ihA _ H3.
+      have[mx pm1 pm2]:=ihm _ H5.
+      have[n1x pn11 pn12]:=ihn1 _ H6.
+      have[n2x pn21 pn22]:=ihn2 _ H7.
+      exists (Ifte Ax mx n1x n2x)... }
     { inv pm.
-      have/ihm[x p1 p2]:pstep (APair m0 n s) (APair m2 n' s)...
-      inv p1. inv p2.
-      exists m'... } }
-  { move=>m m' pm ihm m2 p. inv p.
-    { have[m0 pm1 pm2]:=ihm _ H0. exists (Snd m0)... }
+      have[n1x pn11 pn12]:=ihn1 _ H4.
+      exists n1x... }
     { inv pm.
-      have/ihm[x p1 p2]:pstep (APair m0 n s) (APair m'0 m2 s)...
-      inv p1. inv p2.
-      exists n'0... } }
-  { move=>m m' n s pm ihm m2 p. inv p.
-    { inv H0. have[m0 p1 p2]:=ihm _ H4. exists m0... }
-    { have[m0 p1 p2]:=ihm _ H3. exists m0... } }
-  { move=>m m' n s pm ihm m2 p. inv p.
-    { inv H0. have[m0 p1 p2]:=ihm _ H5. exists m0... }
-    { have[m0 p1 p2]:=ihm _ H3. exists m0... } }
+      have[n2x pn21 pn22]:=ihn2 _ H4.
+      exists n2x... } }
+  { move=>A n1 n1' n2 pn1 ihn1 m2 p. inv p.
+    { inv H5.
+      have[n1x pn11]:=ihn1 _ H6.
+      exists n1x... }
+    { have[n1x pn11]:=ihn1 _ H3.
+      exists n1x... } }
+  { move=>A n1 n2 n2' pn2 ihn2 m2 p. inv p.
+    { inv H5.
+      have[n2x pn21]:=ihn2 _ H7.
+      exists n2x... }
+    { have[n2x pn21]:=ihn2 _ H3.
+      exists n2x... } }
   { move=>A A' m m' n n' pA ihA pm ihm pn ihn m2 p. inv p.
     have[A0 pA1 pA2]:=ihA _ H2.
     have[m0 pm1 pm2]:=ihm _ H4.
@@ -953,38 +909,25 @@ Proof.
   apply: starSE; eauto.
 Qed.
 
-Lemma sta_red_with_inv A B s x :
-  With A B s ~>* x ->
-  exists A' B',
-    A ~>* A' /\ B ~>* B' /\ x = With A' B' s.
+Lemma sta_red_bool_inv x : Bool ~>* x -> x = Bool.
 Proof.
-  elim.
-  exists A. exists B=>//.
-  move=> y z rd[A'[B'[r1[r2 e]]]] st; subst.
+  elim=>//.
+  move=>y z rd e st. subst.
   inv st.
-  exists A'0. exists B'.
-  repeat constructor; eauto.
-  apply: starSE; eauto.
-  exists A'. exists B'0.
-  repeat constructor; eauto.
-  apply: starSE; eauto.
 Qed.
 
-Lemma sta_red_apair_inv m n s x :
-  APair m n s ~>* x ->
-  exists m' n',
-    m ~>* m' /\ n ~>* n' /\ x = APair m' n' s.
+Lemma sta_red_tt_inv x : TT ~>* x -> x = TT.
 Proof.
-  elim.
-  exists m. exists n=>//.
-  move=> y z rd[m'[n'[r1[r2 e]]]] st; subst.
+  elim=>//.
+  move=>y z rd e st. subst.
   inv st.
-  exists m'0. exists n'.
-  repeat constructor; eauto.
-  apply: starSE; eauto.
-  exists m'. exists n'0.
-  repeat constructor; eauto.
-  apply: starSE; eauto.
+Qed.
+
+Lemma sta_red_ff_inv x : FF ~>* x -> x = FF.
+Proof.
+  elim=>//.
+  move=>y z rd e st. subst.
+  inv st.
 Qed.
 
 Lemma sta_red_id_inv A m n x :
@@ -1089,22 +1032,6 @@ Proof.
   apply: conv_sym. by apply: star_conv.
 Qed.
 
-Lemma with_inj A A' B B' s s' :
-  With A B s === With A' B' s' ->
-    A === A' /\ B === B' /\ s = s'.
-Proof.
-  move/church_rosser=>
-    [x/sta_red_with_inv[A1[B1[rA1[rB1->]]]]
-      /sta_red_with_inv[A2[B2[rA2[rB2[]]]]]] eA eB es; subst.
-  repeat split.
-  apply: conv_trans.
-  apply: star_conv. by apply: rA1.
-  apply: conv_sym. by apply: star_conv.
-  apply: conv_trans.
-  apply: star_conv. by apply: rB1.
-  apply: conv_sym. by apply: star_conv.
-Qed.
-
 Lemma id_inj A A' m m' n n' :
   Id A m n === Id A' m' n' ->
     A === A' /\ m === m' /\ n === n'.
@@ -1136,8 +1063,9 @@ Ltac red_inv m H :=
   | Sig1  => apply sta_red_sig1_inv in H
   | Pair0 => apply sta_red_pair0_inv in H
   | Pair1 => apply sta_red_pair1_inv in H
-  | With  => apply sta_red_with_inv in H
-  | APair => apply sta_red_apair_inv in H
+  | Bool  => apply sta_red_bool_inv in H
+  | TT    => apply sta_red_tt_inv in H
+  | FF    => apply sta_red_ff_inv in H
   | Id    => apply sta_red_id_inv in H
   | Refl  => apply sta_red_refl_inv in H
   end.

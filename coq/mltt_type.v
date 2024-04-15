@@ -39,20 +39,21 @@ Inductive mltt0_type : mltt_ctx -> term -> term -> Prop :=
   mltt0_type Γ m (Sig A B) ->
   mltt0_type (B :: A :: Γ) n C.[DPair (Var 1) (Var 0) .: ren (+2)] ->
   mltt0_type Γ (LetIn C m n) C.[m/]
-| mltt0_tuple Γ A B l1 l2 :
-  mltt0_type Γ A (Ty l1) ->
-  mltt0_type Γ B (Ty l2) ->
-  mltt0_type Γ (Tuple A B) (Ty (maxn l1 l2))
-| mltt0_pair Γ A B m n :
-  mltt0_type Γ m A ->
-  mltt0_type Γ n B ->
-  mltt0_type Γ (Pair m n) (Tuple A B)
-| mltt0_fst Γ A B m :
-  mltt0_type Γ m (Tuple A B) ->
-  mltt0_type Γ (Fst m) A
-| mltt0_snd Γ A B m :
-  mltt0_type Γ m (Tuple A B) ->
-  mltt0_type Γ (Snd m) B
+| mltt0_bool Γ :
+  mltt0_wf Γ ->
+  mltt0_type Γ Bool (Ty 0)
+| mltt0_tt Γ :
+  mltt0_wf Γ ->
+  mltt0_type Γ TT Bool
+| mltt0_ff Γ :
+  mltt0_wf Γ ->
+  mltt0_type Γ FF Bool
+| mltt0_ifte Γ A m n1 n2 l :
+  mltt0_type (Bool :: Γ) A (Ty l) -> 
+  mltt0_type Γ m Bool ->
+  mltt0_type Γ n1 A.[TT/] ->
+  mltt0_type Γ n2 A.[FF/] ->
+  mltt0_type Γ (Ifte A m n1 n2) A.[m/]
 | mltt0_id Γ A m n l :
   mltt0_type Γ A (Ty l) ->
   mltt0_type Γ m A ->
@@ -119,20 +120,21 @@ Inductive mltt_type : mltt_ctx -> term -> term -> Prop :=
   Γ ⊢ m : Sig A B ->
   (B :: A :: Γ) ⊢ n : C.[DPair (Var 1) (Var 0) .: ren (+2)] ->
   Γ ⊢ LetIn C m n : C.[m/]
-| mltt_tuple Γ A B l1 l2 :
-  Γ ⊢ A : Ty l1 ->
-  Γ ⊢ B : Ty l2 ->
-  Γ ⊢ Tuple A B : Ty (maxn l1 l2)
-| mltt_pair Γ A B m n :
-  Γ ⊢ m : A ->
-  Γ ⊢ n : B ->
-  Γ ⊢ Pair m n : Tuple A B
-| mltt_fst Γ A B m :
-  Γ ⊢ m : Tuple A B ->
-  Γ ⊢ Fst m : A
-| mltt_snd Γ A B m :
-  Γ ⊢ m : Tuple A B ->
-  Γ ⊢ Snd m : B
+| mltt_bool Γ :
+  mltt_wf Γ ->
+  Γ ⊢ Bool : Ty 0
+| mltt_tt Γ :
+  mltt_wf Γ ->
+  Γ ⊢ TT : Bool
+| mltt_ff Γ :
+  mltt_wf Γ ->
+  Γ ⊢ FF : Bool
+| mltt_ifte Γ A m n1 n2 l :
+  (Bool :: Γ) ⊢ A : Ty l ->
+  Γ ⊢ m : Bool ->
+  Γ ⊢ n1 : A.[TT/] ->
+  Γ ⊢ n2 : A.[FF/] ->
+  Γ ⊢ Ifte A m n1 n2 : A.[m/]
 | mltt_id Γ A m n l :
   Γ ⊢ A : Ty l ->
   Γ ⊢ m : A ->
@@ -178,6 +180,5 @@ Proof with eauto using mltt0_type, mltt0_wf.
   move=>Γ A B m tym ihm.
   have wf0:=mltt0_type_wf ihm. inv wf0.
   apply: mltt0_lam...
-  Unshelve. eauto.
 Qed.
 #[global] Hint Resolve mltt_mltt0_type.

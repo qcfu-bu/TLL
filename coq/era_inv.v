@@ -46,12 +46,19 @@ Proof.
   exists m. by exists n.
 Qed.
 
-Lemma era_apair_form Γ Δ m m1' m2' A s :
-  Γ ; Δ ⊢ m ~ APair m1' m2' s : A -> exists m1 m2, m = APair m1 m2 s.
+Lemma era_tt_form Γ Δ m A : Γ ; Δ ⊢ m ~ TT : A -> m = TT.
+Proof. move e:(TT)=>x er. elim: er e=>//. Qed.
+
+Lemma era_ff_form Γ Δ m A : Γ ; Δ ⊢ m ~ FF : A -> m = FF.
+Proof. move e:(FF)=>x er. elim: er e=>//. Qed.
+
+Lemma era_ifte_form Γ Δ m n1 n2 n3 X A :
+  Γ ; Δ ⊢ m ~ Ifte X n1 n2 n3 : A -> exists A n1 n2 n3, m = Ifte A n1 n2 n3 /\ X = Box.
 Proof.
-  move e:(APair m1' m2' s)=>x er. elim: er m1' m2' s e=>//{Γ Δ m x A}.
-  move=>Γ Δ A B m m' n n' t k tym ihm tyn ihn m1' m2' s[e1 e2 e3]; subst.
-  exists m. by exists n.
+  move e:(Ifte X n1 n2 n3)=>x er. elim: er X n1 n2 n3 e=>//{Γ Δ m x A}.
+  move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s mrg1 mrg2
+         tyA erm ihm ern1 ihn1 ern2 ihn2 X m1 m2 m3[e1 e2 e3 e4]. subst.
+  exists A. exists m. exists n1. exists n2. by [].
 Qed.
 
 Lemma era_box_form Γ Δ m A : ~Γ ; Δ ⊢ m ~ Box : A.
@@ -198,34 +205,4 @@ Proof with eauto.
   move=>ty.
   have[t[lS tyS]]:=dyn_valid (era_dyn_type ty).
   apply: era_pair1_invX...
-Qed.
-
-Lemma era_apair_invX Γ Δ A B m m' n n' s r t l C :
-  Γ ; Δ ⊢ APair m n s ~ APair m' n' s : C ->
-  C === With A B r ->
-  Γ ⊢ With A B r : Sort t l ->
-  s = r /\ Γ ; Δ ⊢ m ~ m' : A /\ Γ ; Δ ⊢ n ~ n' : B.
-Proof with eauto.
-  move e1:(APair m n s)=>x.
-  move e2:(APair m' n' s)=>y ty.
-  elim: ty A B m m' n n' s r t l e1 e2=>//{Γ Δ x y C}.
-  { move=>Γ Δ A B m m' n n' t k tym ihm tyn ihn A0 B0 m0 m0' n0 n0'
-      s r t0 l0[e1 e2 e3][e4 e5 e6]/with_inj[e7[e8 e9]]ty; subst.
-    have[s[r0[l1[l2[tyA0[tyB0 _]]]]]]:=sta_with_inv ty.
-    repeat split...
-    apply: era_conv...
-    apply: era_conv... }
-  { move=>Γ Δ A B m m' s l eq tym ihm _
-      A0 B0 m0 m0' n n' s0 r t l0 e1 e2 eq' tyw; subst.
-    apply: ihm...
-    apply: conv_trans... }
-Qed.
-
-Lemma era_apair_inv Γ Δ A B m m' n n' s r :
-  Γ ; Δ ⊢ APair m n s ~ APair m' n' s : With A B r ->
-  s = r /\ Γ ; Δ ⊢ m ~ m' : A /\ Γ ; Δ ⊢ n ~ n' : B.
-Proof with eauto.
-  move=>ty.
-  have[t[lS tyS]]:=dyn_valid (era_dyn_type ty).
-  apply: era_apair_invX...
 Qed.

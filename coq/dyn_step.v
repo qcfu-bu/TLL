@@ -20,8 +20,8 @@ Inductive dyn_val : term -> Prop :=
   dyn_val m1 ->
   dyn_val m2 ->
   dyn_val (Pair1 m1 m2 s)
-| dyn_val_apair m1 m2 s :
-  dyn_val (APair m1 m2 s)
+| dyn_val_tt : dyn_val TT
+| dyn_val_ff : dyn_val FF
 | dyn_val_ptr l :
   dyn_val (Ptr l).
 
@@ -56,16 +56,13 @@ Inductive dyn_step : term -> term -> Prop :=
 | dyn_step_iota1 A m1 m2 n s :
   dyn_val (Pair1 m1 m2 s) ->
   LetIn A (Pair1 m1 m2 s) n ~>> n.[m2,m1/]
-| dyn_step_fst m m' :
+| dyn_step_ifteM A m m' n1 n2 :
   m ~>> m' ->
-  Fst m ~>> Fst m'
-| dyn_step_snd m m' :
-  m ~>> m' ->
-  Snd m ~>> Snd m'
-| dyn_step_proj1 m n s :
-  Fst (APair m n s) ~>> m
-| dyn_step_proj2 m n s :
-  Snd (APair m n s) ~>> n
+  Ifte A m n1 n2 ~>> Ifte A m' n1 n2
+| dyn_step_ifteT A n1 n2 :
+  Ifte A TT n1 n2 ~>> n1
+| dyn_step_ifteF A n1 n2 :
+  Ifte A FF n1 n2 ~>> n2
 | dyn_step_rwE A H P :
   Rw A H P ~>> H
 where "m ~>> n" := (dyn_step m n).

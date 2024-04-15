@@ -64,24 +64,23 @@ Proof with eauto using ptr_step, merge.
   { move=>H H' lm ln l n t fr H2 H0 mrg.
     have[H4[fr' mrg']]:=free_merge fr mrg.
     exists H4. exists n.[Ptr ln,Ptr lm/]... }
-  { move=>H m n t l e H2 H0 mrg; subst.
-    have[l0 h0]:=hdomm_exist H0. case: t.
-    { exists (setm H0 l0 (APair m n U, U)).
-      exists (Ptr l0)... }
-    { exists (setm H0 l0 (APair m n L, L)).
-      exists (Ptr l0)... } }
-  { move=>H H' m m' st ihm H2 H0 mrg.
+  { move=>H l e H2 H0 mrg.
+    have[l0 h0]:=hdomm_exist H0.
+    exists (setm H0 l0 (TT, U)).
+    exists (Ptr l0)... }
+  { move=>H l e H2 H0 mrg.
+    have[l0 h0]:=hdomm_exist H0.
+    exists (setm H0 l0 (FF, U)).
+    exists (Ptr l0)... }
+  { move=>H H' m m' n1 n2 st ihm H2 H0 mrg.
     have[H1'[mx st']]:=ihm _ _ mrg.
-    exists H1'. exists (Fst mx)... }
-  { move=>H H' m m' st ihm H2 H0 mrg.
-    have[H1'[mx st']]:=ihm _ _ mrg.
-    exists H1'. exists (Snd mx)... }
-  { move=>H H' m n l t fr H2 H0 mrg.
+    exists H1'. exists (Ifte Box mx n1 n2)... }
+  { move=>H H' l n1 n2 fr H2 H0 mrg.
     have[H4[fr' mrg']]:=free_merge fr mrg.
-    exists H4. exists m... }
-  { move=>H H' m n l t fr H2 H0 mrg.
+    exists H4. exists n1... }
+  { move=>H H' l n1 n2 fr H2 H0 mrg.
     have[H4[fr' mrg']]:=free_merge fr mrg.
-    exists H4. exists n... }
+    exists H4. exists n2... }
   { move=>H m H2 H0 mrg.
     exists H0. exists m... }
 Qed.
@@ -211,31 +210,30 @@ Proof with eauto using ptr_step.
           exists H6. exists (n0.[Ptr ln,Ptr lm/])... }
         { exfalso. apply: free_wr_ptr... } } }
     { right. exists l... } }
-  { move=>Γ Δ A B m m' n n' t _ erm ihm ern ihn H z e1 e2 rs wr; subst. inv rs.
-    { left. have[l h]:=hdomm_exist H. exists (setm H l (APair m0 n0 t, t)). exists (Ptr l)... }
+  { move=>Γ Δ wf k H z e1 e2 rs wr; subst. inv rs.
+    { left. have[l h]:=hdomm_exist H. exists (setm H l (TT, U)). exists (Ptr l)... }
     { right. exists l... } }
-  { move=>Γ Δ A B m m' t erm ihm H z e1 e2 rs wr; subst. inv rs.
-    { left. have[[H'[m1 st]]|[l e]]:=ihm _ _ erefl erefl H4 wr.
-      { exists H'. exists (Fst m1)... }
+  { move=>Γ Δ wf k H z e1 e2 rs wr; subst. inv rs.
+    { left. have[l h]:=hdomm_exist H. exists (setm H l (FF, U)). exists (Ptr l)... }
+    { right. exists l... } }
+  { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l mrg tyA
+           erm ihm ern1 ihn1 ern2 ihn2 H z e1 e2 rs wr.
+    subst; inv mrg. inv rs.
+    { left. have[wr1 wr2]:=wr_merge_inv H6 wr.
+      have[[H1'[m1 st]]|[l0 e]]:=ihm _ _ erefl erefl H9 wr1.
+      { have[H'[m0' st']]:=ptr_step_merge st H6.
+        exists H'. exists (Ifte Box m0' n0 n3)... }
       { subst.
-        have vm':=wr_resolve_ptr wr H4.
+        have vm':=wr_resolve_ptr wr1 H9.
         have vm:=era_dyn_val erm vm'.
-        have[m1[m2 e]]:=dyn_with_canonical (era_dyn_type erm) (convR _ _) vm. subst.
-        have[m1'[m2' e]]:=era_apair_canonical erm. subst. inv H4. inv H5.
-        { exists H'. exists m0... }
-        { exfalso. apply: free_wr_ptr... } } }
-    { right. exists l... } }
-  { move=>Γ Δ A B m m' t erm ihm H z e1 e2 rs wr; subst. inv rs.
-    { left. have[[H'[m1 st]]|[l e]]:=ihm _ _ erefl erefl H4 wr.
-      { exists H'. exists (Snd m1)... }
-      { subst.
-        have vm':=wr_resolve_ptr wr H4.
-        have vm:=era_dyn_val erm vm'.
-        have[m1[m2 e]]:=dyn_with_canonical (era_dyn_type erm) (convR _ _) vm. subst.
-        have[m1'[m2' e]]:=era_apair_canonical erm. subst. inv H4. inv H5.
-        { exists H'. exists n... }
-        { exfalso. apply: free_wr_ptr... } } }
-    { right. exists l... } }
+        have[e|e]:=dyn_bool_canonical (era_dyn_type erm) (convR _ _) vm.
+        { subst. have e:=era_tt_canonical erm. subst. inv H9. inv H7.
+          have[H7[fr' mrg']]:=free_merge H4 H6.
+          exists H7. exists n0... exfalso. apply: free_wr_ptr... }
+        { subst. have e:=era_ff_canonical erm. subst. inv H9. inv H7.
+          have[H7[fr' mrg']]:=free_merge H4 H6.
+          exists H7. exists n3... exfalso. apply: free_wr_ptr... } } }
+    { right. exists l0... } }
   { move=>Γ Δ A B x x' P m n s l0 tyB erx ihx tyP H z e1 e2 rs wr; subst. inv rs.
     { left. exists H. exists m0... }
     { right. exists l... } }

@@ -51,28 +51,22 @@ Inductive mltt_step : term -> term -> Prop :=
   LetIn A m n ~> LetIn A m n'
 | mltt_step_iota A m1 m2 n :
   LetIn A (DPair m1 m2) n ~> n.[m2,m1/]
-| mltt_step_tupleL A A' B :
+| mltt_step_ifteA A A' m n1 n2 :
   A ~> A' ->
-  Tuple A B ~> Tuple A' B
-| mltt_step_tupleR A B B' :
-  B ~> B' ->
-  Tuple A B ~> Tuple A B'
-| mltt_step_pairL m m' n :
+  Ifte A m n1 n2 ~> Ifte A' m n1 n2
+| mltt_step_ifteM A m m' n1 n2 :
   m ~> m' ->
-  Pair m n ~> Pair m' n
-| mltt_step_pairR m n n' :
-  n ~> n' ->
-  Pair m n ~> Pair m n'
-| mltt_step_fst m m' :
-  m ~> m' ->
-  Fst m ~> Fst m'
-| mltt_step_snd m m' :
-  m ~> m' ->
-  Snd m ~> Snd m'
-| mltt_step_proj1 m n :
-  Fst (Pair m n) ~> m
-| mltt_step_proj2 m n :
-  Snd (Pair m n) ~> n
+  Ifte A m n1 n2 ~> Ifte A m' n1 n2
+| mltt_step_ifteN1 A m n1 n1' n2 :
+  n1 ~> n1' ->
+  Ifte A m n1 n2 ~> Ifte A m n1' n2
+| mltt_step_ifteN2 A m n1 n2 n2' :
+  n2 ~> n2' ->
+  Ifte A m n1 n2 ~> Ifte A m n1 n2'
+| mltt_step_ifteT A n1 n2 :
+  Ifte A TT n1 n2 ~> n1
+| mltt_step_ifteF A n1 n2 :
+  Ifte A FF n1 n2 ~> n2
 | mltt_step_idA A A' m n :
   A ~> A' ->
   Id A m n ~> Id A' m n

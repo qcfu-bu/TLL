@@ -72,20 +72,21 @@ Proof with eauto.
     exact: eq'. }
 Qed.
 
-Lemma sta_with_inv Γ A B C t :
-  Γ ⊢ With A B t : C ->
-  exists s r l1 l2, Γ ⊢ A : Sort s l1 /\ Γ ⊢ B : Sort r l2 /\ C === Sort t (maxn l1 l2).
+Lemma sta_ifte_inv Γ m n1 n2 A C :
+  Γ ⊢ Ifte A m n1 n2 : C ->
+  A.[m/] === C /\
+  Γ ⊢ m : Bool /\
+  Γ ⊢ n1 : A.[TT/] /\
+  Γ ⊢ n2 : A.[FF/].
 Proof with eauto.
-  move e:(With A B t)=>n tyW.
-  elim: tyW A B t e=>//{Γ C n}.
-  { move=>Γ A B s r t l1 l2 tyA ihA tyB ihB A0 B0 t0[e1 e2 e3]; subst.
-    exists s. exists r. exists l1. exists l2... }
-  { move=>Γ A B m s l eq tym ihm tyB ihB A0 B0 t e; subst.
-    have[s0[r[l1[l2[tyA[tyB0 eq']]]]]]:=ihm _ _ _ erefl.
-    exists s0. exists r. exists l1. exists l2. repeat split...
-    apply: conv_trans.
-    apply: conv_sym...
-    exact: eq'. }
+  move e:(Ifte A m n1 n2)=>x ty. elim: ty A m n1 n2 e=>//{Γ x C}.
+  { move=>Γ A m n1 n2 s l tym ihm tyA ihA tyn1 ihn1 tyn2 ihn2 A0 m0 n0 n3
+      [e1 e2 e3 e4]; subst.
+    repeat split... }
+  { move=>Γ A B m s l eq tym ihm tyB ihB A0 m0 n1 n2 e; subst.
+    have[eqA[tym0[tyn1 tyn2]]]:=ihm _ _ _ _ erefl.
+    repeat split...
+    apply: conv_trans... }
 Qed.
 
 Lemma sta_id_inv Γ A B m n :

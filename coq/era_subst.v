@@ -234,9 +234,24 @@ Proof with eauto using era_agree_subst, era_agree_subst_key, era_type.
     have{}ihn:=ihn _ _ _ _ (era_agree_subst_ty (era_agree_subst_ty agrb H8) H6).
     apply: era_letin1...
     asimpl. asimpl in ihn... }
-  { move=>Γ Δ A B m m' n n' t k tym ihm tyn ihn Γ1 Δ1 σ1 σ2 agr. asimpl. apply: era_apair... }
-  { move=>Γ Δ A B m m' t tym ihm Γ1 Δ1 σ1 σ2 agr. asimpl. apply: era_fst... }
-  { move=>Γ Δ A B m m' t tym ihm Γ1 Δ1 σ1 σ2 agr. asimpl. apply: era_snd... }
+  { move=>Γ Δ wf k Γ1 Δ1 σ1 σ2 agr. asimpl.
+    have wf':=dyn_substitution_wf wf (era_dyn_agree_subst agr).
+    apply: era_tt... }
+  { move=>Γ Δ wf ih k Γ1 Δ1 σ agr. asimpl.
+    have wf':=dyn_substitution_wf wf (era_dyn_agree_subst agr).
+    apply: era_ff... }
+  { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l mrg tyA tym ihm
+           tyn1 ihn1 tyn2 ihn2 Γ1 Δ0 σ1 σ2 agr. asimpl.
+    replace (A.[m.[σ1] .: σ1]) with A.[up σ1].[m.[σ1]/] by autosubst.
+    have[Δa[Δb[mrgx[agra agrb]]]]:=era_agree_subst_merge agr mrg.
+    have wf:=sta_type_wf tyA. inv wf.
+    have{}tyA:=sta_substitution tyA (sta_agree_subst_ty (era_sta_agree_subst agr) H2).
+    have{}ihm:=ihm _ _ _ _ agra.
+    have{}ihn1:=ihn1 _ _ _ _ agrb.
+    have{}ihn2:=ihn2 _ _ _ _ agrb.
+    apply: era_ifte...
+    asimpl. asimpl in ihn1...
+    asimpl. asimpl in ihn2... }
   { move=>Γ Δ A B H H' P m n s l tyB erH ihH tyP Γ1 Δ1 σ1 σ2 agr. asimpl.
     replace B.[P.[σ1] .: n.[σ1] .: σ1] with B.[upn 2 σ1].[P.[σ1],n.[σ1]/] by autosubst.
     have wf:=sta_type_wf tyB. inv wf. inv H2.

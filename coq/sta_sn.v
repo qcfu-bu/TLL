@@ -25,10 +25,10 @@ Fixpoint interp (m : tll_ast.term) : mltt_ast.term :=
   | tll_ast.Pair0 m n _ => mltt_ast.DPair (interp m) (interp n)
   | tll_ast.Pair1 m n _ => mltt_ast.DPair (interp m) (interp n)
   | tll_ast.LetIn A m n => mltt_ast.LetIn (interp A) (interp m) (interp n)
-  | tll_ast.With A B _ => mltt_ast.Tuple (interp A) (interp B)
-  | tll_ast.APair m n _ => mltt_ast.Pair (interp m) (interp n)
-  | tll_ast.Fst m => mltt_ast.Fst (interp m)
-  | tll_ast.Snd m => mltt_ast.Snd (interp m)
+  | tll_ast.Bool => mltt_ast.Bool
+  | tll_ast.TT => mltt_ast.TT
+  | tll_ast.FF => mltt_ast.FF
+  | tll_ast.Ifte A m n1 n2 => mltt_ast.Ifte (interp A) (interp m) (interp n1) (interp n2)
   | tll_ast.Id A m n => mltt_ast.Id (interp A) (interp m) (interp n)
   | tll_ast.Refl m => mltt_ast.Refl (interp m)
   | tll_ast.Rw A H P => mltt_ast.Rw (interp A) (interp H) (interp P)
@@ -69,12 +69,8 @@ Proof with eauto.
     rewrite ihm. rewrite ihn... }
   { move=>A ihA m ihm n ihn ξ. asimpl.
     rewrite ihA. rewrite ihm. rewrite ihn... }
-  { move=>A ihA B ihB _ ξ. asimpl.
-    rewrite ihA. rewrite ihB... }
-  { move=>m ihm n ihn _ ξ.
-    rewrite ihm. rewrite ihn... }
-  { move=>m ihm ξ. rewrite ihm... }
-  { move=>m ihm ξ. rewrite ihm... }
+  { move=>A ihA m ihm n1 ihn1 n2 ihn2 ξ. asimpl.
+    rewrite ihA. rewrite ihm. rewrite ihn1. rewrite ihn2... }
   { move=>A ihA m ihm n ihn ξ.
     rewrite ihA. rewrite ihm. rewrite ihn... }
   { move=>m ihm ξ. rewrite ihm... }
@@ -132,14 +128,11 @@ Proof with eauto using interp_subst_up.
     rewrite (ihA _ (up τ))...
     rewrite (ihm _ τ)...
     rewrite (ihn _ (up (up τ)))... }
-  { move=>A ihA B ihB _ σ τ h.
-    rewrite (ihA _ τ)...
-    rewrite (ihB _ τ)... }
-  { move=>m ihm n ihn _ σ τ h.
+  { move=>A ihA m ihm n1 ihn1 n2 ihn2 σ τ h.
+    rewrite (ihA _ (up τ))...
     rewrite (ihm _ τ)...
-    rewrite (ihn _ τ)... }
-  { move=>m ihm σ τ h. rewrite (ihm _ τ)... }
-  { move=>m ihm σ τ h. rewrite (ihm _ τ)... }
+    rewrite (ihn1 _ τ)...
+    rewrite (ihn2 _ τ)... }
   { move=>A ihA m ihm n ihn σ τ h.
     rewrite (ihA _ τ)...
     rewrite (ihm _ τ)...
@@ -238,6 +231,14 @@ Proof with eauto using mltt_type, mltt_wf.
     erewrite<-interp_subst_com...
     move=>x. destruct x=>//.
     move=>x. destruct x=>//. }
+  { move=>Γ A m n1 n2 s l tyA ihA tym ihm tyn1 ihn1 tyn2 ihn2.
+    erewrite interp_subst_com...
+    econstructor...
+    erewrite<-interp_subst_com...
+    move=>x. destruct x=>//.
+    erewrite<-interp_subst_com...
+    move=>x. destruct x=>//.
+    move=>x. destruct x=>//. }
   { move=>Γ A B H P m n s tyB ihB tyH ihH tyP ihP.
     erewrite interp_subst_com...
     apply: mltt_rw...
@@ -250,7 +251,6 @@ Proof with eauto using mltt_type, mltt_wf.
     apply: interp_conv...
     apply: ihm.
     apply: ihB. }
-  Unshelve. eauto.
 Qed.
 
 CoInductive nn T (Rel : T -> T -> Prop) : T -> Prop :=

@@ -69,20 +69,21 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
   sta0_type Γ m (Sig1 A B t) ->
   sta0_type (B :: A :: Γ) n C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   sta0_type Γ (LetIn C m n) C.[m/]
-| sta0_with Γ A B s r t l1 l2 :
-  sta0_type Γ A (Sort s l1) ->
-  sta0_type Γ B (Sort r l2) ->
-  sta0_type Γ (With A B t) (Sort t (maxn l1 l2))
-| sta0_apair Γ A B m n t :
-  sta0_type Γ m A ->
-  sta0_type Γ n B ->
-  sta0_type Γ (APair m n t) (With A B t)
-| sta0_fst Γ A B m t :
-  sta0_type Γ m (With A B t) ->
-  sta0_type Γ (Fst m) A
-| sta0_snd Γ A B m t :
-  sta0_type Γ m (With A B t) ->
-  sta0_type Γ (Snd m) B
+| sta0_bool Γ :
+  sta0_wf Γ ->
+  sta0_type Γ Bool (Sort U 0)
+| sta0_tt Γ :
+  sta0_wf Γ ->
+  sta0_type Γ TT Bool
+| sta0_ff Γ :
+  sta0_wf Γ ->
+  sta0_type Γ FF Bool
+| sta0_ifte Γ A m n1 n2 s l :
+  sta0_type (Bool :: Γ) A (Sort s l) ->
+  sta0_type Γ m Bool ->
+  sta0_type Γ n1 A.[TT/] ->
+  sta0_type Γ n2 A.[FF/] ->
+  sta0_type Γ (Ifte A m n1 n2) A.[m/]
 | sta0_id Γ A m n s l :
   sta0_type Γ A (Sort s l) ->
   sta0_type Γ m A ->
@@ -178,20 +179,21 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
   Γ ⊢ m : Sig1 A B t ->
   (B :: A :: Γ) ⊢ n : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   Γ ⊢ LetIn C m n : C.[m/]
-| sta_with Γ A B s r t l1 l2 :
-  Γ ⊢ A : Sort s l1 ->
-  Γ ⊢ B : Sort r l2 ->
-  Γ ⊢ With A B t : Sort t (maxn l1 l2)
-| sta_apair Γ A B m n t :
-  Γ ⊢ m : A ->
-  Γ ⊢ n : B ->
-  Γ ⊢ APair m n t : With A B t
-| sta_fst Γ A B m t :
-  Γ ⊢ m : With A B t ->
-  Γ ⊢ Fst m : A
-| sta_snd Γ A B m t :
-  Γ ⊢ m : With A B t ->
-  Γ ⊢ Snd m : B
+| sta_bool Γ :
+  sta_wf Γ ->
+  Γ ⊢ Bool : Sort U 0
+| sta_tt Γ :
+  sta_wf Γ ->
+  Γ ⊢ TT : Bool
+| sta_ff Γ :
+  sta_wf Γ ->
+  Γ ⊢ FF : Bool
+| sta_ifte Γ A m n1 n2 s l :
+  (Bool :: Γ) ⊢ A : Sort s l ->
+  Γ ⊢ m : Bool ->
+  Γ ⊢ n1 : A.[TT/] ->
+  Γ ⊢ n2 : A.[FF/] ->
+  Γ ⊢ Ifte A m n1 n2 : A.[m/]
 | sta_id Γ A m n s l :
   Γ ⊢ A : Sort s l ->
   Γ ⊢ m : A ->
@@ -239,14 +241,10 @@ Proof with eauto using sta0_type, sta0_wf.
   { move=>Γ A B m s tym ihm.
     have wf0:=sta0_type_wf ihm. inv wf0.
     apply: sta0_lam1... }
-  Unshelve. eauto.
-  Unshelve. eauto.
 Qed.
 #[global] Hint Resolve sta_sta0_type.
 
 Lemma sta0_sta_type Γ m A : sta0_type Γ m A -> Γ ⊢ m : A.
 Proof with eauto using sta_type, sta_wf.
   move:Γ m A. apply:(@sta0_type_mut _ (fun Γ wf => sta_wf Γ))...
-  Unshelve. eauto.
-  Unshelve. eauto.
 Qed.

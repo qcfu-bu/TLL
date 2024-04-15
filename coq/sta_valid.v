@@ -27,9 +27,9 @@ Proof with eauto using sta_type.
     have//={}tyC:=sta_subst tyC tym. exists s. exists l... }
   { move=>Γ A B C m n s t l tyC _ tym _ _ _.
     have//={}tyC:=sta_subst tyC tym. exists s. exists l... }
-  { move=>Γ A B m n t _[s[lA tyA]]_[r[lB tyB]]. exists t. exists (maxn lA lB)... }
-  { move=>Γ A B m t _ [s[l/sta_with_inv[s0[r[l1[l2[tyA _]]]]]]]. exists s0. exists l1... }
-  { move=>Γ A B m t _ [s[l/sta_with_inv[s0[r[l1[l2[_[tyB _]]]]]]]]. exists r. exists l2... }
+  { move=>Γ A m n1 n2 s l tyA ihA tym ihm tyn1 ihn1 tyn2 ihn2.
+    exists s. exists l. apply: sta_esubst...
+    by autosubst. }
   { move=>Γ A m tym[s[l tyA]]. exists U. exists l... }
   { move=>Γ A B H P m n s l tyB _ tyH _ tyP[r[l0 tyI]].
     have[_[tym[tyn _]]]:=sta_id_inv tyI. exists s. exists l.
@@ -164,35 +164,6 @@ Proof with eauto.
   move=>ty.
   have[t[l tyS]]:=sta_valid ty.
   apply: sta_pair1_invX...
-Qed.
-
-Lemma sta_apair_invX Γ m n s C :
-  Γ ⊢ APair m n s : C ->
-  forall A B r t l,
-    C === With A B r ->
-    Γ ⊢ With A B r : Sort t l ->
-    s = r /\ Γ ⊢ m : A /\ Γ ⊢ n : B.
-Proof with eauto.
-  move e:(APair m n s)=>x ty.
-  elim: ty m n s e=>//{Γ C x}.
-  { move=>Γ A B m n t tym ihm tyn ihn m0 n0 s[e1 e2 e3]A0 B0 r t0 l
-      /with_inj[e4[e5 e6]]ty; subst.
-    have[s[r0[l1[l2[tyA0[tyB0 _]]]]]]:=sta_with_inv ty.
-    repeat split...
-    apply: sta_conv...
-    apply: sta_conv... }
-  { move=>Γ A B m s l eq1 tym ihm _ _ m0 n s0 e A0 B0 r t eq' tyw; subst.
-    apply: ihm...
-    apply: conv_trans... }
-Qed.
-
-Lemma sta_apair_inv Γ m n A B s r :
-  Γ ⊢ APair m n s : With A B r ->
-  s = r /\ Γ ⊢ m : A /\ Γ ⊢ n : B.
-Proof with eauto.
-  move=>ty.
-  have[t[l tyW]]:=sta_valid ty.
-  apply: sta_apair_invX...
 Qed.
 
 Lemma sta_refl_invX Γ n C :

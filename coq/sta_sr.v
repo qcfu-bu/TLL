@@ -282,20 +282,46 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       apply: sta_substitution...
       repeat constructor...
       by asimpl. } }
-  { move=>Γ A B s r t l1 l2 tyA ihA tyB ihB n st. inv st.
-    { have tyA':=ihA _ H3. apply: sta0_with... }
-    { have tyB':=ihB _ H3. apply: sta0_with... } }
-  { move=>Γ A B m n t tym ihm tyn ihn n0 st. inv st.
-    { have tym':=ihm _ H3. apply: sta0_apair... }
-    { have tyn':=ihn _ H3. apply: sta0_apair... } }
-  { move=>Γ A B m t tym ihm n st. inv st.
-    { have tym':=ihm _ H0. apply: sta0_fst... }
-    { move/sta0_sta_type in tym.
-      have[_[tyn _]]:=sta_apair_inv tym... } }
-  { move=>Γ A B m t tym ihm n st. inv st.
-    { have tym':=ihm _ H0. apply: sta0_snd... }
-    { move/sta0_sta_type in tym.
-      have[_[_ tyn]]:=sta_apair_inv tym... } }
+  { move=>Γ wf n st. inv st. }
+  { move=>Γ wf n st. inv st. }
+  { move=>Γ wf n st. inv st. }
+  { move=>Γ A m n1 n2 s l tyA ihA tym ihm tyn1 ihn1 tyn2 ihn2 n st. inv st...
+    { apply: sta_sta0_type.
+      have/sta0_sta_type{}ihA:=ihA _ H4.
+      move/sta0_sta_type in tyA.
+      move/sta0_sta_type in tym.
+      move/sta0_sta_type in tyn1.
+      move/sta0_sta_type in tyn2.
+      apply: sta_conv.
+      apply: sta_conv_subst.
+      apply: conv1i...
+      apply: sta_ifte...
+      apply: sta_conv.
+      apply: sta_conv_subst.
+      apply: conv1...
+      apply: tyn1.
+      apply: sta_esubst...
+      by autosubst.
+      apply: sta_conv.
+      apply: sta_conv_subst.
+      apply: conv1...
+      apply: tyn2.
+      apply: sta_esubst...
+      by autosubst.
+      apply: sta_esubst...
+      by autosubst. }
+    { apply: sta_sta0_type.
+      have/sta0_sta_type{}ihm:=ihm _ H4.
+      move/sta0_sta_type in tyA.
+      move/sta0_sta_type in tym.
+      move/sta0_sta_type in tyn1.
+      move/sta0_sta_type in tyn2.
+      apply: sta_conv.
+      apply: sta_conv_beta.
+      apply: conv1i...
+      apply: sta_ifte...
+      apply: sta_esubst...
+      by autosubst. } }
   { move=>Γ A m n s l tyA ihA tym ihm tyn ihn n0 st. inv st.
     { have tyA':=ihA _ H3.
       apply: sta0_id...

@@ -79,19 +79,17 @@ Proof with eauto.
     apply: conv_trans... }
 Qed.
 
-Lemma dyn_with_canonical m A B C s :
-  nil ; nil ⊢ m : C -> C === With A B s -> dyn_val m ->
-  exists m1 m2, m = APair m1 m2 s.
+Lemma dyn_bool_canonical m C :
+  nil ; nil ⊢ m : C -> C === Bool -> dyn_val m -> m = TT \/ m = FF.
 Proof with eauto.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty.
-  elim: ty A B s e1 e2=>//{Γ Δ m C}.
+  elim: ty e1 e2=>//{Γ Δ m C}.
   all: try solve[intros; exfalso; (solve_conv||inv_dyn_val)].
-  { move=>Γ Δ x s A wf shs dhs A0 B s0 e1 e2; subst. inv shs. }
-  { move=>Γ Δ A B m n t k tym ihm tyn ihn A0 B0 s
-      e1 e2/with_inj[eq1[eq2 e3]]vl; subst.
-    exists m. exists n... }
-  { move=>Γ Δ A B m s l eq1 tym ihm tyB A0 B0 s0 e1 e2 eq2 vl.
+  { move=>Γ Δ x s A wf shs dhs e1 e2; subst. inv shs. }
+  { move=>Γ Δ wf k e1 e2 _ _. left... }
+  { move=>Γ Δ wf k e1 e2 _ _. right... }
+  { move=>Γ Δ A B m s l eq1 tym ihm tyB e1 e2 eq2 vl. subst.
     apply: ihm...
     apply: conv_trans... }
 Qed.
@@ -139,18 +137,13 @@ Proof with eauto using dyn_step, dyn_val.
     { left. exists (LetIn C m' n)... }
     { have[m1[m2 e]]:=dyn_sig1_canonical tym (convR _ _) vlm. subst.
       left. exists n.[m2,m1/]... } }
-  { move=>Γ Δ A B m n t k tym ihm tyn ihn e1 e2; subst. right... }
-  { move=>Γ Δ A B m t tym ihm e1 e2; subst.
-    have[[m' stm]|vlm]:=ihm erefl erefl.
-    { left. exists (Fst m')... }
-    { have[m1[m2 e]]:=dyn_with_canonical tym (convR _ _) vlm. subst.
-      left. exists m1... } }
-  { move=>Γ Δ A B m t tym ihm e1 e2; subst.
-    have[[m' stm]|vlm]:=ihm erefl erefl.
-    { left. exists (Snd m')... }
-    { have[m1[m2 e]]:=dyn_with_canonical tym (convR _ _) vlm. subst.
-      left. exists m2... } }
-  { move=>Γ Δ A B H P m n s tyB tyH ihH tyP e1 e2. subst.
-    left. exists H... }
+  { move=>Γ Δ wf k e1 e2. subst. right... }
+  { move=>Γ Δ wf k e1 e2. subst. right... }
+  { move=>Γ Δ1 Δ2 Δ A m n1 n2 s l mrg tyA tym ihm tyn1 ihn1 tyn2 ihn2 e1 e2; subst.
+    inv mrg. have[[m' stm]|vlm]:=ihm erefl erefl.
+    { left. exists (Ifte A m' n1 n2)... }
+    { have[->|->]:=dyn_bool_canonical tym (convR _ _) vlm.
+      left. exists n1... left. exists n2... } }
+  { move=>Γ Δ A B H P m n s tyB tyH ihH tyP e1 e2. subst. left. exists H... }
   { move=>Γ Δ A B m s eq tym ihm tyB e1 e2; subst... }
 Qed.

@@ -37,11 +37,9 @@ Proof with eauto using sta_step.
     { apply: sta_red_letin... }
     { apply: star1... }
     { apply: star1... } }
-  { move=>Γ A B m t tym ihm e n0 st. inv st.
-    { apply: sta_red_fst... }
-    { apply: star1... } }
-  { move=>Γ A B m t tym ihm e n0 st. inv st.
-    { apply: sta_red_snd... }
+  { move=>Γ A m n1 n2 s l tyA ihA tym ihm tyn1 ihn1 tyn2 ihn2 e n st. inv st.
+    { apply: sta_red_ifte... }
+    { apply: star1... }
     { apply: star1... } }
   { move=>Γ A B H P m n s l tyB ihB tyH ihH tyP ihP e n0 st. inv st.
     have[P0[rdP vlP]]:=sta_vn tyP.
@@ -116,10 +114,9 @@ Proof with eauto using key_impure.
     by autosubst. }
   { move=>Γ Δ1 Δ2 Δ A B C m n s r t l mrg tyC tym ihm tyn ihn l0 ty vl. inv vl. }
   { move=>Γ Δ1 Δ2 Δ A B C m n s r1 r2 t l mrg tyC tym ihm tyn ihn l0 ty vl. inv vl. }
-  { move=>Γ Δ A B m n t k tym ihm tyn ihn l0 ty vl.
-    have[s[r[l1[l2[tyA[tyB/sort_inj[e1 e2]]]]]]]:=sta_with_inv ty. subst... }
-  { move=>Γ Δ A B m t tym ihm l0 tyA vl. inv vl. }
-  { move=>Γ Δ A B m t tym ihm l0 tyA vl. inv vl. }
+  { move=>Γ Δ wf k l ty vl... }
+  { move=>Γ Δ wf k l ty vl... }
+  { move=>Γ Δ1 Δ2 Δ A m n1 n2 s l mrg tyA tym ihm tyn1 ihn1 tyn2 ihn2 l0 ty vl. inv vl. }
   { move=>Γ Δ A B H P m n s l tyB tyH ihH tyP tyB0 l0 vl. inv vl. }
   { move=>Γ Δ A B m s l eq tym ihm tyB1 l0 tyB2 vl.
     have[r[lA tyA]]:=dyn_valid tym.
@@ -247,13 +244,18 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       apply: dyn_agree_subst_wk1...
       apply: dyn_agree_subst_wk1...
       by autosubst. } }
-  { move=>Γ Δ A B m n t k tym ihm tyn ihn e1 e2 n0 st. inv st. }
-  { move=>Γ Δ A B m t tym ihm e1 e2 n st. inv st.
-    { apply: dyn_fst... }
-    { have[_[//]]:=dyn_apair_inv tym. } }
-  { move=>Γ Δ A B m t tym ihm e1 e2 n st. inv st.
-    { apply: dyn_snd... }
-    { have[_[//]]:=dyn_apair_inv tym. } }
+  { move=>Γ Δ wf k e1 e2 n st. inv st. }
+  { move=>Γ Δ wf k e1 e2 n st. inv st. }
+  { move=>Γ Δ1 Δ2 Δ A m n1 n2 s l mrg tyA tym ihm tyn1 ihn1 tyn2 ihn2 e1 e2 n0 st.
+    subst. inv mrg. inv st...
+    apply: dyn_conv.
+    apply: sta_conv_beta.
+    apply: conv_sym.
+    apply: star_conv.
+    apply: (dyn_sta_step (dyn_sta_type tym))...
+    apply: dyn_ifte...
+    apply: sta_esubst...
+    by autosubst. }
   { move=>Γ Δ A B H P m n s l tyB tyH ihH tyP e1 e2 n0 st. inv st.
     have[P0[rdP vlP]]:=sta_vn tyP.
     have tyP0:=sta_rd tyP rdP.

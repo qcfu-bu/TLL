@@ -16,8 +16,7 @@ Proof with eauto using dyn_val.
   { move=>Γ Δ1 Δ2 Δ A B m m' n n' t l mrg tyS tym ihm tyn ihn vl. inv vl... }
   { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l mrg tyC tym ihm tyn ihn vl. inv vl. }
   { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l mrg tyC tym ihm tyn ihn vl. inv vl. }
-  { move=>Γ Δ A B m m' t tym ihm vl. inv vl. }
-  { move=>Γ Δ A B m m' t tym ihm vl. inv vl. }
+  { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l mrg tyA tym ihm tyn1 ihn1 tyn2 ihn2 vl.  inv vl. }
   { move=>Γ Δ A B H H' P m n s l tyB tyH ihH tyP vl. inv vl. }
 Qed.
 
@@ -153,17 +152,22 @@ Proof with eauto using dyn_step, era_type, dyn_val, merge.
       apply: era_agree_subst_wk1...
       apply: era_agree_subst_wk1...
       by autosubst. } }
-  { move=>Γ Δ A B m m' n n' t k erm ihm tyn ihn e1 e2 x st. inv st. }
-  { move=>Γ Δ A B m m' t tym ihm e1 e2 x st. inv st.
-    { have[x st erx]:=ihm erefl erefl _ H0. exists (Fst x)... }
-    { have[m1[m2 e]]:=era_apair_form tym. subst.
-      have[e[erm1 erm2]]:=era_apair_inv tym.
-      subst. exists m1... } }
-  { move=>Γ Δ A B m m' t tym ihm e1 e2 x st. inv st.
-    { have[x st erx]:=ihm erefl erefl _ H0. exists (Snd x)... }
-    { have[m1[m2 e]]:=era_apair_form tym. subst.
-      have[e[erm1 erm2]]:=era_apair_inv tym.
-      subst. exists m2... } }
+  { move=>Γ Δ wf k e1 e2 n st. inv st. }
+  { move=>Γ Δ wf k e1 e2 n st. inv st. }
+  { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l mrg tyA tym ihm tyn1 ihn1 tyn2 ihn2 e1 e2 x st.
+    subst. inv mrg. inv st.
+    { have[mx st tymx]:=ihm erefl erefl _ H4.
+      exists (Ifte A mx n1 n2)...
+      apply: era_conv.
+      apply: sta_conv_beta.
+      apply: conv_sym.
+      apply: star_conv.
+      apply: dyn_sta_step...
+      econstructor...
+      apply: sta_esubst...
+      by autosubst. }
+    { have e:=era_tt_form tym. subst. exists n1... }
+    { have e:=era_ff_form tym. subst. exists n2... } }
   { move=>Γ Δ A B H H' P m n s l tyB erH ihH tyP e1 e2 x st. inv st.
     have[P0[rdP vlP]]:=sta_vn tyP.
     have tyP0:=sta_rd tyP rdP.

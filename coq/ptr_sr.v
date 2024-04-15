@@ -518,88 +518,79 @@ Proof with eauto 7 using era_type, resolve, dyn_step, key, merge, hmrg_setmU, hm
       { apply: star1.
         constructor.
         constructor... } } }
-  { move=>Γ Δ A B m m' n n' t _ erm ihm ern ihn H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
+  { move=>Γ Δ wf k H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
     inv rs; inv st.
-    have[wr1 wr2]:=wr_merge_inv mrg wr.
-    destruct t.
-    { exists (setm H1 l (APair m0 n0 U, U)).
-      exists (setm H2 l (APair m0 n0 U, U)).
-      exists (APair m n U).
-      exists (APair m' n' U).
-      rsplit...
+    exists (setm H1 l (TT, U)).
+    exists (setm H2 l (TT, U)).
+    exists TT. exists TT.
+    rsplit...
+    { econstructor.
+      rewrite/free setmE eq_refl. rsplit.
+      constructor...
+      apply: hkey_setm... }
+    { move=>x. have:=wr x. rewrite setmE. by case: eqP. }
+    { apply: pad_setm.
+      by have[]:=hmrg_none mrg H4. } }
+  { move=>Γ Δ wf k H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
+    inv rs; inv st.
+    exists (setm H1 l (FF, U)).
+    exists (setm H2 l (FF, U)).
+    exists FF. exists FF.
+    rsplit...
+    { econstructor.
+      rewrite/free setmE eq_refl. rsplit.
+      constructor...
+      apply: hkey_setm... }
+    { move=>x. have:=wr x. rewrite setmE. by case: eqP. }
+    { apply: pad_setm.
+      by have[]:=hmrg_none mrg H4. } }
+  { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l mrg1 tyAQ erm ihm
+           ern1 ihn1 ern2 ihn2 H1 H2 H H' z z' e1 e2 rs wr mrg2 st; subst.
+    inv mrg1; inv rs; inv st.
+    { have[H4[mrg3 mrg4]]:=hmrg_splitR mrg2 H8.
+      have[H1'[H2'[x'[y'[wrx[wr'[pd[mrg'[rd1 rd2]]]]]]]]]:=
+        ihm _ _ _ _ _ _ erefl erefl H11 wr (hmrg_sym mrg4) H15. inv wrx.
+      have[H1p[H2p[pd1[pd2 mrp]]]]:=pad_merge pd mrg3.
+      have[Hx[mrp1 mrp2]]:=hmrg_splitL (hmrg_sym mrg') mrp.
+      exists Hx. exists H2p. exists (Ifte A x' n1 n2). exists (Ifte Box y' n1' n2').
+      repeat split...
+      { apply: era_conv.
+        apply: sta_conv_beta.
+        apply: conv_sym.
+        apply: star_conv.
+        apply: dyn_sta_red...
+        apply: era_ifte...
+        apply: sta_esubst...
+        autosubst. }
       { econstructor.
-        rewrite/free setmE eq_refl. rsplit.
-        apply: resolve_wkU.
-        constructor...
-        by have[]:=hmrg_none mrg H12. }
-      { have//=nfm':=nf_typing erm.
-        have//=nfn':=nf_typing ern.
-        have//nfm0:=resolve_wr_nfi H9 wr1 nfm'.
-        have//nfn0:=resolve_wr_nfi H10 wr1 nfn'.
-        apply: wr_merge.
-        apply: hmrg_setmU...
-        move=>x. have:=wr1 x. rewrite setmE. by case: eqP.
-        move=>x. have:=wr2 x. rewrite setmE. by case: eqP. }
-      { apply: pad_setm.
-        by have[]:=hmrg_none mrg H12. } }
-    { exists (setm H1 l (APair m0 n0 L, L)).
-      exists (H2).
-      exists (APair m n L).
-      exists (APair m' n' L).
-      rsplit...
-      { econstructor.
-        rewrite/free setmE eq_refl. rsplit.
-        rewrite remm_setm.
-        constructor...
-        by have[]:=hmrg_none mrg H12. }
-      { have//=nfm':=nf_typing erm.
-        have//=nfn':=nf_typing ern.
-        have//nfm0:=resolve_wr_nfi H9 wr1 nfm'.
-        have//nfn0:=resolve_wr_nfi H10 wr1 nfn'.
-        apply: wr_merge.
-        apply: hmrg_setmL...
-        move=>x. have:=wr1 x. rewrite setmE. by case: eqP.
-        exact: wr2. } } }
-  { move=>Γ Δ A B m m' t erm ihm H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
-    inv rs; inv st.
-    { have[H1'[H2'[x'[y'[wrx[wr'[pd[mrg'[rd1 rd2]]]]]]]]]:=
-        ihm _ _ _ _ _ _ erefl erefl H6 wr mrg H5. inv wrx.
-      exists H1'. exists H2'. exists (Fst x'). exists (Fst y').
+        apply: hmrg_sym...
+        apply: H7.
+        apply: resolve_pad...
+        apply: resolve_pad... }
+      { apply: (star_hom ((Ifte A^~ n1)^~ n2)) rd1=>x y.
+        apply: dyn_step_ifteM. }
+      { apply: (star_hom ((Ifte Box^~ n1')^~ n2')) rd2=>x y.
+        apply: dyn_step_ifteM. } }
+    { have[H4[mrg3 mrg4]]:=hmrg_splitR mrg2 H8.
+      have[H1'[mrg' rs]]:=resolve_free H15 H11 (hmrg_sym mrg4). inv rs.
+      have[Hx[mrg5 mrg6]]:=hmrg_splitL (hmrg_sym mrg') mrg3.
+      have e:=era_tt_form erm. subst.
+      have e:=hmrg_pureR mrg5 H6. subst.
+      have wr':=free_wr H15 wr.
+      exists H3. exists H2. exists n1. exists n1'.
       repeat split...
-      { apply: (star_hom Fst) rd1=>x y.
-        apply: dyn_step_fst. }
-      { apply: (star_hom Fst) rd2=>x y.
-        apply: dyn_step_fst. } }
-    { have[H2'[mrg' rs]]:=resolve_free H5 H6 mrg. inv rs.
-      have[m1[m2 e]]:=era_apair_form erm. subst.
-      have[e[erm1 erm2]]:=era_apair_inv erm. subst.
-      have wr':=free_wr H5 wr.
-      exists H2'. exists H2. exists m1. exists m'0.
+      apply: star1. constructor.
+      apply: star1. constructor. }
+    { have[H4[mrg3 mrg4]]:=hmrg_splitR mrg2 H8.
+      have[H1'[mrg' rs]]:=resolve_free H15 H11 (hmrg_sym mrg4). inv rs.
+      have[Hx[mrg5 mrg6]]:=hmrg_splitL (hmrg_sym mrg') mrg3.
+      have e:=era_ff_form erm. subst.
+      have e:=hmrg_pureR mrg5 H6. subst.
+      have wr':=free_wr H15 wr.
+      exists H3. exists H2. exists n2. exists n2'.
       repeat split...
-      { apply: star1.
-        apply: dyn_step_proj1. }
-      { apply: star1.
-        apply: dyn_step_proj1. } } }
-  { move=>Γ Δ A B m m' t erm ihm H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
-    inv rs; inv st.
-    { have[H1'[H2'[x'[y'[wrx[wr'[pd[mrg'[rd1 rd2]]]]]]]]]:=
-        ihm _ _ _ _ _ _ erefl erefl H6 wr mrg H5. inv wrx.
-      exists H1'. exists H2'. exists (Snd x'). exists (Snd y').
-      repeat split...
-      { apply: (star_hom Snd) rd1=>x y.
-        apply: dyn_step_snd. }
-      { apply: (star_hom Snd) rd2=>x y.
-        apply: dyn_step_snd. } }
-    { have[H2'[mrg' rs]]:=resolve_free H5 H6 mrg. inv rs.
-      have[n1[n2 e]]:=era_apair_form erm. subst.
-      have[e[ern1 ern2]]:=era_apair_inv erm. subst.
-      have wr':=free_wr H5 wr.
-      exists H2'. exists H2. exists n2. exists n'.
-      repeat split...
-      { apply: star1.
-        apply: dyn_step_proj2. }
-      { apply: star1.
-        apply: dyn_step_proj2. } } }
+      apply: star1. constructor.
+      apply: star1. constructor. } }
   { move=>Γ Δ A B x x' P m n s l tyB erx ihx tyP H1 H2 H H' z z' e1 e2 rs wr mrg st; subst.
     inv rs; inv st.
     exists H1. exists H2. exists x. exists x'.

@@ -53,17 +53,21 @@ Inductive era_type : sta_ctx -> dyn_ctx -> term -> term -> term -> Prop :=
   Γ ; Δ1 ⊢ m ~ m' : Sig1 A B t ->
   (B :: A :: Γ) ; B .{r2} A .{r1} Δ2 ⊢ n ~ n' : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   Γ ; Δ ⊢ LetIn C m n ~ LetIn Box m' n' : C.[m/]
-| era_apair Γ Δ A B m m' n n' t :
-  Δ ▷ t ->
-  Γ ; Δ ⊢ m ~ m' : A ->
-  Γ ; Δ ⊢ n ~ n' : B ->
-  Γ ; Δ ⊢ APair m n t ~ APair m' n' t : With A B t
-| era_fst Γ Δ A B m m' t :
-  Γ ; Δ ⊢ m ~ m' : With A B t ->
-  Γ ; Δ ⊢ Fst m ~ Fst m' : A
-| era_snd Γ Δ A B m m' t :
-  Γ ; Δ ⊢ m ~ m' : With A B t ->
-  Γ ; Δ ⊢ Snd m ~ Snd m' : B
+| era_tt Γ Δ :
+  dyn_wf Γ Δ ->
+  Δ ▷ U ->
+  Γ ; Δ ⊢ TT ~ TT : Bool
+| era_ff Γ Δ :
+  dyn_wf Γ Δ ->
+  Δ ▷ U ->
+  Γ ; Δ ⊢ FF ~ FF : Bool
+| era_ifte Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l :
+  Δ1 ∘ Δ2 => Δ ->
+  (Bool :: Γ) ⊢ A : Sort s l ->
+  Γ ; Δ1 ⊢ m ~ m' : Bool ->
+  Γ ; Δ2 ⊢ n1 ~ n1' : A.[TT/] ->
+  Γ ; Δ2 ⊢ n2 ~ n2' : A.[FF/] ->
+  Γ ; Δ ⊢ Ifte A m n1 n2 ~ Ifte Box m' n1' n2' : A.[m/]
 | era_rw Γ Δ A B H H' P m n s l :
   (Id A.[ren (+1)] m.[ren (+1)] (Var 0) :: A :: Γ) ⊢ B : Sort s l ->
   Γ ; Δ ⊢ H ~ H' : B.[Refl m,m/] ->
@@ -102,12 +106,10 @@ Proof with eauto using era_type.
     exists (LetIn Box m' n')... }
   { move=>Γ Δ1 Δ2 Δ A B C m n s r1 r2 t l mrg tyC tym[m' tym']tyn[n' tyn'].
     exists (LetIn Box m' n')... }
-  { move=>Γ Δ A B m n t k tym[m' tym']tyn[n' tyn'].
-    exists (APair m' n' t)... }
-  { move=>Γ Δ A B m t tym[m' tym'].
-    exists (Fst m')... }
-  { move=>Γ Δ A B m t tym[m' tym'].
-    exists (Snd m')... }
+  { move=>Γ Δ wf k. exists TT... }
+  { move=>Γ Δ wf k. exists FF... }
+  { move=>Γ Δ1 Δ2 Δ A m n1 n2 s l mrg tyA tym[m' ihm']tyn1[n1' ihn1']tyn2[n2' ihn2'].
+    exists (Ifte Box m' n1' n2')... }
   { move=>Γ Δ A B H P m n s l tyB tyH[H' erH]tyP.
     exists (Rw Box H' Box).
     apply: era_rw... }

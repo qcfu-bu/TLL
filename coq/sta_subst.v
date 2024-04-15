@@ -148,6 +148,17 @@ Proof with eauto using sta_agree_subst, sta_type.
     asimpl in ihm...
     asimpl in ihn...
     by asimpl. }
+  { move=>Γ A m n1 n2 s l tyA ihA tym ihm tyn1 ihn1 tyn2 ihn2 Γ1 σ agr. asimpl.
+    have wf:=sta_type_wf tyA. inv wf.
+    have/={}ihA:=ihA _ _ (sta_agree_subst_ty agr H2).
+    have/={}ihm:=ihm _ _ agr.
+    have{}ihn1:=ihn1 _ _ agr. asimpl in ihn1.
+    have{}ihn2:=ihn2 _ _ agr. asimpl in ihn2.
+    replace A.[m.[σ] .: σ] with A.[up σ].[m.[σ]/]
+      by autosubst.
+    econstructor...
+    by autosubst.
+    by autosubst. }
   { move=>Γ2 A B H P m n s l tyB ihB tyH ihH tyP ihP Γ1 σ agr. asimpl.
     replace B.[P.[σ] .: n.[σ] .: σ] with B.[upn 2 σ].[P.[σ],n.[σ]/] by autosubst.
     have wf:=sta_type_wf tyB. inv wf. inv H2.

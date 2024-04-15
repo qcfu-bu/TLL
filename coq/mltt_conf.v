@@ -45,26 +45,24 @@ Inductive pstep : term -> term -> Prop :=
   pstep m2 m2' ->
   pstep n n' ->
   pstep (LetIn A (DPair m1 m2) n) (n'.[m2',m1'/])
-| pstep_tuple A A' B B' :
+| pstep_bool :
+  pstep Bool Bool
+| pstep_tt :
+  pstep TT TT
+| pstep_ff :
+  pstep FF FF
+| pstep_ifte A A' m m' n1 n1' n2 n2' :
   pstep A A' ->
-  pstep B B' ->
-  pstep (Tuple A B) (Tuple A' B')
-| pstep_pair m m' n n' :
   pstep m m' ->
-  pstep n n' ->
-  pstep (Pair m n) (Pair m' n')
-| pstep_fst m m' :
-  pstep m m' ->
-  pstep (Fst m) (Fst m')
-| pstep_snd m m' :
-  pstep m m' ->
-  pstep (Snd m) (Snd m')
-| pstep_proj1 m m' n :
-  pstep m m' ->
-  pstep (Fst (Pair m n)) m'
-| pstep_proj2 m n n' :
-  pstep n n' ->
-  pstep (Snd (Pair m n)) n'
+  pstep n1 n1' ->
+  pstep n2 n2' ->
+  pstep (Ifte A m n1 n2) (Ifte A' m' n1' n2')
+| pstep_ifteT A n1 n1' n2 :
+  pstep n1 n1' ->
+  pstep (Ifte A TT n1 n2) n1'
+| pstep_ifteF A n1 n2 n2' :
+  pstep n2 n2' ->
+  pstep (Ifte A FF n1 n2) n2'
 | pstep_id A A' m m' n n' :
   pstep A A' ->
   pstep m m' ->
@@ -151,36 +149,17 @@ Proof.
   apply: (star_hom (LetIn A' m')) r3=>x y. exact: mltt_step_letinR.
 Qed.
 
-Lemma mltt_red_tuple A A' B B' :
-  A ~>* A' -> B ~>* B' -> Tuple A B ~>* Tuple A' B'.
+Lemma mltt_red_ifte A A' m m' n1 n1' n2 n2' :
+  A ~>* A' -> m ~>* m' -> n1 ~>* n1' -> n2 ~>* n2' -> Ifte A m n1 n2 ~>* Ifte A' m' n1' n2'.
 Proof.
-  move=>r1 r2.
-  apply: (star_trans (Tuple A' B)).
-  apply: (star_hom (Tuple^~ B)) r1=>x y. exact: mltt_step_tupleL.
-  apply: (star_hom (Tuple A')) r2=>x y. exact: mltt_step_tupleR.
-Qed.
-
-Lemma mltt_red_pair m m' n n' :
-  m ~>* m' -> n ~>* n' -> Pair m n ~>* Pair m' n'.
-Proof.
-  move=>r1 r2.
-  apply: (star_trans (Pair m' n)).
-  apply: (star_hom (Pair^~ n)) r1=>x y. exact: mltt_step_pairL.
-  apply: (star_hom (Pair m')) r2=>x y. exact: mltt_step_pairR.
-Qed.
-
-Lemma mltt_red_fst m m' :
-  m ~>* m' -> Fst m ~>* Fst m'.
-Proof.
-  move=>r.
-  apply: (star_hom Fst) r=>x y. exact: mltt_step_fst.
-Qed.
-
-Lemma mltt_red_snd m m' :
-  m ~>* m' -> Snd m ~>* Snd m'.
-Proof.
-  move=>r.
-  apply: (star_hom Snd) r=>x y. exact: mltt_step_snd.
+  move=>rA rm rn1 rn2.
+  apply: (star_trans (Ifte A' m n1 n2)).
+  apply: (star_hom (((Ifte^~ m)^~ n1)^~ n2)) rA=>x y. exact: mltt_step_ifteA.
+  apply: (star_trans (Ifte A' m' n1 n2)).
+  apply: (star_hom (((Ifte A')^~ n1)^~ n2)) rm=>x y. exact: mltt_step_ifteM.
+  apply: (star_trans (Ifte A' m' n1' n2)).
+  apply: (star_hom ((Ifte A' m')^~ n2)) rn1=>x y. exact: mltt_step_ifteN1.
+  apply: (star_hom (Ifte A' m' n1')) rn2=>x y. exact: mltt_step_ifteN2.
 Qed.
 
 Lemma mltt_red_id A A' m m' n n' :
@@ -237,9 +216,8 @@ Qed.
 #[export] Hint Resolve
   mltt_red_app mltt_red_lam mltt_red_pi
   mltt_red_sig mltt_red_dpair mltt_red_letin
-  mltt_red_tuple mltt_red_pair mltt_red_fst mltt_red_snd
   mltt_red_id mltt_red_refl mltt_red_rw
-  sred_up sred_upn : mltt_red_congr.
+  mltt_red_ifte sred_up sred_upn : mltt_red_congr.
 
 Lemma mltt_red_compat σ τ s : sred σ τ -> mltt_red s.[σ] s.[τ].
 Proof. elim: s σ τ => *; asimpl; eauto 9 with mltt_red_congr. Qed.
@@ -302,36 +280,17 @@ Proof.
   apply: (conv_hom (LetIn A' m')) r3=>x y. exact: mltt_step_letinR.
 Qed.
 
-Lemma mltt_conv_tuple A A' B B' :
-  A === A' -> B === B' -> Tuple A B === Tuple A' B'.
+Lemma mltt_conv_ifte A A' m m' n1 n1' n2 n2' :
+  A === A' -> m === m' -> n1 === n1' -> n2 === n2' -> Ifte A m n1 n2 === Ifte A' m' n1' n2'.
 Proof.
-  move=>r1 r2.
-  apply: (conv_trans (Tuple A' B)).
-  apply: (conv_hom (Tuple^~ B)) r1=>x y. exact: mltt_step_tupleL.
-  apply: (conv_hom (Tuple A')) r2=>x y. exact: mltt_step_tupleR.
-Qed.
-
-Lemma mltt_conv_pair m m' n n' :
-  m === m' -> n === n' -> Pair m n === Pair m' n'.
-Proof.
-  move=>r1 r2.
-  apply: (conv_trans (Pair m' n)).
-  apply: (conv_hom (Pair^~ n)) r1=>x y. exact: mltt_step_pairL.
-  apply: (conv_hom (Pair m')) r2=>x y. exact: mltt_step_pairR.
-Qed.
-
-Lemma mltt_conv_fst m m' :
-  m === m' -> Fst m === Fst m'.
-Proof.
-  move=>r.
-  apply: (conv_hom Fst) r=>x y. exact: mltt_step_fst.
-Qed.
-
-Lemma mltt_conv_snd m m' :
-  m === m' -> Snd m === Snd m'.
-Proof.
-  move=>r.
-  apply: (conv_hom Snd) r=>x y. exact: mltt_step_snd.
+  move=>rA rm rn1 rn2.
+  apply: (conv_trans (Ifte A' m n1 n2)).
+  apply: (conv_hom (((Ifte^~ m)^~ n1)^~ n2)) rA=>x y. exact: mltt_step_ifteA.
+  apply: (conv_trans (Ifte A' m' n1 n2)).
+  apply: (conv_hom (((Ifte A')^~ n1)^~ n2)) rm=>x y. exact: mltt_step_ifteM.
+  apply: (conv_trans (Ifte A' m' n1' n2)).
+  apply: (conv_hom ((Ifte A' m')^~ n2)) rn1=>x y. exact: mltt_step_ifteN1.
+  apply: (conv_hom (Ifte A' m' n1')) rn2=>x y. exact: mltt_step_ifteN2.
 Qed.
 
 Lemma mltt_conv_id A A' m m' n n' :
@@ -384,9 +343,8 @@ Qed.
 #[export] Hint Resolve
   mltt_conv_app mltt_conv_lam mltt_conv_pi
   mltt_conv_sig mltt_conv_dpair mltt_conv_letin
-  mltt_conv_tuple mltt_conv_pair mltt_conv_fst mltt_conv_snd
   mltt_conv_id mltt_conv_refl mltt_conv_rw
-  sconv_up sconv_upn : mltt_conv_congr.
+  mltt_conv_ifte sconv_up sconv_upn : mltt_conv_congr.
 
 Lemma mltt_conv_compat σ τ s :
   sconv σ τ -> s.[σ] === s.[τ].
@@ -413,10 +371,10 @@ Proof with eauto.
     apply: starES. by constructor.
     apply: (star_trans (n'.[m2,m1/])). exact: mltt_red_subst.
     by apply: mltt_red_compat=>-[|-[]]. }
-  { move=>m m' n p r.
-    apply: starES. by constructor. eauto. }
-  { move=>m m' n p r.
-    apply: starES. by constructor. eauto. }
+  { move=>A n1 n1' n2 p1 r1.
+    apply: starES... by constructor. }
+  { move=>A n1 n2 n2' p2 r2.
+    apply: starES... by constructor. }
   { move=>A H H' m p r.
     apply: starES. by constructor. eauto. }
 Qed.
@@ -464,6 +422,8 @@ Proof with eauto 6 using pstep, psstep_up.
   { move=>A m1 m1' m2 m2' n n' pm1 ihm1 pm2 ihm2 pn ihn σ τ pss. asimpl.
     pose proof (pstep_iota A.[up σ] (ihm1 _ _ pss) (ihm2 _ _ pss) (ihn _ _ (psstep_upn 2 pss))).
     by asimpl in H. }
+  { move=>A A' m m' n1 n1' n2 n2' pA ihA pm ihm pn1 ihn1 pn2 ih2 σ τ pss. asimpl. 
+    constructor... }
   { move=>A A' H H' P P' pA ihA pH ihH pP ihP σ τ pss. asimpl.
     pose proof (pstep_rw (ihA _ _ (psstep_upn 2 pss)) (ihH _ _ pss) (ihP _ _ pss)).
     by asimpl in H0. }
@@ -545,32 +505,30 @@ Proof with eauto 6 using
       have[m2x pm21 pm22]:=ihm2 _ H5.
       have[n0 pn1 pn2]:=ihn _ H6.
       exists n0.[m2x,m1x/]... } }
-  { move=> A A' B B' pA ihA pB ihB m2 p. inv p.
-    have[A0 pA1 pA2]:=ihA _ H1.
-    have[B0 pB1 pB2]:=ihB _ H3.
-    exists (Tuple A0 B0)... }
-  { move=>m m' n n' pm ihm pn ihn m2 p. inv p.
-    have[m0 pm1 pm2]:=ihm _ H1.
-    have[n0 pn1 pn2]:=ihn _ H3.
-    exists (Pair m0 n0)... }
-  { move=>m m' pm ihm m2 p. inv p.
-    { have[m0 pm1 pm2]:=ihm _ H0. exists (Fst m0)... }
+  { move=>A A' m m' n1 n1' n2 n2' pA ihA pm ihm pn1 ihn1 pn2 ihn2 m2 p. inv p.
+    { have[Ax pA1 pA2]:=ihA _ H3.
+      have[mx pm1 pm2]:=ihm _ H5.
+      have[n1x pn11 pn12]:=ihn1 _ H6.
+      have[n2x pn21 pn22]:=ihn2 _ H7.
+      exists (Ifte Ax mx n1x n2x)... }
     { inv pm.
-      have/ihm[x p1 p2]:pstep (Pair m0 n) (Pair m2 n')...
-      inv p1. inv p2.
-      exists m'... } }
-  { move=>m m' pm ihm m2 p. inv p.
-    { have[m0 pm1 pm2]:=ihm _ H0. exists (Snd m0)... }
+      have[n1x pn11 pn12]:=ihn1 _ H4.
+      exists n1x... }
     { inv pm.
-      have/ihm[x p1 p2]:pstep (Pair m0 n) (Pair m'0 m2)...
-      inv p1. inv p2.
-      exists n'0... } }
-  { move=>m m' n pm ihm m2 p. inv p.
-    { inv H0. have[m0 p1 p2]:=ihm _ H2. exists m0... }
-    { have[m0 p1 p2]:=ihm _ H2. exists m0... } }
-  { move=>m m' n pm ihm m2 p. inv p.
-    { inv H0. have[m0 p1 p2]:=ihm _ H4. exists m0... }
-    { have[m0 p1 p2]:=ihm _ H2. exists m0... } }
+      have[n2x pn21 pn22]:=ihn2 _ H4.
+      exists n2x... } }
+  { move=>A n1 n1' n2 pn1 ihn1 m2 p. inv p.
+    { inv H5.
+      have[n1x pn11]:=ihn1 _ H6.
+      exists n1x... }
+    { have[n1x pn11]:=ihn1 _ H3.
+      exists n1x... } }
+  { move=>A n1 n2 n2' pn2 ihn2 m2 p. inv p.
+    { inv H5.
+      have[n2x pn21]:=ihn2 _ H7.
+      exists n2x... }
+    { have[n2x pn21]:=ihn2 _ H3.
+      exists n2x... } }
   { move=>A A' m m' n n' pA ihA pm ihm pn ihn m2 p. inv p.
     have[A0 pA1 pA2]:=ihA _ H2.
     have[m0 pm1 pm2]:=ihm _ H4.
@@ -708,38 +666,25 @@ Proof.
   apply: starSE; eauto.
 Qed.
 
-Lemma mltt_red_tuple_inv A B x :
-  Tuple A B ~>* x ->
-  exists A' B',
-    A ~>* A' /\ B ~>* B' /\ x = Tuple A' B'.
+Lemma mltt_red_bool_inv x : Bool ~>* x -> x = Bool.
 Proof.
-  elim.
-  exists A. exists B=>//.
-  move=> y z rd[A'[B'[r1[r2 e]]]] st; subst.
+  elim=>//.
+  move=>y z rd e st. subst.
   inv st.
-  exists A'0. exists B'.
-  repeat constructor; eauto.
-  apply: starSE; eauto.
-  exists A'. exists B'0.
-  repeat constructor; eauto.
-  apply: starSE; eauto.
 Qed.
 
-Lemma mltt_red_pair_inv m n x :
-  Pair m n ~>* x ->
-  exists m' n',
-    m ~>* m' /\ n ~>* n' /\ x = Pair m' n'.
+Lemma mltt_red_tt_inv x : TT ~>* x -> x = TT.
 Proof.
-  elim.
-  exists m. exists n=>//.
-  move=> y z rd[m'[n'[r1[r2 e]]]] st; subst.
+  elim=>//.
+  move=>y z rd e st. subst.
   inv st.
-  exists m'0. exists n'.
-  repeat constructor; eauto.
-  apply: starSE; eauto.
-  exists m'. exists n'0.
-  repeat constructor; eauto.
-  apply: starSE; eauto.
+Qed.
+
+Lemma mltt_red_ff_inv x : FF ~>* x -> x = FF.
+Proof.
+  elim=>//.
+  move=>y z rd e st. subst.
+  inv st.
 Qed.
 
 Lemma mltt_red_id_inv A m n x :
@@ -797,22 +742,6 @@ Proof.
   move/church_rosser=>
     [x/mltt_red_sig_inv[A1[B1[rA1[rB1->]]]]
       /mltt_red_sig_inv[A2[B2[rA2[rB2[]]]]]] eA eB; subst.
-  repeat split.
-  apply: conv_trans.
-  apply: star_conv. by apply: rA1.
-  apply: conv_sym. by apply: star_conv.
-  apply: conv_trans.
-  apply: star_conv. by apply: rB1.
-  apply: conv_sym. by apply: star_conv.
-Qed.
-
-Lemma tuple_inj A A' B B' :
-  Tuple A B === Tuple A' B' ->
-    A === A' /\ B === B'.
-Proof.
-  move/church_rosser=>
-    [x/mltt_red_tuple_inv[A1[B1[rA1[rB1->]]]]
-      /mltt_red_tuple_inv[A2[B2[rA2[rB2[]]]]]] eA eB; subst.
   repeat split.
   apply: conv_trans.
   apply: star_conv. by apply: rA1.

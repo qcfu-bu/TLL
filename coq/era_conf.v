@@ -39,18 +39,15 @@ Inductive dyn_pstep : term -> term -> Prop :=
 | dyn_pstep_iota1 A m1 m2 n s :
   dyn_val (Pair1 m1 m2 s) ->
   dyn_pstep (LetIn A (Pair1 m1 m2 s) n) n.[m2,m1/]
-| dyn_pstep_apair m n s :
-  dyn_pstep (APair m n s) (APair m n s)
-| dyn_pstep_fst m m' :
+| dyn_pstep_tt : dyn_pstep TT TT
+| dyn_pstep_ff : dyn_pstep FF FF
+| dyn_pstep_ifte A m m' n1 n2 :
   dyn_pstep m m' ->
-  dyn_pstep (Fst m) (Fst m')
-| dyn_pstep_snd m m' :
-  dyn_pstep m m' ->
-  dyn_pstep (Snd m) (Snd m')
-| dyn_pstep_proj1 m n s :
-  dyn_pstep (Fst (APair m n s)) m
-| dyn_step_proj2 m n s :
-  dyn_pstep (Snd (APair m n s)) n
+  dyn_pstep (Ifte A m n1 n2) (Ifte A m' n1 n2)
+| dyn_pstep_ifteT A n1 n2 :
+  dyn_pstep (Ifte A TT n1 n2) n1
+| dyn_pstep_ifteF A n1 n2 :
+  dyn_pstep (Ifte A FF n1 n2) n2
 | dyn_pstep_rw A H P :
   dyn_pstep (Rw A H P) (Rw A H P)
 | dyn_pstep_rwE A H P :
@@ -91,16 +88,11 @@ Proof.
   apply: (star_hom (LetIn A^~ n)) r=>x y. exact: dyn_step_letinL.
 Qed.
 
-Lemma dyn_red_fst m m' : m ~>>* m' -> Fst m ~>>* Fst m'.
+Lemma dyn_red_ifte A m m' n1 n2 :
+  m ~>>* m' -> Ifte A m n1 n2 ~>>* Ifte A m' n1 n2.
 Proof.
   move=>r.
-  apply: (star_hom Fst) r=>x y. exact: dyn_step_fst.
-Qed.
-
-Lemma dyn_red_snd m m' : m ~>>* m' -> Snd m ~>>* Snd m'.
-Proof.
-  move=>r.
-  apply: (star_hom Snd) r=>x y. exact: dyn_step_snd.
+  apply: (star_hom (((Ifte A)^~ n1)^~ n2)) r=>x y. exact: dyn_step_ifteM.
 Qed.
 
 Lemma dyn_val_pstep m n :
@@ -115,7 +107,8 @@ Proof with eauto using dyn_val.
   { move=>m1 m2 s vl1 ih1 vl2 ih2 n p. inv p.
     have[vl3 e]:=ih1 _ H3. subst.
     have[vl4 e]:=ih2 _ H4. subst... }
-  { move=>m1 m2 s n p. inv p... }
+  { move=>n p. inv p... }
+  { move=>n p. inv p... }
   { move=>l n p. inv p. }
 Qed.
 
@@ -183,12 +176,11 @@ Proof with eauto.
       have[m3[m4 e]]:=era_pair1_form erm. subst.
       have[Δ3[Δ4[mrg'[e[erm1 erm2]]]]]:=era_pair1_inv erm. subst.
       apply: star1. constructor... constructor... } }
-  { move=>Γ Δ A B m m' t erm ihm n ps. inv ps.
-    { apply: dyn_red_fst... }
-    { apply: starES... by constructor. } }
-  { move=>Γ Δ A B m m' t erm ihm n ps. inv ps.
-    { apply: dyn_red_snd... }
-    { apply: starES... by constructor. } }
+  { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l
+           mrg tyA erm' ihm ern1 ihn1 ern2 ihn2 nx ps. inv ps.
+    { apply: dyn_red_ifte... }
+    { apply: starES. apply: dyn_step_ifteT. apply: starR. }
+    { apply: starES. apply: dyn_step_ifteF. apply: starR. } }
   { move=>Γ Δ A B H H' P m n s l tyB erH ihH tyP n' ps. inv ps...
     apply: starES... by constructor. }
   { move=>Γ Δ A B m m' s eq erm ihm tyB n' ps... }
@@ -391,32 +383,16 @@ Proof with eauto using dyn_pstep, era_pstep_reflexive.
         exists n'.[n'0,m'0/]...
         constructor. constructor... }
       { inv H10. exists n'.[m3,m0/]... } } }
-  { move=>Γ Δ A B m m' n n' t k erm ihm ern ihn m1 m2 ps1 ps2.
-    inv ps1. inv ps2. exists (APair m' n' t)... }
-  { move=>Γ Δ A B m m' t erm ihm m1 m2 ps1 ps2.
-    inv ps1; inv ps2.
-    { have[mx ps1 ps2]:=ihm _ _ H0 H1. exists (Fst mx)... }
-    { have[m1[m3 e]]:=era_apair_form erm. subst.
-      have[e[erm1 erm3]]:=era_apair_inv erm. subst.
-      inv H0. exists m2... }
-    { have[m2[m3 e]]:=era_apair_form erm. subst.
-      have[e[erm2 erm3]]:=era_apair_inv erm. subst.
-      inv H0. exists m1... }
-    { have[m1[m3 e]]:=era_apair_form erm. subst.
-      have[e[erm1 erm3]]:=era_apair_inv erm. subst.
-      exists m2... } }
-  { move=>Γ Δ A B m m' t erm ihm m1 m2 ps1 ps2.
-    inv ps1; inv ps2.
-    { have[mx ps1 ps2]:=ihm _ _ H0 H1. exists (Snd mx)... }
-    { have[m1[m3 e]]:=era_apair_form erm. subst.
-      have[e[erm1 erm3]]:=era_apair_inv erm. subst.
-      inv H0. exists m2... }
-    { have[m2[m3 e]]:=era_apair_form erm. subst.
-      have[e[erm2 erm3]]:=era_apair_inv erm. subst.
-      inv H0. exists m1... }
-    { have[m1[m3 e]]:=era_apair_form erm. subst.
-      have[e[erm1 erm3]]:=era_apair_inv erm. subst.
-      exists m2... } }
+  { move=>Γ Δ wf k m1 m2 ps1 ps2. inv ps1. inv ps2. exists TT... }
+  { move=>Γ Δ wf k m1 m2 ps1 ps2. inv ps1. inv ps2. exists FF... }
+  { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l
+           mrg tyA erm ihm ern1 ihn1 ern2 ihn2 m1 m2 ps1 ps2.
+    inv ps1; inv ps2...
+    { have[mx ps1 ps2]:=ihm _ _ H4 H5. exists (Ifte Box mx n1' n2')... }
+    { inv H4. exists m2. constructor. apply: era_pstep_reflexive... }
+    { inv H4. exists m2. constructor. apply: era_pstep_reflexive... }
+    { inv H4. exists m1. apply: era_pstep_reflexive... constructor. }
+    { inv H4. exists m1. apply: era_pstep_reflexive... constructor. } }
   { move=>Γ Δ A B H H' P m n s l tyB erH ihH tyP m1 m2 ps1 ps2.
     inv ps1; inv ps2.
     { exists H'... }

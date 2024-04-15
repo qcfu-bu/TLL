@@ -38,13 +38,11 @@ Proof with eauto.
   exists m'. exists n'...
 Qed.
 
-Lemma era_apair_canonical Γ Δ A m1 m2 n s :
-  Γ ; Δ ⊢ APair m1 m2 s ~ n : A -> exists m1' m2', n = APair m1' m2' s.
-Proof with eauto.
-  move e:(APair m1 m2 s)=>x ty. elim: ty m1 m2 s e=>//{Γ Δ x n A}.
-  move=>Γ Δ A B m m' n n' t tyS erm ihm tyn ihn m1 m2 s[e1 e2 e3]; subst.
-  exists m'. exists n'...
-Qed.
+Lemma era_tt_canonical Γ Δ n A : Γ ; Δ ⊢ TT ~ n : A -> n = TT.
+Proof with eauto. move e:(TT)=>x ty. elim: ty e=>//{Γ Δ x n A}. Qed.
+
+Lemma era_ff_canonical Γ Δ n A : Γ ; Δ ⊢ FF ~ n : A -> n = FF.
+Proof with eauto. move e:(FF)=>x ty. elim: ty e=>//{Γ Δ x n A}. Qed.
 
 Theorem era_prog m m' A :
   nil ; nil ⊢ m ~ m' : A -> (exists n', m' ~>> n') \/ dyn_val m'.
@@ -105,27 +103,16 @@ Proof with eauto using dyn_step, dyn_val.
           (era_dyn_val erm vlm). subst.
       have[mx[my e]]:=era_pair1_canonical erm. subst.
       left. exists (n'.[my,mx/])... } }
-  { move=>Γ Δ A B m m' n n' t k erm ihm ern ihn e1 e2; subst. right... }
-  { move=>Γ Δ A B m m' t erm ihm e1 e2; subst.
-    have[[mx stm]|vlm]:=ihm erefl erefl.
-    { left. exists (Fst mx)... }
-    { have[m1[m2 e]]:=
-        dyn_with_canonical
-          (era_dyn_type erm)
-          (convR _ _)
-          (era_dyn_val erm vlm). subst.
-      have[mx[my e]]:=era_apair_canonical erm. subst.
-      left. exists mx... } }
-  { move=>Γ Δ A B m m' t erm ihm e1 e2; subst.
-    have[[mx stm]|vlm]:=ihm erefl erefl.
-    { left. exists (Snd mx)... }
-    { have[m1[m2 e]]:=
-        dyn_with_canonical
-          (era_dyn_type erm)
-          (convR _ _)
-          (era_dyn_val erm vlm). subst.
-      have[mx[my e]]:=era_apair_canonical erm. subst.
-      left. exists my... } }
+  { move=>Γ Δ wf k e1 e2. right... }
+  { move=>Γ Δ wf k e1 e2. right... }
+  { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l mrg tyA erm ihm ern1 ihn1 ern2 ihn2 e1 e2; subst.
+    inv mrg. left. have[[mx stm]|vlm']:=ihm erefl erefl.
+    { exists (Ifte Box mx n1' n2')... }
+    { have vlm:=era_dyn_val erm vlm'.
+      have tym:=era_dyn_type erm.
+      have[e|e]:=dyn_bool_canonical tym (convR _ _) vlm.
+      subst. have e:=era_tt_canonical erm. subst. exists n1'...
+      subst. have e:=era_ff_canonical erm. subst. exists n2'... } }
   { move=>Γ Δ A B H H' P m n s tyB erH ihH tyP e1 e2; subst.
     left. exists H'... }
   { move=>Γ Δ A B m m' s eq tym ihm tyB e1 e2; subst... }

@@ -53,17 +53,18 @@ Inductive resolve : heap -> term -> term -> Prop :=
   H1 ; m ~ m' ->
   H2 ; n ~ n' ->
   H ; LetIn Box m n ~ LetIn Box m' n'
-| resolve_apair H m m' n n' t :
-  H ▷ t ->
-  H ; m ~ m' ->
-  H ; n ~ n' ->
-  H ; APair m n t ~ APair m' n' t
-| resolve_fst H m m' :
-  H ; m ~ m' ->
-  H ; Fst m ~ Fst m'
-| resolve_snd H m m' :
-  H ; m ~ m' ->
-  H ; Snd m ~ Snd m'
+| resolve_tt H :
+  H ▷ U ->
+  H ; TT ~ TT
+| resolve_ff H :
+  H ▷ U ->
+  H ; FF ~ FF
+| resolve_ifte H1 H2 H m m' n1 n1' n2 n2' :
+  H1 ∘ H2 => H ->
+  H1 ; m ~ m' ->
+  H2 ; n1 ~ n1' ->
+  H2 ; n2 ~ n2' ->
+  H ; Ifte Box m n1 n2 ~ Ifte Box m' n1' n2'
 | resolve_rw H m m' :
   H ; m ~ m' ->
   H ; Rw Box m Box ~ Rw Box m' Box
@@ -100,16 +101,15 @@ Inductive resolved : term -> Prop :=
   resolved m ->
   resolved n ->
   resolved (LetIn Box m n)
-| resolved_apair m n t :
+| resolved_tt :
+  resolved TT
+| resolved_ff :
+  resolved FF
+| resolved_ifte m n1 n2 :
   resolved m ->
-  resolved n ->
-  resolved (APair m n t)
-| resolved_fst m :
-  resolved m ->
-  resolved (Fst m)
-| resolved_snd m :
-  resolved m ->
-  resolved (Snd m)
+  resolved n1 ->
+  resolved n2 ->
+  resolved (Ifte Box m n1 n2)
 | resolved_rw m :
   resolved m ->
   resolved (Rw Box m Box).
@@ -232,7 +232,8 @@ Proof.
   apply/dommP. by exists (t, L).
 Qed.
 
-Lemma resolve_wkU H m m' n l : H ; m ~ m' -> l \notin domm H -> (setm H l (n, U)) ; m ~ m'.
+Lemma resolve_wkU H m m' n l :
+  H ; m ~ m' -> l \notin domm H -> (setm H l (n, U)) ; m ~ m'.
 Proof with eauto using resolve, hkey_setm.
   move=>rs. elim: rs n l=>{H m m'}...
   { move=>H1 H2 H m m' n n' mrg rsm ihm rsn ihn n0 l h.
@@ -250,6 +251,12 @@ Proof with eauto using resolve, hkey_setm.
     apply: hmrg_setmU...
     apply: ihm...
     apply: ihn... }
+  { move=>H1 H2 H m m' n1 n1' n2 n2' mrg rsm ihm rsn1 ihn1 rsn2 ihn2 n l h.
+    have[h1 h2]:=hmrg_none mrg h. econstructor.
+    apply: hmrg_setmU...
+    apply: ihm...
+    apply: ihn1...
+    apply: ihn2... }
   { move=>H H' l m m' fr rsm ihm n l0 h. econstructor.
     2:{ apply: ihm. shelve. apply: free_domm... }
     by apply: free_setm. }
@@ -302,6 +309,27 @@ Proof with eauto using resolve, resolve_wkU, hkey_unionm.
       apply: hmrg_domm.
       apply: hmrg_sym...
       exact: h. } }
+  { move=>H1 H2 H m m' n1 n1' n2 n2' mrg rsm ihm rsn1 ihn1 rsn2 ihn2 d0.
+    econstructor. apply: hmrg_unionm...
+    { apply: ihm...
+      apply/fdisjointP=>x h.
+      move: d0=>/fdisjointP d0.
+      apply: d0.
+      apply: hmrg_domm... }
+    { apply: ihn1...
+      apply/fdisjointP=>x h.
+      move: d0=>/fdisjointP d0.
+      apply: d0.
+      apply: hmrg_domm.
+      apply: hmrg_sym...
+      exact: h. }
+    { apply: ihn2...
+      apply/fdisjointP=>x h.
+      move: d0=>/fdisjointP d0.
+      apply: d0.
+      apply: hmrg_domm.
+      apply: hmrg_sym...
+      exact: h. } }
   { move=>H H' l m m' fr rsm ih d0. econstructor.
     apply: free_unionm...
     by rewrite fdisjointC.
@@ -316,11 +344,10 @@ Qed.
 
 Lemma resolve_era_refl H Γ Δ m n A :
   Γ ; Δ ⊢ m ~ n : A -> H ▷ U -> H ; n ~ n.
-Proof with eauto using resolve, hkey_impure, hmrg_pure_refl.
+Proof with eauto 6 using resolve, hkey_impure, hmrg_pure_refl.
   move=>er. elim: er H=>//{Γ Δ m n A}...
   { move=>Γ Δ A B m m' [|] k1 erm ihm k2... }
   { move=>Γ Δ A B m m' [|] t k1 erm ihm k2... }
-  { move=>Γ Δ A B m m' n n' [|] k1 tym ihm tyn ihn H k2... }
 Qed.
 
 Lemma resolve_era_id H Γ Δ x y z A :
@@ -350,15 +377,14 @@ Proof with eauto using resolve.
   { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l mrg tyC erm ihm ern ihn H z rs. inv rs.
     have->:=ihm _ _ H7.
     have->//:=ihn _ _ H9. }
-  { move=>Γ Δ A B m m' n n' t k erm ihm ern ihn H z rs. inv rs.
-    have->:=ihm _ _ H7.
-    have->//:=ihn _ _ H8. }
-  { move=>Γ Δ A B m m' t erm ihm H z rs. inv rs.
-    have->//:=ihm _ _ H3. }
-  { move=>Γ Δ A B m m' t erm ihm H z rs. inv rs.
-    have->//:=ihm _ _ H3. }
-  { move=>Γ Δ A B x x' P m n s l tyB erH ihH tyP H0 z rs. inv rs.
-    f_equal... }
+  { move=>Γ Δ wf k H z rs. inv rs... }
+  { move=>Γ Δ wf k H z rs. inv rs... }
+  { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l
+           mrg tyA erm ihm ern1 ihn1 ern2 ihn2 H z rs. inv rs.
+    have->:=ihm _ _ H8.
+    have->:=ihn1 _ _ H10.
+    have->//:=ihn2 _ _ H11. }
+  { move=>Γ Δ A B x x' P m n s l tyB erH ihH tyP H0 z rs. inv rs. f_equal... }
 Qed.
 
 Lemma free_inv H H' m n l t :
@@ -446,9 +472,19 @@ Proof with eauto using resolve, resolve_wkU.
     apply: mrg4.
     apply: ihm...
     apply: ern. }
-  { move=>H m m' n n' t k1 erm ihm ern ihn H2 H0 mrg k2.
-    econstructor...
-    have->//:=hmrg_pureR mrg k2. }
+  { move=>H k1 H0 H3 mrg k2.
+    have->:=hmrg_pureR mrg k2.
+    constructor... }
+  { move=>H k1 H0 H3 mrg k2.
+    have->:=hmrg_pureR mrg k2.
+    constructor... }
+  { move=>H1 H2 H m m' n1 n1' n2 n2' mrg1 erm ihm ern1 ihn1 ern2 ihn2 H0 H3 mrg2 k.
+    have[H4[mrg3 mrg4]]:=hmrg_splitL mrg2 mrg1.
+    econstructor.
+    apply: mrg4.
+    apply: ihm...
+    apply: ern1.
+    apply: ern2. }
   { move=>H H' l m m' fr erm ihm H2 H0 mrg k.
     econstructor...
     have->//:=hmrg_pureR mrg k. }
@@ -490,16 +526,15 @@ Inductive nf : nat -> term -> Prop :=
   nf i m ->
   nf i.+2 n ->
   nf i (LetIn Box m n)
-| nf_apair i m n t :
+| nf_tt i :
+  nf i TT
+| nf_ff i :
+  nf i FF
+| nf_ifte i m n1 n2 :
   nf i m ->
-  nf i n ->
-  nf i (APair m n t)
-| nf_fst i m :
-  nf i m ->
-  nf i (Fst m)
-| nf_snd i m :
-  nf i m ->
-  nf i (Snd m)
+  nf i n1 ->
+  nf i n2 ->
+  nf i (Ifte Box m n1 n2)
 | nf_rw i m :
   nf i m ->
   nf i (Rw Box m Box)
@@ -513,7 +548,8 @@ Definition wr_heap (H : heap) : Prop :=
        | Some (Lam1 Box m s1, s2) => nf 1 m /\ s1 = s2
        | Some (Pair0 (Ptr _) Box s1, s2) => s1 = s2
        | Some (Pair1 (Ptr _) (Ptr _) s1, s2) => s1 = s2
-       | Some (APair m n s1, s2) => nf 0 m /\ nf 0 n /\ s1 = s2
+       | Some (TT, s) => s = U
+       | Some (FF, s) => s = U
        | _ => False
        end.
 
@@ -618,9 +654,9 @@ Proof with eauto using nf.
     have[wr1 wr2]:=wr_merge_inv mrg wr... }
   { move=>H1 H2 H m m' n n' mrg rsm ihm rsn ihn i wr nfL. inv nfL.
     have[wr1 wr2]:=wr_merge_inv mrg wr... }
-  { move=>H m m' n n' t k rsm ihm rsn ihn i wr nfP. inv nfP... }
-  { move=>H m m' rsm ihm i wr nfF. inv nfF... }
-  { move=>H m m' rsm ihm i wr nfS. inv nfS... }
+  { move=>H1 H2 H m m' n1 n1' n2 n2'
+           mrg erm ihm ern1 ihn1 ern2 ihn2 i wr nfP. inv nfP.
+    have[wr1 wr2]:=wr_merge_inv mrg wr... }
   { move=>H m m' rsm ihm i wr nf. inv nf... }
 Qed.
 
@@ -639,9 +675,9 @@ Proof with eauto using nf.
     have[wr1 wr2]:=wr_merge_inv mrg wr... }
   { move=>H1 H2 H m m' n n' mrg rsm ihm rsn ihn i wr nfL. inv nfL.
     have[wr1 wr2]:=wr_merge_inv mrg wr... }
-  { move=>H m m' n n' t k rsm ihm rsn ihn i wr nfP. inv nfP... }
-  { move=>H m m' rsm ihn i wr nfF. inv nfF... }
-  { move=>H m m' rsm ihn i wr nfS. inv nfS... }
+  { move=>H1 H2 H m m' n1 n1' n2 n2'
+           mrg erm ihm ern1 ihn1 ern2 ihn2 i wr nfP. inv nfP.
+    have[wr1 wr2]:=wr_merge_inv mrg wr... }
   { move=>H m m' rsm ihm i wr nf. inv nf... }
   { move=>H H' l m m' fr rsm ihm i wr nfP.
     apply: ihm.
@@ -704,10 +740,18 @@ Proof with eauto.
   have:=wr l. rewrite H2. rmatch_case.
 Qed.
 
-Lemma free_wr_apair H H' l m n :
-  free H l (APair m n U) H' -> wr_heap H -> H = H'.
+Lemma free_wr_tt H H' l :
+  free H l TT H' -> wr_heap H -> H = H'.
 Proof with eauto.
-  move e:(APair m n U)=>x fr wr; subst.
+  move e:(TT)=>x fr wr; subst.
+  move: fr. rewrite/free. rmatch_case.
+  have:=wr l. rewrite H2. rmatch_case.
+Qed.
+
+Lemma free_wr_ff H H' l :
+  free H l FF H' -> wr_heap H -> H = H'.
+Proof with eauto.
+  move e:(FF)=>x fr wr; subst.
   move: fr. rewrite/free. rmatch_case.
   have:=wr l. rewrite H2. rmatch_case.
 Qed.
@@ -747,15 +791,25 @@ Proof with eauto using hkey_impure.
     { exfalso. apply: free_wr_ptr... } }
 Qed.
 
-Lemma resolve_apair_inv H m n1 n2 t :
-  wr_heap H -> H ; m ~ APair n1 n2 t -> H ▷ t.
+Lemma resolve_tt_inv H m :
+  wr_heap H -> H ; m ~ TT -> H ▷ U.
 Proof with eauto using hkey_impure.
-  move e:(APair n1 n2 t)=>v wr rs.
-  elim: rs n1 n2 t e wr=>//{H m v}.
-  { move=>H m m' n n' s k rsm ihm rsn ihn n1 n2 t [e1 e2 e3] wr; subst... }
-  { move=>H H' l m m' fr rsm ihm n1 n2 t e wr; subst.
+  move e:(TT)=>v wr rs.
+  elim: rs e wr=>//{H m v}.
+  { move=>H H' l m m' fr rsm ihm e wr; subst.
     destruct m; inv rsm.
-    { destruct t... have->//:=free_wr_apair fr wr. }
+    { have->//:=free_wr_tt fr wr. }
+    { exfalso. apply: free_wr_ptr... } }
+Qed.
+
+Lemma resolve_ff_inv H m :
+  wr_heap H -> H ; m ~ FF -> H ▷ U.
+Proof with eauto using hkey_impure.
+  move e:(FF)=>v wr rs.
+  elim: rs e wr=>//{H m v}.
+  { move=>H H' l m m' fr rsm ihm e wr; subst.
+    destruct m; inv rsm.
+    { have->//:=free_wr_ff fr wr. }
     { exfalso. apply: free_wr_ptr... } }
 Qed.
 
@@ -815,13 +869,16 @@ Proof with eauto using hkey_impure.
       H z s0 l0 e1 e2 rs tyC2 vl. inv vl. }
   { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s l r1 r2 t mrg tyC1 erm _ ern _
       H z s0 l0 e1 e2 rs tyC2 vl. inv vl. }
-  { move=>Γ Δ A B m m' n n' t k erm ihm ern ihn H z s l0 e1 e2 rs tyW vl wr.
-    have[s0[r[l1[l2[tyA[tyB/sort_inj[e3 e4]]]]]]]:=sta_with_inv tyW. subst.
-    destruct t... inv rs... inv H2.
-    { have->//:=free_wr_apair H1 wr. }
-    { exfalso. apply: free_wr_ptr... } }
-  { move=>Γ Δ A B m m' t erm _ H z s l e1 e2 rs tyA vl. inv vl. }
-  { move=>Γ Δ A B m m' t erm _ H z s l e1 e2 rs tyA vl. inv vl. }
+  { move=>Γ Δ wf k H z s l e1 e2 rs tyB1 vl wr. subst.
+    have tyB2:=sta_bool sta_wf_nil.
+    have e:=sta_unicity tyB1 tyB2. subst.
+    have//:=resolve_tt_inv wr rs. }
+  { move=>Γ Δ wf k H z s l e1 e2 rs tyB1 vl wr. subst.
+    have tyB2:=sta_bool sta_wf_nil.
+    have e:=sta_unicity tyB1 tyB2. subst.
+    have//:=resolve_ff_inv wr rs. }
+  { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l mrg tyA erm ihm ern1 ihn1 ern2 ihn2
+           H z s0 l0 e1 e2 rs tyAm vl. inv vl. }
   { move=>Γ Δ A B x x' P m n s l tyB erH _ tyP H z s0 l0 e1 e2 rs tyB' vl. inv vl. }
   { move=>Γ Δ A B m m' s l eq erm ihm tyB1 H z s0 l0 e1 e2 rs tyB2 vl wr.
     have e:=sta_unicity tyB1 tyB2. subst.
@@ -849,8 +906,7 @@ Proof with eauto using dyn_val.
   { move=>H1 H2 H m m' n n' t mrg rsm ihm rsn ihn vl wr.
     have[wr1 wr2]:=wr_merge_inv mrg wr. inv vl... }
   { move=>H1 H2 H m m' n n' mrg rsm ihm rsn ihn vl. inv vl. }
-  { move=>H m m' rsm ihm vl. inv vl. }
-  { move=>H m m' rsm ihm vl. inv vl. }
+  { move=>H1 H2 H m m' n1 n1' n2 n2' mrg erm ihm ern1 ihn1 ern2 ihn2 vl. inv vl. }
   { move=>H m m' rsm ihm vl. inv vl. }
   { move=>H H' l m m' fr rsm ihm _ wr.
     have wr':=free_wr fr wr.

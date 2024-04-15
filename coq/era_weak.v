@@ -84,9 +84,20 @@ Proof with eauto using
         in ihn by autosubst.
     have:=era_letin1 mrg' ihC ihm ihn.
     by autosubst. }
-  { move=>Γ Δ A B m m' n n' t k tym ihm tyn ihn Γ' Δ' ξ agr. asimpl. apply:era_apair... }
-  { move=>Γ Δ A B m m' t tym ihm Γ' Δ' ξ agr. asimpl. apply:era_fst... }
-  { move=>Γ Δ A B m m' t tym ihm Γ' Δ' ξ agr. asimpl. apply:era_snd... }
+  { move=>Γ Δ wf k Γ' Δ' ξ agr. asimpl. apply:era_tt... apply: dyn_rename_wf... }
+  { move=>Γ Δ wf k Γ' Δ' ξ agr. asimpl. apply:era_ff... apply: dyn_rename_wf... }
+  { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l
+           mrg tyA tym ihm tyn1 ihn1 tyn2 ihn2 Γ' Δ' ξ agr. asimpl.
+    replace A.[m.[ren ξ] .: ren ξ] with A.[ren (upren ξ)].[m.[ren ξ]/] by autosubst.
+    have wf:=sta_type_wf tyA. inv wf.
+    have[Δ1'[Δ2'[mrg'[agr1 agr2]]]]:=dyn_agree_ren_merge agr mrg.
+    have{}ihn1:=ihn1 _ _ _ agr2.
+    have{}ihn2:=ihn2 _ _ _ agr2.
+    have agr':=sta_agree_ren_cons H2 (dyn_sta_agree_ren agr).
+    have/=tyA':=sta_rename tyA agr'.
+    apply: era_ifte...
+    asimpl in ihn1. asimpl...
+    asimpl in ihn2. asimpl... }
   { move=>Γ Δ A B H H' P m n s l tyB erH ihH tyP Γ' Δ' ξ agr. asimpl.
     have wf:=sta_type_wf tyB. inv wf. inv H2.
     have ihP:=sta_rename tyP (dyn_sta_agree_ren agr).

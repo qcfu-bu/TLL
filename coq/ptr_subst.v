@@ -78,11 +78,7 @@ Proof with eauto using agree_resolve.
     asimpl. f_equal... }
   { move=>i m n nfm ihm nfn ihn Δ H σ σ' j le agr.
     have le2:i.+1 < j.+2 by eauto. asimpl. f_equal... }
-  { move=>i m n t nfm ihm nfn ihn Δ H σ σ' j le agr.
-    asimpl. f_equal... }
-  { move=>i m nfm ihm Δ H σ σ' j le agr.
-    asimpl. f_equal... }
-  { move=>i m nfm ihm Δ H σ σ' j le agr.
+  { move=>i m n1 n2 nfm ihm nfn1 ihn1 nfn2 ihn2 Δ H σ σ' j le agr.
     asimpl. f_equal... }
   { move=>i m nfm ihm Δ H σ σ' j le agr.
     asimpl. f_equal... }
@@ -120,9 +116,8 @@ Proof with eauto using id_ren_up.
     replace n.[upn 2 (ren ξ)] with
       n.[ren (upren (upren ξ))] by autosubst.
     have<-:=ihn _ (id_ren_up (id_ren_up idr))... }
-  { move=>i m n t nfm ihm nfn ihn ξ idr. rewrite<-ihm... rewrite<-ihn... }
-  { move=>i m nfm ihm ξ idr. rewrite<-ihm... }
-  { move=>i m nfm ihm ξ idr. rewrite<-ihm... }
+  { move=>i m n1 n2 nfm ihm nfn1 ihn1 nfn2 ihn2 ξ idr.
+    rewrite<-ihm... rewrite<-ihn1... rewrite<-ihn2... }
   { move=>i m nfm ihm ξ idr. rewrite<-ihm... }
 Qed.
 
@@ -143,6 +138,9 @@ Proof with eauto using resolve, id_ren_up.
     replace (LetIn Box m' n').[ren ξ]
       with (LetIn Box m'.[ren ξ] n'.[ren (upren (upren ξ))])
         by autosubst.
+    have[wr1 wr2]:=wr_merge_inv mrg wr. econstructor... }
+  { move=>H1 H2 H m m' n1 n1' n2 n2' mrg
+           erm ihm ern1 ihn1 ern2 ihn2 i ξ wr idr. asimpl.
     have[wr1 wr2]:=wr_merge_inv mrg wr. econstructor... }
   { move=>H H' l m m' fr rsm ihm i ξ wr idr. asimpl.
     have nfm:=free_wr_nf fr wr.
@@ -339,32 +337,45 @@ Proof with eauto using
     { inv H4.
       { have vl:=wr_free_dyn_val H3 wr. inv vl. }
       { exfalso. apply: free_wr_ptr... } } }
-  { move=>Γ Δ A B m m' n n' t k erm ihm ern ihn H1 H2 H n0 σ σ' x mrg rsn wr agr.
-    inv rsn; asimpl.
-    { have k':=agree_resolve_key agr k.
+  { move=>Γ Δ wf k1 H1 H2 H m' σ σ' x mrg rsm wr agr. inv rsm; asimpl.
+    { have k2:=agree_resolve_key agr k1.
+      have e:=hmrg_pureL mrg H3. subst.
       econstructor... }
     { inv H4.
-      { have nfP:=free_wr_nf H3 wr. inv nfP.
+      { have k2:=agree_resolve_key agr k1.
         have[H4[fr mrg']]:=free_merge H3 mrg.
-        have k2:=agree_resolve_key agr k.
         have wr':=free_wr H3 wr.
-        have lx: 0 <= x by eauto.
-        econstructor...
-        have->:=nf_agree_resolve H6 lx agr.
-        have->:=nf_agree_resolve H8 lx agr.
         econstructor... }
       { exfalso. apply: free_wr_ptr... } } }
-  { move=>Γ Δ A B m m' t erm ihm H1 H2 H n' σ σ' x mrg rsn wr agr.
-    inv rsn; asimpl.
-    { econstructor... }
+  { move=>Γ Δ wf k1 H1 H2 H m' σ σ' x mrg rsm wr agr. inv rsm; asimpl.
+    { have k2:=agree_resolve_key agr k1.
+      have e:=hmrg_pureL mrg H3. subst.
+      econstructor... }
     { inv H4.
-      { have vl:=wr_free_dyn_val H3 wr. inv vl. }
+      { have k2:=agree_resolve_key agr k1.
+        have[H4[fr mrg']]:=free_merge H3 mrg.
+        have wr':=free_wr H3 wr.
+        econstructor... }
       { exfalso. apply: free_wr_ptr... } } }
-  { move=>Γ Δ A B m m' t erm ihm H1 H2 H n' σ σ' x mrg rsn wr agr.
-    inv rsn; asimpl.
-    { econstructor... }
+  { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l mrg1 tyA erm ihm ern1 ihn1 ern2 ihn2
+           H1 H2 H n' σ σ' x mrg2 rsm wr agr. inv rsm; asimpl.
+    { have[wr1 wr2]:=wr_merge_inv H8 wr.
+      have[H4[H5[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
+      have[H6[H7[mrg4[mrg5 mrg6]]]]:=hmrg_distr mrg2 H8 mrg3.
+      econstructor... }
     { inv H4.
-      { have vl:=wr_free_dyn_val H3 wr. inv vl. }
+      { have pfI:=free_wr_nf H3 wr. inv pfI.
+        have[H4[fr mrg']]:=free_merge H3 mrg2.
+        have[H6[H7[mrg3[agr1 agr2]]]]:=agree_resolve_merge_inv agr mrg1.
+        have[H16[H17[mrg4[mrg5 mrg6]]]]:=hmrg_distr mrg' H10 mrg3.
+        have wr':=free_wr H3 wr.
+        have[wr1 wr2]:=wr_merge_inv H10 wr'.
+        have lx: 0 <= x by eauto.
+        econstructor...
+        econstructor...
+        have->:=nf_agree_resolve H9 lx agr1...
+        have->:=nf_agree_resolve H11 lx agr2...
+        have->:=nf_agree_resolve H12 lx agr2... }
       { exfalso. apply: free_wr_ptr... } } }
   { move=>Γ Δ A B x x' P m n s l tyB erx ihx tyP H1 H2 H n' σ σ' x0 mrg rsn wr agr.
     inv rsn; asimpl.

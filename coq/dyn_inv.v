@@ -141,31 +141,3 @@ Proof with eauto.
   have[t[l tyS]]:=dyn_valid ty.
   apply: dyn_pair1_invX...
 Qed.
-
-Lemma dyn_apair_invX Γ Δ A B m n s r t l C :
-  Γ ; Δ ⊢ APair m n s : C ->
-  C === With A B r ->
-  Γ ⊢ With A B r : Sort t l ->
-  s = r /\ Γ ; Δ ⊢ m : A /\ Γ ; Δ ⊢ n : B.
-Proof with eauto.
-  move e:(APair m n s)=>x ty.
-  elim: ty A B m n s r t l e=>//{Γ Δ x C}.
-  { move=>Γ Δ A B m n l k tym ihm tyn ihn A0 B0 m0 n0 s r t0 l0
-      [e1 e2 e3]/with_inj[e4[e5 e6]]ty; subst.
-    have[s[r0[l1[l2[tyA0[tyB0 _]]]]]]:=sta_with_inv ty.
-    repeat split...
-    apply: dyn_conv...
-    apply: dyn_conv... }
-  { move=>Γ Δ A B m s l eq tym ihm _ A0 B0 m0 n s0 r t e eq' tyw; subst.
-    apply: ihm...
-    apply: conv_trans... }
-Qed.
-
-Lemma dyn_apair_inv Γ Δ A B m n s r :
-  Γ ; Δ ⊢ APair m n s : With A B r ->
-  s = r /\ Γ ; Δ ⊢ m : A /\ Γ ; Δ ⊢ n : B.
-Proof with eauto.
-  move=>ty.
-  have[t[l tyW]]:=dyn_valid ty.
-  apply: dyn_apair_invX...
-Qed.

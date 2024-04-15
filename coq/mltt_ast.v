@@ -15,10 +15,10 @@ Inductive term : Type :=
 | Sig (A : term) (B : {bind term}) (* Σ (x : A).B *)
 | DPair (m n : term) (* (m, n) *)
 | LetIn (A : {bind term}) (m : term) (n : {bind 2 of term}) (* RΣ([z]A, m, [x,y]n) *)
-| Tuple (A B : term) (* A×B *)
-| Pair (m n : term) (* (m, n) *)
-| Fst (m : term) (* π1 m *)
-| Snd (m : term) (* π2 m *)
+| Bool
+| TT (* true  *)
+| FF (* false *)
+| Ifte (A : {bind term}) (m n1 n2 : term)
 | Id (A m n : term)
 | Refl (m : term)
 | Rw (A : {bind 2 of term}) (H P : term) (* R=([x,p]A,H,P) *).

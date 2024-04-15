@@ -30,10 +30,9 @@ Inductive sta_val : term -> Prop :=
   sta_val m ->
   sta_val n ->
   sta_val (Pair1 m n s)
-| sta_val_with A B s :
-  sta_val (With A B s)
-| sta_val_apair m1 m2 s :
-  sta_val (APair m1 m2 s)
+| sta_val_bool : sta_val Bool
+| sta_val_tt : sta_val TT
+| sta_val_ff : sta_val FF
 | sta_val_id A m n :
   sta_val (Id A m n)
 | sta_val_refl m :
@@ -112,28 +111,22 @@ Inductive sta_step : term -> term -> Prop :=
   LetIn A (Pair0 m1 m2 s) n ~> n.[m2,m1/]
 | sta_step_iota1 A m1 m2 n s :
   LetIn A (Pair1 m1 m2 s) n ~> n.[m2,m1/]
-| sta_step_withL A A' B s :
+| sta_step_ifteA A A' m n1 n2 :
   A ~> A' ->
-  With A B s ~> With A' B s
-| sta_step_withR A B B' s :
-  B ~> B' ->
-  With A B s ~> With A B' s
-| sta_step_apairL m m' n s :
+  Ifte A m n1 n2 ~> Ifte A' m n1 n2
+| sta_step_ifteM A m m' n1 n2 :
   m ~> m' ->
-  APair m n s ~> APair m' n s
-| sta_step_apairR m n n' s :
-  n ~> n' ->
-  APair m n s ~> APair m n' s
-| sta_step_fst m m' :
-  m ~> m' ->
-  Fst m ~> Fst m'
-| sta_step_snd m m' :
-  m ~> m' ->
-  Snd m ~> Snd m'
-| sta_step_proj1 m n s :
-  Fst (APair m n s) ~> m
-| sta_step_proj2 m n s :
-  Snd (APair m n s) ~> n
+  Ifte A m n1 n2 ~> Ifte A m' n1 n2
+| sta_step_ifteN1 A m n1 n1' n2 :
+  n1 ~> n1' ->
+  Ifte A m n1 n2 ~> Ifte A m n1' n2
+| sta_step_ifteN2 A m n1 n2 n2' :
+  n2 ~> n2' ->
+  Ifte A m n1 n2 ~> Ifte A m n1 n2'
+| sta_step_ifteT A n1 n2 :
+  Ifte A TT n1 n2 ~> n1
+| sta_step_ifteF A n1 n2 :
+  Ifte A FF n1 n2 ~> n2
 | sta_step_idA A A' m n :
   A ~> A' ->
   Id A m n ~> Id A' m n
