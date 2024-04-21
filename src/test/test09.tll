@@ -52,9 +52,7 @@ inductive apair‹s,r,t› ?(A : Type‹s›) (B : A -> Type‹r›) : Type‹t�
   | apair_intro
     ?{x : A}
     (select : forall‹t› (b : bool),
-                match b with
-                | true  => sing x
-                | false => boxed (B x)) : apair B
+                if b then sing x else boxed (B x)) : apair B
 
 notation ( { , } ) :=
   apair_intro fun
@@ -84,7 +82,7 @@ def nat_dep_t : nat -> L
   | succ _ => base
 
 def my_apair0 : apair‹_,_,U› nat_dep_t :=
-  -- different type modalities are allowed in components as long
+
   -- as resource usage are equal
   {zero, nat_make zero}
 
