@@ -21,7 +21,7 @@ Inductive sta_agree_subst :
   Γ1 ⊢ n : A.[σ] ->
   Γ1 ⊢ n .: σ ⊣ (A :: Γ2)
 | sta_agree_subst_conv Γ1 σ Γ2 A B s l :
-  A === B ->
+  A ≃ B ->
   Γ1 ⊢ B.[ren (+1)].[σ] : Sort s l ->
   Γ2 ⊢ B : Sort s l ->
   Γ1 ⊢ σ ⊣ (A :: Γ2) ->
@@ -202,7 +202,7 @@ Proof.
 Qed.
 
 Lemma sta_ctx_conv Γ m A B C s l :
-  B === A ->
+  B ≃ A ->
   Γ ⊢ B : Sort s l -> (A :: Γ) ⊢ m : C -> (B :: Γ) ⊢ m : C.
 Proof with eauto using sta_wf, sta_agree_subst_refl.
   move=>eq tyB tym.

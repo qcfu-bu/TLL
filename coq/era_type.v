@@ -74,7 +74,7 @@ Inductive era_type : sta_ctx -> dyn_ctx -> term -> term -> term -> Prop :=
   Γ ⊢ P : Id A m n ->
   Γ ; Δ ⊢ Rw B H P ~ Rw Box H' Box : B.[P,n/]
 | era_conv Γ Δ A B m m' s l :
-  A === B ->
+  A ≃ B ->
   Γ ; Δ ⊢ m ~ m' : A ->
   Γ ⊢ B : Sort s l ->
   Γ ; Δ ⊢ m ~ m' : B

@@ -76,7 +76,7 @@ Inductive dyn_type : sta_ctx -> dyn_ctx -> term -> term -> Prop :=
   Γ ⊢ P : Id A m n ->
   Γ ; Δ ⊢ Rw B H P : B.[P,n/]
 | dyn_conv Γ Δ A B m s l :
-  A === B ->
+  A ≃ B ->
   Γ ; Δ ⊢ m : A ->
   Γ ⊢ B : Sort s l ->
   Γ ; Δ ⊢ m : B

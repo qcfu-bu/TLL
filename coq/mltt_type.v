@@ -68,7 +68,7 @@ Inductive mltt0_type : mltt_ctx -> term -> term -> Prop :=
   mltt0_type Γ P (Id A m n) ->
   mltt0_type Γ (Rw B H P) B.[P,n/]
 | mltt0_conv Γ A B m l :
-  A === B ->
+  A ≃ B ->
   mltt0_type Γ m A ->
   mltt0_type Γ B (Ty l) ->
   mltt0_type Γ m B
@@ -149,7 +149,7 @@ Inductive mltt_type : mltt_ctx -> term -> term -> Prop :=
   Γ ⊢ P : Id A m n ->
   Γ ⊢ Rw B H P : B.[P,n/]
 | mltt_conv Γ A B m l :
-  A === B ->
+  A ≃ B ->
   Γ ⊢ m : A ->
   Γ ⊢ B : Ty l ->
   Γ ⊢ m : B

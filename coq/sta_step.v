@@ -154,4 +154,4 @@ where "m ~> n" := (sta_step m n).
 
 Notation sta_red := (star sta_step).
 Notation "m ~>* n" := (sta_red m n) (at level 50).
-Notation "m === n" := (conv sta_step m n) (at level 50).
+Notation "m ≃ n" := (conv sta_step m n) (at level 50).

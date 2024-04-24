@@ -21,7 +21,7 @@ Inductive mltt_agree_subst :
   Γ1 ⊢ n : A.[σ] ->
   Γ1 ⊢ n .: σ ⊣ (A :: Γ2)
 | mltt_agree_subst_conv Γ1 σ Γ2 A B l :
-  A === B ->
+  A ≃ B ->
   Γ1 ⊢ B.[ren (+1)].[σ] : Ty l ->
   Γ2 ⊢ B : Ty l ->
   Γ1 ⊢ σ ⊣ (A :: Γ2) ->
@@ -169,7 +169,7 @@ Proof.
 Qed.
 
 Lemma mltt_ctx_conv Γ m A B C l :
-  B === A ->
+  B ≃ A ->
   Γ ⊢ B : Ty l -> (A :: Γ) ⊢ m : C -> (B :: Γ) ⊢ m : C.
 Proof with eauto using mltt_wf, mltt_agree_subst_refl.
   move=>eq tyB tym.

@@ -94,4 +94,4 @@ where "m ~> n" := (mltt_step m n).
 
 Notation mltt_red := (star mltt_step).
 Notation "m ~>* n" := (mltt_red m n) (at level 50).
-Notation "m === n" := (conv mltt_step m n) (at level 50).
+Notation "m ≃ n" := (conv mltt_step m n) (at level 50).

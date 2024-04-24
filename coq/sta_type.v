@@ -98,7 +98,7 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
   sta0_type Γ P (Id A m n) ->
   sta0_type Γ (Rw B H P) B.[P,n/]
 | sta0_conv Γ A B m s l :
-  A === B ->
+  A ≃ B ->
   sta0_type Γ m A ->
   sta0_type Γ B (Sort s l) ->
   sta0_type Γ m B
@@ -208,7 +208,7 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
   Γ ⊢ P : Id A m n ->
   Γ ⊢ Rw B H P : B.[P,n/]
 | sta_conv Γ A B m s l :
-  A === B ->
+  A ≃ B ->
   Γ ⊢ m : A ->
   Γ ⊢ B : Sort s l ->
   Γ ⊢ m : B

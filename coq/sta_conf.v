@@ -295,10 +295,10 @@ Qed.
 Lemma sta_red_compat σ τ s : sred σ τ -> sta_red s.[σ] s.[τ].
 Proof. elim: s σ τ => *; asimpl; eauto 9 with sta_red_congr. Qed.
 
-Definition sconv (σ τ : var -> term) := forall x, σ x === τ x.
+Definition sconv (σ τ : var -> term) := forall x, σ x ≃ τ x.
 
 Lemma sta_conv_app m m' n n' :
-  m === m' -> n === n' -> App m n === App m' n'.
+  m ≃ m' -> n ≃ n' -> App m n ≃ App m' n'.
 Proof.
   move=> r1 r2.
   apply: (conv_trans (App m' n)).
@@ -307,7 +307,7 @@ Proof.
 Qed.
 
 Lemma sta_conv_lam0 A A' m m' s :
-  A === A' -> m === m' -> Lam0 A m s === Lam0 A' m' s.
+  A ≃ A' -> m ≃ m' -> Lam0 A m s ≃ Lam0 A' m' s.
 Proof.
   move=> r1 r2.
   apply: (conv_trans (Lam0 A' m s)).
@@ -316,7 +316,7 @@ Proof.
 Qed.
 
 Lemma sta_conv_lam1 A A' m m' s :
-  A === A' -> m === m' -> Lam1 A m s === Lam1 A' m' s.
+  A ≃ A' -> m ≃ m' -> Lam1 A m s ≃ Lam1 A' m' s.
 Proof.
   move=> r1 r2.
   apply: (conv_trans (Lam1 A' m s)).
@@ -325,7 +325,7 @@ Proof.
 Qed.
 
 Lemma sta_conv_pi0 A A' B B' s :
-  A === A' -> B === B' -> Pi0 A B s === Pi0 A' B' s.
+  A ≃ A' -> B ≃ B' -> Pi0 A B s ≃ Pi0 A' B' s.
 Proof.
   move=> r1 r2.
   apply: (conv_trans (Pi0 A' B s)).
@@ -334,7 +334,7 @@ Proof.
 Qed.
 
 Lemma sta_conv_pi1 A A' B B' s :
-  A === A' -> B === B' -> Pi1 A B s === Pi1 A' B' s.
+  A ≃ A' -> B ≃ B' -> Pi1 A B s ≃ Pi1 A' B' s.
 Proof.
   move=> r1 r2.
   apply: (conv_trans (Pi1 A' B s)).
@@ -343,7 +343,7 @@ Proof.
 Qed.
 
 Lemma sta_conv_sig0 A A' B B' s :
-  A === A' -> B === B' -> Sig0 A B s === Sig0 A' B' s.
+  A ≃ A' -> B ≃ B' -> Sig0 A B s ≃ Sig0 A' B' s.
 Proof.
   move=> r1 r2.
   apply: (conv_trans (Sig0 A' B s)).
@@ -352,7 +352,7 @@ Proof.
 Qed.
 
 Lemma sta_conv_sig1 A A' B B' s :
-  A === A' -> B === B' -> Sig1 A B s === Sig1 A' B' s.
+  A ≃ A' -> B ≃ B' -> Sig1 A B s ≃ Sig1 A' B' s.
 Proof.
   move=> r1 r2.
   apply: (conv_trans (Sig1 A' B s)).
@@ -361,7 +361,7 @@ Proof.
 Qed.
 
 Lemma sta_conv_pair0 m m' n n' t :
-  m === m' -> n === n' -> Pair0 m n t === Pair0 m' n' t.
+  m ≃ m' -> n ≃ n' -> Pair0 m n t ≃ Pair0 m' n' t.
 Proof.
   move=>r1 r2.
   apply: (conv_trans (Pair0 m' n t)).
@@ -370,7 +370,7 @@ Proof.
 Qed.
 
 Lemma sta_conv_pair1 m m' n n' t :
-  m === m' -> n === n' -> Pair1 m n t === Pair1 m' n' t.
+  m ≃ m' -> n ≃ n' -> Pair1 m n t ≃ Pair1 m' n' t.
 Proof.
   move=>r1 r2.
   apply: (conv_trans (Pair1 m' n t)).
@@ -379,7 +379,7 @@ Proof.
 Qed.
 
 Lemma sta_conv_letin A A' m m' n n' :
-  A === A' -> m === m' -> n === n' -> LetIn A m n === LetIn A' m' n'.
+  A ≃ A' -> m ≃ m' -> n ≃ n' -> LetIn A m n ≃ LetIn A' m' n'.
 Proof.
   move=>r1 r2 r3.
   apply: (conv_trans (LetIn A' m n)).
@@ -390,7 +390,7 @@ Proof.
 Qed.
 
 Lemma sta_conv_ifte A A' m m' n1 n1' n2 n2' :
-  A === A' -> m === m' -> n1 === n1' -> n2 === n2' -> Ifte A m n1 n2 === Ifte A' m' n1' n2'.
+  A ≃ A' -> m ≃ m' -> n1 ≃ n1' -> n2 ≃ n2' -> Ifte A m n1 n2 ≃ Ifte A' m' n1' n2'.
 Proof.
   move=>rA rm rn1 rn2.
   apply: (conv_trans (Ifte A' m n1 n2)).
@@ -403,7 +403,7 @@ Proof.
 Qed.
 
 Lemma sta_conv_id A A' m m' n n' :
-  A === A' -> m === m' -> n === n' -> Id A m n === Id A' m' n'.
+  A ≃ A' -> m ≃ m' -> n ≃ n' -> Id A m n ≃ Id A' m' n'.
 Proof.
   move=>r1 r2 r3.
   apply: (conv_trans (Id A' m n)).
@@ -414,14 +414,14 @@ Proof.
 Qed.
 
 Lemma sta_conv_refl m m' :
-  m === m' -> Refl m === Refl m'.
+  m ≃ m' -> Refl m ≃ Refl m'.
 Proof.
   move=>r.
   apply: (conv_hom Refl) r=>x y. exact: sta_step_refl.
 Qed.
 
 Lemma sta_conv_rw A A' H H' P P' :
-  A === A' -> H === H' -> P === P' -> Rw A H P === Rw A' H' P'.
+  A ≃ A' -> H ≃ H' -> P ≃ P' -> Rw A H P ≃ Rw A' H' P'.
 Proof.
   move=>r1 r2 r3.
   apply: (conv_trans (Rw A' H P)).
@@ -432,7 +432,7 @@ Proof.
 Qed.
 
 Lemma sta_conv_subst σ m n :
-  m === n -> m.[σ] === n.[σ].
+  m ≃ n -> m.[σ] ≃ n.[σ].
 Proof.
   move=>c.
   apply: conv_hom c.
@@ -460,10 +460,10 @@ Qed.
   sconv_up sconv_upn : sta_conv_congr.
 
 Lemma sta_conv_compat σ τ s :
-  sconv σ τ -> s.[σ] === s.[τ].
+  sconv σ τ -> s.[σ] ≃ s.[τ].
 Proof. elim: s σ τ => *; asimpl; eauto 9 with sta_conv_congr. Qed.
 
-Lemma sta_conv_beta m n1 n2 : n1 === n2 -> m.[n1/] === m.[n2/].
+Lemma sta_conv_beta m n1 n2 : n1 ≃ n2 -> m.[n1/] ≃ m.[n2/].
 Proof. move=> c. by apply: sta_conv_compat => -[]. Qed.
 
 Lemma pstep_reflexive m : pstep m m.
@@ -963,14 +963,14 @@ Proof.
 Qed.
 
 Lemma sort_inj s1 s2 l1 l2 :
-  Sort s1 l1 === Sort s2 l2 -> s1 = s2 /\ l1 = l2.
+  Sort s1 l1 ≃ Sort s2 l2 -> s1 = s2 /\ l1 = l2.
 Proof.
   move/church_rosser=>[x/sta_red_sort_inv->/sta_red_sort_inv[->]]//.
 Qed.
 
 Lemma pi0_inj A A' B B' s s' :
-  Pi0 A B s === Pi0 A' B' s' ->
-    A === A' /\ B === B' /\ s = s'.
+  Pi0 A B s ≃ Pi0 A' B' s' ->
+    A ≃ A' /\ B ≃ B' /\ s = s'.
 Proof.
   move/church_rosser=>
     [x/sta_red_pi0_inv[A1[B1[rA1[rB1->]]]]
@@ -985,8 +985,8 @@ Proof.
 Qed.
 
 Lemma pi1_inj A A' B B' s s' :
-  Pi1 A B s === Pi1 A' B' s' ->
-    A === A' /\ B === B' /\ s = s'.
+  Pi1 A B s ≃ Pi1 A' B' s' ->
+    A ≃ A' /\ B ≃ B' /\ s = s'.
 Proof.
   move/church_rosser=>
     [x/sta_red_pi1_inv[A1[B1[rA1[rB1->]]]]
@@ -1001,8 +1001,8 @@ Proof.
 Qed.
 
 Lemma sig0_inj A A' B B' s s' :
-  Sig0 A B s === Sig0 A' B' s' ->
-    A === A' /\ B === B' /\ s = s'.
+  Sig0 A B s ≃ Sig0 A' B' s' ->
+    A ≃ A' /\ B ≃ B' /\ s = s'.
 Proof.
   move/church_rosser=>
     [x/sta_red_sig0_inv[A1[B1[rA1[rB1->]]]]
@@ -1017,8 +1017,8 @@ Proof.
 Qed.
 
 Lemma sig1_inj A A' B B' s s' :
-  Sig1 A B s === Sig1 A' B' s' ->
-    A === A' /\ B === B' /\ s = s'.
+  Sig1 A B s ≃ Sig1 A' B' s' ->
+    A ≃ A' /\ B ≃ B' /\ s = s'.
 Proof.
   move/church_rosser=>
     [x/sta_red_sig1_inv[A1[B1[rA1[rB1->]]]]
@@ -1033,8 +1033,8 @@ Proof.
 Qed.
 
 Lemma id_inj A A' m m' n n' :
-  Id A m n === Id A' m' n' ->
-    A === A' /\ m === m' /\ n === n'.
+  Id A m n ≃ Id A' m' n' ->
+    A ≃ A' /\ m ≃ m' /\ n ≃ n'.
 Proof.
   move/church_rosser=>
     [x/sta_red_id_inv[A1[m1[n1[rA1[rm1[rn1->]]]]]]
@@ -1073,7 +1073,7 @@ Ltac red_inv m H :=
 Ltac solve_conv' :=
   unfold not; intros;
   match goal with
-  | [ H : _ === _ |- _ ] =>
+  | [ H : _ ≃ _ |- _ ] =>
     apply church_rosser in H; inv H
   end;
   repeat match goal with
@@ -1091,6 +1091,6 @@ Ltac solve_conv' :=
 
 Ltac solve_conv :=
   match goal with
-  | [ H : ?t1 === ?t2 |- _ ] =>
-    assert (~ t1 === t2) by solve_conv'
+  | [ H : ?t1 ≃ ?t2 |- _ ] =>
+    assert (~ t1 ≃ t2) by solve_conv'
   end; eauto.

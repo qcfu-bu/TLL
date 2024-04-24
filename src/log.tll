@@ -1,0 +1,6585 @@
+[Inductive {name = "boxed"; relv = R;
+   body =
+   (Binder (["s"],
+      (PBind ((Type (SId "s")),
+         (Binder ("A",
+            (PBase
+               ((TBase (Type L)),
+                [(DConstr ("box",
+                    (TBind (R, (Id ("A", I)),
+                       (Binder ("m",
+                          (TBase (App [(Id ("boxed", I)); (Id ("A", I))]))))
+                       )),
+                    [E]))
+                  ]))
+            ))
+         ))
+      ));
+   view = [E]};
+  Inductive {name = "choice"; relv = R;
+    body =
+    (Binder ([],
+       (PBase
+          ((TBase (Type L)),
+           [(DConstr ("next", (TBase (Id ("choice", I))), []));
+             (DConstr ("free", (TBase (Id ("choice", I))), []))]))
+       ));
+    view = []};
+  Definition {name = "sing_elim"; relv = R;
+    body =
+    (Binder (["s"; "t"],
+       ((Fun (
+           (Pi (N, U, (Type (SId "s")),
+              (Binder ("A",
+                 (Pi (N, U, (Id ("A", I)),
+                    (Binder ("x",
+                       (Pi (R, U,
+                          (App
+                             [(Inst ("sing", [(SId "s"); (SId "t")], I));
+                               (Id ("x", I))]),
+                          (Binder ("_", (Id ("A", I))))))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "sing_elim"),
+              [([(PId "A"); (PId "x"); (PConstr ("just", [(PId "x")]))],
+                (Some (Id ("x", I))))]
+              )),
+           [I; I])),
+        (Pi (N, U, (Type (SId "s")),
+           (Binder ("A",
+              (Pi (N, U, (Id ("A", I)),
+                 (Binder ("x",
+                    (Pi (R, U,
+                       (App
+                          [(Inst ("sing", [(SId "s"); (SId "t")], I));
+                            (Id ("x", I))]),
+                       (Binder ("_", (Id ("A", I))))))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I]};
+  Definition {name = "sing_uniq"; relv = N;
+    body =
+    (Binder (["s"; "t"],
+       ((Fun (
+           (Pi (R, U, (Type (SId "s")),
+              (Binder ("A",
+                 (Pi (R, U, (Id ("A", I)),
+                    (Binder ("x0",
+                       (Pi (R, U,
+                          (App
+                             [(Inst ("sing", [(SId "s"); (SId "t")], I));
+                               (Id ("x0", I))]),
+                          (Binder ("x",
+                             (BOpr ("=", (Id ("x0", I)),
+                                (App [(Id ("sing_elim", I)); (Id ("x", I))])
+                                ))
+                             ))
+                          ))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "sing_uniq"),
+              [([(PId "A"); (PId "x0"); (PConstr ("just", [(PId "_")]))],
+                (Some (Id ("refl", I))))]
+              )),
+           [I; I])),
+        (Pi (R, U, (Type (SId "s")),
+           (Binder ("A",
+              (Pi (R, U, (Id ("A", I)),
+                 (Binder ("x0",
+                    (Pi (R, U,
+                       (App
+                          [(Inst ("sing", [(SId "s"); (SId "t")], I));
+                            (Id ("x0", I))]),
+                       (Binder ("x",
+                          (BOpr ("=", (Id ("x0", I)),
+                             (App [(Id ("sing_elim", I)); (Id ("x", I))])))
+                          ))
+                       ))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I]};
+  Inductive {name = "stream_node"; relv = R;
+    body =
+    (Binder (["s"],
+       (PBind ((Type (SId "s")),
+          (Binder ("A",
+             (PBase
+                ((TBase (Type L)),
+                 [(DConstr ("stream_cons",
+                     (TBind (R, (Id ("A", I)),
+                        (Binder ("hd",
+                           (TBind (R,
+                              (Pi (R, L, (Id ("choice", I)),
+                                 (Binder ("x",
+                                    (Match ([(R, (Id ("x", I)), None)], None,
+                                       [([(PId "next")],
+                                         (Some (App
+                                                  [(Id ("stream_node", I));
+                                                    (Id ("A", I))])));
+                                         ([(PId "free")],
+                                          (Some (Id ("base", I))))
+                                         ]
+                                       ))
+                                    ))
+                                 )),
+                              (Binder ("tl",
+                                 (TBase
+                                    (App
+                                       [(Id ("stream_node", I));
+                                         (Id ("A", I))]))
+                                 ))
+                              ))
+                           ))
+                        )),
+                     [E; E]))
+                   ]))
+             ))
+          ))
+       ));
+    view = [E]};
+  Definition {name = "stream"; relv = N;
+    body =
+    (Binder (["s"],
+       ((Fun ((Pi (R, U, (Type (SId "s")), (Binder ("A", IMeta)))),
+           (Binder ((Some "stream"),
+              [([(PId "A")],
+                (Some (Pi (R, L, (Id ("choice", I)),
+                         (Binder ("x",
+                            (Match ([(R, (Id ("x", I)), None)], None,
+                               [([(PId "next")],
+                                 (Some (App
+                                          [(Id ("stream_node", I));
+                                            (Id ("A", I))])));
+                                 ([(PId "free")], (Some (Id ("base", I))))]
+                               ))
+                            ))
+                         ))))
+                ]
+              )),
+           [E])),
+        (Pi (R, U, (Type (SId "s")), (Binder ("A", IMeta)))))
+       ));
+    view = [E]};
+  Definition {name = "free_stream"; relv = R;
+    body =
+    (Binder (["s"],
+       ((Fun (
+           (Pi (N, U, (Type (SId "s")),
+              (Binder ("A",
+                 (Pi (R, U, (App [(Id ("stream", I)); (Id ("A", I))]),
+                    (Binder ("st", (Id ("unit", I))))))
+                 ))
+              )),
+           (Binder ((Some "free_stream"),
+              [([(PId "A"); (PId "st")],
+                (Some (Match (
+                         [(R, (App [(Id ("st", I)); (Id ("free", I))]), None)
+                           ],
+                         None, [([(PId "tt")], (Some (Id ("tt", I))))]))))
+                ]
+              )),
+           [I; E])),
+        (Pi (N, U, (Type (SId "s")),
+           (Binder ("A",
+              (Pi (R, U, (App [(Id ("stream", I)); (Id ("A", I))]),
+                 (Binder ("st", (Id ("unit", I))))))
+              ))
+           )))
+       ));
+    view = [I; E]};
+  Definition {name = "uncons_stream"; relv = R;
+    body =
+    (Binder (["s"],
+       ((Fun (
+           (Pi (N, U, (Type (SId "s")),
+              (Binder ("A",
+                 (Pi (R, U, (App [(Id ("stream", I)); (Id ("A", I))]),
+                    (Binder ("st",
+                       (BOpr ("\226\138\151", (Id ("A", I)),
+                          (App [(Id ("stream", I)); (Id ("A", I))])))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "uncons_stream"),
+              [([(PId "A"); (PId "st")],
+                (Some (Let (R, (App [(Id ("st", I)); (Id ("next", I))]),
+                         (Binder (
+                            (PConstr ("stream_cons", [(PId "hd"); (PId "tl")]
+                               )),
+                            (BOpr ("\226\159\168,\226\159\169",
+                               (Id ("hd", I)), (Id ("tl", I))))
+                            ))
+                         ))))
+                ]
+              )),
+           [I; E])),
+        (Pi (N, U, (Type (SId "s")),
+           (Binder ("A",
+              (Pi (R, U, (App [(Id ("stream", I)); (Id ("A", I))]),
+                 (Binder ("st",
+                    (BOpr ("\226\138\151", (Id ("A", I)),
+                       (App [(Id ("stream", I)); (Id ("A", I))])))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; E]};
+  Definition {name = "nat_make"; relv = R;
+    body =
+    (Binder ([],
+       ((Fun (
+           (Pi (R, U, (Id ("nat", I)),
+              (Binder ("n", (App [(Id ("stream", I)); (Id ("nat", I))]))))),
+           (Binder ((Some "nat_make"),
+              [([(PId "n"); (PId "next")],
+                (Some (App
+                         [(Id ("stream_cons", I)); (Id ("n", I));
+                           (App
+                              [(Id ("nat_make", I));
+                                (App [(Id ("succ", I)); (Id ("n", I))])])
+                           ])));
+                ([(PId "n"); (PId "free")], (Some (Id ("tt", I))))]
+              )),
+           [E])),
+        (Pi (R, U, (Id ("nat", I)),
+           (Binder ("n", (App [(Id ("stream", I)); (Id ("nat", I))]))))))
+       ));
+    view = [E]};
+  Inductive {name = "apair"; relv = R;
+    body =
+    (Binder (["s"; "r"; "t"],
+       (PBind ((Type (SId "s")),
+          (Binder ("A",
+             (PBind (
+                (Pi (R, U, (Id ("A", I)), (Binder ("_", (Type (SId "r")))))),
+                (Binder ("B",
+                   (PBase
+                      ((TBase (Type (SId "t"))),
+                       [(DConstr ("apair_intro",
+                           (TBind (N, (Id ("A", I)),
+                              (Binder ("x",
+                                 (TBind (R,
+                                    (Pi (R, (SId "t"), (Id ("bool", I)),
+                                       (Binder ("b",
+                                          (Match ([(R, (Id ("b", I)), None)],
+                                             None,
+                                             [([(PId "true")],
+                                               (Some (App
+                                                        [(Id ("sing", I));
+                                                          (Id ("x", I))])));
+                                               ([(PId "false")],
+                                                (Some (App
+                                                         [(Id ("boxed", I));
+                                                           (App
+                                                              [(Id ("B", I));
+                                                                (Id ("x", I))
+                                                                ])
+                                                           ])))
+                                               ]
+                                             ))
+                                          ))
+                                       )),
+                                    (Binder ("select",
+                                       (TBase
+                                          (App
+                                             [(Id ("apair", I));
+                                               (Id ("B", I))]))
+                                       ))
+                                    ))
+                                 ))
+                              )),
+                           [I; E]))
+                         ]))
+                   ))
+                ))
+             ))
+          ))
+       ));
+    view = [I; E]};
+  Notation {name = "{,}";
+    body =
+    (App
+       [(Id ("apair_intro", I));
+         (Fun (IMeta,
+            (Binder (None,
+               [([(PId "true")], (Some (App [(Id ("just", I)); (Hole 1)])));
+                 ([(PId "false")], (Some (App [(Id ("box", I)); (Hole 2)])))]
+               )),
+            []))
+         ])};
+  Definition {name = "proj1"; relv = R;
+    body =
+    (Binder (["s"; "r"; "t"],
+       ((Fun (
+           (Pi (N, U, (Type (SId "s")),
+              (Binder ("A",
+                 (Pi (N, U,
+                    (Pi (R, U, (Id ("A", I)),
+                       (Binder ("_", (Type (SId "r")))))),
+                    (Binder ("B",
+                       (Pi (R, U,
+                          (App
+                             [(Inst ("apair",
+                                 [(SId "s"); (SId "r"); (SId "t")], E));
+                               (Id ("A", I)); (Id ("B", I))]),
+                          (Binder ("_", (Id ("A", I))))))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "proj1"),
+              [([(PId "A"); (PId "B");
+                  (PConstr ("apair_intro", [(PId "_"); (PId "select")]))],
+                (Some (App
+                         [(Id ("sing_elim", I));
+                           (App [(Id ("select", I)); (Id ("true", I))])])))
+                ]
+              )),
+           [I; I])),
+        (Pi (N, U, (Type (SId "s")),
+           (Binder ("A",
+              (Pi (N, U,
+                 (Pi (R, U, (Id ("A", I)), (Binder ("_", (Type (SId "r")))))),
+                 (Binder ("B",
+                    (Pi (R, U,
+                       (App
+                          [(Inst ("apair", [(SId "s"); (SId "r"); (SId "t")],
+                              E));
+                            (Id ("A", I)); (Id ("B", I))]),
+                       (Binder ("_", (Id ("A", I))))))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I]};
+  Definition {name = "proj2"; relv = R;
+    body =
+    (Binder (["s"; "r"; "t"],
+       ((Fun (
+           (Pi (N, U, (Type (SId "s")),
+              (Binder ("A",
+                 (Pi (N, U,
+                    (Pi (R, U, (Id ("A", I)),
+                       (Binder ("_", (Type (SId "r")))))),
+                    (Binder ("B",
+                       (Pi (R, U,
+                          (App
+                             [(Inst ("apair",
+                                 [(SId "s"); (SId "r"); (SId "t")], E));
+                               (Id ("A", I)); (Id ("B", I))]),
+                          (Binder ("x",
+                             (App
+                                [(Id ("B", I));
+                                  (App [(Id ("proj1", I)); (Id ("x", I))])])
+                             ))
+                          ))
+                       ))
+                    ))
+                 ))
+              )),
+           (Binder ((Some "proj2"),
+              [([(PId "A"); (PId "B");
+                  (PConstr ("apair_intro", [(PId "x"); (PId "select")]))],
+                (Some (Match (
+                         [(N, (Id ("x", I)), (Some ("x0", IMeta)));
+                           (N, (App [(Id ("select", I)); (Id ("true", I))]),
+                            (Some ("a0",
+                                   (App [(Id ("sing", I)); (Id ("x", I))]))));
+                           (N,
+                            (App
+                               [(Id ("sing_uniq", I));
+                                 (App [(Id ("select", I)); (Id ("true", I))])
+                                 ]),
+                            (Some ("_",
+                                   (BOpr ("=", (Id ("x0", I)),
+                                      (App
+                                         [(Id ("sing_elim", I));
+                                           (Id ("a0", I))])
+                                      )))));
+                           (R, (App [(Id ("select", I)); (Id ("false", I))]),
+                            (Some ("_",
+                                   (App
+                                      [(Id ("boxed", I));
+                                        (App [(Id ("B", I)); (Id ("x0", I))])
+                                        ]))))
+                           ],
+                         (Some (App
+                                  [(Id ("B", I));
+                                    (App
+                                       [(Id ("sing_elim", I)); (Id ("a0", I))
+                                         ])
+                                    ])),
+                         [([(PId "_"); (PId "_"); (PId "refl");
+                             (PConstr ("box", [(PId "b")]))],
+                           (Some (Id ("b", I))))]
+                         ))))
+                ]
+              )),
+           [I; I])),
+        (Pi (N, U, (Type (SId "s")),
+           (Binder ("A",
+              (Pi (N, U,
+                 (Pi (R, U, (Id ("A", I)), (Binder ("_", (Type (SId "r")))))),
+                 (Binder ("B",
+                    (Pi (R, U,
+                       (App
+                          [(Inst ("apair", [(SId "s"); (SId "r"); (SId "t")],
+                              E));
+                            (Id ("A", I)); (Id ("B", I))]),
+                       (Binder ("x",
+                          (App
+                             [(Id ("B", I));
+                               (App [(Id ("proj1", I)); (Id ("x", I))])])
+                          ))
+                       ))
+                    ))
+                 ))
+              ))
+           )))
+       ));
+    view = [I; I]};
+  Definition {name = "nat_dep_t"; relv = N;
+    body =
+    (Binder ([],
+       ((Fun ((Pi (R, U, (Id ("nat", I)), (Binder ("_", (Type L))))),
+           (Binder ((Some "nat_dep_t"),
+              [([(PId "zero")],
+                (Some (App [(Id ("stream", I)); (Id ("nat", I))])));
+                ([(PConstr ("succ", [(PId "_")]))], (Some (Id ("base", I))))]
+              )),
+           [])),
+        (Pi (R, U, (Id ("nat", I)), (Binder ("_", (Type L))))))
+       ));
+    view = []};
+  Definition {name = "my_apair0"; relv = R;
+    body =
+    (Binder ([],
+       ((BOpr ("{,}", (Id ("zero", I)),
+           (App [(Id ("nat_make", I)); (Id ("zero", I))]))),
+        (App
+           [(Inst ("apair", [(SId "_"); (SId "_"); U], I));
+             (Id ("nat_dep_t", I))]))
+       ));
+    view = []};
+  Definition {name = "my_apair1"; relv = R;
+    body =
+    (Binder ([],
+       ((Let (R, (App [(Id ("nat_make", I)); (Id ("zero", I))]),
+           (Binder ((PId "nat_stream"),
+              (BOpr ("{,}",
+                 (Let (R,
+                    (App [(Id ("uncons_stream", I)); (Id ("nat_stream", I))]),
+                    (Binder (
+                       (PBOpr ("\226\159\168,\226\159\169", (PId "hd"),
+                          (PId "tl"))),
+                       (Let (R,
+                          (App [(Id ("free_stream", I)); (Id ("tl", I))]),
+                          (Binder ((PId "_"), (Id ("hd", I))))))
+                       ))
+                    )),
+                 (Id ("nat_stream", I))))
+              ))
+           )),
+        (App
+           [(Inst ("apair", [(SId "_"); (SId "_"); L], I));
+             (Id ("nat_dep_t", I))]))
+       ));
+    view = []};
+  Definition {name = "_"; relv = R;
+    body =
+    (Binder ([],
+       ((App
+           [(Id ("free_stream", I));
+             (App [(Id ("proj2", I)); (Id ("my_apair1", I))])]),
+        (Id ("unit", I)))
+       ));
+    view = []}
+  ]
+
+[parse success]
+
+-----------------------------------------
+
+#[program]
+inductive boxed_11‹s_537› (A_538 : Type‹s_537›): L where
+| box_15 (m_539 : A_538) : (boxed_11‹??_62› A_538)
+
+#[program]
+inductive choice_12‹› : L where
+| next_16 : choice_12
+| free_17 : choice_12
+
+#[program]
+def sing_elim_34‹s_540,t_541› :
+  ∀ {A_542 : Type‹s_540›} ->
+    ∀ {x_543 : A_542} -> (sing_2‹s_540,t_541› ?_66[0;0] x_543) -> A_542
+:=
+  (fun sing_elim_545 :
+    ∀ {A_546 : Type‹s_540›} ->
+      ∀ {x_547 : A_546} ->
+        (sing_2‹s_540,t_541› ?_65[0;0] x_547) -> A_546
+  | A_549, x_550, (just_2 x_551) => x_551)
+
+#[logical]
+def sing_uniq_35‹s_552,t_553› :
+  ∀ (A_554 : Type‹s_552›) ->
+    ∀ (x0_555 : A_554) ->
+      ∀ (x_556 : (sing_2‹s_552,t_553› ?_73[0;0] x0_555)) ->
+        (eq_1‹??_69›
+          ?_76[0;0] x0_555
+          ((sing_elim_34‹??_67,??_68›) ?_75[0;0] ?_74[0;0] x_556))
+:=
+  (fun sing_uniq_557 :
+    ∀ (A_558 : Type‹s_552›) ->
+      ∀ (x0_559 : A_558) ->
+        ∀ (x_560 : (sing_2‹s_552,t_553› ?_67[0;0] x0_559)) ->
+          (eq_1‹??_65›
+            ?_70[0;0] x0_559
+            ((sing_elim_34‹??_63,??_64›) ?_69[0;0] ?_68[0;0] x_560))
+  | A_561, x0_562, (just_2 _563) => (refl_1‹??_66› ?_71[0;0] ?_72[0;0]))
+
+#[program]
+inductive stream_node_13‹s_564› (A_565 : Type‹s_564›): L where
+| stream_cons_18
+    (hd_566 : A_565)
+    (tl_567 : ∀ (x_568 : choice_12) -o
+                (match x_568 in ?_77[0;0] -o ?_78[0;0] with
+                | next_16 => (stream_node_13‹??_70› A_565)
+                | free_17 => base_3‹??_71›))
+    : (stream_node_13‹??_72› A_565)
+
+#[logical]
+def stream_36‹s_570› : Type‹s_570› -> ?_82[0;0] :=
+  (fun stream_572 : Type‹s_570› -> ?_79[0;0]
+  | A_574 =>
+    ∀ (x_575 : choice_12) -o
+      (match x_575 in ?_80[0;0] -o ?_81[0;0] with
+      | next_16 => (stream_node_13‹??_73› A_574)
+      | free_17 => base_3‹??_74›))
+
+#[program]
+def free_stream_37‹s_577› :
+  ∀ {A_578 : Type‹s_577›} -> ((stream_36‹??_77›) A_578) -> unit_9
+:=
+  (fun free_stream_580 :
+    ∀ {A_581 : Type‹s_577›} -> ((stream_36‹??_75›) A_581) -> unit_9
+  | A_583, st_584 =>
+    (match ((st_584) free_17) in ?_83[0;0] -o ?_84[0;0] with
+    | tt_3 => tt_3‹??_76›))
+
+#[program]
+def uncons_stream_38‹s_586› :
+  ∀ {A_587 : Type‹s_586›} ->
+    ((stream_36‹??_84›) A_587) ->
+      ((tensor_26‹??_86,??_87›) A_587 ((stream_36‹??_85›) A_587))
+:=
+  (fun uncons_stream_589 :
+    ∀ {A_590 : Type‹s_586›} ->
+      ((stream_36‹??_78›) A_590) ->
+        ((tensor_26‹??_80,??_81›) A_590 ((stream_36‹??_79›) A_590))
+  | A_592, st_593 =>
+    (match ((st_593) next_16) in ?_88[0;0] -o ?_87[0;0] with
+    | (stream_cons_18 hd_595 tl_596) =>
+      (ex1_14‹??_82,??_83› ?_85[0;0] ?_86[0;0] hd_595 tl_596)))
+
+#[program]
+def nat_make_39‹› : nat_5 -> ((stream_36‹??_91›) nat_5) :=
+  (fun nat_make_598 : nat_5 -> ((stream_36‹??_88›) nat_5)
+  | n_600, next_16 =>
+    (stream_cons_18‹??_89›
+      ?_89[0;0] n_600 ((nat_make_598) (succ_7‹› n_600)))
+  | n_601, free_17 => tt_3‹??_90›)
+
+#[program]
+inductive apair_14‹s_602,r_603,t_604› (A_605 : Type‹s_602›) (B_606 : 
+A_605 -> Type‹r_603›): Type‹t_604› where
+| apair_intro_19
+    {x_608 : A_605}
+    (select_609 : forall‹t_604›(b_610 : bool_4),
+                    (match b_610 in ?_90[0;0] -o ?_91[0;0] with
+                    | true_4 => (sing_2‹??_92,??_93› ?_92[0;0] x_608)
+                    | false_5 => (boxed_11‹??_94› ((B_606) x_608))))
+    : (apair_14‹??_95,??_96,??_97› ?_93[0;0] B_606)
+
+#[program]
+def proj1_40‹s_612,r_613,t_614› :
+  ∀ {A_615 : Type‹s_612›} ->
+    ∀ {B_616 : A_615 -> Type‹r_613›} ->
+      (apair_14‹s_612,r_613,t_614› A_615 B_616) -> A_615
+:=
+  (fun proj1_619 :
+    ∀ {A_620 : Type‹s_612›} ->
+      ∀ {B_621 : A_620 -> Type‹r_613›} ->
+        (apair_14‹s_612,r_613,t_614› A_620 B_621) -> A_620
+  | A_624, B_625, (apair_intro_19 _626 select_627) =>
+    ((sing_elim_34‹??_98,??_99›)
+      ?_95[0;0] ?_94[0;0] ((select_627) true_4)))
+
+#[program]
+def proj2_41‹s_628,r_629,t_630› :
+  ∀ {A_631 : Type‹s_628›} ->
+    ∀ {B_632 : A_631 -> Type‹r_629›} ->
+      ∀ (x_634 : (apair_14‹s_628,r_629,t_630› A_631 B_632)) ->
+        ((B_632)
+          ((proj1_40‹??_113,??_114,??_115›) ?_108[0;0] ?_107[0;0] x_634))
+:=
+  (fun proj2_635 :
+    ∀ {A_636 : Type‹s_628›} ->
+      ∀ {B_637 : A_636 -> Type‹r_629›} ->
+        ∀ (x_639 : (apair_14‹s_628,r_629,t_630› A_636 B_637)) ->
+          ((B_637)
+            ((proj1_40‹??_100,??_101,??_102›) ?_97[0;0] ?_96[0;0] x_639))
+  | A_640, B_641, (apair_intro_19 x_642 select_643) =>
+    (match x_642, ((select_643) true_4),
+     ((sing_uniq_35‹??_103,??_104›)
+       ?_99[0;0] ?_98[0;0] ((select_643) true_4)),
+     ((select_643) false_5) in
+       ∀ {x0_644 : ?_100[0;0]} -o
+         ∀ {a0_645 : (sing_2‹??_105,??_106› ?_101[0;0] x_642)} -o
+           {(eq_1‹??_109›
+              ?_104[0;0] x0_644
+              ((sing_elim_34‹??_107,??_108›)
+                ?_103[0;0] ?_102[0;0] a0_645))} -o
+             (boxed_11‹??_110› ((B_641) x0_644)) -o
+               ((B_641)
+                 ((sing_elim_34‹??_111,??_112›)
+                   ?_106[0;0] ?_105[0;0] a0_645))
+     with
+    | _648, _649, refl_1, (box_15 b_650) => b_650))
+
+#[logical]
+def nat_dep_t_42‹› : nat_5 -> L :=
+  (fun nat_dep_t_652 : nat_5 -> L
+  | zero_6 => ((stream_36‹??_116›) nat_5)
+  | (succ_7 _654) => base_3‹??_117›)
+
+#[program]
+def my_apair0_43‹› :
+  (apair_14‹??_124,??_125,U› ?_115[0;0] nat_dep_t_42)
+:=
+  (apair_intro_19‹??_121,??_122,??_123›
+    ?_113[0;0] ?_114[0;0] ?_112[0;0]
+    (fun _655 : ?_109[0;0]
+    | true_4 => (just_2‹??_118,??_119› ?_110[0;0] zero_6)
+    | false_5 => (box_15‹??_120› ?_111[0;0] ((nat_make_39) zero_6))))
+
+#[program]
+def my_apair1_44‹› :
+  (apair_14‹??_134,??_135,L› ?_126[0;0] nat_dep_t_42)
+:=
+  let nat_stream_656 := ((nat_make_39) zero_6) in
+  (apair_intro_19‹??_131,??_132,??_133›
+    ?_124[0;0] ?_125[0;0] ?_123[0;0]
+    (fun _657 : ?_116[0;0]
+    | true_4 =>
+      (just_2‹??_128,??_129›
+        ?_121[0;0]
+        (match ((uncons_stream_38‹??_126›) ?_117[0;0] nat_stream_656) in
+           ?_120[0;0] -o ?_119[0;0]
+         with
+        | (ex1_14 hd_659 tl_660) =>
+          let __661 := ((free_stream_37‹??_127›) ?_118[0;0] tl_660) in
+          hd_659))
+    | false_5 => (box_15‹??_130› ?_122[0;0] nat_stream_656)))
+
+#[program]
+def __45‹› : unit_9 :=
+  ((free_stream_37‹??_139›)
+    ?_129[0;0]
+    ((proj2_41‹??_136,??_137,??_138›) ?_128[0;0] ?_127[0;0] my_apair1_44))
+
+[trans01 success]
+
+-----------------------------------------
+
+#[program]
+def id_1‹s_7893› : ∀ (A_7894 : Type‹s_7893›) -> A_7894 -> A_7894 :=
+  (fun id_7896 : ∀ (A_7897 : Type‹s_7893›) -> A_7897 -> A_7897
+  | A_7899, m_7900 => m_7900)
+
+#[logical]
+inductive eq_1‹s_7901› (A_7902 : Type‹s_7901›) (m_7903 : A_7902):
+  A_7902 -> U
+where
+| refl_1 : (eq_1‹s_7901› A_7902 m_7903 m_7903)
+
+#[program]
+def rwl_2‹s_7905,r_7906› :
+  ∀ {A_7907 : Type‹s_7905›} ->
+    ∀ {m_7908 : A_7907} ->
+      ∀ {n_7909 : A_7907} ->
+        ∀ {B_7910 : A_7907 -> Type‹r_7906›} ->
+          {(eq_1‹s_7905› A_7907 m_7908 n_7909)} ->
+            ((B_7910) m_7908) -> ((B_7910) n_7909)
+:=
+  (fun rwl_7914 :
+    ∀ {A_7915 : Type‹s_7905›} ->
+      ∀ {m_7916 : A_7915} ->
+        ∀ {n_7917 : A_7915} ->
+          ∀ {B_7918 : A_7915 -> Type‹r_7906›} ->
+            {(eq_1‹s_7905› A_7915 m_7916 n_7917)} ->
+              ((B_7918) m_7916) -> ((B_7918) n_7917)
+  | A_7922, m_7923, n_7924, B_7925, refl_1, __7926 => __7926)
+
+#[program]
+def rwr_3‹s_7927,r_7928› :
+  ∀ {A_7929 : Type‹s_7927›} ->
+    ∀ {m_7930 : A_7929} ->
+      ∀ {n_7931 : A_7929} ->
+        ∀ {B_7932 : A_7929 -> Type‹r_7928›} ->
+          {(eq_1‹s_7927› A_7929 m_7930 n_7931)} ->
+            ((B_7932) n_7931) -> ((B_7932) m_7930)
+:=
+  (fun rwr_7936 :
+    ∀ {A_7937 : Type‹s_7927›} ->
+      ∀ {m_7938 : A_7937} ->
+        ∀ {n_7939 : A_7937} ->
+          ∀ {B_7940 : A_7937 -> Type‹r_7928›} ->
+            {(eq_1‹s_7927› A_7937 m_7938 n_7939)} ->
+              ((B_7940) n_7939) -> ((B_7940) m_7938)
+  | A_7944, m_7945, n_7946, B_7947, refl_1, __7948 => __7948)
+
+#[logical]
+def congr_4‹s_7949,r_7950,t_7951› :
+  ∀ (A_7952 : Type‹s_7949›) ->
+    ∀ (B_7953 : Type‹r_7950›) ->
+      ∀ (m_7954 : A_7952) ->
+        ∀ (n_7955 : A_7952) ->
+          ∀ (f_7956 : forall‹t_7951›(__7957 : A_7952), B_7953) ->
+            (eq_1‹s_7949› A_7952 m_7954 n_7955) ->
+              (eq_1‹r_7950› B_7953 ((f_7956) m_7954) ((f_7956) n_7955))
+:=
+  (fun congr_7959 :
+    ∀ (A_7960 : Type‹s_7949›) ->
+      ∀ (B_7961 : Type‹r_7950›) ->
+        ∀ (m_7962 : A_7960) ->
+          ∀ (n_7963 : A_7960) ->
+            ∀ (f_7964 : forall‹t_7951›(__7965 : A_7960), B_7961) ->
+              (eq_1‹s_7949› A_7960 m_7962 n_7963) ->
+                (eq_1‹r_7950› B_7961 ((f_7964) m_7962) ((f_7964) n_7963))
+  | A_7967, B_7968, m_7969, n_7970, f_7971, refl_1 =>
+    (refl_1‹r_7950› B_7968 ((f_7971) n_7970)))
+
+#[logical]
+def axiom_K_5‹› :
+  ∀ {A_7972 : U} ->
+    ∀ {m_7973 : A_7972} ->
+      ∀ (x_7974 : (eq_1‹U› A_7972 m_7973 m_7973)) ->
+        (eq_1‹U›
+          (eq_1‹U› A_7972 m_7973 m_7973) x_7974
+          (refl_1‹U› A_7972 m_7973))
+:=
+  (fun axiom_K_7975 :
+    ∀ {A_7976 : U} ->
+      ∀ {m_7977 : A_7976} ->
+        ∀ (x_7978 : (eq_1‹U› A_7976 m_7977 m_7977)) ->
+          (eq_1‹U›
+            (eq_1‹U› A_7976 m_7977 m_7977) x_7978
+            (refl_1‹U› A_7976 m_7977))
+  | A_7979, m_7980, refl_1 =>
+    (refl_1‹U›
+      (eq_1‹U› A_7979 m_7980 m_7980) (refl_1‹U› A_7979 m_7980)))
+
+#[program]
+inductive sing_2‹s_7981,t_7982› (A_7983 : Type‹s_7981›):
+  A_7983 -> Type‹t_7982›
+where
+| just_2 (m_7985 : A_7983) : (sing_2‹s_7981,t_7982› A_7983 m_7985)
+
+#[logical]
+def ssing_6‹s_7986› :
+  ∀ (A_7987 : Type‹s_7986›) -> A_7987 -> Type‹s_7986›
+:=
+  (fun ssing_7989 :
+    ∀ (A_7990 : Type‹s_7986›) -> A_7990 -> Type‹s_7986›
+  | A_7992, m_7993 => (sing_2‹s_7986,s_7986› A_7992 m_7993))
+
+#[program]
+def sing_elim_7‹s_7994,t_7995› :
+  ∀ {A_7996 : Type‹s_7994›} ->
+    ∀ {x_7997 : A_7996} ->
+      (sing_2‹s_7994,t_7995› A_7996 x_7997) -> A_7996
+:=
+  (fun sing_elim_7999 :
+    ∀ {A_8000 : Type‹s_7994›} ->
+      ∀ {x_8001 : A_8000} ->
+        (sing_2‹s_7994,t_7995› A_8000 x_8001) -> A_8000
+  | A_8003, x_8004, (just_2 m_8005) => m_8005)
+
+#[logical]
+def sing_uniq_8‹s_8006,t_8007› :
+  ∀ (A_8008 : Type‹s_8006›) ->
+    ∀ (x0_8009 : A_8008) ->
+      ∀ (x_8010 : (sing_2‹s_8006,t_8007› A_8008 x0_8009)) ->
+        (eq_1‹s_8006›
+          A_8008 x0_8009
+          ((sing_elim_7‹s_8006,t_8007›) A_8008 x0_8009 x_8010))
+:=
+  (fun sing_uniq_8011 :
+    ∀ (A_8012 : Type‹s_8006›) ->
+      ∀ (x0_8013 : A_8012) ->
+        ∀ (x_8014 : (sing_2‹s_8006,t_8007› A_8012 x0_8013)) ->
+          (eq_1‹s_8006›
+            A_8012 x0_8013
+            ((sing_elim_7‹s_8006,t_8007›) A_8012 x0_8013 x_8014))
+  | A_8015, x0_8016, (just_2 m_8017) => (refl_1‹s_8006› A_8015 m_8017))
+
+#[program]
+inductive base_3‹s_8018› : Type‹s_8018› where
+| tt_3 : base_3‹s_8018›
+
+#[logical]
+def unit_9‹› : U := base_3‹U›
+
+#[logical]
+def unit_eta_10‹› :
+  ∀ (x_8019 : unit_9) -> (eq_1‹U› base_3‹U› x_8019 tt_3‹U›)
+:=
+  (fun unit_eta_8020 :
+    ∀ (x_8021 : unit_9) -> (eq_1‹U› base_3‹U› x_8021 tt_3‹U›)
+  | tt_3 => (refl_1‹U› base_3‹U› tt_3‹U›))
+
+#[program]
+inductive bool_4‹› : U where
+| true_4 : bool_4
+| false_5 : bool_4
+
+#[program]
+def not_11‹› : bool_4 -> bool_4 :=
+  (fun not_8023 : bool_4 -> bool_4
+  | true_4 => false_5
+  | false_5 => true_4)
+
+#[program]
+def and_12‹› : bool_4 -> bool_4 -> bool_4 :=
+  (fun and_8027 : bool_4 -> bool_4 -> bool_4
+  | true_4, true_4 => true_4
+  | true_4, false_5 => false_5
+  | false_5, __8030 => false_5)
+
+#[program]
+def or_13‹› : bool_4 -> bool_4 -> bool_4 :=
+  (fun or_8033 : bool_4 -> bool_4 -> bool_4
+  | true_4, __8036 => true_4
+  | false_5, true_4 => true_4
+  | false_5, false_5 => false_5)
+
+#[program]
+def xor_14‹› : bool_4 -> bool_4 -> bool_4 :=
+  (fun xor_8039 : bool_4 -> bool_4 -> bool_4
+  | true_4, true_4 => false_5
+  | true_4, false_5 => true_4
+  | false_5, true_4 => true_4
+  | false_5, false_5 => false_5)
+
+#[program]
+def string_of_bool_15‹› : bool_4 -> string :=
+  (fun string_of_bool_8043 : bool_4 -> string
+  | true_4 => "true"
+  | false_5 => "false")
+
+#[program]
+inductive nat_5‹› : U where
+| zero_6 : nat_5
+| succ_7 (n_8045 : nat_5) : nat_5
+
+#[program]
+def lte_16‹› : nat_5 -> nat_5 -> bool_4 :=
+  (fun lte_8048 : nat_5 -> nat_5 -> bool_4
+  | zero_6, __8051 => true_4
+  | (succ_7 n_8052), zero_6 => false_5
+  | (succ_7 n_8053), (succ_7 n_8054) => ((lte_8048) n_8053 n_8054))
+
+#[program]
+def lt_17‹› : nat_5 -> nat_5 -> bool_4 :=
+  (fun lt_8057 : nat_5 -> nat_5 -> bool_4
+  | x_8060, y_8061 => ((lte_16) (succ_7‹› x_8060) y_8061))
+
+#[program]
+def pred_18‹› : nat_5 -> nat_5 :=
+  (fun pred_8063 : nat_5 -> nat_5
+  | zero_6 => zero_6
+  | (succ_7 n_8065) => n_8065)
+
+#[program]
+def add_19‹› : nat_5 -> nat_5 -> nat_5 :=
+  (fun add_8068 : nat_5 -> nat_5 -> nat_5
+  | zero_6, __8071 => __8071
+  | (succ_7 n_8072), __8073 => (succ_7‹› ((add_8068) n_8072 __8073)))
+
+#[program]
+def sub_20‹› : nat_5 -> nat_5 -> nat_5 :=
+  (fun sub_8076 : nat_5 -> nat_5 -> nat_5
+  | __8079, zero_6 => __8079
+  | __8080, (succ_7 n_8081) => ((sub_8076) ((pred_18) __8080) n_8081))
+
+#[program]
+def mul_21‹› : nat_5 -> nat_5 -> nat_5 :=
+  (fun mul_8084 : nat_5 -> nat_5 -> nat_5
+  | zero_6, __8087 => zero_6
+  | (succ_7 n_8088), __8089 => ((add_19) __8089 ((mul_8084) n_8088 __8089)))
+
+#[program]
+def div_22‹› : nat_5 -> nat_5 -> nat_5 :=
+  (fun div_8092 : nat_5 -> nat_5 -> nat_5
+  | x_8095, y_8096 =>
+    (match ((lt_17) x_8095 y_8096) in bool_4 -o nat_5 with
+    | true_4 => zero_6
+    | false_5 =>
+      let loop_8098 :=
+        (fun loop_8099 : nat_5 -> nat_5 -> nat_5
+        | x_8102, y_8103 =>
+          (match ((sub_20) x_8102 ((pred_18) y_8103)) in nat_5 -o nat_5 with
+          | zero_6 => zero_6
+          | (succ_7 n_8105) => (succ_7‹› ((loop_8099) n_8105 y_8103))))
+      in ((loop_8098) x_8095 y_8096)))
+
+#[program]
+def rem_23‹› : nat_5 -> nat_5 -> nat_5 :=
+  (fun rem_8108 : nat_5 -> nat_5 -> nat_5
+  | x_8111, y_8112 =>
+    ((sub_20) x_8111 ((mul_21) ((div_22) x_8111 y_8112) y_8112)))
+
+#[program]
+inductive option_6‹s_8113› (A_8114 : Type‹s_8113›): Type‹s_8113›
+where
+| None_8 : (option_6‹s_8113› A_8114)
+| Some_9 (m_8115 : A_8114) : (option_6‹s_8113› A_8114)
+
+#[program]
+inductive list_7‹s_8116,t_8117› (A_8118 : Type‹s_8116›):
+  Type‹t_8117›
+where
+| nil_10 : (list_7‹s_8116,t_8117› A_8118)
+| cons_11
+    (hd_8119 : A_8118) (tl_8120 : (list_7‹s_8116,t_8117› A_8118))
+    : (list_7‹s_8116,t_8117› A_8118)
+
+#[program]
+def rcons_24‹s_8121,t_8122› :
+  ∀ {A_8123 : Type‹s_8121›} ->
+    (list_7‹s_8121,t_8122› A_8123) -o
+      A_8123 -o (list_7‹s_8121,t_8122› A_8123)
+:=
+  (fun rcons_8126 :
+    ∀ {A_8127 : Type‹s_8121›} ->
+      (list_7‹s_8121,t_8122› A_8127) -o
+        A_8127 -o (list_7‹s_8121,t_8122› A_8127)
+  | A_8130, nil_10, __8131 =>
+    (cons_11‹s_8121,t_8122›
+      A_8130 __8131 (nil_10‹s_8121,t_8122› A_8130))
+  | A_8132, (cons_11 hd_8133 tl_8134), __8135 =>
+    (cons_11‹s_8121,t_8122›
+      A_8132 hd_8133 ((rcons_8126) A_8132 tl_8134 __8135)))
+
+#[program]
+def free_list_25‹s_8136,t_8137› :
+  ∀ {A_8138 : Type‹s_8136›} ->
+    A_8138 -> unit_9 -> (list_7‹s_8136,t_8137› A_8138) -> unit_9
+:=
+  (fun free_list_8142 :
+    ∀ {A_8143 : Type‹s_8136›} ->
+      A_8143 -> unit_9 -> (list_7‹s_8136,t_8137› A_8143) -> unit_9
+  | A_8147, f_8148, nil_10 => tt_3‹U›
+  | A_8149, f_8150, (cons_11 hd_8151 tl_8152) =>
+    let __8153 := ((f_8150) hd_8151) in
+    ((free_list_8142) A_8149 f_8150 tl_8152))
+
+#[program]
+inductive exists_8‹s_8154,r_8155› (A_8156 : Type‹s_8154›) (B_8157 : 
+A_8156 -> Type‹r_8155›): L where
+| ex_12
+    (m_8159 : A_8156) {n_8160 : ((B_8157) m_8159)}
+    : (exists_8‹s_8154,r_8155› A_8156 B_8157)
+
+#[program]
+inductive exists0_9‹s_8161,r_8162› (A_8163 : Type‹s_8161›) (B_8164 : 
+A_8163 -> Type‹r_8162›): L where
+| ex0_13
+    {m_8166 : A_8163} (n_8167 : ((B_8164) m_8166))
+    : (exists0_9‹s_8161,r_8162› A_8163 B_8164)
+
+#[program]
+inductive exists1_10‹s_8168,r_8169› (A_8170 : Type‹s_8168›) (B_8171 : 
+A_8170 -> Type‹r_8169›): L where
+| ex1_14
+    (m_8173 : A_8170) (n_8174 : ((B_8171) m_8173))
+    : (exists1_10‹s_8168,r_8169› A_8170 B_8171)
+
+#[logical]
+def tensor_26‹s_8175,r_8176› : Type‹s_8175› -> Type‹r_8176› -> L
+:=
+  (fun tensor_8179 : Type‹s_8175› -> Type‹r_8176› -> L
+  | A_8182, B_8183 =>
+    (exists1_10‹s_8175,r_8176›
+      A_8182 (fun _8184 : A_8182 -> Type‹r_8176›
+             | __8186 => B_8183)))
+
+#[program]
+def pow_27‹› : int -> int -> int :=
+  (fun pow_8189 : int -> int -> int
+  | x_8192, y_8193 =>
+    let loop_8194 :=
+      (fun loop_8195 : int -> int -> int
+      | acc_8198, y_8199 =>
+        (match (__lte__ y_8199 0) in bool_4 -o int with
+        | true_4 => acc_8198
+        | false_5 =>
+          ((loop_8195) (__mul__ x_8192 acc_8198) (__sub__ y_8199 1))))
+    in ((loop_8194) 1 y_8193))
+
+#[program]
+def powm_28‹› : int -> int -> int -> int :=
+  (fun powm_8204 : int -> int -> int -> int
+  | x_8208, y_8209, m_8210 =>
+    let loop_8211 :=
+      (fun loop_8212 : int -> int -> int
+      | acc_8215, y_8216 =>
+        (match (__lte__ y_8216 0) in bool_4 -o int with
+        | true_4 => acc_8215
+        | false_5 =>
+          ((loop_8212)
+            (__mod__ (__mul__ x_8208 acc_8215) m_8210) (__sub__ y_8216 1))))
+    in ((loop_8211) 1 y_8209))
+
+#[program]
+def ord_29‹› : char -> int :=
+  (fun ord_8219 : char -> int
+  | c_8221 => (__ord__ c_8221))
+
+#[program]
+def chr_30‹› : int -> char :=
+  (fun chr_8223 : int -> char
+  | i_8225 => (__chr__ i_8225))
+
+#[program]
+def str_31‹› : char -> string :=
+  (fun str_8227 : char -> string
+  | c_8229 => (__push__ "" c_8229))
+
+#[program]
+def strlen_32‹› : string -> int :=
+  (fun strlen_8231 : string -> int
+  | s_8233 => (__size__ s_8233))
+
+#[program]
+def string_of_int_33‹› : int -> string :=
+  (fun string_of_int_8235 : int -> string
+  | i_8237 =>
+    let aux_8238 :=
+      (fun aux_8239 : int -> string
+      | i_8241 =>
+        (match (__lte__ 10 i_8241) in bool_4 -o string with
+        | true_4 =>
+          let r_8243 := (__mod__ i_8241 10) in
+          let i_8244 := (__div__ i_8241 10) in
+          (__push__ ((aux_8239) i_8244)
+            ((chr_30) (__add__ r_8243 ((ord_29) 0))))
+        | false_5 => ((str_31) ((chr_30) (__add__ i_8241 ((ord_29) 0))))))
+    in
+    (match (__lte__ 0 i_8237) in bool_4 -o string with
+    | true_4 => ((aux_8238) i_8237)
+    | false_5 => (__cat__ "~" ((aux_8238) (__neg__ i_8237)))))
+
+#[program]
+inductive boxed_11‹s_8246› (A_8247 : Type‹s_8246›): L where
+| box_15 (m_8248 : A_8247) : (boxed_11‹s_8246› A_8247)
+
+#[program]
+inductive choice_12‹› : L where
+| next_16 : choice_12
+| free_17 : choice_12
+
+#[program]
+def sing_elim_34‹s_8249,t_8250› :
+  ∀ {A_8251 : Type‹s_8249›} ->
+    ∀ {x_8252 : A_8251} ->
+      (sing_2‹s_8249,t_8250› A_8251 x_8252) -> A_8251
+:=
+  (fun sing_elim_8254 :
+    ∀ {A_8255 : Type‹s_8249›} ->
+      ∀ {x_8256 : A_8255} ->
+        (sing_2‹s_8249,t_8250› A_8255 x_8256) -> A_8255
+  | A_8258, x_8259, (just_2 m_8260) => m_8260)
+
+#[logical]
+def sing_uniq_35‹s_8261,t_8262› :
+  ∀ (A_8263 : Type‹s_8261›) ->
+    ∀ (x0_8264 : A_8263) ->
+      ∀ (x_8265 : (sing_2‹s_8261,t_8262› A_8263 x0_8264)) ->
+        (eq_1‹s_8261›
+          A_8263 x0_8264
+          ((sing_elim_34‹s_8261,t_8262›) A_8263 x0_8264 x_8265))
+:=
+  (fun sing_uniq_8266 :
+    ∀ (A_8267 : Type‹s_8261›) ->
+      ∀ (x0_8268 : A_8267) ->
+        ∀ (x_8269 : (sing_2‹s_8261,t_8262› A_8267 x0_8268)) ->
+          (eq_1‹s_8261›
+            A_8267 x0_8268
+            ((sing_elim_34‹s_8261,t_8262›) A_8267 x0_8268 x_8269))
+  | A_8270, x0_8271, (just_2 m_8272) => (refl_1‹s_8261› A_8270 m_8272))
+
+#[program]
+inductive stream_node_13‹s_8273› (A_8274 : Type‹s_8273›): L where
+| stream_cons_18
+    (hd_8275 : A_8274)
+    (tl_8276 : ∀ (x_8277 : choice_12) -o
+                 (match x_8277 in choice_12 -o L with
+                 | next_16 => (stream_node_13‹s_8273› A_8274)
+                 | free_17 => base_3‹L›))
+    : (stream_node_13‹s_8273› A_8274)
+
+#[logical]
+def stream_36‹s_8279› : Type‹s_8279› -> L :=
+  (fun stream_8281 : Type‹s_8279› -> L
+  | A_8283 =>
+    ∀ (x_8284 : choice_12) -o
+      (match x_8284 in choice_12 -o L with
+      | next_16 => (stream_node_13‹s_8279› A_8283)
+      | free_17 => base_3‹L›))
+
+#[program]
+def free_stream_37‹s_8286› :
+  ∀ {A_8287 : Type‹s_8286›} ->
+    ((stream_36‹s_8286›) A_8287) -> unit_9
+:=
+  (fun free_stream_8289 :
+    ∀ {A_8290 : Type‹s_8286›} ->
+      ((stream_36‹s_8286›) A_8290) -> unit_9
+  | A_8292, st_8293 =>
+    (match ((st_8293) free_17) in base_3‹L› -o unit_9 with
+    | tt_3 => tt_3‹U›))
+
+#[program]
+def uncons_stream_38‹s_8295› :
+  ∀ {A_8296 : Type‹s_8295›} ->
+    ((stream_36‹s_8295›) A_8296) ->
+      ((tensor_26‹s_8295,L›) A_8296 ((stream_36‹s_8295›) A_8296))
+:=
+  (fun uncons_stream_8298 :
+    ∀ {A_8299 : Type‹s_8295›} ->
+      ((stream_36‹s_8295›) A_8299) ->
+        ((tensor_26‹s_8295,L›) A_8299 ((stream_36‹s_8295›) A_8299))
+  | A_8301, st_8302 =>
+    (match ((st_8302) next_16) in
+       (stream_node_13‹s_8295› A_8301) -o
+         ((tensor_26‹s_8295,L›) A_8301 ((stream_36‹s_8295›) A_8301))
+     with
+    | (stream_cons_18 hd_8304 tl_8305) =>
+      (ex1_14‹s_8295,L›
+        A_8301
+        (fun _8306 : A_8301 -> L
+        | __8308 => ((stream_36‹s_8295›) A_8301)) hd_8304 tl_8305)))
+
+#[program]
+def nat_make_39‹› : nat_5 -> ((stream_36‹U›) nat_5) :=
+  (fun nat_make_8310 : nat_5 -> ((stream_36‹U›) nat_5)
+  | n_8312, next_16 =>
+    (stream_cons_18‹U›
+      nat_5 n_8312 ((nat_make_8310) (succ_7‹› n_8312)))
+  | n_8313, free_17 => tt_3‹L›)
+
+#[program]
+inductive apair_14‹s_8314,r_8315,t_8316› (A_8317 : Type‹s_8314›) (B_8318 : 
+A_8317 -> Type‹r_8315›): Type‹t_8316› where
+| apair_intro_19
+    {x_8320 : A_8317}
+    (select_8321 : forall‹t_8316›(b_8322 : bool_4),
+                     (match b_8322 in bool_4 -o L with
+                     | true_4 => (sing_2‹s_8314,L› A_8317 x_8320)
+                     | false_5 => (boxed_11‹r_8315› ((B_8318) x_8320))))
+    : (apair_14‹s_8314,r_8315,t_8316› A_8317 B_8318)
+
+#[program]
+def proj1_40‹s_8324,r_8325,t_8326› :
+  ∀ {A_8327 : Type‹s_8324›} ->
+    ∀ {B_8328 : A_8327 -> Type‹r_8325›} ->
+      (apair_14‹s_8324,r_8325,t_8326› A_8327 B_8328) -> A_8327
+:=
+  (fun proj1_8331 :
+    ∀ {A_8332 : Type‹s_8324›} ->
+      ∀ {B_8333 : A_8332 -> Type‹r_8325›} ->
+        (apair_14‹s_8324,r_8325,t_8326› A_8332 B_8333) -> A_8332
+  | A_8336, B_8337, (apair_intro_19 x_8338 select_8339) =>
+    ((sing_elim_34‹s_8324,L›) A_8336 x_8338 ((select_8339) true_4)))
+
+#[program]
+def proj2_41‹s_8340,r_8341,t_8342› :
+  ∀ {A_8343 : Type‹s_8340›} ->
+    ∀ {B_8344 : A_8343 -> Type‹r_8341›} ->
+      ∀ (x_8346 : (apair_14‹s_8340,r_8341,t_8342› A_8343 B_8344)) ->
+        ((B_8344)
+          ((proj1_40‹s_8340,r_8341,t_8342›) A_8343 B_8344 x_8346))
+:=
+  (fun proj2_8347 :
+    ∀ {A_8348 : Type‹s_8340›} ->
+      ∀ {B_8349 : A_8348 -> Type‹r_8341›} ->
+        ∀ (x_8351 : (apair_14‹s_8340,r_8341,t_8342› A_8348 B_8349)) ->
+          ((B_8349)
+            ((proj1_40‹s_8340,r_8341,t_8342›) A_8348 B_8349 x_8351))
+  | A_8352, B_8353, (apair_intro_19 x_8354 select_8355) =>
+    (match x_8354, ((select_8355) true_4),
+     ((sing_uniq_35‹s_8340,L›) A_8352 x_8354 ((select_8355) true_4)),
+     ((select_8355) false_5) in
+       ∀ {x0_8356 : A_8352} -o
+         ∀ {a0_8357 : (sing_2‹s_8340,L› A_8352 x_8354)} -o
+           {(eq_1‹s_8340›
+              A_8352 x0_8356
+              ((sing_elim_34‹s_8340,L›) A_8352 x_8354 a0_8357))} -o
+             (boxed_11‹r_8341› ((B_8353) x0_8356)) -o
+               ((B_8353)
+                 ((sing_elim_34‹s_8340,L›) A_8352 x_8354 a0_8357))
+     with
+    | x0_8360, a0_8361, refl_1, (box_15 m_8362) => m_8362))
+
+#[logical]
+def nat_dep_t_42‹› : nat_5 -> L :=
+  (fun nat_dep_t_8364 : nat_5 -> L
+  | zero_6 => ((stream_36‹U›) nat_5)
+  | (succ_7 n_8366) => base_3‹L›)
+
+#[program]
+def my_apair0_43‹› : (apair_14‹U,L,U› nat_5 nat_dep_t_42) :=
+  (apair_intro_19‹U,L,U›
+    nat_5 nat_dep_t_42 zero_6
+    (fun _8367 :
+      ∀ (b_8368 : bool_4) ->
+        (match b_8368 in bool_4 -o L with
+        | true_4 => (sing_2‹U,L› nat_5 zero_6)
+        | false_5 => (boxed_11‹L› ((nat_dep_t_42) zero_6)))
+    | true_4 => (just_2‹U,L› nat_5 zero_6)
+    | false_5 =>
+      (box_15‹L› ((nat_dep_t_42) zero_6) ((nat_make_39) zero_6))))
+
+#[program]
+def my_apair1_44‹› : (apair_14‹U,L,L› nat_5 nat_dep_t_42) :=
+  let nat_stream_8370 := ((nat_make_39) zero_6) in
+  (apair_intro_19‹U,L,L›
+    nat_5 nat_dep_t_42
+    (match ((uncons_stream_38‹U›) nat_5 nat_stream_8370) in
+       ((tensor_26‹U,L›) nat_5 ((stream_36‹U›) nat_5)) -o nat_5
+     with
+    | (ex1_14 m_8372 n_8373) =>
+      let __8374 := ((free_stream_37‹U›) nat_5 n_8373) in m_8372)
+    (fun _8375 :
+      ∀ (b_8376 : bool_4) -o
+        (match b_8376 in bool_4 -o L with
+        | true_4 =>
+          (sing_2‹U,L›
+            nat_5
+            (match ((uncons_stream_38‹U›) nat_5 nat_stream_8370) in
+               ((tensor_26‹U,L›) nat_5 ((stream_36‹U›) nat_5)) -o
+                 nat_5
+             with
+            | (ex1_14 m_8379 n_8380) =>
+              let __8381 := ((free_stream_37‹U›) nat_5 n_8380) in m_8379))
+        | false_5 =>
+          (boxed_11‹L›
+            ((nat_dep_t_42)
+              (match ((uncons_stream_38‹U›) nat_5 nat_stream_8370) in
+                 ((tensor_26‹U,L›) nat_5 ((stream_36‹U›) nat_5)) -o
+                   nat_5
+               with
+              | (ex1_14 m_8383 n_8384) =>
+                let __8385 := ((free_stream_37‹U›) nat_5 n_8384) in
+                m_8383))))
+    | true_4 =>
+      (just_2‹U,L›
+        nat_5
+        (match ((uncons_stream_38‹U›) nat_5 nat_stream_8370) in
+           ((tensor_26‹U,L›) nat_5 ((stream_36‹U›) nat_5)) -o nat_5
+         with
+        | (ex1_14 m_8387 n_8388) =>
+          let __8389 := ((free_stream_37‹U›) nat_5 n_8388) in m_8387))
+    | false_5 =>
+      (box_15‹L›
+        ((nat_dep_t_42)
+          (match ((uncons_stream_38‹U›) nat_5 nat_stream_8370) in
+             ((tensor_26‹U,L›) nat_5 ((stream_36‹U›) nat_5)) -o nat_5
+           with
+          | (ex1_14 m_8391 n_8392) =>
+            let __8393 := ((free_stream_37‹U›) nat_5 n_8392) in m_8391))
+        nat_stream_8370)))
+
+#[program]
+def __45‹› : unit_9 :=
+  ((free_stream_37‹U›)
+    nat_5 ((proj2_41‹U,L,L›) nat_5 nat_dep_t_42 my_apair1_44))
+
+[trans1e success]
+
+-----------------------------------------
+
+#[program]
+def idU_47 := fun id_15299 (A_15300) -> (m_15301) ->
+                m_15301
+
+#[program]
+def idL_46 := fun id_15302 (A_15303) -> (m_15304) ->
+                m_15304
+
+#[logical]
+inductive eqU_16 where
+| reflU_21 of layout[]
+
+#[logical]
+inductive eqL_15 where
+| reflL_20 of layout[]
+
+#[program]
+def rwlUU_51 :=
+  fun rwl_15305 {A_15306} -> {m_15307} -> {n_15308} -> {B_15309} ->
+  {__15310} -> (__15311) ->
+    (match {NULL} with
+    | reflU_21  => __15311)
+
+#[program]
+def rwlUL_50 :=
+  fun rwl_15312 {A_15313} -> {m_15314} -> {n_15315} -> {B_15316} ->
+  {__15317} -> (__15318) ->
+    (match {NULL} with
+    | reflU_21  => __15318)
+
+#[program]
+def rwlLU_49 :=
+  fun rwl_15319 {A_15320} -> {m_15321} -> {n_15322} -> {B_15323} ->
+  {__15324} -> (__15325) ->
+    (match {NULL} with
+    | reflL_20  => __15325)
+
+#[program]
+def rwlLL_48 :=
+  fun rwl_15326 {A_15327} -> {m_15328} -> {n_15329} -> {B_15330} ->
+  {__15331} -> (__15332) ->
+    (match {NULL} with
+    | reflL_20  => __15332)
+
+#[program]
+def rwrUU_55 :=
+  fun rwr_15333 {A_15334} -> {m_15335} -> {n_15336} -> {B_15337} ->
+  {__15338} -> (__15339) ->
+    (match {NULL} with
+    | reflU_21  => __15339)
+
+#[program]
+def rwrUL_54 :=
+  fun rwr_15340 {A_15341} -> {m_15342} -> {n_15343} -> {B_15344} ->
+  {__15345} -> (__15346) ->
+    (match {NULL} with
+    | reflU_21  => __15346)
+
+#[program]
+def rwrLU_53 :=
+  fun rwr_15347 {A_15348} -> {m_15349} -> {n_15350} -> {B_15351} ->
+  {__15352} -> (__15353) ->
+    (match {NULL} with
+    | reflL_20  => __15353)
+
+#[program]
+def rwrLL_52 :=
+  fun rwr_15354 {A_15355} -> {m_15356} -> {n_15357} -> {B_15358} ->
+  {__15359} -> (__15360) ->
+    (match {NULL} with
+    | reflL_20  => __15360)
+
+#[logical]
+def congrUUU_63 := NULL
+
+#[logical]
+def congrUUL_62 := NULL
+
+#[logical]
+def congrULU_61 := NULL
+
+#[logical]
+def congrULL_60 := NULL
+
+#[logical]
+def congrLUU_59 := NULL
+
+#[logical]
+def congrLUL_58 := NULL
+
+#[logical]
+def congrLLU_57 := NULL
+
+#[logical]
+def congrLLL_56 := NULL
+
+#[logical]
+def axiom_K_5 := NULL
+
+#[program]
+inductive singUU_20 where
+| justUU_25 of layout[R]
+
+#[program]
+inductive singUL_19 where
+| justUL_24 of layout[R]
+
+#[program]
+inductive singLU_18 where
+
+
+#[program]
+inductive singLL_17 where
+| justLL_22 of layout[R]
+
+#[logical]
+def ssingU_65 := NULL
+
+#[logical]
+def ssingL_64 := NULL
+
+#[program]
+def sing_elimUU_69 :=
+  fun sing_elim_15361 {A_15362} -> {x_15363} -> (__15364) ->
+    (match __15364 with
+    | justUU_25 m_15365 => m_15365)
+
+#[program]
+def sing_elimUL_68 :=
+  fun sing_elim_15366 {A_15367} -> {x_15368} -> (__15369) ->
+    (match __15369 with
+    | justUL_24 m_15370 => m_15370)
+
+#[program]
+def sing_elimLU_67 :=
+  fun sing_elim_15371 {A_15372} -> {x_15373} -> (__15374) ->
+    (match __15374 with
+    )
+
+#[program]
+def sing_elimLL_66 :=
+  fun sing_elim_15375 {A_15376} -> {x_15377} -> (__15378) ->
+    (match __15378 with
+    | justLL_22 m_15379 => m_15379)
+
+#[logical]
+def sing_uniqUU_73 := NULL
+
+#[logical]
+def sing_uniqUL_72 := NULL
+
+#[logical]
+def sing_uniqLU_71 := NULL
+
+#[logical]
+def sing_uniqLL_70 := NULL
+
+#[program]
+inductive baseU_22 where
+| ttU_27 of layout[]
+
+#[program]
+inductive baseL_21 where
+| ttL_26 of layout[]
+
+#[logical]
+def unit_9 := NULL
+
+#[logical]
+def unit_eta_10 := NULL
+
+#[program]
+inductive bool_4 where
+| true_4 of layout[]
+| false_5 of layout[]
+
+#[program]
+def not_11 :=
+  fun not_15380 (__15381) ->
+    (match __15381 with
+    | true_4  => false_5 | false_5  => true_4)
+
+#[program]
+def and_12 :=
+  fun and_15382 (__15383) -> (__15384) ->
+    (match __15383 with
+    | true_4  =>
+      (match __15384 with
+      | true_4  => true_4 | false_5  => false_5)
+    | false_5  => false_5)
+
+#[program]
+def or_13 :=
+  fun or_15385 (__15386) -> (__15387) ->
+    (match __15386 with
+    | true_4  => true_4
+    | false_5  =>
+      (match __15387 with
+      | true_4  => true_4 | false_5  => false_5))
+
+#[program]
+def xor_14 :=
+  fun xor_15388 (__15389) -> (__15390) ->
+    (match __15389 with
+    | true_4  =>
+      (match __15390 with
+      | true_4  => false_5 | false_5  => true_4)
+    | false_5  =>
+      (match __15390 with
+      | true_4  => true_4 | false_5  => false_5))
+
+#[program]
+def string_of_bool_15 :=
+  fun string_of_bool_15391 (__15392) ->
+    (match __15392 with
+    | true_4  => "true" | false_5  => "false")
+
+#[program]
+inductive nat_5 where
+| zero_6 of layout[]
+| succ_7 of layout[R]
+
+#[program]
+def lte_16 :=
+  fun lte_15393 (__15394) -> (__15395) ->
+    (match __15394 with
+    | zero_6  => true_4
+    | succ_7 n_15396 =>
+      (match __15395 with
+      | zero_6  => false_5 | succ_7 n_15397 => ((lte_15393) n_15396 n_15397)))
+
+#[program]
+def lt_17 :=
+  fun lt_15398 (x_15399) -> (y_15400) ->
+    ((lte_16) (succ_7 x_15399) y_15400)
+
+#[program]
+def pred_18 :=
+  fun pred_15401 (__15402) ->
+    (match __15402 with
+    | zero_6  => zero_6 | succ_7 n_15403 => n_15403)
+
+#[program]
+def add_19 :=
+  fun add_15404 (__15405) -> (__15406) ->
+    (match __15405 with
+    | zero_6  => __15406
+    | succ_7 n_15407 => (succ_7 ((add_15404) n_15407 __15406)))
+
+#[program]
+def sub_20 :=
+  fun sub_15408 (__15409) -> (__15410) ->
+    (match __15410 with
+    | zero_6  => __15409
+    | succ_7 n_15411 => ((sub_15408) ((pred_18) __15409) n_15411))
+
+#[program]
+def mul_21 :=
+  fun mul_15412 (__15413) -> (__15414) ->
+    (match __15413 with
+    | zero_6  => zero_6
+    | succ_7 n_15415 => ((add_19) __15414 ((mul_15412) n_15415 __15414)))
+
+#[program]
+def div_22 :=
+  fun div_15416 (x_15417) -> (y_15418) ->
+    (match ((lt_17) x_15417 y_15418) with
+    | true_4  => zero_6
+    | false_5  =>
+      let loop_15419 :=
+        fun loop_15420 (x_15421) -> (y_15422) ->
+          (match ((sub_20) x_15421 ((pred_18) y_15422)) with
+          | zero_6  => zero_6
+          | succ_7 n_15423 => (succ_7 ((loop_15420) n_15423 y_15422)))
+      in ((loop_15419) x_15417 y_15418))
+
+#[program]
+def rem_23 :=
+  fun rem_15424 (x_15425) -> (y_15426) ->
+    ((sub_20) x_15425 ((mul_21) ((div_22) x_15425 y_15426) y_15426))
+
+#[program]
+inductive optionU_24 where
+| NoneU_30 of layout[]
+| SomeU_31 of layout[R]
+
+#[program]
+inductive optionL_23 where
+| NoneL_28 of layout[]
+| SomeL_29 of layout[R]
+
+#[program]
+inductive listUU_28 where
+| nilUU_38 of layout[]
+| consUU_39 of layout[R, R]
+
+#[program]
+inductive listUL_27 where
+| nilUL_36 of layout[]
+| consUL_37 of layout[R, R]
+
+#[program]
+inductive listLU_26 where
+| nilLU_34 of layout[]
+
+#[program]
+inductive listLL_25 where
+| nilLL_32 of layout[]
+| consLL_33 of layout[R, R]
+
+#[program]
+def rconsUU_77 :=
+  fun rcons_15427 {A_15428} -> (__15429) -o (__15430) -o
+    (match __15429 with
+    | nilUU_38  => (consUU_39 __15430 nilUU_38)
+    | consUU_39 hd_15431 tl_15432 =>
+      (consUU_39 hd_15431 ((rcons_15427) NULL tl_15432 __15430)))
+
+#[program]
+def rconsUL_76 :=
+  fun rcons_15433 {A_15434} -> (__15435) -o (__15436) -o
+    (match __15435 with
+    | nilUL_36  => (consUL_37 __15436 nilUL_36)
+    | consUL_37 hd_15437 tl_15438 =>
+      (consUL_37 hd_15437 ((rcons_15433) NULL tl_15438 __15436)))
+
+#[program]
+def rconsLL_74 :=
+  fun rcons_15439 {A_15440} -> (__15441) -o (__15442) -o
+    (match __15441 with
+    | nilLL_32  => (consLL_33 __15442 nilLL_32)
+    | consLL_33 hd_15443 tl_15444 =>
+      (consLL_33 hd_15443 ((rcons_15439) NULL tl_15444 __15442)))
+
+#[program]
+def free_listUU_81 :=
+  fun free_list_15445 {A_15446} -> (f_15447) -> (__15448) ->
+    (match __15448 with
+    | nilUU_38  => ttU_27
+    | consUU_39 hd_15449 tl_15450 =>
+      let __15451 := ((f_15447) hd_15449) in
+      ((free_list_15445) NULL f_15447 tl_15450))
+
+#[program]
+def free_listUL_80 :=
+  fun free_list_15452 {A_15453} -> (f_15454) -> (__15455) ->
+    (match __15455 with
+    | nilUL_36  => ttU_27
+    | consUL_37 hd_15456 tl_15457 =>
+      let __15458 := ((f_15454) hd_15456) in
+      ((free_list_15452) NULL f_15454 tl_15457))
+
+#[program]
+def free_listLL_78 :=
+  fun free_list_15459 {A_15460} -> (f_15461) -> (__15462) ->
+    (match __15462 with
+    | nilLL_32  => ttU_27
+    | consLL_33 hd_15463 tl_15464 =>
+      let __15465 := ((f_15461) hd_15463) in
+      ((free_list_15459) NULL f_15461 tl_15464))
+
+#[program]
+inductive existsUU_32 where
+| exUU_43 of layout[R, N]
+
+#[program]
+inductive existsUL_31 where
+| exUL_42 of layout[R, N]
+
+#[program]
+inductive existsLU_30 where
+| exLU_41 of layout[R, N]
+
+#[program]
+inductive existsLL_29 where
+| exLL_40 of layout[R, N]
+
+#[program]
+inductive exists0UU_36 where
+| ex0UU_47 of layout[N, R]
+
+#[program]
+inductive exists0UL_35 where
+| ex0UL_46 of layout[N, R]
+
+#[program]
+inductive exists0LU_34 where
+| ex0LU_45 of layout[N, R]
+
+#[program]
+inductive exists0LL_33 where
+| ex0LL_44 of layout[N, R]
+
+#[program]
+inductive exists1UU_40 where
+| ex1UU_51 of layout[R, R]
+
+#[program]
+inductive exists1UL_39 where
+| ex1UL_50 of layout[R, R]
+
+#[program]
+inductive exists1LU_38 where
+| ex1LU_49 of layout[R, R]
+
+#[program]
+inductive exists1LL_37 where
+| ex1LL_48 of layout[R, R]
+
+#[logical]
+def tensorUU_85 := NULL
+
+#[logical]
+def tensorUL_84 := NULL
+
+#[logical]
+def tensorLU_83 := NULL
+
+#[logical]
+def tensorLL_82 := NULL
+
+#[program]
+def pow_27 :=
+  fun pow_15466 (x_15467) -> (y_15468) ->
+    let loop_15469 :=
+      fun loop_15470 (acc_15471) -> (y_15472) ->
+        (match (__lte__ y_15472 0) with
+        | true_4  => acc_15471
+        | false_5  =>
+          ((loop_15470) (__mul__ x_15467 acc_15471) (__sub__ y_15472 1)))
+    in ((loop_15469) 1 y_15468)
+
+#[program]
+def powm_28 :=
+  fun powm_15473 (x_15474) -> (y_15475) -> (m_15476) ->
+    let loop_15477 :=
+      fun loop_15478 (acc_15479) -> (y_15480) ->
+        (match (__lte__ y_15480 0) with
+        | true_4  => acc_15479
+        | false_5  =>
+          ((loop_15478)
+            (__mod__ (__mul__ x_15474 acc_15479) m_15476) (__sub__ y_15480 1)))
+    in ((loop_15477) 1 y_15475)
+
+#[program]
+def ord_29 := fun ord_15481 (c_15482) ->
+                (__ord__ c_15482)
+
+#[program]
+def chr_30 := fun chr_15483 (i_15484) ->
+                (__chr__ i_15484)
+
+#[program]
+def str_31 := fun str_15485 (c_15486) ->
+                (__push__ "" c_15486)
+
+#[program]
+def strlen_32 := fun strlen_15487 (s_15488) ->
+                   (__size__ s_15488)
+
+#[program]
+def string_of_int_33 :=
+  fun string_of_int_15489 (i_15490) ->
+    let aux_15491 :=
+      fun aux_15492 (i_15493) ->
+        (match (__lte__ 10 i_15493) with
+        | true_4  =>
+          let r_15494 := (__mod__ i_15493 10) in
+          let i_15495 := (__div__ i_15493 10) in
+          (__push__ ((aux_15492) i_15495)
+            ((chr_30) (__add__ r_15494 ((ord_29) 0))))
+        | false_5  => ((str_31) ((chr_30) (__add__ i_15493 ((ord_29) 0)))))
+    in
+    (match (__lte__ 0 i_15490) with
+    | true_4  => ((aux_15491) i_15490)
+    | false_5  => (__cat__ "~" ((aux_15491) (__neg__ i_15490))))
+
+#[program]
+inductive boxedU_42 where
+| boxU_53 of layout[R]
+
+#[program]
+inductive boxedL_41 where
+| boxL_52 of layout[R]
+
+#[program]
+inductive choice_12 where
+| next_16 of layout[]
+| free_17 of layout[]
+
+#[program]
+def sing_elimUU_89 :=
+  fun sing_elim_15496 {A_15497} -> {x_15498} -> (__15499) ->
+    (match __15499 with
+    | justUU_25 m_15500 => m_15500)
+
+#[program]
+def sing_elimUL_88 :=
+  fun sing_elim_15501 {A_15502} -> {x_15503} -> (__15504) ->
+    (match __15504 with
+    | justUL_24 m_15505 => m_15505)
+
+#[program]
+def sing_elimLU_87 :=
+  fun sing_elim_15506 {A_15507} -> {x_15508} -> (__15509) ->
+    (match __15509 with
+    )
+
+#[program]
+def sing_elimLL_86 :=
+  fun sing_elim_15510 {A_15511} -> {x_15512} -> (__15513) ->
+    (match __15513 with
+    | justLL_22 m_15514 => m_15514)
+
+#[logical]
+def sing_uniqUU_93 := NULL
+
+#[logical]
+def sing_uniqUL_92 := NULL
+
+#[logical]
+def sing_uniqLU_91 := NULL
+
+#[logical]
+def sing_uniqLL_90 := NULL
+
+#[program]
+inductive stream_nodeU_44 where
+| stream_consU_55 of layout[R, R]
+
+#[program]
+inductive stream_nodeL_43 where
+| stream_consL_54 of layout[R, R]
+
+#[logical]
+def streamU_95 := NULL
+
+#[logical]
+def streamL_94 := NULL
+
+#[program]
+def free_streamU_97 :=
+  fun free_stream_15515 {A_15516} -> (st_15517) ->
+    (match ((st_15517) free_17) with
+    | ttL_26  => ttU_27)
+
+#[program]
+def free_streamL_96 :=
+  fun free_stream_15518 {A_15519} -> (st_15520) ->
+    (match ((st_15520) free_17) with
+    | ttL_26  => ttU_27)
+
+#[program]
+def uncons_streamU_99 :=
+  fun uncons_stream_15521 {A_15522} -> (st_15523) ->
+    (match ((st_15523) next_16) with
+    | stream_consU_55 hd_15524 tl_15525 => (ex1UL_50 hd_15524 tl_15525))
+
+#[program]
+def uncons_streamL_98 :=
+  fun uncons_stream_15526 {A_15527} -> (st_15528) ->
+    (match ((st_15528) next_16) with
+    | stream_consL_54 hd_15529 tl_15530 => (ex1LL_48 hd_15529 tl_15530))
+
+#[program]
+def nat_make_39 :=
+  fun nat_make_15531 (n_15532) -> (x_15533) -o
+    (match x_15533 with
+    | next_16  =>
+      (stream_consU_55 n_15532 ((nat_make_15531) (succ_7 n_15532)))
+    | free_17  => ttL_26)
+
+#[program]
+inductive apairUUU_52 where
+| apair_introUUU_63 of layout[N, R]
+
+#[program]
+inductive apairUUL_51 where
+| apair_introUUL_62 of layout[N, R]
+
+#[program]
+inductive apairULU_50 where
+| apair_introULU_61 of layout[N, R]
+
+#[program]
+inductive apairULL_49 where
+| apair_introULL_60 of layout[N, R]
+
+#[program]
+inductive apairLUU_48 where
+| apair_introLUU_59 of layout[N, R]
+
+#[program]
+inductive apairLUL_47 where
+| apair_introLUL_58 of layout[N, R]
+
+#[program]
+inductive apairLLU_46 where
+| apair_introLLU_57 of layout[N, R]
+
+#[program]
+inductive apairLLL_45 where
+| apair_introLLL_56 of layout[N, R]
+
+#[program]
+def proj1UUU_107 :=
+  fun proj1_15534 {A_15535} -> {B_15536} -> (__15537) ->
+    (match __15537 with
+    | apair_introUUU_63 x_15538 select_15539 =>
+      ((sing_elimUL_88) NULL NULL ((select_15539) true_4)))
+
+#[program]
+def proj1UUL_106 :=
+  fun proj1_15540 {A_15541} -> {B_15542} -> (__15543) ->
+    (match __15543 with
+    | apair_introUUL_62 x_15544 select_15545 =>
+      ((sing_elimUL_88) NULL NULL ((select_15545) true_4)))
+
+#[program]
+def proj1ULU_105 :=
+  fun proj1_15546 {A_15547} -> {B_15548} -> (__15549) ->
+    (match __15549 with
+    | apair_introULU_61 x_15550 select_15551 =>
+      ((sing_elimUL_88) NULL NULL ((select_15551) true_4)))
+
+#[program]
+def proj1ULL_104 :=
+  fun proj1_15552 {A_15553} -> {B_15554} -> (__15555) ->
+    (match __15555 with
+    | apair_introULL_60 x_15556 select_15557 =>
+      ((sing_elimUL_88) NULL NULL ((select_15557) true_4)))
+
+#[program]
+def proj1LUU_103 :=
+  fun proj1_15558 {A_15559} -> {B_15560} -> (__15561) ->
+    (match __15561 with
+    | apair_introLUU_59 x_15562 select_15563 =>
+      ((sing_elimLL_86) NULL NULL ((select_15563) true_4)))
+
+#[program]
+def proj1LUL_102 :=
+  fun proj1_15564 {A_15565} -> {B_15566} -> (__15567) ->
+    (match __15567 with
+    | apair_introLUL_58 x_15568 select_15569 =>
+      ((sing_elimLL_86) NULL NULL ((select_15569) true_4)))
+
+#[program]
+def proj1LLU_101 :=
+  fun proj1_15570 {A_15571} -> {B_15572} -> (__15573) ->
+    (match __15573 with
+    | apair_introLLU_57 x_15574 select_15575 =>
+      ((sing_elimLL_86) NULL NULL ((select_15575) true_4)))
+
+#[program]
+def proj1LLL_100 :=
+  fun proj1_15576 {A_15577} -> {B_15578} -> (__15579) ->
+    (match __15579 with
+    | apair_introLLL_56 x_15580 select_15581 =>
+      ((sing_elimLL_86) NULL NULL ((select_15581) true_4)))
+
+#[program]
+def proj2UUU_115 :=
+  fun proj2_15582 {A_15583} -> {B_15584} -> (x_15585) ->
+    (match x_15585 with
+    | apair_introUUU_63 x_15586 select_15587 =>
+      (match {NULL} with
+      | reflU_21  =>
+        (match ((select_15587) false_5) with
+        | boxU_53 m_15588 => m_15588)))
+
+#[program]
+def proj2UUL_114 :=
+  fun proj2_15589 {A_15590} -> {B_15591} -> (x_15592) ->
+    (match x_15592 with
+    | apair_introUUL_62 x_15593 select_15594 =>
+      (match {NULL} with
+      | reflU_21  =>
+        (match ((select_15594) false_5) with
+        | boxU_53 m_15595 => m_15595)))
+
+#[program]
+def proj2ULU_113 :=
+  fun proj2_15596 {A_15597} -> {B_15598} -> (x_15599) ->
+    (match x_15599 with
+    | apair_introULU_61 x_15600 select_15601 =>
+      (match {NULL} with
+      | reflU_21  =>
+        (match ((select_15601) false_5) with
+        | boxL_52 m_15602 => m_15602)))
+
+#[program]
+def proj2ULL_112 :=
+  fun proj2_15603 {A_15604} -> {B_15605} -> (x_15606) ->
+    (match x_15606 with
+    | apair_introULL_60 x_15607 select_15608 =>
+      (match {NULL} with
+      | reflU_21  =>
+        (match ((select_15608) false_5) with
+        | boxL_52 m_15609 => m_15609)))
+
+#[program]
+def proj2LUU_111 :=
+  fun proj2_15610 {A_15611} -> {B_15612} -> (x_15613) ->
+    (match x_15613 with
+    | apair_introLUU_59 x_15614 select_15615 =>
+      (match {NULL} with
+      | reflL_20  =>
+        (match ((select_15615) false_5) with
+        | boxU_53 m_15616 => m_15616)))
+
+#[program]
+def proj2LUL_110 :=
+  fun proj2_15617 {A_15618} -> {B_15619} -> (x_15620) ->
+    (match x_15620 with
+    | apair_introLUL_58 x_15621 select_15622 =>
+      (match {NULL} with
+      | reflL_20  =>
+        (match ((select_15622) false_5) with
+        | boxU_53 m_15623 => m_15623)))
+
+#[program]
+def proj2LLU_109 :=
+  fun proj2_15624 {A_15625} -> {B_15626} -> (x_15627) ->
+    (match x_15627 with
+    | apair_introLLU_57 x_15628 select_15629 =>
+      (match {NULL} with
+      | reflL_20  =>
+        (match ((select_15629) false_5) with
+        | boxL_52 m_15630 => m_15630)))
+
+#[program]
+def proj2LLL_108 :=
+  fun proj2_15631 {A_15632} -> {B_15633} -> (x_15634) ->
+    (match x_15634 with
+    | apair_introLLL_56 x_15635 select_15636 =>
+      (match {NULL} with
+      | reflL_20  =>
+        (match ((select_15636) false_5) with
+        | boxL_52 m_15637 => m_15637)))
+
+#[logical]
+def nat_dep_t_42 := NULL
+
+#[program]
+def my_apair0_43 :=
+  (apair_introULU_61
+    NULL
+    fun _15638 (b_15639) ->
+      (match b_15639 with
+      | true_4  => (justUL_24 zero_6)
+      | false_5  => (boxL_52 ((nat_make_39) zero_6))))
+
+#[program]
+def my_apair1_44 :=
+  let nat_stream_15640 := ((nat_make_39) zero_6) in
+  (apair_introULL_60
+    NULL
+    fun _15641 (b_15642) -o
+      (match b_15642 with
+      | true_4  =>
+        (justUL_24
+          (match ((uncons_streamU_99) NULL nat_stream_15640) with
+          | ex1UL_50 m_15643 n_15644 =>
+            let __15645 := ((free_streamU_97) NULL n_15644) in m_15643))
+      | false_5  => (boxL_52 nat_stream_15640)))
+
+#[program]
+def __45 := ((free_streamU_97) NULL ((proj2ULL_112) NULL NULL my_apair1_44))
+
+[trans12 success]
+
+-----------------------------------------
+
+#[program]
+def idU_47 := fun id_15993 (A_15994) -> (m_15995) ->
+                m_15995
+
+#[program]
+def idL_46 := fun id_15996 (A_15997) -> (m_15998) ->
+                m_15998
+
+#[logical]
+inductive eqU_16 where
+| reflU_21 of layout[]
+
+#[logical]
+inductive eqL_15 where
+| reflL_20 of layout[]
+
+#[program]
+def rwlUU_51 :=
+  fun rwl_15999 {A_16000} -> {m_16001} -> {n_16002} -> {B_16003} ->
+  {__16004} -> (__16005) ->
+    __16005
+
+#[program]
+def rwlUL_50 :=
+  fun rwl_16006 {A_16007} -> {m_16008} -> {n_16009} -> {B_16010} ->
+  {__16011} -> (__16012) ->
+    __16012
+
+#[program]
+def rwlLU_49 :=
+  fun rwl_16013 {A_16014} -> {m_16015} -> {n_16016} -> {B_16017} ->
+  {__16018} -> (__16019) ->
+    __16019
+
+#[program]
+def rwlLL_48 :=
+  fun rwl_16020 {A_16021} -> {m_16022} -> {n_16023} -> {B_16024} ->
+  {__16025} -> (__16026) ->
+    __16026
+
+#[program]
+def rwrUU_55 :=
+  fun rwr_16027 {A_16028} -> {m_16029} -> {n_16030} -> {B_16031} ->
+  {__16032} -> (__16033) ->
+    __16033
+
+#[program]
+def rwrUL_54 :=
+  fun rwr_16034 {A_16035} -> {m_16036} -> {n_16037} -> {B_16038} ->
+  {__16039} -> (__16040) ->
+    __16040
+
+#[program]
+def rwrLU_53 :=
+  fun rwr_16041 {A_16042} -> {m_16043} -> {n_16044} -> {B_16045} ->
+  {__16046} -> (__16047) ->
+    __16047
+
+#[program]
+def rwrLL_52 :=
+  fun rwr_16048 {A_16049} -> {m_16050} -> {n_16051} -> {B_16052} ->
+  {__16053} -> (__16054) ->
+    __16054
+
+#[logical]
+def congrUUU_63 := NULL
+
+#[logical]
+def congrUUL_62 := NULL
+
+#[logical]
+def congrULU_61 := NULL
+
+#[logical]
+def congrULL_60 := NULL
+
+#[logical]
+def congrLUU_59 := NULL
+
+#[logical]
+def congrLUL_58 := NULL
+
+#[logical]
+def congrLLU_57 := NULL
+
+#[logical]
+def congrLLL_56 := NULL
+
+#[logical]
+def axiom_K_5 := NULL
+
+#[program]
+inductive singUU_20 where
+| justUU_25 of layout[R]
+
+#[program]
+inductive singUL_19 where
+| justUL_24 of layout[R]
+
+#[program]
+inductive singLU_18 where
+
+
+#[program]
+inductive singLL_17 where
+| justLL_22 of layout[R]
+
+#[logical]
+def ssingU_65 := NULL
+
+#[logical]
+def ssingL_64 := NULL
+
+#[program]
+def sing_elimUU_69 :=
+  fun sing_elim_16055 {A_16056} -> {x_16057} -> (__16058) ->
+    (match __16058 with
+    | justUU_25 m_16059 => m_16059)
+
+#[program]
+def sing_elimUL_68 :=
+  fun sing_elim_16060 {A_16061} -> {x_16062} -> (__16063) ->
+    (match __16063 with
+    | justUL_24 m_16064 => m_16064)
+
+#[program]
+def sing_elimLU_67 :=
+  fun sing_elim_16065 {A_16066} -> {x_16067} -> (__16068) ->
+    !!
+
+#[program]
+def sing_elimLL_66 :=
+  fun sing_elim_16069 {A_16070} -> {x_16071} -> (__16072) ->
+    (match __16072 with
+    | justLL_22 m_16073 => m_16073)
+
+#[logical]
+def sing_uniqUU_73 := NULL
+
+#[logical]
+def sing_uniqUL_72 := NULL
+
+#[logical]
+def sing_uniqLU_71 := NULL
+
+#[logical]
+def sing_uniqLL_70 := NULL
+
+#[program]
+inductive baseU_22 where
+| ttU_27 of layout[]
+
+#[program]
+inductive baseL_21 where
+| ttL_26 of layout[]
+
+#[logical]
+def unit_9 := NULL
+
+#[logical]
+def unit_eta_10 := NULL
+
+#[program]
+inductive bool_4 where
+| true_4 of layout[]
+| false_5 of layout[]
+
+#[program]
+def not_11 :=
+  fun not_16074 (__16075) ->
+    (match __16075 with
+    | true_4  => false_5 | false_5  => true_4)
+
+#[program]
+def and_12 :=
+  fun and_16076 (__16077) -> (__16078) ->
+    (match __16077 with
+    | true_4  =>
+      (match __16078 with
+      | true_4  => true_4 | false_5  => false_5)
+    | false_5  => false_5)
+
+#[program]
+def or_13 :=
+  fun or_16079 (__16080) -> (__16081) ->
+    (match __16080 with
+    | true_4  => true_4
+    | false_5  =>
+      (match __16081 with
+      | true_4  => true_4 | false_5  => false_5))
+
+#[program]
+def xor_14 :=
+  fun xor_16082 (__16083) -> (__16084) ->
+    (match __16083 with
+    | true_4  =>
+      (match __16084 with
+      | true_4  => false_5 | false_5  => true_4)
+    | false_5  =>
+      (match __16084 with
+      | true_4  => true_4 | false_5  => false_5))
+
+#[program]
+def string_of_bool_15 :=
+  fun string_of_bool_16085 (__16086) ->
+    (match __16086 with
+    | true_4  => "true" | false_5  => "false")
+
+#[program]
+inductive nat_5 where
+| zero_6 of layout[]
+| succ_7 of layout[R]
+
+#[program]
+def lte_16 :=
+  fun lte_16087 (__16088) -> (__16089) ->
+    (match __16088 with
+    | zero_6  => true_4
+    | succ_7 n_16090 =>
+      (match __16089 with
+      | zero_6  => false_5 | succ_7 n_16091 => ((lte_16087) n_16090 n_16091)))
+
+#[program]
+def lt_17 :=
+  fun lt_16092 (x_16093) -> (y_16094) ->
+    ((lte_16) (succ_7 x_16093) y_16094)
+
+#[program]
+def pred_18 :=
+  fun pred_16095 (__16096) ->
+    (match __16096 with
+    | zero_6  => zero_6 | succ_7 n_16097 => n_16097)
+
+#[program]
+def add_19 :=
+  fun add_16098 (__16099) -> (__16100) ->
+    (match __16099 with
+    | zero_6  => __16100
+    | succ_7 n_16101 => (succ_7 ((add_16098) n_16101 __16100)))
+
+#[program]
+def sub_20 :=
+  fun sub_16102 (__16103) -> (__16104) ->
+    (match __16104 with
+    | zero_6  => __16103
+    | succ_7 n_16105 => ((sub_16102) ((pred_18) __16103) n_16105))
+
+#[program]
+def mul_21 :=
+  fun mul_16106 (__16107) -> (__16108) ->
+    (match __16107 with
+    | zero_6  => zero_6
+    | succ_7 n_16109 => ((add_19) __16108 ((mul_16106) n_16109 __16108)))
+
+#[program]
+def div_22 :=
+  fun div_16110 (x_16111) -> (y_16112) ->
+    (match ((lt_17) x_16111 y_16112) with
+    | true_4  => zero_6
+    | false_5  =>
+      let loop_16113 :=
+        fun loop_16114 (x_16115) -> (y_16116) ->
+          (match ((sub_20) x_16115 ((pred_18) y_16116)) with
+          | zero_6  => zero_6
+          | succ_7 n_16117 => (succ_7 ((loop_16114) n_16117 y_16116)))
+      in ((loop_16113) x_16111 y_16112))
+
+#[program]
+def rem_23 :=
+  fun rem_16118 (x_16119) -> (y_16120) ->
+    ((sub_20) x_16119 ((mul_21) ((div_22) x_16119 y_16120) y_16120))
+
+#[program]
+inductive optionU_24 where
+| NoneU_30 of layout[]
+| SomeU_31 of layout[R]
+
+#[program]
+inductive optionL_23 where
+| NoneL_28 of layout[]
+| SomeL_29 of layout[R]
+
+#[program]
+inductive listUU_28 where
+| nilUU_38 of layout[]
+| consUU_39 of layout[R, R]
+
+#[program]
+inductive listUL_27 where
+| nilUL_36 of layout[]
+| consUL_37 of layout[R, R]
+
+#[program]
+inductive listLU_26 where
+| nilLU_34 of layout[]
+
+#[program]
+inductive listLL_25 where
+| nilLL_32 of layout[]
+| consLL_33 of layout[R, R]
+
+#[program]
+def rconsUU_77 :=
+  fun rcons_16121 {A_16122} -> (__16123) -o (__16124) -o
+    (match __16123 with
+    | nilUU_38  => (consUU_39 __16124 nilUU_38)
+    | consUU_39 hd_16125 tl_16126 =>
+      (consUU_39 hd_16125 ((rcons_16121) NULL tl_16126 __16124)))
+
+#[program]
+def rconsUL_76 :=
+  fun rcons_16127 {A_16128} -> (__16129) -o (__16130) -o
+    (match __16129 with
+    | nilUL_36  => (consUL_37 __16130 nilUL_36)
+    | consUL_37 hd_16131 tl_16132 =>
+      (consUL_37 hd_16131 ((rcons_16127) NULL tl_16132 __16130)))
+
+#[program]
+def rconsLL_74 :=
+  fun rcons_16133 {A_16134} -> (__16135) -o (__16136) -o
+    (match __16135 with
+    | nilLL_32  => (consLL_33 __16136 nilLL_32)
+    | consLL_33 hd_16137 tl_16138 =>
+      (consLL_33 hd_16137 ((rcons_16133) NULL tl_16138 __16136)))
+
+#[program]
+def free_listUU_81 :=
+  fun free_list_16139 {A_16140} -> (f_16141) -> (__16142) ->
+    (match __16142 with
+    | nilUU_38  => ttU_27
+    | consUU_39 hd_16143 tl_16144 =>
+      let __16145 := ((f_16141) hd_16143) in
+      ((free_list_16139) NULL f_16141 tl_16144))
+
+#[program]
+def free_listUL_80 :=
+  fun free_list_16146 {A_16147} -> (f_16148) -> (__16149) ->
+    (match __16149 with
+    | nilUL_36  => ttU_27
+    | consUL_37 hd_16150 tl_16151 =>
+      let __16152 := ((f_16148) hd_16150) in
+      ((free_list_16146) NULL f_16148 tl_16151))
+
+#[program]
+def free_listLL_78 :=
+  fun free_list_16153 {A_16154} -> (f_16155) -> (__16156) ->
+    (match __16156 with
+    | nilLL_32  => ttU_27
+    | consLL_33 hd_16157 tl_16158 =>
+      let __16159 := ((f_16155) hd_16157) in
+      ((free_list_16153) NULL f_16155 tl_16158))
+
+#[program]
+inductive existsUU_32 where
+| exUU_43 of layout[R, N]
+
+#[program]
+inductive existsUL_31 where
+| exUL_42 of layout[R, N]
+
+#[program]
+inductive existsLU_30 where
+| exLU_41 of layout[R, N]
+
+#[program]
+inductive existsLL_29 where
+| exLL_40 of layout[R, N]
+
+#[program]
+inductive exists0UU_36 where
+| ex0UU_47 of layout[N, R]
+
+#[program]
+inductive exists0UL_35 where
+| ex0UL_46 of layout[N, R]
+
+#[program]
+inductive exists0LU_34 where
+| ex0LU_45 of layout[N, R]
+
+#[program]
+inductive exists0LL_33 where
+| ex0LL_44 of layout[N, R]
+
+#[program]
+inductive exists1UU_40 where
+| ex1UU_51 of layout[R, R]
+
+#[program]
+inductive exists1UL_39 where
+| ex1UL_50 of layout[R, R]
+
+#[program]
+inductive exists1LU_38 where
+| ex1LU_49 of layout[R, R]
+
+#[program]
+inductive exists1LL_37 where
+| ex1LL_48 of layout[R, R]
+
+#[logical]
+def tensorUU_85 := NULL
+
+#[logical]
+def tensorUL_84 := NULL
+
+#[logical]
+def tensorLU_83 := NULL
+
+#[logical]
+def tensorLL_82 := NULL
+
+#[program]
+def pow_27 :=
+  fun pow_16160 (x_16161) -> (y_16162) ->
+    let loop_16163 :=
+      fun loop_16164 (acc_16165) -> (y_16166) ->
+        (match (__lte__ y_16166 0) with
+        | true_4  => acc_16165
+        | false_5  =>
+          ((loop_16164) (__mul__ x_16161 acc_16165) (__sub__ y_16166 1)))
+    in ((loop_16163) 1 y_16162)
+
+#[program]
+def powm_28 :=
+  fun powm_16167 (x_16168) -> (y_16169) -> (m_16170) ->
+    let loop_16171 :=
+      fun loop_16172 (acc_16173) -> (y_16174) ->
+        (match (__lte__ y_16174 0) with
+        | true_4  => acc_16173
+        | false_5  =>
+          ((loop_16172)
+            (__mod__ (__mul__ x_16168 acc_16173) m_16170) (__sub__ y_16174 1)))
+    in ((loop_16171) 1 y_16169)
+
+#[program]
+def ord_29 := fun ord_16175 (c_16176) ->
+                (__ord__ c_16176)
+
+#[program]
+def chr_30 := fun chr_16177 (i_16178) ->
+                (__chr__ i_16178)
+
+#[program]
+def str_31 := fun str_16179 (c_16180) ->
+                (__push__ "" c_16180)
+
+#[program]
+def strlen_32 := fun strlen_16181 (s_16182) ->
+                   (__size__ s_16182)
+
+#[program]
+def string_of_int_33 :=
+  fun string_of_int_16183 (i_16184) ->
+    let aux_16185 :=
+      fun aux_16186 (i_16187) ->
+        (match (__lte__ 10 i_16187) with
+        | true_4  =>
+          let r_16188 := (__mod__ i_16187 10) in
+          let i_16189 := (__div__ i_16187 10) in
+          (__push__ ((aux_16186) i_16189)
+            ((chr_30) (__add__ r_16188 ((ord_29) 0))))
+        | false_5  => ((str_31) ((chr_30) (__add__ i_16187 ((ord_29) 0)))))
+    in
+    (match (__lte__ 0 i_16184) with
+    | true_4  => ((aux_16185) i_16184)
+    | false_5  => (__cat__ "~" ((aux_16185) (__neg__ i_16184))))
+
+#[program]
+inductive boxedU_42 where
+| boxU_53 of layout[R]
+
+#[program]
+inductive boxedL_41 where
+| boxL_52 of layout[R]
+
+#[program]
+inductive choice_12 where
+| next_16 of layout[]
+| free_17 of layout[]
+
+#[program]
+def sing_elimUU_89 :=
+  fun sing_elim_16190 {A_16191} -> {x_16192} -> (__16193) ->
+    (match __16193 with
+    | justUU_25 m_16194 => m_16194)
+
+#[program]
+def sing_elimUL_88 :=
+  fun sing_elim_16195 {A_16196} -> {x_16197} -> (__16198) ->
+    (match __16198 with
+    | justUL_24 m_16199 => m_16199)
+
+#[program]
+def sing_elimLU_87 :=
+  fun sing_elim_16200 {A_16201} -> {x_16202} -> (__16203) ->
+    !!
+
+#[program]
+def sing_elimLL_86 :=
+  fun sing_elim_16204 {A_16205} -> {x_16206} -> (__16207) ->
+    (match __16207 with
+    | justLL_22 m_16208 => m_16208)
+
+#[logical]
+def sing_uniqUU_93 := NULL
+
+#[logical]
+def sing_uniqUL_92 := NULL
+
+#[logical]
+def sing_uniqLU_91 := NULL
+
+#[logical]
+def sing_uniqLL_90 := NULL
+
+#[program]
+inductive stream_nodeU_44 where
+| stream_consU_55 of layout[R, R]
+
+#[program]
+inductive stream_nodeL_43 where
+| stream_consL_54 of layout[R, R]
+
+#[logical]
+def streamU_95 := NULL
+
+#[logical]
+def streamL_94 := NULL
+
+#[program]
+def free_streamU_97 :=
+  fun free_stream_16209 {A_16210} -> (st_16211) ->
+    (match ((st_16211) free_17) with
+    | ttL_26  => ttU_27)
+
+#[program]
+def free_streamL_96 :=
+  fun free_stream_16212 {A_16213} -> (st_16214) ->
+    (match ((st_16214) free_17) with
+    | ttL_26  => ttU_27)
+
+#[program]
+def uncons_streamU_99 :=
+  fun uncons_stream_16215 {A_16216} -> (st_16217) ->
+    (match ((st_16217) next_16) with
+    | stream_consU_55 hd_16218 tl_16219 => (ex1UL_50 hd_16218 tl_16219))
+
+#[program]
+def uncons_streamL_98 :=
+  fun uncons_stream_16220 {A_16221} -> (st_16222) ->
+    (match ((st_16222) next_16) with
+    | stream_consL_54 hd_16223 tl_16224 => (ex1LL_48 hd_16223 tl_16224))
+
+#[program]
+def nat_make_39 :=
+  fun nat_make_16225 (n_16226) -> (x_16227) -o
+    (match x_16227 with
+    | next_16  =>
+      (stream_consU_55 n_16226 ((nat_make_16225) (succ_7 n_16226)))
+    | free_17  => ttL_26)
+
+#[program]
+inductive apairUUU_52 where
+| apair_introUUU_63 of layout[N, R]
+
+#[program]
+inductive apairUUL_51 where
+| apair_introUUL_62 of layout[N, R]
+
+#[program]
+inductive apairULU_50 where
+| apair_introULU_61 of layout[N, R]
+
+#[program]
+inductive apairULL_49 where
+| apair_introULL_60 of layout[N, R]
+
+#[program]
+inductive apairLUU_48 where
+| apair_introLUU_59 of layout[N, R]
+
+#[program]
+inductive apairLUL_47 where
+| apair_introLUL_58 of layout[N, R]
+
+#[program]
+inductive apairLLU_46 where
+| apair_introLLU_57 of layout[N, R]
+
+#[program]
+inductive apairLLL_45 where
+| apair_introLLL_56 of layout[N, R]
+
+#[program]
+def proj1UUU_107 :=
+  fun proj1_16228 {A_16229} -> {B_16230} -> (__16231) ->
+    (match __16231 with
+    | apair_introUUU_63 x_16232 select_16233 =>
+      ((sing_elimUL_88) NULL NULL ((select_16233) true_4)))
+
+#[program]
+def proj1UUL_106 :=
+  fun proj1_16234 {A_16235} -> {B_16236} -> (__16237) ->
+    (match __16237 with
+    | apair_introUUL_62 x_16238 select_16239 =>
+      ((sing_elimUL_88) NULL NULL ((select_16239) true_4)))
+
+#[program]
+def proj1ULU_105 :=
+  fun proj1_16240 {A_16241} -> {B_16242} -> (__16243) ->
+    (match __16243 with
+    | apair_introULU_61 x_16244 select_16245 =>
+      ((sing_elimUL_88) NULL NULL ((select_16245) true_4)))
+
+#[program]
+def proj1ULL_104 :=
+  fun proj1_16246 {A_16247} -> {B_16248} -> (__16249) ->
+    (match __16249 with
+    | apair_introULL_60 x_16250 select_16251 =>
+      ((sing_elimUL_88) NULL NULL ((select_16251) true_4)))
+
+#[program]
+def proj1LUU_103 :=
+  fun proj1_16252 {A_16253} -> {B_16254} -> (__16255) ->
+    (match __16255 with
+    | apair_introLUU_59 x_16256 select_16257 =>
+      ((sing_elimLL_86) NULL NULL ((select_16257) true_4)))
+
+#[program]
+def proj1LUL_102 :=
+  fun proj1_16258 {A_16259} -> {B_16260} -> (__16261) ->
+    (match __16261 with
+    | apair_introLUL_58 x_16262 select_16263 =>
+      ((sing_elimLL_86) NULL NULL ((select_16263) true_4)))
+
+#[program]
+def proj1LLU_101 :=
+  fun proj1_16264 {A_16265} -> {B_16266} -> (__16267) ->
+    (match __16267 with
+    | apair_introLLU_57 x_16268 select_16269 =>
+      ((sing_elimLL_86) NULL NULL ((select_16269) true_4)))
+
+#[program]
+def proj1LLL_100 :=
+  fun proj1_16270 {A_16271} -> {B_16272} -> (__16273) ->
+    (match __16273 with
+    | apair_introLLL_56 x_16274 select_16275 =>
+      ((sing_elimLL_86) NULL NULL ((select_16275) true_4)))
+
+#[program]
+def proj2UUU_115 :=
+  fun proj2_16276 {A_16277} -> {B_16278} -> (x_16279) ->
+    (match x_16279 with
+    | apair_introUUU_63 x_16280 select_16281 =>
+      (match ((select_16281) false_5) with
+      | boxU_53 m_16282 => m_16282))
+
+#[program]
+def proj2UUL_114 :=
+  fun proj2_16283 {A_16284} -> {B_16285} -> (x_16286) ->
+    (match x_16286 with
+    | apair_introUUL_62 x_16287 select_16288 =>
+      (match ((select_16288) false_5) with
+      | boxU_53 m_16289 => m_16289))
+
+#[program]
+def proj2ULU_113 :=
+  fun proj2_16290 {A_16291} -> {B_16292} -> (x_16293) ->
+    (match x_16293 with
+    | apair_introULU_61 x_16294 select_16295 =>
+      (match ((select_16295) false_5) with
+      | boxL_52 m_16296 => m_16296))
+
+#[program]
+def proj2ULL_112 :=
+  fun proj2_16297 {A_16298} -> {B_16299} -> (x_16300) ->
+    (match x_16300 with
+    | apair_introULL_60 x_16301 select_16302 =>
+      (match ((select_16302) false_5) with
+      | boxL_52 m_16303 => m_16303))
+
+#[program]
+def proj2LUU_111 :=
+  fun proj2_16304 {A_16305} -> {B_16306} -> (x_16307) ->
+    (match x_16307 with
+    | apair_introLUU_59 x_16308 select_16309 =>
+      (match ((select_16309) false_5) with
+      | boxU_53 m_16310 => m_16310))
+
+#[program]
+def proj2LUL_110 :=
+  fun proj2_16311 {A_16312} -> {B_16313} -> (x_16314) ->
+    (match x_16314 with
+    | apair_introLUL_58 x_16315 select_16316 =>
+      (match ((select_16316) false_5) with
+      | boxU_53 m_16317 => m_16317))
+
+#[program]
+def proj2LLU_109 :=
+  fun proj2_16318 {A_16319} -> {B_16320} -> (x_16321) ->
+    (match x_16321 with
+    | apair_introLLU_57 x_16322 select_16323 =>
+      (match ((select_16323) false_5) with
+      | boxL_52 m_16324 => m_16324))
+
+#[program]
+def proj2LLL_108 :=
+  fun proj2_16325 {A_16326} -> {B_16327} -> (x_16328) ->
+    (match x_16328 with
+    | apair_introLLL_56 x_16329 select_16330 =>
+      (match ((select_16330) false_5) with
+      | boxL_52 m_16331 => m_16331))
+
+#[logical]
+def nat_dep_t_42 := NULL
+
+#[program]
+def my_apair0_43 :=
+  (apair_introULU_61
+    NULL
+    fun _16332 (b_16333) ->
+      (match b_16333 with
+      | true_4  => (justUL_24 zero_6)
+      | false_5  => (boxL_52 ((nat_make_39) zero_6))))
+
+#[program]
+def my_apair1_44 :=
+  let nat_stream_16334 := ((nat_make_39) zero_6) in
+  (apair_introULL_60
+    NULL
+    fun _16335 (b_16336) -o
+      (match b_16336 with
+      | true_4  =>
+        (justUL_24
+          (match ((uncons_streamU_99) NULL nat_stream_16334) with
+          | ex1UL_50 m_16337 n_16338 =>
+            let __16339 := ((free_streamU_97) NULL n_16338) in m_16337))
+      | false_5  => (boxL_52 nat_stream_16334)))
+
+#[program]
+def __45 := ((free_streamU_97) NULL ((proj2ULL_112) NULL NULL my_apair1_44))
+
+[trans2e success]
+
+-----------------------------------------
+
+def idU_47 := fun id_16687 (A_16688) -> (m_16689) -> m_16689
+
+def idL_46 := fun id_16690 (A_16691) -> (m_16692) -> m_16692
+
+def rwlUU_51 :=
+  fun rwl_16693 (A_16694) -> (m_16695) -> (n_16696) -> (B_16697) ->
+  (__16698) -> (__16699) -> __16699
+
+def rwlUL_50 :=
+  fun rwl_16700 (A_16701) -> (m_16702) -> (n_16703) -> (B_16704) ->
+  (__16705) -> (__16706) -> __16706
+
+def rwlLU_49 :=
+  fun rwl_16707 (A_16708) -> (m_16709) -> (n_16710) -> (B_16711) ->
+  (__16712) -> (__16713) -> __16713
+
+def rwlLL_48 :=
+  fun rwl_16714 (A_16715) -> (m_16716) -> (n_16717) -> (B_16718) ->
+  (__16719) -> (__16720) -> __16720
+
+def rwrUU_55 :=
+  fun rwr_16721 (A_16722) -> (m_16723) -> (n_16724) -> (B_16725) ->
+  (__16726) -> (__16727) -> __16727
+
+def rwrUL_54 :=
+  fun rwr_16728 (A_16729) -> (m_16730) -> (n_16731) -> (B_16732) ->
+  (__16733) -> (__16734) -> __16734
+
+def rwrLU_53 :=
+  fun rwr_16735 (A_16736) -> (m_16737) -> (n_16738) -> (B_16739) ->
+  (__16740) -> (__16741) -> __16741
+
+def rwrLL_52 :=
+  fun rwr_16742 (A_16743) -> (m_16744) -> (n_16745) -> (B_16746) ->
+  (__16747) -> (__16748) -> __16748
+
+def sing_elimUU_69 :=
+  fun sing_elim_16749 (A_16750) -> (x_16751) -> (__16752) -> __16752
+
+def sing_elimUL_68 :=
+  fun sing_elim_16753 (A_16754) -> (x_16755) -> (__16756) -> __16756
+
+def sing_elimLU_67 :=
+  fun sing_elim_16757 (A_16758) -> (x_16759) -> (__16760) -> !!
+
+def sing_elimLL_66 :=
+  fun sing_elim_16761 (A_16762) -> (x_16763) -> (__16764) -> __16764
+
+def not_11 :=
+  fun not_16765 (__16766) ->
+    (match __16766 with
+    | true_4 => constr0(false_5) | false_5 => constr0(true_4))
+
+def and_12 :=
+  fun and_16767 (__16768) -> (__16769) ->
+    (match __16768 with
+    | true_4 =>
+      (match __16769 with
+      | true_4 => constr0(true_4) | false_5 => constr0(false_5))
+    | false_5 => constr0(false_5))
+
+def or_13 :=
+  fun or_16770 (__16771) -> (__16772) ->
+    (match __16771 with
+    | true_4 => constr0(true_4)
+    | false_5 =>
+      (match __16772 with
+      | true_4 => constr0(true_4) | false_5 => constr0(false_5)))
+
+def xor_14 :=
+  fun xor_16773 (__16774) -> (__16775) ->
+    (match __16774 with
+    | true_4 =>
+      (match __16775 with
+      | true_4 => constr0(false_5) | false_5 => constr0(true_4))
+    | false_5 =>
+      (match __16775 with
+      | true_4 => constr0(true_4) | false_5 => constr0(false_5)))
+
+def string_of_bool_15 :=
+  fun string_of_bool_16776 (__16777) ->
+    (match __16777 with
+    | true_4 => "true" | false_5 => "false")
+
+def lte_16 :=
+  fun lte_16778 (__16779) -> (__16780) ->
+    (match __16779 with
+    | zero_6 => constr0(true_4)
+    | _ =>
+      (match __16779 with
+      | succ_7 n_16781 =>
+        (match __16780 with
+        | zero_6 => constr0(false_5)
+        | _ =>
+          (match __16780 with
+          | succ_7 n_16782 => ((lte_16778) n_16781 n_16782)))))
+
+def lt_17 :=
+  fun lt_16783 (x_16784) -> (y_16785) -> ((lte_16) (succ_7 x_16784) y_16785)
+
+def pred_18 :=
+  fun pred_16786 (__16787) ->
+    (match __16787 with
+    | zero_6 => constr0(zero_6)
+    | _ => (match __16787 with
+           | succ_7 n_16788 => n_16788))
+
+def add_19 :=
+  fun add_16789 (__16790) -> (__16791) ->
+    (match __16790 with
+    | zero_6 => __16791
+    | _ =>
+      (match __16790 with
+      | succ_7 n_16792 => (succ_7 ((add_16789) n_16792 __16791))))
+
+def sub_20 :=
+  fun sub_16793 (__16794) -> (__16795) ->
+    (match __16795 with
+    | zero_6 => __16794
+    | _ =>
+      (match __16795 with
+      | succ_7 n_16796 => ((sub_16793) ((pred_18) __16794) n_16796)))
+
+def mul_21 :=
+  fun mul_16797 (__16798) -> (__16799) ->
+    (match __16798 with
+    | zero_6 => constr0(zero_6)
+    | _ =>
+      (match __16798 with
+      | succ_7 n_16800 => ((add_19) __16799 ((mul_16797) n_16800 __16799))))
+
+def div_22 :=
+  fun div_16801 (x_16802) -> (y_16803) ->
+    (match ((lt_17) x_16802 y_16803) with
+    | true_4 => constr0(zero_6)
+    | false_5 =>
+      let loop_16804 :=
+        fun loop_16805 (x_16806) -> (y_16807) ->
+          (match ((sub_20) x_16806 ((pred_18) y_16807)) with
+          | zero_6 => constr0(zero_6)
+          | _ =>
+            (match ((sub_20) x_16806 ((pred_18) y_16807)) with
+            | succ_7 n_16808 => (succ_7 ((loop_16805) n_16808 y_16807))))
+      in ((loop_16804) x_16802 y_16803))
+
+def rem_23 :=
+  fun rem_16809 (x_16810) -> (y_16811) ->
+    ((sub_20) x_16810 ((mul_21) ((div_22) x_16810 y_16811) y_16811))
+
+def rconsUU_77 :=
+  fun rcons_16812 (A_16813) -> (__16814) -o (__16815) -o
+    (match __16814 with
+    | nilUU_38 => (consUU_39 __16815 constr0(nilUU_38))
+    | _ =>
+      (match __16814 with
+      | consUU_39 hd_16816 tl_16817 =>
+        (consUU_39 hd_16816 ((rcons_16812) NULL tl_16817 __16815))))
+
+def rconsUL_76 :=
+  fun rcons_16818 (A_16819) -> (__16820) -o (__16821) -o
+    (match __16820 with
+    | nilUL_36 => (consUL_37 __16821 constr0(nilUL_36))
+    | _ =>
+      (match __16820 with
+      | consUL_37 hd_16822 tl_16823 =>
+        (consUL_37 hd_16822 ((rcons_16818) NULL tl_16823 __16821))))
+
+def rconsLL_74 :=
+  fun rcons_16824 (A_16825) -> (__16826) -o (__16827) -o
+    (match __16826 with
+    | nilLL_32 => (consLL_33 __16827 constr0(nilLL_32))
+    | _ =>
+      (match __16826 with
+      | consLL_33 hd_16828 tl_16829 =>
+        (consLL_33 hd_16828 ((rcons_16824) NULL tl_16829 __16827))))
+
+def free_listUU_81 :=
+  fun free_list_16830 (A_16831) -> (f_16832) -> (__16833) ->
+    (match __16833 with
+    | nilUU_38 => constr0(ttU_27)
+    | _ =>
+      (match __16833 with
+      | consUU_39 hd_16834 tl_16835 =>
+        let __16836 := ((f_16832) hd_16834) in
+        ((free_list_16830) NULL f_16832 tl_16835)))
+
+def free_listUL_80 :=
+  fun free_list_16837 (A_16838) -> (f_16839) -> (__16840) ->
+    (match __16840 with
+    | nilUL_36 => constr0(ttU_27)
+    | _ =>
+      (match __16840 with
+      | consUL_37 hd_16841 tl_16842 =>
+        let __16843 := ((f_16839) hd_16841) in
+        ((free_list_16837) NULL f_16839 tl_16842)))
+
+def free_listLL_78 :=
+  fun free_list_16844 (A_16845) -> (f_16846) -> (__16847) ->
+    (match __16847 with
+    | nilLL_32 => constr0(ttU_27)
+    | _ =>
+      (match __16847 with
+      | consLL_33 hd_16848 tl_16849 =>
+        let __16850 := ((f_16846) hd_16848) in
+        ((free_list_16844) NULL f_16846 tl_16849)))
+
+def pow_27 :=
+  fun pow_16851 (x_16852) -> (y_16853) ->
+    let loop_16854 :=
+      fun loop_16855 (acc_16856) -> (y_16857) ->
+        (match (__lte__ y_16857 0) with
+        | true_4 => acc_16856
+        | false_5 =>
+          ((loop_16855) (__mul__ x_16852 acc_16856) (__sub__ y_16857 1)))
+    in ((loop_16854) 1 y_16853)
+
+def powm_28 :=
+  fun powm_16858 (x_16859) -> (y_16860) -> (m_16861) ->
+    let loop_16862 :=
+      fun loop_16863 (acc_16864) -> (y_16865) ->
+        (match (__lte__ y_16865 0) with
+        | true_4 => acc_16864
+        | false_5 =>
+          ((loop_16863)
+            (__mod__ (__mul__ x_16859 acc_16864) m_16861) (__sub__ y_16865 1)))
+    in ((loop_16862) 1 y_16860)
+
+def ord_29 := fun ord_16866 (c_16867) -> (__ord__ c_16867)
+
+def chr_30 := fun chr_16868 (i_16869) -> (__chr__ i_16869)
+
+def str_31 := fun str_16870 (c_16871) -> (__push__ "" c_16871)
+
+def strlen_32 := fun strlen_16872 (s_16873) -> (__size__ s_16873)
+
+def string_of_int_33 :=
+  fun string_of_int_16874 (i_16875) ->
+    let aux_16876 :=
+      fun aux_16877 (i_16878) ->
+        (match (__lte__ 10 i_16878) with
+        | true_4 =>
+          let r_16879 := (__mod__ i_16878 10) in
+          let i_16880 := (__div__ i_16878 10) in
+          (__push__ ((aux_16877) i_16880)
+            ((chr_30) (__add__ r_16879 ((ord_29) 0))))
+        | false_5 => ((str_31) ((chr_30) (__add__ i_16878 ((ord_29) 0)))))
+    in
+    (match (__lte__ 0 i_16875) with
+    | true_4 => ((aux_16876) i_16875)
+    | false_5 => (__cat__ "~" ((aux_16876) (__neg__ i_16875))))
+
+def sing_elimUU_89 :=
+  fun sing_elim_16881 (A_16882) -> (x_16883) -> (__16884) -> __16884
+
+def sing_elimUL_88 :=
+  fun sing_elim_16885 (A_16886) -> (x_16887) -> (__16888) -> __16888
+
+def sing_elimLU_87 :=
+  fun sing_elim_16889 (A_16890) -> (x_16891) -> (__16892) -> !!
+
+def sing_elimLL_86 :=
+  fun sing_elim_16893 (A_16894) -> (x_16895) -> (__16896) -> __16896
+
+def free_streamU_97 :=
+  fun free_stream_16897 (A_16898) -> (st_16899) ->
+    (match ((st_16899) constr0(free_17)) with
+    | ttL_26 => constr0(ttU_27))
+
+def free_streamL_96 :=
+  fun free_stream_16900 (A_16901) -> (st_16902) ->
+    (match ((st_16902) constr0(free_17)) with
+    | ttL_26 => constr0(ttU_27))
+
+def uncons_streamU_99 :=
+  fun uncons_stream_16903 (A_16904) -> (st_16905) ->
+    (match ((st_16905) constr0(next_16)) with
+    | stream_consU_55 hd_16906 tl_16907 => (ex1UL_50 hd_16906 tl_16907))
+
+def uncons_streamL_98 :=
+  fun uncons_stream_16908 (A_16909) -> (st_16910) ->
+    (match ((st_16910) constr0(next_16)) with
+    | stream_consL_54 hd_16911 tl_16912 => (ex1LL_48 hd_16911 tl_16912))
+
+def nat_make_39 :=
+  fun nat_make_16913 (n_16914) -> (x_16915) -o
+    (match x_16915 with
+    | next_16 =>
+      (stream_consU_55 n_16914 ((nat_make_16913) (succ_7 n_16914)))
+    | free_17 => constr0(ttL_26))
+
+def proj1UUU_107 :=
+  fun proj1_16916 (A_16917) -> (B_16918) -> (__16919) ->
+    ((sing_elimUL_88) NULL NULL ((__16919) constr0(true_4)))
+
+def proj1UUL_106 :=
+  fun proj1_16920 (A_16921) -> (B_16922) -> (__16923) ->
+    ((sing_elimUL_88) NULL NULL ((__16923) constr0(true_4)))
+
+def proj1ULU_105 :=
+  fun proj1_16924 (A_16925) -> (B_16926) -> (__16927) ->
+    ((sing_elimUL_88) NULL NULL ((__16927) constr0(true_4)))
+
+def proj1ULL_104 :=
+  fun proj1_16928 (A_16929) -> (B_16930) -> (__16931) ->
+    ((sing_elimUL_88) NULL NULL ((__16931) constr0(true_4)))
+
+def proj1LUU_103 :=
+  fun proj1_16932 (A_16933) -> (B_16934) -> (__16935) ->
+    ((sing_elimLL_86) NULL NULL ((__16935) constr0(true_4)))
+
+def proj1LUL_102 :=
+  fun proj1_16936 (A_16937) -> (B_16938) -> (__16939) ->
+    ((sing_elimLL_86) NULL NULL ((__16939) constr0(true_4)))
+
+def proj1LLU_101 :=
+  fun proj1_16940 (A_16941) -> (B_16942) -> (__16943) ->
+    ((sing_elimLL_86) NULL NULL ((__16943) constr0(true_4)))
+
+def proj1LLL_100 :=
+  fun proj1_16944 (A_16945) -> (B_16946) -> (__16947) ->
+    ((sing_elimLL_86) NULL NULL ((__16947) constr0(true_4)))
+
+def proj2UUU_115 :=
+  fun proj2_16948 (A_16949) -> (B_16950) -> (x_16951) ->
+    ((x_16951) constr0(false_5))
+
+def proj2UUL_114 :=
+  fun proj2_16952 (A_16953) -> (B_16954) -> (x_16955) ->
+    ((x_16955) constr0(false_5))
+
+def proj2ULU_113 :=
+  fun proj2_16956 (A_16957) -> (B_16958) -> (x_16959) ->
+    ((x_16959) constr0(false_5))
+
+def proj2ULL_112 :=
+  fun proj2_16960 (A_16961) -> (B_16962) -> (x_16963) ->
+    ((x_16963) constr0(false_5))
+
+def proj2LUU_111 :=
+  fun proj2_16964 (A_16965) -> (B_16966) -> (x_16967) ->
+    ((x_16967) constr0(false_5))
+
+def proj2LUL_110 :=
+  fun proj2_16968 (A_16969) -> (B_16970) -> (x_16971) ->
+    ((x_16971) constr0(false_5))
+
+def proj2LLU_109 :=
+  fun proj2_16972 (A_16973) -> (B_16974) -> (x_16975) ->
+    ((x_16975) constr0(false_5))
+
+def proj2LLL_108 :=
+  fun proj2_16976 (A_16977) -> (B_16978) -> (x_16979) ->
+    ((x_16979) constr0(false_5))
+
+def my_apair0_43 :=
+  fun _16980 (b_16981) ->
+    (match b_16981 with
+    | true_4 => constr0(zero_6) | false_5 => ((nat_make_39) constr0(zero_6)))
+
+def my_apair1_44 :=
+  let nat_stream_16982 := ((nat_make_39) constr0(zero_6)) in
+  fun _16983 (b_16984) -o
+    (match b_16984 with
+    | true_4 =>
+      (match ((uncons_streamU_99) NULL nat_stream_16982) with
+      | ex1UL_50 m_16985 n_16986 =>
+        let __16987 := ((free_streamU_97) NULL n_16986) in m_16985)
+    | false_5 => nat_stream_16982)
+
+def __45 := ((free_streamU_97) NULL ((proj2ULL_112) NULL NULL my_apair1_44))
+
+[trans23 success]
+
+-----------------------------------------
+
+def idU_47 := lam (A_17289) -> (m_17290) -> m_17290
+
+def idL_46 := lam (A_17291) -> (m_17292) -> m_17292
+
+def rwlUU_51 :=
+  lam (A_17293) -> (m_17294) -> (n_17295) -> (B_17296) -> (__17297) ->
+  (__17298) -> __17298
+
+def rwlUL_50 :=
+  lam (A_17299) -> (m_17300) -> (n_17301) -> (B_17302) -> (__17303) ->
+  (__17304) -> __17304
+
+def rwlLU_49 :=
+  lam (A_17305) -> (m_17306) -> (n_17307) -> (B_17308) -> (__17309) ->
+  (__17310) -> __17310
+
+def rwlLL_48 :=
+  lam (A_17311) -> (m_17312) -> (n_17313) -> (B_17314) -> (__17315) ->
+  (__17316) -> __17316
+
+def rwrUU_55 :=
+  lam (A_17317) -> (m_17318) -> (n_17319) -> (B_17320) -> (__17321) ->
+  (__17322) -> __17322
+
+def rwrUL_54 :=
+  lam (A_17323) -> (m_17324) -> (n_17325) -> (B_17326) -> (__17327) ->
+  (__17328) -> __17328
+
+def rwrLU_53 :=
+  lam (A_17329) -> (m_17330) -> (n_17331) -> (B_17332) -> (__17333) ->
+  (__17334) -> __17334
+
+def rwrLL_52 :=
+  lam (A_17335) -> (m_17336) -> (n_17337) -> (B_17338) -> (__17339) ->
+  (__17340) -> __17340
+
+def sing_elimUU_69 := lam (A_17341) -> (x_17342) -> (__17343) -> __17343
+
+def sing_elimUL_68 := lam (A_17344) -> (x_17345) -> (__17346) -> __17346
+
+def sing_elimLU_67 := lam (A_17347) -> (x_17348) -> (__17349) -> !!
+
+def sing_elimLL_66 := lam (A_17350) -> (x_17351) -> (__17352) -> __17352
+
+def not_11 :=
+  lam (__17353) ->
+    (match __17353 with
+    | true_4 => constr0(false_5) | false_5 => constr0(true_4))
+
+def and_12 :=
+  lam (__17354) -> (__17355) ->
+    (match __17354 with
+    | true_4 =>
+      (match __17355 with
+      | true_4 => constr0(true_4) | false_5 => constr0(false_5))
+    | false_5 => constr0(false_5))
+
+def or_13 :=
+  lam (__17356) -> (__17357) ->
+    (match __17356 with
+    | true_4 => constr0(true_4)
+    | false_5 =>
+      (match __17357 with
+      | true_4 => constr0(true_4) | false_5 => constr0(false_5)))
+
+def xor_14 :=
+  lam (__17358) -> (__17359) ->
+    (match __17358 with
+    | true_4 =>
+      (match __17359 with
+      | true_4 => constr0(false_5) | false_5 => constr0(true_4))
+    | false_5 =>
+      (match __17359 with
+      | true_4 => constr0(true_4) | false_5 => constr0(false_5)))
+
+def string_of_bool_15 :=
+  lam (__17360) ->
+    (match __17360 with
+    | true_4 => "true" | false_5 => "false")
+
+def lte_16 :=
+  fun lte_17361 (__17362) -> (__17363) ->
+    (match __17362 with
+    | zero_6 => constr0(true_4)
+    | _ =>
+      (match __17362 with
+      | succ_7 n_17364 =>
+        (match __17363 with
+        | zero_6 => constr0(false_5)
+        | _ =>
+          (match __17363 with
+          | succ_7 n_17365 => ((lte_17361) n_17364 n_17365)))))
+
+def lt_17 :=
+  lam (x_17366) -> (y_17367) -> ((lte_16) (succ_7 x_17366) y_17367)
+
+def pred_18 :=
+  lam (__17368) ->
+    (match __17368 with
+    | zero_6 => constr0(zero_6)
+    | _ => (match __17368 with
+           | succ_7 n_17369 => n_17369))
+
+def add_19 :=
+  fun add_17370 (__17371) -> (__17372) ->
+    (match __17371 with
+    | zero_6 => __17372
+    | _ =>
+      (match __17371 with
+      | succ_7 n_17373 => (succ_7 ((add_17370) n_17373 __17372))))
+
+def sub_20 :=
+  fun sub_17374 (__17375) -> (__17376) ->
+    (match __17376 with
+    | zero_6 => __17375
+    | _ =>
+      (match __17376 with
+      | succ_7 n_17377 => ((sub_17374) ((pred_18) __17375) n_17377)))
+
+def mul_21 :=
+  fun mul_17378 (__17379) -> (__17380) ->
+    (match __17379 with
+    | zero_6 => constr0(zero_6)
+    | _ =>
+      (match __17379 with
+      | succ_7 n_17381 => ((add_19) __17380 ((mul_17378) n_17381 __17380))))
+
+def div_22 :=
+  lam (x_17382) -> (y_17383) ->
+    (match ((lt_17) x_17382 y_17383) with
+    | true_4 => constr0(zero_6)
+    | false_5 =>
+      let loop_17384 :=
+        fun loop_17385 (x_17386) -> (y_17387) ->
+          (match ((sub_20) x_17386 ((pred_18) y_17387)) with
+          | zero_6 => constr0(zero_6)
+          | _ =>
+            (match ((sub_20) x_17386 ((pred_18) y_17387)) with
+            | succ_7 n_17388 => (succ_7 ((loop_17385) n_17388 y_17387))))
+      in ((loop_17384) x_17382 y_17383))
+
+def rem_23 :=
+  lam (x_17389) -> (y_17390) ->
+    ((sub_20) x_17389 ((mul_21) ((div_22) x_17389 y_17390) y_17390))
+
+def rconsUU_77 :=
+  fun rcons_17391 (A_17392) -> (__17393) -o (__17394) -o
+    (match __17393 with
+    | nilUU_38 => (consUU_39 __17394 constr0(nilUU_38))
+    | _ =>
+      (match __17393 with
+      | consUU_39 hd_17395 tl_17396 =>
+        (consUU_39 hd_17395 ((rcons_17391) NULL tl_17396 __17394))))
+
+def rconsUL_76 :=
+  fun rcons_17397 (A_17398) -> (__17399) -o (__17400) -o
+    (match __17399 with
+    | nilUL_36 => (consUL_37 __17400 constr0(nilUL_36))
+    | _ =>
+      (match __17399 with
+      | consUL_37 hd_17401 tl_17402 =>
+        (consUL_37 hd_17401 ((rcons_17397) NULL tl_17402 __17400))))
+
+def rconsLL_74 :=
+  fun rcons_17403 (A_17404) -> (__17405) -o (__17406) -o
+    (match __17405 with
+    | nilLL_32 => (consLL_33 __17406 constr0(nilLL_32))
+    | _ =>
+      (match __17405 with
+      | consLL_33 hd_17407 tl_17408 =>
+        (consLL_33 hd_17407 ((rcons_17403) NULL tl_17408 __17406))))
+
+def free_listUU_81 :=
+  fun free_list_17409 (A_17410) -> (f_17411) -> (__17412) ->
+    (match __17412 with
+    | nilUU_38 => constr0(ttU_27)
+    | _ =>
+      (match __17412 with
+      | consUU_39 hd_17413 tl_17414 =>
+        let __17415 := ((f_17411) hd_17413) in
+        ((free_list_17409) NULL f_17411 tl_17414)))
+
+def free_listUL_80 :=
+  fun free_list_17416 (A_17417) -> (f_17418) -> (__17419) ->
+    (match __17419 with
+    | nilUL_36 => constr0(ttU_27)
+    | _ =>
+      (match __17419 with
+      | consUL_37 hd_17420 tl_17421 =>
+        let __17422 := ((f_17418) hd_17420) in
+        ((free_list_17416) NULL f_17418 tl_17421)))
+
+def free_listLL_78 :=
+  fun free_list_17423 (A_17424) -> (f_17425) -> (__17426) ->
+    (match __17426 with
+    | nilLL_32 => constr0(ttU_27)
+    | _ =>
+      (match __17426 with
+      | consLL_33 hd_17427 tl_17428 =>
+        let __17429 := ((f_17425) hd_17427) in
+        ((free_list_17423) NULL f_17425 tl_17428)))
+
+def pow_27 :=
+  lam (x_17430) -> (y_17431) ->
+    let loop_17432 :=
+      fun loop_17433 (acc_17434) -> (y_17435) ->
+        (match (__lte__ y_17435 0) with
+        | true_4 => acc_17434
+        | false_5 =>
+          ((loop_17433) (__mul__ x_17430 acc_17434) (__sub__ y_17435 1)))
+    in ((loop_17432) 1 y_17431)
+
+def powm_28 :=
+  lam (x_17436) -> (y_17437) -> (m_17438) ->
+    let loop_17439 :=
+      fun loop_17440 (acc_17441) -> (y_17442) ->
+        (match (__lte__ y_17442 0) with
+        | true_4 => acc_17441
+        | false_5 =>
+          ((loop_17440)
+            (__mod__ (__mul__ x_17436 acc_17441) m_17438) (__sub__ y_17442 1)))
+    in ((loop_17439) 1 y_17437)
+
+def ord_29 := lam (c_17443) -> (__ord__ c_17443)
+
+def chr_30 := lam (i_17444) -> (__chr__ i_17444)
+
+def str_31 := lam (c_17445) -> (__push__ "" c_17445)
+
+def strlen_32 := lam (s_17446) -> (__size__ s_17446)
+
+def string_of_int_33 :=
+  lam (i_17447) ->
+    let aux_17448 :=
+      fun aux_17449 (i_17450) ->
+        (match (__lte__ 10 i_17450) with
+        | true_4 =>
+          let r_17451 := (__mod__ i_17450 10) in
+          let i_17452 := (__div__ i_17450 10) in
+          (__push__ ((aux_17449) i_17452)
+            ((chr_30) (__add__ r_17451 ((ord_29) 0))))
+        | false_5 => ((str_31) ((chr_30) (__add__ i_17450 ((ord_29) 0)))))
+    in
+    (match (__lte__ 0 i_17447) with
+    | true_4 => ((aux_17448) i_17447)
+    | false_5 => (__cat__ "~" ((aux_17448) (__neg__ i_17447))))
+
+def sing_elimUU_89 := lam (A_17453) -> (x_17454) -> (__17455) -> __17455
+
+def sing_elimUL_88 := lam (A_17456) -> (x_17457) -> (__17458) -> __17458
+
+def sing_elimLU_87 := lam (A_17459) -> (x_17460) -> (__17461) -> !!
+
+def sing_elimLL_86 := lam (A_17462) -> (x_17463) -> (__17464) -> __17464
+
+def free_streamU_97 :=
+  lam (A_17465) -> (st_17466) ->
+    (match ((st_17466) constr0(free_17)) with
+    | ttL_26 => constr0(ttU_27))
+
+def free_streamL_96 :=
+  lam (A_17467) -> (st_17468) ->
+    (match ((st_17468) constr0(free_17)) with
+    | ttL_26 => constr0(ttU_27))
+
+def uncons_streamU_99 :=
+  lam (A_17469) -> (st_17470) ->
+    (match ((st_17470) constr0(next_16)) with
+    | stream_consU_55 hd_17471 tl_17472 => (ex1UL_50 hd_17471 tl_17472))
+
+def uncons_streamL_98 :=
+  lam (A_17473) -> (st_17474) ->
+    (match ((st_17474) constr0(next_16)) with
+    | stream_consL_54 hd_17475 tl_17476 => (ex1LL_48 hd_17475 tl_17476))
+
+def nat_make_39 :=
+  fun nat_make_17477 (n_17478) -> (x_17479) -o
+    (match x_17479 with
+    | next_16 =>
+      (stream_consU_55 n_17478 ((nat_make_17477) (succ_7 n_17478)))
+    | free_17 => constr0(ttL_26))
+
+def proj1UUU_107 :=
+  lam (A_17480) -> (B_17481) -> (__17482) ->
+    ((sing_elimUL_88) NULL NULL ((__17482) constr0(true_4)))
+
+def proj1UUL_106 :=
+  lam (A_17483) -> (B_17484) -> (__17485) ->
+    ((sing_elimUL_88) NULL NULL ((__17485) constr0(true_4)))
+
+def proj1ULU_105 :=
+  lam (A_17486) -> (B_17487) -> (__17488) ->
+    ((sing_elimUL_88) NULL NULL ((__17488) constr0(true_4)))
+
+def proj1ULL_104 :=
+  lam (A_17489) -> (B_17490) -> (__17491) ->
+    ((sing_elimUL_88) NULL NULL ((__17491) constr0(true_4)))
+
+def proj1LUU_103 :=
+  lam (A_17492) -> (B_17493) -> (__17494) ->
+    ((sing_elimLL_86) NULL NULL ((__17494) constr0(true_4)))
+
+def proj1LUL_102 :=
+  lam (A_17495) -> (B_17496) -> (__17497) ->
+    ((sing_elimLL_86) NULL NULL ((__17497) constr0(true_4)))
+
+def proj1LLU_101 :=
+  lam (A_17498) -> (B_17499) -> (__17500) ->
+    ((sing_elimLL_86) NULL NULL ((__17500) constr0(true_4)))
+
+def proj1LLL_100 :=
+  lam (A_17501) -> (B_17502) -> (__17503) ->
+    ((sing_elimLL_86) NULL NULL ((__17503) constr0(true_4)))
+
+def proj2UUU_115 :=
+  lam (A_17504) -> (B_17505) -> (x_17506) -> ((x_17506) constr0(false_5))
+
+def proj2UUL_114 :=
+  lam (A_17507) -> (B_17508) -> (x_17509) -> ((x_17509) constr0(false_5))
+
+def proj2ULU_113 :=
+  lam (A_17510) -> (B_17511) -> (x_17512) -> ((x_17512) constr0(false_5))
+
+def proj2ULL_112 :=
+  lam (A_17513) -> (B_17514) -> (x_17515) -> ((x_17515) constr0(false_5))
+
+def proj2LUU_111 :=
+  lam (A_17516) -> (B_17517) -> (x_17518) -> ((x_17518) constr0(false_5))
+
+def proj2LUL_110 :=
+  lam (A_17519) -> (B_17520) -> (x_17521) -> ((x_17521) constr0(false_5))
+
+def proj2LLU_109 :=
+  lam (A_17522) -> (B_17523) -> (x_17524) -> ((x_17524) constr0(false_5))
+
+def proj2LLL_108 :=
+  lam (A_17525) -> (B_17526) -> (x_17527) -> ((x_17527) constr0(false_5))
+
+def my_apair0_43 :=
+  lam (b_17528) ->
+    (match b_17528 with
+    | true_4 => constr0(zero_6) | false_5 => ((nat_make_39) constr0(zero_6)))
+
+def my_apair1_44 :=
+  let nat_stream_17529 := ((nat_make_39) constr0(zero_6)) in
+  lam (b_17530) -o
+    (match b_17530 with
+    | true_4 =>
+      (match ((uncons_streamU_99) NULL nat_stream_17529) with
+      | ex1UL_50 m_17531 n_17532 =>
+        let __17533 := ((free_streamU_97) NULL n_17532) in m_17531)
+    | false_5 => nat_stream_17529)
+
+def __45 := ((free_streamU_97) NULL ((proj2ULL_112) NULL NULL my_apair1_44))
+
+[trans3e success]
+
+-----------------------------------------
+
+fn idU_1(A_2%U, m_3%U) {
+  
+  return m_3;
+}
+
+fn idL_4(A_5%U, m_6%U) {
+  
+  return m_6;
+}
+
+fn rwlUU_7(A_8%U, m_9%U, n_10%U, B_11%U, __12%U, __13%U) {
+  
+  return __13;
+}
+
+fn rwlUL_14(A_15%U, m_16%U, n_17%U, B_18%U, __19%U, __20%U) {
+  
+  return __20;
+}
+
+fn rwlLU_21(A_22%U, m_23%U, n_24%U, B_25%U, __26%U, __27%U) {
+  
+  return __27;
+}
+
+fn rwlLL_28(A_29%U, m_30%U, n_31%U, B_32%U, __33%U, __34%U) {
+  
+  return __34;
+}
+
+fn rwrUU_35(A_36%U, m_37%U, n_38%U, B_39%U, __40%U, __41%U) {
+  
+  return __41;
+}
+
+fn rwrUL_42(A_43%U, m_44%U, n_45%U, B_46%U, __47%U, __48%U) {
+  
+  return __48;
+}
+
+fn rwrLU_49(A_50%U, m_51%U, n_52%U, B_53%U, __54%U, __55%U) {
+  
+  return __55;
+}
+
+fn rwrLL_56(A_57%U, m_58%U, n_59%U, B_60%U, __61%U, __62%U) {
+  
+  return __62;
+}
+
+fn sing_elimUU_63(A_64%U, x_65%U, __66%U) {
+  
+  return __66;
+}
+
+fn sing_elimUL_67(A_68%U, x_69%U, __70%U) {
+  
+  return __70;
+}
+
+fn sing_elimLU_71(A_72%U, x_73%U, __74%U) {
+  absurd;
+  return NULL;
+}
+
+fn sing_elimLL_75(A_76%U, x_77%U, __78%U) {
+  
+  return __78;
+}
+
+fn not_79(__80%U) {
+  match(__80){ true_4 => {
+                 x_81 := false_5;
+               }
+               false_5 => {
+                 x_81 := true_4;
+               }
+  }
+  return x_81;
+}
+
+fn and_82(__83%U, __84%U) {
+  match(__83){
+    true_4 => {
+      match(__84){
+        true_4 => {
+          x_86 := true_4;
+        }
+        false_5 => {
+          x_86 := false_5;
+        }
+      }
+      x_85 := x_86;
+    }
+    false_5 => {
+      x_85 := false_5;
+    }
+  }
+  return x_85;
+}
+
+fn or_87(__88%U, __89%U) {
+  match(__88){
+    true_4 => {
+      x_90 := true_4;
+    }
+    false_5 => {
+      match(__89){
+        true_4 => {
+          x_91 := true_4;
+        }
+        false_5 => {
+          x_91 := false_5;
+        }
+      }
+      x_90 := x_91;
+    }
+  }
+  return x_90;
+}
+
+fn xor_92(__93%U, __94%U) {
+  match(__93){
+    true_4 => {
+      match(__94){
+        true_4 => {
+          x_96 := false_5;
+        }
+        false_5 => {
+          x_96 := true_4;
+        }
+      }
+      x_95 := x_96;
+    }
+    false_5 => {
+      match(__94){
+        true_4 => {
+          x_97 := true_4;
+        }
+        false_5 => {
+          x_97 := false_5;
+        }
+      }
+      x_95 := x_97;
+    }
+  }
+  return x_95;
+}
+
+fn string_of_bool_98(__99%U) {
+  match(__99){
+    true_4 => {
+      x_101 := str("true");
+      x_100 := x_101;
+    }
+    false_5 => {
+      x_102 := str("false");
+      x_100 := x_102;
+    }
+  }
+  return x_100;
+}
+
+fn lte_103(__104%U, __105%U) {
+  match(__104){
+    zero_6 => {
+      x_106 := true_4;
+    }
+    _ => {
+      match[U](__104){
+        succ_7(n_108) => {
+          match(__105){
+            zero_6 => {
+              x_109 := false_5;
+            }
+            _ => {
+              match[U](__105){
+                succ_7(n_111) => {
+                  x_112 := lte_103(n_108, n_111);
+                  x_110 := x_112;
+                }
+              }
+              x_109 := x_110;
+            }
+          }
+          x_107 := x_109;
+        }
+      }
+      x_106 := x_107;
+    }
+  }
+  return x_106;
+}
+
+fn lt_113(x_114%U, y_115%U) {
+  x_117 := mkconstr(succ_7, [x_114]);
+  x_116 := lte_103(x_117, y_115);
+  return x_116;
+}
+
+fn pred_118(__119%U) {
+  match(__119){
+    zero_6 => {
+      x_120 := zero_6;
+    }
+    _ => {
+      match[U](__119){ succ_7(n_122) => {
+                         x_121 := n_122;
+                       } }
+      x_120 := x_121;
+    }
+  }
+  return x_120;
+}
+
+fn add_123(__124%U, __125%U) {
+  match(__124){
+    zero_6 => {
+      x_126 := __125;
+    }
+    _ => {
+      match[U](__124){
+        succ_7(n_128) => {
+          x_129 := add_123(n_128, __125);
+          x_130 := mkconstr(succ_7, [x_129]);
+          x_127 := x_130;
+        }
+      }
+      x_126 := x_127;
+    }
+  }
+  return x_126;
+}
+
+fn sub_131(__132%U, __133%U) {
+  match(__133){
+    zero_6 => {
+      x_134 := __132;
+    }
+    _ => {
+      match[U](__133){
+        succ_7(n_136) => {
+          x_138 := pred_118(__132);
+          x_137 := sub_131(x_138, n_136);
+          x_135 := x_137;
+        }
+      }
+      x_134 := x_135;
+    }
+  }
+  return x_134;
+}
+
+fn mul_139(__140%U, __141%U) {
+  match(__140){
+    zero_6 => {
+      x_142 := zero_6;
+    }
+    _ => {
+      match[U](__140){
+        succ_7(n_144) => {
+          x_146 := mul_139(n_144, __141);
+          x_145 := add_123(__141, x_146);
+          x_143 := x_145;
+        }
+      }
+      x_142 := x_143;
+    }
+  }
+  return x_142;
+}
+
+fn div_147(x_148%U, y_149%U) {
+  x_151 := lt_113(x_148, y_149);
+  match(x_151){
+    true_4 => {
+      x_150 := zero_6;
+    }
+    false_5 => {
+      x_153 :=
+        fn loop_154(x_155%U, y_156%U) {
+          x_159 := pred_118(y_156);
+          x_158 := sub_131(x_155, x_159);
+          match(x_158){
+            zero_6 => {
+              x_157 := zero_6;
+            }
+            _ => {
+              x_162 := pred_118(y_156);
+              x_161 := sub_131(x_155, x_162);
+              match[U](x_161){
+                succ_7(n_163) => {
+                  x_164 := loop_154(n_163, y_156);
+                  x_165 := mkconstr(succ_7, [x_164]);
+                  x_160 := x_165;
+                }
+              }
+              x_157 := x_160;
+            }
+          }
+          return x_157;
+        };
+      loop_152 := x_153;
+      x_166 := loop_152(x_148, y_149);
+      x_150 := x_166;
+    }
+  }
+  return x_150;
+}
+
+fn rem_167(x_168%U, y_169%U) {
+  x_172 := div_147(x_168, y_169);
+  x_171 := mul_139(x_172, y_169);
+  x_170 := sub_131(x_168, x_171);
+  return x_170;
+}
+
+fn rconsUU_173(A_174%U, __175%L, __176%L) {
+  match(__175){
+    nilUU_38 => {
+      x_178 := mkconstr(consUU_39, [__176, nilUU_38]);
+      x_177 := x_178;
+    }
+    _ => {
+      match[U](__175){
+        consUU_39(hd_180, tl_181) => {
+          x_182 := rconsUU_173(NULL, tl_181, __176);
+          x_183 := mkconstr(consUU_39, [hd_180, x_182]);
+          x_179 := x_183;
+        }
+      }
+      x_177 := x_179;
+    }
+  }
+  return x_177;
+}
+
+fn rconsUL_184(A_185%U, __186%L, __187%L) {
+  match(__186){
+    nilUL_36 => {
+      x_189 := mkconstr(consUL_37, [__187, nilUL_36]);
+      x_188 := x_189;
+    }
+    _ => {
+      match[L](__186){
+        consUL_37(hd_191, tl_192) => {
+          x_193 := rconsUL_184(NULL, tl_192, __187);
+          x_194 := mkconstr(consUL_37, [hd_191, x_193]);
+          x_190 := x_194;
+        }
+      }
+      x_188 := x_190;
+    }
+  }
+  return x_188;
+}
+
+fn rconsLL_195(A_196%U, __197%L, __198%L) {
+  match(__197){
+    nilLL_32 => {
+      x_200 := mkconstr(consLL_33, [__198, nilLL_32]);
+      x_199 := x_200;
+    }
+    _ => {
+      match[L](__197){
+        consLL_33(hd_202, tl_203) => {
+          x_204 := rconsLL_195(NULL, tl_203, __198);
+          x_205 := mkconstr(consLL_33, [hd_202, x_204]);
+          x_201 := x_205;
+        }
+      }
+      x_199 := x_201;
+    }
+  }
+  return x_199;
+}
+
+fn free_listUU_206(A_207%U, f_208%U, __209%U) {
+  match(__209){
+    nilUU_38 => {
+      x_210 := ttU_27;
+    }
+    _ => {
+      match[U](__209){
+        consUU_39(hd_212, tl_213) => {
+          x_215 := f_208(hd_212);
+          __214 := x_215;
+          x_216 := free_listUU_206(NULL, f_208, tl_213);
+          x_211 := x_216;
+        }
+      }
+      x_210 := x_211;
+    }
+  }
+  return x_210;
+}
+
+fn free_listUL_217(A_218%U, f_219%U, __220%U) {
+  match(__220){
+    nilUL_36 => {
+      x_221 := ttU_27;
+    }
+    _ => {
+      match[L](__220){
+        consUL_37(hd_223, tl_224) => {
+          x_226 := f_219(hd_223);
+          __225 := x_226;
+          x_227 := free_listUL_217(NULL, f_219, tl_224);
+          x_222 := x_227;
+        }
+      }
+      x_221 := x_222;
+    }
+  }
+  return x_221;
+}
+
+fn free_listLL_228(A_229%U, f_230%U, __231%U) {
+  match(__231){
+    nilLL_32 => {
+      x_232 := ttU_27;
+    }
+    _ => {
+      match[L](__231){
+        consLL_33(hd_234, tl_235) => {
+          x_237 := f_230(hd_234);
+          __236 := x_237;
+          x_238 := free_listLL_228(NULL, f_230, tl_235);
+          x_233 := x_238;
+        }
+      }
+      x_232 := x_233;
+    }
+  }
+  return x_232;
+}
+
+fn pow_239(x_240%U, y_241%U) {
+  x_243 :=
+    fn loop_244(acc_245%U, y_246%U) {
+      x_248 := lte(y_246, 0);
+      match(x_248){
+        true_4 => {
+          x_247 := acc_245;
+        }
+        false_5 => {
+          x_250 := mul(x_240, acc_245);
+          x_251 := sub(y_246, 1);
+          x_249 := loop_244(x_250, x_251);
+          x_247 := x_249;
+        }
+      }
+      return x_247;
+    };
+  loop_242 := x_243;
+  x_252 := loop_242(1, y_241);
+  return x_252;
+}
+
+fn powm_253(x_254%U, y_255%U, m_256%U) {
+  x_258 :=
+    fn loop_259(acc_260%U, y_261%U) {
+      x_263 := lte(y_261, 0);
+      match(x_263){
+        true_4 => {
+          x_262 := acc_260;
+        }
+        false_5 => {
+          x_266 := mul(x_254, acc_260);
+          x_265 := mod(x_266, m_256);
+          x_267 := sub(y_261, 1);
+          x_264 := loop_259(x_265, x_267);
+          x_262 := x_264;
+        }
+      }
+      return x_262;
+    };
+  loop_257 := x_258;
+  x_268 := loop_257(1, y_255);
+  return x_268;
+}
+
+fn ord_269(c_270%U) {
+  x_271 := ord(c_270);
+  return x_271;
+}
+
+fn chr_272(i_273%U) {
+  x_274 := chr(i_273);
+  return x_274;
+}
+
+fn str_275(c_276%U) {
+  x_278 := str("");
+  x_277 := push(x_278, c_276);
+  return x_277;
+}
+
+fn strlen_279(s_280%U) {
+  x_281 := size(s_280);
+  return x_281;
+}
+
+fn string_of_int_282(i_283%U) {
+  x_285 :=
+    fn aux_286(i_287%U) {
+      x_289 := lte(10, i_287);
+      match(x_289){
+        true_4 => {
+          x_291 := mod(i_287, 10);
+          r_290 := x_291;
+          x_293 := div(i_287, 10);
+          i_292 := x_293;
+          x_295 := aux_286(i_292);
+          x_298 := ord_269(0);
+          x_297 := add(r_290, x_298);
+          x_296 := chr_272(x_297);
+          x_294 := push(x_295, x_296);
+          x_288 := x_294;
+        }
+        false_5 => {
+          x_302 := ord_269(0);
+          x_301 := add(i_287, x_302);
+          x_300 := chr_272(x_301);
+          x_299 := str_275(x_300);
+          x_288 := x_299;
+        }
+      }
+      return x_288;
+    };
+  aux_284 := x_285;
+  x_304 := lte(0, i_283);
+  match(x_304){
+    true_4 => {
+      x_305 := aux_284(i_283);
+      x_303 := x_305;
+    }
+    false_5 => {
+      x_307 := str("~");
+      x_309 := neg(i_283);
+      x_308 := aux_284(x_309);
+      x_306 := cat(x_307, x_308);
+      x_303 := x_306;
+    }
+  }
+  return x_303;
+}
+
+fn sing_elimUU_310(A_311%U, x_312%U, __313%U) {
+  
+  return __313;
+}
+
+fn sing_elimUL_314(A_315%U, x_316%U, __317%U) {
+  
+  return __317;
+}
+
+fn sing_elimLU_318(A_319%U, x_320%U, __321%U) {
+  absurd;
+  return NULL;
+}
+
+fn sing_elimLL_322(A_323%U, x_324%U, __325%U) {
+  
+  return __325;
+}
+
+fn free_streamU_326(A_327%U, st_328%U) {
+  x_330 := st_328(free_17);
+  match(x_330){ ttL_26 => {
+                  x_329 := ttU_27;
+                } }
+  return x_329;
+}
+
+fn free_streamL_331(A_332%U, st_333%U) {
+  x_335 := st_333(free_17);
+  match(x_335){ ttL_26 => {
+                  x_334 := ttU_27;
+                } }
+  return x_334;
+}
+
+fn uncons_streamU_336(A_337%U, st_338%U) {
+  x_340 := st_338(next_16);
+  match[L](x_340){
+    stream_consU_55(hd_341, tl_342) => {
+      x_343 := mkconstr(ex1UL_50, [hd_341, tl_342]);
+      x_339 := x_343;
+    }
+  }
+  return x_339;
+}
+
+fn uncons_streamL_344(A_345%U, st_346%U) {
+  x_348 := st_346(next_16);
+  match[L](x_348){
+    stream_consL_54(hd_349, tl_350) => {
+      x_351 := mkconstr(ex1LL_48, [hd_349, tl_350]);
+      x_347 := x_351;
+    }
+  }
+  return x_347;
+}
+
+fn nat_make_352(n_353%U, x_354%L) {
+  match(x_354){
+    next_16 => {
+      x_357 := mkconstr(succ_7, [n_353]);
+      x_356 := nat_make_352(x_357);
+      x_358 := mkconstr(stream_consU_55, [n_353, x_356]);
+      x_355 := x_358;
+    }
+    free_17 => {
+      x_355 := ttL_26;
+    }
+  }
+  return x_355;
+}
+
+fn proj1UUU_359(A_360%U, B_361%U, __362%U) {
+  x_364 := __362(true_4);
+  x_363 := sing_elimUL_314(NULL, NULL, x_364);
+  return x_363;
+}
+
+fn proj1UUL_365(A_366%U, B_367%U, __368%U) {
+  x_370 := __368(true_4);
+  x_369 := sing_elimUL_314(NULL, NULL, x_370);
+  return x_369;
+}
+
+fn proj1ULU_371(A_372%U, B_373%U, __374%U) {
+  x_376 := __374(true_4);
+  x_375 := sing_elimUL_314(NULL, NULL, x_376);
+  return x_375;
+}
+
+fn proj1ULL_377(A_378%U, B_379%U, __380%U) {
+  x_382 := __380(true_4);
+  x_381 := sing_elimUL_314(NULL, NULL, x_382);
+  return x_381;
+}
+
+fn proj1LUU_383(A_384%U, B_385%U, __386%U) {
+  x_388 := __386(true_4);
+  x_387 := sing_elimLL_322(NULL, NULL, x_388);
+  return x_387;
+}
+
+fn proj1LUL_389(A_390%U, B_391%U, __392%U) {
+  x_394 := __392(true_4);
+  x_393 := sing_elimLL_322(NULL, NULL, x_394);
+  return x_393;
+}
+
+fn proj1LLU_395(A_396%U, B_397%U, __398%U) {
+  x_400 := __398(true_4);
+  x_399 := sing_elimLL_322(NULL, NULL, x_400);
+  return x_399;
+}
+
+fn proj1LLL_401(A_402%U, B_403%U, __404%U) {
+  x_406 := __404(true_4);
+  x_405 := sing_elimLL_322(NULL, NULL, x_406);
+  return x_405;
+}
+
+fn proj2UUU_407(A_408%U, B_409%U, x_410%U) {
+  x_411 := x_410(false_5);
+  return x_411;
+}
+
+fn proj2UUL_412(A_413%U, B_414%U, x_415%U) {
+  x_416 := x_415(false_5);
+  return x_416;
+}
+
+fn proj2ULU_417(A_418%U, B_419%U, x_420%U) {
+  x_421 := x_420(false_5);
+  return x_421;
+}
+
+fn proj2ULL_422(A_423%U, B_424%U, x_425%U) {
+  x_426 := x_425(false_5);
+  return x_426;
+}
+
+fn proj2LUU_427(A_428%U, B_429%U, x_430%U) {
+  x_431 := x_430(false_5);
+  return x_431;
+}
+
+fn proj2LUL_432(A_433%U, B_434%U, x_435%U) {
+  x_436 := x_435(false_5);
+  return x_436;
+}
+
+fn proj2LLU_437(A_438%U, B_439%U, x_440%U) {
+  x_441 := x_440(false_5);
+  return x_441;
+}
+
+fn proj2LLL_442(A_443%U, B_444%U, x_445%U) {
+  x_446 := x_445(false_5);
+  return x_446;
+}
+
+fn my_apair0_447(b_448%U) {
+  match(b_448){
+    true_4 => {
+      x_449 := zero_6;
+    }
+    false_5 => {
+      x_450 := nat_make_352(zero_6);
+      x_449 := x_450;
+    }
+  }
+  return x_449;
+}
+
+my_apair1_451 := {
+  x_453 := nat_make_352(zero_6);
+  nat_stream_452 := x_453;
+  x_454 :=
+    fn lam_455(b_456%L) {
+      match(b_456){
+        true_4 => {
+          x_459 := uncons_streamU_336(NULL, nat_stream_452);
+          match[L](x_459){
+            ex1UL_50(m_460, n_461) => {
+              x_463 := free_streamU_326(NULL, n_461);
+              __462 := x_463;
+              x_458 := m_460;
+            }
+          }
+          x_457 := x_458;
+        }
+        false_5 => {
+          x_457 := nat_stream_452;
+        }
+      }
+      return x_457;
+    };
+  return x_454;
+};
+
+__464 := {
+  x_466 := proj2ULL_422(NULL, NULL, my_apair1_451);
+  x_465 := free_streamU_326(NULL, x_466);
+  return x_465;
+};
+
+[trans34 success]
+
+-----------------------------------------
+
+fn idU_1(A_2%U, m_3%U) {
+  
+  return m_3;
+}
+
+fn idL_4(A_5%U, m_6%U) {
+  
+  return m_6;
+}
+
+fn rwlUU_7(A_8%U, m_9%U, n_10%U, B_11%U, __12%U, __13%U) {
+  
+  return __13;
+}
+
+fn rwlUL_14(A_15%U, m_16%U, n_17%U, B_18%U, __19%U, __20%U) {
+  
+  return __20;
+}
+
+fn rwlLU_21(A_22%U, m_23%U, n_24%U, B_25%U, __26%U, __27%U) {
+  
+  return __27;
+}
+
+fn rwlLL_28(A_29%U, m_30%U, n_31%U, B_32%U, __33%U, __34%U) {
+  
+  return __34;
+}
+
+fn rwrUU_35(A_36%U, m_37%U, n_38%U, B_39%U, __40%U, __41%U) {
+  
+  return __41;
+}
+
+fn rwrUL_42(A_43%U, m_44%U, n_45%U, B_46%U, __47%U, __48%U) {
+  
+  return __48;
+}
+
+fn rwrLU_49(A_50%U, m_51%U, n_52%U, B_53%U, __54%U, __55%U) {
+  
+  return __55;
+}
+
+fn rwrLL_56(A_57%U, m_58%U, n_59%U, B_60%U, __61%U, __62%U) {
+  
+  return __62;
+}
+
+fn sing_elimUU_63(A_64%U, x_65%U, __66%U) {
+  
+  return __66;
+}
+
+fn sing_elimUL_67(A_68%U, x_69%U, __70%U) {
+  
+  return __70;
+}
+
+fn sing_elimLU_71(A_72%U, x_73%U, __74%U) {
+  absurd;
+  return NULL;
+}
+
+fn sing_elimLL_75(A_76%U, x_77%U, __78%U) {
+  
+  return __78;
+}
+
+fn not_79(__80%U) {
+  match(__80){ true_4 => {
+                 x_81 := false_5;
+               }
+               false_5 => {
+                 x_81 := true_4;
+               }
+  }
+  return x_81;
+}
+
+fn and_82(__83%U, __84%U) {
+  match(__83){
+    true_4 => {
+      match(__84){
+        true_4 => {
+          x_86 := true_4;
+        }
+        false_5 => {
+          x_86 := false_5;
+        }
+      }
+      x_85 := x_86;
+    }
+    false_5 => {
+      x_85 := false_5;
+    }
+  }
+  return x_85;
+}
+
+fn or_87(__88%U, __89%U) {
+  match(__88){
+    true_4 => {
+      x_90 := true_4;
+    }
+    false_5 => {
+      match(__89){
+        true_4 => {
+          x_91 := true_4;
+        }
+        false_5 => {
+          x_91 := false_5;
+        }
+      }
+      x_90 := x_91;
+    }
+  }
+  return x_90;
+}
+
+fn xor_92(__93%U, __94%U) {
+  match(__93){
+    true_4 => {
+      match(__94){
+        true_4 => {
+          x_96 := false_5;
+        }
+        false_5 => {
+          x_96 := true_4;
+        }
+      }
+      x_95 := x_96;
+    }
+    false_5 => {
+      match(__94){
+        true_4 => {
+          x_97 := true_4;
+        }
+        false_5 => {
+          x_97 := false_5;
+        }
+      }
+      x_95 := x_97;
+    }
+  }
+  return x_95;
+}
+
+fn string_of_bool_98(__99%U) {
+  match(__99){
+    true_4 => {
+      x_101 := str("true");
+      x_100 := x_101;
+    }
+    false_5 => {
+      x_102 := str("false");
+      x_100 := x_102;
+    }
+  }
+  return x_100;
+}
+
+fn lte_103(__104%U, __105%U) {
+  match(__104){
+    zero_6 => {
+      x_106 := true_4;
+    }
+    _ => {
+      match[U](__104){
+        succ_7(n_108) => {
+          match(__105){
+            zero_6 => {
+              x_109 := false_5;
+            }
+            _ => {
+              match[U](__105){
+                succ_7(n_111) => {
+                  x_112 := lte_103(n_108, n_111);
+                  x_110 := x_112;
+                }
+              }
+              x_109 := x_110;
+            }
+          }
+          x_107 := x_109;
+        }
+      }
+      x_106 := x_107;
+    }
+  }
+  return x_106;
+}
+
+fn lt_113(x_114%U, y_115%U) {
+  x_117 := mkconstr(succ_7, [x_114]);
+  x_116 := lte_103(x_117, y_115);
+  return x_116;
+}
+
+fn pred_118(__119%U) {
+  match(__119){
+    zero_6 => {
+      x_120 := zero_6;
+    }
+    _ => {
+      match[U](__119){ succ_7(n_122) => {
+                         x_121 := n_122;
+                       } }
+      x_120 := x_121;
+    }
+  }
+  return x_120;
+}
+
+fn add_123(__124%U, __125%U) {
+  match(__124){
+    zero_6 => {
+      x_126 := __125;
+    }
+    _ => {
+      match[U](__124){
+        succ_7(n_128) => {
+          x_129 := add_123(n_128, __125);
+          x_130 := mkconstr(succ_7, [x_129]);
+          x_127 := x_130;
+        }
+      }
+      x_126 := x_127;
+    }
+  }
+  return x_126;
+}
+
+fn sub_131(__132%U, __133%U) {
+  match(__133){
+    zero_6 => {
+      x_134 := __132;
+    }
+    _ => {
+      match[U](__133){
+        succ_7(n_136) => {
+          x_138 := pred_118(__132);
+          x_137 := sub_131(x_138, n_136);
+          x_135 := x_137;
+        }
+      }
+      x_134 := x_135;
+    }
+  }
+  return x_134;
+}
+
+fn mul_139(__140%U, __141%U) {
+  match(__140){
+    zero_6 => {
+      x_142 := zero_6;
+    }
+    _ => {
+      match[U](__140){
+        succ_7(n_144) => {
+          x_146 := mul_139(n_144, __141);
+          x_145 := add_123(__141, x_146);
+          x_143 := x_145;
+        }
+      }
+      x_142 := x_143;
+    }
+  }
+  return x_142;
+}
+
+fn div_147(x_148%U, y_149%U) {
+  x_151 := lt_113(x_148, y_149);
+  match(x_151){
+    true_4 => {
+      x_150 := zero_6;
+    }
+    false_5 => {
+      x_153 :=
+        fn loop_154(x_155%U, y_156%U) {
+          x_159 := pred_118(y_156);
+          x_158 := sub_131(x_155, x_159);
+          match(x_158){
+            zero_6 => {
+              x_157 := zero_6;
+            }
+            _ => {
+              x_162 := pred_118(y_156);
+              x_161 := sub_131(x_155, x_162);
+              match[U](x_161){
+                succ_7(n_163) => {
+                  x_164 := loop_154(n_163, y_156);
+                  x_165 := mkconstr(succ_7, [x_164]);
+                  x_160 := x_165;
+                }
+              }
+              x_157 := x_160;
+            }
+          }
+          return x_157;
+        };
+      loop_152 := x_153;
+      x_166 := loop_152(x_148, y_149);
+      x_150 := x_166;
+    }
+  }
+  return x_150;
+}
+
+fn rem_167(x_168%U, y_169%U) {
+  x_172 := div_147(x_168, y_169);
+  x_171 := mul_139(x_172, y_169);
+  x_170 := sub_131(x_168, x_171);
+  return x_170;
+}
+
+fn rconsUU_173(A_174%U, __175%L, __176%L) {
+  match(__175){
+    nilUU_38 => {
+      x_178 := mkconstr(consUU_39, [__176, nilUU_38]);
+      x_177 := x_178;
+    }
+    _ => {
+      match[U](__175){
+        consUU_39(hd_180, tl_181) => {
+          x_182 := rconsUU_173(NULL, tl_181, __176);
+          x_183 := mkconstr(consUU_39, [hd_180, x_182]);
+          x_179 := x_183;
+        }
+      }
+      x_177 := x_179;
+    }
+  }
+  return x_177;
+}
+
+fn rconsUL_184(A_185%U, __186%L, __187%L) {
+  match(__186){
+    nilUL_36 => {
+      x_189 := mkconstr(consUL_37, [__187, nilUL_36]);
+      x_188 := x_189;
+    }
+    _ => {
+      match[L](__186){
+        consUL_37(hd_191, tl_192) => {
+          x_193 := rconsUL_184(NULL, tl_192, __187);
+          x_194 := reconstr(__186, consUL_37, [hd_191, x_193]);
+          x_190 := x_194;
+        }
+      }
+      x_188 := x_190;
+    }
+  }
+  return x_188;
+}
+
+fn rconsLL_195(A_196%U, __197%L, __198%L) {
+  match(__197){
+    nilLL_32 => {
+      x_200 := mkconstr(consLL_33, [__198, nilLL_32]);
+      x_199 := x_200;
+    }
+    _ => {
+      match[L](__197){
+        consLL_33(hd_202, tl_203) => {
+          x_204 := rconsLL_195(NULL, tl_203, __198);
+          x_205 := reconstr(__197, consLL_33, [hd_202, x_204]);
+          x_201 := x_205;
+        }
+      }
+      x_199 := x_201;
+    }
+  }
+  return x_199;
+}
+
+fn free_listUU_206(A_207%U, f_208%U, __209%U) {
+  match(__209){
+    nilUU_38 => {
+      x_210 := ttU_27;
+    }
+    _ => {
+      match[U](__209){
+        consUU_39(hd_212, tl_213) => {
+          x_215 := f_208(hd_212);
+          __214 := x_215;
+          x_216 := free_listUU_206(NULL, f_208, tl_213);
+          x_211 := x_216;
+        }
+      }
+      x_210 := x_211;
+    }
+  }
+  return x_210;
+}
+
+fn free_listUL_217(A_218%U, f_219%U, __220%U) {
+  match(__220){
+    nilUL_36 => {
+      x_221 := ttU_27;
+    }
+    _ => {
+      match[L](__220){
+        consUL_37(hd_223, tl_224) => {
+          x_226 := f_219(hd_223);
+          __225 := x_226;
+          x_227 := free_listUL_217(NULL, f_219, tl_224);
+          x_222 := x_227;
+          free(__220);
+        }
+      }
+      x_221 := x_222;
+    }
+  }
+  return x_221;
+}
+
+fn free_listLL_228(A_229%U, f_230%U, __231%U) {
+  match(__231){
+    nilLL_32 => {
+      x_232 := ttU_27;
+    }
+    _ => {
+      match[L](__231){
+        consLL_33(hd_234, tl_235) => {
+          x_237 := f_230(hd_234);
+          __236 := x_237;
+          x_238 := free_listLL_228(NULL, f_230, tl_235);
+          x_233 := x_238;
+          free(__231);
+        }
+      }
+      x_232 := x_233;
+    }
+  }
+  return x_232;
+}
+
+fn pow_239(x_240%U, y_241%U) {
+  x_243 :=
+    fn loop_244(acc_245%U, y_246%U) {
+      x_248 := lte(y_246, 0);
+      match(x_248){
+        true_4 => {
+          x_247 := acc_245;
+        }
+        false_5 => {
+          x_250 := mul(x_240, acc_245);
+          x_251 := sub(y_246, 1);
+          x_249 := loop_244(x_250, x_251);
+          x_247 := x_249;
+        }
+      }
+      return x_247;
+    };
+  loop_242 := x_243;
+  x_252 := loop_242(1, y_241);
+  return x_252;
+}
+
+fn powm_253(x_254%U, y_255%U, m_256%U) {
+  x_258 :=
+    fn loop_259(acc_260%U, y_261%U) {
+      x_263 := lte(y_261, 0);
+      match(x_263){
+        true_4 => {
+          x_262 := acc_260;
+        }
+        false_5 => {
+          x_266 := mul(x_254, acc_260);
+          x_265 := mod(x_266, m_256);
+          x_267 := sub(y_261, 1);
+          x_264 := loop_259(x_265, x_267);
+          x_262 := x_264;
+        }
+      }
+      return x_262;
+    };
+  loop_257 := x_258;
+  x_268 := loop_257(1, y_255);
+  return x_268;
+}
+
+fn ord_269(c_270%U) {
+  x_271 := ord(c_270);
+  return x_271;
+}
+
+fn chr_272(i_273%U) {
+  x_274 := chr(i_273);
+  return x_274;
+}
+
+fn str_275(c_276%U) {
+  x_278 := str("");
+  x_277 := push(x_278, c_276);
+  return x_277;
+}
+
+fn strlen_279(s_280%U) {
+  x_281 := size(s_280);
+  return x_281;
+}
+
+fn string_of_int_282(i_283%U) {
+  x_285 :=
+    fn aux_286(i_287%U) {
+      x_289 := lte(10, i_287);
+      match(x_289){
+        true_4 => {
+          x_291 := mod(i_287, 10);
+          r_290 := x_291;
+          x_293 := div(i_287, 10);
+          i_292 := x_293;
+          x_295 := aux_286(i_292);
+          x_298 := ord_269(0);
+          x_297 := add(r_290, x_298);
+          x_296 := chr_272(x_297);
+          x_294 := push(x_295, x_296);
+          x_288 := x_294;
+        }
+        false_5 => {
+          x_302 := ord_269(0);
+          x_301 := add(i_287, x_302);
+          x_300 := chr_272(x_301);
+          x_299 := str_275(x_300);
+          x_288 := x_299;
+        }
+      }
+      return x_288;
+    };
+  aux_284 := x_285;
+  x_304 := lte(0, i_283);
+  match(x_304){
+    true_4 => {
+      x_305 := aux_284(i_283);
+      x_303 := x_305;
+    }
+    false_5 => {
+      x_307 := str("~");
+      x_309 := neg(i_283);
+      x_308 := aux_284(x_309);
+      x_306 := cat(x_307, x_308);
+      x_303 := x_306;
+    }
+  }
+  return x_303;
+}
+
+fn sing_elimUU_310(A_311%U, x_312%U, __313%U) {
+  
+  return __313;
+}
+
+fn sing_elimUL_314(A_315%U, x_316%U, __317%U) {
+  
+  return __317;
+}
+
+fn sing_elimLU_318(A_319%U, x_320%U, __321%U) {
+  absurd;
+  return NULL;
+}
+
+fn sing_elimLL_322(A_323%U, x_324%U, __325%U) {
+  
+  return __325;
+}
+
+fn free_streamU_326(A_327%U, st_328%U) {
+  x_330 := st_328(free_17);
+  match(x_330){ ttL_26 => {
+                  x_329 := ttU_27;
+                } }
+  return x_329;
+}
+
+fn free_streamL_331(A_332%U, st_333%U) {
+  x_335 := st_333(free_17);
+  match(x_335){ ttL_26 => {
+                  x_334 := ttU_27;
+                } }
+  return x_334;
+}
+
+fn uncons_streamU_336(A_337%U, st_338%U) {
+  x_340 := st_338(next_16);
+  match[L](x_340){
+    stream_consU_55(hd_341, tl_342) => {
+      x_343 := reconstr(x_340, ex1UL_50, [hd_341, tl_342]);
+      x_339 := x_343;
+    }
+  }
+  return x_339;
+}
+
+fn uncons_streamL_344(A_345%U, st_346%U) {
+  x_348 := st_346(next_16);
+  match[L](x_348){
+    stream_consL_54(hd_349, tl_350) => {
+      x_351 := reconstr(x_348, ex1LL_48, [hd_349, tl_350]);
+      x_347 := x_351;
+    }
+  }
+  return x_347;
+}
+
+fn nat_make_352(n_353%U, x_354%L) {
+  match(x_354){
+    next_16 => {
+      x_357 := mkconstr(succ_7, [n_353]);
+      x_356 := nat_make_352(x_357);
+      x_358 := mkconstr(stream_consU_55, [n_353, x_356]);
+      x_355 := x_358;
+    }
+    free_17 => {
+      x_355 := ttL_26;
+    }
+  }
+  return x_355;
+}
+
+fn proj1UUU_359(A_360%U, B_361%U, __362%U) {
+  x_364 := __362(true_4);
+  x_363 := sing_elimUL_314(NULL, NULL, x_364);
+  return x_363;
+}
+
+fn proj1UUL_365(A_366%U, B_367%U, __368%U) {
+  x_370 := __368(true_4);
+  x_369 := sing_elimUL_314(NULL, NULL, x_370);
+  return x_369;
+}
+
+fn proj1ULU_371(A_372%U, B_373%U, __374%U) {
+  x_376 := __374(true_4);
+  x_375 := sing_elimUL_314(NULL, NULL, x_376);
+  return x_375;
+}
+
+fn proj1ULL_377(A_378%U, B_379%U, __380%U) {
+  x_382 := __380(true_4);
+  x_381 := sing_elimUL_314(NULL, NULL, x_382);
+  return x_381;
+}
+
+fn proj1LUU_383(A_384%U, B_385%U, __386%U) {
+  x_388 := __386(true_4);
+  x_387 := sing_elimLL_322(NULL, NULL, x_388);
+  return x_387;
+}
+
+fn proj1LUL_389(A_390%U, B_391%U, __392%U) {
+  x_394 := __392(true_4);
+  x_393 := sing_elimLL_322(NULL, NULL, x_394);
+  return x_393;
+}
+
+fn proj1LLU_395(A_396%U, B_397%U, __398%U) {
+  x_400 := __398(true_4);
+  x_399 := sing_elimLL_322(NULL, NULL, x_400);
+  return x_399;
+}
+
+fn proj1LLL_401(A_402%U, B_403%U, __404%U) {
+  x_406 := __404(true_4);
+  x_405 := sing_elimLL_322(NULL, NULL, x_406);
+  return x_405;
+}
+
+fn proj2UUU_407(A_408%U, B_409%U, x_410%U) {
+  x_411 := x_410(false_5);
+  return x_411;
+}
+
+fn proj2UUL_412(A_413%U, B_414%U, x_415%U) {
+  x_416 := x_415(false_5);
+  return x_416;
+}
+
+fn proj2ULU_417(A_418%U, B_419%U, x_420%U) {
+  x_421 := x_420(false_5);
+  return x_421;
+}
+
+fn proj2ULL_422(A_423%U, B_424%U, x_425%U) {
+  x_426 := x_425(false_5);
+  return x_426;
+}
+
+fn proj2LUU_427(A_428%U, B_429%U, x_430%U) {
+  x_431 := x_430(false_5);
+  return x_431;
+}
+
+fn proj2LUL_432(A_433%U, B_434%U, x_435%U) {
+  x_436 := x_435(false_5);
+  return x_436;
+}
+
+fn proj2LLU_437(A_438%U, B_439%U, x_440%U) {
+  x_441 := x_440(false_5);
+  return x_441;
+}
+
+fn proj2LLL_442(A_443%U, B_444%U, x_445%U) {
+  x_446 := x_445(false_5);
+  return x_446;
+}
+
+fn my_apair0_447(b_448%U) {
+  match(b_448){
+    true_4 => {
+      x_449 := zero_6;
+    }
+    false_5 => {
+      x_450 := nat_make_352(zero_6);
+      x_449 := x_450;
+    }
+  }
+  return x_449;
+}
+
+my_apair1_451 := {
+  x_453 := nat_make_352(zero_6);
+  nat_stream_452 := x_453;
+  x_454 :=
+    fn lam_455(b_456%L) {
+      match(b_456){
+        true_4 => {
+          x_459 := uncons_streamU_336(NULL, nat_stream_452);
+          match[L](x_459){
+            ex1UL_50(m_460, n_461) => {
+              x_463 := free_streamU_326(NULL, n_461);
+              __462 := x_463;
+              x_458 := m_460;
+              free(x_459);
+            }
+          }
+          x_457 := x_458;
+        }
+        false_5 => {
+          x_457 := nat_stream_452;
+        }
+      }
+      return x_457;
+    };
+  return x_454;
+};
+
+__464 := {
+  x_466 := proj2ULL_422(NULL, NULL, my_apair1_451);
+  x_465 := free_streamU_326(NULL, x_466);
+  return x_465;
+};
+
+[trans4e success]
+
+-----------------------------------------
+
+fn fn0_idU_467(A_2, m_3) {
+  
+  return m_3;
+}
+
+fn fn1_idU_468(env) {
+  A_2 := env[1];
+  m_3 := env[2];
+  x_469 := fn0_idU_467(A_2, m_3);
+  return x_469;
+}
+
+fn fn0_idL_470(A_5, m_6) {
+  
+  return m_6;
+}
+
+fn fn1_idL_471(env) {
+  A_5 := env[1];
+  m_6 := env[2];
+  x_472 := fn0_idL_470(A_5, m_6);
+  return x_472;
+}
+
+fn fn0_rwlUU_473(A_8, m_9, n_10, B_11, __12, __13) {
+  
+  return __13;
+}
+
+fn fn1_rwlUU_474(env) {
+  A_8 := env[1];
+  m_9 := env[2];
+  n_10 := env[3];
+  B_11 := env[4];
+  __12 := env[5];
+  __13 := env[6];
+  x_475 := fn0_rwlUU_473(A_8, m_9, n_10, B_11, __12, __13);
+  return x_475;
+}
+
+fn fn0_rwlUL_476(A_15, m_16, n_17, B_18, __19, __20) {
+  
+  return __20;
+}
+
+fn fn1_rwlUL_477(env) {
+  A_15 := env[1];
+  m_16 := env[2];
+  n_17 := env[3];
+  B_18 := env[4];
+  __19 := env[5];
+  __20 := env[6];
+  x_478 := fn0_rwlUL_476(A_15, m_16, n_17, B_18, __19, __20);
+  return x_478;
+}
+
+fn fn0_rwlLU_479(A_22, m_23, n_24, B_25, __26, __27) {
+  
+  return __27;
+}
+
+fn fn1_rwlLU_480(env) {
+  A_22 := env[1];
+  m_23 := env[2];
+  n_24 := env[3];
+  B_25 := env[4];
+  __26 := env[5];
+  __27 := env[6];
+  x_481 := fn0_rwlLU_479(A_22, m_23, n_24, B_25, __26, __27);
+  return x_481;
+}
+
+fn fn0_rwlLL_482(A_29, m_30, n_31, B_32, __33, __34) {
+  
+  return __34;
+}
+
+fn fn1_rwlLL_483(env) {
+  A_29 := env[1];
+  m_30 := env[2];
+  n_31 := env[3];
+  B_32 := env[4];
+  __33 := env[5];
+  __34 := env[6];
+  x_484 := fn0_rwlLL_482(A_29, m_30, n_31, B_32, __33, __34);
+  return x_484;
+}
+
+fn fn0_rwrUU_485(A_36, m_37, n_38, B_39, __40, __41) {
+  
+  return __41;
+}
+
+fn fn1_rwrUU_486(env) {
+  A_36 := env[1];
+  m_37 := env[2];
+  n_38 := env[3];
+  B_39 := env[4];
+  __40 := env[5];
+  __41 := env[6];
+  x_487 := fn0_rwrUU_485(A_36, m_37, n_38, B_39, __40, __41);
+  return x_487;
+}
+
+fn fn0_rwrUL_488(A_43, m_44, n_45, B_46, __47, __48) {
+  
+  return __48;
+}
+
+fn fn1_rwrUL_489(env) {
+  A_43 := env[1];
+  m_44 := env[2];
+  n_45 := env[3];
+  B_46 := env[4];
+  __47 := env[5];
+  __48 := env[6];
+  x_490 := fn0_rwrUL_488(A_43, m_44, n_45, B_46, __47, __48);
+  return x_490;
+}
+
+fn fn0_rwrLU_491(A_50, m_51, n_52, B_53, __54, __55) {
+  
+  return __55;
+}
+
+fn fn1_rwrLU_492(env) {
+  A_50 := env[1];
+  m_51 := env[2];
+  n_52 := env[3];
+  B_53 := env[4];
+  __54 := env[5];
+  __55 := env[6];
+  x_493 := fn0_rwrLU_491(A_50, m_51, n_52, B_53, __54, __55);
+  return x_493;
+}
+
+fn fn0_rwrLL_494(A_57, m_58, n_59, B_60, __61, __62) {
+  
+  return __62;
+}
+
+fn fn1_rwrLL_495(env) {
+  A_57 := env[1];
+  m_58 := env[2];
+  n_59 := env[3];
+  B_60 := env[4];
+  __61 := env[5];
+  __62 := env[6];
+  x_496 := fn0_rwrLL_494(A_57, m_58, n_59, B_60, __61, __62);
+  return x_496;
+}
+
+fn fn0_sing_elimUU_497(A_64, x_65, __66) {
+  
+  return __66;
+}
+
+fn fn1_sing_elimUU_498(env) {
+  A_64 := env[1];
+  x_65 := env[2];
+  __66 := env[3];
+  x_499 := fn0_sing_elimUU_497(A_64, x_65, __66);
+  return x_499;
+}
+
+fn fn0_sing_elimUL_500(A_68, x_69, __70) {
+  
+  return __70;
+}
+
+fn fn1_sing_elimUL_501(env) {
+  A_68 := env[1];
+  x_69 := env[2];
+  __70 := env[3];
+  x_502 := fn0_sing_elimUL_500(A_68, x_69, __70);
+  return x_502;
+}
+
+fn fn0_sing_elimLU_503(A_72, x_73, __74) {
+  absurd;
+  return NULL;
+}
+
+fn fn1_sing_elimLU_504(env) {
+  A_72 := env[1];
+  x_73 := env[2];
+  __74 := env[3];
+  x_505 := fn0_sing_elimLU_503(A_72, x_73, __74);
+  return x_505;
+}
+
+fn fn0_sing_elimLL_506(A_76, x_77, __78) {
+  
+  return __78;
+}
+
+fn fn1_sing_elimLL_507(env) {
+  A_76 := env[1];
+  x_77 := env[2];
+  __78 := env[3];
+  x_508 := fn0_sing_elimLL_506(A_76, x_77, __78);
+  return x_508;
+}
+
+fn fn0_not_509(__80) {
+  switch(__80){
+    true_4 => {
+      move1(x_81, false_5);
+      break;
+    }
+    false_5 => {
+      move1(x_81, true_4);
+      break;
+    }
+  }
+  return x_81;
+}
+
+fn fn1_not_510(env) {
+  __80 := env[1];
+  x_511 := fn0_not_509(__80);
+  return x_511;
+}
+
+fn fn0_and_512(__83, __84) {
+  switch(__83){
+    true_4 => {
+      switch(__84){
+        true_4 => {
+          move1(x_86, true_4);
+          break;
+        }
+        false_5 => {
+          move1(x_86, false_5);
+          break;
+        }
+      }
+      move1(x_85, x_86);
+      break;
+    }
+    false_5 => {
+      move1(x_85, false_5);
+      break;
+    }
+  }
+  return x_85;
+}
+
+fn fn1_and_513(env) {
+  __83 := env[1];
+  __84 := env[2];
+  x_514 := fn0_and_512(__83, __84);
+  return x_514;
+}
+
+fn fn0_or_515(__88, __89) {
+  switch(__88){
+    true_4 => {
+      move1(x_90, true_4);
+      break;
+    }
+    false_5 => {
+      switch(__89){
+        true_4 => {
+          move1(x_91, true_4);
+          break;
+        }
+        false_5 => {
+          move1(x_91, false_5);
+          break;
+        }
+      }
+      move1(x_90, x_91);
+      break;
+    }
+  }
+  return x_90;
+}
+
+fn fn1_or_516(env) {
+  __88 := env[1];
+  __89 := env[2];
+  x_517 := fn0_or_515(__88, __89);
+  return x_517;
+}
+
+fn fn0_xor_518(__93, __94) {
+  switch(__93){
+    true_4 => {
+      switch(__94){
+        true_4 => {
+          move1(x_96, false_5);
+          break;
+        }
+        false_5 => {
+          move1(x_96, true_4);
+          break;
+        }
+      }
+      move1(x_95, x_96);
+      break;
+    }
+    false_5 => {
+      switch(__94){
+        true_4 => {
+          move1(x_97, true_4);
+          break;
+        }
+        false_5 => {
+          move1(x_97, false_5);
+          break;
+        }
+      }
+      move1(x_95, x_97);
+      break;
+    }
+  }
+  return x_95;
+}
+
+fn fn1_xor_519(env) {
+  __93 := env[1];
+  __94 := env[2];
+  x_520 := fn0_xor_518(__93, __94);
+  return x_520;
+}
+
+fn fn0_string_of_bool_521(__99) {
+  switch(__99){
+    true_4 => {
+      str(x_101, "true")
+      move1(x_100, x_101);
+      break;
+    }
+    false_5 => {
+      str(x_102, "false")
+      move1(x_100, x_102);
+      break;
+    }
+  }
+  return x_100;
+}
+
+fn fn1_string_of_bool_522(env) {
+  __99 := env[1];
+  x_523 := fn0_string_of_bool_521(__99);
+  return x_523;
+}
+
+fn fn0_lte_524(__104, __105) {
+  switch(__104){
+    zero_6 => {
+      move1(x_106, true_4);
+      break;
+    }
+    _ => {
+      getbox(n_108, __104, 0);
+      switch(__105){
+        zero_6 => {
+          move1(x_109, false_5);
+          break;
+        }
+        _ => {
+          getbox(n_111, __105, 0);
+          x_112 := fn0_lte_524(n_108, n_111);
+          move1(x_110, x_112);
+          move1(x_109, x_110);
+          break;
+        }
+      }
+      move1(x_107, x_109);
+      move1(x_106, x_107);
+      break;
+    }
+  }
+  return x_106;
+}
+
+fn fn1_lte_525(env) {
+  __104 := env[1];
+  __105 := env[2];
+  x_526 := fn0_lte_524(__104, __105);
+  return x_526;
+}
+
+fn fn0_lt_527(x_114, y_115) {
+  mkbox(x_117, succ_7, 1);
+  setbox(x_117, x_114, 0);
+  x_116 := fn0_lte_524(x_117, y_115);
+  return x_116;
+}
+
+fn fn1_lt_528(env) {
+  x_114 := env[1];
+  y_115 := env[2];
+  x_529 := fn0_lt_527(x_114, y_115);
+  return x_529;
+}
+
+fn fn0_pred_530(__119) {
+  switch(__119){
+    zero_6 => {
+      move1(x_120, zero_6);
+      break;
+    }
+    _ => {
+      getbox(n_122, __119, 0);
+      move1(x_121, n_122);
+      move1(x_120, x_121);
+      break;
+    }
+  }
+  return x_120;
+}
+
+fn fn1_pred_531(env) {
+  __119 := env[1];
+  x_532 := fn0_pred_530(__119);
+  return x_532;
+}
+
+fn fn0_add_533(__124, __125) {
+  switch(__124){
+    zero_6 => {
+      move1(x_126, __125);
+      break;
+    }
+    _ => {
+      getbox(n_128, __124, 0);
+      x_129 := fn0_add_533(n_128, __125);
+      mkbox(x_130, succ_7, 1);
+      setbox(x_130, x_129, 0);
+      move1(x_127, x_130);
+      move1(x_126, x_127);
+      break;
+    }
+  }
+  return x_126;
+}
+
+fn fn1_add_534(env) {
+  __124 := env[1];
+  __125 := env[2];
+  x_535 := fn0_add_533(__124, __125);
+  return x_535;
+}
+
+fn fn0_sub_536(__132, __133) {
+  switch(__133){
+    zero_6 => {
+      move1(x_134, __132);
+      break;
+    }
+    _ => {
+      getbox(n_136, __133, 0);
+      x_138 := fn0_pred_530(__132);
+      x_137 := fn0_sub_536(x_138, n_136);
+      move1(x_135, x_137);
+      move1(x_134, x_135);
+      break;
+    }
+  }
+  return x_134;
+}
+
+fn fn1_sub_537(env) {
+  __132 := env[1];
+  __133 := env[2];
+  x_538 := fn0_sub_536(__132, __133);
+  return x_538;
+}
+
+fn fn0_mul_539(__140, __141) {
+  switch(__140){
+    zero_6 => {
+      move1(x_142, zero_6);
+      break;
+    }
+    _ => {
+      getbox(n_144, __140, 0);
+      x_146 := fn0_mul_539(n_144, __141);
+      x_145 := fn0_add_533(__141, x_146);
+      move1(x_143, x_145);
+      move1(x_142, x_143);
+      break;
+    }
+  }
+  return x_142;
+}
+
+fn fn1_mul_540(env) {
+  __140 := env[1];
+  __141 := env[2];
+  x_541 := fn0_mul_539(__140, __141);
+  return x_541;
+}
+
+fn fn0_div_542(x_148, y_149) {
+  x_151 := fn0_lt_527(x_148, y_149);
+  switch(x_151){
+    true_4 => {
+      move1(x_150, zero_6);
+      break;
+    }
+    false_5 => {
+      mkclo1(x_153, fn1_loop_544, fvc:=2, argc:=2);
+      setclo(x_153, pred_118, 1);
+      setclo(x_153, sub_131, 2);
+      move1(loop_152, x_153);
+      appc(x_548, loop_152, x_148);
+      appc(x_549, x_548, y_149);
+      move1(x_166, x_549);
+      move1(x_150, x_166);
+      break;
+    }
+  }
+  return x_150;
+}
+
+fn fn1_div_543(env) {
+  x_148 := env[1];
+  y_149 := env[2];
+  x_551 := fn0_div_542(x_148, y_149);
+  return x_551;
+}
+
+fn fn0_rem_552(x_168, y_169) {
+  x_172 := fn0_div_542(x_168, y_169);
+  x_171 := fn0_mul_539(x_172, y_169);
+  x_170 := fn0_sub_536(x_168, x_171);
+  return x_170;
+}
+
+fn fn1_rem_553(env) {
+  x_168 := env[1];
+  y_169 := env[2];
+  x_554 := fn0_rem_552(x_168, y_169);
+  return x_554;
+}
+
+fn fn0_rconsUU_555(A_174, __175, __176) {
+  switch(__175){
+    nilUU_38 => {
+      mkbox(x_178, consUU_39, 2);
+      setbox(x_178, __176, 0);
+      setbox(x_178, nilUU_38, 1);
+      move1(x_177, x_178);
+      break;
+    }
+    _ => {
+      getbox(hd_180, __175, 0);
+      getbox(tl_181, __175, 1);
+      x_182 := fn0_rconsUU_555(NULL, tl_181, __176);
+      mkbox(x_183, consUU_39, 2);
+      setbox(x_183, hd_180, 0);
+      setbox(x_183, x_182, 1);
+      move1(x_179, x_183);
+      move1(x_177, x_179);
+      break;
+    }
+  }
+  return x_177;
+}
+
+fn fn1_rconsUU_556(env) {
+  A_174 := env[1];
+  __175 := env[2];
+  __176 := env[3];
+  x_557 := fn0_rconsUU_555(A_174, __175, __176);
+  return x_557;
+}
+
+fn fn0_rconsUL_558(A_185, __186, __187) {
+  switch(__186){
+    nilUL_36 => {
+      mkbox(x_189, consUL_37, 2);
+      setbox(x_189, __187, 0);
+      setbox(x_189, nilUL_36, 1);
+      move1(x_188, x_189);
+      break;
+    }
+    _ => {
+      getbox(hd_191, __186, 0);
+      getbox(tl_192, __186, 1);
+      x_193 := fn0_rconsUL_558(NULL, tl_192, __187);
+      rebox(x_194, __186, consUL_37);
+      setbox(x_194, hd_191, 0);
+      setbox(x_194, x_193, 1);
+      move1(x_190, x_194);
+      move1(x_188, x_190);
+      break;
+    }
+  }
+  return x_188;
+}
+
+fn fn1_rconsUL_559(env) {
+  A_185 := env[1];
+  __186 := env[2];
+  __187 := env[3];
+  x_560 := fn0_rconsUL_558(A_185, __186, __187);
+  return x_560;
+}
+
+fn fn0_rconsLL_561(A_196, __197, __198) {
+  switch(__197){
+    nilLL_32 => {
+      mkbox(x_200, consLL_33, 2);
+      setbox(x_200, __198, 0);
+      setbox(x_200, nilLL_32, 1);
+      move1(x_199, x_200);
+      break;
+    }
+    _ => {
+      getbox(hd_202, __197, 0);
+      getbox(tl_203, __197, 1);
+      x_204 := fn0_rconsLL_561(NULL, tl_203, __198);
+      rebox(x_205, __197, consLL_33);
+      setbox(x_205, hd_202, 0);
+      setbox(x_205, x_204, 1);
+      move1(x_201, x_205);
+      move1(x_199, x_201);
+      break;
+    }
+  }
+  return x_199;
+}
+
+fn fn1_rconsLL_562(env) {
+  A_196 := env[1];
+  __197 := env[2];
+  __198 := env[3];
+  x_563 := fn0_rconsLL_561(A_196, __197, __198);
+  return x_563;
+}
+
+fn fn0_free_listUU_564(A_207, f_208, __209) {
+  switch(__209){
+    nilUU_38 => {
+      move1(x_210, ttU_27);
+      break;
+    }
+    _ => {
+      getbox(hd_212, __209, 0);
+      getbox(tl_213, __209, 1);
+      appc(x_566, f_208, hd_212);
+      move1(x_215, x_566);
+      move1(__214, x_215);
+      x_216 := fn0_free_listUU_564(NULL, f_208, tl_213);
+      move1(x_211, x_216);
+      move1(x_210, x_211);
+      break;
+    }
+  }
+  return x_210;
+}
+
+fn fn1_free_listUU_565(env) {
+  A_207 := env[1];
+  f_208 := env[2];
+  __209 := env[3];
+  x_568 := fn0_free_listUU_564(A_207, f_208, __209);
+  return x_568;
+}
+
+fn fn0_free_listUL_569(A_218, f_219, __220) {
+  switch(__220){
+    nilUL_36 => {
+      move1(x_221, ttU_27);
+      break;
+    }
+    _ => {
+      getbox(hd_223, __220, 0);
+      getbox(tl_224, __220, 1);
+      appc(x_571, f_219, hd_223);
+      move1(x_226, x_571);
+      move1(__225, x_226);
+      x_227 := fn0_free_listUL_569(NULL, f_219, tl_224);
+      move1(x_222, x_227);
+      free(__220);
+      move1(x_221, x_222);
+      break;
+    }
+  }
+  return x_221;
+}
+
+fn fn1_free_listUL_570(env) {
+  A_218 := env[1];
+  f_219 := env[2];
+  __220 := env[3];
+  x_573 := fn0_free_listUL_569(A_218, f_219, __220);
+  return x_573;
+}
+
+fn fn0_free_listLL_574(A_229, f_230, __231) {
+  switch(__231){
+    nilLL_32 => {
+      move1(x_232, ttU_27);
+      break;
+    }
+    _ => {
+      getbox(hd_234, __231, 0);
+      getbox(tl_235, __231, 1);
+      appc(x_576, f_230, hd_234);
+      move1(x_237, x_576);
+      move1(__236, x_237);
+      x_238 := fn0_free_listLL_574(NULL, f_230, tl_235);
+      move1(x_233, x_238);
+      free(__231);
+      move1(x_232, x_233);
+      break;
+    }
+  }
+  return x_232;
+}
+
+fn fn1_free_listLL_575(env) {
+  A_229 := env[1];
+  f_230 := env[2];
+  __231 := env[3];
+  x_578 := fn0_free_listLL_574(A_229, f_230, __231);
+  return x_578;
+}
+
+fn fn0_pow_579(x_240, y_241) {
+  mkclo1(x_243, fn1_loop_581, fvc:=1, argc:=2);
+  setclo(x_243, x_240, 1);
+  move1(loop_242, x_243);
+  appc(x_585, loop_242, 1);
+  appc(x_586, x_585, y_241);
+  move1(x_252, x_586);
+  return x_252;
+}
+
+fn fn1_pow_580(env) {
+  x_240 := env[1];
+  y_241 := env[2];
+  x_588 := fn0_pow_579(x_240, y_241);
+  return x_588;
+}
+
+fn fn0_powm_589(x_254, y_255, m_256) {
+  mkclo1(x_258, fn1_loop_591, fvc:=2, argc:=2);
+  setclo(x_258, x_254, 1);
+  setclo(x_258, m_256, 2);
+  move1(loop_257, x_258);
+  appc(x_595, loop_257, 1);
+  appc(x_596, x_595, y_255);
+  move1(x_268, x_596);
+  return x_268;
+}
+
+fn fn1_powm_590(env) {
+  x_254 := env[1];
+  y_255 := env[2];
+  m_256 := env[3];
+  x_598 := fn0_powm_589(x_254, y_255, m_256);
+  return x_598;
+}
+
+fn fn0_ord_599(c_270) {
+  ord(x_271, c_270);
+  return x_271;
+}
+
+fn fn1_ord_600(env) {
+  c_270 := env[1];
+  x_601 := fn0_ord_599(c_270);
+  return x_601;
+}
+
+fn fn0_chr_602(i_273) {
+  chr(x_274, i_273);
+  return x_274;
+}
+
+fn fn1_chr_603(env) {
+  i_273 := env[1];
+  x_604 := fn0_chr_602(i_273);
+  return x_604;
+}
+
+fn fn0_str_605(c_276) {
+  str(x_278, "")
+  push(x_277, x_278, c_276);
+  return x_277;
+}
+
+fn fn1_str_606(env) {
+  c_276 := env[1];
+  x_607 := fn0_str_605(c_276);
+  return x_607;
+}
+
+fn fn0_strlen_608(s_280) {
+  size(x_281, s_280);
+  return x_281;
+}
+
+fn fn1_strlen_609(env) {
+  s_280 := env[1];
+  x_610 := fn0_strlen_608(s_280);
+  return x_610;
+}
+
+fn fn0_string_of_int_611(i_283) {
+  mkclo1(x_285, fn1_aux_613, fvc:=3, argc:=1);
+  setclo(x_285, ord_269, 1);
+  setclo(x_285, chr_272, 2);
+  setclo(x_285, str_275, 3);
+  move1(aux_284, x_285);
+  lte(x_304, 0, i_283);
+  switch(x_304){
+    true_4 => {
+      appc(x_616, aux_284, i_283);
+      move1(x_305, x_616);
+      move1(x_303, x_305);
+      break;
+    }
+    false_5 => {
+      str(x_307, "~")
+      neg(x_309, i_283);
+      appc(x_618, aux_284, x_309);
+      move1(x_308, x_618);
+      cat(x_306, x_307, x_308);
+      move1(x_303, x_306);
+      break;
+    }
+  }
+  return x_303;
+}
+
+fn fn1_string_of_int_612(env) {
+  i_283 := env[1];
+  x_620 := fn0_string_of_int_611(i_283);
+  return x_620;
+}
+
+fn fn0_sing_elimUU_621(A_311, x_312, __313) {
+  
+  return __313;
+}
+
+fn fn1_sing_elimUU_622(env) {
+  A_311 := env[1];
+  x_312 := env[2];
+  __313 := env[3];
+  x_623 := fn0_sing_elimUU_621(A_311, x_312, __313);
+  return x_623;
+}
+
+fn fn0_sing_elimUL_624(A_315, x_316, __317) {
+  
+  return __317;
+}
+
+fn fn1_sing_elimUL_625(env) {
+  A_315 := env[1];
+  x_316 := env[2];
+  __317 := env[3];
+  x_626 := fn0_sing_elimUL_624(A_315, x_316, __317);
+  return x_626;
+}
+
+fn fn0_sing_elimLU_627(A_319, x_320, __321) {
+  absurd;
+  return NULL;
+}
+
+fn fn1_sing_elimLU_628(env) {
+  A_319 := env[1];
+  x_320 := env[2];
+  __321 := env[3];
+  x_629 := fn0_sing_elimLU_627(A_319, x_320, __321);
+  return x_629;
+}
+
+fn fn0_sing_elimLL_630(A_323, x_324, __325) {
+  
+  return __325;
+}
+
+fn fn1_sing_elimLL_631(env) {
+  A_323 := env[1];
+  x_324 := env[2];
+  __325 := env[3];
+  x_632 := fn0_sing_elimLL_630(A_323, x_324, __325);
+  return x_632;
+}
+
+fn fn0_free_streamU_633(A_327, st_328) {
+  appc(x_635, st_328, free_17);
+  free(st_328);
+  move1(x_330, x_635);
+  switch(x_330){ ttL_26 => {
+                   move1(x_329, ttU_27);
+                   break;
+                 } }
+  return x_329;
+}
+
+fn fn1_free_streamU_634(env) {
+  A_327 := env[1];
+  st_328 := env[2];
+  x_637 := fn0_free_streamU_633(A_327, st_328);
+  return x_637;
+}
+
+fn fn0_free_streamL_638(A_332, st_333) {
+  appc(x_640, st_333, free_17);
+  free(st_333);
+  move1(x_335, x_640);
+  switch(x_335){ ttL_26 => {
+                   move1(x_334, ttU_27);
+                   break;
+                 } }
+  return x_334;
+}
+
+fn fn1_free_streamL_639(env) {
+  A_332 := env[1];
+  st_333 := env[2];
+  x_642 := fn0_free_streamL_638(A_332, st_333);
+  return x_642;
+}
+
+fn fn0_uncons_streamU_643(A_337, st_338) {
+  appc(x_645, st_338, next_16);
+  free(st_338);
+  move1(x_340, x_645);
+  getbox(hd_341, x_340, 0);
+  getbox(tl_342, x_340, 1);
+  rebox(x_343, x_340, ex1UL_50);
+  setbox(x_343, hd_341, 0);
+  setbox(x_343, tl_342, 1);
+  move1(x_339, x_343);
+  return x_339;
+}
+
+fn fn1_uncons_streamU_644(env) {
+  A_337 := env[1];
+  st_338 := env[2];
+  x_647 := fn0_uncons_streamU_643(A_337, st_338);
+  return x_647;
+}
+
+fn fn0_uncons_streamL_648(A_345, st_346) {
+  appc(x_650, st_346, next_16);
+  free(st_346);
+  move1(x_348, x_650);
+  getbox(hd_349, x_348, 0);
+  getbox(tl_350, x_348, 1);
+  rebox(x_351, x_348, ex1LL_48);
+  setbox(x_351, hd_349, 0);
+  setbox(x_351, tl_350, 1);
+  move1(x_347, x_351);
+  return x_347;
+}
+
+fn fn1_uncons_streamL_649(env) {
+  A_345 := env[1];
+  st_346 := env[2];
+  x_652 := fn0_uncons_streamL_648(A_345, st_346);
+  return x_652;
+}
+
+fn fn0_nat_make_653(n_353, x_354) {
+  switch(x_354){
+    next_16 => {
+      mkbox(x_357, succ_7, 1);
+      setbox(x_357, n_353, 0);
+      appc(x_655, nat_make_352, x_357);
+      move1(x_356, x_655);
+      mkbox(x_358, stream_consU_55, 2);
+      setbox(x_358, n_353, 0);
+      setbox(x_358, x_356, 1);
+      move1(x_355, x_358);
+      break;
+    }
+    free_17 => {
+      move1(x_355, ttL_26);
+      break;
+    }
+  }
+  return x_355;
+}
+
+fn fn1_nat_make_654(env) {
+  n_353 := env[1];
+  x_354 := env[2];
+  x_657 := fn0_nat_make_653(n_353, x_354);
+  return x_657;
+}
+
+fn fn0_proj1UUU_658(A_360, B_361, __362) {
+  appc(x_660, __362, true_4);
+  move1(x_364, x_660);
+  x_363 := fn0_sing_elimUL_624(NULL, NULL, x_364);
+  return x_363;
+}
+
+fn fn1_proj1UUU_659(env) {
+  A_360 := env[1];
+  B_361 := env[2];
+  __362 := env[3];
+  x_662 := fn0_proj1UUU_658(A_360, B_361, __362);
+  return x_662;
+}
+
+fn fn0_proj1UUL_663(A_366, B_367, __368) {
+  appc(x_665, __368, true_4);
+  free(__368);
+  move1(x_370, x_665);
+  x_369 := fn0_sing_elimUL_624(NULL, NULL, x_370);
+  return x_369;
+}
+
+fn fn1_proj1UUL_664(env) {
+  A_366 := env[1];
+  B_367 := env[2];
+  __368 := env[3];
+  x_667 := fn0_proj1UUL_663(A_366, B_367, __368);
+  return x_667;
+}
+
+fn fn0_proj1ULU_668(A_372, B_373, __374) {
+  appc(x_670, __374, true_4);
+  move1(x_376, x_670);
+  x_375 := fn0_sing_elimUL_624(NULL, NULL, x_376);
+  return x_375;
+}
+
+fn fn1_proj1ULU_669(env) {
+  A_372 := env[1];
+  B_373 := env[2];
+  __374 := env[3];
+  x_672 := fn0_proj1ULU_668(A_372, B_373, __374);
+  return x_672;
+}
+
+fn fn0_proj1ULL_673(A_378, B_379, __380) {
+  appc(x_675, __380, true_4);
+  free(__380);
+  move1(x_382, x_675);
+  x_381 := fn0_sing_elimUL_624(NULL, NULL, x_382);
+  return x_381;
+}
+
+fn fn1_proj1ULL_674(env) {
+  A_378 := env[1];
+  B_379 := env[2];
+  __380 := env[3];
+  x_677 := fn0_proj1ULL_673(A_378, B_379, __380);
+  return x_677;
+}
+
+fn fn0_proj1LUU_678(A_384, B_385, __386) {
+  appc(x_680, __386, true_4);
+  move1(x_388, x_680);
+  x_387 := fn0_sing_elimLL_630(NULL, NULL, x_388);
+  return x_387;
+}
+
+fn fn1_proj1LUU_679(env) {
+  A_384 := env[1];
+  B_385 := env[2];
+  __386 := env[3];
+  x_682 := fn0_proj1LUU_678(A_384, B_385, __386);
+  return x_682;
+}
+
+fn fn0_proj1LUL_683(A_390, B_391, __392) {
+  appc(x_685, __392, true_4);
+  free(__392);
+  move1(x_394, x_685);
+  x_393 := fn0_sing_elimLL_630(NULL, NULL, x_394);
+  return x_393;
+}
+
+fn fn1_proj1LUL_684(env) {
+  A_390 := env[1];
+  B_391 := env[2];
+  __392 := env[3];
+  x_687 := fn0_proj1LUL_683(A_390, B_391, __392);
+  return x_687;
+}
+
+fn fn0_proj1LLU_688(A_396, B_397, __398) {
+  appc(x_690, __398, true_4);
+  move1(x_400, x_690);
+  x_399 := fn0_sing_elimLL_630(NULL, NULL, x_400);
+  return x_399;
+}
+
+fn fn1_proj1LLU_689(env) {
+  A_396 := env[1];
+  B_397 := env[2];
+  __398 := env[3];
+  x_692 := fn0_proj1LLU_688(A_396, B_397, __398);
+  return x_692;
+}
+
+fn fn0_proj1LLL_693(A_402, B_403, __404) {
+  appc(x_695, __404, true_4);
+  free(__404);
+  move1(x_406, x_695);
+  x_405 := fn0_sing_elimLL_630(NULL, NULL, x_406);
+  return x_405;
+}
+
+fn fn1_proj1LLL_694(env) {
+  A_402 := env[1];
+  B_403 := env[2];
+  __404 := env[3];
+  x_697 := fn0_proj1LLL_693(A_402, B_403, __404);
+  return x_697;
+}
+
+fn fn0_proj2UUU_698(A_408, B_409, x_410) {
+  appc(x_700, x_410, false_5);
+  move1(x_411, x_700);
+  return x_411;
+}
+
+fn fn1_proj2UUU_699(env) {
+  A_408 := env[1];
+  B_409 := env[2];
+  x_410 := env[3];
+  x_702 := fn0_proj2UUU_698(A_408, B_409, x_410);
+  return x_702;
+}
+
+fn fn0_proj2UUL_703(A_413, B_414, x_415) {
+  appc(x_705, x_415, false_5);
+  free(x_415);
+  move1(x_416, x_705);
+  return x_416;
+}
+
+fn fn1_proj2UUL_704(env) {
+  A_413 := env[1];
+  B_414 := env[2];
+  x_415 := env[3];
+  x_707 := fn0_proj2UUL_703(A_413, B_414, x_415);
+  return x_707;
+}
+
+fn fn0_proj2ULU_708(A_418, B_419, x_420) {
+  appc(x_710, x_420, false_5);
+  move1(x_421, x_710);
+  return x_421;
+}
+
+fn fn1_proj2ULU_709(env) {
+  A_418 := env[1];
+  B_419 := env[2];
+  x_420 := env[3];
+  x_712 := fn0_proj2ULU_708(A_418, B_419, x_420);
+  return x_712;
+}
+
+fn fn0_proj2ULL_713(A_423, B_424, x_425) {
+  appc(x_715, x_425, false_5);
+  free(x_425);
+  move1(x_426, x_715);
+  return x_426;
+}
+
+fn fn1_proj2ULL_714(env) {
+  A_423 := env[1];
+  B_424 := env[2];
+  x_425 := env[3];
+  x_717 := fn0_proj2ULL_713(A_423, B_424, x_425);
+  return x_717;
+}
+
+fn fn0_proj2LUU_718(A_428, B_429, x_430) {
+  appc(x_720, x_430, false_5);
+  move1(x_431, x_720);
+  return x_431;
+}
+
+fn fn1_proj2LUU_719(env) {
+  A_428 := env[1];
+  B_429 := env[2];
+  x_430 := env[3];
+  x_722 := fn0_proj2LUU_718(A_428, B_429, x_430);
+  return x_722;
+}
+
+fn fn0_proj2LUL_723(A_433, B_434, x_435) {
+  appc(x_725, x_435, false_5);
+  free(x_435);
+  move1(x_436, x_725);
+  return x_436;
+}
+
+fn fn1_proj2LUL_724(env) {
+  A_433 := env[1];
+  B_434 := env[2];
+  x_435 := env[3];
+  x_727 := fn0_proj2LUL_723(A_433, B_434, x_435);
+  return x_727;
+}
+
+fn fn0_proj2LLU_728(A_438, B_439, x_440) {
+  appc(x_730, x_440, false_5);
+  move1(x_441, x_730);
+  return x_441;
+}
+
+fn fn1_proj2LLU_729(env) {
+  A_438 := env[1];
+  B_439 := env[2];
+  x_440 := env[3];
+  x_732 := fn0_proj2LLU_728(A_438, B_439, x_440);
+  return x_732;
+}
+
+fn fn0_proj2LLL_733(A_443, B_444, x_445) {
+  appc(x_735, x_445, false_5);
+  free(x_445);
+  move1(x_446, x_735);
+  return x_446;
+}
+
+fn fn1_proj2LLL_734(env) {
+  A_443 := env[1];
+  B_444 := env[2];
+  x_445 := env[3];
+  x_737 := fn0_proj2LLL_733(A_443, B_444, x_445);
+  return x_737;
+}
+
+fn fn0_my_apair0_738(b_448) {
+  switch(b_448){
+    true_4 => {
+      move1(x_449, zero_6);
+      break;
+    }
+    false_5 => {
+      appc(x_740, nat_make_352, zero_6);
+      move1(x_450, x_740);
+      move1(x_449, x_450);
+      break;
+    }
+  }
+  return x_449;
+}
+
+fn fn1_my_apair0_739(env) {
+  b_448 := env[1];
+  x_742 := fn0_my_apair0_738(b_448);
+  return x_742;
+}
+
+fn fn1_lam_743(env) {
+  lam_455 := env[0];
+  free_streamU_326 := env[1];
+  uncons_streamU_336 := env[2];
+  nat_stream_452 := env[3];
+  b_456 := env[4];
+  switch(b_456){
+    true_4 => {
+      x_459 := fn0_uncons_streamU_643(NULL, nat_stream_452);
+      getbox(m_460, x_459, 0);
+      getbox(n_461, x_459, 1);
+      x_463 := fn0_free_streamU_633(NULL, n_461);
+      move1(__462, x_463);
+      move1(x_458, m_460);
+      free(x_459);
+      move1(x_457, x_458);
+      break;
+    }
+    false_5 => {
+      move1(x_457, nat_stream_452);
+      break;
+    }
+  }
+  return x_457;
+}
+
+fn fn1_aux_613(env) {
+  aux_286 := env[0];
+  ord_269 := env[1];
+  chr_272 := env[2];
+  str_275 := env[3];
+  i_287 := env[4];
+  lte(x_289, 10, i_287);
+  switch(x_289){
+    true_4 => {
+      mod(x_291, i_287, 10);
+      move1(r_290, x_291);
+      div(x_293, i_287, 10);
+      move1(i_292, x_293);
+      appc(x_614, aux_286, i_292);
+      move1(x_295, x_614);
+      x_298 := fn0_ord_599(0);
+      add(x_297, r_290, x_298);
+      x_296 := fn0_chr_602(x_297);
+      push(x_294, x_295, x_296);
+      move1(x_288, x_294);
+      break;
+    }
+    false_5 => {
+      x_302 := fn0_ord_599(0);
+      add(x_301, i_287, x_302);
+      x_300 := fn0_chr_602(x_301);
+      x_299 := fn0_str_605(x_300);
+      move1(x_288, x_299);
+      break;
+    }
+  }
+  return x_288;
+}
+
+fn fn1_loop_591(env) {
+  loop_259 := env[0];
+  x_254 := env[1];
+  m_256 := env[2];
+  acc_260 := env[3];
+  y_261 := env[4];
+  lte(x_263, y_261, 0);
+  switch(x_263){
+    true_4 => {
+      move1(x_262, acc_260);
+      break;
+    }
+    false_5 => {
+      mul(x_266, x_254, acc_260);
+      mod(x_265, x_266, m_256);
+      sub(x_267, y_261, 1);
+      appc(x_592, loop_259, x_265);
+      appc(x_593, x_592, x_267);
+      move1(x_264, x_593);
+      move1(x_262, x_264);
+      break;
+    }
+  }
+  return x_262;
+}
+
+fn fn1_loop_581(env) {
+  loop_244 := env[0];
+  x_240 := env[1];
+  acc_245 := env[2];
+  y_246 := env[3];
+  lte(x_248, y_246, 0);
+  switch(x_248){
+    true_4 => {
+      move1(x_247, acc_245);
+      break;
+    }
+    false_5 => {
+      mul(x_250, x_240, acc_245);
+      sub(x_251, y_246, 1);
+      appc(x_582, loop_244, x_250);
+      appc(x_583, x_582, x_251);
+      move1(x_249, x_583);
+      move1(x_247, x_249);
+      break;
+    }
+  }
+  return x_247;
+}
+
+fn fn1_loop_544(env) {
+  loop_154 := env[0];
+  pred_118 := env[1];
+  sub_131 := env[2];
+  x_155 := env[3];
+  y_156 := env[4];
+  x_159 := fn0_pred_530(y_156);
+  x_158 := fn0_sub_536(x_155, x_159);
+  switch(x_158){
+    zero_6 => {
+      move1(x_157, zero_6);
+      break;
+    }
+    _ => {
+      x_162 := fn0_pred_530(y_156);
+      x_161 := fn0_sub_536(x_155, x_162);
+      getbox(n_163, x_161, 0);
+      appc(x_545, loop_154, n_163);
+      appc(x_546, x_545, y_156);
+      move1(x_164, x_546);
+      mkbox(x_165, succ_7, 1);
+      setbox(x_165, x_164, 0);
+      move1(x_160, x_165);
+      move1(x_157, x_160);
+      break;
+    }
+  }
+  return x_157;
+}
+
+main {
+  mkclo0(idU_1, fn1_idU_468, fvc:=0, argc:=2);
+  mkclo0(idL_4, fn1_idL_471, fvc:=0, argc:=2);
+  mkclo0(rwlUU_7, fn1_rwlUU_474, fvc:=0, argc:=6);
+  mkclo0(rwlUL_14, fn1_rwlUL_477, fvc:=0, argc:=6);
+  mkclo0(rwlLU_21, fn1_rwlLU_480, fvc:=0, argc:=6);
+  mkclo0(rwlLL_28, fn1_rwlLL_483, fvc:=0, argc:=6);
+  mkclo0(rwrUU_35, fn1_rwrUU_486, fvc:=0, argc:=6);
+  mkclo0(rwrUL_42, fn1_rwrUL_489, fvc:=0, argc:=6);
+  mkclo0(rwrLU_49, fn1_rwrLU_492, fvc:=0, argc:=6);
+  mkclo0(rwrLL_56, fn1_rwrLL_495, fvc:=0, argc:=6);
+  mkclo0(sing_elimUU_63, fn1_sing_elimUU_498, fvc:=0, argc:=3);
+  mkclo0(sing_elimUL_67, fn1_sing_elimUL_501, fvc:=0, argc:=3);
+  mkclo0(sing_elimLU_71, fn1_sing_elimLU_504, fvc:=0, argc:=3);
+  mkclo0(sing_elimLL_75, fn1_sing_elimLL_507, fvc:=0, argc:=3);
+  mkclo0(not_79, fn1_not_510, fvc:=0, argc:=1);
+  mkclo0(and_82, fn1_and_513, fvc:=0, argc:=2);
+  mkclo0(or_87, fn1_or_516, fvc:=0, argc:=2);
+  mkclo0(xor_92, fn1_xor_519, fvc:=0, argc:=2);
+  mkclo0(string_of_bool_98, fn1_string_of_bool_522, fvc:=0, argc:=1);
+  mkclo0(lte_103, fn1_lte_525, fvc:=0, argc:=2);
+  mkclo0(lt_113, fn1_lt_528, fvc:=0, argc:=2);
+  mkclo0(pred_118, fn1_pred_531, fvc:=0, argc:=1);
+  mkclo0(add_123, fn1_add_534, fvc:=0, argc:=2);
+  mkclo0(sub_131, fn1_sub_537, fvc:=0, argc:=2);
+  mkclo0(mul_139, fn1_mul_540, fvc:=0, argc:=2);
+  mkclo0(div_147, fn1_div_543, fvc:=0, argc:=2);
+  mkclo0(rem_167, fn1_rem_553, fvc:=0, argc:=2);
+  mkclo0(rconsUU_173, fn1_rconsUU_556, fvc:=0, argc:=3);
+  mkclo0(rconsUL_184, fn1_rconsUL_559, fvc:=0, argc:=3);
+  mkclo0(rconsLL_195, fn1_rconsLL_562, fvc:=0, argc:=3);
+  mkclo0(free_listUU_206, fn1_free_listUU_565, fvc:=0, argc:=3);
+  mkclo0(free_listUL_217, fn1_free_listUL_570, fvc:=0, argc:=3);
+  mkclo0(free_listLL_228, fn1_free_listLL_575, fvc:=0, argc:=3);
+  mkclo0(pow_239, fn1_pow_580, fvc:=0, argc:=2);
+  mkclo0(powm_253, fn1_powm_590, fvc:=0, argc:=3);
+  mkclo0(ord_269, fn1_ord_600, fvc:=0, argc:=1);
+  mkclo0(chr_272, fn1_chr_603, fvc:=0, argc:=1);
+  mkclo0(str_275, fn1_str_606, fvc:=0, argc:=1);
+  mkclo0(strlen_279, fn1_strlen_609, fvc:=0, argc:=1);
+  mkclo0(string_of_int_282, fn1_string_of_int_612, fvc:=0, argc:=1);
+  mkclo0(sing_elimUU_310, fn1_sing_elimUU_622, fvc:=0, argc:=3);
+  mkclo0(sing_elimUL_314, fn1_sing_elimUL_625, fvc:=0, argc:=3);
+  mkclo0(sing_elimLU_318, fn1_sing_elimLU_628, fvc:=0, argc:=3);
+  mkclo0(sing_elimLL_322, fn1_sing_elimLL_631, fvc:=0, argc:=3);
+  mkclo0(free_streamU_326, fn1_free_streamU_634, fvc:=0, argc:=2);
+  mkclo0(free_streamL_331, fn1_free_streamL_639, fvc:=0, argc:=2);
+  mkclo0(uncons_streamU_336, fn1_uncons_streamU_644, fvc:=0, argc:=2);
+  mkclo0(uncons_streamL_344, fn1_uncons_streamL_649, fvc:=0, argc:=2);
+  mkclo0(nat_make_352, fn1_nat_make_654, fvc:=0, argc:=2);
+  mkclo0(proj1UUU_359, fn1_proj1UUU_659, fvc:=0, argc:=3);
+  mkclo0(proj1UUL_365, fn1_proj1UUL_664, fvc:=0, argc:=3);
+  mkclo0(proj1ULU_371, fn1_proj1ULU_669, fvc:=0, argc:=3);
+  mkclo0(proj1ULL_377, fn1_proj1ULL_674, fvc:=0, argc:=3);
+  mkclo0(proj1LUU_383, fn1_proj1LUU_679, fvc:=0, argc:=3);
+  mkclo0(proj1LUL_389, fn1_proj1LUL_684, fvc:=0, argc:=3);
+  mkclo0(proj1LLU_395, fn1_proj1LLU_689, fvc:=0, argc:=3);
+  mkclo0(proj1LLL_401, fn1_proj1LLL_694, fvc:=0, argc:=3);
+  mkclo0(proj2UUU_407, fn1_proj2UUU_699, fvc:=0, argc:=3);
+  mkclo0(proj2UUL_412, fn1_proj2UUL_704, fvc:=0, argc:=3);
+  mkclo0(proj2ULU_417, fn1_proj2ULU_709, fvc:=0, argc:=3);
+  mkclo0(proj2ULL_422, fn1_proj2ULL_714, fvc:=0, argc:=3);
+  mkclo0(proj2LUU_427, fn1_proj2LUU_719, fvc:=0, argc:=3);
+  mkclo0(proj2LUL_432, fn1_proj2LUL_724, fvc:=0, argc:=3);
+  mkclo0(proj2LLU_437, fn1_proj2LLU_729, fvc:=0, argc:=3);
+  mkclo0(proj2LLL_442, fn1_proj2LLL_734, fvc:=0, argc:=3);
+  mkclo0(my_apair0_447, fn1_my_apair0_739, fvc:=0, argc:=1);
+  appc(x_744, nat_make_352, zero_6);
+  move1(x_453, x_744);
+  move1(nat_stream_452, x_453);
+  mkclo1(x_454, fn1_lam_743, fvc:=3, argc:=1);
+  setclo(x_454, free_streamU_326, 1);
+  setclo(x_454, uncons_streamU_336, 2);
+  setclo(x_454, nat_stream_452, 3);
+  move0(my_apair1_451, x_454);
+  x_466 := fn0_proj2ULL_713(NULL, NULL, my_apair1_451);
+  x_465 := fn0_free_streamU_633(NULL, x_466);
+  move0(__464, x_465);
+  return NULL;
+}
+
+[trans45 success]
+
+-----------------------------------------
+
+compilation success
+
+-----------------------------------------
+

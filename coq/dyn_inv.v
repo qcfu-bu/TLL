@@ -8,7 +8,7 @@ Unset Printing Implicit Defensive.
 
 Lemma dyn_lam0_invX Γ Δ A1 A2 B C m s1 s2 t l :
   Γ ; Δ ⊢ Lam0 A1 m s1 : C ->
-  C === Pi0 A2 B s2 ->
+  C ≃ Pi0 A2 B s2 ->
   (A2 :: Γ) ⊢ B : Sort t l ->
   (A2 :: Γ) ; _: Δ ⊢ m : B.
 Proof with eauto.
@@ -31,7 +31,7 @@ Qed.
 
 Lemma dyn_lam1_invX Γ Δ A1 A2 B C m s1 s2 t l :
   Γ ; Δ ⊢ Lam1 A1 m s1 : C ->
-  C === Pi1 A2 B s2 ->
+  C ≃ Pi1 A2 B s2 ->
   (A2 :: Γ) ⊢ B : Sort t l ->
   exists r, (A2 :: Γ) ; A2 .{r} Δ ⊢ m : B.
 Proof with eauto.
@@ -75,7 +75,7 @@ Qed.
 
 Lemma dyn_pair0_invX Γ Δ A B m n s r t l C :
   Γ ; Δ ⊢ Pair0 m n s : C ->
-  C === Sig0 A B r ->
+  C ≃ Sig0 A B r ->
   Γ ⊢ Sig0 A B r : Sort t l ->
   s = r /\ Γ ; Δ ⊢ m : A /\ Γ ⊢ n : B.[m/].
 Proof with eauto.
@@ -98,7 +98,7 @@ Qed.
 
 Lemma dyn_pair1_invX Γ Δ A B m n s r t l C :
   Γ ; Δ ⊢ Pair1 m n s : C ->
-  C === Sig1 A B r ->
+  C ≃ Sig1 A B r ->
   Γ ⊢ Sig1 A B r : Sort t l ->
   exists Δ1 Δ2,
     Δ1 ∘ Δ2 => Δ /\ s = r /\

@@ -222,10 +222,10 @@ Qed.
 Lemma mltt_red_compat σ τ s : sred σ τ -> mltt_red s.[σ] s.[τ].
 Proof. elim: s σ τ => *; asimpl; eauto 9 with mltt_red_congr. Qed.
 
-Definition sconv (σ τ : var -> term) := forall x, σ x === τ x.
+Definition sconv (σ τ : var -> term) := forall x, σ x ≃ τ x.
 
 Lemma mltt_conv_app m m' n n' :
-  m === m' -> n === n' -> App m n === App m' n'.
+  m ≃ m' -> n ≃ n' -> App m n ≃ App m' n'.
 Proof.
   move=> r1 r2.
   apply: (conv_trans (App m' n)).
@@ -234,7 +234,7 @@ Proof.
 Qed.
 
 Lemma mltt_conv_lam A A' m m' :
-  A === A' -> m === m' -> Lam A m === Lam A' m'.
+  A ≃ A' -> m ≃ m' -> Lam A m ≃ Lam A' m'.
 Proof.
   move=> r1 r2.
   apply: (conv_trans (Lam A' m)).
@@ -243,7 +243,7 @@ Proof.
 Qed.
 
 Lemma mltt_conv_pi A A' B B' :
-  A === A' -> B === B' -> Pi A B === Pi A' B'.
+  A ≃ A' -> B ≃ B' -> Pi A B ≃ Pi A' B'.
 Proof.
   move=> r1 r2.
   apply: (conv_trans (Pi A' B)).
@@ -252,7 +252,7 @@ Proof.
 Qed.
 
 Lemma mltt_conv_sig A A' B B' :
-  A === A' -> B === B' -> Sig A B === Sig A' B'.
+  A ≃ A' -> B ≃ B' -> Sig A B ≃ Sig A' B'.
 Proof.
   move=> r1 r2.
   apply: (conv_trans (Sig A' B)).
@@ -261,7 +261,7 @@ Proof.
 Qed.
 
 Lemma mltt_conv_dpair m m' n n' :
-  m === m' -> n === n' -> DPair m n === DPair m' n'.
+  m ≃ m' -> n ≃ n' -> DPair m n ≃ DPair m' n'.
 Proof.
   move=>r1 r2.
   apply: (conv_trans (DPair m' n)).
@@ -270,7 +270,7 @@ Proof.
 Qed.
 
 Lemma mltt_conv_letin A A' m m' n n' :
-  A === A' -> m === m' -> n === n' -> LetIn A m n === LetIn A' m' n'.
+  A ≃ A' -> m ≃ m' -> n ≃ n' -> LetIn A m n ≃ LetIn A' m' n'.
 Proof.
   move=>r1 r2 r3.
   apply: (conv_trans (LetIn A' m n)).
@@ -281,7 +281,7 @@ Proof.
 Qed.
 
 Lemma mltt_conv_ifte A A' m m' n1 n1' n2 n2' :
-  A === A' -> m === m' -> n1 === n1' -> n2 === n2' -> Ifte A m n1 n2 === Ifte A' m' n1' n2'.
+  A ≃ A' -> m ≃ m' -> n1 ≃ n1' -> n2 ≃ n2' -> Ifte A m n1 n2 ≃ Ifte A' m' n1' n2'.
 Proof.
   move=>rA rm rn1 rn2.
   apply: (conv_trans (Ifte A' m n1 n2)).
@@ -294,7 +294,7 @@ Proof.
 Qed.
 
 Lemma mltt_conv_id A A' m m' n n' :
-  A === A' -> m === m' -> n === n' -> Id A m n === Id A' m' n'.
+  A ≃ A' -> m ≃ m' -> n ≃ n' -> Id A m n ≃ Id A' m' n'.
 Proof.
   move=>r1 r2 r3.
   apply: (conv_trans (Id A' m n)).
@@ -305,14 +305,14 @@ Proof.
 Qed.
 
 Lemma mltt_conv_refl m m' :
-  m === m' -> Refl m === Refl m'.
+  m ≃ m' -> Refl m ≃ Refl m'.
 Proof.
   move=>r.
   apply: (conv_hom Refl) r=>x y. exact: mltt_step_refl.
 Qed.
 
 Lemma mltt_conv_rw A A' H H' P P' :
-  A === A' -> H === H' -> P === P' -> Rw A H P === Rw A' H' P'.
+  A ≃ A' -> H ≃ H' -> P ≃ P' -> Rw A H P ≃ Rw A' H' P'.
 Proof.
   move=>r1 r2 r3.
   apply: (conv_trans (Rw A' H P)).
@@ -323,7 +323,7 @@ Proof.
 Qed.
 
 Lemma mltt_conv_subst σ m n :
-  m === n -> m.[σ] === n.[σ].
+  m ≃ n -> m.[σ] ≃ n.[σ].
 Proof.
   move=>c.
   apply: conv_hom c.
@@ -347,10 +347,10 @@ Qed.
   mltt_conv_ifte sconv_up sconv_upn : mltt_conv_congr.
 
 Lemma mltt_conv_compat σ τ s :
-  sconv σ τ -> s.[σ] === s.[τ].
+  sconv σ τ -> s.[σ] ≃ s.[τ].
 Proof. elim: s σ τ => *; asimpl; eauto 9 with mltt_conv_congr. Qed.
 
-Lemma mltt_conv_beta m n1 n2 : n1 === n2 -> m.[n1/] === m.[n2/].
+Lemma mltt_conv_beta m n1 n2 : n1 ≃ n2 -> m.[n1/] ≃ m.[n2/].
 Proof. move=> c. by apply: mltt_conv_compat => -[]. Qed.
 
 Lemma pstep_reflexive m : pstep m m.
@@ -720,8 +720,8 @@ Proof.
 Qed.
 
 Lemma pi_inj A A' B B' :
-  Pi A B === Pi A' B' ->
-    A === A' /\ B === B'.
+  Pi A B ≃ Pi A' B' ->
+    A ≃ A' /\ B ≃ B'.
 Proof.
   move/church_rosser=>
     [x/mltt_red_pi_inv[A1[B1[rA1[rB1->]]]]
@@ -736,8 +736,8 @@ Proof.
 Qed.
 
 Lemma sig_inj A A' B B' :
-  Sig A B === Sig A' B' ->
-    A === A' /\ B === B'.
+  Sig A B ≃ Sig A' B' ->
+    A ≃ A' /\ B ≃ B'.
 Proof.
   move/church_rosser=>
     [x/mltt_red_sig_inv[A1[B1[rA1[rB1->]]]]
@@ -752,8 +752,8 @@ Proof.
 Qed.
 
 Lemma id_inj A A' m m' n n' :
-  Id A m n === Id A' m' n' ->
-    A === A' /\ m === m' /\ n === n'.
+  Id A m n ≃ Id A' m' n' ->
+    A ≃ A' /\ m ≃ m' /\ n ≃ n'.
 Proof.
   move/church_rosser=>
     [x/mltt_red_id_inv[A1[m1[n1[rA1[rm1[rn1->]]]]]]

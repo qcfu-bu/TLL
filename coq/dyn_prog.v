@@ -12,7 +12,7 @@ Ltac inv_dyn_val :=
   end.
 
 Lemma dyn_pi0_canonical m A B C s :
-  nil ; nil ⊢ m : C -> C === Pi0 A B s -> dyn_val m ->
+  nil ; nil ⊢ m : C -> C ≃ Pi0 A B s -> dyn_val m ->
   exists A n, m = Lam0 A n s.
 Proof with eauto.
   move e1:(nil)=>Γ.
@@ -29,7 +29,7 @@ Proof with eauto.
 Qed.
 
 Lemma dyn_pi1_canonical m A B C s :
-  nil ; nil ⊢ m : C -> C === Pi1 A B s -> dyn_val m ->
+  nil ; nil ⊢ m : C -> C ≃ Pi1 A B s -> dyn_val m ->
   exists A n, m = Lam1 A n s.
 Proof with eauto.
   move e1:(nil)=>Γ.
@@ -46,7 +46,7 @@ Proof with eauto.
 Qed.
 
 Lemma dyn_sig0_canonical m A B C s :
-  nil ; nil ⊢ m : C -> C === Sig0 A B s -> dyn_val m ->
+  nil ; nil ⊢ m : C -> C ≃ Sig0 A B s -> dyn_val m ->
   exists m1 m2, m = Pair0 m1 m2 s.
 Proof with eauto.
   move e1:(nil)=>Γ.
@@ -63,7 +63,7 @@ Proof with eauto.
 Qed.
 
 Lemma dyn_sig1_canonical m A B C s :
-  nil ; nil ⊢ m : C -> C === Sig1 A B s -> dyn_val m ->
+  nil ; nil ⊢ m : C -> C ≃ Sig1 A B s -> dyn_val m ->
   exists m1 m2, m = Pair1 m1 m2 s.
 Proof with eauto.
   move e1:(nil)=>Γ.
@@ -80,7 +80,7 @@ Proof with eauto.
 Qed.
 
 Lemma dyn_bool_canonical m C :
-  nil ; nil ⊢ m : C -> C === Bool -> dyn_val m -> m = TT \/ m = FF.
+  nil ; nil ⊢ m : C -> C ≃ Bool -> dyn_val m -> m = TT \/ m = FF.
 Proof with eauto.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty.

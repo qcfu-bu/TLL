@@ -12,7 +12,7 @@ Ltac inv_sta_val :=
   end.
 
 Lemma sta_pi0_canonical m A B C s :
-  nil ⊢ m : C -> C === Pi0 A B s -> sta_val m ->
+  nil ⊢ m : C -> C ≃ Pi0 A B s -> sta_val m ->
   exists A n, m = Lam0 A n s.
 Proof with eauto.
   move e:(nil)=>Γ ty. elim: ty e A B s=>{Γ m C}.
@@ -26,7 +26,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_pi1_canonical m A B C s :
-  nil ⊢ m : C -> C === Pi1 A B s -> sta_val m ->
+  nil ⊢ m : C -> C ≃ Pi1 A B s -> sta_val m ->
   exists A n, m = Lam1 A n s.
 Proof with eauto.
   move e:(nil)=>Γ ty. elim: ty e A B s=>{Γ m C}.
@@ -40,7 +40,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_sig0_canonical m A B C s :
-  nil ⊢ m : C -> C === Sig0 A B s -> sta_val m ->
+  nil ⊢ m : C -> C ≃ Sig0 A B s -> sta_val m ->
   exists m1 m2, m = Pair0 m1 m2 s.
 Proof with eauto.
   move e:(nil)=>Γ ty. elim: ty e A B s=>//{Γ m C}.
@@ -54,7 +54,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_sig1_canonical m A B C s :
-  nil ⊢ m : C -> C === Sig1 A B s -> sta_val m ->
+  nil ⊢ m : C -> C ≃ Sig1 A B s -> sta_val m ->
   exists m1 m2, m = Pair1 m1 m2 s.
 Proof with eauto.
   move e:(nil)=>Γ ty. elim: ty e A B s=>//{Γ m C}.
@@ -68,7 +68,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_bool_canonical m C :
-  nil ⊢ m : C -> C === Bool -> sta_val m -> m = TT \/ m = FF.
+  nil ⊢ m : C -> C ≃ Bool -> sta_val m -> m = TT \/ m = FF.
 Proof with eauto.
   move e:(nil)=>Γ ty. elim: ty e=>//{Γ m C}.
   all: try solve[intros; exfalso; (solve_conv||inv_sta_val)].
@@ -81,7 +81,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_id_canonical m C A x y :
-  nil ⊢ m : C -> C === Id A x y -> sta_val m ->
+  nil ⊢ m : C -> C ≃ Id A x y -> sta_val m ->
   exists n, m = Refl n.
 Proof with eauto.
   move e:(nil)=>Γ ty. elim: ty e A x y=>{Γ m C}.

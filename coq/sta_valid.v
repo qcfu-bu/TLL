@@ -40,7 +40,7 @@ Qed.
 
 Lemma sta_lam0_invX Γ A1 A2 B C m s1 s2 t l :
   Γ ⊢ Lam0 A1 m s1 : C ->
-  C === Pi0 A2 B s2 ->
+  C ≃ Pi0 A2 B s2 ->
   (A2 :: Γ) ⊢ B : Sort t l ->
   (A2 :: Γ) ⊢ m : B.
 Proof with eauto.
@@ -63,7 +63,7 @@ Qed.
 
 Lemma sta_lam1_invX Γ A1 A2 B C m s1 s2 t l :
   Γ ⊢ Lam1 A1 m s1 : C ->
-  C === Pi1 A2 B s2 ->
+  C ≃ Pi1 A2 B s2 ->
   (A2 :: Γ) ⊢ B : Sort t l ->
   (A2 :: Γ) ⊢ m : B.
 Proof with eauto.
@@ -103,7 +103,7 @@ Qed.
 Lemma sta_pair0_invX Γ m n s C :
   Γ ⊢ Pair0 m n s : C ->
   forall A B r t l,
-    C === Sig0 A B r ->
+    C ≃ Sig0 A B r ->
     Γ ⊢ Sig0 A B r : Sort t l ->
     s = r /\ Γ ⊢ m : A /\ Γ ⊢ n : B.[m/].
 Proof with eauto.
@@ -127,7 +127,7 @@ Qed.
 Lemma sta_pair1_invX Γ m n s C :
   Γ ⊢ Pair1 m n s : C ->
   forall A B r t l,
-    C === Sig1 A B r ->
+    C ≃ Sig1 A B r ->
     Γ ⊢ Sig1 A B r : Sort t l ->
     s = r /\ Γ ⊢ m : A /\ Γ ⊢ n : B.[m/].
 Proof with eauto.
@@ -169,9 +169,9 @@ Qed.
 Lemma sta_refl_invX Γ n C :
   Γ ⊢ Refl n : C ->
   forall A m1 m2 s l,
-    C === Id A m1 m2 ->
+    C ≃ Id A m1 m2 ->
     Γ ⊢ Id A m1 m2 : Sort s l ->
-    Γ ⊢ n : A /\ n === m1 /\ n === m2.
+    Γ ⊢ n : A /\ n ≃ m1 /\ n ≃ m2.
 Proof with eauto.
   move e:(Refl n)=>x ty.
   elim: ty n e=>//{Γ x C}.
@@ -186,7 +186,7 @@ Proof with eauto.
 Qed.
 
 Lemma sta_refl_inv Γ A m1 m2 n :
-  Γ ⊢ Refl n : Id A m1 m2 -> Γ ⊢ n : A /\ n === m1 /\ n === m2.
+  Γ ⊢ Refl n : Id A m1 m2 -> Γ ⊢ n : A /\ n ≃ m1 /\ n ≃ m2.
 Proof with eauto.
   move=>ty.
   have[s[l tyI]]:=sta_valid ty.

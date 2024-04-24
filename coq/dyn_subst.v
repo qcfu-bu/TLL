@@ -30,13 +30,13 @@ Inductive dyn_agree_subst :
   Γ1 ; Δb ⊢ n : A.[σ] ->
   Γ1 ; Δ1 ⊢ n .: σ ⊣ (A :: Γ2) ; (A .{s} Δ2)
 | dyn_agree_subst_conv0 Γ1 Δ1 σ Γ2 Δ2 A B s l :
-  A === B ->
+  A ≃ B ->
   Γ1 ⊢ B.[ren (+1)].[σ] : Sort s l ->
   Γ2 ⊢ B : Sort s l ->
   Γ1 ; Δ1 ⊢ σ ⊣ (A :: Γ2) ; (_: Δ2) ->
   Γ1 ; Δ1 ⊢ σ ⊣ (B :: Γ2) ; (_: Δ2)
 | dyn_agree_subst_conv1 Γ1 Δ1 σ Γ2 Δ2 A B s l :
-  A === B ->
+  A ≃ B ->
   Γ1 ⊢ B.[ren (+1)].[σ] : Sort s l ->
   Γ2 ⊢ B : Sort s l ->
   Γ1 ; Δ1 ⊢ σ ⊣ (A :: Γ2) ; (A .{s} Δ2) ->
@@ -352,7 +352,7 @@ Proof.
 Qed.
 
 Lemma dyn_ctx_conv0 Γ Δ m A B C s l :
-  B === A ->
+  B ≃ A ->
   Γ ⊢ B : Sort s l -> (A :: Γ) ; _: Δ ⊢ m : C -> (B :: Γ) ; _: Δ ⊢ m : C.
 Proof with eauto using dyn_wf, dyn_agree_subst_refl.
   move=>eq tyB tym.
@@ -367,7 +367,7 @@ Proof with eauto using dyn_wf, dyn_agree_subst_refl.
 Qed.
 
 Lemma dyn_ctx_conv1 Γ Δ m A B C s l :
-  B === A ->
+  B ≃ A ->
   Γ ⊢ B : Sort s l -> (A :: Γ) ; A .{s} Δ ⊢ m : C -> (B :: Γ) ; B .{s} Δ ⊢ m : C.
 Proof with eauto using dyn_wf, dyn_agree_subst_refl.
   move=>eq tyB tym.

@@ -40,7 +40,7 @@ Inductive head_sim : term -> term -> Prop :=
 | head_sim_ptr l : head_sim (Ptr l) (Ptr l).
 
 Inductive sim (m n : term) : Prop :=
-| Sim x y : m === x -> head_sim x y -> y === n -> sim m n.
+| Sim x y : m ≃ x -> head_sim x y -> y ≃ n -> sim m n.
 
 Lemma head_sim_sim m n : head_sim m n -> sim m n.
 Proof. move=>h. econstructor; eauto. Qed.
@@ -70,14 +70,14 @@ Proof with eauto.
   apply: conv_sym...
 Qed.
 
-Lemma sim_transL x y z : sim x y -> y === z -> sim x z.
+Lemma sim_transL x y z : sim x y -> y ≃ z -> sim x z.
 Proof with eauto.
   move=>sm eq. inv sm.
   econstructor...
   apply: conv_trans...
 Qed.
 
-Lemma sim_transR x y z : sim x y -> z === x -> sim z y.
+Lemma sim_transR x y z : sim x y -> z ≃ x -> sim z y.
 Proof with eauto using head_sim.
   move=>sm eq. inv sm.
   econstructor.
@@ -104,7 +104,7 @@ Ltac solve_sim :=
   end;
   try solve[solve_conv];
   match goal with
-  | [ eq1 : ?x === ?z, eq2 : ?z === ?y |- _ ] =>
+  | [ eq1 : ?x ≃ ?z, eq2 : ?z ≃ ?y |- _ ] =>
     pose proof (conv_trans _ eq1 eq2); solve_conv
   end.
 
@@ -192,7 +192,7 @@ Qed.
 
 Lemma sim_id_inj A1 A2 m1 m2 n1 n2 :
   sim (Id A1 m1 n1) (Id A2 m2 n2) ->
-  sim A1 A2 /\ m1 === m2 /\ n1 === n2.
+  sim A1 A2 /\ m1 ≃ m2 /\ n1 ≃ n2.
 Proof with eauto using sim.
   move=>sm. inv sm.
   elim: H0 A1 A2 m1 m2 n1 n2 H H1=>{x y}.
