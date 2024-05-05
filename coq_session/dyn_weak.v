@@ -252,10 +252,6 @@ Proof with eauto using dyn_type, dyn_agree_ren, dyn_agree_ren_key.
         in ihn by autosubst.
     have:=dyn_letin1 mrg1 mrg' ihC ihm ihn.
     by autosubst. }
-  { move=>Θ Γ Δ A m k1 k2 tym ihm Γ' Δ' ξ agr. asimpl.
-    have wf:=dyn_type_wf tym. inv wf.
-    have{}ihm:=ihm _ _ _ (dyn_agree_ren_ty H4 agr).
-    apply: dyn_fix... asimpl. asimpl in ihm... }
   { move=>Θ Γ Δ emp wf ih k Γ' Δ' ξ agr. asimpl... }
   { move=>Θ Γ Δ emp wf ih k Γ' Δ' ξ agr. asimpl... }
   { move=>Θ Γ Δ emp wf ih k Γ' Δ' ξ agr. asimpl... }

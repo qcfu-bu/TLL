@@ -73,14 +73,6 @@ Proof.
   exists m'. exists n'. by [].
 Qed.
 
-Lemma era_fix_form Θ Γ Δ m n X A :
-  Θ ; Γ ; Δ ⊢ Fix X n ~ m : A -> exists n, m = Fix Box n.
-Proof.
-  move e:(Fix X n)=>x er. elim: er X n e=>//{Θ Γ Δ m x A}.
-  move=>Θ Γ Δ A m m' k1 k2 erm ihm X n[e1 e2]. subst.
-  exists m'. by [].
-Qed.
-
 Lemma era_ii_form Θ Γ Δ m A :
   Θ ; Γ ; Δ ⊢ II ~ m : A -> m = II.
 Proof. move e:(II)=>x er. elim: er e=>//. Qed.

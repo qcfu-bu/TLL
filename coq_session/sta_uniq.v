@@ -419,7 +419,7 @@ Qed.
 Lemma sta_fix_uniq Γ A B m : Γ ⊢ Fix A m : B -> sim A B.
 Proof with eauto.
   move e:(Fix A m)=>n ty. elim: ty A m e=>//{Γ B n}.
-  move=>Γ A m tym ihm A0 m0[e1 e2]; subst...
+  move=>Γ A m ar gr tym ihm A0 m0[e1 e2]; subst...
   move=>Γ A B m s eq tym ihm tyB ihB A0 m0 e; subst.
   { have eq':=ihm _ _ erefl.
     apply: sim_transL... }

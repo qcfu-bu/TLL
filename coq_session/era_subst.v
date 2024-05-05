@@ -274,13 +274,6 @@ Proof with eauto using era_agree_subst, era_type, key_merge.
                  (era_agree_subst_ty (era_agree_subst_ty agrb H8) H6).
     apply: era_letin1...
     asimpl. asimpl in ihn... }
-  { move=>Θ Γ Δ A m m' k1 k2 tym ihm Θ1 Θ0 Γ1 Δ1 σ1 σ2 mrg agr. asimpl.
-    have wf:=era_type_wf tym. inv wf.
-    have[ka kb]:=era_agree_subst_key agr k2.
-    have agr':=era_agree_subst_ty agr H4.
-    have{}ihm:=ihm _ _ _ _ _ _ mrg agr'.
-    apply: era_fix...
-    asimpl. asimpl in ihm... }
   { move=>Θ Γ Δ emp wf k Θ1 Θ0 Γ1 Δ1 σ1 σ2 mrg agr. asimpl.
     have wf':=era_substitution_wf wf agr.
     have[ka kb]:=era_agree_subst_key agr k.

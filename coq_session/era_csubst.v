@@ -188,27 +188,6 @@ Proof with eauto using dyn_agree_csubst_key, dyn_sta_agree_csubst, dyn_agree_csu
       apply: sta_cren_conv0...
       apply: dyn_sta_agree_csubst... }
     { apply: sta_esubst... by []. } }
-  { move=>Θ Γ Δ A m m' k1 k2 tym ihm Θx σ agr.
-    have wf:=era_type_wf tym. inv wf.
-    have[t tyA]:=era_valid tym.
-    apply: era_conv.
-    3:{ apply: H4. }
-    2:{ constructor...
-        apply: era_ctx_conv1.
-        2:{ apply: sta_csubstitution... }
-        rewrite<-sta_csubst_cren.
-        apply: sta_cren_conv0...
-        apply: dyn_sta_agree_csubst...
-        rewrite sta_csubst_comp...
-        apply: era_conv.
-        2:{ apply: ihm... }
-        rewrite<-sta_csubst_cren.
-        apply: conv_sym. apply: sta_cren_conv0...
-        apply: dyn_sta_agree_csubst...
-        apply: sta_csubstitution... }
-    rewrite<-sta_csubst_cren.
-    apply: sta_cren_conv0...
-    apply: dyn_sta_agree_csubst... }
   { move=>Θ Γ Δ emp wf k Θx σ agr. constructor... }
   { move=>Θ Γ Δ emp wf k Θx σ agr. constructor... }
   { move=>Θ Γ Δ emp wf k Θx σ agr. constructor... }

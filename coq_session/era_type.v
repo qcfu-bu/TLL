@@ -64,11 +64,6 @@ Inductive era_type
   Θ1 ; Γ ; Δ1 ⊢ m ~ m' : Sig1 A B t ->
   Θ2 ; (B :: A :: Γ) ; B .{r2} A .{r1} Δ2 ⊢ n ~ n' : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   Θ ; Γ ; Δ ⊢ LetIn C m n ~ LetIn Box m' n' : C.[m/]
-| era_fix Θ Γ Δ A m m' :
-  Θ ▷ U ->
-  Δ ▷ U ->
-  Θ ; (A :: Γ) ; A :U Δ ⊢ m ~ m' : A.[ren (+1)] ->
-  Θ ; Γ ; Δ ⊢ Fix A m ~ Fix Box m' : A
 (* data *)
 | era_ii Θ Γ Δ :
   dyn_empty Θ ->

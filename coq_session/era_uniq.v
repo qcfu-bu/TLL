@@ -29,8 +29,6 @@ Proof with eauto using era_type.
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2
       tyC tym [m' erm'] tyn [n' ern'].
     exists (LetIn Box m' n')... }
-  { move=>Θ Γ Δ A m k1 k2 tym [m' erm'].
-    exists (Fix Box m')... }
   { move=>Θ Γ Δ chs wf k. exists II... }
   { move=>Θ Γ Δ chs wf k. exists TT... }
   { move=>Θ Γ Δ chs wf k. exists FF... }
@@ -93,7 +91,6 @@ Proof with eauto.
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 mrg2 tyS erm->ern->//. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg1 mrg2 tyS erm->ern->//. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg1 mrg2 tyS erm->ern->//. }
-  { move=>Θ Γ Δ A m m' k1 k2 erm->//. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s mrg1 mrg2 tyA erm->ern1->ern2->//. }
   { move=>Θ Γ Δ m m' A erm->//. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m m' n n' A B s t mrg1 mrg2 tyB erm->ern->//. }

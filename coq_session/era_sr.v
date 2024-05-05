@@ -22,7 +22,6 @@ Proof with eauto using dyn_val.
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 mrg2 tyS erm ihm ern ihn vl. inv vl... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg1 mrg2 tyS erm _ ern _ vl. inv vl. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg1 mrg2 tyS erm _ ern _ vl. inv vl. }
-  { move=>Θ Γ Δ A m m' k1 k2 erm ihm vl. inv vl. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s mrg1 mrg2
            tyA erm _ ern1 _ ern2 _ vl. inv vl. }
   { move=>Θ Γ Δ m m' A erm ihm vl. inv vl... }
@@ -105,7 +104,7 @@ Proof with eauto using era_type, dyn_step, dyn_wf, dyn_val, merge.
       apply: sta_conv_beta.
       apply: star_conv.
       apply: sta_red_pred.
-      apply: (dyn_sta_step (era_sta_type tym))...
+      apply: (dyn_sta_step (era_dyn_type tym))...
       apply: tyn.
       apply: sta_esubst...
       by autosubst. }
@@ -120,7 +119,7 @@ Proof with eauto using era_type, dyn_step, dyn_wf, dyn_val, merge.
       apply: conv_sym.
       apply: star_conv.
       apply: sta_red_pred.
-      apply: (dyn_sta_step (era_sta_type tym))...
+      apply: (dyn_sta_step (era_dyn_type tym))...
       apply: era_letin0...
       apply: sta_esubst...
       by autosubst. }
@@ -148,7 +147,7 @@ Proof with eauto using era_type, dyn_step, dyn_wf, dyn_val, merge.
       apply: conv_sym.
       apply: star_conv.
       apply: sta_red_pred.
-      apply: (dyn_sta_step (era_sta_type tym))...
+      apply: (dyn_sta_step (era_dyn_type tym))...
       apply: era_letin1...
       apply: sta_esubst...
       by autosubst. }
@@ -169,12 +168,6 @@ Proof with eauto using era_type, dyn_step, dyn_wf, dyn_val, merge.
       apply: (era_agree_subst_wk1 k3 k4)...
       apply: (era_agree_subst_wk1 k1 k2)...
       by autosubst. } }
-  { move=>Θ Γ Δ A m m' k1 k2 tym ihm e1 e2 n st. subst. inv st.
-    have tyF:=era_fix k1 k2 tym.
-    have mrg:=pure_merge_self k1.
-    exists (m'.[Fix Box m'/])...
-    have:=era_subst1 k1 mrg k2 merge_nil tym tyF.
-    by autosubst. }
   { move=>Θ Γ Δ emp wf k e1 e2 n st. inv st. }
   { move=>Θ Γ Δ emp wf k e1 e2 n st. inv st. }
   { move=>Θ Γ Δ emp wf k e1 e2 n st. inv st. }

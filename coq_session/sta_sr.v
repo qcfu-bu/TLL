@@ -1,10 +1,56 @@
-From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
+From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq zify.
 From Coq Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS sta_valid.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
+
+Lemma sta_arity_proto_psr A A' :
+  A ≈> A' -> arity_proto A -> arity_proto A'.
+Proof with eauto. elim=>{A A'}=>//. Qed.
+
+Lemma sta_guarded_psr i m m' :
+  m ≈> m' -> guarded i m -> guarded i m'.
+Proof with eauto.
+  move=>st. elim: st i=>//={m m'}...
+  all: try solve[intros;
+                 repeat match goal with
+                 | [ H : _ /\ _ |- _ ] => inv H; split; eauto
+                 end].
+  { move=>A m m' n n' _ stm ihm stn ihn i[[gA gm] gn].
+    have{}ihm:=ihm _ gm.
+    have{}ihn:=ihn _ gn.
+    apply: sta_subst_guarded...
+    move=>[|x]//e. asimpl. simpl. lia. }
+  { move=>A m m' n n' _ stm ihm stn ihn i[[gA gm] gn].
+    have{}ihm:=ihm _ gm.
+    have{}ihn:=ihn _ gn.
+    apply: sta_subst_guarded...
+    move=>[|x]//e. asimpl. simpl. lia. }
+  { move=>A m1 m1' m2 m2' n n' _ stm1 ihm1 stm2 ihm2 stn ihn i[gA[[gm1 gm2] gn]].
+    have{}ihm1:=ihm1 _ gm1.
+    have{}ihm2:=ihm2 _ gm2.
+    apply: sta_subst_guarded...
+    move=>[|[|x]]//. asimpl. simpl. lia. }
+  { move=>A m1 m1' m2 m2' n n' _ stm1 ihm1 stm2 ihm2 stn ihn i[gA[[gm1 gm2] gn]].
+    have{}ihm1:=ihm1 _ gm1.
+    have{}ihm2:=ihm2 _ gm2.
+    apply: sta_subst_guarded...
+    move=>[|[|x]]//. asimpl. simpl. lia. }
+  { move=>A A' m m' stA ihA stm ihm i[gA gm].
+    have{}ihA:=ihA _ gA.
+    have{}ihm:=ihm _ gm.
+    apply: sta_subst_guarded...
+    move=>[|x]//e. asimpl. simpl. lia. }
+  { move=>A n1 n1' n2 st ih i[gA[_[gn1 gn2]]]... }
+  { move=>A n1 n1' n2 st ih i[gA[_[gn1 gn2]]]... }
+  { move=>m m' n n' stm ihm stn ihn i[gm gn]...
+    have{}ihn:=ihn _ gn.
+    have{}ihm:=ihm _ gm.
+    apply: sta_subst_guarded...
+    move=>[|x]//e. asimpl. simpl. lia. }
+Qed.
 
 Theorem sta_psr Γ m n A : Γ ⊢ m : A -> m ≈> n -> Γ ⊢ n : A.
 Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
@@ -298,12 +344,14 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
       repeat constructor...
       by asimpl.
       apply: tyC'. } }
-  { move=>Γ A m s tyA ihA tym ihm x st. inv st...
+  { move=>Γ A m s ar gr tyA ihA tym ihm x st. inv st...
     { have tyA':=ihA _ H1.
       have tym':=ihm _ H3.
       apply: sta0_conv.
       apply: conv1i...
       apply: sta0_fix...
+      apply: sta_arity_proto_psr...
+      apply: sta_guarded_psr...
       apply: sta0_conv.
       apply: sta_conv_subst.
       apply: conv1...
@@ -329,7 +377,7 @@ Proof with eauto using sta0_type, sta0_wf, sta_step, sta_type.
         apply: tym'.
         apply: sta_eweaken...
         simpl... }
-      have tyFix:=sta_fix tym'.
+      have tyFix:=sta_fix (sta_arity_proto_psr H1 ar) (sta_guarded_psr H3 gr) tym'.
       apply: sta_sta0_type.
       apply: sta_conv.
       apply: conv1i...

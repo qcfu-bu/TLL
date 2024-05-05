@@ -84,10 +84,6 @@ Proof with eauto using
         in ihn by autosubst.
     have:=era_letin1 mrg1 mrg' ihC ihm ihn.
     by autosubst. }
-  { move=>Θ Γ Δ A m m' k1 k2 tym ihm Γ' Δ' ξ agr. asimpl.
-    have wf:=era_type_wf tym. inv wf.
-    have{}ihm:=ihm _ _ _ (dyn_agree_ren_ty H4 agr).
-    apply: era_fix... asimpl. asimpl in ihm... }
   { move=>Θ Γ Δ emp wf k Γ' Δ' ξ agr.
     have:=dyn_rename_wf wf agr. asimpl... }
   { move=>Θ Γ Δ emp wf k Γ' Δ' ξ agr.

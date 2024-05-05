@@ -6,6 +6,48 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Fixpoint arity_proto (A : term) : Prop :=
+  match A with
+  | Proto => True
+  | Pi0 _ B s => arity_proto B
+  | Pi1 _ B s => arity_proto B
+  | _ => False
+  end.
+
+Fixpoint guarded (x : var) (m : term) : Prop :=
+  match m with
+  | Var y => x <> y 
+  | Sort s => True
+  | Pi0 A B s => guarded x A /\ guarded x.+1 B
+  | Pi1 A B s => guarded x A /\ guarded x.+1 B
+  | Lam0 A m s => guarded x A /\ guarded x.+1 m
+  | Lam1 A m s => guarded x A /\ guarded x.+1 m
+  | App0 m n => guarded x m /\ guarded x n
+  | App1 m n => guarded x m /\ guarded x n
+  | Sig0 A B s => guarded x A /\ guarded x.+1 B
+  | Sig1 A B s => guarded x A /\ guarded x.+1 B
+  | Pair0 m n s => guarded x m /\ guarded x n
+  | Pair1 m n s => guarded x m /\ guarded x n
+  | LetIn A m n => guarded x.+1 A /\ guarded x m /\ guarded x.+2 n
+  | Fix A m => guarded x A /\ guarded x.+1 m
+  | Unit => True | II => True
+  | Bool => True | TT => True | FF => True
+  | Ifte A m n1 n2 => guarded x.+1 A /\ guarded x m /\ guarded x n1 /\ guarded x n2
+  | IO A => guarded x A
+  | Return m => guarded x m
+  | Bind m n => guarded x m /\ guarded x.+1 n
+  | Proto => True | Stop => True
+  | Act0 r A B => guarded x A
+  | Act1 r A B => guarded x A
+  | Ch r A => guarded x A
+  | CVar x => True
+  | Fork A m => guarded x A /\ guarded x.+1 m
+  | Recv0 m => guarded x m | Recv1 m => guarded x m
+  | Send0 m => guarded x m | Send1 m => guarded x m
+  | Close m => guarded x m | Wait m => guarded x m
+  | Box => True
+  end.
+
 Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
 (* core *)
 | sta0_axiom Γ s :
@@ -71,6 +113,8 @@ Inductive sta0_type : sta_ctx -> term -> term -> Prop :=
   sta0_type (B :: A :: Γ) n C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   sta0_type Γ (LetIn C m n) C.[m/]
 | sta0_fix Γ A m s :
+  arity_proto A ->
+  guarded 0 m ->
   sta0_type Γ A (Sort s) ->
   sta0_type (A :: Γ) m A.[ren (+1)] ->
   sta0_type Γ (Fix A m) A
@@ -241,6 +285,8 @@ Inductive sta_type : sta_ctx -> term -> term -> Prop :=
   (B :: A :: Γ) ⊢ n : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   Γ ⊢ LetIn C m n : C.[m/]
 | sta_fix Γ A m :
+  arity_proto A ->
+  guarded 0 m ->
   (A :: Γ) ⊢ m : A.[ren (+1)] ->
   Γ ⊢ Fix A m : A
 (* data *)
@@ -345,7 +391,7 @@ Proof with eauto.
   elim=>{Γ m A}...
   { move=>Γ A _ _ _ _ wf. inv wf... }
   { move=>Γ A _ _ _ _ wf. inv wf... }
-  { move=>Γ A _ _ wf. inv wf... }
+  { move=>Γ A _ _ _ _ wf. inv wf... }
   { move=>Γ _ A _ _ wf. inv wf... }
   { move=>Γ _ A _ _ wf. inv wf... }
   { move=>Γ _ A _ wf. inv wf... }
@@ -361,7 +407,7 @@ Proof with eauto using sta0_type, sta0_wf.
   { move=>Γ A B m s tym ihm.
     have wf0:=sta0_type_wf ihm. inv wf0.
     apply: sta0_lam1... }
-  { move=>Γ A m tym ihm.
+  { move=>Γ A m ar gr tym ihm.
     have wf0:=sta0_type_wf ihm. inv wf0.
     apply: sta0_fix... }
   { move=>Γ r A B tyB ihB.

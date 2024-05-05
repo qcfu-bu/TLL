@@ -19,6 +19,18 @@ Inductive sta_agree_ren : (var -> var) ->
   sta_agree_ren ξ Γ Γ' ->
   sta_agree_ren (ξ >>> (+1)) (Γ) (m :: Γ').
 
+Lemma sta_agree_ren_injective Γ Γ' x y ξ :
+  sta_agree_ren ξ Γ Γ' -> ξ x = ξ y -> x = y.
+Proof.
+  move=>agr. elim: agr x y=>{Γ Γ' ξ}=>//=.
+  { move=>Γ Γ' ξ m s tym agr ih x y e.
+    destruct x; destruct y=>//.
+    asimpl in e. inv e.
+    have->//:=ih _ _ H0. }
+  { move=>Γ Γ' ξ m s tym agr ih x y e. inv e.
+    by apply: ih. }
+Qed.
+
 Lemma sta_agree_ren_refl Γ : sta_wf Γ -> sta_agree_ren id Γ Γ.
 Proof with eauto using sta_agree_ren.
   move=>wf. elim: wf=>{Γ}...
@@ -74,6 +86,56 @@ Qed.
 Lemma sta_wf_agree_ren Γ :
   sta_wf Γ -> sta_agree_ren (+size Γ) nil Γ.
 Proof with eauto using sta_agree_ren. elim=>/={Γ}... Qed.
+
+Lemma sta_ren_arity_proto A ξ : arity_proto A -> arity_proto A.[ren ξ].
+Proof with eauto.
+  elim: A ξ=>//=.
+  { move=>A ihA B ihB s ξ ar. asimpl. apply: ihB... }
+  { move=>A ihA B ihB s ξ ar. asimpl. apply: ihB... }
+Qed.
+
+Lemma ren_upren_injective ξ :
+  (forall x y, ξ x = ξ y -> x = y) -> (forall x y, (upren ξ) x = (upren ξ) y -> x = y).
+Proof with eauto.
+  move=>h [|x][|y]=>//. asimpl.
+  move=>e. inv e. by rewrite (h _ _ H0).
+Qed.
+
+Lemma sta_ren_guarded i m ξ :
+  (forall x y, ξ x = ξ y -> x = y) -> guarded i m ->  guarded (ξ i) m.[ren ξ].
+Proof with eauto.
+  elim: m i ξ=>//=.
+  { move=>x i ξ h neq e. apply: neq. exact: h. }
+  { move=>A ihA B ihB _ i ξ h [gA gB]. split...
+    have:=ihB _ (upren ξ) (ren_upren_injective h) gB. by asimpl. }
+  { move=>A ihA B ihB _ i ξ h [gA gB]. split... 
+    have:=ihB _ (upren ξ) (ren_upren_injective h) gB. by asimpl. }
+  { move=>A ihA B ihB _ i ξ h [gA gB]. split...
+    have:=ihB _ (upren ξ) (ren_upren_injective h) gB. by asimpl. }
+  { move=>A ihA B ihB _ i ξ h [gA gB]. split...
+    have:=ihB _ (upren ξ) (ren_upren_injective h) gB. by asimpl. }
+  { move=>m ihm n ihn i ξ ih [gA gB]. split... }
+  { move=>m ihm n ihn i ξ ih [gA gB]. split... }
+  { move=>A ihA B ihB _ i ξ h [gA gB]. split...
+    have:=ihB _ (upren ξ) (ren_upren_injective h) gB. by asimpl. }
+  { move=>A ihA B ihB _ i ξ h [gA gB]. split...
+    have:=ihB _ (upren ξ) (ren_upren_injective h) gB. by asimpl. }
+  { move=>m ihm n ihn _ i ξ ih [gA gB]. split... }
+  { move=>m ihm n ihn _ i ξ ih [gA gB]. split... }
+  { move=>A ihA m ihm n ihn i ξ h [gA [gm gn]]. repeat split...
+    have:=ihA _ (upren ξ) (ren_upren_injective h) gA. by asimpl.
+    have:=ihn _ (upren (upren ξ)) 
+            (ren_upren_injective (ren_upren_injective h)) gn.
+    by asimpl. }
+  { move=>A ihA m ihm i ξ h[gA gm]. split...
+    have:=ihm _ (upren ξ) (ren_upren_injective h) gm. by asimpl. }
+  { move=>A ihA m ihm n1 ihn1 n2 ihn2 i ξ h[gA [gm [gn1 gn2]]]. repeat split... 
+    have:=ihA _ (upren ξ) (ren_upren_injective h) gA. by asimpl. }
+  { move=>m ihm n ihn i ξ h[gm gn]. split... 
+    have:=ihn _ (upren ξ) (ren_upren_injective h) gn. by asimpl. }
+  { move=>A ihA m ihm i ξ h[gA gm]. split...
+    have:=ihm _ (upren ξ) (ren_upren_injective h) gm. by asimpl. }
+Qed.
 
 Lemma sta_rename Γ Γ' m A ξ :
   Γ ⊢ m : A -> sta_agree_ren ξ Γ Γ' -> Γ' ⊢ m.[ren ξ] : A.[ren ξ].
@@ -162,12 +224,15 @@ Proof with eauto using sta_type, sta_wf, sta_agree_ren.
         in ihn by autosubst.
     have:=sta_letin1 ihC ihm ihn.
     by autosubst. }
-  { move=>Γ A m tym ihm Γ' ξ agr. asimpl.
+  { move=>Γ A m ar gr tym ihm Γ' ξ agr. asimpl.
     have wf:=sta_type_wf tym. inv wf.
     have{}ihm:=ihm _ _ (sta_agree_ren_cons H2 agr).
     apply: sta_fix...
-    asimpl in ihm.
-    by asimpl. }
+    apply: sta_ren_arity_proto...
+    have h0:=sta_agree_ren_injective agr.
+    have h1:=sta_ren_guarded (ren_upren_injective h0) gr.
+    by asimpl in h1.
+    asimpl in ihm. by asimpl. }
   { move=>Γ A m n1 n2 s tyA ihA tym ihm tyn1 ihn1 tyn2 ihn2 Γ' ξ agr. asimpl.
     have wf:=sta_type_wf tym.
     have tyBool:=sta_bool wf.

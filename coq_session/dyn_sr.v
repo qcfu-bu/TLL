@@ -6,31 +6,20 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma dyn_sta_step m n A :
-  nil ⊢ m : A -> m ~>> n -> m ~>* n.
+Lemma dyn_sta_step Θ m n A :
+  Θ ; nil ; nil ⊢ m : A -> m ~>> n -> m ~>* n.
 Proof with eauto using sta_step, star1 with sta_red_congr.
-  move e:(nil)=>Γ ty. elim: ty e n=>{Γ m A}.
-  all: try solve[intros;
-                 match goal with
-                 | [ H : _ ~>> _ |- _ ] => inv H
-                 end].
-  { move=>Γ A B m n s tym ihm tyn ihn e n0 st. inv st... }
-  { move=>Γ A B m n s tym ihm tyn ihn e n0 st. inv st... }
-  { move=>Γ A B m n t tyS ihS tym ihm tyn ihn e n0 st. inv st... }
-  { move=>Γ A B m n t tyS ihS tym ihm tyn ihn e n0 st. inv st... }
-  { move=>Γ A B C m n s t tyC ihC tym ihm tyn ihn e n0 st. inv st... }
-  { move=>Γ A B C m n s t tyC ihC tym ihm tyn ihn e n0 st. inv st... }
-  { move=>Γ A m tym ihm e n0 st. inv st... }
-  { move=>Γ A m n1 n2 s tyA ihA tym ihm tyn1 ihn1 tyn2 ihn2 e n st. inv st... }
-  { move=>Γ m A tym ihm e n st. inv st... }
-  { move=>Γ m n A B s tyB ihB tym ihm tyn ihn e n0 st. inv st... }
-  { move=>Γ r1 r2 A B m xor tym ihm e n st. inv st... }
-  { move=>Γ r1 r2 A B m xor tym ihm e n st. inv st... }
-  { move=>Γ r1 r2 A B m xor tym ihm e n st. inv st... }
-  { move=>Γ r1 r2 A B m xor tym ihm e n st. inv st... }
-  { move=>Γ m tym ihm e n st. inv st... }
-  { move=>Γ m tym ihm e n st. inv st... }
-  { move=>Γ A B m s eq tym ihm tyB ihB e n st. subst... }
+  move e1:(nil)=>Γ.
+  move e2:(nil)=>Δ ty. elim: ty e1 e2 n=>{Θ Γ Δ m A}.
+  all: try solve[intros; subst;
+                 try match goal with
+                   | [ H : _ ∘ _ => [::] |- _ ] => inv H
+                   end;
+                 try match goal with
+                   | [ H : _ ~>> _ |- _ ] => inv H
+                   end;
+                 eauto using sta_step, star1 with sta_red_congr].
+  { intros. subst. eauto. }
 Qed.
 
 Lemma dyn_has_type Γ Δ x s A :
@@ -210,7 +199,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       apply: sta_conv_beta.
       apply: star_conv.
       apply: sta_red_pred.
-      apply: (dyn_sta_step (dyn_sta_type tym))...
+      apply: (dyn_sta_step tym)...
       apply: tyn.
       apply: sta_esubst...
       by autosubst. }
@@ -222,7 +211,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       apply: conv_sym.
       apply: star_conv.
       apply: sta_red_pred.
-      apply: (dyn_sta_step (dyn_sta_type tym))...
+      apply: (dyn_sta_step tym)...
       apply: dyn_letin0...
       apply: sta_esubst...
       by autosubst. }
@@ -245,7 +234,7 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       apply: conv_sym.
       apply: star_conv.
       apply: sta_red_pred.
-      apply: (dyn_sta_step (dyn_sta_type tym))...
+      apply: (dyn_sta_step tym)...
       apply: dyn_letin1...
       apply: sta_esubst...
       by autosubst. }
@@ -262,11 +251,6 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       apply: (dyn_agree_subst_wk1 k3 k4)...
       apply: (dyn_agree_subst_wk1 k1 k2)...
       by autosubst. } }
-  { move=>Θ Γ Δ A m k1 k2 tym ihm e1 e2 n st. subst. inv st.
-    have tyF:=dyn_fix k1 k2 tym.
-    have mrg:=pure_merge_self k1.
-    have:=dyn_subst1 k1 mrg k2 merge_nil tym tyF.
-    by autosubst. }
   { move=>Θ Γ Δ emp wf k e1 e2 n st. inv st. }
   { move=>Θ Γ Δ emp wf k e1 e2 n st. inv st. }
   { move=>Θ Γ Δ emp wf k e1 e2 n st. inv st. }

@@ -64,11 +64,6 @@ Inductive dyn_type : dyn_ctx -> sta_ctx -> dyn_ctx -> term -> term -> Prop :=
   Θ1 ; Γ ; Δ1 ⊢ m : Sig1 A B t ->
   Θ2 ; (B :: A :: Γ) ; B .{r2} A .{r1} Δ2 ⊢ n : C.[Pair1 (Var 1) (Var 0) t .: ren (+2)] ->
   Θ ; Γ ; Δ ⊢ LetIn C m n : C.[m/]
-| dyn_fix Θ Γ Δ A m :
-  Θ ▷ U ->
-  Δ ▷ U ->
-  Θ ; (A :: Γ) ; A :U Δ ⊢ m : A.[ren (+1)] ->
-  Θ ; Γ ; Δ ⊢ Fix A m : A
 (* data *)
 | dyn_ii Θ Γ Δ :
   dyn_empty Θ ->
@@ -184,7 +179,6 @@ Proof with eauto 8 using dyn_wf.
     inv wf. inv H2. apply: dyn_wf_merge... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2 tyC tym wf1 tyn wf2.
     inv wf2. inv H2. apply: dyn_wf_merge... }
-  { move=>Θ Γ Δ A m k1 k2 tym wf. inv wf... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2 tyA tym wf1 tyn1 wf2 tyn2 _.
     apply: dyn_wf_merge... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2 tyB tym wf1 tyn wf2.

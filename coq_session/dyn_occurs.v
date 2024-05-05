@@ -293,8 +293,6 @@ Proof with eauto using dyn_occurs.
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2
            tyC tym ihm tyn ihn m0 ξ e i h.
     destruct m0; inv e. erewrite ihm... }
-  { move=>Θ Γ Δ A m k1 k2 tym ihm m0 ξ e i h.
-    destruct m0; inv e... }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2
            tyA tym ihm tyn1 ihn1 tyn2 ihn2 m0 ξ e i h.
     destruct m0; inv e.

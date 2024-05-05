@@ -273,25 +273,6 @@ Proof with eauto using era_type.
     apply: (ihn _ _ _ erefl erefl _ _ e1 e3 e5 e7 h).
     have/=:=sta_substitution tyA0 agr...
     have/=:=sta_subst tyC (era_sta_type tym)... }
-  { move=>Θ Γ Δ A m m' k1 k2 tym ihm m1 m2 ξ e1 e2 i j oc1 oc2 oc3 oc4 h.
-    destruct m1; inv e1. destruct m2; inv e2. destruct m2; inv H0.
-    simpl in oc1, oc2, oc3, oc4.
-    have{}ihm:=ihm _ _ _ erefl erefl _ _ oc1 oc2 oc3 oc4 h.
-    have wf:=era_type_wf ihm. inv wf.
-    apply: era_conv.
-    apply: conv_sym.
-    apply: sta_cren_conv0...
-    2:{ eauto. }
-    econstructor...
-    apply: era_ctx_conv1.
-    apply: conv_sym.
-    apply: sta_cren_conv0...
-    apply: sta_crename_inv...
-    apply: era_conv.
-    apply: sta_conv_subst.
-    apply: sta_cren_conv0...
-    apply: ihm.
-    have/=:=sta_weaken (sta_crename_inv H4) H4... }
   { move=>Θ Γ Δ emp wf k m1 m2 ξ e1 e2 i j oc1 oc2 oc3 oc4 h.
     destruct m1; inv e1. destruct m2; inv e2.
     simpl in oc1, oc2, oc3, oc4... }

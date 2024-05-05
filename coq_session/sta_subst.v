@@ -1,4 +1,4 @@
-From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
+From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq zify.
 From Coq Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS sta_weak.
 
@@ -94,6 +94,104 @@ Proof.
   move=>Γ1 σ Γ2 A s agr ih tyA. asimpl. rewrite ih. by asimpl.
 Qed.
 
+Lemma sta_subst_arity_proto A σ : arity_proto A -> arity_proto A.[σ].
+Proof with eauto.
+  elim: A σ=>//=.
+  { move=>A ihA B ihB s σ ar. apply: ihB... }
+  { move=>A ihA B ihB s σ ar. apply: ihB... }
+Qed.
+
+Lemma sta_ren_guarded0 i m ξ : (forall x, i <> ξ x) -> guarded i m.[ren ξ].
+Proof with eauto.
+  elim: m i ξ=>//=...
+  { move=>A ihA B ihB _ i ξ h. split... asimpl.
+    apply: ihB. move=>[|x]//. asimpl=>e. inv e. apply: h... }
+  { move=>A ihA B ihB _ i ξ h. split... asimpl.
+    apply: ihB. move=>[|x]//. asimpl=>e. inv e. apply: h... }
+  { move=>A ihA m ihm _ i ξ h. split... asimpl.
+    apply: ihm. move=>[|x]//. asimpl=>e. inv e. apply: h... }
+  { move=>A ihA m ihm _ i ξ h. split... asimpl.
+    apply: ihm. move=>[|x]//. asimpl=>e. inv e. apply: h... }
+  { move=>A ihA B ihB _ i ξ h. split... asimpl.
+    apply: ihB. move=>[|x]//. asimpl=>e. inv e. apply: h... }
+  { move=>A ihA B ihB _ i ξ h. split... asimpl.
+    apply: ihB. move=>[|x]//. asimpl=>e. inv e. apply: h... }
+  { move=>A ihA m ihm n ihn i ξ h. asimpl. repeat split...
+    apply: ihA. move=>[|x]//. asimpl=>e. inv e. apply: h...
+    apply: ihn. move=>[|[|x]]//. asimpl=>e. inv e. apply: h... }
+  { move=>A ihA m ihm i ξ h. split... asimpl.
+    apply: ihm. move=>[|x]//. asimpl=>e. inv e. apply: h... }
+  { move=>A ihA m ihm n1 ihn1 n2 ihn2 i ξ h. asimpl. repeat split...
+    apply: ihA. move=>[|x]//. asimpl=>e. inv e. apply: h... }
+  { move=>m ihm n ihn i ξ h. split... asimpl.
+    apply: ihn. move=>[|x]//. asimpl=>e. inv e. apply: h... }
+  { move=>A ihA m ihm i ξ h. asimpl. repeat split...
+    apply: ihm. move=>[|x]//. asimpl=>e. inv e. apply: h... }
+Qed.
+
+Lemma sta_subst_guarded i j m σ :
+  (forall x, i <> x -> guarded j (σ x)) -> guarded i m -> guarded j m.[σ].
+Proof with eauto.
+  elim: m i j σ=>//=.
+  all: try solve[intros;
+                 repeat match goal with
+                 | [ H : _ /\ _ |- _ ] => inv H; split; eauto
+                 end]...
+  { move=>A ihA B ihB _ i j σ h[gA gB]. split... apply: ihB...
+    move=>[|x] neq...
+      asimpl. simpl. lia.
+      asimpl. apply: sta_ren_guarded... }
+  { move=>A ihA B ihB _ i j σ h[gA gB]. split... apply: ihB...
+    move=>[|x] neq...
+      asimpl. simpl. lia.
+      asimpl. apply: sta_ren_guarded... }
+  { move=>A ihA m ihm _ i j σ h[gA gB]. split... apply: ihm...
+    move=>[|x] neq...
+      asimpl. simpl. lia.
+      asimpl. apply: sta_ren_guarded... }
+  { move=>A ihA m ihm _ i j σ h[gA gB]. split... apply: ihm...
+    move=>[|x] neq...
+      asimpl. simpl. lia.
+      asimpl. apply: sta_ren_guarded... }
+  { move=>A ihA B ihB _ i j σ h[gA gB]. split... apply: ihB...
+    move=>[|x] neq...
+      asimpl. simpl. lia.
+      asimpl. apply: sta_ren_guarded... }
+  { move=>A ihA B ihB _ i j σ h[gA gB]. split... apply: ihB...
+    move=>[|x] neq...
+      asimpl. simpl. lia.
+      asimpl. apply: sta_ren_guarded... }
+  { move=>A ihA m ihm n ihn i j σ h[gA[gm gB]]. repeat split...
+    apply: ihA...
+    move=>[|x] neq...
+      asimpl. simpl. lia.
+      asimpl. apply: sta_ren_guarded...
+    apply: ihn...
+    move=>[|[|x]] neq...
+      asimpl. simpl. lia.
+      asimpl. simpl. lia.
+      asimpl. apply: sta_ren_guarded.
+      move=>x0 y0. simpl. lia.
+      apply: h. lia. }
+  { move=>A ihA m ihm i j σ h[gA gm]. split... apply: ihm...
+    move=>[|x] neq...
+      asimpl. simpl. lia.
+      asimpl. apply: sta_ren_guarded... }
+  { move=>A ihA m ihm n1 ihn1 n2 ihn2 i j σ h[gA[gm[gn1 gn2]]].
+    repeat split... apply: ihA...
+    move=>[|x] neq...
+      asimpl. simpl. lia.
+      asimpl. apply: sta_ren_guarded... }
+  { move=>m ihm n ihn i j σ h[gm gn]. split... apply: ihn...
+    move=>[|x] neq...
+      asimpl. simpl. lia.
+      asimpl. apply: sta_ren_guarded... }
+  { move=>A ihA m ihm i j σ h[gA gm]. split... apply: ihm...
+    move=>[|x] neq...
+      asimpl. simpl. lia.
+      asimpl. apply: sta_ren_guarded... }
+Qed.
+
 Lemma sta_substitution Γ1 Γ2 m A σ :
   Γ2 ⊢ m : A -> Γ1 ⊢ σ ⊣ Γ2 -> Γ1 ⊢ m.[σ] : A.[σ].
 Proof with eauto using sta_agree_subst, sta_type.
@@ -163,10 +261,14 @@ Proof with eauto using sta_agree_subst, sta_type.
     asimpl in ihm...
     asimpl in ihn...
     by asimpl. }
-  { move=>Γ A m tym ihm Γ1 σ agr. asimpl.
+  { move=>Γ A m ar gr tym ihm Γ1 σ agr. asimpl.
     have wf:=sta_type_wf tym. inv wf.
     have{}ihm:=ihm _ _ (sta_agree_subst_ty agr H2).
     apply: sta_fix...
+    apply: sta_subst_arity_proto...
+    apply: sta_subst_guarded...
+    move=>[|x] neq//. asimpl.
+    apply: sta_ren_guarded0. move=>x0 e. inv e.
     asimpl in ihm. asimpl... }
   { move=>Γ A m n1 n2 s tyA ihA tym ihm tyn1 ihn1 tyn2 ihn2 Γ1 σ agr. asimpl.
     have wf:=sta_type_wf tym.

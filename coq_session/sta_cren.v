@@ -75,6 +75,18 @@ Proof with eauto using sta_pstep.
     by apply: sta_cren_pstep. }
 Qed.
 
+Lemma sta_cren_arity_proto A ξ : arity_proto A -> arity_proto (cren ξ A).
+Proof with eauto. elim: A ξ=>//=. Qed.
+
+Lemma sta_cren_guarded i m ξ : guarded i m -> guarded i (cren ξ m).
+Proof with eauto.
+  elim: m i ξ=>//=...
+  all: try solve[intros;
+                 repeat match goal with
+                 | [ H : _ /\ _ |- _ ] => inv H; split; eauto
+                 end].
+Qed.
+
 Lemma sta_crename Γ m A ξ :
   Γ ⊢ m : A -> Γ ⊢ cren ξ m : A.
 Proof with eauto using sta_type, sta0_sta_wf.
@@ -253,10 +265,12 @@ Proof with eauto using sta_type, sta0_sta_wf.
     have//=:=sta_substitution (ihS ξ) agr.
     eauto.
     have//=:=sta_subst tyS tym... }
-  { move=>Γ A m s/sta0_sta_type tyA ihA/sta0_sta_type tym ihm ξ.
+  { move=>Γ A m ar gr s/sta0_sta_type tyA ihA/sta0_sta_type tym ihm ξ.
     apply: sta_conv.
     apply: sta_cren_conv0...
     constructor.
+    apply: sta_cren_arity_proto...
+    apply: sta_cren_guarded...
     apply: sta_ctx_conv.
     apply: sta_cren_conv0...
     apply: ihA.
@@ -336,6 +350,18 @@ Ltac sta0_to_sta :=
     | [ H : sta0_wf _ |- _ ] => apply sta0_sta_wf in H
     | [ H : sta0_type _ _ _ |- _ ] => apply sta0_sta_type in H
     end.
+
+Lemma sta_cren_arity_proto_inv A ξ : arity_proto (cren ξ A) -> arity_proto A.
+Proof with eauto. elim: A ξ=>//. Qed.
+
+Lemma sta_cren_guarded_inv i m ξ : guarded i (cren ξ m) -> guarded i m.
+Proof with eauto.
+  elim: m i ξ=>//=...
+  all: try solve[intros;
+                 repeat match goal with
+                 | [ H : _ /\ _ |- _ ] => inv H; split; eauto
+                 end].
+Qed.
 
 Lemma sta_crename_inv Γ m A ξ :
   Γ ⊢ cren ξ m : A -> Γ ⊢ m : A.
@@ -526,12 +552,14 @@ Proof with eauto using sta_type, sta0_sta_wf.
     2:{ apply: ihn... }
     apply: sta_cren_conv0...
     have/=:=sta_substitution (ihS _ _ erefl) agr... }
-  { move=>Γ A m s tyA ihA tym ihm m0 ξ e. sta0_to_sta.
+  { move=>Γ A m ar gr s tyA ihA tym ihm m0 ξ e. sta0_to_sta.
     destruct m0; inv e.
     apply: sta_conv.
     apply: conv_sym.
     apply: sta_cren_conv0...
     constructor.
+    apply: sta_cren_arity_proto_inv...
+    apply: sta_cren_guarded_inv...
     apply: sta_ctx_conv.
     apply: conv_sym.
     apply: sta_cren_conv0...

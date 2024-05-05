@@ -341,13 +341,6 @@ Proof with eauto using dyn_agree_subst, dyn_type, key_merge.
                  (dyn_agree_subst_ty (dyn_agree_subst_ty agrb H8) H6).
     apply: dyn_letin1...
     asimpl. asimpl in ihn... }
-  { move=>Θ Γ Δ A m k1 k2 tym ihm Θ1 Θ0 Γ1 Δ1 σ mrg agr. asimpl.
-    have wf:=dyn_type_wf tym. inv wf.
-    have[ka kb]:=dyn_agree_subst_key agr k2.
-    have agr':=dyn_agree_subst_ty agr H4.
-    have{}ihm:=ihm _ _ _ _ _ mrg agr'.
-    apply: dyn_fix...
-    asimpl. asimpl in ihm... }
   { move=>Θ Γ Δ emp wf ih k Θ1 Θ0 Γ1 Δ1 σ mrg agr. asimpl.
     have[ka kb]:=dyn_agree_subst_key agr k.
     have e:=merge_pureL mrg ka. subst.

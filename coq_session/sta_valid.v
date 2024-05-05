@@ -29,7 +29,7 @@ Proof with eauto using sta_type.
     have//={}tyC:=sta_subst tyC tym. exists s... }
   { move=>Γ A B C m n s t tyC _ tym _ _ _.
     have//={}tyC:=sta_subst tyC tym. exists s... }
-  { move=>Γ A m tym _.
+  { move=>Γ A m _ _ tym _.
     have wf:=sta_type_wf tym. inv wf. exists s... }
   { move=>Γ A m n1 n2 s tym _ tyA _ _ _ _ _.
     exists s. apply: sta_esubst...

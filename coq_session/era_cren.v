@@ -166,23 +166,6 @@ Proof with eauto using era_type, dyn_empty, dyn_ctx_cren.
       repeat constructor... }
     have/=:=sta_substitution (sta_crename ξ tyC) agr'...
     have/=:=sta_subst tyC (era_sta_type tym)... }
-  { move=>Θ Γ Δ A m m' k1 k2 tym ihm Θ' ξ agr.
-    have wf:=era_type_wf tym. inv wf.
-    apply: era_conv.
-    apply: sta_cren_conv0...
-    constructor...
-    apply: dyn_ctx_cren_key...
-    apply: era_ctx_conv1.
-    apply: sta_cren_conv0...
-    apply: sta_crename...
-    apply: era_conv.
-    apply: sta_conv_subst.
-    apply: conv_sym.
-    apply: sta_cren_conv0...
-    apply: ihm...
-    apply: sta_eweaken...
-    2:{ apply: sta_crename... } 
-    simpl. eauto. eauto. }
   { move=>Θ Γ Δ emp wf k Θ' ξ agr.
     constructor... apply: dyn_ctx_cren_empty... }
   { move=>Θ Γ Δ emp wf k Θ' ξ agr.
@@ -304,8 +287,6 @@ Proof with eauto.
     have[m1 e]:=ihm _ _ erefl. subst.
     have[n1 e]:=ihn _ _ erefl. subst.
     by exists (LetIn Box m1 n1). }
-  { move=>Θ Γ Δ A m m' k1 k2 erm ihm m0 ξ e. destruct m0; inv e.
-    have[m2 e]:=ihm _ _ erefl. subst. by exists (Fix Box m2). }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s mrg1 mrg2
            tyA erm ihm ern1 ihn1 ern2 ihn2 m0 ξ e. destruct m0; inv e.
     have[m1 e]:=ihm _ _ erefl. subst.
