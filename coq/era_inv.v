@@ -52,15 +52,6 @@ Proof. move e:(TT)=>x er. elim: er e=>//. Qed.
 Lemma era_ff_form Γ Δ m A : Γ ; Δ ⊢ m ~ FF : A -> m = FF.
 Proof. move e:(FF)=>x er. elim: er e=>//. Qed.
 
-Lemma era_ifte_form Γ Δ m n1 n2 n3 X A :
-  Γ ; Δ ⊢ m ~ Ifte X n1 n2 n3 : A -> exists A n1 n2 n3, m = Ifte A n1 n2 n3 /\ X = Box.
-Proof.
-  move e:(Ifte X n1 n2 n3)=>x er. elim: er X n1 n2 n3 e=>//{Γ Δ m x A}.
-  move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s mrg1 mrg2
-         tyA erm ihm ern1 ihn1 ern2 ihn2 X m1 m2 m3[e1 e2 e3 e4]. subst.
-  exists A. exists m. exists n1. exists n2. by [].
-Qed.
-
 Lemma era_box_form Γ Δ m A : ~Γ ; Δ ⊢ m ~ Box : A.
 Proof. move e:(Box)=>m' ty. elim: ty e=>//{Γ Δ m m' A}. Qed.
 
