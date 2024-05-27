@@ -20,26 +20,27 @@ def queue_p (xs : llist int) : proto :=
 #[logical]def queue_hc (xs : llist int) : L := hc⟨queue_p xs⟩
 #[logical]def queue (xs : llist int) : L := IO (queue_hc xs)
 
-def node_worker ?{xs : llist int} (x : int) : queue_hc xs .-> queue_ch (x :: xs) .-> IO unit
-  | c_next, c =>
-    let* ⟨o, c⟩ := recv c in
-    match o as o0
-        , c as _ :
-          ch⟨match o0 with
-             | Free => •
-             | Enqueue n => queue_p (rcons (x :: xs) n)
-             | Dequeue   => ⇑(`x) -> ⇑(hc⟨queue_p xs⟩) → •⟩
-    with
-    | Free, c => 
-      let* c_next := send c_next Free in
-      close c_next; close c
-    | Enqueue n, c =>
-      let* c_next := send c_next (Enqueue n) in
-      node_worker x c_next c
-    | Dequeue, c =>
-      let* c := send c (just x) in
-      let* c := send c c_next in
-      close c
+def node_worker ?{xs : llist int} (x : int) 
+: queue_hc xs .-> queue_ch (x :: xs) .-> IO unit
+| c_next, c =>
+  let* ⟨o, c⟩ := recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+            | Free => •
+            | Enqueue n => queue_p (rcons (x :: xs) n)
+            | Dequeue   => ⇑(`x) -> ⇑(hc⟨queue_p xs⟩) → •⟩
+  with
+  | Free, c => 
+    let* c_next := send c_next Free in
+    close c_next; close c
+  | Enqueue n, c =>
+    let* c_next := send c_next (Enqueue n) in
+    node_worker x c_next c
+  | Dequeue, c =>
+    let* c := send c (just x) in
+    let* c := send c c_next in
+    close c
 
 def empty_worker (c : queue_ch nil) : IO unit :=
   let* ⟨o, c⟩ := recv c in
