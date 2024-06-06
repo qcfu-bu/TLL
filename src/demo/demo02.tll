@@ -1,13 +1,13 @@
 /- Sequential Trees -/
 
 inductive tree (A : U) : U where
-| Leaf : tree A
-| Node (x : A) (l r : tree A) : tree A
+  | Leaf : tree A
+  | Node (x : A) (l r : tree A) : tree A
 
 inductive opr (A : U) : L where
-| Free : opr A
-| Map  ?{B : U} (f : A -> B) : opr A
-| Fold ?{B : U} (b : B) (f : A -> B -> B -> B) : opr A
+  | Free : opr A
+  | Map  ?{B : U} (f : A -> B) : opr A
+  | Fold ?{B : U} (b : B) (f : A -> B -> B -> B) : opr A
 
 def map ?{A B : U} (f : A -> B) : tree A -> tree B
   | Leaf => Leaf
@@ -16,6 +16,14 @@ def map ?{A B : U} (f : A -> B) : tree A -> tree B
 def fold ?{A B : U} (b : B) (f : A -> B -> B -> B) : tree A -> B
   | Leaf => b
   | Node x l r => f x (fold b f l) (fold b f r)
+
+
+
+
+
+
+
+
 
 
 
@@ -32,7 +40,19 @@ def tree_p ?{A : U} (t : tree A) : proto :=
 
 #[logical]def ctree_ch ?{A : U} (t : tree A) : L := ch⟨tree_p t⟩
 #[logical]def ctree_hc ?{A : U} (t : tree A) : L := hc⟨tree_p t⟩
-#[logical]def ctree ?{A : U} (t : tree A) : L := IO (ctree_hc t)
+#[logical]def ctree    ?{A : U} (t : tree A) : L := IO(ctree_hc t)
+
+
+
+
+
+
+
+
+
+
+
+
 
 def leaf_worker ?{A : U} (c : @ctree_ch A Leaf) : IO unit := 
   let* ⟨o, c⟩ := recv c in
@@ -74,6 +94,21 @@ def node_worker ?{A : U} ?{l r : tree A} (x : A)
     let* c := send c (just (f x vl vr)) in
     node_worker x l_ch r_ch c
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+/- "constructors" for concurrent trees -/
+
 def cleaf ?{A : U} (_ : unit) : ctree (@Leaf A) := 
   fork (c : ctree_ch Leaf) => leaf_worker c
 
@@ -87,13 +122,25 @@ def ctree_of_tree ?{A : U} : ∀ (x : tree A) -> ctree x
   | Leaf       => cleaf tt
   | Node x l r => cnode x (ctree_of_tree l) (ctree_of_tree r)
 
+/- "destructor" for concurrent trees -/
 
-
-  
 def cfree ?{A : U} ?{t : tree A} (ct : ctree t) : IO unit :=
   let* c := ct in
   let* c := send c Free in
   close c
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /- Certified higher-order functions for concurrent trees. -/
 
@@ -112,6 +159,16 @@ def cfold ?{A B : U} ?{t : tree A} (b : B) (f : A -> B -> B -> B) (ct : ctree t)
 
 
 
+
+
+
+
+
+
+
+
+
+
 /- Using higher-order functions on trees to build specialized functions. -/
 
 def cheight ?{A : U} ?{t : tree A} (ct : ctree t) :=
@@ -122,6 +179,19 @@ def csize ?{A : U} ?{t : tree A} (ct : ctree t) :=
 
 def cexists ?{A : U} ?{t : tree A} (pred : A -> bool) (ct : ctree t) :=
   cfold false (fn k x y => pred k || x || y) ct
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def mytree1 (x : int) := cnode x (cleaf tt) (cleaf tt)
 def mytree2 (x : int) := cnode x (mytree1 1) (mytree1 2)

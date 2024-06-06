@@ -1,32 +1,56 @@
 /- 2 sorts U and L,
    U: universe of unrestricted objects
    L: universe of linear objects
+
+  Sort classification is inspired by LNLD of Krishnaswami et al.
+
+  Removal of LNLD adjoint connectives to allow interactions between 
+  unrestricted and linear programs.
 -/
 
-inductive nat : U where
-| zero : nat
-| succ (n : nat) : nat
+inductive natU : U where
+  | zeroU : natU
+  | succU (n : natU) : natU
 
-inductive lnat : L where
-| lzero : lnat
-| lsucc (n : lnat) : lnat
+inductive natL : L where
+  | zeroL : natL
+  | succL (n : natL) : natL
+
+def add_natU_natL: natU -> natL -> natL
+  | zeroU  , y => y 
+  | succU x, y => succL (add_natU_natL x y)
+
+/- 
+Two kinds of arrows
+ -> : of sort U, can be called unrestricted
+.-> : of sort L, must be called exactly once
+-/
+def add_natL_natU: natL -> natU .-> natU
+  | zeroL  , y => y 
+  | succL x, y => succU (add_natL_natU x y)
 
 
 
 
+
+/-
 /- Problem: too many variants. -/
   
 inductive optionUU (A : U) : U where
-| NoneUU : optionUU A
-| SomeUU (m : A) : optionUU A
+  | NoneUU : optionUU A
+  | SomeUU (m : A) : optionUU A
 
 inductive optionUL (A : U) : L where
-| NoneUL : optionUL A
-| SomeUL (m : A) : optionUL A
+  | NoneUL : optionUL A
+  | SomeUL (m : A) : optionUL A
 
 inductive optionLL (A : L) : L where
-| NoneLL : optionLL A
-| SomeLL (m : A) : optionLL A
+  | NoneLL : optionLL A
+  | SomeLL (m : A) : optionLL A
+
+
+
+
 
 /- Solution: Sort polymorphism, (parameterized sorts)
    Type inference automatically finds instantiations for sort variables
@@ -34,8 +58,8 @@ inductive optionLL (A : L) : L where
 -/
 
 inductive option‹s› (A : Type‹s›) : Type‹s› where
-| None : option A
-| Some (m : A) : option A
+  | None : option A
+  | Some (m : A) : option A
 
 
 
@@ -46,7 +70,7 @@ notation ( = ) := eq %1 %2
 
 #[logical] -- decorator for computational irrelevancy
 inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
-| refl : m = m
+  | refl : m = m
 
 
 
@@ -54,7 +78,7 @@ inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
 /- singleton type -/
 
 inductive sing‹s,t› ?(A : Type‹s›) : A -> Type‹t› where
-| just (m : A) : sing m
+  | just (m : A) : sing m
 
 #[logical] -- decorator for computational irrelevancy
 def ssing‹s› ?(A : Type‹s›) (m : A) : Type‹s› := @sing‹s,s› A m
@@ -67,8 +91,8 @@ notation ( ` ) := ssing %1
 /- sort polymorphic list -/
 
 inductive list‹s,t› (A : Type‹s›) : Type‹t› where
-| nil : list A
-| cons (hd : A) (tl : list‹_,t› A) : list A
+  | nil : list A
+  | cons (hd : A) (tl : list‹_,t› A) : list A
 
 /- .-> is a function (in sort L) that must be used exactly once -/ 
 def append‹s,t› ?{A : Type‹s›} : list‹s,t›A -> list‹s,t›A .-> list‹s,t›A
@@ -106,15 +130,15 @@ def get_at ?{A : U}
 
 /- The boxed type injects a term of any sort into L. -/
 inductive boxed‹s› (A : Type‹s›) : L where
-| box (m : A) : boxed A
+  | box (m : A) : boxed A
 
 
 -- Dependent additive pair.
 inductive apair‹s,r,t› ?(A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
-| apair_intro
-  ?{x : A} -- x is an erased term for encoding dependency
-  (select : forall‹t› (b : bool),
-              if b then sing x else boxed (B x)) : apair B
+  | apair_intro
+    ?{x : A} -- x is an erased term for encoding dependency
+    (select : forall‹t› (b : bool),
+                if b then sing x else boxed (B x)) : apair B
 
 /- We can now define additive pairing as a macro for apair_intro.
    Resources of the true and false branches are combined additively.
@@ -136,3 +160,4 @@ def proj2‹s,r,t› ?{A : Type‹s›} ?{B : A -> Type‹r›} : forall (x : @a
       in B (sing_elim a0)
     with
     | _, _, refl, box b => b
+-/

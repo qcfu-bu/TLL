@@ -2,6 +2,15 @@
 
 #[logical]def llist‹s› (A : Type‹s›) := list‹_,L› A
 
+
+
+
+
+
+
+
+
+
 /- signals for queue "methods" -/
 inductive opr : L where
   | Free : opr
@@ -22,7 +31,11 @@ def queue_p (xs : llist int) : proto :=
 /- The ch type constructor provides an interpretation for ⇑, ⇓ similarily to left/right rules. -/
 #[logical]def queue_ch (xs : llist int) : L := ch⟨queue_p xs⟩ -- interpret as left-rule
 #[logical]def queue_hc (xs : llist int) : L := hc⟨queue_p xs⟩ -- interpret as right-rule
-#[logical]def queue (xs : llist int)    : L := IO (queue_hc xs)
+#[logical]def queue    (xs : llist int) : L := IO(queue_hc xs)
+
+
+
+
 
 
 
@@ -64,6 +77,14 @@ def empty_worker (c : queue_ch nil) : IO unit :=
     empty_worker c0
   | Dequeue, c => empty_worker c
 
+
+
+
+
+
+
+
+
 def empty (_ : unit) : queue nil :=
   fork (c : queue_ch nil) => empty_worker c
 
@@ -92,6 +113,11 @@ def myqueue := enqueue 3 myqueue
 def myqueue := enqueue 4 myqueue
 def myqueue := enqueue 5 myqueue
 def myqueue := enqueue 6 myqueue
+
+
+
+
+
 
 
 
