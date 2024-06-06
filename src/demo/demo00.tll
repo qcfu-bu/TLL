@@ -1,0 +1,138 @@
+/- 2 sorts U and L,
+   U: universe of unrestricted objects
+   L: universe of linear objects
+-/
+
+inductive nat : U where
+| zero : nat
+| succ (n : nat) : nat
+
+inductive lnat : L where
+| lzero : lnat
+| lsucc (n : lnat) : lnat
+
+
+
+
+/- Problem: too many variants. -/
+  
+inductive optionUU (A : U) : U where
+| NoneUU : optionUU A
+| SomeUU (m : A) : optionUU A
+
+inductive optionUL (A : U) : L where
+| NoneUL : optionUL A
+| SomeUL (m : A) : optionUL A
+
+inductive optionLL (A : L) : L where
+| NoneLL : optionLL A
+| SomeLL (m : A) : optionLL A
+
+/- Solution: Sort polymorphism, (parameterized sorts)
+   Type inference automatically finds instantiations for sort variables
+   and generates monophized programs.
+-/
+
+inductive option‹s› (A : Type‹s›) : Type‹s› where
+| None : option A
+| Some (m : A) : option A
+
+
+
+
+/- Sort polymorphic propositional equality (MLTT-style dependent types) -/
+
+notation ( = ) := eq %1 %2
+
+#[logical] -- decorator for computational irrelevancy
+inductive eq‹s› ?(A : Type‹s›) (m : A) : A -> U where
+| refl : m = m
+
+
+
+
+/- singleton type -/
+
+inductive sing‹s,t› ?(A : Type‹s›) : A -> Type‹t› where
+| just (m : A) : sing m
+
+#[logical] -- decorator for computational irrelevancy
+def ssing‹s› ?(A : Type‹s›) (m : A) : Type‹s› := @sing‹s,s› A m
+
+notation ( ` ) := ssing %1
+
+
+
+
+/- sort polymorphic list -/
+
+inductive list‹s,t› (A : Type‹s›) : Type‹t› where
+| nil : list A
+| cons (hd : A) (tl : list‹_,t› A) : list A
+
+/- .-> is a function (in sort L) that must be used exactly once -/ 
+def append‹s,t› ?{A : Type‹s›} : list‹s,t›A -> list‹s,t›A .-> list‹s,t›A
+  | nil    , ys => ys
+  | x :: xs, ys => x :: append xs ys
+
+
+
+
+/- Using dependent types, we can prove theorems about both unrestricted and linear programs.
+   Programs marked by #[logical] are erased before runtime and do not consume resources. -/
+#[logical]
+def length‹s,t› ?(A : Type‹s›) : list‹_,t›A -> nat
+  | nil     => zero
+  | _ :: tl => succ (length tl)
+
+#[logical]
+inductive at‹s,t› ?(A : Type‹s›) (x : A) : nat -> list‹_,t› A -> U where
+  | at_zero (xs0 : list A) : at x zero (x :: xs0)
+  | at_succ ?(n : nat) (x0 : A) ?(xs0 : list A) (h : at x n xs0) : at x (succ n) (x0 :: xs0)
+
+def get_at ?{A : U}
+: ∀ (n : nat) (xs : list‹_,U›A) -> {lt n (length xs) = true} -> exists (fn x => at x n xs)
+  | _     , nil    , !! =>
+  | zero  , x :: xs, _  => ⟨x, {at_zero xs}⟩
+  | succ n, x :: xs, e  => 
+    let ⟨x0, {pf}⟩ := get_at n xs e in
+    ⟨x0, {at_succ _ pf}⟩
+
+
+
+
+/- With linear dependent types, we can encode dependent additive pairs
+   using booleans and equality. -/
+
+/- The boxed type injects a term of any sort into L. -/
+inductive boxed‹s› (A : Type‹s›) : L where
+| box (m : A) : boxed A
+
+
+-- Dependent additive pair.
+inductive apair‹s,r,t› ?(A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
+| apair_intro
+  ?{x : A} -- x is an erased term for encoding dependency
+  (select : forall‹t› (b : bool),
+              if b then sing x else boxed (B x)) : apair B
+
+/- We can now define additive pairing as a macro for apair_intro.
+   Resources of the true and false branches are combined additively.
+-/
+notation ( { , } ) :=
+  apair_intro fun
+    | true  => just %1
+    | false => box %2
+
+def proj1‹s,r,t› ?{A : Type‹s›} ?{B : A -> Type‹r›} : @apair‹s,r,t› A B -> A
+  | apair_intro _ select => sing_elim (select true)
+
+def proj2‹s,r,t› ?{A : Type‹s›} ?{B : A -> Type‹r›} : forall (x : @apair‹s,r,t› A B) -> B (proj1 x)
+  | apair_intro x select => 
+    match {x}                       as x0 -- x is matched to introduce flex variable x0
+        , {select true}             as a0 : sing x
+        , {sing_uniq (select true)} as _  : x0 = sing_elim a0
+        , select false              as _  : boxed (B x0)
+      in B (sing_elim a0)
+    with
+    | _, _, refl, box b => b

@@ -1,0 +1,69 @@
+/- An interesting application of computational irrelevancy. -/
+ 
+-- ———————————————————————————————————————————————
+-- Diffie–Hellman key exchange
+
+-- p and g are known public values
+-- a is the secret of Alice
+-- A is the public value of Alice
+-- b is the secret of Bob
+-- B is the public value of Bob
+
+-- Secrets a and b are synchronized implicitly
+-- through irrelevance quantification.
+-- ———————————————————————————————————————————————
+
+#[logical]
+def DH (p g : int) : proto :=
+  ⇑{a : int} -> ⇑(A : int) -> ⇑{A = (powm g a p)} ->
+  ⇓{b : int} -> ⇓(B : int) -> ⇓{B = (powm g b p)} -> end
+
+#[logical]def DH_ch (p g : int) := ch⟨ DH p g ⟩
+#[logical]def DH_hc (p g : int) := hc⟨ DH p g ⟩
+
+-- ———————————————————————————————————————————————
+
+-- alice only knows secret a
+
+def alice (a : int) (p g : int) (c : DH_ch p g) : IO unit :=
+  let* c := send c a in 
+  let* c := send c (powm g a p) in
+  let* c := send c refl in
+  let* ⟨{b}, c⟩ := recv c in
+  let* ⟨B, c⟩ := recv c in
+  let* ⟨{pf}, c⟩ := recv c in
+  print ("alice: " ++ string_of_int (powm B a p) ++ "\n");
+  close c
+
+-- ———————————————————————————————————————————————
+
+-- bob only knows secret b
+
+def bob (b : int) (p g : int) (c : DH_hc p g) : IO unit :=
+  let* ⟨{a}, c⟩ := recv c in
+  let* ⟨A, c⟩ := recv c in
+  let* ⟨{pf}, c⟩ := recv c in
+  let* c := send c b in
+  let* c := send c (powm g b p) in
+  let* c := send c refl in
+  print ("bob  : " ++ string_of_int (powm A b p) ++ "\n");
+  close c
+
+-- ———————————————————————————————————————————————
+
+def key_exchange (_ : unit) : IO unit :=
+  let p := 23 in
+  let g := 5 in
+  let* c :=
+    fork (c : DH_ch p g) =>
+      alice 4 p g c
+  in
+  let* c0 :=
+    fork (c0 : ch⟨⇓(DH_hc p g) → •⟩) =>
+      let* ⟨c, c0⟩ := recv c0 in
+      close c0; bob 3 p g c
+  in
+  let* c0 := send c0 c in
+  close c0
+
+def main : IO unit := key_exchange tt

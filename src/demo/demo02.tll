@@ -1,0 +1,144 @@
+/- Sequential Trees -/
+
+inductive tree (A : U) : U where
+| Leaf : tree A
+| Node (x : A) (l r : tree A) : tree A
+
+inductive opr (A : U) : L where
+| Free : opr A
+| Map  ?{B : U} (f : A -> B) : opr A
+| Fold ?{B : U} (b : B) (f : A -> B -> B -> B) : opr A
+
+def map ?{A B : U} (f : A -> B) : tree A -> tree B
+  | Leaf => Leaf
+  | Node x l r => Node (f x) (map f l) (map f r)
+
+def fold ?{A B : U} (b : B) (f : A -> B -> B -> B) : tree A -> B
+  | Leaf => b
+  | Node x l r => f x (fold b f l) (fold b f r)
+
+
+
+
+/- Certified Concurrent Trees -/
+
+#[logical]
+def tree_p ?{A : U} (t : tree A) : proto :=
+  ⇓(o : opr A) ->
+    match o with
+    | Free => •
+    | Map _ f => tree_p (map f t)
+    | Fold _ b f => ⇑(`fold b f t) → tree_p t
+
+#[logical]def ctree_ch ?{A : U} (t : tree A) : L := ch⟨tree_p t⟩
+#[logical]def ctree_hc ?{A : U} (t : tree A) : L := hc⟨tree_p t⟩
+#[logical]def ctree ?{A : U} (t : tree A) : L := IO (ctree_hc t)
+
+def leaf_worker ?{A : U} (c : @ctree_ch A Leaf) : IO unit := 
+  let* ⟨o, c⟩ := recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+           | Free => •
+           | Map B f => @tree_p B (@Leaf B)
+           | Fold B b _ => ⇑(@sing B b) → tree_p Leaf⟩
+  with
+  | Free, c => close c
+  | Map B _, c => @leaf_worker B c
+  | Fold _ b _, c => let* c := send c (just b) in leaf_worker c
+
+def node_worker ?{A : U} ?{l r : tree A} (x : A)
+: ctree_hc l .-> ctree_hc r .-> ctree_ch (Node x l r) .-> IO unit
+| l_ch, r_ch, c =>
+  let* ⟨o, c⟩ := recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+           | Free => •
+           | Map B f => @tree_p B (@map _ B f (Node x l r))
+           | Fold B b f => ⇑(@sing B (@fold _ B b f (Node x l r))) → tree_p (Node x l r)⟩
+  with
+  | Free, c =>
+    let* l_ch := send l_ch Free in
+    let* r_ch := send r_ch Free in
+    close l_ch; close r_ch; close c
+  | Map _ f, c =>
+    let* l_ch := send l_ch (Map f) in
+    let* r_ch := send r_ch (Map f) in
+    node_worker (f x) l_ch r_ch c 
+  | Fold _ b f, c =>
+    let* l_ch := send l_ch (Fold b f) in
+    let* r_ch := send r_ch (Fold b f) in
+    let* ⟨just vl, l_ch⟩ := recv l_ch in
+    let* ⟨just vr, r_ch⟩ := recv r_ch in
+    let* c := send c (just (f x vl vr)) in
+    node_worker x l_ch r_ch c
+
+def cleaf ?{A : U} (_ : unit) : ctree (@Leaf A) := 
+  fork (c : ctree_ch Leaf) => leaf_worker c
+
+def cnode ?{A : U} ?{l r : tree A} (a : A) : ctree l .-> ctree r .-> ctree (Node a l r)
+  | l0, r0 =>
+    let* l_ch := l0 in
+    let* r_ch := r0 in
+    fork (c : ctree_ch (Node a l r)) => node_worker a l_ch r_ch c
+
+def ctree_of_tree ?{A : U} : ∀ (x : tree A) -> ctree x
+  | Leaf       => cleaf tt
+  | Node x l r => cnode x (ctree_of_tree l) (ctree_of_tree r)
+
+
+
+  
+def cfree ?{A : U} ?{t : tree A} (ct : ctree t) : IO unit :=
+  let* c := ct in
+  let* c := send c Free in
+  close c
+
+/- Certified higher-order functions for concurrent trees. -/
+
+def cmap ?{A B : U} ?{t : tree A} (f : A -> B) (ct : ctree t) : ctree (map f t) :=
+  let* c := ct in
+  let* c := send c (Map f) in
+  return c
+
+def cfold ?{A B : U} ?{t : tree A} (b : B) (f : A -> B -> B -> B) (ct : ctree t)
+: IO (`fold b f t ⊗ ctree t) :=
+  let* c := ct in
+  let* c := send c (Fold b f) in
+  let* ⟨x, ct⟩ := recv c in
+  return ⟨x, return ct⟩
+
+
+
+
+/- Using higher-order functions on trees to build specialized functions. -/
+
+def cheight ?{A : U} ?{t : tree A} (ct : ctree t) :=
+  cfold 0 (fn _ x y => if x < y then y + 1 else x + 1) ct
+
+def csize ?{A : U} ?{t : tree A} (ct : ctree t) :=
+  cfold 0 (fn _ x y => 1 + x + y) ct
+
+def cexists ?{A : U} ?{t : tree A} (pred : A -> bool) (ct : ctree t) :=
+  cfold false (fn k x y => pred k || x || y) ct
+
+def mytree1 (x : int) := cnode x (cleaf tt) (cleaf tt)
+def mytree2 (x : int) := cnode x (mytree1 1) (mytree1 2)
+def mytree3 (x : int) := cnode x (mytree2 3) (mytree2 4)
+def mytree4 (x : int) := cnode x (mytree3 8) (mytree3 7)
+def mytree5 (x : int) := cnode x (mytree4 9) (mytree4 10)
+def mytree6 (x : int) := cnode x (mytree5 11) (mytree5 12)
+
+def main : IO unit :=
+  let ct := mytree6 100 in
+  let* ⟨just h, ct⟩  := cheight ct in
+  let* ⟨just sz, ct⟩ := csize ct   in
+  let* ⟨just b1, ct⟩ := cexists (fn k => k == 1) ct in
+  let ct := cmap (fn k => k + 1) ct in
+  let* ⟨just b2, ct⟩ := cexists (fn k => k == 1) ct in
+  let* tt := cfree ct in
+  print ("height  := " ++ string_of_int h  ++ "\n" ++
+         "size    := " ++ string_of_int sz ++ "\n" ++
+         "exists1 := " ++ string_of_bool b1 ++ "\n" ++
+         "exists2 := " ++ string_of_bool b2 ++ "\n")
