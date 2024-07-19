@@ -1,12 +1,12 @@
 #[logical]def llist‹s› (A : Type‹s›) := list‹_,L› A
 
 inductive opr‹s› (A : Type‹s›) : L where
-  | Ins (x : A) : opr
-  | Del : opr
+  | Ins (x : A) : opr A
+  | Del : opr A
 
 #[logical]
-def queue_p‹s› (A : Type‹s›) (xs : llist A) : proto :=
-  ⇓(o : opr) ->
+def queue_p‹s› ?(A : Type‹s›) (xs : llist A) : proto :=
+  ⇓(o : opr A) ->
     match o with
     | Ins x => queue_p (rcons xs x)
     | Del   =>
@@ -14,82 +14,76 @@ def queue_p‹s› (A : Type‹s›) (xs : llist A) : proto :=
       | x :: xs => ⇑(`x) -> ⇑(hc⟨queue_p xs⟩) -> •
       | nil     => •
 
--- #[logical]def queue_ch (xs : llist int) : L := ch⟨queue_p xs⟩
--- #[logical]def queue_hc (xs : llist int) : L := hc⟨queue_p xs⟩
--- #[logical]def queue (xs : llist int) : L := IO (queue_hc xs)
+#[logical]def queue_ch‹s› ?(A : Type‹s›) (xs : llist A) : L := ch⟨queue_p xs⟩
+#[logical]def queue_hc‹s› ?(A : Type‹s›) (xs : llist A) : L := hc⟨queue_p xs⟩
+#[logical]def queue‹s› ?(A : Type‹s›) (xs : llist A) : L := IO (queue_hc xs)
 
--- def node_worker ?{xs : llist int} (x : int) 
--- : queue_hc xs .-> queue_ch (x :: xs) .-> IO unit
--- | c_next, c =>
---   let* ⟨o, c⟩ := recv c in
---   match o as o0
---       , c as _ :
---         ch⟨match o0 with
---             | Free => •
---             | Enqueue n => queue_p (rcons (x :: xs) n)
---             | Dequeue   => ⇑(`x) -> ⇑(hc⟨queue_p xs⟩) → •⟩
---   with
---   | Free, c => 
---     let* c_next := send c_next Free in
---     close c_next; close c
---   | Enqueue n, c =>
---     let* c_next := send c_next (Enqueue n) in
---     node_worker x c_next c
---   | Dequeue, c =>
---     let* c := send c (just x) in
---     let* c := send c c_next in
---     close c
+def node_worker‹s› ?{A : Type‹s›} ?{xs : llist A} (x : A) 
+: queue_hc xs .-> queue_ch (x :: xs) .-> IO unit
+| c_next, c =>
+  let* ⟨o, c⟩ := recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+            | Ins y => queue_p (rcons (x :: xs) y)
+            | Del   => ⇑(`x) -> ⇑(hc⟨queue_p xs⟩) → •⟩
+  with
+  | Ins y, c =>
+    let* c_next := send c_next (Ins y) in
+    node_worker x c_next c
+  | Del, c =>
+    let* c := send c (just x) in
+    let* c := send c c_next in
+    close c
 
--- def empty_worker (c : queue_ch nil) : IO unit :=
---   let* ⟨o, c⟩ := recv c in
---   match o as o0
---       , c as _ :
---         ch⟨match o0 with
---            | Free => •
---            | Enqueue n => queue_p (n :: nil)
---            | Dequeue   => queue_p nil⟩
---   with
---   | Free, c => close c
---   | Enqueue n, c =>
---     let* c0 := fork (c0 : queue_hc nil) => node_worker n c0 c in
---     empty_worker c0
---   | Dequeue, c => empty_worker c
+def empty_worker‹s› ?{A : Type‹s›} (c : queue_ch (@nil A)) : IO unit :=
+  let* ⟨o, c⟩ := recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+           | Ins x => queue_p (x :: nil)
+           | Del   => •⟩
+  with
+  | Ins x, c =>
+    let* c0 := fork (c0 : queue_ch nil) => empty_worker c0 in
+    node_worker x c0 c
+  | Del, c => close c
 
--- def empty (_ : unit) : queue nil :=
---   fork (c : queue_ch nil) => empty_worker c
+def empty‹s› ?{A : Type‹s›} : queue (@nil A) :=
+  fork (c : queue_ch nil) => empty_worker c
 
--- def free ?{xs : llist int} (q : queue xs) : IO unit :=
---   let* q := q in
---   let* q := send q Free in
---   close q
+def ins‹s› ?{A : Type‹s›} ?{xs : llist A} (x : A) : queue xs .-> queue (rcons xs x)
+  | q =>
+    let* q := q in
+    let* q := send q (Ins x) in
+    return q
 
--- def enqueue ?{xs : llist int} (n : int) (q : queue xs) : queue (rcons xs n) :=
---   let* q := q in
---   let* q := send q (Enqueue n) in
---   return q
+def del‹s› ?{A : Type‹s›} ?{x : A} ?{xs : llist A} (q : queue (x :: xs)) : IO (`x ⊗ queue xs) :=
+  let* q := q in
+  let* q := send q Del in
+  let* ⟨n, q⟩ := recv q in
+  let* ⟨q0, q⟩ := recv q in
+  close q; return ⟨n, return q0⟩
 
--- def dequeue ?{x : int} ?{xs : llist int} (q : queue (x :: xs)) : IO (`x ⊗ queue xs) :=
---   let* q := q in
---   let* q := send q Dequeue in
---   let* ⟨n, q⟩ := recv q in
---   let* ⟨q0, q⟩ := recv q in
---   close q; return ⟨n, return q0⟩
+def free‹s› ?{A : Type‹s›} (q : queue (@nil A)) : IO unit :=
+  let* q := q in
+  let* q := send q Del in
+  close q
 
--- def myqueue := empty tt
--- def myqueue := enqueue 0 myqueue
--- def myqueue := enqueue 1 myqueue
--- def myqueue := enqueue 2 myqueue
--- def myqueue := enqueue 3 myqueue
--- def myqueue := enqueue 4 myqueue
--- def myqueue := enqueue 5 myqueue
--- def myqueue := enqueue 6 myqueue
+def myqueue := @empty int
+def myqueue := ins 0 myqueue
+def myqueue := ins 1 myqueue
+def myqueue := ins 2 myqueue
+def myqueue := ins 3 myqueue
 
--- def main : IO unit :=
---   let* ⟨just x, myqueue⟩ := dequeue myqueue in
---   let* ⟨just y, myqueue⟩ := dequeue myqueue in
---   let* ⟨just z, myqueue⟩ := dequeue myqueue in
---   let* tt := free myqueue in
---   print ("x := " ++ string_of_int x ++ "\n" ++
---          "y := " ++ string_of_int y ++ "\n" ++
---          "z := " ++ string_of_int z ++ "\n")
+def main : IO unit :=
+  let* ⟨just a, myqueue⟩ := del myqueue in
+  let* ⟨just b, myqueue⟩ := del myqueue in
+  let* ⟨just c, myqueue⟩ := del myqueue in
+  let* ⟨just d, myqueue⟩ := del myqueue in
+  let* tt := free myqueue in
+  print ("a := " ++ string_of_int a ++ "\n" ++
+         "b := " ++ string_of_int b ++ "\n" ++
+         "c := " ++ string_of_int c ++ "\n" ++
+         "d := " ++ string_of_int d ++ "\n")
 
