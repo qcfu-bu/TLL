@@ -1,6 +1,6 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS sta_prog dyn_inv.
+Require Export AutosubstSsr ARS sta_sn dyn_inv.
 
 Set Implicit Arguments.
 Unset Strict Implicit.

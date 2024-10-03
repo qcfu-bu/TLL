@@ -1,6 +1,6 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Coq Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS sta_sr sta_sn.
+Require Export AutosubstSsr ARS sta_sr.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -156,25 +156,4 @@ Proof with eauto using sta_step, sta_val.
       left. exists H... } }
   { move=>Γ A B m s l eq tym ihm tyB ihB e.
     apply: ihm... }
-Qed.
-
-Lemma sta_vnX m A :
-   sn sta_step m -> nil ⊢ m : A -> (exists n, m ~>* n /\ sta_val n).
-Proof with eauto.
-  move=>pf. elim: pf A=>{m}.
-  move=>m h ih A tym.
-  have[[m0 stm]|vlm]:=sta_prog tym.
-  { have tym0:=sta_sr tym stm.
-    have[n[rn vln]]:=ih _ stm _ tym0.
-    exists n. split...
-    apply: starES... }
-  { exists m... }
-Qed.
-
-Lemma sta_vn m A :
-  nil ⊢ m : A -> (exists n, m ~>* n /\ sta_val n).
-Proof with eauto.
-  move=>tym.
-  apply: sta_vnX...
-  apply: sta_sn...
 Qed.
