@@ -151,8 +151,30 @@ theorem reduce_splitting_tree : ∀ (xs : list‹_,U›int) ->
       let pf0 := rwl (fn x => x = _) pf1 pf0 in
       pf0
 
+def splitting_ctree : ∀ (xs : list‹_,U›int) -> ch⟨⇑(ctree (splitting_tree xs)) -> •⟩ -> IO unit
+  | nil     , c => let* c := send c (cleaf nil)        in close c; return tt
+  | z :: nil, c => let* c := send c (cleaf (z :: nil)) in close c; return tt
+  | zs      , c =>
+    match split zs as h1
+        , {refl}   as _ : (let ⟨xs, ys⟩ := h1 in
+                           let l := splitting_tree xs in
+                           let r := splitting_tree ys in
+                           Node l r) =
+                          (splitting_tree zs)
+    with
+    | ⟨xs, ys⟩, pf =>
+      let* cl := fork c => splitting_ctree xs c in
+      let* cr := fork c => splitting_ctree ys c in
+      let* ⟨l, cl⟩ := recv cl in close cl;
+      let* ⟨r, cr⟩ := recv cr in close cr;
+      let ct : ctree (Node (splitting_tree xs) (splitting_tree ys)) := cnode l r in
+      let ct := rwl (fn t => ctree t) pf ct in
+      let* c := send c ct in
+      close c
+
 def cmsort (xs : list‹_,U›int) : IO (`msort xs) :=
-  let ct := ctree_of_tree (splitting_tree xs) in
+  let* c := fork c => splitting_ctree xs c in
+  let* ⟨ct, c⟩ := recv c in close c;
   let* ⟨result, ct⟩ := creduce (fn x => x) (fn l r => merge l r) ct in
   let result := rwl (fn x => `x) (reduce_splitting_tree xs) result in
   cfree ct;
