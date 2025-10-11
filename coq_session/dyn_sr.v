@@ -60,7 +60,7 @@ Proof with eauto using key_impure, key_empty, key_merge.
     have[_[_/sort_inj e]]:=sta_pi0_inv tyP. subst... }
   { move=>Θ Γ Δ A B m s t k1 k2 tym ihm tyP vl.
     have[_[_/sort_inj e]]:=sta_pi1_inv tyP. subst... }
-  { move=>Θ Γ Δ A B m n s tym ihm tyn tyB vl. inv vl.
+  { move=>Θ Γ Δ A B m n s tym ihm tyn tyB vl. inv vl. inv H.
     have[r1[r2[A0[B0[xor[/pi0_inj[eqA[eqB e] tyv]]]]]]]:=dyn_send0_inv tym. subst.
     have[s tyCh]:=dyn_valid tyv.
     have[tyAct/sort_inj e]:=sta_ch_inv tyCh. subst.
@@ -73,7 +73,7 @@ Proof with eauto using key_impure, key_empty, key_merge.
     have tyx1:=sta_prd tyB rd1.
     have tyx2:=sta_prd tyIO rd2.
     have//:=sta_unicity tyx1 tyx2. }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn tyB vl. inv vl.
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrg1 mrg2 tym ihm tyn ihn tyB vl. inv vl. inv H.
     have[r1[r2[A0[B0[xor[/pi1_inj[eqA[eqB e] tyv]]]]]]]:=dyn_send1_inv tym. subst.
     have[s tyCh]:=dyn_valid tyv.
     have[tyAct/sort_inj e]:=sta_ch_inv tyCh. subst.
@@ -91,16 +91,18 @@ Proof with eauto using key_impure, key_empty, key_merge.
     inv ord. inv vl.
     apply: ihn...
     apply: sta_esubst...
-    by autosubst. }
+    by autosubst.
+    inv H. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrg1 mrg2 tyS1 tym ihm tyn ihn tyS2 vl.
     have[s[r[ord1[ord2[tyA[tyB/sort_inj e]]]]]]:=sta_sig1_inv tyS2. subst.
     inv ord1. inv ord2. inv vl.
     have[k1 k2]:=ihm tyA H1.
     have[k3 k4]:=ihn (sta_subst tyB (dyn_sta_type tym)) H3.
-    split... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t mrg1 mrg2 tyC1 tym ihm tyn ihn tyC2 vl. inv vl. }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2 tyC1 tym ihm tyn ihn tyC2 vl. inv vl. }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2 tyA tym ihm tyn1 ihn1 tyn2 ihn2 ty vl. inv vl. }
+    split...
+    inv H. }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t mrg1 mrg2 tyC1 tym ihm tyn ihn tyC2 vl. inv vl. inv H. }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2 tyC1 tym ihm tyn ihn tyC2 vl. inv vl. inv H. }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrg1 mrg2 tyA tym ihm tyn1 ihn1 tyn2 ihn2 ty vl. inv vl. inv H. }
   { move=>Θ Γ Δ m A tym ihm ty vl.
     have[_[_/sort_inj e]]//:=sta_io_inv ty. }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrg1 mrg2 tyB tym ihm tyn ihn ty vl.
@@ -225,7 +227,8 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       apply: dyn_substitution...
       apply: (dyn_agree_subst_wk1 k1 k2)...
       apply: dyn_agree_subst_wk0...
-      by autosubst. }
+      by autosubst.
+      inv H. }
     { exfalso. apply: sta_pair1_sig0_false... } }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2 tyC tym ihm tyn ihn e1 e2 n0 st.
     subst. inv mrg2. inv st.
@@ -250,7 +253,8 @@ Proof with eauto using dyn_type, dyn_step, dyn_wf, merge.
       apply: dyn_substitution...
       apply: (dyn_agree_subst_wk1 k3 k4)...
       apply: (dyn_agree_subst_wk1 k1 k2)...
-      by autosubst. } }
+      by autosubst.
+      inv H. } }
   { move=>Θ Γ Δ emp wf k e1 e2 n st. inv st. }
   { move=>Θ Γ Δ emp wf k e1 e2 n st. inv st. }
   { move=>Θ Γ Δ emp wf k e1 e2 n st. inv st. }

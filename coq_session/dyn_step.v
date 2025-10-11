@@ -4,9 +4,24 @@ Require Export AutosubstSsr ARS tll_ast.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
-Unset Printing Implicit Defensive.
+Unset Printing Implicit Defensive. 
 
-Inductive dyn_val : term -> Prop :=
+Inductive dyn_thunk : term -> Prop :=
+| dyn_thunk_bind m n : dyn_thunk m -> dyn_thunk (Bind m n)
+| dyn_thunk_fork A m : dyn_thunk (Fork A m)
+| dyn_thunk_recv0 v  : dyn_val v -> dyn_thunk (Recv0 v)
+| dyn_thunk_recv1 v  : dyn_val v -> dyn_thunk (Recv1 v)
+| dyn_thunk_send0_app v m :
+  dyn_val v ->
+  dyn_thunk (App0 (Send0 v) m)
+| dyn_thunk_send1_app v1 v2  :
+  dyn_val v1 ->
+  dyn_val v2 ->
+  dyn_thunk (App1 (Send1 v1) v2)
+| dyn_thunk_close v  : dyn_val v -> dyn_thunk (Close v)
+| dyn_thunk_wait v   : dyn_val v -> dyn_thunk (Wait v)
+
+with dyn_val : term -> Prop :=
 | dyn_val_var x : dyn_val (Var x)
 | dyn_val_lam0 A m s : dyn_val (Lam0 A m s)
 | dyn_val_lam1 A m s : dyn_val (Lam1 A m s)
@@ -21,22 +36,13 @@ Inductive dyn_val : term -> Prop :=
 | dyn_val_tt : dyn_val TT
 | dyn_val_ff : dyn_val FF
 | dyn_val_return v : dyn_val v -> dyn_val (Return v)
-| dyn_val_bind v n : dyn_val v -> dyn_val (Bind v n)
 | dyn_val_cvar x   : dyn_val (CVar x)
-| dyn_val_fork A m : dyn_val (Fork A m)
-| dyn_val_recv0 v  : dyn_val v -> dyn_val (Recv0 v)
-| dyn_val_recv1 v  : dyn_val v -> dyn_val (Recv1 v)
 | dyn_val_send0 v  : dyn_val v -> dyn_val (Send0 v)
 | dyn_val_send1 v  : dyn_val v -> dyn_val (Send1 v)
-| dyn_val_send0_app v m :
-  dyn_val v ->
-  dyn_val (App0 (Send0 v) m)
-| dyn_val_send1_app v1 v2  :
-  dyn_val v1 ->
-  dyn_val v2 ->
-  dyn_val (App1 (Send1 v1) v2)
-| dyn_val_close v  : dyn_val v -> dyn_val (Close v)
-| dyn_val_wait v   : dyn_val v -> dyn_val (Wait v).
+| dyn_val_thunk m  : dyn_thunk m -> dyn_val m.
+
+Scheme dyn_thunk_mut := Induction for dyn_thunk Sort Prop
+with dyn_val_mut := Induction for dyn_val Sort Prop.
 
 Reserved Notation "m ~>> n" (at level 50).
 Inductive dyn_step : term -> term -> Prop :=

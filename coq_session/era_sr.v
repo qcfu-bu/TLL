@@ -6,33 +6,87 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma era_dyn_val Θ Γ Δ m m' A :
-  Θ ; Γ ; Δ ⊢ m ~ m' : A -> dyn_val m -> dyn_val m'.
+Lemma era_dyn_thunk_val Θ Γ Δ m m' A :
+  Θ ; Γ ; Δ ⊢ m ~ m' : A ->
+  (dyn_thunk m -> dyn_thunk m') ∧ (dyn_val m -> dyn_val m').
 Proof with eauto using dyn_val.
   move=>ty. elim: ty=>{Θ Γ Δ m m' A}...
-  { move=>Θ Γ Δ A B m m' n s erm ihm tyn vl. inv vl.
-    have[m0 e]:=era_send0_form erm. subst.
-    have vl:=ihm (dyn_val_send0 H0). inv vl.
-    constructor... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' s mrg1 mrg2 erm ihm tyn ihn vl. inv vl.
-    have[m0 e]:=era_send1_form erm. subst.
-    have vl:=ihm (dyn_val_send1 H1). inv vl.
-    constructor... }
-  { move=>Θ Γ Δ A B m n n' t tyS tym ern ihn vl. inv vl... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 mrg2 tyS erm ihm ern ihn vl. inv vl... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg1 mrg2 tyS erm _ ern _ vl. inv vl. }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg1 mrg2 tyS erm _ ern _ vl. inv vl. }
+  { move=>Θ Γ Δ A B m m' s k1 k2 erm [ihm1 ihm2]. split...
+    move=>h. inv h. }
+  { move=>Θ Γ Δ A B m m' s t k1 k2 erm[ihm1 ihm2]. split...
+    move=>h. inv h. }
+  { move=>Θ Γ Δ A B m m' n s erm[ihm1 ihm2] tyn. split.
+    {
+      move=>vl. inv vl. have[m0 e]:=era_send0_form erm. subst.
+      have vl:=ihm2 (dyn_val_send0 H0). inv vl.
+      constructor...
+      inv H. }
+    { move=>vl. inv vl. inv H. have[m0 e]:=era_send0_form erm. subst.
+      have vl:=ihm2 (dyn_val_send0 H1). inv vl.
+      constructor...
+      constructor...
+      inv H. } }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' s mrg1 mrg2 erm[ihm1 ihm2] tyn[ihn1 ihn2]. split.
+    { move=>vl. inv vl.
+      have[m0 e]:=era_send1_form erm. subst.
+      have vl:=ihm2 (dyn_val_send1 H1). inv vl.
+      constructor...
+      constructor...
+      inv H. }
+    { move=>vl. inv vl. inv H.
+      have[m0 e]:=era_send1_form erm. subst.
+      have vl:=ihm2 (dyn_val_send1 H2). inv vl.
+      constructor...
+      constructor...
+      inv H. } }
+  { move=>Θ Γ Δ A B m n n' t tyS tym ern[ihn1 ihn2]. split.
+    { move=>vl. inv vl. }
+    { move=>vl. inv vl. inv H0... inv H. } }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' t mrg1 mrg2 tyS erm[ihm1 ihm2] ern[ihn1 ihn2]. split.
+    { move=>vl. inv vl. }
+    { move=>vl. inv vl. constructor... inv H. } }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r t mrg1 mrg2 tyS erm _ ern _. split.
+    { move=>vl. inv vl. }
+    { move=>vl. inv vl. inv H. } }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg1 mrg2 tyS erm _ ern _. split.
+    { move=>vl. inv vl. }
+    { move=>vl. inv vl. inv H. } }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s mrg1 mrg2
-           tyA erm _ ern1 _ ern2 _ vl. inv vl. }
-  { move=>Θ Γ Δ m m' A erm ihm vl. inv vl... }
-  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m m' n n' A B s t mrg1 mrg2 tyB erm ihm ern ihn vl. inv vl... }
-  { move=>Θ Γ Δ r1 r2 A B m m' xor erm ihm vl. inv vl... }
-  { move=>Θ Γ Δ r1 r2 A B m m' xor erm ihm vl. inv vl... }
-  { move=>Θ Γ Δ r1 r2 A B m m' xor erm ihm vl. inv vl... }
-  { move=>Θ Γ Δ r1 r2 A B m m' xor erm ihm vl. inv vl... }
-  { move=>Θ Γ Δ m m' erm ihm vl. inv vl... }
-  { move=>Θ Γ Δ m m' erm ihm vl. inv vl... }
+           tyA erm _ ern1 _ ern2 _. split.
+    { move=>vl. inv vl. }
+    { move=>vl. inv vl. inv H. } }
+  { move=>Θ Γ Δ m m' A erm[ihm1 ihm2]. split.
+    { move=>vl. inv vl. }
+    { move=>vl. inv vl. constructor... inv H. } }
+  { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m m' n n' A B s t mrg1 mrg2 tyB erm[ihm1 ihm2] ern[ihn1 ihn2]. split.
+    { move=>vl. inv vl. constructor... }
+    { move=>vl. inv vl. inv H. constructor. constructor... } }
+  { move=>Θ Γ Δ m m' A erm. split.
+    { move=>vl. constructor. }
+    { move=>vl. constructor. constructor. } }
+  { move=>Θ Γ Δ r1 r2 A B m m' xor erm[ihm1 ihm2]. split.
+    { move=>vl. inv vl. constructor... }
+    { move=>vl. inv vl. inv H. constructor. constructor... } }
+  { move=>Θ Γ Δ r1 r2 A B m m' xor erm[ihm1 ihm2]. split.
+    { move=>vl. inv vl. constructor... }
+    { move=>vl. inv vl. inv H. constructor. constructor... } }
+  { move=>Θ Γ Δ r1 r2 A B m m' xor erm[ihm1 ihm2]. split.
+    { move=>vl. inv vl. }
+    { move=>vl. inv vl. constructor... inv H. } }
+  { move=>Θ Γ Δ r1 r2 A B m m' xor erm[ihm1 ihm2]. split.
+    { move=>vl. inv vl. }
+    { move=>vl. inv vl. constructor... inv H. } }
+  { move=>Θ Γ Δ m m' erm[ihm1 ihm2]. split.
+    { move=>vl. inv vl. constructor... }
+    { move=>vl. inv vl. inv H. constructor. constructor... } }
+  { move=>Θ Γ Δ m m' erm[ihm1 ihm2]. split.
+    { move=>vl. inv vl. constructor... }
+    { move=>vl. inv vl. inv H. constructor. constructor... } }
 Qed.
+
+Lemma era_dyn_val Θ Γ Δ m m' A :
+  Θ ; Γ ; Δ ⊢ m ~ m' : A -> dyn_val m -> dyn_val m'.
+Proof. move=>/era_dyn_thunk_val[h1 h2]//. Qed.
 
 Lemma era_val_stability Θ Γ Δ m m' A s :
   Θ ; Γ ; Δ ⊢ m ~ m' : A -> Γ ⊢ A : Sort s -> dyn_val m -> Θ ▷ s /\ Δ ▷ s.
@@ -136,7 +190,7 @@ Proof with eauto using era_type, dyn_step, dyn_wf, dyn_val, merge.
       apply: era_substitution...
       apply: (era_agree_subst_wk1 k1 k2)...
       apply: era_agree_subst_wk0...
-      by autosubst. }
+      by autosubst. inv H. }
     { exfalso. apply: sta_pair1_sig0_false... } }
   { move=>Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrg1 mrg2 tyC tym ihm tyn ihn e1 e2 n0 st.
     subst. inv mrg2. inv st.
@@ -167,7 +221,7 @@ Proof with eauto using era_type, dyn_step, dyn_wf, dyn_val, merge.
       apply: era_substitution...
       apply: (era_agree_subst_wk1 k3 k4)...
       apply: (era_agree_subst_wk1 k1 k2)...
-      by autosubst. } }
+      by autosubst. inv H. } }
   { move=>Θ Γ Δ emp wf k e1 e2 n st. inv st. }
   { move=>Θ Γ Δ emp wf k e1 e2 n st. inv st. }
   { move=>Θ Γ Δ emp wf k e1 e2 n st. inv st. }
