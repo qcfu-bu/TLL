@@ -7,10 +7,9 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Lemma era_var_form Θ Γ Δ m x B :
-  Θ ; Γ ; Δ ⊢ Var x ~ m : B -> exists x, m = Var x.
+  Θ ; Γ ; Δ ⊢ Var x ~ m : B -> m = Var x.
 Proof.
   move e:(Var x)=>n er. elim: er x e=>//{Θ Γ Δ m n B}.
-  move=>Θ Γ Δ x s A emp wf shs dhs x0[e]. subst. by exists x.
 Qed.
 
 Lemma era_lam0_form Θ Γ Δ m n X B s :
