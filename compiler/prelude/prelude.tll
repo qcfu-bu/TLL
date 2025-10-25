@@ -1,0 +1,247 @@
+-- begin of stdlib
+
+-- basics
+notation ( |> ) := (%2 %1)
+notation ( @@ ) := (%1 %2)
+notation ( ; ) := (let _ <- %1 in %2)
+
+def id‹s› %(A : Type‹s›) (m : A) := m
+
+
+
+
+-- propositional equality
+notation ( = ) := eq %1 %2
+
+#[logical]
+inductive eq‹s› %(A : Type‹s›) (m : A) : A -> U where
+  | refl : m = m
+
+def rwl‹s,r› %{A : Type‹s›} %{m n : A} {B : A -> Type‹r›} : {m = n} -> B m -> B n
+  | refl, x => x
+
+def rwr‹s,r› %{A : Type‹s›} %{m n : A} {B : A -> Type‹r›} : {m = n} -> B n -> B m
+  | refl, x => x
+
+theorem congr‹s,r,t› %(A : Type‹s›) %(B : Type‹r›) %(m n : A) (f : forall‹t›(_ : A), B)
+: eq m n -> eq (f m) (f n)
+  | refl => refl
+
+/- axiom_K is admissible because pattern matching assumes
+   that all variables introduced by the clauses are flexible. -/
+theorem axiom_K %{A : U} %{m : A} : forall (x : m = m) -> x = refl
+  | refl => refl
+
+
+
+
+-- singletons
+notation ( ` ) := ssing %1
+
+inductive sing‹s,t› %(A : Type‹s›) : A -> Type‹t› where
+  | just (m : A) : sing m
+
+#[logical]
+def ssing‹s› %(A : Type‹s›) (m : A) : Type‹s› := @sing‹s,s› A m
+
+-- simple theory of singleton elimination
+def sing_elim‹s,t› %{A : Type‹s›} %{x : A} : sing‹s,t›x -> A
+  | just x => x
+
+theorem sing_uniq‹s,t› %(A : Type‹s›) %(x0 : A) : forall (x : sing‹s,t›x0) -> x0 = sing_elim x
+  | just _ => refl
+
+
+
+
+-- unit
+inductive base‹s› : Type‹s› where
+  | tt : base
+
+#[logical]
+def unit : U := base
+
+theorem unit_eta : forall (x : unit) -> x = tt
+  | tt => refl
+
+
+
+
+-- booleans
+notation ( && ) := and %1 %2
+notation ( || ) := or %1 %2
+
+inductive bool : U where
+  | true  : bool
+  | false : bool
+
+def not : bool -> bool
+  | true  => false
+  | false => true
+
+def and : bool -> bool -> bool
+  | true, true => true
+  | _   , _    => false
+
+def or : bool -> bool -> bool
+  | false, false => false
+  | _    , _     => true
+
+def xor : bool -> bool -> bool
+  | true , true  => false
+  | false, false => false
+  | _    , _     => true
+
+def string_of_bool : bool -> string
+  | true => "true"
+  | false => "false"
+
+
+
+
+-- natural numbers
+inductive nat : U where
+  | zero : nat
+  | succ (n : nat) : nat
+
+def lte : nat -> nat -> bool
+  | zero  , _      => true
+  | _     , zero   => false
+  | succ x, succ y => lte x y
+
+def lt (x : nat) (y : nat) : bool := lte (succ x) y
+
+def pred : nat -> nat
+  | zero   => zero
+  | succ x => x
+
+def add : nat -> nat -> nat
+  | zero  , y => y 
+  | succ x, y => succ (add x y)
+
+def sub : nat -> nat -> nat
+  | x, zero   => x
+  | x, succ y => sub (pred x) y
+
+def mul : nat -> nat -> nat
+  | zero  , _ => zero
+  | succ x, y => add y (mul x y)
+
+def div (x : nat) (y : nat) :=
+  match lt x y with
+  | true  => zero
+  | false =>
+    let fun loop (x y : nat) :=
+      match sub x (pred y) with
+      | zero => zero
+      | succ x => succ (loop x y)
+    in
+    loop x y
+
+def rem (x : nat) (y : nat) :=
+  sub x (mul (div x y) y)
+
+
+
+-- sort-polymorphic option
+inductive option‹s› (A : Type‹s›) : Type‹s› where
+  | None : option A
+  | Some (m : A) : option A
+
+
+
+
+-- sort-polymorphic lists
+notation ( :: ) := cons %1 %2
+
+inductive list‹s,t› (A : Type‹s›) : Type‹t› where
+  | nil : list A
+  | cons (hd : A) (tl : list‹_,t› A) : list A
+
+def rcons‹s,t› %{A : Type‹s›} : list‹_,t› A .-> A .-> list‹_,t› A 
+  | nil, n => n :: nil
+  | x :: xs, n => x :: (rcons xs n)
+
+def free_list‹s,t› %{A : Type‹s›} (f : A -> unit) : list‹_,t›A -> unit
+  | nil => tt
+  | x :: xs => let _ := f x in free_list f xs
+
+
+
+
+-- sort-polymorphic existential
+notation ( ⊗ )       := tensor %1 %2
+notation ( ⟨ ,{ }⟩ ) := ex %1 %2
+notation ( ⟨{ }, ⟩ ) := ex0 %1 %2
+notation ( ⟨ , ⟩ )   := ex1 %1 %2
+
+inductive exists‹s,r› %(A : Type‹s›) (B : A -> Type‹r›) : L where
+  | ex (m : A) {n : B m} : @exists A B
+
+inductive exists0‹s,r› %(A : Type‹s›) (B : A -> Type‹r›) : L where
+  | ex0 {m : A} (n : B m) : @exists0 A B
+
+inductive exists1‹s,r› %(A : Type‹s›) (B : A -> Type‹r›) : L where
+  | ex1 (m : A) (n : B m) : @exists1 A B
+
+#[logical]
+def tensor‹s,r› (A : Type‹s›) (B : Type‹r›) : L :=
+  exists1 (fn (_ : A) => B)
+
+
+
+
+-- primitive integer
+notation ( ~ ) := __neg__ %1
+notation ( + ) := __add__ %1 %2
+notation ( - ) := __sub__ %1 %2
+notation ( * ) := __mul__ %1 %2
+notation ( / ) := __div__ %1 %2
+notation ( % ) := __mod__ %1 %2
+notation ( <= ) := __lte__ %1 %2
+notation ( >= ) := __gte__ %1 %2
+notation ( < ) := __lt__ %1 %2
+notation ( > ) := __gt__ %1 %2
+notation ( == ) := __eq__ %1 %2
+
+def pow (x y : int) : int :=
+  let fun loop (acc y : int) : int :=
+    if y <= 0 then acc
+    else loop (x * acc) (y - 1)
+  in loop 1 y
+
+def powm (x y m : int) : int :=
+  let fun loop (acc y : int) : int :=
+    if y <= 0 then acc
+    else loop (x * acc % m) (y - 1)
+  in loop 1 y
+
+
+
+
+-- primitive char
+def ord (c : char) : int := __ord__ c
+def chr (i : int) : char := __chr__ i
+
+
+
+
+-- primitive string
+notation ( <+ ) := __push__ %1 %2
+notation ( ++ ) := __cat__ %1 %2
+
+def str (c : char) : string := "" <+ c
+def strlen (s : string) : int := __size__ s
+
+def string_of_int (i : int) : string :=
+  let fun aux (i : int) : string :=
+    if 10 <= i then 
+      let r := i % 10 in
+      let i := i / 10 in
+      aux i <+ chr (r + ord '0')
+    else (i + ord '0') |> chr |> str
+  in
+  if 0 <= i then aux i
+  else "~" ++ aux (~i)
+
+-- end of stdlib

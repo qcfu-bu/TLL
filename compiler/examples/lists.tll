@@ -1,0 +1,66 @@
+/-
+This file implements lists and some simple theorems to showcase dependent pattern-matching.
+-/
+
+def append‹s,t› %{A : Type‹s›} : list‹s,t›A -> list‹s,t›A .-> list‹s,t›A
+  | nil    , ys => ys
+  | x :: xs, ys => x :: append xs ys
+
+#[logical]
+def len‹s,t› %{A : Type‹s›} : list‹_,t›A -> nat
+  | nil     => zero
+  | _ :: tl => succ (len tl)
+
+theorem append_len‹s,t› %{A : Type‹s›} 
+: ∀ (xs ys : list‹_,t›A) -> len (append xs ys) = add (len xs) (len ys)
+  | nil    , ys => refl
+  | x :: xs, ys => 
+    rwl (fn n => succ (len (append xs ys)) = succ n) (append_len xs ys) refl
+
+def llen‹s,t› %{A : Type‹s›} : forall (xs : list‹_,t›A) -> nat ⊗ sing‹t,t›xs
+  | nil => ⟨zero, just nil⟩
+  | hd :: tl =>
+    let ⟨n, just tl⟩ := llen tl in
+    ⟨succ n, just (hd :: tl)⟩
+
+#[logical]
+def fst‹s,r› %{A : Type‹s›} %{B : Type‹r›} : A ⊗ B -> A
+  | ⟨x, _⟩ => x
+
+#[logical]
+def snd‹s,r› %{A : Type‹s›} %{B : Type‹r›} : A ⊗ B -> B
+  | ⟨_, x⟩ => x
+
+#[logical]
+def llen_len‹s,t› %{A : Type‹s›} : ∀ (xs : list‹_,t›A) -> fst (llen xs) = len xs
+  | nil      => refl
+  | hd :: tl =>
+    match llen tl as x, refl as _ : llen tl = x with
+    | ⟨n, just tl⟩, pf =>
+      let ih := llen_len tl in
+      let ih := rwl (fn x => fst x = len tl) pf ih in
+      refl |>
+      rwr (fn (x : nat ⊗ sing tl) =>
+          @fst nat (sing‹t,t›(_ :: tl))
+          (let ⟨n, just tl⟩ := x in ⟨succ n, just (hd :: tl)⟩) = succ n) pf |>
+      rwl (fn (x : nat) =>
+          @fst nat (sing‹t,t›(hd :: tl))
+          (let ⟨n, just tl⟩ := llen tl in ⟨succ n, just (hd :: tl)⟩) = succ x) ih
+    
+#[logical]
+def length‹s,t› %(A : Type‹s›) : list‹_,t›A -> nat
+  | nil     => zero
+  | _ :: tl => succ (length tl)
+
+#[logical]
+inductive at‹s,t› %(A : Type‹s›) (x : A) : nat -> list‹_,t› A -> U where
+  | at_zero (xs0 : list A) : at x zero (x :: xs0)
+  | at_succ %(n : nat) (x0 : A) %(xs0 : list A) (h : at x n xs0) : at x (succ n) (x0 :: xs0)
+
+def get_at %{A : U}
+: ∀ (n : nat) (xs : list‹_,U›A) -> {lt n (length xs) = true} -> exists (fn x => at x n xs)
+  | _     , nil    , !! =>
+  | zero  , x :: xs, _  => ⟨x, {at_zero xs}⟩
+  | succ n, x :: xs, e  => 
+    let ⟨x0, {pf}⟩ := get_at n xs e in
+    ⟨x0, {at_succ _ pf}⟩

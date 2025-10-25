@@ -1,0 +1,107 @@
+/-
+This file implements Pfenning-style concurrent queues.
+-/
+
+
+/-- Sequential (linear) list model for relational verification -/
+#[logical]def llist‹s› (A : Type‹s›) := list‹_,L› A
+
+
+/-- Methods of the concurrent queue. -/
+inductive opr‹s› (A : Type‹s›) : L where
+  | Ins (x : A) : opr A
+  | Del : opr A
+
+/-- The concurrent queue protocol. -/
+#[logical]
+def queue_p‹s› %(A : Type‹s›) (xs : llist A) : proto :=
+  ⇓(o : opr A) ->
+    match o with
+    | Ins x => queue_p (rcons xs x)
+    | Del   =>
+      match xs with
+      | x :: xs => ⇑(`x) -> ⇑(hc⟨queue_p xs⟩) -> •
+      | nil     => •
+
+#[logical]def queue_ch‹s› %(A : Type‹s›) (xs : llist A) : L := ch⟨queue_p xs⟩
+#[logical]def queue_hc‹s› %(A : Type‹s›) (xs : llist A) : L := hc⟨queue_p xs⟩
+#[logical]def queue‹s› %(A : Type‹s›) (xs : llist A) : L := IO (queue_hc xs)
+
+/-- Non-empty node in the concurrent queue. -/
+def node_worker‹s› %{A : Type‹s›} %{xs : llist A} (x : A) 
+: queue_hc xs .-> queue_ch (x :: xs) .-> IO unit
+| c_next, c =>
+  let ⟨o, c⟩ <- recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+            | Ins y => queue_p (rcons (x :: xs) y)
+            | Del   => ⇑(`x) -> ⇑(hc⟨queue_p xs⟩) → •⟩
+  with
+  | Ins y, c =>
+    let c_next <- send c_next (Ins y) in
+    node_worker x c_next c
+  | Del, c =>
+    let c <- send c (just x) in
+    let c <- send c c_next in
+    close c
+
+/-- Empty node in the concurrent queue. -/
+def empty_worker‹s› %{A : Type‹s›} (c : queue_ch (@nil A)) : IO unit :=
+  let ⟨o, c⟩ <- recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+           | Ins x => queue_p (x :: nil)
+           | Del   => •⟩
+  with
+  | Ins x, c =>
+    let c0 <- fork (c0 : queue_ch nil) with empty_worker c0 in
+    node_worker x c0 c
+  | Del, c => close c
+
+/-- Wrapper functions for concurrent queue API. -/
+
+def empty‹s› %{A : Type‹s›} : queue (@nil A) :=
+  fork (c : queue_ch nil) with empty_worker c
+
+/-- 
+The insertion of value (x : A) into a concurrent appends it to the back of
+its sequential model, thus giving us FIFO. 
+-/
+def ins‹s› %{A : Type‹s›} %{xs : llist A} (x : A) : queue xs .-> queue (rcons xs x)
+  | q =>
+    let q <- q in
+    let q <- send q (Ins x) in
+    return q
+
+def del‹s› %{A : Type‹s›} %{x : A} %{xs : llist A} (q : queue (x :: xs)) : IO (`x ⊗ queue xs) :=
+  let q <- q in
+  let q <- send q Del in
+  let ⟨n, q⟩ <- recv q in
+  let ⟨q0, q⟩ <- recv q in
+  close q; return ⟨n, return q0⟩
+
+def free‹s› %{A : Type‹s›} (q : queue (@nil A)) : IO unit :=
+  let q <- q in
+  let q <- send q Del in
+  close q
+
+/-- Usage Example. -/
+
+def myqueue := @empty int
+def myqueue := ins 0 myqueue
+def myqueue := ins 1 myqueue
+def myqueue := ins 2 myqueue
+def myqueue := ins 3 myqueue
+
+def main : IO unit :=
+  let ⟨just a, myqueue⟩ <- del myqueue in
+  let ⟨just b, myqueue⟩ <- del myqueue in
+  let ⟨just c, myqueue⟩ <- del myqueue in
+  let ⟨just d, myqueue⟩ <- del myqueue in
+  let tt <- free myqueue in
+  print ("a := " ++ string_of_int a ++ "\n" ++
+         "b := " ++ string_of_int b ++ "\n" ++
+         "c := " ++ string_of_int c ++ "\n" ++
+         "d := " ++ string_of_int d ++ "\n")

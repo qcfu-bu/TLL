@@ -1,0 +1,191 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "TLL",
+	"patterns": [
+		{ "include": "#comments"     },
+		{ "include": "#modifiers"    },
+		{ "include": "#declarations" },
+		{ "include": "#keywords"     },
+		{ "include": "#symbols"      },
+		{ "include": "#strings"      }
+	],
+	"repository": {
+		"lineComment": {
+			"patterns": [
+				{
+					"name": "comment.line.double-dash",
+					"begin": "--",
+					"end": "$"
+				}
+			]
+		},
+		"blockComment": {
+			"patterns": [
+				{
+					"name": "comment.block",
+					"begin": "/-",
+					"end": "-/",
+					"patterns": [
+						{ "include": "#blockComment" }
+					]
+				}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{ "include": "#lineComment"  },
+				{ "include": "#blockComment" }
+			]
+		},
+		"modifiers": {
+			"patterns": [
+				{
+					"name": "storage.modifier",
+					"match": "#\\[[^\\]]*\\]"
+				}
+			]
+		},
+		"declarations": {
+			"patterns": [
+				{
+					"comment": "declaration",
+					"match": "\\b(def|lemma|theorem|tmpl|inductive|extern)\\b\\s+([[:word:]_']+)",
+					"captures": {
+						"1": { "name": "storage.type"         },
+						"2": { "name": "entity.name.function" }
+					}
+				},
+				{
+					"comment": "notation",
+					"match": "\\b(notation)\\b",
+					"name": "storage.type"
+				},
+				{
+					"comment": "notation holes",
+					"match": "%\\w+",
+					"name": "variable.other"
+				},
+				{
+					"comment": "miscellaneous",
+					"match": "\\b(impl|where|of)\\b",
+					"name": "storage.type"
+				}
+			]
+		},
+		"symbols": {
+			"patterns": [
+				{
+					"name": "keyword.operator",
+					"match": "(\\|)(\\+|-|\\*|/|\\\\|%|<|>|=|\\!|&|~|\\^|\\||:|;|@|`|×|⊗)+"
+				},
+				{
+					"name": "keyword.operator",
+					"match": "(:)(\\+|-|\\*|/|\\\\|%|<|>|\\!|&|~|\\^|\\||:|;|@|`|×|⊗)+"
+				},
+				{
+					"name": "constant.language",
+					"match": "(->|→|<-|←|.->|.→|=>|⇒|:=|≔|:|\\?)"
+				},
+				{
+					"name": "keyword.operator",
+					"match": "(\\*|×|⊗|/|%|\\+|-|<|>|=|\\!|&|~|\\^|;|@|`)(\\+|-|\\*|/|\\\\|%|<|>|=|\\!|&|~|\\^|\\||:|;|@|`)*"
+				},
+				{
+					"name": "keyword.control",
+					"match": "(\\|)"
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"comment": "builtin types",
+					"name": "entity.name.type",
+					"match": "\\b(U|L|Type|forall|exists|end|IO)\\b"
+				},
+				{
+					"comment": "builtin types",
+					"match": "\\b(ch|hc)⟨",
+					"captures": {
+						"1": { "name": "entity.name.type" }
+					}
+				},
+				{
+					"comment": "builtin symbols",
+					"name": "entity.name.type",
+					"match": "(∀|∃|⇑|⇓|•)"
+				},
+				{
+					"comment": "let function",
+					"match": "\\b(let\\s+fun)\\b\\s+([[:word:]_']+)\\b",
+					"captures": {
+						"1": { "name": "keyword.control"  },
+						"2": { "name": "entity.name.function" }
+					}
+				},
+				{
+					"comment": "let binding",
+					"name": "keyword.control",
+					"match": "\\b(let|in\\b)"
+				},
+				{
+					"comment": "functions",
+					"name": "storage.type",
+					"match": "\\b(fn|ln|fun|lam)\\b"
+				},
+				{
+					"comment": "pattern matching",
+					"name": "keyword.control",
+					"match": "\\b(match|as|in|with|fork|case|of|if|then|else)\\b"
+				},
+				{
+					"comment": "absurd pattern",
+					"name": "invalid.illegal",
+					"match": "(!!)"
+				},
+				{
+					"comment": "primitive effects",
+					"name": "entity.name.function",
+					"match": "\\b(send|recv|close)\\b"
+				},
+				{
+					"comment": "monad return",
+					"name": "keyword.control",
+					"match": "\\b(return)\\b"
+				},
+				{
+					"comment": "magic",
+					"name": "invalid.illegal",
+					"match": "(#magic)\\b"
+				}
+			]
+		},
+		"strings": {
+			"patterns": [
+				{
+					"name": "string.quoted.double",
+					"begin": "\"",
+					"end": "\"",
+					"patterns": [
+						{
+							"name": "constant.character.escape",
+							"match": "\\\\."
+						}
+					]
+				},
+				{
+					"name": "string.quoted.single",
+					"begin": "'",
+					"end": "'",
+					"patterns": [
+						{
+							"name": "constant.character.escape",
+							"match": "\\\\."
+						}
+					]
+				}
+			]
+		}
+	},
+	"scopeName": "source.tll"
+}

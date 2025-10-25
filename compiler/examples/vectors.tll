@@ -1,0 +1,38 @@
+/-
+This file implements vectors (i.e. length dependent lists) and some simple theorems 
+to showcase dependent pattern-matching.
+-/
+
+notation ( + ) := add %1 %2
+
+inductive vec‹s› (A : Type‹s›) : nat -> Type‹s› where
+| vnil : vec A zero
+| vcons %{n : nat} (hd : A) (tl : vec A n) : vec A (succ n)
+
+def vappend‹s› %{A : Type‹s›} %{m n : nat} : vec A m -> vec A n .-> vec A (m + n)
+  | vnil        , ys => ys
+  | vcons _ x xs, ys => vcons x (vappend xs ys)
+
+def vlen‹s› %{A : Type‹s›} %{n : nat} : ∀ (xs : vec‹s›A n) -> exists (fn (n0 : nat) => n0 = n) ⊗ `xs
+  | vnil => ⟨⟨zero, {refl}⟩, just vnil⟩
+  | vcons _ x xs =>
+    let ⟨⟨n0, {pf}⟩, just xs⟩ := vlen xs in
+    ⟨⟨succ n0, {congr (fn x => succ x) pf}⟩, just (vcons x xs)⟩
+
+def hd_vec1 %{A : U} %{n : nat} : vec A (succ n) -> A
+  | vcons _ hd _ => hd
+
+def hd_vec2 %{A : U} %{n : nat} (xs : vec A (succ n)) :=
+  match {_} as n0, xs as _ : vec A (succ n0) with
+  | _, vnil =>
+  | _, vcons _ hd _ => hd
+
+def hd_vec3 %{A : U} %{n : nat} (xs : vec A (succ n)) :=
+  match xs with
+  | vnil =>
+  | vcons _ hd _ => hd
+
+def xs := vcons zero vnil
+def x := hd_vec1 xs
+def y := hd_vec2 xs
+def z := hd_vec3 xs

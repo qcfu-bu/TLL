@@ -1,0 +1,107 @@
+/- 
+This file implement the induction principle for concurrent natural numbers.
+-/
+
+
+/-- Induction principle for sequential natural numbers. -/
+def nat_ind‹s› 
+  %{P  : nat -> Type‹s›} :
+  ∀ (P0 : P zero)
+    (P1 : ∀ {n : nat} -> P n -> P (succ n))
+    (n : nat) .-> P n
+  | P0, _ , zero => P0
+  | P0, P1, succ n => P1 n (nat_ind P0 P1 n)
+  
+/-- Concurrent Nat protocol. 
+The (n : nat) parameter is the sequential model for relational verification. 
+-/
+#[logical]
+def Nat_p‹s› (n : nat) : proto :=
+  ⇓{P : nat -> Type‹s›} ->
+  ⇓(P0 : P zero) ->
+  ⇓(P1 : ∀ {n : nat} -> P n -> P (succ n)) ->
+  ⇑(`nat_ind P0 P1 n) -> •
+
+#[logical]def Nat_ch‹s› (n : nat) : L := ch⟨Nat_p‹s› n⟩
+#[logical]def Nat_hc‹s› (n : nat) : L := hc⟨Nat_p‹s› n⟩
+#[logical]def Nat‹s› (n : nat) : L := IO (Nat_hc‹s› n)
+
+/-- Worker process for Zero. -/
+def Zero_worker‹s› (c : Nat_ch‹s› zero) : IO unit :=
+  let ⟨{P}, c⟩ <- recv c in
+  let ⟨P0, c⟩ <- recv c in
+  let ⟨P1, c⟩ <- recv c in
+  let c <- send c (just P0) in
+  close c
+
+/-- Worker process for Succ. -/
+def Succ_worker‹s› %{n : nat} : Nat_hc‹s› n .-> Nat_ch‹s› (succ n) .-> IO unit
+  | d, c =>
+    let ⟨{P}, c⟩ <- recv c in
+    let ⟨P0, c⟩ <- recv c in
+    let ⟨P1, c⟩ <- recv c in
+    let d <- send d P in
+    let d <- send d P0 in
+    let d <- send d P1 in
+    let ⟨just ih, d⟩ <- recv d in
+    close d;
+    let c <- send c (just (P1 n ih)) in
+    close c
+
+/-- Wrapper functions for concurrent Nat API. -/
+
+def Zero‹s› (_ : unit) : Nat‹s› zero :=
+  fork (c : Nat_ch‹s› zero) with Zero_worker c
+
+def Succ‹s› %{n : nat} (N : Nat‹s› n) : Nat‹s› (succ n) :=
+  let d <- N in
+  fork (c : Nat_ch‹s› (succ n)) with Succ_worker d c
+
+/-- Induction principle for concurrent Nats. 
+Result is guaranteed to be equal to sequential induction. 
+-/
+def Nat_ind‹s› %{n : nat} %{P  : nat -> Type‹s›} : 
+  ∀ (P0 : P zero)
+    (P1 : ∀ {n : nat} -> P n -> P (succ n))
+    (N : Nat‹s› n) .-> IO (`nat_ind P0 P1 n) 
+  | P0, P1, N =>
+    let c <- N in
+    let c <- send c P in
+    let c <- send c P0 in
+    let c <- send c P1 in
+    let ⟨v, c⟩ <- recv c in
+    close c;
+    return v
+
+/-- Example of applying concurrent Nat induction. -/
+
+def Nat_of_nat‹s› : ∀ (n : nat) -> Nat‹s› n 
+  | zero => Zero tt
+  | succ n => Succ (Nat_of_nat n)
+
+def int_of_nat : nat -> int
+ | zero => 0
+ | succ n => 1 + int_of_nat n
+
+def nat_of_int (i : int) : nat :=
+  if i <= 0 then zero
+  else succ (nat_of_int (i - 1))
+
+/-- INat is an (primitive) integer paired with a proof that it is a nat. -/
+#[logical]def INat (n : nat) : L := 
+  exists fn (i : int) => i = int_of_nat n
+
+def INat_zero : INat zero := ⟨0, {refl}⟩
+
+def INat_succ %{n : nat} : INat n -> INat (succ n)
+  | ⟨i, {pf}⟩ =>
+    let {pf} : i = int_of_nat n := pf in
+    let {pf} := rwl (fn i0 => 1 + i = 1 + i0) pf refl in
+    ⟨1 + i, {pf}⟩
+
+/-- We construct a dependent INat via Nat induction. -/
+def main : IO unit :=
+  let N10 := Nat_of_nat‹L› (nat_of_int 10) in
+  let just v <- Nat_ind INat_zero INat_succ N10 in
+  let ⟨i, {_}⟩ : INat (nat_of_int 10) := v in
+  print (string_of_int i)

@@ -1,0 +1,237 @@
+/-
+This file implements the map-reduce framework and verifies its derived mergesort.
+-/
+
+
+/-- Sequential tree model for relational verification of map-reduce. -/
+inductive tree (A : U) : U where
+  | Leaf (x : A) : tree A
+  | Node (l r : tree A) : tree A
+
+def map %{A B : U} (f : A -> B) : tree A -> tree B
+  | Leaf x => Leaf (f x)
+  | Node l r => Node (map f l) (map f r)
+
+def reduce %{A B : U} (f : A -> B) (g : B -> B -> B) : tree A -> B
+  | Leaf x => f x
+  | Node l r => g (reduce f g l) (reduce f g r)
+
+
+/-- Methods of the map-reduce. -/
+inductive opr (A : U) : L where
+  | Free : opr A
+  | Map  %{B : U} (f : A -> B) : opr A
+  | Reduce %{B : U} (f : A -> B) (g : B -> B -> B) : opr A
+
+/-- The map-reduce protocol -/
+#[logical]
+def tree_p %{A : U} (t : tree A) : proto :=
+  ⇓(o : opr A) ->
+    match o with
+    | Free => •
+    | Map _ f => tree_p (map f t)
+    | Reduce _ f g => ⇑(`reduce f g t) → tree_p t
+
+#[logical]def ctree_ch %{A : U} (t : tree A) : L := ch⟨tree_p t⟩
+#[logical]def ctree_hc %{A : U} (t : tree A) : L := hc⟨tree_p t⟩
+#[logical]def ctree %{A : U} (t : tree A) : L := IO (ctree_hc t)
+
+/-- Leaf worker process of map-reduce. -/
+def leaf_worker %{A : U} (x : A) (c : @ctree_ch A (Leaf x)) : IO unit :=
+  let ⟨o, c⟩ <- recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+           | Free => •
+           | Map B f => @tree_p B (@Leaf B (f x))
+           | Reduce B f _ => ⇑(@sing B (f x)) → tree_p (Leaf x)⟩
+  with
+  | Free, c => close c
+  | Map B f, c => @leaf_worker B (f x) c
+  | Reduce _ f _, c => let c <- send c (just (f x)) in leaf_worker x c
+
+/-- Node worker process of map-reduce. -/
+def node_worker %{A : U} %{l r : tree A}
+: ctree_hc l .-> ctree_hc r .-> ctree_ch (Node l r) .-> IO unit
+| l_ch, r_ch, c =>
+  let ⟨o, c⟩ <- recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+           | Free => •
+           | Map B f => @tree_p B (@map _ B f (Node l r))
+           | Reduce B f g => ⇑(@sing B (@reduce _ B f g (Node l r))) → tree_p (Node l r)⟩
+  with
+  | Free, c =>
+    let l_ch <- send l_ch Free in
+    let r_ch <- send r_ch Free in
+    close l_ch; close r_ch; close c
+  | Map _ f, c =>
+    let l_ch <- send l_ch (Map f) in
+    let r_ch <- send r_ch (Map f) in
+    node_worker l_ch r_ch c
+  | Reduce _ f g, c =>
+    let l_ch <- send l_ch (Reduce f g) in
+    let r_ch <- send r_ch (Reduce f g) in
+    let ⟨just vl, l_ch⟩ <- recv l_ch in
+    let ⟨just vr, r_ch⟩ <- recv r_ch in
+    let c <- send c (just (g vl vr)) in
+    node_worker l_ch r_ch c
+
+/-- Wrapper functions for map-reduce API. -/
+
+def cleaf %{A : U} (x : A) : ctree (Leaf x) :=
+  fork (c : ctree_ch (Leaf x)) with leaf_worker x c
+
+def cnode %{A : U} %{l r : tree A} : ctree l .-> ctree r .-> ctree (Node l r)
+  | l0, r0 =>
+    let l_ch <- l0 in
+    let r_ch <- r0 in
+    fork (c : ctree_ch (Node l r)) with node_worker l_ch r_ch c
+
+def ctree_of_tree %{A : U} : ∀ (t : tree A) -> ctree t
+  | Leaf x   => cleaf x
+  | Node l r => cnode (ctree_of_tree l) (ctree_of_tree r)
+
+def cfree %{A : U} %{t : tree A} (ct : ctree t) : IO unit :=
+  let c <- ct in
+  let c <- send c Free in
+  close c
+
+def cmap %{A B : U} %{t : tree A} (f : A -> B) (ct : ctree t) : ctree (map f t) :=
+  let c <- ct in
+  let c <- send c (Map f) in
+  return c
+
+def creduce %{A B : U} %{t : tree A} (f : A -> B) (g : B -> B -> B) (ct : ctree t)
+: IO (`reduce f g t ⊗ ctree t) :=
+  let c <- ct in
+  let c <- send c (Reduce f g) in
+  let ⟨x, ct⟩ <- recv c in
+  return ⟨x, return ct⟩
+
+/-- Verification of derived mergesort. -/
+
+/-- Sequential mergesort model. -/
+def split‹t› : list‹_,t›int -> list‹_,t›int ⊗ list‹_,t›int
+  | nil          => ⟨nil, nil⟩
+  | x :: nil     => ⟨x :: nil, nil⟩
+  | x :: y :: zs =>
+    let ⟨xs, ys⟩ := split zs in
+    ⟨x :: xs, y :: ys⟩
+
+def merge‹t› : list‹_,t›int -> list‹_,t›int .-> list‹_,t›int
+  | nil    , ys      => ys
+  | xs     , nil     => xs
+  | x :: xs, y :: ys =>
+    if x <= y
+    then x :: merge xs (y :: ys)
+    else y :: merge (x :: xs) ys
+
+def msort‹t› : list‹_,t›int -> list‹_,t›int
+  | nil      => nil
+  | z :: nil => z :: nil
+  | zs       =>
+    let ⟨xs, ys⟩ := split zs in
+    merge (msort xs) (msort ys)
+
+/-- Splitting tree of mergesort. -/
+def splitting_tree : list‹_,U›int -> tree (list‹_,U›int)
+  | nil => Leaf nil
+  | z :: nil => Leaf (z :: nil)
+  | zs =>
+    let ⟨xs, ys⟩ := split zs in
+    let l := splitting_tree xs in
+    let r := splitting_tree ys in
+    Node l r
+
+/-- Theorem reduce_splitting_tree. 
+
+This theorem connects reduce, merge, splitting tree and mergesort.
+In particular it shows that reducing a splitting using merge is functionally 
+equivalent to performing mergesort directly.
+-/
+theorem reduce_splitting_tree : ∀ (xs : list‹_,U›int) ->
+    reduce (fn x => x) (fn l r => merge l r) (splitting_tree xs) = msort xs
+  | nil => refl
+  | z :: nil => refl
+  | zs =>
+    match split zs as h1
+        , {refl}   as _ : (let ⟨xs, ys⟩ := h1 in merge (msort xs) (msort ys)) =
+                          (msort zs)
+        , {refl}   as _ : (reduce (fn x => x) (fn l r => merge l r)
+                            (let ⟨xs, ys⟩ := h1 in
+                             let l := splitting_tree xs in
+                             let r := splitting_tree ys in
+                             Node l r)) =
+                          (reduce (fn x => x) (fn l r => merge l r) (splitting_tree zs))
+    with
+    | ⟨xs0, ys0⟩, pf0, pf1 =>
+      let pf_xs0 := reduce_splitting_tree xs0 in
+      let pf_ys0 := reduce_splitting_tree ys0 in
+      let pf0 := rwr (fn xs => merge xs _ = _) pf_xs0 pf0 in
+      let pf0 := rwr (fn ys => merge _ ys = _) pf_ys0 pf0 in
+      let pf0 := rwl (fn x => x = _) pf1 pf0 in
+      pf0
+
+/-- Concurrent construction of a concurrent splitting tree. -/
+def splitting_ctree : ∀ (xs : list‹_,U›int) -> ch⟨⇑(ctree (splitting_tree xs)) -> •⟩ -> IO unit
+  | nil     , c => let c <- send c (cleaf nil)        in close c; return tt
+  | z :: nil, c => let c <- send c (cleaf (z :: nil)) in close c; return tt
+  | zs      , c =>
+    match split zs as h1
+        , {refl}   as _ : (let ⟨xs, ys⟩ := h1 in
+                           let l := splitting_tree xs in
+                           let r := splitting_tree ys in
+                           Node l r) =
+                          (splitting_tree zs)
+    with
+    | ⟨xs, ys⟩, pf =>
+      let cl <- fork c with splitting_ctree xs c in
+      let cr <- fork c with splitting_ctree ys c in
+      let ⟨l, cl⟩ <- recv cl in close cl;
+      let ⟨r, cr⟩ <- recv cr in close cr;
+      let ct : ctree (Node (splitting_tree xs) (splitting_tree ys)) := cnode l r in
+      let ct := rwl (fn t => ctree t) pf ct in
+      let c <- send c ct in
+      close c
+
+/-- Concurrent mergesort. 
+
+Theorem reduce_splitting_tree is used to prove that the result of
+concurrent map-reduce is functionally equivalent to sequential mergesort. 
+-/
+def cmsort (xs : list‹_,U›int) : IO (`msort xs) :=
+  let c <- fork c with splitting_ctree xs c in
+  let ⟨ct, c⟩ <- recv c in close c;
+  let ⟨result, ct⟩ <- creduce (fn x => x) (fn l r => merge l r) ct in
+  let result := rwl (fn x => `x) (reduce_splitting_tree xs) result in
+  cfree ct;
+  return result
+
+
+/-- Example sorting. -/
+
+def mklist‹t› (n : int) : list‹_,t›int :=
+  if n <= 0 then nil else n :: mklist (n - 1)
+
+def list_len‹t› : list‹_,t›int -> int
+  | nil     => 0
+  | _ :: xs => 1 + list_len xs
+
+def print_list‹t› : list‹_,t›int -> IO unit
+  | nil     => print "nil"
+  | x :: xs =>
+    print (string_of_int x);
+    print " :: ";
+    print_list xs
+
+/-- 
+We do not sort very long lists here as the unbounded splitting of map-reduce
+will incur large performance overhead. In [mergesort.tll] we stress test with 
+much longer lists using bounded splitting. 
+-/
+def main : IO unit :=
+  let test := mklist‹U› 100 in
+  let just sorted <- cmsort test in
+  print_list sorted

@@ -1,0 +1,105 @@
+/-
+This file encodes additive-pairs using linear inductive types.
+-/
+
+
+/-- The boxed type is used for lifting terms of arbitrary sort into L -/
+inductive boxed‹s› (A : Type‹s›) : L where
+  | box (m : A) : boxed A
+
+inductive choice : L where
+  | next : choice
+  | free : choice
+
+
+/-- Simple theory of singleton elimination. -/
+def sing_elim‹s,t› %{A : Type‹s›} %{x : A} : sing‹s,t›x -> A
+  | just x => x
+
+theorem sing_uniq‹s,t› %(A : Type‹s›) %(x0 : A) : forall (x : sing‹s,t›x0) -> x0 = sing_elim x
+  | just _ => refl
+
+
+
+/-- The encoding of dependent additive-pairs. -/
+inductive apair‹s,r,t› %(A : Type‹s›) (B : A -> Type‹r›) : Type‹t› where
+  | apair_intro
+    %{x : A}
+    (select : forall‹t› (b : bool),
+                if b then sing x else boxed (B x)) : apair B
+
+notation ( { , } ) :=
+  apair_intro fun
+    | true  => just %1
+    | false => box %2
+
+/-- Dependent projections of additive pairs. -/
+def proj1‹s,r,t› %{A : Type‹s›} %{B : A -> Type‹r›} : @apair‹s,r,t› A B -> A
+  | apair_intro _ select => sing_elim (select true)
+
+def proj2‹s,r,t› %{A : Type‹s›} %{B : A -> Type‹r›} : forall (x : @apair‹s,r,t› A B) -> B (proj1 x)
+  | apair_intro x select => 
+    match {x}                       as x0 -- x is matched to introduce flex variable x0
+        , {select true}             as a0 : sing x
+        , {sing_uniq (select true)} as _  : x0 = sing_elim a0
+        , select false              as _  : boxed (B x0)
+      in B (sing_elim a0)
+    with
+    | _, _, refl, box b => b
+
+
+/-- Usage Example -/
+
+/-- Linear streams -/
+inductive stream_node‹s› (A : Type‹s›) : L where
+  | stream_cons
+    (hd : A)
+    (tl : forall (x : choice) .->
+            match x with
+            | next => stream_node A
+            | free => base) : stream_node A
+
+#[logical]
+def stream‹s› (A : Type‹s›) :=
+  forall (x : choice) .->
+    match x with
+    | next => stream_node A
+    | free => base
+
+def free_stream‹s› %{A : Type‹s›} (st : stream A) : unit :=
+  match st free with tt => tt
+
+def uncons_stream‹s› %{A : Type‹s›} (st : stream A) : A ⊗ stream A :=
+  let stream_cons hd tl := st next in
+  ⟨hd, tl⟩
+
+def nat_make (n : nat) : stream nat
+  | next => stream_cons n (nat_make (succ n))
+  | free => tt
+
+
+#[logical]
+def nat_dep_t : nat -> L
+  | zero   => stream nat
+  | succ _ => base
+
+def my_apair0 : apair‹_,_,U› nat_dep_t :=
+  -- Resource usage is equal in both components.
+  {zero, nat_make zero}
+
+def my_apair1 : apair‹_,_,L› nat_dep_t :=
+  let nat_stream := nat_make zero in
+  -- Additive pair allows usage of nat_stream in both components.
+  { let ⟨hd, tl⟩ := uncons_stream nat_stream in
+    let _ := free_stream tl in hd
+  , nat_stream }
+
+/-- Left-projection works. -/
+-- def _ : nat := proj1 my_apair1
+
+/-- Right-projection also works. 
+
+However, due to linearity, my_apair1 cannot be projected twice. 
+Thus the definition above is commented out.
+-/
+def _ : unit := free_stream (proj2 my_apair1)

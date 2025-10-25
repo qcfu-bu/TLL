@@ -1,0 +1,24 @@
+{
+  "fileTypes": [],
+  "injectionSelector": "L:markup.fenced_code.block.markdown",
+  "patterns": [{ "include": "#tll-code-block" }],
+  "repository": {
+    "tll-code-block": {
+      "begin": "(tll)(\\s+[^`~]*)?$",
+      "end": "(^|\\G)(?=\\s*[`~]{3,}\\s*$)",
+      "patterns": [
+        {
+          "begin": "(^|\\G)(\\s*)(.*)",
+          "while": "(^|\\G)(?!\\s*([`~]{3,})\\s*$)",
+          "contentName": "meta.embedded.block.tll",
+          "patterns": [
+            {
+              "include": "source.tll"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "scopeName": "markdown.tll.codeblock"
+}

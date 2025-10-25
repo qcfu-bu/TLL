@@ -1,0 +1,150 @@
+/- 
+This file implements key-value stores using concurrent unordered search trees.
+-/
+
+
+/-- Sequential tree model for relational verification of the (concurrent) key-value store.  -/
+inductive tree (K V : U) : U where
+  | leaf : tree K V
+  | node (k : K) (v : V) (l r : tree K V) : tree K V
+
+def find %{K V : U} (pred : K -> bool) : tree K V -> option V
+  | leaf => None
+  | node k v l r =>
+    if pred k then Some v
+    else
+      match find pred l with
+      | Some v => Some v
+      | None => find pred r
+
+
+/-- Methods of the key-value store. -/
+inductive opr (K : U) : L where
+  | Free : opr K
+  | Find (pred : K -> bool) : opr K
+
+/-- The key-value store protocol. -/
+#[logical]
+def Tree_p %(K V : U) (t : tree K V) : proto :=
+  ⇓(o : opr K) ->
+    match o with
+    | Free   => •
+    | Find pred => ⇑(`find pred t) → Tree_p t
+
+#[logical]def Tree_ch %(K V : U) (t : tree K V) : L := ch⟨Tree_p t⟩
+#[logical]def Tree_hc %(K V : U) (t : tree K V) : L := hc⟨Tree_p t⟩
+#[logical]def Tree %(K V : U) (t : tree K V) : L := IO (Tree_hc t)
+
+/-- Leaf worker process of the key-value store. -/
+def Leaf_worker %{K V : U} (c : @Tree_ch K V leaf) : IO unit := 
+  let ⟨o, c⟩ <- recv c in
+  match o as o0
+      , c as _ :
+        ch⟨match o0 with
+           | Free   => •
+           | Find _ => ⇑(`None) → Tree_p leaf⟩
+  with
+  | Free, c => close c
+  | Find _, c => 
+    let c <- send c (just None) in 
+    Leaf_worker c
+
+/-- Node worker process of the key-value store. 
+
+Unlike the sequential tree which first searches the left-child then      
+search the right-child, the concurrent tree search both children in parallel. 
+We prove that the parallel search strategy is functionally equivalent to
+the sequential search.
+-/
+def Node_worker %{K V : U} %{l r : tree K V} (k : K) (v : V) : 
+    Tree_hc l .-> Tree_hc r .-> Tree_ch (node k v l r) .-> IO unit :=
+  ln l_ch r_ch c =>
+    let ⟨o, c⟩ <- recv c in
+    match o as o0
+        , c as _ :
+          ch⟨match o0 with
+             | Free   => •
+             | Find pred => 
+              ⇑(`find pred (node k v l r)) → Tree_p (node k v l r)⟩
+    with
+    | Free, c =>
+      let l_ch <- send l_ch Free in
+      let r_ch <- send r_ch Free in
+      close l_ch; close r_ch; close c
+    | Find pred, c =>
+      match pred k as b
+          , {refl} as _ : b = pred k 
+      with
+      | true, pf =>
+        let c := rwr (fn (x : bool) => ch⟨⇑(`(if x then _ else _)) -> _⟩) pf c in
+        let c <- send c (just (Some v)) in
+        Node_worker k v l_ch r_ch c
+      | false, pf =>
+        let c := rwr (fn (x : bool) => ch⟨⇑(`(if x then _ else _)) -> _⟩) pf c in
+        let l_ch <- send l_ch (Find pred) in -- search left-child
+        let r_ch <- send r_ch (Find pred) in -- search right-child
+        let ⟨just opt, l_ch⟩ <- recv l_ch in
+        let ⟨r_find, r_ch⟩ <- recv r_ch in
+        match opt as r0
+            , c   as _ : ch⟨⇑(`(match r0 with
+                                | Some v => Some v
+                                | None => find pred r)) -> Tree_p (node k v l r)⟩
+        with
+        | Some v1, c=> 
+          let c <- send c (just (Some v1)) in
+          Node_worker k v l_ch r_ch c
+        | None, c=> 
+          let c <- send c r_find in
+          Node_worker k v l_ch r_ch c
+
+
+/-- Wrapper functions for key-value store API. -/
+
+def Leaf %{K V : U} : @Tree K V leaf := 
+  fork (c : @Tree_ch K V leaf) with Leaf_worker c
+
+def Node %{K V : U} %{l r : tree K V} (k : K) (v : V) : Tree l .-> Tree r .-> Tree (node k v l r)
+  | l0, r0 =>
+    let l_ch <- l0 in
+    let r_ch <- r0 in
+    fork (c : Tree_ch (node k v l r)) with 
+      Node_worker k v l_ch r_ch c
+
+def Tree_of_tree %{K V : U} : ∀ (t : tree K V) -> Tree t
+  | leaf       => @Leaf K V
+  | node k v l r => Node k v (Tree_of_tree l) (Tree_of_tree r)
+
+def Tree_free %{K V : U} %{t : tree K V} (T : Tree t) : IO unit :=
+  let c <- T in
+  let c <- send c Free in
+  close c
+
+def Tree_find %{K V : U} %{t : tree K V} (pred : K -> bool) (T : Tree t) : IO ((`find pred t) ⊗ Tree t) :=
+  let c <- T in
+  let c <- send c (Find pred) in
+  let ⟨v, c⟩ <- recv c in
+  return ⟨v, return c⟩
+
+
+/-- Example key-value store lookup. -/
+
+def myTree1 (k : int) (v : string):= Node k v (@Leaf int string) (@Leaf int string)
+def myTree2 (k : int) (v : string):= Node k v (myTree1 1 "one") (myTree1 2 "two")
+def myTree3 (k : int) (v : string):= Node k v (myTree2 3 "three") (myTree2 4 "four")
+def myTree4 (k : int) (v : string):= Node k v (myTree3 8 "eight") (myTree3 7 "seven")
+def myTree5 (k : int) (v : string):= Node k v (myTree4 9 "nine") (myTree4 10 "ten")
+def myTree6 (k : int) (v : string):= Node k v (myTree5 11 "eleven") (myTree5 12 "twelve")
+
+def opt_to_string : option string -> string
+  | Some s => "Some(" ++ s ++ ")"
+  | None => "None"
+
+def main : IO unit :=
+  let t := myTree6 13 "thirteen" in
+  let ⟨just opt1, t⟩ <- Tree_find (fn x => x == 3) t in
+  let ⟨just opt2, t⟩ <- Tree_find (fn x => x == 5) t in
+  let _ <- Tree_free t in
+  print ("find 3 := " ++ opt_to_string opt1 ++ "\n");
+  print ("find 5 := " ++ opt_to_string opt2 ++ "\n");
+  return tt
+ 

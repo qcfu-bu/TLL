@@ -1,0 +1,132 @@
+/- 
+This file implements concurrent mergsort. 
+
+Unlike [map_reduce.tll] which derives mergesort from the map-reduce framework,
+we implement it directly here. For better performance, we allow (concurrent)
+splitting to be bound.
+-/
+
+
+/-- Sequential mergesort model. -/
+def split‹t› : list‹_,t›int -> list‹_,t›int ⊗ list‹_,t›int
+  | nil          => ⟨nil, nil⟩
+  | x :: nil     => ⟨x :: nil, nil⟩
+  | x :: y :: zs =>
+    let ⟨xs, ys⟩ := split zs in
+    ⟨x :: xs, y :: ys⟩
+
+def merge‹t› : list‹_,t›int -> list‹_,t›int .-> list‹_,t›int
+  | nil    , ys      => ys
+  | xs     , nil     => xs
+  | x :: xs, y :: ys =>
+    if x <= y
+    then x :: merge xs (y :: ys)
+    else y :: merge (x :: xs) ys
+
+def msort‹t› : list‹_,t›int -> list‹_,t›int 
+  | nil      => nil
+  | z :: nil => z :: nil
+  | zs       =>
+    let ⟨xs, ys⟩ := split zs in
+    merge (msort xs) (msort ys)
+
+
+/-- Concurrent mergesort protocol. -/
+#[logical]def cmsort_ch‹t› (xs :  list‹_,t› int) : L :=
+  ch⟨ ⇑(`msort xs) -> • ⟩
+
+/-- Concurrent mergesort worker process. -/
+def cmsort_worker‹t› : int -> ∀ (zs : list‹_,t›int) -> cmsort_ch‹t›zs .-> IO unit
+  | _, nil     , c => let c <- send c (just nil)        in close c
+  | _, z :: nil, c => let c <- send c (just (z :: nil)) in close c
+  | i, zs      , c =>
+    if i <= 0 then let c <- send c (just (msort zs)) in close c else
+    match split zs as h1
+        , {refl}   as _ : (let ⟨xs, ys⟩ := h1 in merge (msort xs) (msort ys)) =
+                          (let ⟨xs, ys⟩ := split zs in merge (msort xs) (msort ys))
+    with
+    | ⟨xs0, ys0⟩, pf =>
+      let r1 <- fork (c1 : cmsort_ch xs0) with cmsort_worker (i - 1) xs0 c1 in
+      let r2 <- fork (c2 : cmsort_ch ys0) with cmsort_worker (i - 1) ys0 c2 in
+      let ⟨just xs1, c1⟩ <- recv r1 in
+      let ⟨just ys1, c2⟩ <- recv r2 in
+      let zs1 := just (merge xs1 ys1) in
+      let zs1 := rwl (fn x => `x) pf zs1 in
+      let c <- send c zs1 in
+      close c1; close c2; close c
+
+/-- Wrapper function for concurrent mergesort API. -/
+def cmsort‹t› (zs : list‹_,t›int) : IO (`msort zs) :=
+  let c <- fork c with cmsort_worker 3 zs c in
+  let ⟨msg, c⟩ <- recv c in
+  close c; return msg
+
+/-- Benchmarking mergesort variants. 
+
+We test different variants of mergesort:
+- unrestricted sequential 
+- linear sequential 
+- unrestricted concurrent
+- linear concurrent
+
+The task is to sort a 1,000,000 element list from descending order into ascending order.
+-/
+
+/-- Testing utility functions. -/
+def mklist‹t› (n : int) : list‹_,t›int :=
+  if n <= 0 then nil else n :: mklist (n - 1)
+
+def list_len‹t› : list‹_,t›int -> int
+  | nil     => 0
+  | _ :: xs => 1 + list_len xs
+
+def print_list‹t› : list‹_,t›int -> IO unit
+  | nil     => print "nil"
+  | x :: xs =>
+    print (string_of_int x);
+    print " :: ";
+    print_list xs
+
+/-- 
+benchmarks for unrestricted sequential msort
+0.40 real         0.30 user         0.09 sys
+2066.25 MB maximum resident set size
+-/
+-- def main : IO unit :=
+--   let test := mklist‹U› 1000000 in
+--   let sorted := msort test in
+--   let len := list_len sorted in
+--   print (string_of_int len)
+
+/-- 
+benchmarks for linear sequential msort
+0.42 real         0.41 user         0.00 sys
+82.59 MB maximum resident set size
+-/
+-- def main : IO unit :=
+--   let test := mklist‹L› 1000000 in
+--   let sorted := msort test in
+--   let len := list_len sorted in
+--   print (string_of_int len)
+
+/--
+benchmarks for unrestricted concurrent msort
+0.29 real         0.45 user         1.91 sys
+2099.51 MB maximum resident set size
+-/
+-- def main : IO unit :=
+--   let test := mklist‹U› 1000000 in
+--   let just sorted <- cmsort test in
+--   let len := list_len sorted in
+--   print (string_of_int len)
+
+/--
+benchmarks for linear concurrent msort
+0.16 real         0.59 user         0.03 sys 
+205.32 MB maximum resident set size
+-/
+def main : IO unit :=
+  let test := mklist‹L› 1000000 in
+  let just sorted <- cmsort test in
+  let len := list_len sorted in
+  print (string_of_int len)
