@@ -73,7 +73,7 @@ typedef struct {
   char m_data[];
 } tll_string_object;
 
-#define sizeof_string(n)                                                       \
+#define SIZE_OF_STRING(n)                                                      \
   (offsetof(tll_string_object, m_data) + (n) * sizeof(char))
 
 /* Channels */
@@ -312,7 +312,7 @@ static inline tll_object *tll_char_to_int(tll_object *e) { return e; }
 /* Strings */
 static inline tll_object *tll_string_make(char *buf) {
   const size_t n = strlen(buf) + 1;
-  tll_string_object *s = (tll_string_object *)tll_alloc(sizeof_string(n));
+  tll_string_object *s = (tll_string_object *)tll_alloc(SIZE_OF_STRING(n));
   s->m_header.m_kind = TLL_STRING_KIND;
   s->m_size = n;
   memcpy(s->m_data, (char *)buf, n);
@@ -324,7 +324,7 @@ static inline tll_object *tll_string_pushback(tll_object *e1, tll_object *e2) {
   const size_t s1_size = s1->m_size;
   const size_t s2_size = s1_size + 1;
   tll_string_object *s2 =
-      (tll_string_object *)tll_alloc(sizeof_string(s2_size));
+      (tll_string_object *)tll_alloc(SIZE_OF_STRING(s2_size));
   s2->m_header.m_kind = TLL_STRING_KIND;
   s2->m_size = s2_size;
   memcpy(s2->m_data, (char *)s1->m_data, s1_size);
@@ -340,7 +340,7 @@ static inline tll_object *tll_string_concat(tll_object *e1, tll_object *e2) {
   const size_t s2_size = s2->m_size;
   const size_t s3_size = s1_size + s2_size - 1;
   tll_string_object *s3 =
-      (tll_string_object *)tll_alloc(sizeof_string(s3_size));
+      (tll_string_object *)tll_alloc(SIZE_OF_STRING(s3_size));
   s3->m_header.m_kind = TLL_STRING_KIND;
   s3->m_size = s3_size;
   memcpy(s3->m_data, (char *)s1->m_data, s1_size);
