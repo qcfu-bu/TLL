@@ -1,0 +1,48 @@
+inductive color : U where
+  | Red   : color
+  | Black : color
+
+inductive tree‹s› (V : U) : Type‹s› where
+  | Leaf : tree V
+  | Node (c : color) (k : int) (v : V) (l r : tree‹s› V) : tree V
+
+def lookup‹s› %{V : U} (k0 : int) : tree‹s› V -> option V ⊗ tree‹s› V
+  | Leaf => ⟨None, Leaf⟩
+  | Node c k v l r =>
+    if k0 < k then
+      let ⟨opt, l⟩ := lookup k0 l in
+      ⟨opt, Node c k v l r⟩
+    else if k < k0 then
+      let ⟨opt, r⟩ := lookup k0 r in
+      ⟨opt, Node c k v l r⟩
+    else
+      ⟨Some v, Node c k v l r⟩
+
+def balance‹s› %{V : U} 
+  (c : color) (k : int) (vk : V) : tree‹s› V .-> tree‹s› V .-> tree‹s› V
+| t1, t2 =>
+  match c with
+  | Red => Node Red k vk t1 t2
+  | _ => 
+    match t1 with
+    | Node Red y vy (Node Red x vx a b) c =>
+      Node Red y vy (Node Black x vx a b) (Node Black k vk c t2)
+    | Node Red x vx a (Node Red y vy b c) =>
+      Node Red y vy (Node Black x vx a b) (Node Black k vk c t2)
+    | t1 => 
+      match t2 with
+      | Node Red z vz (Node Red y vy b c) d =>
+        Node Red y vy (Node Black k vk t1 b) (Node Black z vz c d)
+      | Node Red y vy b (Node Red z vs c d) =>
+        Node Red y vy (Node Black k vk t1 b) (Node Black z vs c d)
+      | t2 => Node Black k vk t1 t2
+
+def insert‹s› %{V : U} (x : int) (vx : V) : tree‹s› V -> tree‹s› V
+  | Leaf => Node Red x vx Leaf Leaf
+  | Node c y vy a b =>
+    if x < y then
+      balance c y vy (insert x vx a) b
+    else if y < x then
+      balance c y vy a (insert x vx b)
+    else
+      Node c x vx a b

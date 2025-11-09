@@ -9,9 +9,16 @@ let debug_mode () =
   Debug.enable ();
   Printexc.record_backtrace true
 
+let should_emit = ref true
+let disable_emit () = should_emit := false
+
 let main =
-  let specs = [ ("-g", Arg.Unit debug_mode, "Debug Mode") ] in
-  let usage = "[-g] <src>" in
+  let specs =
+    [ ("-g", Arg.Unit debug_mode, "Debug Mode")
+    ; ("-tc", Arg.Unit disable_emit, "Type Check Mode")
+    ]
+  in
+  let usage = "[-g] [-tc] <src>" in
   let src_opt = ref None in
   let anon str = src_opt := Some str in
   Arg.parse specs anon usage;
@@ -27,12 +34,13 @@ let main =
       let dcls = Trans1e.trans_dcls dcls in
       let dcls = Trans12.trans_dcls dcls in
       let dcls = Trans2e.trans_dcls dcls in
-      let dcls = Trans23.trans_dcls dcls in
-      let dcls = Trans3e.trans_dcls dcls in
-      let dcls = Trans34.trans_dcls dcls in
-      let dcls = Trans4e.trans_dcls dcls in
-      let dcls = Trans45.trans_dcls dcls in
-      Emitter.emit dcls main_h main_c;
+      (if !should_emit then
+         let dcls = Trans23.trans_dcls dcls in
+         let dcls = Trans3e.trans_dcls dcls in
+         let dcls = Trans34.trans_dcls dcls in
+         let dcls = Trans4e.trans_dcls dcls in
+         let dcls = Trans45.trans_dcls dcls in
+         Emitter.emit dcls main_h main_c);
       pr "@.-----------------------------------------@.@.";
       pr "compilation successful@.";
       pr "mvars(sort)     : %d@." (SMeta.get_count ());
