@@ -12,7 +12,7 @@ def map %{A B : U} (f : A -> B) : tree A -> tree B
   | Leaf x => Leaf (f x)
   | Node l r => Node (map f l) (map f r)
 
-def reduce %{A B : U} (f : A -> B) (g : B -> B -> B) : tree A -> B
+def reduce %{A B : U} (f : A -> B) (g : B -> B .-> B) : tree A -> B
   | Leaf x => f x
   | Node l r => g (reduce f g l) (reduce f g r)
 
@@ -21,7 +21,7 @@ def reduce %{A B : U} (f : A -> B) (g : B -> B -> B) : tree A -> B
 inductive opr (A : U) : L where
   | Free : opr A
   | Map  %{B : U} (f : A -> B) : opr A
-  | Reduce %{B : U} (f : A -> B) (g : B -> B -> B) : opr A
+  | Reduce %{B : U} (f : A -> B) (g : B -> B .-> B) : opr A
 
 /-- The map-reduce protocol -/
 #[logical]
@@ -103,7 +103,7 @@ def cmap %{A B : U} %{t : tree A} (f : A -> B) (ct : ctree t) : ctree (map f t) 
   let c <- send c (Map f) in
   return c
 
-def creduce %{A B : U} %{t : tree A} (f : A -> B) (g : B -> B -> B) (ct : ctree t)
+def creduce %{A B : U} %{t : tree A} (f : A -> B) (g : B -> B .-> B) (ct : ctree t)
 : IO (`reduce f g t ⊗ ctree t) :=
   let c <- ct in
   let c <- send c (Reduce f g) in
@@ -152,19 +152,19 @@ In particular it shows that reducing a splitting using merge is functionally
 equivalent to performing mergesort directly.
 -/
 theorem reduce_splitting_tree : ∀ (xs : list‹_,U›int) ->
-    reduce (fn x => x) (fn l r => merge l r) (splitting_tree xs) = msort xs
+    reduce (fn x => x) merge (splitting_tree xs) = msort xs
   | nil => refl
   | z :: nil => refl
   | zs =>
     match split zs as h1
         , {refl}   as _ : (let ⟨xs, ys⟩ := h1 in merge (msort xs) (msort ys)) =
                           (msort zs)
-        , {refl}   as _ : (reduce (fn x => x) (fn l r => merge l r)
+        , {refl}   as _ : (reduce (fn x => x) merge
                             (let ⟨xs, ys⟩ := h1 in
                              let l := splitting_tree xs in
                              let r := splitting_tree ys in
                              Node l r)) =
-                          (reduce (fn x => x) (fn l r => merge l r) (splitting_tree zs))
+                          (reduce (fn x => x) merge (splitting_tree zs))
     with
     | ⟨xs0, ys0⟩, pf0, pf1 =>
       let pf_xs0 := reduce_splitting_tree xs0 in
@@ -191,8 +191,7 @@ def splitting_ctree : ∀ (xs : list‹_,U›int) -> ch⟨⇑(ctree (splitting_t
       let cr <- fork c with splitting_ctree ys c in
       let ⟨l, cl⟩ <- recv cl in close cl;
       let ⟨r, cr⟩ <- recv cr in close cr;
-      let ct : ctree (Node (splitting_tree xs) (splitting_tree ys)) := cnode l r in
-      let ct := rwl (fn t => ctree t) pf ct in
+      let ct := rwl (fn t => ctree t) pf (cnode l r) in
       let c <- send c ct in
       close c
 
@@ -204,11 +203,10 @@ concurrent map-reduce is functionally equivalent to sequential mergesort.
 def cmsort (xs : list‹_,U›int) : IO (`msort xs) :=
   let c <- fork c with splitting_ctree xs c in
   let ⟨ct, c⟩ <- recv c in close c;
-  let ⟨result, ct⟩ <- creduce (fn x => x) (fn l r => merge l r) ct in
+  let ⟨result, ct⟩ <- creduce (fn x => x) merge ct in
   let result := rwl (fn x => `x) (reduce_splitting_tree xs) result in
   cfree ct;
   return result
-
 
 /-- Example sorting. -/
 
