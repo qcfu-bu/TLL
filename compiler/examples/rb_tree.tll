@@ -272,7 +272,17 @@ theorem balance_BST‹s› %(V : U) (k : int) (v : V) : ∀ (c : color) (l r : t
       let pf := rwl (fn a0 => balance _ _ _ _ (Node _ _ _ a0 _) = _) pfa pf in
       let pf := rwl (fn b0 => balance _ _ _ _ (Node _ _ _ _ b0) = _) pfb pf in
       rwl (fn t0 => BST t0) pf bst)
-| Black, Node Black k_l v_l l_l r_l, r, Hl, Hr, IHl, IHr => 
+
+| Black, Node Black x vx a b, Leaf, Hl, Hr, IHl, IHr => 
+  BST_Node Black k v (Node Black x vx a b) Leaf Hl ForallT_Leaf IHl BST_Leaf
+
+| Black, Node Black x vx a b, Node Black y vy c d, Hl, Hr, IHl, IHr => 
+  BST_Node Black k v (Node Black x vx a b) (Node Black y vy c d) Hl Hr IHl IHr
+
+| Black, Node Black x vx a b, Node Red _ _ _ _, 
+    ForallT_Node _ _ _ _ _ Hkx Hka Hkb, Hr, 
+    BST_Node _ _ _ _ _ Hxa Hxb IHa IHb, IHr => 
   #magic
+
 | Black, Node Red k_l v_l l_l r_l, r, Hl, Hr, IHl, IHr => 
   #magic
