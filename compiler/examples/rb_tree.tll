@@ -23,7 +23,7 @@ def balance‹s› %{V : U}
 | t1, t2 =>
   match c with
   | Red => Node Red k vk t1 t2
-  | _ => 
+  | Black => 
     match t1 with
     | Node Red y vy (Node Red x vx a b) c =>
       Node Red y vy (Node Black x vx a b) (Node Black k vk c t2)
@@ -33,16 +33,246 @@ def balance‹s› %{V : U}
       match t2 with
       | Node Red z vz (Node Red y vy b c) d =>
         Node Red y vy (Node Black k vk t1 b) (Node Black z vz c d)
-      | Node Red y vy b (Node Red z vs c d) =>
-        Node Red y vy (Node Black k vk t1 b) (Node Black z vs c d)
+      | Node Red z vz b (Node Red y vy c d) =>
+        Node Red z vz (Node Black k vk t1 b) (Node Black y vy c d)
       | t2 => Node Black k vk t1 t2
 
-def insert‹s› %{V : U} (x : int) (vx : V) : tree‹s› V -> tree‹s› V
+def ins‹s› %{V : U} (x : int) (vx : V) : tree‹s› V -> tree‹s› V
   | Leaf => Node Red x vx Leaf Leaf
   | Node c y vy a b =>
     if x < y then
-      balance c y vy (insert x vx a) b
+      balance c y vy (ins x vx a) b
     else if y < x then
-      balance c y vy a (insert x vx b)
+      balance c y vy a (ins x vx b)
     else
       Node c x vx a b
+
+def make_black‹s› %{V : U} : tree‹s› V -> tree‹s› V
+  | Leaf => Leaf
+  | Node _ x vx a b => Node Black x vx a b
+
+def insert‹s› %{V : U} (x : int) (vs : V) (t : tree‹s› V) :=
+  make_black (ins x vs t)
+
+#[logical]
+inductive ForallT‹s› %(V : U) (P : int -> V -> bool) : tree‹s› V -> U where
+| ForallT_Leaf : ForallT‹s› P Leaf
+| ForallT_Node (c : color) (k : int) (v : V) (l r : tree‹s› V)
+  (HP : P k v = true) 
+  (IHl : ForallT P l) 
+  (IHr : ForallT P r) :
+  ForallT‹s› P (Node c k v l r)
+
+#[logical]
+inductive BST‹s› %(V : U) : tree‹s› V -> U where
+| BST_Leaf : BST Leaf
+| BST_Node (c : color) (k : int) (v : V) (l r : tree‹s› V) 
+  (Hl : ForallT (fn kl _ => kl < k) l)
+  (Hr : ForallT (fn kr _ => kr > k) r)
+  (IHl : BST l)
+  (IHr : BST r) :
+  BST (Node c k v l r)
+
+theorem Leaf_BST‹s› (V : U) : BST (@Leaf‹s› V) :=
+  BST_Leaf
+
+theorem lt_gt %(x y : int) : x < y = true -> y > x = true := #magic
+theorem gt_lt %(x y : int) : x > y = true -> y < x = true := #magic
+theorem lt_trans %(x y z : int) : x < y = true -> y < z = true -> x < z = true := #magic
+theorem gt_trans %(x y z : int) : x > y = true -> y > z = true -> x > z = true := #magic
+
+
+theorem ForallT_imp‹s› %(V : U) (P Q : int -> V -> bool) (t : tree‹s› V) :
+  ForallT P t ->
+  (∀ (k : int) (v : V) -> P k v = true -> Q k v = true) ->
+  ForallT Q t :=
+  #magic
+  
+theorem ForallT_gt‹s› %(V : U) %(t : tree‹s› V) %(k k0 : int) :
+  ForallT (fn k1 _ => k1 > k) t ->
+  k > k0 = true ->
+  ForallT (fn k1 _ => k1 > k0) t :=
+  #magic
+
+theorem ForallT_lt‹s› %(V : U) %(t : tree‹s› V) %(k k0 : int) :
+  ForallT (fn k1 _ => k1 < k) t ->
+  k < k0 = true ->
+  ForallT (fn k1 _ => k1 < k0) t :=
+  #magic
+
+theorem balance_BST‹s› %(V : U) (k : int) (v : V) : ∀ (c : color) (l r : tree‹s› V) ->
+    ForallT (fn k0 _ => k0 < k) l ->
+    ForallT (fn k0 _ => k0 > k) r ->
+    BST l ->
+    BST r ->
+    BST (balance c k v l r)
+| Red, l, r, Hl, Hr, IHl, IHr => 
+  BST_Node Red k v l r Hl Hr IHl IHr
+
+| Black, Leaf, Leaf, 
+  ForallT_Leaf, ForallT_Leaf, 
+  BST_Leaf, BST_Leaf => 
+  BST_Node Black k v Leaf Leaf ForallT_Leaf ForallT_Leaf BST_Leaf BST_Leaf
+
+| Black, Leaf, Node Black z vz a b, 
+  ForallT_Leaf, Hr, BST_Leaf, IHr => 
+  BST_Node Black k v Leaf (Node Black z vz a b) ForallT_Leaf Hr BST_Leaf IHr
+
+| Black, Leaf, Node Red z vz a b, 
+  ForallT_Leaf, Hr, BST_Leaf, IHr => (
+  match a    as a0 
+      , Hr   as _ : ForallT (fn kr _ => kr > k) (Node Red z vz a0 b) 
+      , IHr  as _ : BST (Node Red z vz a0 b)
+      , refl as _ : a = a0
+  with
+  | Leaf, Hr, IHr, pfa => (
+    match b as b0
+        , Hr   as _ : ForallT (fn kr _ => kr > k) (Node Red z vz Leaf b0)
+        , IHr  as _ : BST (Node Red z vz Leaf b0)
+        , refl as _ : b = b0
+    with
+    | Leaf, Hr, IHr, pfb => 
+      let bst :=
+        BST_Node Black k v Leaf (Node Red z vz Leaf Leaf)
+          ForallT_Leaf Hr BST_Leaf IHr
+      in
+      let pf :
+        balance Black k v Leaf (Node Red z vz a b) =
+        balance Black k v Leaf (Node Red z vz a b) := refl
+      in
+      let pf := rwl (fn a0 => balance _ _ _ _ (Node _ _ _ a0 _) = _) pfa pf in
+      let pf := rwl (fn b0 => balance _ _ _ _ (Node _ _ _ _ b0) = _) pfb pf in
+      rwl (fn t0 => BST t0) pf bst
+    | Node Red y vy e f, 
+      ForallT_Node _ _ _ _ _ Hz Hrx Hry, 
+      BST_Node _ _ _ _ _  
+        Hx (ForallT_Node _ _ _ _ _ Hy1 Hy2 Hy3) 
+        IHx (BST_Node _ _ _ _ _ Hy4 Hy5 IHy1 IHy2), pfb => 
+      let h1 : ForallT (fn kr _ => kr < z) (Node Black k v Leaf Leaf) := 
+        ForallT_Node Black k v _ _ (gt_lt Hz) ForallT_Leaf ForallT_Leaf
+      in
+      let h2 : ForallT (fn kr _ => kr > z) (Node Black y vy e f) := 
+        ForallT_Node Black y vy _ _ Hy1 Hy2 Hy3
+      in
+
+      let bst1 : BST (Node Black k v Leaf Leaf) := 
+        BST_Node Black _ _ _ _ ForallT_Leaf Hrx BST_Leaf IHx
+      in
+      let bst2 : BST (Node Black y vy e f) :=
+        BST_Node Black _ _ _ _ Hy4 Hy5 IHy1 IHy2
+      in
+
+      let bst : BST (Node Red z vz (Node Black k v Leaf Leaf) (Node Black y vy e f)) := 
+        BST_Node Red z vz _ _ h1 h2 bst1 bst2
+      in
+      let pf :
+        balance Black k v Leaf (Node Red z vz a b) =
+        balance Black k v Leaf (Node Red z vz a b) := refl
+      in
+      let pf := rwl (fn a0 => balance _ _ _ _ (Node _ _ _ a0 _) = _) pfa pf in
+      let pf := rwl (fn b0 => balance _ _ _ _ (Node _ _ _ _ b0) = _) pfb pf in
+      rwl (fn t0 => BST t0) pf bst
+    | Node Black y vy e f, Hr, IHr, pfb => 
+      let bst := 
+        BST_Node Black k v Leaf (Node Red z vz Leaf (Node Black y vy e f)) 
+          ForallT_Leaf Hr BST_Leaf IHr 
+      in
+      let pf : 
+        balance Black k v Leaf (Node Red z vz a b) =
+        balance Black k v Leaf (Node Red z vz a b) := refl
+      in
+      let pf := rwl (fn a0 => balance _ _ _ _ (Node _ _ _ a0 _) = _) pfa pf in
+      let pf := rwl (fn b0 => balance _ _ _ _ (Node _ _ _ _ b0) = _) pfb pf in
+      rwl (fn t0 => BST t0) pf bst)
+  | Node Red x vx c d, 
+      ForallT_Node _ _ _ _ _ Hz (ForallT_Node _ _ _ _ _ Hxk Hx1 _) _, 
+      BST_Node _ _ _ _ _ (ForallT_Node _ _ _ _ _ Hzx _ Hd1) Hb 
+        (BST_Node _ _ _ _ _ Hc2 Hd2 IHc IHd) IHb, pfa =>
+    let Hzx : z > x = true := lt_gt Hzx in
+
+    let h1 : ForallT (fn kr _ => kr < x) (Node Black k v Leaf c) :=
+      ForallT_Node Black k v _ _ (gt_lt Hxk) ForallT_Leaf Hc2
+    in
+    let h2 : ForallT (fn kr _ => kr > x) (Node Black z vz d b) :=
+      ForallT_Node Black z vz _ _ Hzx Hd2 (ForallT_gt Hb Hzx)
+    in
+
+    let bst1 : BST (Node Black k v Leaf c) := 
+      BST_Node Black k v _ _ ForallT_Leaf Hx1 BST_Leaf IHc
+    in
+    let bst2 : BST (Node Black z vz d b) := 
+      BST_Node Black z vz _ _ Hd1 Hb IHd IHb
+    in
+
+    let bst : BST (Node Red x vx (Node Black k v Leaf c) (Node Black z vz d b)) :=
+      BST_Node Red x vx _ _ h1 h2 bst1 bst2
+    in
+    let pf :
+      balance Black k v Leaf (Node Red z vz a b) =
+      balance Black k v Leaf (Node Red z vz a b) := refl
+    in
+    let pf := rwl (fn a0 => balance _ _ _ _ (Node _ _ _ a0 _) = _) pfa pf in
+    rwl (fn t0 => BST t0) pf bst
+  | Node Black x vx c d, Hr, IHr, pfa =>
+    match b as b0
+        , Hr   as _ : ForallT (fn kr _ => kr > k) (Node Red z vz (Node _ x vx c d) b0)
+        , IHr  as _ : BST (Node Red z vz (Node _ x vx c d) b0)
+        , refl as _ : b = b0
+    with
+    | Leaf, Hr, IHr, pfb => 
+      let bst :=
+        BST_Node Black k v Leaf (Node Red z vz (Node Black x vx c d) Leaf)
+          ForallT_Leaf Hr BST_Leaf IHr
+      in
+      let pf :
+        balance Black k v Leaf (Node Red z vz a b) =
+        balance Black k v Leaf (Node Red z vz a b) := refl
+      in
+      let pf := rwl (fn a0 => balance _ _ _ _ (Node _ _ _ a0 _) = _) pfa pf in
+      let pf := rwl (fn b0 => balance _ _ _ _ (Node _ _ _ _ b0) = _) pfb pf in
+      rwl (fn t0 => BST t0) pf bst
+    | Node Red y vy e f, 
+      ForallT_Node _ _ _ _ _ Hz Hrx Hry, 
+      BST_Node _ _ _ _ _  
+        Hx (ForallT_Node _ _ _ _ _ Hy1 Hy2 Hy3) 
+        IHx (BST_Node _ _ _ _ _ Hy4 Hy5 IHy1 IHy2), pfb => 
+      let h1 : ForallT (fn kr _ => kr < z) (Node Black k v Leaf (Node Black x vx c d)) := 
+        ForallT_Node Black k v _ _ (gt_lt Hz) ForallT_Leaf Hx
+      in
+      let h2 : ForallT (fn kr _ => kr > z) (Node Black y vy e f) := 
+        ForallT_Node Black y vy _ _ Hy1 Hy2 Hy3
+      in
+
+      let bst1 : BST (Node Black k v Leaf (Node Black x vx c d)) := 
+        BST_Node Black _ _ _ _ ForallT_Leaf Hrx BST_Leaf IHx
+      in
+      let bst2 : BST (Node Black y vy e f) :=
+        BST_Node Black _ _ _ _ Hy4 Hy5 IHy1 IHy2
+      in
+
+      let bst : BST (Node Red z vz (Node Black k v Leaf (Node Black x vx c d)) (Node Black y vy e f)) := 
+        BST_Node Red z vz _ _ h1 h2 bst1 bst2
+      in
+      let pf :
+        balance Black k v Leaf (Node Red z vz a b) =
+        balance Black k v Leaf (Node Red z vz a b) := refl
+      in
+      let pf := rwl (fn a0 => balance _ _ _ _ (Node _ _ _ a0 _) = _) pfa pf in
+      let pf := rwl (fn b0 => balance _ _ _ _ (Node _ _ _ _ b0) = _) pfb pf in
+      rwl (fn t0 => BST t0) pf bst
+    | Node Black y vy e f, Hr, IHr, pfb => 
+      let bst := 
+        BST_Node Black k v Leaf (Node Red z vz (Node Black x vx c d) (Node Black y vy e f)) 
+          ForallT_Leaf Hr BST_Leaf IHr 
+      in
+      let pf : 
+        balance Black k v Leaf (Node Red z vz a b) =
+        balance Black k v Leaf (Node Red z vz a b) := refl
+      in
+      let pf := rwl (fn a0 => balance _ _ _ _ (Node _ _ _ a0 _) = _) pfa pf in
+      let pf := rwl (fn b0 => balance _ _ _ _ (Node _ _ _ _ b0) = _) pfb pf in
+      rwl (fn t0 => BST t0) pf bst)
+| Black, Node Black k_l v_l l_l r_l, r, Hl, Hr, IHl, IHr => 
+  #magic
+| Black, Node Red k_l v_l l_l r_l, r, Hl, Hr, IHl, IHr => 
+  #magic
