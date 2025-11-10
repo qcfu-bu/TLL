@@ -308,9 +308,8 @@ theorem balance_BST‹s› %(V : U) (k : int) (v : V) : ∀ (c : color) (l r : t
       ForallT_Node _ _ _ _ _ Hyk Hrc Hrd, 
       BST_Node _ _ _ _ _  
         _ (ForallT_Node _ _ _ _ _ Hyz2 Hye2 Hyf2) 
-        IHx (BST_Node _ _ _ _ _ Hz2e2 Hz2f2 IHe2 IHf2), pfd => 
+        _ (BST_Node _ _ _ _ _ Hz2e2 Hz2f2 IHe2 IHf2), pfd => 
       let Hyk : k < y = true := gt_lt Hyk in
-      let Hyz2 : z2 > y = true := Hyz2 in
 
       let h1 : ForallT (fn kr _ => kr < y) (Node Black k v (Node Black x vx a b) Leaf) :=
         ForallT_Node Black k v _ _ Hyk (ForallT_lt Hl Hyk) ForallT_Leaf
@@ -376,11 +375,39 @@ theorem balance_BST‹s› %(V : U) (k : int) (v : V) : ∀ (c : color) (l r : t
       let pf := rwl (fn d0 => balance _ _ _ _ (Node _ _ _ _ d0) = _) pfd pf in
       rwl (fn t0 => BST t0) pf bst
     | Node Red z2 vz2 e2 f2, 
-      ForallT_Node _ _ _ _ _ Hz Hrx Hry, 
-      BST_Node _ _ _ _ _  
-        Hx (ForallT_Node _ _ _ _ _ Hy1 Hy2 Hy3) 
-        IHx (BST_Node _ _ _ _ _ Hy4 Hy5 IHy1 IHy2), pfb => 
-      #magic
+      ForallT_Node _ _ _ _ _ Hyk Hrc Hrd, 
+      BST_Node _ _ _ _ _  Hc (ForallT_Node _ _ _ _ _ Hyz2 Hye2 Hyf2)
+        (BST_Node _ _ _ _ _ Hz1e1 Hz1f1 IHe1 IHf1) 
+        (BST_Node _ _ _ _ _ Hz2e2 Hz2f2 IHe2 IHf2), pfd => 
+      let Hyk : k < y = true := gt_lt Hyk in
+
+      let h1 : ForallT (fn kr _ => kr < y) 
+          (Node Black k v (Node Black x vx a b) (Node Black z1 vz1 e1 f1)) :=
+        ForallT_Node Black k v _ _ Hyk (ForallT_lt Hl Hyk) Hc
+      in
+      let h2 : ForallT (fn kr _ => kr > y) (Node Black z2 vz2 e2 f2) := 
+        ForallT_Node Black z2 vz2 _ _ Hyz2 Hye2 Hyf2
+      in
+
+      let bst1 : BST (Node Black k v (Node Black x vx a b) (Node Black z1 vz1 e1 f1)) :=
+        BST_Node Black k v _ _ Hl Hrc IHl (BST_Node Black z1 vz1 _ _ Hz1e1 Hz1f1 IHe1 IHf1)
+      in
+      let bst2 : BST (Node Black z2 vz2 e2 f2) :=
+        BST_Node Black z2 vz2 _ _ Hz2e2 Hz2f2 IHe2 IHf2
+      in
+
+      let bst : BST (Node Red y vy 
+          (Node Black k v (Node Black x vx a b) (Node Black z1 vz1 e1 f1)) 
+          (Node Black z2 vz2 e2 f2)) :=
+        BST_Node Red y vy _ _ h1 h2 bst1 bst2
+      in
+      let pf :
+        balance Black k v (Node Black x vx a b) (Node Red y vy c d) =
+        balance Black k v (Node Black x vx a b) (Node Red y vy c d) := refl
+      in
+      let pf := rwl (fn c0 => balance _ _ _ _ (Node _ _ _ c0 _) = _) pfc pf in
+      let pf := rwl (fn d0 => balance _ _ _ _ (Node _ _ _ _ d0) = _) pfd pf in
+      rwl (fn t0 => BST t0) pf bst
     | Node Black z2 vz2 e2 f2, Hr, IHr, pfd => 
       let bst :=
         BST_Node Black k v 
