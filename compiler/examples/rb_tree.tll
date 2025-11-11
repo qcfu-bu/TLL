@@ -151,7 +151,7 @@ fn Hl Hr IHl IHr =>
       | ForallT_Node _ _ _ _ _ Hxk _ (ForallT_Node _ _ _ _ _ Hky Hkb Hkc),
         BST_Node _ _ _ _ _
           ForallT_Leaf (ForallT_Node _ _ _ _ _ Hxy Hxb Hxc) 
-          IHc (BST_Node _ _ _ _ _ Hyb Hyc IHb IHc) =>
+          _ (BST_Node _ _ _ _ _ Hyb Hyc IHb IHc) =>
         let h1 : ForallT (fn i _ => i < y) (Node Black x vx Leaf b) :=
           ForallT_Node Black x vx _ _ (gt_lt Hxy) ForallT_Leaf Hyb
         in
@@ -174,13 +174,31 @@ fn Hl Hr IHl IHr =>
         rwl (fn t0 => BST t0) pf bst)
     | Node Red x vx (Node Black y vy a b) (Node Red z vz c d), Hl, IHl, pfl => (
       match Hl, IHl with
-      | ForallT_Node _ _ _ _ _ Hyk Hka _,
+      | ForallT_Node _ _ _ _ _ Hxk HkN (ForallT_Node _ _ _ _ _ Hkz Hkc Hkd),
         BST_Node _ _ _ _ _
-          Hya (ForallT_Node _ _ _ _ _ Hyx Hyb Hyc) 
-          IHc (BST_Node _ _ _ _ _ Hxa Hxb IHa IHb) =>
+          HxN (ForallT_Node _ _ _ _ _ Hxz Hxc Hxd) 
+          IHN (BST_Node _ _ _ _ _ Hzc Hzd IHc IHd) =>
+        let h1 : ForallT (fn i _ => i < z) (Node Black x vx (Node Black y vy a b) c) :=
+          let Hxz : x < z = true := gt_lt Hxz in
+          ForallT_Node Black x vx _ _ Hxz (ForallT_lt HxN Hxz) Hzc
+        in
+        let h2 : ForallT (fn i _ => i > z) (Node Black k vk d r) :=
+          let Hkz : k > z = true := lt_gt Hkz in
+          ForallT_Node Black k vk _ _ Hkz Hzd (ForallT_gt Hr Hkz)
+        in
+        let bst1 : BST (Node Black x vx (Node Black y vy a b) c) := 
+          BST_Node Black x vx _ _ HxN Hxc IHN IHc
+        in
+        let bst2 : BST (Node Black k vk d r) :=
+          BST_Node Black k vk _ _ Hkd Hr IHd IHr
+        in
         -- balances to: Node Red y vy (Node Black x vx a b) (Node Black k vk c t2)
-        #magic
-      )
+        let bst : BST (Node Red z vz (Node Black x vx (Node Black y vy a b) c) (Node Black k vk d r)) :=
+          BST_Node Red z vz _ _ h1 h2 bst1 bst2
+        in
+        let pf : balance Black k vk l r = balance Black k vk l r := refl in
+        let pf := rwl (fn l0 => balance _ _ _ l0 _ = _) pfl pf in
+        rwl (fn t0 => BST t0) pf bst)
     | l1, Hl, IHl, pfl => (
       match r    as r0
           , Hr   as _ : ForallT (fn i _ => i > k) r0
