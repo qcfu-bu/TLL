@@ -53,13 +53,13 @@ def ins‹s› %{V : U} (x : int) (vx : V) : tree‹s› V -> tree‹s› V
     else
       Node c x vx a b
 
-def make_black‹s› %{V : U} : tree‹s› V -> tree‹s› V
+def blacken‹s› %{V : U} : tree‹s› V -> tree‹s› V
   | Leaf => Leaf
   | Node _ x vx a b => Node Black x vx a b
 
 /-- Insert an element into the RB tree. -/
-def insert‹s› %{V : U} (x : int) (vs : V) (t : tree‹s› V) :=
-  make_black (ins x vs t)
+def insert‹s› %{V : U} (x : int) (vx : V) (t : tree‹s› V) :=
+  blacken (ins x vx t)
 
 /-- Verification of BST invariant. -/
 
@@ -393,7 +393,7 @@ fn Hl Hr IHl IHr =>
         -- balances to: Node Black k vk t1 t2
         BST_Node Black k vk l r Hl Hr IHl IHr
 
-/-- Insertion Lemmas -/
+/-- Insertion Lemmas. -/
 
 theorem ins_ForallT‹s› %{V : U} (x : int) (vx : V) (P : int -> V -> bool) (Hx : P x vx = true) :
   ∀ (t : tree‹s› V) -> ForallT P t -> ForallT P (ins x vx t)
@@ -409,9 +409,28 @@ theorem ins_ForallT‹s› %{V : U} (x : int) (vx : V) (P : int -> V -> bool) (H
                    else
                      Node c x vx a b)
   with
-  | true, pf => #magic
-  | false, pf => #magic
-
+  | true, pf => 
+    let h := ins_ForallT x vx _ Hx a Ha in
+    let H : ForallT P (balance c y vy (ins x vx a) b) := 
+      balance_ForallT c y vy _ _ _ Hy h Hb
+    in H
+  | false, pf1 => 
+    match y < x as b0 
+        , refl  as _ : y < x = b0
+       in ForallT P (if b0 then 
+                       balance c y vy a (ins x vx b)
+                     else
+                       Node c x vx a b)
+    with
+    | true, pf => 
+      let h := ins_ForallT x vx _ Hx b Hb in
+      let H : ForallT P (balance c y vy a (ins x vx b)) :=
+        balance_ForallT c y vy _ _ _ Hy Ha h
+      in H
+    | false, pf2 => 
+      let H : ForallT P (Node c x vx a b) :=
+        ForallT_Node c x vx a b Hx Ha Hb
+      in H
 
 theorem ins_BST‹s› %{V : U} (x : int) (vx : V) : 
   ∀ (t : tree‹s› V) -> BST t -> BST (ins x vx t)
@@ -429,8 +448,7 @@ theorem ins_BST‹s› %{V : U} (x : int) (vx : V) :
   with
   | true, pf =>
     let h1 : ForallT (fn i _ => i < y) (ins x vx a) :=
-      #magic
-      -- ins_ForallT _ _ _ a Ha pf
+      ins_ForallT _ _ _ pf a Ha
     in
     let bst1 : BST (ins x vx a) := ins_BST x vx a IHa in
     let bst : BST (balance c y vy (ins x vx a) b) := 
@@ -447,8 +465,7 @@ theorem ins_BST‹s› %{V : U} (x : int) (vx : V) :
     with
     | true, pf =>
       let h2 : ForallT (fn i _ => i > y) (ins x vx b) :=
-        #magic
-        -- ins_ForallT _ _ _ b Hb (lt_gt pf)
+        ins_ForallT _ _ _ (lt_gt pf) b Hb
       in
       let bst2 : BST (ins x vx b) := ins_BST x vx b IHb in
       let bst : BST (balance c y vy a (ins x vx b)) :=
@@ -465,3 +482,16 @@ theorem ins_BST‹s› %{V : U} (x : int) (vx : V) :
         BST_Node c x vx a b Ha Hb IHa IHb
       in
       bst
+
+theorem blacken_BST‹s› %{V : U} : ∀ (t : tree‹s› V) -> BST t -> BST (blacken t)
+  | Leaf, BST_Leaf => BST_Leaf
+  | Node _ x vx a b, BST_Node _ _ _ _ _ Ha Hb IHa IHb => 
+    BST_Node Black x vx a b Ha Hb IHa IHb
+
+/-- RB Tree Insertion Preserves BST. -/
+
+theorem insert_BST‹s› %{V : U} (x : int) (vx : V) (t : tree‹s› V) : BST t -> BST (insert x vx t) :=
+  fn bst =>
+    let bst := ins_BST x vx t bst in
+    let bst := blacken_BST _ bst in
+    bst
