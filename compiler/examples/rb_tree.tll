@@ -1,3 +1,7 @@
+/- 
+This file implements Red-Black Trees and verifies its BST invariant.
+-/
+
 inductive color : U where
   | Red   : color
   | Black : color
@@ -6,6 +10,7 @@ inductive tree‹s› (V : U) : Type‹s› where
   | Leaf : tree V
   | Node (c : color) (k : int) (v : V) (l r : tree‹s› V) : tree V
 
+/-- Lookup a key (k0 : int) in the RB tree. -/
 def lookup‹s› %{V : U} (k0 : int) : tree‹s› V -> option V ⊗ tree‹s› V
   | Leaf => ⟨None, Leaf⟩
   | Node c k v l r =>
@@ -18,6 +23,7 @@ def lookup‹s› %{V : U} (k0 : int) : tree‹s› V -> option V ⊗ tree‹s�
     else
       ⟨Some v, Node c k v l r⟩
 
+/-- Balance RB tree (Purely Functional Data Structures, Okasaki 1996). -/
 def balance‹s› %{V : U} 
   (c : color) (k : int) (vk : V) : tree‹s› V .-> tree‹s› V .-> tree‹s› V
 | t1, t2 =>
@@ -51,9 +57,13 @@ def make_black‹s› %{V : U} : tree‹s› V -> tree‹s› V
   | Leaf => Leaf
   | Node _ x vx a b => Node Black x vx a b
 
+/-- Insert an element into the RB tree. -/
 def insert‹s› %{V : U} (x : int) (vs : V) (t : tree‹s› V) :=
   make_black (ins x vs t)
 
+/-- Verification of BST invariant. -/
+
+/-- ForallT P t: all elements in t satisfy the predicate P.  -/
 #[logical]
 inductive ForallT‹s› %(V : U) (P : int -> V -> bool) : tree‹s› V -> U where
 | ForallT_Leaf : ForallT‹s› P Leaf
@@ -63,6 +73,11 @@ inductive ForallT‹s› %(V : U) (P : int -> V -> bool) : tree‹s› V -> U wh
   (IHr : ForallT P r) :
   ForallT‹s› P (Node c x v l r)
 
+/-- Binary Search Tree (BST) invariant: 
+All keys in the left-child are lesser than the root.
+All keys in the right-child are greater than the root.
+The left child and right child are BST.
+-/
 #[logical]
 inductive BST‹s› %(V : U) : tree‹s› V -> U where
 | BST_Leaf : BST Leaf
@@ -73,34 +88,47 @@ inductive BST‹s› %(V : U) : tree‹s› V -> U where
   (IHr : BST r) :
   BST (Node c x v l r)
 
-theorem Leaf_BST‹s› (V : U) : BST (@Leaf‹s› V) :=
-  BST_Leaf
+theorem Leaf_BST‹s› (V : U) : BST (@Leaf‹s› V) := BST_Leaf
 
+/-- Axioms for native integers. -/
 theorem lt_gt %(x y : int) : x < y = true -> y > x = true := #magic
 theorem gt_lt %(x y : int) : x > y = true -> y < x = true := #magic
 theorem lt_trans %(x y z : int) : x < y = true -> y < z = true -> x < z = true := #magic
 theorem gt_trans %(x y z : int) : x > y = true -> y > z = true -> x > z = true := #magic
 
-
+/-- Lemmas for ForallT. -/
 theorem ForallT_imp‹s› %(V : U) (P Q : int -> V -> bool) (t : tree‹s› V) :
-  ForallT P t ->
-  (∀ (k : int) (v : V) -> P k v = true -> Q k v = true) ->
-  ForallT Q t :=
-  #magic
+  ForallT P t -> 
+  (∀ (k : int) (v : V) -> P k v = true -> Q k v = true) -> 
+  ForallT Q t
+| ForallT_Leaf, f => ForallT_Leaf
+| ForallT_Node c k vk l r Hk IHl IHr, f =>
+  let IHl := ForallT_imp _ _ _ IHl f in
+  let IHr := ForallT_imp _ _ _ IHr f in
+  let Hk := f _ _ Hk in 
+  ForallT_Node _ _ _ _ _ Hk IHl IHr
   
 theorem ForallT_gt‹s› %(V : U) %(t : tree‹s› V) %(k k0 : int) :
   ForallT (fn k1 _ => k1 > k) t ->
   k > k0 = true ->
   ForallT (fn k1 _ => k1 > k0) t :=
-  #magic
+fn H h1 =>
+  let f : ∀ (i : int) (v : V) -> ((fn k1 _ => k1 > k) i v = true) -> ((fn k1 _ => k1 > k0) i v = true) :=
+    fn k v h2 => gt_trans h2 h1
+  in
+  ForallT_imp _ _ _ H f
 
 theorem ForallT_lt‹s› %(V : U) %(t : tree‹s› V) %(k k0 : int) :
   ForallT (fn k1 _ => k1 < k) t ->
   k < k0 = true ->
   ForallT (fn k1 _ => k1 < k0) t :=
-  #magic
+fn H h1 =>
+  let f : ∀ (i : int) (v : V) -> ((fn k1 _ => k1 < k) i v = true) -> ((fn k1 _ => k1 < k0) i v = true) :=
+    fn k v h2 => lt_trans h2 h1
+  in
+  ForallT_imp _ _ _ H f
 
-
+/-- Balancing Lemma. -/
 theorem balance_BST‹s› %(V : U) (k : int) (vk : V) (c : color) (l r : tree‹s› V) :
   ForallT (fn i _ => i < k) l ->
   ForallT (fn i _ => i > k) r ->
