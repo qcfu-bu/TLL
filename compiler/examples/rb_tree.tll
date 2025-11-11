@@ -93,6 +93,11 @@ theorem Leaf_BST‹s› (V : U) : BST (@Leaf‹s› V) := BST_Leaf
 /-- Axioms for native integers. -/
 theorem lt_gt %(x y : int) : x < y = true -> y > x = true := #magic
 theorem gt_lt %(x y : int) : x > y = true -> y < x = true := #magic
+theorem lte_gte %(x y : int) : x <= y = true -> y >= x = true := #magic
+theorem gte_lte %(x y : int) : x >= y = true -> y <= x = true := #magic
+theorem lt_false_gte %(x y : int) : x < y = false -> x >= y = true := #magic
+theorem gt_false_lte %(x y : int) : x > y = false -> x <= y = true := #magic
+theorem lte_gte_eq %(x y : int) : x <= y = true -> x >= y = true -> x = y := #magic
 theorem lt_trans %(x y z : int) : x < y = true -> y < z = true -> x < z = true := #magic
 theorem gt_trans %(x y z : int) : x > y = true -> y > z = true -> x > z = true := #magic
 
@@ -128,8 +133,86 @@ fn H h1 =>
   in
   ForallT_imp _ _ _ H f
 
-/-- Balancing Lemma. -/
-theorem balance_BST‹s› %(V : U) (k : int) (vk : V) (c : color) (l r : tree‹s› V) :
+/-- Balancing Lemmas. -/
+
+theorem balance_ForallT‹s› %{V : U} (c : color) (k : int) (vk : V) (l r : tree‹s› V) :
+  ∀ (P : int -> V -> bool) ->
+    (P k vk = true) -> 
+    ForallT P l -> 
+    ForallT P r -> 
+    ForallT P (balance c k vk l r) :=
+fn P Hk Hl Hr =>
+  match c as c0
+     in ForallT P (balance c0 k vk l r) 
+  with
+  | Red => ForallT_Node Red k vk l r Hk Hl Hr
+  | Black => 
+    match l  as l0
+        , Hl as _ : ForallT P l0
+       in ForallT P (balance Black k vk l0 r)
+    with
+    | Node Red y vy (Node Red x vx a b) c, 
+      ForallT_Node _ _ _ _ _ Hy (ForallT_Node _ _ _ _ _ Hx Ha Hb) Hc => 
+      -- balances to: Node Red y vy (Node Black x vx a b) (Node Black k vk c t2)
+      let H : ForallT P (Node Red y vy (Node Black x vx a b) (Node Black k vk c r)) :=
+        ForallT_Node Red y vy _ _ Hy 
+          (ForallT_Node _ _ _ _ _ Hx Ha Hb)
+          (ForallT_Node _ _ _ _ _ Hk Hc Hr)
+      in H
+    | Node Red y vy (Node Red x vx a b) c, _ =>
+
+    | Node Red x vx Leaf (Node Red y vy b c),
+      ForallT_Node _ _ _ _ _ Hx Ha (ForallT_Node _ _ _ _ _ Hy Hb Hc) =>
+      -- balances to: Node Red y vy (Node Black x vx a b) (Node Black k vk c t2)
+      let H : ForallT P (Node Red y vy (Node Black x vx Leaf b) (Node Black k vk c r)) :=
+        ForallT_Node Red y vy _ _ Hy
+          (ForallT_Node _ _ _ _ _ Hx Ha Hb)
+          (ForallT_Node _ _ _ _ _ Hk Hc Hr)
+      in H
+    | Node Red x vx (Node Black _ _ _ _) (Node Red y vy b c),
+      ForallT_Node _ x1 _ _ _ Hx Ha (ForallT_Node _ _ _ _ _ Hy Hb Hc) =>
+      let H : ForallT P (Node Red y vy (Node Black x vx _ b) (Node Black k vk c r)) :=
+        ForallT_Node Red y vy _ _ Hy
+          (ForallT_Node _ _ _ _ _ Hx Ha Hb)
+          (ForallT_Node _ _ _ _ _ Hk Hc Hr)
+      in H
+    | Node Red x vx a (Node Red y vy b c), _ =>
+
+    | l, Hl =>
+      match r    as r0
+          , Hr   as _ : ForallT P r0
+        in ForallT P (balance Black k vk l r0)
+      with
+      | Node Red z vz (Node Red y vy b c) d,
+        ForallT_Node _ _ _ _ _ Hz (ForallT_Node _ _ _ _ _ Hy Hb Hc) Hd =>
+        let H : ForallT P (Node Red y vy (Node Black k vk l b) (Node Black z vz c d)) :=
+          ForallT_Node Red y vy (Node Black k vk l b) (Node Black z vz c d) Hy
+            (ForallT_Node Black k vk l b Hk Hl Hb)
+            (ForallT_Node Black z vz c d Hz Hc Hd)
+        in H
+      | Node Red z vz (Node Red y vy b c) d, _ =>
+
+      | Node Red z vz Leaf (Node Red y vy c d),
+        ForallT_Node _ _ _ _ _ Hz Hb (ForallT_Node _ _ _ _ _ Hy Hc Hd) =>
+        let H : ForallT P (Node Red z vz (Node Black k vk l Leaf) (Node Black y vy c d)) :=
+          ForallT_Node Red z vz (Node Black k vk l Leaf) (Node Black y vy c d) Hz
+            (ForallT_Node Black k vk l Leaf Hk Hl Hb)
+            (ForallT_Node Black y vy c d Hy Hc Hd)
+        in H
+      | Node Red z vz (Node Black x vx a b) (Node Red y vy c d), 
+        ForallT_Node _ _ _ _ _ Hz Hb (ForallT_Node _ _ _ _ _ Hy Hc Hd) =>
+        let H : ForallT P (Node Red z vz (Node Black k vk l (Node Black x vx a b)) (Node Black y vy c d)) :=
+          ForallT_Node Red z vz (Node Black k vk l (Node Black x vx a b)) (Node Black y vy c d) Hz
+            (ForallT_Node Black k vk l (Node Black x vx a b) Hk Hl Hb)
+            (ForallT_Node Black y vy c d Hy Hc Hd)
+        in H
+      | Node Red z vz a (Node Red y vy c d), _ =>
+
+      | r, Hr => 
+        -- balances to: Node Black k vk t1 t2
+        ForallT_Node Black k vk l r Hk Hl Hr
+
+theorem balance_BST‹s› %(V : U) (c : color) (k : int) (vk : V) (l r : tree‹s› V) :
   ForallT (fn i _ => i < k) l ->
   ForallT (fn i _ => i > k) r ->
   BST l ->
@@ -309,3 +392,76 @@ fn Hl Hr IHl IHr =>
       | r, Hr, IHr => 
         -- balances to: Node Black k vk t1 t2
         BST_Node Black k vk l r Hl Hr IHl IHr
+
+/-- Insertion Lemmas -/
+
+theorem ins_ForallT‹s› %{V : U} (x : int) (vx : V) (P : int -> V -> bool) (Hx : P x vx = true) :
+  ∀ (t : tree‹s› V) -> ForallT P t -> ForallT P (ins x vx t)
+| Leaf, ForallT_Leaf => 
+  ForallT_Node Red x vx _ _ Hx ForallT_Leaf ForallT_Leaf
+| Node c y vy a b, ForallT_Node _ _ _ _ _ Hy Ha Hb =>
+  match x < y as b0 
+      , refl  as _ : x < y = b0
+     in ForallT P (if b0 then
+                     balance c y vy (ins x vx a) b
+                   else if y < x then
+                     balance c y vy a (ins x vx b)
+                   else
+                     Node c x vx a b)
+  with
+  | true, pf => #magic
+  | false, pf => #magic
+
+
+theorem ins_BST‹s› %{V : U} (x : int) (vx : V) : 
+  ∀ (t : tree‹s› V) -> BST t -> BST (ins x vx t)
+| Leaf, BST_Leaf => 
+  BST_Node Red x vx _ _ ForallT_Leaf ForallT_Leaf BST_Leaf BST_Leaf
+| Node c y vy a b, BST_Node _ _ _ _ _ Ha Hb IHa IHb =>
+  match x < y as b0 
+      , refl  as _ : x < y = b0
+     in BST (if b0 then
+               balance c y vy (ins x vx a) b
+             else if y < x then
+               balance c y vy a (ins x vx b)
+             else
+               Node c x vx a b)
+  with
+  | true, pf =>
+    let h1 : ForallT (fn i _ => i < y) (ins x vx a) :=
+      #magic
+      -- ins_ForallT _ _ _ a Ha pf
+    in
+    let bst1 : BST (ins x vx a) := ins_BST x vx a IHa in
+    let bst : BST (balance c y vy (ins x vx a) b) := 
+      balance_BST c y vy (ins x vx a) b h1 Hb bst1 IHb
+    in
+    bst
+  | false, pf1 =>
+    match y < x as b0 
+        , refl  as _ : y < x = b0
+       in BST (if b0 then 
+                 balance c y vy a (ins x vx b)
+               else
+                 Node c x vx a b)
+    with
+    | true, pf =>
+      let h2 : ForallT (fn i _ => i > y) (ins x vx b) :=
+        #magic
+        -- ins_ForallT _ _ _ b Hb (lt_gt pf)
+      in
+      let bst2 : BST (ins x vx b) := ins_BST x vx b IHb in
+      let bst : BST (balance c y vy a (ins x vx b)) :=
+        balance_BST c y vy a (ins x vx b) Ha h2 IHa bst2
+      in
+      bst
+    | false, pf2 =>
+      let pf1 : y <= x = true := gte_lte (lt_false_gte pf1) in
+      let pf2 : y >= x = true := lt_false_gte pf2 in
+      let eq : y = x:= lte_gte_eq pf1 pf2 in
+      let Ha := rwl (fn y => ForallT (fn i _ => i < y) _) eq Ha in
+      let Hb := rwl (fn y => ForallT (fn i _ => i > y) _) eq Hb in
+      let bst : BST (Node c x vx a b) :=
+        BST_Node c x vx a b Ha Hb IHa IHb
+      in
+      bst
