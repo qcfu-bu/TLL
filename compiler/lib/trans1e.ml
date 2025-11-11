@@ -341,9 +341,11 @@ and infer_tm ctx env m : tm * tm box =
     | _ -> failwith "trans1e.infer_close")
   (* magic *)
   | Magic a ->
-    let a_elab = assert_type ctx env a in
-    let a = unbox a_elab in
-    (a, _Magic a_elab)
+    let t = imeta_of_ctx ctx in
+    let t_elab = assert_type ctx env t in
+    (* let a_elab = assert_type ctx env a in
+    let a = unbox a_elab in *)
+    (t, _Magic t_elab)
 
 and infer_ptl ctx env ms ns ptl : tm * tms box * tms box =
   let rec aux_param ms ptl =
