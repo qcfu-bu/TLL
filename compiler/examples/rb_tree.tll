@@ -10,6 +10,14 @@ inductive tree‹s› (V : U) : Type‹s› where
   | Leaf : tree V
   | Node (c : color) (k : int) (v : V) (l r : tree‹s› V) : tree V
 
+/-- Free linear trees. -/
+def free‹s› %{V : U} : tree‹s› V -> unit
+  | Leaf => tt
+  | Node _ _ _ l r =>
+    let _ := free l in 
+    let _ := free r in
+    tt
+
 /-- Lookup a key (k0 : int) in the RB tree. -/
 def lookup‹s› %{V : U} (k0 : int) : tree‹s› V -> option V ⊗ tree‹s› V
   | Leaf => ⟨None, Leaf⟩
@@ -495,3 +503,22 @@ theorem insert_BST‹s› %{V : U} (x : int) (vx : V) (t : tree‹s› V) : BST 
     let bst := ins_BST x vx t bst in
     let bst := blacken_BST _ bst in
     bst
+
+/-- Example RB tree lookup. -/
+
+def main : IO unit :=
+  let t : tree‹L› string := Leaf in
+  let t := insert 4 "b" t in
+  let t := insert 5 "a" t in
+  let t := insert 0 "x" t in
+  let t := insert 3 "c" t in
+  let t := insert 1 "d" t in
+  let t := insert 2 "e" t in
+  let ⟨opt, t⟩ := lookup 3 t in
+  let _ <-
+    match opt with
+    | Some s => print (s ++ "\n")
+    | None => return tt
+  in
+  let _ := free t in
+  return tt
