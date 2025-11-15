@@ -64,3 +64,21 @@ def get_at %{A : U}
   | succ n, x :: xs, e  => 
     let ⟨x0, {pf}⟩ := get_at n xs e in
     ⟨x0, {at_succ _ pf}⟩
+
+def llength‹s,t› %{A : Type‹s›} : ∀ (xs : list‹_,t›A) -> nat ⊗ list‹_,t› A
+  | nil => ⟨zero, nil⟩
+  | hd :: tl =>
+    let ⟨n, tl⟩ := llength tl in
+    ⟨succ n, hd :: tl⟩
+
+theorem llength_equal‹s,t› %{A : Type‹s›} 
+: ∀ (xs : list‹_,t›A) -> snd (llength xs) = xs
+  | nil => refl
+  | hd :: tl => 
+    let pf := llength_equal tl in
+    match llength tl as p0
+        , pf         as _ : snd p0 = tl 
+       in snd (let ⟨n, tl⟩ := p0 in ⟨succ n, hd :: tl⟩) = hd :: tl
+    with
+    | ⟨n, tl0⟩, pf => 
+      rwr (fn x => _ :: x = _) pf refl

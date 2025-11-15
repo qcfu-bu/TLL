@@ -89,12 +89,12 @@ The left child and right child are BST.
 #[logical]
 inductive BST‹s› %(V : U) : tree‹s› V -> U where
 | BST_Leaf : BST Leaf
-| BST_Node (c : color) (x : int) (v : V) (l r : tree‹s› V) 
-  (Hl : ForallT (fn kl _ => kl < x) l)
-  (Hr : ForallT (fn kr _ => kr > x) r)
+| BST_Node (c : color) (k : int) (v : V) (l r : tree‹s› V) 
+  (Hl : ForallT (fn x _ => x < k) l)
+  (Hr : ForallT (fn x _ => x > k) r)
   (IHl : BST l)
   (IHr : BST r) :
-  BST (Node c x v l r)
+  BST (Node c k v l r)
 
 theorem Leaf_BST‹s› (V : U) : BST (@Leaf‹s› V) := BST_Leaf
 
@@ -498,9 +498,9 @@ theorem blacken_BST‹s› %{V : U} : ∀ (t : tree‹s› V) -> BST t -> BST (b
 
 /-- RB Tree Insertion Preserves BST. -/
 
-theorem insert_BST‹s› %{V : U} (x : int) (vx : V) (t : tree‹s› V) : BST t -> BST (insert x vx t) :=
+theorem insert_BST‹s› %{V : U} (k : int) (v : V) (t : tree‹s› V) : BST t -> BST (insert k v t) :=
   fn bst =>
-    let bst := ins_BST x vx t bst in
+    let bst := ins_BST k v t bst in
     let bst := blacken_BST _ bst in
     bst
 
