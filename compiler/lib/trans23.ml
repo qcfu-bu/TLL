@@ -85,17 +85,15 @@ let rec trans_tm ctx = function
       let bnd = unbox (bind_var x rhs) in
       Syntax3.(lift_tm (subst bnd (unbox m)))
     | _ -> (
-      let cls0 = List.filter (fun (_, xs, _, unbox) -> xs = [] && unbox) cls in
-      let cls1 =
-        List.filter (fun (_, xs, _, unbox) -> not (xs = [] && unbox)) cls
-      in
-      let cls0 = List.map (fun (c, _, rhs, _) -> Syntax3._Case c rhs) cls0 in
-      let cls1 =
-        List.map
-          (fun (c, xs, rhs, _) ->
-            let xs = Array.of_list xs in
-            _PConstr c (bind_mvar xs rhs))
-          cls1
+      let cls0, cls1 =
+        List.partition_map
+          (fun (c, xs, rhs, unbox) ->
+            if xs = [] && unbox then
+              Either.Left (Syntax3._Case c rhs)
+            else
+              let xs = Array.of_list xs in
+              Either.Right (_PConstr c (bind_mvar xs rhs)))
+          cls
       in
       match (cls0, cls1) with
       | [], _ -> Syntax3.(_Match1 (trans_sort s) m (box_list cls1))
