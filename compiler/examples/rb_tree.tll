@@ -11,12 +11,12 @@ inductive tree‹s› (V : U) : Type‹s› where
   | Node (c : color) (k : int) (v : V) (l r : tree‹s› V) : tree V
 
 /-- Free linear trees. -/
-def free‹s› %{V : U} : tree‹s› V -> unit
-  | Leaf => tt
+def free‹s› %{V : U} : tree‹s› V -> int
+  | Leaf => 0
   | Node _ _ _ l r =>
-    let _ := free l in 
-    let _ := free r in
-    tt
+    let x := free l in 
+    let y := free r in
+    x + y + 1
 
 /-- Lookup a key (k0 : int) in the RB tree. -/
 def lookup‹s› %{V : U} (k0 : int) : tree‹s› V -> option V ⊗ tree‹s› V
@@ -506,19 +506,26 @@ theorem insert_BST‹s› %{V : U} (k : int) (v : V) (t : tree‹s› V) : BST t
 
 /-- Example RB tree lookup. -/
 
+def insert_N‹s› (n : int) (t : tree‹s› int) : tree‹s› int :=
+  if n <= 0 then t
+  else
+    insert_N (n - 1) (insert n n t)
+
+def lookup_N‹s› (n : int) (t : tree‹s› int) : tree‹s› int :=
+  if n <= 0 then t
+  else
+    let ⟨opt, t⟩ := lookup n t in
+    let _ : unit :=
+      match opt with
+      | Some _ => tt
+      | None => tt
+    in
+    lookup_N (n - 1) t
+
 def main : IO unit :=
-  let t : tree‹L› string := Leaf in
-  let t := insert 4 "b" t in
-  let t := insert 5 "a" t in
-  let t := insert 0 "x" t in
-  let t := insert 3 "c" t in
-  let t := insert 1 "d" t in
-  let t := insert 2 "e" t in
-  let ⟨opt, t⟩ := lookup 3 t in
-  let _ <-
-    match opt with
-    | Some s => print (s ++ "\n")
-    | None => return tt
-  in
-  let _ := free t in
+  let t : tree‹L› int := Leaf in
+  let t := insert_N 1000000 t in
+  let t := lookup_N 1000000 t in
+  let n := free t in
+  let _ <- print (string_of_int n) in
   return tt
