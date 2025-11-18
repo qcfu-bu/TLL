@@ -11,12 +11,12 @@ inductive tree‹s› (V : U) : Type‹s› where
   | Node (c : color) (k : int) (v : V) (l r : tree‹s› V) : tree V
 
 /-- Free linear trees. -/
-def free‹s› %{V : U} : tree‹s› V -> int
-  | Leaf => 0
+def free‹s› %{V : U} : tree‹s› V -> unit
+  | Leaf => tt
   | Node _ _ _ l r =>
-    let x := free l in 
-    let y := free r in
-    x + y + 1
+    let _ := free l in 
+    let _ := free r in
+    tt
 
 /-- Lookup a key (k0 : int) in the RB tree. -/
 def lookup‹s› %{V : U} (k0 : int) : tree‹s› V -> option V ⊗ tree‹s› V
@@ -511,21 +511,21 @@ def insert_N‹s› (n : int) (t : tree‹s› int) : tree‹s› int :=
   else
     insert_N (n - 1) (insert n n t)
 
-def lookup_N‹s› (n : int) (t : tree‹s› int) : tree‹s› int :=
-  if n <= 0 then t
+def lookup_N‹s› (b : bool) (n : int) (t : tree‹s› int): bool ⊗ tree‹s› int :=
+  if n <= 0 then ⟨b, t⟩
   else
     let ⟨opt, t⟩ := lookup n t in
-    let _ : unit :=
+    let b :=
       match opt with
-      | Some _ => tt
-      | None => tt
+      | Some n1 => (n == n1) && b
+      | None => false
     in
-    lookup_N (n - 1) t
+    lookup_N b (n - 1) t
 
 def main : IO unit :=
   let t : tree‹L› int := Leaf in
-  let t := insert_N 1000000 t in
-  let t := lookup_N 1000000 t in
+  let t := insert_N 2000000 t in
+  let ⟨b, t⟩ := lookup_N true 2000000 t in
   let n := free t in
-  let _ <- print (string_of_int n) in
+  let _ <- print (string_of_bool b) in
   return tt
