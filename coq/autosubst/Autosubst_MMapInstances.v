@@ -1,16 +1,10 @@
-(** * Autosubst wrapper for ssreflect *)
-Require Export Autosubst.Autosubst_Basics.
-Require Export Autosubst.Autosubst_MMap.
-Require Export Autosubst.Autosubst_Classes.
-Require Export Autosubst.Autosubst_Tactics.
-Require Export Autosubst.Autosubst_Lemmas.
-Require Export Autosubst.Autosubst_Derive.
-From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
-From Stdlib Require Import ssrfun.
+(**
+  Default instances for mmap.
+  For ssreflect, you might want to use the library versions instead.
+*)
+Require Import Autosubst_Basics Autosubst_MMap.
 
-Set Implicit Arguments.
-Unset Strict Implicit.
-Unset Printing Implicit Defensive.
+Require List.
 
 Section MMapInstances.
 
@@ -22,21 +16,17 @@ Variable (MMapLemmas_A_C : MMapLemmas A C).
 Variable (MMapExt_A_B : MMapExt A B).
 Variable (MMapExt_A_C : MMapExt A C).
 
-
-Global Instance MMap_option : MMap A (option B) := fun f => omap (mmap f).
+Global Instance MMap_option : MMap A (option B). derive. Defined.
 Global Instance MMapLemmas_option : MMapLemmas A (option B). derive. Qed.
 Global Instance MMapExt_option : MMapExt A (option B). derive. Defined.
 
+Global Instance MMap_list : MMap A (list B). derive. Defined.
+Global Instance MMapLemmas_list : MMapLemmas A (list B). derive. Qed.
+Global Instance MMapExt_list : MMapExt A (list B). derive. Defined.
 
 Global Instance MMap_pair : MMap A (B * C). derive. Defined.
 Global Instance MMapLemmas_pair : MMapLemmas A (B * C). derive. Qed.
 Global Instance MMapExt_pair : MMapExt A (B * C). derive. Defined.
-
-
-Global Instance mmap_seq : MMap A (seq B) := fun f => map (mmap f).
-Global Instance mmapLemmas_seq : MMapLemmas A (seq B). derive. Qed.
-Global Instance mmapExt_seq : MMapExt A (seq B). derive. Defined.
-
 
 Global Instance MMap_fun : MMap A (B -> C) := fun f g x => mmap f (g x).
 
@@ -51,3 +41,7 @@ Proof.
 Defined.
 
 End MMapInstances.
+
+(* Local Variables: *)
+(* coq-load-path: (("." "Autosubst")) *)
+(* End: *)

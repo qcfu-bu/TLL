@@ -1,5 +1,5 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
-From Coq Require Import ssrfun Classical Utf8.
+From Stdlib Require Import ssrfun Classical Utf8.
 From deriving Require Export deriving.
 From extructures Require Export ord fset fmap.
 Require Export AutosubstSsr ARS era_type.
