@@ -1,12 +1,12 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS dyn_prog era_sr.
+Require Export AutosubstSsr ARS program_prg erasure_sr.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma era_lam0_canonical Γ Δ A B m n s :
+Lemma erasure_lam0_canonical Γ Δ A B m n s :
   Γ ; Δ ⊢ Lam0 A m s ~ n : B -> exists m', n = Lam0 Box m' s.
 Proof with eauto.
   move e:(Lam0 A m s)=>x ty. elim: ty A m s e=>//{Γ Δ x n B}.
@@ -14,7 +14,7 @@ Proof with eauto.
   exists m'...
 Qed.
 
-Lemma era_lam1_canonical Γ Δ A B m n s :
+Lemma erasure_lam1_canonical Γ Δ A B m n s :
   Γ ; Δ ⊢ Lam1 A m s ~ n : B -> exists m', n = Lam1 Box m' s.
 Proof with eauto.
   move e:(Lam1 A m s)=>x ty. elim: ty A m s e=>//{Γ Δ x n B}.
@@ -22,7 +22,7 @@ Proof with eauto.
   exists m'...
 Qed.
 
-Lemma era_pair0_canonical Γ Δ A m1 m2 n s :
+Lemma erasure_pair0_canonical Γ Δ A m1 m2 n s :
   Γ ; Δ ⊢ Pair0 m1 m2 s ~ n : A -> exists m1', n = Pair0 m1' Box s.
 Proof with eauto.
   move e:(Pair0 m1 m2 s)=>x ty. elim: ty m1 m2 s e=>//{Γ Δ x n A}.
@@ -30,7 +30,7 @@ Proof with eauto.
   exists m'...
 Qed.
 
-Lemma era_pair1_canonical Γ Δ A m1 m2 n s :
+Lemma erasure_pair1_canonical Γ Δ A m1 m2 n s :
   Γ ; Δ ⊢ Pair1 m1 m2 s ~ n : A -> exists m1' m2', n = Pair1 m1' m2' s.
 Proof with eauto.
   move e:(Pair1 m1 m2 s)=>x ty. elim: ty m1 m2 s e=>//{Γ Δ x n A}.
@@ -38,15 +38,15 @@ Proof with eauto.
   exists m'. exists n'...
 Qed.
 
-Lemma era_tt_canonical Γ Δ n A : Γ ; Δ ⊢ TT ~ n : A -> n = TT.
+Lemma erasure_tt_canonical Γ Δ n A : Γ ; Δ ⊢ TT ~ n : A -> n = TT.
 Proof with eauto. move e:(TT)=>x ty. elim: ty e=>//{Γ Δ x n A}. Qed.
 
-Lemma era_ff_canonical Γ Δ n A : Γ ; Δ ⊢ FF ~ n : A -> n = FF.
+Lemma erasure_ff_canonical Γ Δ n A : Γ ; Δ ⊢ FF ~ n : A -> n = FF.
 Proof with eauto. move e:(FF)=>x ty. elim: ty e=>//{Γ Δ x n A}. Qed.
 
-Theorem era_prog m m' A :
-  nil ; nil ⊢ m ~ m' : A -> (exists n', m' ~>> n') \/ dyn_val m'.
-Proof with eauto using dyn_step, dyn_val.
+Theorem erasure_prg m m' A :
+  nil ; nil ⊢ m ~ m' : A -> (exists n', m' ~>> n') \/ program_val m'.
+Proof with eauto using program_step, program_val.
   move e1:(nil)=>Γ.
   move e2:(nil)=>Δ ty. elim: ty e1 e2=>{Γ Δ m m' A}.
   { move=>Γ Δ x s A wf shs dhs e1 e2; subst. inv shs. }
@@ -58,20 +58,20 @@ Proof with eauto using dyn_step, dyn_val.
     have[[x st]|vl]:=ihm erefl erefl.
     { left. exists (App x Box)... }
     { left.
-      have{}vl:=era_dyn_val erm vl.
-      have tym:=era_dyn_type erm.
-      have[A0[n0 e]]:=dyn_pi0_canonical tym (convR _ _) vl. subst.
-      have[m0 e]:=era_lam0_canonical erm. subst.
+      have{}vl:=erasure_program_val erm vl.
+      have tym:=erasure_program_type erm.
+      have[A0[n0 e]]:=program_pi0_canonical tym (convR _ _) vl. subst.
+      have[m0 e]:=erasure_lam0_canonical erm. subst.
       exists (m0.[Box/])... } }
   { move=>Γ Δ1 Δ2 Δ A B m m' n n' s mrg erm ihm ern ihn e1 e2; subst.
     inv mrg. have[[mx st1]|vlm]:=ihm erefl erefl.
     { left. exists (App mx n')... }
     { left. have[[nx st2]|vln]:=ihn erefl erefl.
       exists (App m' nx)...
-      have{}vlm:=era_dyn_val erm vlm.
-      have tym:=era_dyn_type erm.
-      have[A0[n0 e]]:=dyn_pi1_canonical tym (convR _ _) vlm. subst.
-      have[m0 e]:=era_lam1_canonical erm. subst.
+      have{}vlm:=erasure_program_val erm vlm.
+      have tym:=erasure_program_type erm.
+      have[A0[n0 e]]:=program_pi1_canonical tym (convR _ _) vlm. subst.
+      have[m0 e]:=erasure_lam1_canonical erm. subst.
       exists (m0.[n'/])... } }
   { move=>Γ Δ A B m m' n t l tyS erm ihm tyn e1 e2; subst.
     have[[mx stm]|vlm]:=ihm erefl erefl.
@@ -87,32 +87,32 @@ Proof with eauto using dyn_step, dyn_val.
     inv mrg. have[[mx stm]|vlm]:=ihm erefl erefl.
     { left. exists (LetIn Box mx n')... }
     { have[m1[m2 e]]:=
-        dyn_sig0_canonical
-          (era_dyn_type erm)
+        program_sig0_canonical
+          (erasure_program_type erm)
           (convR _ _)
-          (era_dyn_val erm vlm). subst.
-      have[mx e]:=era_pair0_canonical erm. subst.
+          (erasure_program_val erm vlm). subst.
+      have[mx e]:=erasure_pair0_canonical erm. subst.
       left. exists (n'.[Box,mx/])... } }
   { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t l mrg tyC erm ihm ern ihn e1 e2; subst.
     inv mrg. have[[mx stm]|vlm]:=ihm erefl erefl.
     { left. exists (LetIn Box mx n')... }
     { have[m1[m2 e]]:=
-        dyn_sig1_canonical
-          (era_dyn_type erm)
+        program_sig1_canonical
+          (erasure_program_type erm)
           (convR _ _)
-          (era_dyn_val erm vlm). subst.
-      have[mx[my e]]:=era_pair1_canonical erm. subst.
+          (erasure_program_val erm vlm). subst.
+      have[mx[my e]]:=erasure_pair1_canonical erm. subst.
       left. exists (n'.[my,mx/])... } }
   { move=>Γ Δ wf k e1 e2. right... }
   { move=>Γ Δ wf k e1 e2. right... }
   { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l mrg tyA erm ihm ern1 ihn1 ern2 ihn2 e1 e2; subst.
     inv mrg. left. have[[mx stm]|vlm']:=ihm erefl erefl.
     { exists (Ifte Box mx n1' n2')... }
-    { have vlm:=era_dyn_val erm vlm'.
-      have tym:=era_dyn_type erm.
-      have[e|e]:=dyn_bool_canonical tym (convR _ _) vlm.
-      subst. have e:=era_tt_canonical erm. subst. exists n1'...
-      subst. have e:=era_ff_canonical erm. subst. exists n2'... } }
+    { have vlm:=erasure_program_val erm vlm'.
+      have tym:=erasure_program_type erm.
+      have[e|e]:=program_bool_canonical tym (convR _ _) vlm.
+      subst. have e:=erasure_tt_canonical erm. subst. exists n1'...
+      subst. have e:=erasure_ff_canonical erm. subst. exists n2'... } }
   { move=>Γ Δ A B H H' P m n s tyB erH ihH tyP e1 e2; subst.
     left. exists H'... }
   { move=>Γ Δ A B m m' s eq tym ihm tyB e1 e2; subst... }

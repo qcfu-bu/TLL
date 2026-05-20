@@ -1,6 +1,6 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS mltt_subst sta_prog.
+Require Export AutosubstSsr ARS mltt_subst logical_prg.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -36,7 +36,7 @@ Fixpoint interp (m : tll_ast.term) : mltt_ast.term :=
   | tll_ast.Ptr _ => mltt_ast.Ty 0
   end.
 
-Fixpoint interp_ctx (Γ : sta_ctx) : mltt_ctx :=
+Fixpoint interp_ctx (Γ : logical_ctx) : mltt_ctx :=
   match Γ with
   | nil => nil
   | A :: Γ => interp A :: interp_ctx Γ
@@ -145,7 +145,7 @@ Proof with eauto using interp_subst_up.
     rewrite (ihP _ τ)... }
 Qed.
 
-Lemma interp_step m n : sta_step m n -> mltt_step [|m|] [|n|].
+Lemma interp_step m n : logical_step m n -> mltt_step [|m|] [|n|].
 Proof with eauto using mltt_step.
   elim=>//={m n}...
   { move=>A m n _.
@@ -166,7 +166,7 @@ Proof with eauto using mltt_step.
     destruct x=>//. }
 Qed.
 
-Lemma interp_red m n : sta_red m n -> mltt_red [|m|] [|n|].
+Lemma interp_red m n : logical_red m n -> mltt_red [|m|] [|n|].
 Proof with eauto using mltt_step, star.
   elim=>{n}...
   move=>y z rd1 rd2 st.
@@ -176,7 +176,7 @@ Proof with eauto using mltt_step, star.
 Qed.
 
 Lemma interp_conv m n :
-  conv sta_step m n -> conv mltt_step [|m|] [|n|].
+  conv logical_step m n -> conv mltt_step [|m|] [|n|].
 Proof with eauto using mltt_step, conv.
   elim=>{n}...
   { move=>y z eq1 eq2 st.
@@ -191,17 +191,17 @@ Proof with eauto using mltt_step, conv.
 Qed.
 
 Lemma interp_has Γ x A :
-  sta_has Γ x A -> mltt_has [[Γ]] x [|A|].
+  logical_has Γ x A -> mltt_has [[Γ]] x [|A|].
 Proof with eauto using mltt_has.
   elim=>//={Γ x A}.
   { move=>Γ A. rewrite<-interp_ren_com... }
   { move=>Γ A B x shs ih. rewrite<-interp_ren_com... }
 Qed.
 
-Theorem sta_mltt_interp Γ m A :
-  sta_type Γ m A -> mltt_type [[Γ]] [|m|] [|A|].
+Theorem logical_mltt_interp Γ m A :
+  logical_type Γ m A -> mltt_type [[Γ]] [|m|] [|A|].
 Proof with eauto using mltt_type, mltt_wf.
-  move:Γ m A. apply: (@sta_type_mut _ (fun Γ wf=> mltt_wf [[Γ]])); simpl...
+  move:Γ m A. apply: (@logical_type_mut _ (fun Γ wf=> mltt_wf [[Γ]])); simpl...
   { move=>Γ x A wf1 wf2 shs.
     constructor...
     apply: interp_has... }
@@ -256,7 +256,7 @@ Qed.
 CoInductive nn T (Rel : T -> T -> Prop) : T -> Prop :=
 | nnI m m' : Rel m m' -> nn Rel m' -> nn Rel m.
 
-CoFixpoint interp_nn m : (nn sta_step m) -> nn mltt_step [|m|].
+CoFixpoint interp_nn m : (nn logical_step m) -> nn mltt_step [|m|].
 Proof with eauto.
   move=>h. inv h.
   move/interp_step in H.
@@ -294,36 +294,36 @@ Proof with eauto using nn.
   firstorder...
 Qed.
 
-Theorem sta_sn Γ m A : sta_type Γ m A -> sn sta_step m.
+Theorem logical_sn Γ m A : logical_type Γ m A -> sn logical_step m.
 Proof with eauto.
-  move=>/sta_mltt_interp ty.
+  move=>/logical_mltt_interp ty.
   have h1:=mltt_sn ty.
-  have[h2|h2]:=classic (nn sta_step m).
+  have[h2|h2]:=classic (nn logical_step m).
   { move/interp_nn in h2.
     exfalso. apply: nn_sn_false... }
-  { have[//|h3]:=classic (sn sta_step m).
+  { have[//|h3]:=classic (sn logical_step m).
     exfalso. apply: h2. apply: not_sn_nn... }
 Qed.
 
 End Model.
 
-Lemma sta_vnX m A :
-   sn sta_step m -> nil ⊢ m : A -> (exists n, m ~>* n /\ sta_val n).
+Lemma logical_vnX m A :
+   sn logical_step m -> nil ⊢ m : A -> (exists n, m ~>* n /\ logical_val n).
 Proof with eauto.
   move=>pf. elim: pf A=>{m}.
   move=>m h ih A tym.
-  have[[m0 stm]|vlm]:=sta_prog tym.
-  { have tym0:=sta_sr tym stm.
+  have[[m0 stm]|vlm]:=logical_prg tym.
+  { have tym0:=logical_sr tym stm.
     have[n[rn vln]]:=ih _ stm _ tym0.
     exists n. split...
     apply: starES... }
   { exists m... }
 Qed.
 
-Theorem sta_vn m A :
-  nil ⊢ m : A -> (exists n, m ~>* n /\ sta_val n).
+Theorem logical_vn m A :
+  nil ⊢ m : A -> (exists n, m ~>* n /\ logical_val n).
 Proof with eauto.
   move=>tym.
-  apply: sta_vnX...
-  apply: sta_sn...
+  apply: logical_vnX...
+  apply: logical_sn...
 Qed.

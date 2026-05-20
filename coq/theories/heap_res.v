@@ -1,6 +1,6 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS era_type ptr_heap.
+Require Export AutosubstSsr ARS erasure_type heap_defs.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -68,7 +68,7 @@ Inductive resolve : heap -> term -> term -> Prop :=
 | resolve_rw H m m' :
   H ; m ~ m' ->
   H ; Rw Box m Box ~ Rw Box m' Box
-| resolve_ptr H H' l m m' :
+| resolve_heap H H' l m m' :
   free H l m H' ->
   H' ; m ~ m' ->
   H ; Ptr l ~ m'
@@ -178,17 +178,17 @@ Proof.
   { exact: hmrg_unionm. }
 Qed.
 
-Lemma ptr_resolve_resolved H m m' : H ; m ~ m' -> resolved m'.
+Lemma heap_resolve_resolved H m m' : H ; m ~ m' -> resolved m'.
 Proof with eauto using resolved. elim=>{H m m'}... Qed.
 
 Reserved Notation "H ; x ~ y ~ z : A" (at level 50, x, y, z, A at next level).
-Inductive ptr_well_resolved :
+Inductive heap_well_resolved :
   heap -> term -> term -> term -> term -> Prop :=
 | Ptr_well_resolved H x y z A :
   nil ; nil ⊢ x ~ y : A ->
   H ; z ~ y ->
   H ; x ~ y ~ z : A
-where "H ; x ~ y ~ z : A" := (ptr_well_resolved H x y z A).
+where "H ; x ~ y ~ z : A" := (heap_well_resolved H x y z A).
 
 Lemma free_domm H1 H2 l1 l2 m :
   free H1 l1 m H2 -> l2 \notin domm H1 -> l2 \notin domm H2.
@@ -342,7 +342,7 @@ Proof with eauto using resolve, resolve_wkU, hkey_unionm.
     apply: free_domm... }
 Qed.
 
-Lemma resolve_era_refl H Γ Δ m n A :
+Lemma resolve_erasure_refl H Γ Δ m n A :
   Γ ; Δ ⊢ m ~ n : A -> H ▷ U -> H ; n ~ n.
 Proof with eauto 6 using resolve, hkey_impure, hmrg_pure_refl.
   move=>er. elim: er H=>//{Γ Δ m n A}...
@@ -350,7 +350,7 @@ Proof with eauto 6 using resolve, hkey_impure, hmrg_pure_refl.
   { move=>Γ Δ A B m m' [|] t k1 erm ihm k2... }
 Qed.
 
-Lemma resolve_era_id H Γ Δ x y z A :
+Lemma resolve_erasure_id H Γ Δ x y z A :
   Γ ; Δ ⊢ x ~ y : A -> H ; y ~ z -> y = z.
 Proof with eauto using resolve.
   move=>ty. elim: ty H z=>//{Γ Δ x y A}...
@@ -538,7 +538,7 @@ Inductive nf : nat -> term -> Prop :=
 | nf_rw i m :
   nf i m ->
   nf i (Rw Box m Box)
-| nf_ptr i l :
+| nf_heap i l :
   nf i (Ptr l).
 
 Definition wr_heap (H : heap) : Prop :=
@@ -559,7 +559,7 @@ Proof with eauto using nf.
   elim=>//{Γ Δ m n A}...
   move=>Γ Δ x s A wf shs dhs.
   constructor.
-  apply:sta_has_size shs.
+  apply:logical_has_size shs.
 Qed.
 
 Lemma free_wr_nf H l m H' :
@@ -686,7 +686,7 @@ Proof with eauto using nf.
       apply: nf_weaken... } }
 Qed.
 
-Lemma free_wr_ptr H H' l i :
+Lemma free_wr_heap H H' l i :
   free H l (Ptr i) H' -> wr_heap H -> False.
 Proof with eauto.
   move e:(Ptr i)=>m fr wr; subst.
@@ -764,7 +764,7 @@ Proof with eauto.
   move=>H H' l m m' fr rsm ih x e wr; subst.
   destruct m; inv rsm.
   exfalso. apply: free_wr_var...
-  exfalso. apply: free_wr_ptr...
+  exfalso. apply: free_wr_heap...
 Qed.
 
 Lemma resolve_lam0_inv H m A n s :
@@ -776,7 +776,7 @@ Proof with eauto using hkey_impure.
   { move=>H H' l m m' fr rsm ihm A n s e wr; subst.
     destruct m; inv rsm.
     { destruct s... have->//:=free_wr_lam0 fr wr. }
-    { exfalso. apply: free_wr_ptr... } }
+    { exfalso. apply: free_wr_heap... } }
 Qed.
 
 Lemma resolve_lam1_inv H m A n s :
@@ -788,7 +788,7 @@ Proof with eauto using hkey_impure.
   { move=>H H' l m m' fr rsm ihm A n s e wr; subst.
     destruct m; inv rsm.
     { destruct s... have->//:=free_wr_lam1 fr wr. }
-    { exfalso. apply: free_wr_ptr... } }
+    { exfalso. apply: free_wr_heap... } }
 Qed.
 
 Lemma resolve_tt_inv H m :
@@ -799,7 +799,7 @@ Proof with eauto using hkey_impure.
   { move=>H H' l m m' fr rsm ihm e wr; subst.
     destruct m; inv rsm.
     { have->//:=free_wr_tt fr wr. }
-    { exfalso. apply: free_wr_ptr... } }
+    { exfalso. apply: free_wr_heap... } }
 Qed.
 
 Lemma resolve_ff_inv H m :
@@ -810,13 +810,13 @@ Proof with eauto using hkey_impure.
   { move=>H H' l m m' fr rsm ihm e wr; subst.
     destruct m; inv rsm.
     { have->//:=free_wr_ff fr wr. }
-    { exfalso. apply: free_wr_ptr... } }
+    { exfalso. apply: free_wr_heap... } }
 Qed.
 
 Theorem resolution H x y z A s l :
   H ; x ~ y ~ z : A ->
   nil ⊢ A : Sort s l ->
-  dyn_val y -> wr_heap H -> H ▷ s.
+  program_val y -> wr_heap H -> H ▷ s.
 Proof with eauto using hkey_impure.
   move=>wr. inv wr.
   move:H1 H2.
@@ -825,11 +825,11 @@ Proof with eauto using hkey_impure.
   elim: ty H z s l e1 e2=>{Γ Δ x y A}.
   { move=>Γ Δ x s A wf shs dhs H z s0 l e1 e2 rs tyA vl wr; subst. inv shs. }
   { move=>Γ Δ A B m m' s k erm _ H z s0 l e1 e2 rs tyP vl wr; subst.
-    have[t[l1[l2[tyB/sort_inj[e1 e2]]]]]:=sta_pi0_inv tyP. subst.
+    have[t[l1[l2[tyB/sort_inj[e1 e2]]]]]:=logical_pi0_inv tyP. subst.
     destruct s...
     apply: resolve_lam0_inv... }
   { move=>Γ Δ A B m m' s t k erm _ H z s0 l e1 e2 rs tyP vl wr; subst.
-    have[r[l1[l2[tyB/sort_inj[e1 e2]]]]]:=sta_pi1_inv tyP. subst.
+    have[r[l1[l2[tyB/sort_inj[e1 e2]]]]]:=logical_pi1_inv tyP. subst.
     destruct s...
     apply: resolve_lam1_inv... }
   { move=>Γ Δ A B m m' n s erm _ tyn
@@ -838,67 +838,67 @@ Proof with eauto using hkey_impure.
       H z s0 l e1 e2 rs tyB vl. inv vl. }
   { move=>Γ Δ A B m m' n t l tyS1 erm ihm tyn
       H z s l0 e1 e2 rs tyS2 vl wr; subst.
-    have[s0[r[l1[l2[ord[tyA[tyB/sort_inj[e1 e2]]]]]]]]:=sta_sig0_inv tyS2. subst.
+    have[s0[r[l1[l2[ord[tyA[tyB/sort_inj[e1 e2]]]]]]]]:=logical_sig0_inv tyS2. subst.
     destruct t... inv ord. inv vl.
     inv rs... have wr':=free_wr H2 wr. inv H3.
     { have k':=ihm _ _ _ _ erefl erefl H7 tyA H1 wr'.
       have->//:=free_wr_pair0 H2 wr. }
-    { exfalso. apply: free_wr_ptr... } }
+    { exfalso. apply: free_wr_heap... } }
   { move=>Γ Δ1 Δ2 Δ A B m m' n n' t l mrg tyS1 erm ihm ern ihn
       H z s l0 e1 e2 rs tyS2 vl wr; subst.
     inv mrg. inv vl.
-    have[s0[r[l1[l2[ord1[ord2[tyA[tyB/sort_inj[e1 e2]]]]]]]]]:=sta_sig1_inv tyS2. subst.
+    have[s0[r[l1[l2[ord1[ord2[tyA[tyB/sort_inj[e1 e2]]]]]]]]]:=logical_sig1_inv tyS2. subst.
     destruct t... inv ord1. inv ord2.
     inv rs.
     { have[wr1 wr2]:=wr_merge_inv H10 wr.
-      have tym:=dyn_sta_type (era_dyn_type erm).
-      have tyBm:=sta_subst tyB tym. asimpl in tyBm.
+      have tym:=program_logical_type (erasure_program_type erm).
+      have tyBm:=logical_subst tyB tym. asimpl in tyBm.
       have k1:=ihm _ _ _ _ erefl erefl H11 tyA H2 wr1.
       have k2:=ihn _ _ _ _ erefl erefl H12 tyBm H4 wr2.
       apply: hmrg_pure... }
     { have wr':=free_wr H1 wr. inv H3.
       { have[wr1 wr2]:=wr_merge_inv H12 wr'.
-        have tym:=dyn_sta_type (era_dyn_type erm).
-        have tyBm:=sta_subst tyB tym. asimpl in tyBm.
+        have tym:=program_logical_type (erasure_program_type erm).
+        have tyBm:=logical_subst tyB tym. asimpl in tyBm.
         have k1:=ihm _ _ _ _ erefl erefl H13 tyA H2 wr1.
         have k2:=ihn _ _ _ _ erefl erefl H14 tyBm H4 wr2.
         have->:=free_wr_pair1 H1 wr.
         apply: hmrg_pure... }
-      { exfalso. apply: free_wr_ptr... } } }
+      { exfalso. apply: free_wr_heap... } } }
   { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s r t l mrg tyC1 erm _ ern _
       H z s0 l0 e1 e2 rs tyC2 vl. inv vl. }
   { move=>Γ Δ1 Δ2 Δ A B C m m' n n' s l r1 r2 t mrg tyC1 erm _ ern _
       H z s0 l0 e1 e2 rs tyC2 vl. inv vl. }
   { move=>Γ Δ wf k H z s l e1 e2 rs tyB1 vl wr. subst.
-    have tyB2:=sta_bool sta_wf_nil.
-    have e:=sta_unicity tyB1 tyB2. subst.
+    have tyB2:=logical_bool logical_wf_nil.
+    have e:=logical_unicity tyB1 tyB2. subst.
     have//:=resolve_tt_inv wr rs. }
   { move=>Γ Δ wf k H z s l e1 e2 rs tyB1 vl wr. subst.
-    have tyB2:=sta_bool sta_wf_nil.
-    have e:=sta_unicity tyB1 tyB2. subst.
+    have tyB2:=logical_bool logical_wf_nil.
+    have e:=logical_unicity tyB1 tyB2. subst.
     have//:=resolve_ff_inv wr rs. }
   { move=>Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s l mrg tyA erm ihm ern1 ihn1 ern2 ihn2
            H z s0 l0 e1 e2 rs tyAm vl. inv vl. }
   { move=>Γ Δ A B x x' P m n s l tyB erH _ tyP H z s0 l0 e1 e2 rs tyB' vl. inv vl. }
   { move=>Γ Δ A B m m' s l eq erm ihm tyB1 H z s0 l0 e1 e2 rs tyB2 vl wr.
-    have e:=sta_unicity tyB1 tyB2. subst.
-    have[s[lA tyA]]:=dyn_valid (era_dyn_type erm).
+    have e:=logical_unicity tyB1 tyB2. subst.
+    have[s[lA tyA]]:=program_valid (erasure_program_type erm).
     have[x r1 r2]:=church_rosser eq.
-    have tyx1:=sta_rd tyA r1.
-    have tyx2:=sta_rd tyB1 r2.
-    have e:=sta_unicity tyx1 tyx2. subst... }
+    have tyx1:=logical_rd tyA r1.
+    have tyx2:=logical_rd tyB1 r2.
+    have e:=logical_unicity tyx1 tyx2. subst... }
 Qed.
 
-Lemma wr_free_dyn_val H l m H' :
-  free H l m H' -> wr_heap H -> dyn_val m.
-Proof with eauto using dyn_val.
+Lemma wr_free_program_val H l m H' :
+  free H l m H' -> wr_heap H -> program_val m.
+Proof with eauto using program_val.
   move=>fr wr. move: fr (wr l). rewrite/free.
   rmatch_case...
 Qed.
 
-Lemma resolve_dyn_val H m n :
-  H ; m ~ n -> dyn_val m -> wr_heap H -> dyn_val n.
-Proof with eauto using dyn_val.
+Lemma resolve_program_val H m n :
+  H ; m ~ n -> program_val m -> wr_heap H -> program_val n.
+Proof with eauto using program_val.
   move=>rsm. elim: rsm=>{H m n}...
   { move=>H m m' rsm _ vl. inv vl. }
   { move=>H1 H2 H m m' n n' mrg rsm _ rsn _ vl. inv vl. }
@@ -910,14 +910,14 @@ Proof with eauto using dyn_val.
   { move=>H m m' rsm ihm vl. inv vl. }
   { move=>H H' l m m' fr rsm ihm _ wr.
     have wr':=free_wr fr wr.
-    have vl:=wr_free_dyn_val fr wr... }
+    have vl:=wr_free_program_val fr wr... }
 Qed.
 
-Lemma wr_resolve_ptr H l n :
-  wr_heap H -> H ; Ptr l ~ n -> dyn_val n.
+Lemma wr_resolve_heap H l n :
+  wr_heap H -> H ; Ptr l ~ n -> program_val n.
 Proof with eauto.
   move=>wr rs. inv rs.
   have wr':=free_wr H2 wr.
-  have vl:=wr_free_dyn_val H2 wr.
-  apply: resolve_dyn_val...
+  have vl:=wr_free_program_val H2 wr.
+  apply: resolve_program_val...
 Qed.

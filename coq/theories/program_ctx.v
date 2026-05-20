@@ -7,7 +7,7 @@ Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
 Definition elem T := option (T * sort).
-Definition dyn_ctx := seq (elem term).
+Definition program_ctx := seq (elem term).
 
 Notation "m :U Γ" := (Some (m, U) :: Γ)
   (at level 30, right associativity).
@@ -19,7 +19,7 @@ Notation "_: Γ" := (None :: Γ)
   (at level 30, right associativity).
 
 Reserved Notation "Δ1 ∘ Δ2 => Δ" (at level 40).
-Inductive merge : dyn_ctx -> dyn_ctx -> dyn_ctx -> Prop :=
+Inductive merge : program_ctx -> program_ctx -> program_ctx -> Prop :=
 | merge_nil :
   nil ∘ nil => nil
 | merge_left Δ1 Δ2 Δ m :
@@ -37,7 +37,7 @@ Inductive merge : dyn_ctx -> dyn_ctx -> dyn_ctx -> Prop :=
 where "Δ1 ∘ Δ2 => Δ" := (merge Δ1 Δ2 Δ).
 
 Reserved Notation "Δ ▷ s" (at level 40).
-Inductive key : dyn_ctx -> sort -> Prop :=
+Inductive key : program_ctx -> sort -> Prop :=
 | key_nil s :
   nil ▷ s
 | key_u Δ m :
@@ -51,16 +51,16 @@ Inductive key : dyn_ctx -> sort -> Prop :=
   _: Δ ▷ s
 where "Δ ▷ s" := (key Δ s).
 
-Inductive dyn_has : dyn_ctx -> var -> sort -> term -> Prop :=
-| dyn_has_O Δ A s :
+Inductive program_has : program_ctx -> var -> sort -> term -> Prop :=
+| program_has_O Δ A s :
   Δ ▷ U ->
-  dyn_has (A .{s} Δ) 0 s A.[ren (+1)]
-| dyn_has_S Δ A B x s :
-  dyn_has Δ x s A ->
-  dyn_has (B :U Δ) x.+1 s A.[ren (+1)]
-| dyn_has_N Δ A x s :
-  dyn_has Δ x s A ->
-  dyn_has (_: Δ) x.+1 s A.[ren (+1)].
+  program_has (A .{s} Δ) 0 s A.[ren (+1)]
+| program_has_S Δ A B x s :
+  program_has Δ x s A ->
+  program_has (B :U Δ) x.+1 s A.[ren (+1)]
+| program_has_N Δ A x s :
+  program_has Δ x s A ->
+  program_has (_: Δ) x.+1 s A.[ren (+1)].
 
 Lemma key_impure Δ : Δ ▷ L.
 Proof with eauto using key.

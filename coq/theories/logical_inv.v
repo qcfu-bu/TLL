@@ -1,12 +1,12 @@
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
-Require Export AutosubstSsr ARS sta_subst.
+Require Export AutosubstSsr ARS logical_subst.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Lemma sta_pi0_inv Γ A B C s :
+Lemma logical_pi0_inv Γ A B C s :
   Γ ⊢ Pi0 A B s : C ->
   exists t l1 l2, (A :: Γ) ⊢ B : Sort t l1 /\ C ≃ Sort s l2.
 Proof with eauto.
@@ -22,7 +22,7 @@ Proof with eauto.
     exact: eq2. }
 Qed.
 
-Lemma sta_pi1_inv Γ A B C s :
+Lemma logical_pi1_inv Γ A B C s :
   Γ ⊢ Pi1 A B s : C ->
   exists t l1 l2, (A :: Γ) ⊢ B : Sort t l1 /\ C ≃ Sort s l2.
 Proof with eauto.
@@ -38,7 +38,7 @@ Proof with eauto.
     exact: eq2. }
 Qed.
 
-Lemma sta_sig0_inv Γ A B C t :
+Lemma logical_sig0_inv Γ A B C t :
   Γ ⊢ Sig0 A B t : C ->
   exists s r l1 l2, s ⊑ t /\ Γ ⊢ A : Sort s l1 /\ (A :: Γ) ⊢ B : Sort r l2 /\ C ≃ Sort t (maxn l1 l2).
 Proof with eauto.
@@ -54,7 +54,7 @@ Proof with eauto.
     exact: eq'. }
 Qed.
 
-Lemma sta_sig1_inv Γ A B C t :
+Lemma logical_sig1_inv Γ A B C t :
   Γ ⊢ Sig1 A B t : C ->
   exists s r l1 l2,
     s ⊑ t /\ r ⊑ t /\
@@ -72,7 +72,7 @@ Proof with eauto.
     exact: eq'. }
 Qed.
 
-Lemma sta_id_inv Γ A B m n :
+Lemma logical_id_inv Γ A B m n :
   Γ ⊢ Id A m n : B ->
   exists l, Γ ⊢ m : A /\ Γ ⊢ n : A /\ B ≃ Sort U l.
 Proof with eauto.
@@ -87,7 +87,7 @@ Proof with eauto.
     exact: eq'. }
 Qed.
 
-Lemma sta_lam0_pi1_false Γ A1 A2 B C m s1 s2 :
+Lemma logical_lam0_pi1_false Γ A1 A2 B C m s1 s2 :
   Γ ⊢ Lam0 A1 m s1 : C -> C ≃ Pi1 A2 B s2 -> False.
 Proof with eauto.
   move e:(Lam0 A1 m s1)=>n tyL.
@@ -98,7 +98,7 @@ Proof with eauto.
     apply: conv_trans... }
 Qed.
 
-Lemma sta_lam1_pi0_false Γ A1 A2 B C m s1 s2 :
+Lemma logical_lam1_pi0_false Γ A1 A2 B C m s1 s2 :
   Γ ⊢ Lam1 A1 m s1 : C -> C ≃ Pi0 A2 B s2 -> False.
 Proof with eauto.
   move e:(Lam1 A1 m s1)=>n tyL.
@@ -109,7 +109,7 @@ Proof with eauto.
     apply: conv_trans... }
 Qed.
 
-Lemma sta_pair0_sig1_false Γ A B C m1 m2 s1 s2 :
+Lemma logical_pair0_sig1_false Γ A B C m1 m2 s1 s2 :
   Γ ⊢ Pair0 m1 m2 s1 : C -> C ≃ Sig1 A B s2 -> False.
 Proof with eauto.
   move e:(Pair0 m1 m2 s1)=>n tyP.
@@ -120,7 +120,7 @@ Proof with eauto.
     apply: conv_trans... }
 Qed.
 
-Lemma sta_pair1_sig0_false Γ A B C m1 m2 s1 s2 :
+Lemma logical_pair1_sig0_false Γ A B C m1 m2 s1 s2 :
   Γ ⊢ Pair1 m1 m2 s1 : C -> C ≃ Sig0 A B s2 -> False.
 Proof with eauto.
   move e:(Pair1 m1 m2 s1)=>n tyP.

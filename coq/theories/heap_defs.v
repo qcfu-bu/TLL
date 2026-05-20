@@ -2,7 +2,7 @@ From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 From deriving Require Export deriving.
 From extructures Require Export ord fset fmap.
-Require Export AutosubstSsr ARS era_type.
+Require Export AutosubstSsr ARS erasure_type.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
