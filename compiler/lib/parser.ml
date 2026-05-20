@@ -3,7 +3,6 @@ open Spec
 open Sedlexing
 open Tokenize
 module I = MenhirInterpreter
-module S = MenhirLib.General
 
 exception
   ParseError of
@@ -13,19 +12,17 @@ exception
     ; end_cnum : int
     }
 
-let handle_error checkpoint =
-  match Lazy.force (I.stack checkpoint) with
-  | S.Nil -> assert false
-  | S.Cons (Element (s, _, pos_start, pos_end), _) ->
-    let start_lnum = pos_start.pos_lnum in
-    let start_cnum = pos_start.pos_cnum in
-    let end_lnum = pos_end.pos_lnum in
-    let end_cnum = pos_end.pos_cnum in
-    raise (ParseError { start_lnum; start_cnum; end_lnum; end_cnum })
+let handle_error env =
+  let pos_start, pos_end = I.positions env in
+  let start_lnum = pos_start.pos_lnum in
+  let start_cnum = pos_start.pos_cnum in
+  let end_lnum = pos_end.pos_lnum in
+  let end_cnum = pos_end.pos_cnum in
+  raise (ParseError { start_lnum; start_cnum; end_lnum; end_cnum })
 
 let rec loop next_token checkpoint =
   match checkpoint with
-  | I.InputNeeded env ->
+  | I.InputNeeded _ ->
     let token = next_token () in
     loop next_token (I.offer checkpoint token)
   | I.Shifting _
