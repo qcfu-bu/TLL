@@ -1,3 +1,23 @@
+(** * Heap progress (primary theorem)
+
+    [heap_prg]: every well-resourced heap state that resolves a
+    well-typed source term either steps under the heap-machine
+    reduction or has already reduced to a pointer.
+
+    Proof sketch — auxiliary [heap_step_merge] lifts a step in a
+    sub-heap to a step in any compatible super-heap, which lets the
+    induction recurse into one merge component at a time. Then induct
+    on the source erasure derivation and the resolution
+    [H ; z ~ m']: if the principal argument is not yet a pointer,
+    recurse and re-apply [heap_step_merge]; once it is a pointer,
+    [wr_resolve_heap] extracts a source-side value, the appropriate
+    program canonical-forms lemma (e.g. [program_pi0_canonical])
+    plus an erasure canonical-form lemma (e.g.
+    [erasure_lam0_canonical]) discover the cell's content, and the
+    corresponding heap β/ι step ([heap_step_beta0], [heap_step_iota1],
+    [heap_step_ifteT], …) fires using [free_merge] to combine the
+    [free] step with the surrounding heap. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS erasure_prg heap_step heap_sr.

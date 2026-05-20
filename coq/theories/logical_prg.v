@@ -1,3 +1,21 @@
+(** * Logical progress (primary theorem)
+
+    [logical_prg]: a closed well-typed logical term either steps or is
+    a value.
+
+    Proof sketch — first prove a canonical-forms lemma per elimination
+    target ([logical_pi0_canonical], [logical_pi1_canonical],
+    [logical_sig0_canonical], [logical_sig1_canonical],
+    [logical_bool_canonical], [logical_id_canonical]): a closed value
+    whose type is convertible to [Pi0 A B s] must be a [Lam0 _ _ s],
+    and so on. Each is by induction on the typing, peeling off
+    [logical_conv] with transitivity of [≃]. Then [logical_prg] is
+    induction on [Γ ⊢ m : A] with the nil-context assumption: variable
+    case is impossible; intro forms are values; each elim form recurses
+    on the principal argument and, when it is a value, uses the
+    matching canonical-forms lemma to fire the corresponding β/ι/if
+    reduction. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_sr.

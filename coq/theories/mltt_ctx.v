@@ -1,3 +1,9 @@
+(** * MLTT contexts
+
+    Defines [mltt_ctx] as a [seq term] (de Bruijn order) and the
+    [mltt_has] lookup relation with the implicit [ren (+1)] shift on
+    extracted types. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Import AutosubstSsr ARS mltt_ast.

@@ -1,3 +1,11 @@
+(** * MLTT syntax
+
+    Term language for the plain Martin-Löf type theory that serves as
+    the strong-normalization target for TLL's logical fragment. A single
+    universe hierarchy [Ty l], dependent functions, dependent pairs,
+    booleans, and propositional equality. Autosubst derives the
+    substitution structure. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS.

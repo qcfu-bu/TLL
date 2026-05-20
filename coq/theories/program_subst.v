@@ -1,3 +1,13 @@
+(** * Program substitution
+
+    [program_agree_subst] is the simultaneous-substitution counterpart
+    of [program_agree_ren]; it has [_wk0] (substitute with a logical
+    witness in a [None] slot) and [_wk1] (substitute with a
+    program-level witness with its own [Δ], using the merge of the
+    two resource contexts) variants. [program_substitution] preserves
+    [program_type]; [program_subst0]/[program_subst1] are the single-
+    binding specialisations used by β/ι in subject reduction. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_subst logical_inv program_valid program_weak.

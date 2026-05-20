@@ -1,3 +1,10 @@
+(** * Program renaming / weakening
+
+    [program_agree_ren] relates two well-typed program contexts under
+    a renaming, paralleling [logical_agree_ren] but propagating the
+    resource bookkeeping. [program_rename] preserves [program_type];
+    weakening variants follow. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_weak program_type.

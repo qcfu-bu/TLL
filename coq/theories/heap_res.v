@@ -1,3 +1,14 @@
+(** * Heap resolution
+
+    The relation [H ; m ~ m'] expresses that the heap-allocated
+    representation of [m'] is obtained from [m] by following pointers
+    in [H]; concretely each [Ptr l] in [m'] is replaced by the value
+    stored at [l]. Companion predicates [pad H1 H2] (extension by a
+    pure heap), [free H l m H'] (linear-aware lookup that consumes the
+    cell when its sort is [L]), and [wr_heap H] (a well-resourced
+    heap: every cell's contents are themselves resolved values of the
+    declared sort). *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS erasure_type heap_defs.

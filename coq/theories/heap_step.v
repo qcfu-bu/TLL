@@ -1,3 +1,12 @@
+(** * Heap small-step reduction
+
+    [H ; m ~>> H' ; m']: the abstract-machine reduction. Allocation
+    rules ([heap_step_lam0], [heap_step_pair0], [heap_step_tt], …)
+    extend [H] with a fresh location and reduce the term to a [Ptr].
+    β / ι rules ([heap_step_beta0], [heap_step_iota1], …) consume the
+    cell at a known [Ptr] via [free]. [Rw] just discards its erased
+    motive and proof. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS heap_res.

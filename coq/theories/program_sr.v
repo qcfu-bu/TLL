@@ -1,3 +1,22 @@
+(** * Program subject reduction (primary theorem)
+
+    [program_sr]: if [Γ ; Δ ⊢ m : A] and [m ~>> n] then
+    [Γ ; Δ ⊢ n : A].
+
+    Proof sketch — start with two reductions that "transport" types
+    through to logical world: [program_logical_step] shows a program
+    step is admissible as a logical multi-step, so by combining with
+    [logical_rd] every program reduction preserves logical typing.
+    The remaining work is to maintain the [Δ] bookkeeping. The key
+    technical lemma is [program_val_key]: a program-value at sort
+    [s] forces [Δ ▷ s], which justifies splitting [Δ] for the
+    call-by-value β1 case. Then induct on typing and case-split on
+    [~>>]: congruence cases re-build the typing from the IH;
+    β0 / β1 / ι0 / ι1 cases combine the matching inversion lemma
+    ([program_lam0_invX], [program_lam1_invX], [program_pair0_inv],
+    [program_pair1_inv]) with [program_subst0] / [program_subst1] /
+    [program_substitution]; [Ifte]/[Rw] reductions are direct. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_sn program_inv.

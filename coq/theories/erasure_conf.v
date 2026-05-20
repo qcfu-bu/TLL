@@ -1,3 +1,21 @@
+(** * Erasure confluence (primary theorem)
+
+    [erasure_confluence]: for any [nil ; nil ⊢ m ~ m' : A], the
+    program-level reduction [~>>] starting from [m'] is confluent.
+
+    Proof sketch — re-runs the Tait-Martin-Löf-Takahashi method on the
+    program semantics, but only for erased terms. Define a parallel
+    reduction [program_pstep] that retains the call-by-value
+    discipline (β1 only when the argument is a value, ι only when the
+    pair is a value). The diamond lemma [erasure_pstep_diamonad] is
+    proved /for terms with an erasure witness/: this restriction is
+    what tames the otherwise non-deterministic β1 (the two reducts
+    must reduce equal values), and it is also what lets the form
+    lemmas from [erasure_inv.v] discriminate impossible cases. Once
+    we have the diamond on erased terms, the strip lemma
+    [program_strip] (which preserves typing via [erasure_rd]) and the
+    final ladder give confluence on [~>>*]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS program_prg erasure_prg.

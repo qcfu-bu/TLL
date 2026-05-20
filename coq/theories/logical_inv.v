@@ -1,3 +1,12 @@
+(** * Logical inversion lemmas
+
+    Inversion principles for each typing-rule introduction: from
+    [Γ ⊢ Pi0 A B s : C] extract the typings of [A], [B] and the
+    convertibility of [C] to a sort, and similarly for [Pi1], [Sig0],
+    [Sig1], [Id]. Also collects type-discrimination lemmas
+    ([logical_lam0_pi1_false], [logical_pair0_sig1_false], …) used
+    pervasively in subject reduction. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_subst.

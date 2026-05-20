@@ -1,3 +1,10 @@
+(** * Logical substitution
+
+    [logical_agree_subst] is the simultaneous-substitution counterpart
+    of [logical_agree_ren]. [logical_substitution] preserves typing,
+    and [logical_subst]/[logical_esubst] specialise it to a single
+    term substitution. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_weak.

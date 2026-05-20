@@ -1,3 +1,9 @@
+(** * MLTT renaming / weakening
+
+    The [mltt_agree_ren] relation between two contexts joined by a
+    renaming, the rename-preserves-typing theorem [mltt_rename], and
+    the derived single-step weakening lemma. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS mltt_ctx mltt_type mltt_conf.

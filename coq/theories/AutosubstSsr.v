@@ -1,4 +1,9 @@
-(** * Autosubst wrapper for ssreflect *)
+(** * Autosubst wrapper for ssreflect
+
+    Re-exports the Autosubst modules and adds the [MMap] instances that
+    Autosubst needs to derive substitution boilerplate on ssreflect's
+    container types ([option], pairs, [seq], function spaces). *)
+
 Require Export Autosubst.Autosubst_Basics.
 Require Export Autosubst.Autosubst_MMap.
 Require Export Autosubst.Autosubst_Classes.

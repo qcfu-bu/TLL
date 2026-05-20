@@ -1,3 +1,11 @@
+(** * MLTT small-step reduction
+
+    The single-step relation [mltt_step] for MLTT terms: β, ι for
+    dependent pairs and booleans, J-rule reduction on [Refl], and the
+    full set of congruence rules. Multi-step reduction [~>*] and
+    convertibility [≃] are reflexive/transitive(/symmetric) closures
+    from [ARS]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS mltt_ast mltt_ctx.

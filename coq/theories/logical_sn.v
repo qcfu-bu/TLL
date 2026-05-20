@@ -1,3 +1,22 @@
+(** * Logical strong normalization (primary theorem)
+
+    [logical_sn]: every well-typed logical term is strongly normalizing
+    under [logical_step]. The downstream corollary [logical_vn] adds
+    progress and concludes that every closed well-typed term reduces
+    to a value.
+
+    Proof sketch — give an interpretation [interp : tll_term ->
+    mltt_term] that erases sort annotations, collapses [Box] and
+    [Ptr l] to [Ty 0], and merges [Pi0]/[Pi1] (resp. [Sig0]/[Sig1])
+    into MLTT's single [Pi] (resp. [Sig]). Show that [interp] commutes
+    with renaming and substitution and is a step-simulation
+    ([logical_step m n -> mltt_step [|m|] [|n|]]). The
+    [logical_mltt_interp] theorem extends the simulation to typing.
+    Then suppose [m] is not strongly normalizing: classically extract
+    an infinite reduction (co-inductive [nn]), interpret it to an
+    infinite MLTT reduction, and contradict the [mltt_sn] axiom
+    postulated in [mltt_type.v]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS mltt_subst logical_prg.

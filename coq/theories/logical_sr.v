@@ -1,3 +1,20 @@
+(** * Logical subject reduction (primary theorem)
+
+    [logical_sr]: if [Γ ⊢ m : A] and [m ~> n] then [Γ ⊢ n : A]; the
+    corollary [logical_rd] extends this to [~>*].
+
+    Proof sketch — translate the source typing into the stratified
+    [logical0_type] (which keeps universe levels at every binder),
+    then induct on it, case-splitting on the step. Congruence cases
+    apply the IH and re-build the typing, sometimes after a context
+    conversion ([logical_ctx_conv]) when a binder's domain reduces.
+    β / ι cases combine the appropriate inversion lemma
+    ([logical_lam0_inv] / [logical_pair0_inv] / …) with the
+    substitution theorem [logical_substitution]; the result type is
+    re-shaped using [logical_conv_beta] when a residual substitution
+    differs only by a single conversion step. Finally translate back
+    to the surface [logical_type]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_valid.

@@ -1,3 +1,12 @@
+(** * MLTT confluence
+
+    Confluence/Church-Rosser for [mltt_step], via the Tait-Martin-Löf-
+    Takahashi method: a parallel reduction [pstep] has the diamond
+    property, which lifts to confluence of [mltt_red]. The file also
+    establishes the standard reduction-inversion lemmas for each head
+    constructor and derives injectivity of [Pi], [Sig], and [Id] up to
+    [≃]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS mltt_step.

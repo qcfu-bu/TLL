@@ -1,3 +1,11 @@
+(** * Program inversion lemmas
+
+    Program-typing analogues of [logical_inv]: [program_lam0_invX] /
+    [program_lam1_invX] etc. recover the typing of the body of an
+    abstraction (with its resource context) from a typing of the
+    abstraction itself. Uses [logical_unique] to commute with the
+    conversion rule. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_unique logical_sr program_subst.

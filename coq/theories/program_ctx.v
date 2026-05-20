@@ -1,3 +1,15 @@
+(** * Program contexts and resource tracking
+
+    A program-fragment context [Δ] is a [seq] of [Some (m, s)]
+    (variable bound at term [m], sort [s ∈ {U, L}]) or [None] (the
+    binding has been used up / not in scope at the program level).
+    The two key relations are [Δ1 ∘ Δ2 => Δ] (resource splitting:
+    [U] bindings duplicate, [L] bindings go to exactly one side, and
+    [None]s align) and [Δ ▷ s] (the context is "[s]-pure": no
+    remaining linear resources when [s = U]). Together with
+    [program_has], these are the bookkeeping the program-level
+    judgment is built on. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Import AutosubstSsr ARS tll_ast.

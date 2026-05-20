@@ -1,3 +1,10 @@
+(** * Logical small-step reduction
+
+    Values [logical_val], the single-step relation [logical_step] /
+    [~>] (β for both Π-variants, ι for both Σ-variants, [Ifte]/[Rw]
+    reductions, full congruence), and the derived [logical_red] /
+    [≃]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS tll_ast logical_ctx.

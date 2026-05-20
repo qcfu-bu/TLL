@@ -1,3 +1,14 @@
+(** * Logical typing
+
+    Two equivalent presentations of the logical typing judgment. The
+    stratified [logical0_type] threads the universe level (and the
+    sort of [A] under a Π/Σ) through every binder rule; the surface
+    [logical_type] with notation [Γ ⊢ m : A] hides those levels but
+    keeps the conversion rule. The two are shown equivalent
+    ([logical_logical0_type] / [logical0_logical_type]); the
+    stratified form is convenient for SR-style inductions that need
+    the level information at each constructor. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_ctx logical_step.

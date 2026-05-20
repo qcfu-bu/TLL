@@ -1,3 +1,19 @@
+(** * Erasure progress (primary theorem)
+
+    [erasure_prg]: a closed erased term [m'] (with [nil ; nil ⊢ m ~ m'
+    : A]) either steps under [~>>] or is a [program_val].
+
+    Proof sketch — analogous to [program_prg], with "canonical form on
+    the erased side" lemmas: [erasure_lam0_canonical] forces the
+    erased Π0-typed value to be [Lam0 Box _ s] (irrelevant domain
+    becomes [Box]), [erasure_pair0_canonical] forces [Pair0 _ Box s],
+    and similarly for tt / ff / pair1. The induction on erasure mimics
+    that of [program_prg]: at each elimination form recurse on the
+    principal subterm; once it is a value, transport via
+    [erasure_program_val] to a program value, apply the matching
+    program canonical-form lemma, then fire the β/ι/if step on the
+    erased side. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS program_prg erasure_sr.

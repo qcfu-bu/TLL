@@ -1,3 +1,11 @@
+(** * Erasure substitution
+
+    [erasure_agree_subst] carries two parallel substitutions
+    ([σ1] for the source, [σ2] for the erased side) that agree at
+    every program-level binding. [erasure_substitution] preserves
+    the [~ : A] relation; the [_subst0] / [_subst1] specialisations
+    handle the single-variable β/ι cases used by [erasure_sr]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS erasure_weak.

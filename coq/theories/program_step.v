@@ -1,3 +1,12 @@
+(** * Program small-step reduction
+
+    Call-by-value-style reduction [program_step] / [~>>] for TLL terms.
+    Compared with [logical_step]: β1 fires only on values
+    ([program_step_beta1]), [Pair1] reduces in both components but
+    [Pair0] only in its first, [Ifte] reduces only its scrutinee, and
+    [Rw] always strips to its [H]-witness. The set of values
+    [program_val] includes pointers [Ptr l] (used by [heap_*]). *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS tll_ast.

@@ -1,3 +1,10 @@
+(** * Logical validity
+
+    [logical_valid]: if [Γ ⊢ m : A] then [A] is itself well-typed at
+    some sort and level. Also packages the inverted lambda lemmas
+    [logical_lam0_invX] / [logical_lam1_invX] needed by subject
+    reduction. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_inv.

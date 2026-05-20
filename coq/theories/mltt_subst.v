@@ -1,3 +1,9 @@
+(** * MLTT substitution
+
+    The [mltt_agree_subst] relation between contexts joined by a
+    simultaneous substitution and the resulting substitution theorem
+    for [mltt_type]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS mltt_weak.

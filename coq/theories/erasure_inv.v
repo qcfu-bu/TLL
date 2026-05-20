@@ -1,3 +1,11 @@
+(** * Erasure inversion / form lemmas
+
+    "Form" lemmas: knowing the shape of the erased side determines
+    the shape of the source. E.g. [erasure_lam0_form]: if
+    [Γ ; Δ ⊢ m ~ Lam0 X n s : B] then [m = Lam0 _ _ s]. Plus inversion
+    principles ([erasure_lam0_inv], [erasure_pair0_inv], …) that
+    extract the typings of subterms. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS erasure_subst.

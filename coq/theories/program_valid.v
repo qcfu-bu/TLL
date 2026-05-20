@@ -1,3 +1,10 @@
+(** * Program validity
+
+    [program_logical_type]: every program-typing derivation projects
+    to a logical-typing derivation. From this, [program_valid]
+    (well-typed [m] has well-typed [A]) is an immediate consequence
+    of [logical_valid]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_valid program_type.

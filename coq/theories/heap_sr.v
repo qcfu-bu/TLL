@@ -1,3 +1,23 @@
+(** * Heap subject reduction (primary theorem)
+
+    [heap_sr]: a heap-machine step [H ; z ~>> H' ; z'] starting from
+    a state that resolves to a well-erased source term preserves
+    well-resourcedness of the heap and produces a new state that
+    still resolves a (possibly multi-step-reduced) source term of
+    the same type.
+
+    Proof sketch — induct on the source-side erasure derivation.
+    Allocation steps ([Lam0]/[Lam1]/pair/tt/ff) extend [H] with a
+    fresh cell (split into [U] vs [L] cases for the merge accounting,
+    handled by [hmrg_setmU] / [hmrg_setmL]) and pad the witness heap
+    accordingly. β / ι steps consume a cell via [free]: the form
+    lemmas from [erasure_inv.v] expose the source shape, and the
+    substitution lemma from [heap_subst.v] retypes the contractum.
+    [Rw] is immediate. The proof is bookkeeping-heavy because both
+    the source reduction (via [program_sr] / [erasure_sr] hidden in
+    [erasure_rd]) and the heap merge must be reconstructed at every
+    step. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS erasure_sr heap_step heap_subst.

@@ -1,3 +1,9 @@
+(** * Logical contexts
+
+    Logical-fragment contexts ([logical_ctx]) are a plain [seq term],
+    with [logical_has Γ x A] looking up the [x]-th binding and applying
+    the implicit [ren (+1)] shift. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Import AutosubstSsr ARS tll_ast.

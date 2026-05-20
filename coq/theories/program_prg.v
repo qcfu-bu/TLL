@@ -1,3 +1,17 @@
+(** * Program progress (primary theorem)
+
+    [program_prg]: a closed (nil / nil) well-typed program term either
+    steps under [~>>] or is a [program_val].
+
+    Proof sketch — mirrors [logical_prg] but with the call-by-value
+    discipline. Canonical-forms lemmas at empty [Γ;Δ] show that a
+    value of a Π0 (resp. Π1, Σ0, Σ1, Bool) type is a [Lam0] (resp.
+    [Lam1], [Pair0], [Pair1], [TT]/[FF]). The main induction on
+    typing then either recurses on the principal argument or, when
+    that argument is a value, fires the corresponding β/ι/if step —
+    for β1 it additionally needs that the value form lets us split
+    [Δ] correctly (handled by [merge] inversion in the [App] case). *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_sr program_sr.

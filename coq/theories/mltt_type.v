@@ -1,3 +1,12 @@
+(** * MLTT typing
+
+    Two equivalent presentations of MLTT typing: [mltt0_type] is a
+    stratified version that records the universe level on every binder
+    rule, and [mltt_type] (with notation [Γ ⊢ m : A]) is the surface
+    judgment with the conversion rule. The two coincide
+    ([mltt_mltt0_type]). Postulates [mltt_sn] (strong normalization for
+    MLTT) — this is the single axiom used by [logical_sn]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS mltt_ctx mltt_conf.

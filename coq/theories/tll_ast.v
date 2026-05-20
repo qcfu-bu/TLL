@@ -1,3 +1,13 @@
+(** * TLL syntax
+
+    Shared term language for both TLL fragments. Two sorts [U]
+    (unrestricted) and [L] (linear) with [s ⊑ t] subsumption. Every
+    binder constructor is duplicated: [Pi0]/[Lam0]/[Sig0]/[Pair0] for
+    the implicit (computationally-irrelevant) variant and
+    [Pi1]/[Lam1]/[Sig1]/[Pair1] for the explicit one. [Box] is the
+    erased witness used by [erasure_*], and [Ptr l] is the heap-machine
+    pointer used by [heap_*]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS.

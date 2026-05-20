@@ -1,3 +1,12 @@
+(** * Program typing
+
+    The resource-tracking judgment [Γ ; Δ ⊢ m : A], where [Γ] is the
+    underlying logical context and [Δ] is the program-level resource
+    context (see [program_ctx]). Rules that consume two subterms
+    ([App] with [Pi1], [Pair1], [LetIn], [Ifte]) split [Δ] via [∘].
+    Well-formedness [program_wf Γ Δ] keeps the two contexts shape-
+    aligned. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS

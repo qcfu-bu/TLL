@@ -1,3 +1,19 @@
+(** * Logical sort uniqueness (primary theorem)
+
+    [logical_unique] shows that two types of the same term are related
+    by [sim] — head-similarity modulo [≃] — and the corollary
+    [logical_unicity] specialises this to sorts: a term cannot be
+    typed at two distinct sorts.
+
+    Proof sketch — define [head_sim] (same head constructor, modulo
+    irrelevant indices) and [sim x y := exists x' y', x ≃ x' /\
+    head_sim x' y' /\ y' ≃ y]. Each typing rule has a uniqueness
+    lemma (e.g. [logical_pi0_unique]) proven by induction on the
+    typing derivation, peeling off the conversion rule with
+    [sim_transL]. [logical_unique] combines these in one large
+    induction. [logical_unicity] then specialises to sorts and applies
+    [sort_inj]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_inv.

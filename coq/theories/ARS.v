@@ -1,6 +1,13 @@
 (** * Abstract Reduction Systems
 
-    Useful lemmas when working with small-step reduction relations. *)
+    Generic infrastructure used by every reduction relation in the
+    project: the reflexive-transitive closure [star], the symmetric
+    closure [conv], the diamond/confluence/Church-Rosser properties,
+    weak/strong normalization predicates, and the Tait-Martin-Löf-
+    Takahashi proof technique [cr_method] that lifts a triangle for
+    a parallel-reduction surrogate to confluence of the original
+    relation. *)
+
 From mathcomp Require Import ssreflect ssrfun ssrbool eqtype ssrnat seq.
 
 Set Implicit Arguments.

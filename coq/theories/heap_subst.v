@@ -1,3 +1,11 @@
+(** * Heap-level substitution
+
+    [agree_resolve] threads two parallel substitutions through a
+    program context [Δ] and a witness heap [H], requiring that at
+    every binding the substituted terms resolve through some sub-heap
+    of [H]. From this the substitution lemma for heap resolution
+    follows and is used by [heap_sr] when reducing β / ι. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS heap_step erasure_inv heap_res.

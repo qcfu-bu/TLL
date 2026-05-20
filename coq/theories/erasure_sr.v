@@ -1,3 +1,20 @@
+(** * Erasure subject reduction (primary theorem)
+
+    [erasure_sr]: if [nil ; nil ⊢ m ~ m' : A] and [m' ~>> n'] on the
+    erased side, then there exists a source step [m ~>> n] with
+    [nil ; nil ⊢ n ~ n' : A].
+
+    Proof sketch — first [erasure_program_val]: an erased value forces
+    the source to be a value (so [m'] reducing as a β1 redex means
+    [m]'s argument is also a value). Then induct on the erasure
+    derivation, case-splitting on the step taken by [m']. Congruence
+    cases recurse and rebuild the erasure. β / ι cases use the form
+    lemmas ([erasure_lam0_form], [erasure_pair1_form], …) to discover
+    the source shape, then [erasure_subst0] / [erasure_subst1] /
+    [erasure_substitution] to type the contractum. Resource-key
+    obligations from the program-level substitution lemmas are
+    discharged via [program_val_key]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS program_prg erasure_inv.

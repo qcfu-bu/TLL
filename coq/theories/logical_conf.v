@@ -1,3 +1,20 @@
+(** * Logical confluence (primary theorem)
+
+    [confluence] and [church_rosser] for [logical_step], plus
+    injectivity of every type constructor up to [≃]
+    ([pi0_inj]/[pi1_inj]/[sig0_inj]/[sig1_inj]/[id_inj]/[sort_inj]) and
+    the [solve_conv] tactic that discharges goals of the form
+    [~ (m1 ≃ m2)] when the two terms have distinct head constructors.
+
+    Proof sketch — same Tait-Martin-Löf-Takahashi recipe as for MLTT:
+    define a parallel reduction [pstep] that may contract any
+    set of disjoint redexes in one step; prove [pstep_diamond] by
+    induction on the two derivations (the β/ι cases use
+    [pstep_compat_beta] for substitutivity); the [strip] lemma promotes
+    one parallel step against a red sequence; closing under [star]
+    gives [confluence] of [logical_step], which [confluent_cr] flips
+    into Church-Rosser. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_step.

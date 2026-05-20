@@ -1,3 +1,14 @@
+(** * Heap definitions
+
+    A [heap] is an extructures finite map [{fmap nat -> term * sort}]:
+    each location stores a value together with its sort ([U] for
+    duplicable, [L] for linear). [hkey H s] is the heap analogue of
+    [Δ ▷ s] (no [L] cells when [s = U]). [hmrg H1 H2 H3] merges two
+    disjoint heaps that may share [U] cells. The bulk of the file is
+    structural lemmas about freshness ([hdomm_exist]), [setm] / [remm]
+    interactions, and the algebraic properties of [hmrg]
+    (symmetry, splitting, distributivity). *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 From deriving Require Export deriving.

@@ -1,3 +1,9 @@
+(** * Erasure renaming / weakening
+
+    [erasure_rename] preserves the erasure relation under any
+    program-level renaming [ξ], reusing the [program_agree_ren]
+    bookkeeping from [program_weak.v]. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS erasure_type.

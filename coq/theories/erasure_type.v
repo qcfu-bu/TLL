@@ -1,3 +1,16 @@
+(** * Erasure relation
+
+    The judgment [Γ ; Δ ⊢ m ~ m' : A] relates a well-typed program
+    term [m] to its erased counterpart [m'], where every
+    computationally-irrelevant subterm (Π0 / Σ0 codomains, type
+    annotations on binders, the [Rw] motive and proof) is replaced by
+    [Box]. Each rule mirrors the corresponding [program_type] rule
+    but inserts [Box] in the erased witness.
+
+    [erasure_program_type] / [program_erasure_type] show the relation
+    is total: every program-typing has an erasure (constructively),
+    and any erasure projects back to a program-typing. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS program_sr.

@@ -1,3 +1,10 @@
+(** * Logical renaming / weakening
+
+    [logical_agree_ren] connects two logical contexts via a renaming;
+    [logical_rename] preserves typing under such renamings, from which
+    [logical_weaken] / [logical_eweaken] (single-binding weakening) and
+    context-conversion follow. *)
+
 From mathcomp Require Import ssreflect ssrbool eqtype ssrnat seq.
 From Stdlib Require Import ssrfun Classical Utf8.
 Require Export AutosubstSsr ARS logical_ctx logical_type logical_conf.
