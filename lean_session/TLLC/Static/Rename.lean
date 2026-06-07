@@ -311,10 +311,10 @@ lemma Typed.rename {Γ m A} (tym : Γ ⊢ m : A) :
     have ihn2' := ihn2 agr
     rw [show (A[Chan.var_Chan; Term.tt..])⟨(id : Nat → Nat); ξ⟩
           = (A⟨(id : Nat → Nat); upRen_Term_Term ξ⟩)[Chan.var_Chan; Term.tt..]
-          from by asimp; congr 1] at ihn1'
+          from by asimp] at ihn1'
     rw [show (A[Chan.var_Chan; Term.ff..])⟨(id : Nat → Nat); ξ⟩
           = (A⟨(id : Nat → Nat); upRen_Term_Term ξ⟩)[Chan.var_Chan; Term.ff..]
-          from by asimp; congr 1] at ihn2'
+          from by asimp] at ihn2'
     rw [show (A[Chan.var_Chan; m..])⟨(id : Nat → Nat); ξ⟩
           = (A⟨(id : Nat → Nat); upRen_Term_Term ξ⟩)[Chan.var_Chan; (m⟨(id : Nat → Nat); ξ⟩)..]
           from by asimp]

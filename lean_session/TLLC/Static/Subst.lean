@@ -375,9 +375,9 @@ lemma Typed.substitution {Γ2 m A} (tym : Γ2 ⊢ m : A) :
     have ihn1' := ihn1 agr
     have ihn2' := ihn2 agr
     rw [show (A[Chan.var_Chan; Term.tt..])[Chan.var_Chan; σ]
-          = (A[Chan.var_Chan; up_Term_Term σ])[Chan.var_Chan; Term.tt..] from by asimp; rfl] at ihn1'
+          = (A[Chan.var_Chan; up_Term_Term σ])[Chan.var_Chan; Term.tt..] from by asimp] at ihn1'
     rw [show (A[Chan.var_Chan; Term.ff..])[Chan.var_Chan; σ]
-          = (A[Chan.var_Chan; up_Term_Term σ])[Chan.var_Chan; Term.ff..] from by asimp; rfl] at ihn2'
+          = (A[Chan.var_Chan; up_Term_Term σ])[Chan.var_Chan; Term.ff..] from by asimp] at ihn2'
     rw [show (A[Chan.var_Chan; m..])[Chan.var_Chan; σ]
           = (A[Chan.var_Chan; up_Term_Term σ])[Chan.var_Chan; (m[Chan.var_Chan; σ])..]
           from by asimp]
