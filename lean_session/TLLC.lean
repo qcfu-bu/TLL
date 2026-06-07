@@ -1,3 +1,5 @@
--- This module serves as the root of the `TLLC` library.
--- Import modules here that should be built as part of the library.
 import TLLC.Syntax
+import TLLC.ARS
+import TLLC.Static.Context
+import TLLC.Static.Step
+import TLLC.Static.Confluence

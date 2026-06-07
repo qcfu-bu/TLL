@@ -22,7 +22,7 @@ autosubst
     | app  : Term → Term → Rlv → Term
     | sig  : Term → (bind Term in Term) → Rlv → Srt → Term
     | pair : Term → Term → Rlv → Srt → Term
-    | proj : Term → Term → (bind Term, Term in Term) → Term
+    | proj : (bind Term in Term) → Term → (bind Term, Term in Term) → Term
     | fix  : Term → (bind Term in Term) → Term
     -- data
     | unit : Term
