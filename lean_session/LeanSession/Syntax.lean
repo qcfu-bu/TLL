@@ -37,6 +37,7 @@ autosubst
     | mlet : Term → (bind Term in Term) → Term
     -- session
     | proto : Term
+    | stop  : Term
     | act   : Bool → Term → (bind Term in Term) → Rlv → Term
     | ch    : Bool → Term → Term
     | chan  : Chan → Term
@@ -44,6 +45,8 @@ autosubst
     | recv  : Term → Rlv → Term
     | send  : Term → Rlv → Term
     | close : Bool → Term → Term
+    -- erasure
+    | box   : Term
 
   Proc where
     | tm  : Term → Proc
