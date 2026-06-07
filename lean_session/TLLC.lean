@@ -3,3 +3,12 @@ import TLLC.ARS
 import TLLC.Static.Context
 import TLLC.Static.Step
 import TLLC.Static.Confluence
+import TLLC.Static.Typing
+import TLLC.Static.Rename
+import TLLC.Static.Subst
+import TLLC.Static.Inversion
+import TLLC.Static.Validity
+import TLLC.Static.Unique
+import TLLC.Static.CRename
+import TLLC.Static.CSubst
+import TLLC.Static.SR
