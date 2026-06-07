@@ -1,7 +1,7 @@
 import Autosubst
 open Autosubst Autosubst.Notation
 
-namespace SysfSN
+namespace TLLC
 
 inductive Srt where
   | U
