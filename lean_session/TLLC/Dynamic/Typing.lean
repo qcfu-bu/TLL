@@ -40,7 +40,7 @@ inductive Wf : Static.Ctx → Ctx → Prop where
   | null {Γ Δ A s} :
     Wf Γ Δ →
     Γ ⊢ A : .srt s →
-    Wf (A :: Γ) (□: Δ)
+    Wf (A :: Γ) (none :: Δ)
 
 /-! ## Dynamic typing (Coq `dyn_type`). -/
 
@@ -56,7 +56,7 @@ inductive Typed : Ctx → Static.Ctx → Ctx → Term → Term → Prop where
   | lamIm {Θ Γ Δ A B m s} :
     Θ ▷ s →
     Δ ▷ s →
-    Typed Θ (A :: Γ) (□: Δ) m B →
+    Typed Θ (A :: Γ) (none :: Δ) m B →
     Typed Θ Γ Δ (.lam A m .im s) (.pi A B .im s)
   | lamEx {Θ Γ Δ A B m s t} :
     Θ ▷ s →
@@ -90,7 +90,7 @@ inductive Typed : Ctx → Static.Ctx → Ctx → Term → Term → Prop where
     Merge Δ1 Δ2 Δ →
     .sig A B .im t :: Γ ⊢ C : .srt s →
     Typed Θ1 Γ Δ1 m (.sig A B .im t) →
-    Typed Θ2 (B :: A :: Γ) (B :⟨r⟩ □: Δ2) n
+    Typed Θ2 (B :: A :: Γ) (B :⟨r⟩ none :: Δ2) n
       (C[Chan.var_Chan; (Term.pair (.var_Term 1) (.var_Term 0) .im t) .: funcomp Term.var_Term (· + 2)]) →
     Typed Θ Γ Δ (.proj C m n) (C[Chan.var_Chan; m..])
   | projEx {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t} :

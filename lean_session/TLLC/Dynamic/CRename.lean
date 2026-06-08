@@ -44,13 +44,13 @@ inductive CtxCRen : (Nat → Nat) → Ctx → Ctx → Prop where
       (.ch r A :L Θ) (.ch r (A⟨ξ; (id : Nat → Nat)⟩) :L Θ')
   | n {ξ Θ Θ'} :
     CtxCRen ξ Θ Θ' →
-    CtxCRen (upRen_Chan_Chan ξ) (□: Θ) (□: Θ')
+    CtxCRen (upRen_Chan_Chan ξ) (none :: Θ) (none :: Θ')
   | plus {ξ Θ Θ'} :
     CtxCRen ξ Θ Θ' →
-    CtxCRen (funcomp Nat.succ ξ) Θ (□: Θ')
+    CtxCRen (funcomp Nat.succ ξ) Θ (none :: Θ')
   | minus {ξ Θ Θ'} :
     CtxCRen ξ Θ Θ' →
-    CtxCRen (funcomp ξ (· - 1)) (□: Θ) Θ'
+    CtxCRen (funcomp ξ (· - 1)) (none :: Θ) Θ'
 
 
 /-! ## Structural lemmas. -/
@@ -128,22 +128,22 @@ lemma CtxCRen.merge {Θ1 Θ2 Θ Θ' ξ} (agr : CtxCRen ξ Θ Θ') :
     cases mrg with
     | right1 _ mrg' =>
       obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨.ch r (A⟨ξ; (id : Nat → Nat)⟩) :L Θ1', □: Θ2',
+      exact ⟨.ch r (A⟨ξ; (id : Nat → Nat)⟩) :L Θ1', none :: Θ2',
         .right1 _ mrg', .ty tyA agr1, .n agr2⟩
     | right2 _ mrg' =>
       obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨□: Θ1', .ch r (A⟨ξ; (id : Nat → Nat)⟩) :L Θ2',
+      exact ⟨none :: Θ1', .ch r (A⟨ξ; (id : Nat → Nat)⟩) :L Θ2',
         .right2 _ mrg', .n agr1, .ty tyA agr2⟩
   | @n ξ Θ Θ' agr ih =>
     intro mrg
     cases mrg with
     | null mrg' =>
       obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨□: Θ1', □: Θ2', .null mrg', .n agr1, .n agr2⟩
+      exact ⟨none :: Θ1', none :: Θ2', .null mrg', .n agr1, .n agr2⟩
   | @plus ξ Θ Θ' agr ih =>
     intro mrg
     obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := ih mrg
-    exact ⟨□: Θ1', □: Θ2', .null mrg', .plus agr1, .plus agr2⟩
+    exact ⟨none :: Θ1', none :: Θ2', .null mrg', .plus agr1, .plus agr2⟩
   | @minus ξ Θ Θ' agr ih =>
     intro mrg
     cases mrg with
@@ -406,7 +406,7 @@ lemma Typed.crename {Θ Γ Δ m A} (tym : Θ ⨾ Γ ⨾ Δ ⊢ m : A) :
 
 /-- Channel strengthening (Coq `dyn_cstrengthen`). -/
 lemma Typed.cstrengthen {Θ Γ Δ m A}
-    (tym : (□: Θ) ⨾ Γ ⨾ Δ ⊢ m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ : A) :
+    (tym : (none :: Θ) ⨾ Γ ⨾ Δ ⊢ m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ : A) :
     Θ ⨾ Γ ⨾ Δ ⊢ m : A := by
   have h := tym.crename (Θ' := Θ) (ξ := funcomp (id : Nat → Nat) (· - 1)) (.minus .O)
   have hmap : funcomp ((· - 1) : Nat → Nat) ((· + 1) : Nat → Nat) = (id : Nat → Nat) := by
@@ -418,7 +418,7 @@ lemma Typed.cstrengthen {Θ Γ Δ m A}
 
 /-- Channel weakening (Coq `dyn_cweaken`). -/
 lemma Typed.cweaken {Θ Γ Δ m A} (tym : Θ ⨾ Γ ⨾ Δ ⊢ m : A) :
-    (□: Θ) ⨾ Γ ⨾ Δ ⊢ m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ : A := by
+    (none :: Θ) ⨾ Γ ⨾ Δ ⊢ m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ : A := by
   have h := tym.crename (.plus .O)
   rw [show m⟨funcomp Nat.succ (id : Nat → Nat); (id : Nat → Nat)⟩
         = m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ from by asimp] at h

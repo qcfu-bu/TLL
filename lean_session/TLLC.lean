@@ -26,3 +26,13 @@ import TLLC.Dynamic.Occurs
 import TLLC.Dynamic.SR
 import TLLC.Dynamic.EvalCtx
 import TLLC.Dynamic.Progress
+import TLLC.Erasure.Typing
+import TLLC.Erasure.Validity
+import TLLC.Erasure.Uniqueness
+import TLLC.Erasure.Rename
+import TLLC.Erasure.Subst
+import TLLC.Erasure.CRename
+import TLLC.Erasure.Inversion
+import TLLC.Erasure.Occurs
+import TLLC.Erasure.CSubst
+import TLLC.Erasure.SR

@@ -37,12 +37,12 @@ inductive AgreeSubst :
   | n {Θ1 Γ1 Δ1 σ Γ2 Δ2 A s} :
     AgreeSubst Θ1 Γ1 Δ1 σ Γ2 Δ2 →
     Γ2 ⊢ A : .srt s →
-    AgreeSubst Θ1 (A[Chan.var_Chan; σ] :: Γ1) (□: Δ1)
-      (up_Term_Term σ) (A :: Γ2) (□: Δ2)
+    AgreeSubst Θ1 (A[Chan.var_Chan; σ] :: Γ1) (none :: Δ1)
+      (up_Term_Term σ) (A :: Γ2) (none :: Δ2)
   | wk0 {Θ1 Γ1 Δ1 σ Γ2 Δ2 n A} :
     AgreeSubst Θ1 Γ1 Δ1 σ Γ2 Δ2 →
     Γ1 ⊢ n : A[Chan.var_Chan; σ] →
-    AgreeSubst Θ1 Γ1 Δ1 (n .: σ) (A :: Γ2) (□: Δ2)
+    AgreeSubst Θ1 Γ1 Δ1 (n .: σ) (A :: Γ2) (none :: Δ2)
   | wk1 {Θa Θb Θ1 Γ1 Γ2 σ Δ1 Δ2 Δa Δb n A s} :
     Θb ▷ s →
     Δb ▷ s →
@@ -55,8 +55,8 @@ inductive AgreeSubst :
     A ≃ B →
     Γ1 ⊢ (B⟨(id : Nat → Nat); ↑⟩)[Chan.var_Chan; σ] : .srt s →
     Γ2 ⊢ B : .srt s →
-    AgreeSubst Θ1 Γ1 Δ1 σ (A :: Γ2) (□: Δ2) →
-    AgreeSubst Θ1 Γ1 Δ1 σ (B :: Γ2) (□: Δ2)
+    AgreeSubst Θ1 Γ1 Δ1 σ (A :: Γ2) (none :: Δ2) →
+    AgreeSubst Θ1 Γ1 Δ1 σ (B :: Γ2) (none :: Δ2)
   | conv1 {Θ1 Γ1 Δ1 σ Γ2 Δ2 A B s} :
     A ≃ B →
     Γ1 ⊢ (B⟨(id : Nat → Nat); ↑⟩)[Chan.var_Chan; σ] : .srt s →
@@ -265,18 +265,18 @@ lemma AgreeSubst.merge {Θ1 Γ1 Γ2 Δ1 Δ2 σ}
         mrg1, .left _ mrg2, .ty agra tyA, .ty agrb tyA⟩
     | right1 _ mrg' =>
       obtain ⟨Θa, Θb, Δa, Δb, mrg1, mrg2, agra, agrb⟩ := ih mrg'
-      exact ⟨Θa, Θb, A[Chan.var_Chan; σ] :L Δa, □: Δb,
+      exact ⟨Θa, Θb, A[Chan.var_Chan; σ] :L Δa, none :: Δb,
         mrg1, .right1 _ mrg2, .ty agra tyA, .n agrb tyA⟩
     | right2 _ mrg' =>
       obtain ⟨Θa, Θb, Δa, Δb, mrg1, mrg2, agra, agrb⟩ := ih mrg'
-      exact ⟨Θa, Θb, □: Δa, A[Chan.var_Chan; σ] :L Δb,
+      exact ⟨Θa, Θb, none :: Δa, A[Chan.var_Chan; σ] :L Δb,
         mrg1, .right2 _ mrg2, .n agra tyA, .ty agrb tyA⟩
   | @n Θ1 Γ1 Δ1 σ Γ2 Δ2 A s agr tyA ih =>
     intro _ _ mrg
     cases mrg with
     | null mrg' =>
       obtain ⟨Θa, Θb, Δa, Δb, mrg1, mrg2, agra, agrb⟩ := ih mrg'
-      exact ⟨Θa, Θb, □: Δa, □: Δb, mrg1, .null mrg2, .n agra tyA, .n agrb tyA⟩
+      exact ⟨Θa, Θb, none :: Δa, none :: Δb, mrg1, .null mrg2, .n agra tyA, .n agrb tyA⟩
   | @wk0 Θ1 Γ1 Δ1 σ Γ2 Δ2 n A agr tyn ih =>
     intro _ _ mrg
     cases mrg with
@@ -373,11 +373,11 @@ lemma AgreeSubst.wf_ty {Θ1 Γ1 Γ2 Δ1 Δ2 A s σ}
 
 /-- Extending the target by a null slot keeps the source well-formed (Coq `dyn_agree_subst_wf_n`). -/
 lemma AgreeSubst.wf_n {Θ1 Γ1 Γ2 Δ1 Δ2 A σ}
-    (agr : Θ1 ⨾ Γ1 ⨾ Δ1 ⊢ σ ⊣ (A :: Γ2) ⨾ (□: Δ2)) (_wf : Wf Γ2 Δ2)
+    (agr : Θ1 ⨾ Γ1 ⨾ Δ1 ⊢ σ ⊣ (A :: Γ2) ⨾ (none :: Δ2)) (_wf : Wf Γ2 Δ2)
     (ih0 : ∀ {Θ1 Γ1 Δ1 σ}, (Θ1 ⨾ Γ1 ⨾ Δ1 ⊢ σ ⊣ Γ2 ⨾ Δ2) → Wf Γ1 Δ1) :
     Wf Γ1 Δ1 := by
   generalize e1 : (A :: Γ2) = Γ0 at agr
-  generalize e2 : (□: Δ2) = Δ0 at agr
+  generalize e2 : (none :: Δ2) = Δ0 at agr
   induction agr generalizing A Γ2 Δ2 with
   | nil _ => cases e1
   | @ty Θ1 Γ1 Δ1 σ Γ2' Δ2' A' s' agr tyA' _ => cases e2
@@ -619,7 +619,7 @@ lemma Typed.substitution {Θ2 Γ2 Δ2 m A} (tym : Θ2 ⨾ Γ2 ⨾ Δ2 ⊢ m : A)
 
 /-- Substitution of a static argument into a null slot (Coq `dyn_subst0`). -/
 lemma Typed.subst0 {Θ Γ Δ m n A B}
-    (tym : Θ ⨾ (A :: Γ) ⨾ (□: Δ) ⊢ m : B) (tyn : Γ ⊢ n : A) :
+    (tym : Θ ⨾ (A :: Γ) ⨾ (none :: Δ) ⊢ m : B) (tyn : Γ ⊢ n : A) :
     Θ ⨾ Γ ⨾ Δ ⊢ m[Chan.var_Chan; n..] : B[Chan.var_Chan; n..] := by
   cases tym.wf with
   | @null _ _ _ s wf' tyA =>
@@ -648,7 +648,7 @@ lemma Typed.subst1 {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s}
 lemma Typed.esubst0 {Θ Γ Δ m m' n A B B'}
     (em : m' = m[Chan.var_Chan; n..])
     (eB : B' = B[Chan.var_Chan; n..])
-    (tym : Θ ⨾ (A :: Γ) ⨾ (□: Δ) ⊢ m : B) (tyn : Γ ⊢ n : A) :
+    (tym : Θ ⨾ (A :: Γ) ⨾ (none :: Δ) ⊢ m : B) (tyn : Γ ⊢ n : A) :
     Θ ⨾ Γ ⨾ Δ ⊢ m' : B' := by
   subst em; subst eB; exact tym.subst0 tyn
 
@@ -664,12 +664,12 @@ lemma Typed.esubst1 {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m m' n A B B' s}
 
 /-- Context conversion of the topmost hypothesis, null slot (Coq `dyn_ctx_conv0`). -/
 lemma Typed.ctx_conv0 {Θ Γ Δ m A B C s}
-    (eq : B ≃ A) (tyB : Γ ⊢ B : .srt s) (tym : Θ ⨾ (A :: Γ) ⨾ (□: Δ) ⊢ m : C) :
-    Θ ⨾ (B :: Γ) ⨾ (□: Δ) ⊢ m : C := by
+    (eq : B ≃ A) (tyB : Γ ⊢ B : .srt s) (tym : Θ ⨾ (A :: Γ) ⨾ (none :: Δ) ⊢ m : C) :
+    Θ ⨾ (B :: Γ) ⨾ (none :: Δ) ⊢ m : C := by
   cases tym.wf with
   | @null _ _ _ s' wf' tyA =>
     obtain ⟨Θ0, emp, mrg⟩ := tym.empty
-    have agr : AgreeSubst Θ0 (B :: Γ) (□: Δ) Term.var_Term (A :: Γ) (□: Δ) :=
+    have agr : AgreeSubst Θ0 (B :: Γ) (none :: Δ) Term.var_Term (A :: Γ) (none :: Δ) :=
       AgreeSubst.conv0 eq
         (Static.Typed.eweaken (congrFun instId_Term (A⟨(id : Nat → Nat); ↑⟩)) rfl tyA tyB)
         tyA (AgreeSubst.refl emp (.null wf' tyB))

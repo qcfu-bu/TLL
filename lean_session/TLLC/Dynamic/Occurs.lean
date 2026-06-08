@@ -34,7 +34,7 @@ inductive CvarPos : Ctx → Nat → Bool → Prop where
   | ty {Θ A} :
     CvarPos (A :L Θ) 0 true
   | n {Θ} :
-    CvarPos (□: Θ) 0 false
+    CvarPos (none :: Θ) 0 false
   | cons {Θ x A b} :
     CvarPos Θ x b →
     CvarPos (A :: Θ) (x + 1) b

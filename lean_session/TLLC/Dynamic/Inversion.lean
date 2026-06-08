@@ -43,7 +43,7 @@ lemma lamIm_invX {Θ Γ Δ A1 A2 B C m s1 s2 t}
     (tyL : Θ ⨾ Γ ⨾ Δ ⊢ .lam A1 m .im s1 : C)
     (c : C ≃ .pi A2 B .im s2)
     (tyB : A2 :: Γ ⊢ B : .srt t) :
-    Θ ⨾ (A2 :: Γ) ⨾ (□: Δ) ⊢ m : B := by
+    Θ ⨾ (A2 :: Γ) ⨾ (none :: Δ) ⊢ m : B := by
   generalize e : Term.lam A1 m .im s1 = n
   rw [e] at tyL
   induction tyL generalizing A1 A2 B m s1 s2 t
@@ -97,7 +97,7 @@ lemma lamEx_invX {Θ Γ Δ A1 A2 B C m s1 s2 t}
 /-- Inversion for `lam .im` (Coq `dyn_lam0_inv`). -/
 lemma lamIm_inv {Θ Γ Δ m A1 A2 B s1 s2}
     (ty : Θ ⨾ Γ ⨾ Δ ⊢ .lam A2 m .im s2 : .pi A1 B .im s1) :
-    Θ ⨾ (A1 :: Γ) ⨾ (□: Δ) ⊢ m : B := by
+    Θ ⨾ (A1 :: Γ) ⨾ (none :: Δ) ⊢ m : B := by
   obtain ⟨t, tyPi⟩ := ty.validity
   obtain ⟨r, tyB, _⟩ := Static.pi_inv tyPi
   exact lamIm_invX ty .refl tyB

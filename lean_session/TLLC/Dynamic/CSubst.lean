@@ -50,17 +50,17 @@ inductive AgreeCSubst : Ctx → (Nat → Chan) → Ctx → Prop where
     AgreeCSubst Θ Chan.var_Chan Θ
   | pad {Θ1 σ Θ2} :
     AgreeCSubst Θ1 σ Θ2 →
-    AgreeCSubst (□: Θ1) (funcomp (ren_Chan Nat.succ) σ) Θ2
+    AgreeCSubst (none :: Θ1) (funcomp (ren_Chan Nat.succ) σ) Θ2
   | ty {Θ1 σ Θ2 r A} :
     AgreeCSubst Θ1 σ Θ2 →
     [] ⊢ A : .proto →
     AgreeCSubst (.ch r A :L Θ1) (up_Chan_Chan σ) (.ch r A :L Θ2)
   | n {Θ1 σ Θ2} :
     AgreeCSubst Θ1 σ Θ2 →
-    AgreeCSubst (□: Θ1) (up_Chan_Chan σ) (□: Θ2)
+    AgreeCSubst (none :: Θ1) (up_Chan_Chan σ) (none :: Θ2)
   | wk0 {Θ1 σ Θ2 x} :
     AgreeCSubst Θ1 σ Θ2 →
-    AgreeCSubst Θ1 (Chan.var_Chan x .: σ) (□: Θ2)
+    AgreeCSubst Θ1 (Chan.var_Chan x .: σ) (none :: Θ2)
   | wk1 {Θa Θb Θ1 σ Θ2 x r A} :
     Merge Θa Θb Θ1 →
     AgreeCSubst Θa σ Θ2 →
@@ -142,22 +142,22 @@ lemma AgreeCSubst.merge {Θ1 Θ2 σ} (agr : Θ1 ⊩ σ ⫣ Θ2) :
   | @pad Θ1 σ Θ2 agr ih =>
     intro Θa Θb mrg
     obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg
-    exact ⟨□: Θa', □: Θb', .null mrg', .pad agr1, .pad agr2⟩
+    exact ⟨none :: Θa', none :: Θb', .null mrg', .pad agr1, .pad agr2⟩
   | @ty Θ1 σ Θ2 r A agr tyA ih =>
     intro Θa Θb mrg
     cases mrg with
     | right1 _ mrg' =>
       obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨.ch r A :L Θa', □: Θb', .right1 _ mrg', .ty agr1 tyA, .n agr2⟩
+      exact ⟨.ch r A :L Θa', none :: Θb', .right1 _ mrg', .ty agr1 tyA, .n agr2⟩
     | right2 _ mrg' =>
       obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨□: Θa', .ch r A :L Θb', .right2 _ mrg', .n agr1, .ty agr2 tyA⟩
+      exact ⟨none :: Θa', .ch r A :L Θb', .right2 _ mrg', .n agr1, .ty agr2 tyA⟩
   | @n Θ1 σ Θ2 agr ih =>
     intro Θa Θb mrg
     cases mrg with
     | null mrg' =>
       obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨□: Θa', □: Θb', .null mrg', .n agr1, .n agr2⟩
+      exact ⟨none :: Θa', none :: Θb', .null mrg', .n agr1, .n agr2⟩
   | @wk0 Θ1 σ Θ2 x agr ih =>
     intro Θa Θb mrg
     cases mrg with
@@ -204,7 +204,7 @@ lemma AgreeCSubst.procWf {Θ1 Θ2 σ} (agr : Θ1 ⊩ σ ⫣ Θ2) : ProcWf Θ2 :=
 /-- Peeling a null-slot `Just` lookup at a channel type: the de Bruijn shift on the stored type is
     `⟨(·+1); id⟩`, which on a `.ch` head reduces to a shift of the protocol; the channel-predecessor
     renaming `(· - 1)` undoes it (Coq's `inv js; destruct A0; inv H0; apply (sta_crename (-1))`). -/
-lemma just_ch_pred {Θ x r A} (js : Just (□: Θ) x (.ch r A)) :
+lemma just_ch_pred {Θ x r A} (js : Just (none :: Θ) x (.ch r A)) :
     ∃ z A0, x = z + 1 ∧ A = A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ ∧ Just Θ z (.ch r A0) := by
   generalize hC : Term.ch r A = C at js
   cases js with

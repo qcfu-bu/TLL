@@ -29,6 +29,6 @@ inductive ProcWf : Ctx → Prop where
     ProcWf (.ch r A :L Θ)
   | null {Θ} :
     ProcWf Θ →
-    ProcWf (□: Θ)
+    ProcWf (none :: Θ)
 
 end TLLC.Dynamic

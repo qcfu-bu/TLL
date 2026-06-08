@@ -467,4 +467,304 @@ lemma Typed.crename {Γ m A} (tym : Γ ⊢ m : A) :
   | nil => trivial
   | cons _ _ _ _ => trivial
 
+/-! ## Inverse lemmas: stripping a channel renaming. -/
+
+/-- Typing up to a definitional equality on the renamed subject (Coq `sta_ecrename`). -/
+lemma Typed.ecrename {Γ m m' A} {ξ : Nat → Nat} (e : m' = m⟨ξ; (id : Nat → Nat)⟩)
+    (ty : Γ ⊢ m : A) : Γ ⊢ m' : A := by
+  subst e
+  exact ty.crename ξ
+
+/-- Channel renaming reflects protocol arity (Coq `sta_cren_arity_proto_inv`). -/
+lemma cren_arity_proto_inv {A : Term} (ξ : Nat → Nat)
+    (ar : ArityProto (A⟨ξ; (id : Nat → Nat)⟩)) : ArityProto A := by
+  induction A generalizing ξ with
+  | proto => exact ar
+  | pi A B i s ihA ihB =>
+    show ArityProto (Term.pi A B i s)
+    have : ArityProto (B⟨ξ; upRen_Term_Term (id : Nat → Nat)⟩) := ar
+    rw [show upRen_Term_Term (id : Nat → Nat) = (id : Nat → Nat) from by asimp] at this
+    exact ihB ξ this
+  | _ => exact ar.elim
+
+/-- Channel renaming reflects guardedness (Coq `sta_cren_guarded_inv`). Channel renaming leaves every
+    term variable untouched, so guardedness transfers back verbatim. -/
+lemma cren_guarded_inv {i : Nat} {m : Term} (ξ : Nat → Nat)
+    (gr : Guarded i (m⟨ξ; (id : Nat → Nat)⟩)) : Guarded i m := by
+  induction m generalizing i ξ with
+  | var_Term x => exact gr
+  | pi A B s r ihA ihB =>
+    obtain ⟨gA, gB⟩ := gr
+    refine ⟨ihA ξ gA, ?_⟩
+    asimp at gB
+    exact ihB ξ gB
+  | lam A m s r ihA ihm =>
+    obtain ⟨gA, gm⟩ := gr
+    refine ⟨ihA ξ gA, ?_⟩
+    asimp at gm
+    exact ihm ξ gm
+  | app m n r ihm ihn =>
+    obtain ⟨gm, gn⟩ := gr
+    exact ⟨ihm ξ gm, ihn ξ gn⟩
+  | sig A B s r ihA ihB =>
+    obtain ⟨gA, gB⟩ := gr
+    refine ⟨ihA ξ gA, ?_⟩
+    asimp at gB
+    exact ihB ξ gB
+  | pair m n s r ihm ihn =>
+    obtain ⟨gm, gn⟩ := gr
+    exact ⟨ihm ξ gm, ihn ξ gn⟩
+  | proj A m n ihA ihm ihn =>
+    obtain ⟨gA, gm, gn⟩ := gr
+    refine ⟨?_, ihm ξ gm, ?_⟩
+    · asimp at gA; exact ihA ξ gA
+    · asimp at gn; exact ihn ξ gn
+  | fix A m ihA ihm =>
+    obtain ⟨gA, gm⟩ := gr
+    refine ⟨ihA ξ gA, ?_⟩
+    asimp at gm
+    exact ihm ξ gm
+  | ite A m n1 n2 ihA ihm ihn1 ihn2 =>
+    obtain ⟨gA, gm, gn1, gn2⟩ := gr
+    refine ⟨?_, ihm ξ gm, ihn1 ξ gn1, ihn2 ξ gn2⟩
+    asimp at gA
+    exact ihA ξ gA
+  | M A ihA => exact ihA ξ gr
+  | pure m ihm => exact ihm ξ gr
+  | mlet m n ihm ihn =>
+    obtain ⟨gm, gn⟩ := gr
+    refine ⟨ihm ξ gm, ?_⟩
+    asimp at gn
+    exact ihn ξ gn
+  | act b A B r ihA ihB => exact ihA ξ gr
+  | ch b A ihA => exact ihA ξ gr
+  | fork A m ihA ihm =>
+    obtain ⟨gA, gm⟩ := gr
+    refine ⟨ihA ξ gA, ?_⟩
+    asimp at gm
+    exact ihm ξ gm
+  | recv m r ihm => exact ihm ξ gr
+  | send m r ihm => exact ihm ξ gr
+  | close b m ihm => exact ihm ξ gr
+  | srt => exact gr
+  | unit => exact gr
+  | one => exact gr
+  | bool => exact gr
+  | tt => exact gr
+  | ff => exact gr
+  | proto => exact gr
+  | stop => exact gr
+  | chan c => exact gr
+  | box => exact gr
+
+/-- Channel renaming reflects typing (Coq `sta_crename_inv`): the renamed subject keeps the same
+    type, and stripping the renaming recovers a typing of the pre-image. The Coq proof routes through
+    `sta0_type` (so that the `lam`/`act`/`fork`/`chan` rules carry their domain typing); here we
+    convert with `Typed.toTyped0`, generalize the renamed subject, induct over `Typed0`, and in each
+    case recover the pre-image by `cases m <;> asimp at e <;> (try cases e)` (the channel renaming
+    preserves the head constructor, so all but the matching pre-image are refuted by `Term`
+    no-confusion). Each surviving case rebuilds the source typing, adapting the renamed type back with
+    `cren_conv0 .refl ξ : m⟨ξ; id⟩ ≃ m` threaded through `Typed.conv`/`Typed.ctx_conv`. -/
+lemma Typed.crename_inv {Γ m A} {ξ : Nat → Nat} (ty : Γ ⊢ m⟨ξ; (id : Nat → Nat)⟩ : A) :
+    Γ ⊢ m : A := by
+  have ty0 := ty.toTyped0
+  clear ty
+  generalize e : m⟨ξ; (id : Nat → Nat)⟩ = n at ty0
+  induction ty0 using Typed0.rec (motive_2 := fun _ _ => True) generalizing m ξ with
+  | @srt Γ s wf ih =>
+    cases m <;> asimp at e <;> (try cases e)
+    case srt => exact .srt wf.toWf
+  | @var Γ x A wf hs ih =>
+    cases m <;> asimp at e <;> (try cases e)
+    case var => exact .var wf.toWf hs
+  | @pi Γ A B i s r t tyA tyB ihA ihB =>
+    cases m <;> asimp at e <;> (try cases e)
+    case pi A' B' =>
+      have hA := ihA rfl
+      exact .pi hA (Typed.ctx_conv (ARS.conv_sym (cren_conv0 .refl ξ)) hA
+        (@ihB B' (upRen_Term_Chan ξ) (by asimp)))
+  | @lam Γ A B m i s r tyA tym ihA ihm =>
+    cases m <;> asimp at e <;> (try cases e)
+    case lam A' m' =>
+      obtain ⟨s0, tyB⟩ := tym.toTyped.validity
+      have hA := ihA rfl
+      have hm' : (A' :: Γ) ⊢ m' : B :=
+        Typed.ctx_conv (ARS.conv_sym (cren_conv0 .refl ξ)) hA
+          (@ihm m' (upRen_Term_Chan ξ) (by asimp))
+      exact .conv (conv_pi (ARS.conv_sym (cren_conv0 .refl ξ)) .refl) (.lam hm')
+        (.pi tyA.toTyped tyB)
+  | @app Γ A B m n i s tym tyn ihm ihn =>
+    cases m <;> asimp at e <;> (try cases e)
+    case app m' n' =>
+      obtain ⟨r, tyPi⟩ := tym.toTyped.validity
+      obtain ⟨t, tyB, _⟩ := pi_inv tyPi
+      have tyBn := tyB.subst tyn.toTyped
+      asimp at tyBn
+      exact .conv (ARS.conv_sym (conv_beta (cren_conv0 .refl ξ)))
+        (.app (ihm rfl) (ihn rfl)) tyBn
+  | @sig Γ A B i s r t o1 o2 tyA tyB ihA ihB =>
+    cases m <;> asimp at e <;> (try cases e)
+    case sig A' B' =>
+      have hA := ihA rfl
+      exact .sig o1 o2 hA (Typed.ctx_conv (ARS.conv_sym (cren_conv0 .refl ξ)) hA
+        (@ihB B' (upRen_Term_Chan ξ) (by asimp)))
+  | @pair Γ A B m n i t tyS tym tyn ihS ihm ihn =>
+    cases m <;> asimp at e <;> (try cases e)
+    case pair m' n' =>
+      obtain ⟨s, r, _, _, tyA, tyB, _⟩ := sig_inv tyS.toTyped
+      have hm := ihm rfl
+      have tyBm := tyB.subst hm
+      asimp at tyBm
+      have tyn' : Γ ⊢ n' : B[Chan.var_Chan; m'..] :=
+        Typed.conv (conv_beta (cren_conv0 .refl ξ)) (ihn rfl) tyBm
+      exact .pair tyS.toTyped hm tyn'
+  | @proj Γ A B C m n i s t tyC tym tyn ihC ihm ihn =>
+    cases m <;> asimp at e <;> (try cases e)
+    case proj C' m' n' =>
+      have hC := ihC rfl
+      have hm := ihm rfl
+      cases tyC.toTyped.wf with
+      | @cons _ _ s0 wfΓ tySig =>
+        obtain ⟨s1, r, ord1, ord2, tyA, tyB, _⟩ := sig_inv tySig
+        have wf2 : Wf (B :: A :: Γ) := .cons (.cons wfΓ tyA) tyB
+        have agr0 : (B :: A :: Γ) ⊢ funcomp Term.var_Term (· + 2) ⊣ Γ := by
+          have h := ((AgreeSubst.refl wfΓ).wk2 (s := s1) tyA).wk2 (s := r) tyB
+          rwa [show (fun x => ((Term.var_Term x)⟨(id : Nat → Nat); ↑⟩)⟨(id : Nat → Nat); ↑⟩)
+                = funcomp Term.var_Term (· + 2) from by funext x; asimp] at h
+        have tySig' := (Typed.sig ord1 ord2 tyA tyB).substitution agr0
+        asimp at tySig'
+        have tyv1 : (B :: A :: Γ) ⊢ Term.var_Term 1
+            : A[Chan.var_Chan; funcomp Term.var_Term (· + 2)] := by
+          have h := Typed.var wf2 (Has.succ Has.zero)
+          rwa [show A⟨(id : Nat → Nat); ↑⟩⟨(id : Nat → Nat); ↑⟩
+                = A[Chan.var_Chan; funcomp Term.var_Term (· + 2)] from by asimp; substify] at h
+        have tyv0 : (B :: A :: Γ) ⊢ Term.var_Term 0
+            : (B[Chan.var_Chan; up_Term_Term (funcomp Term.var_Term (· + 2))])[Chan.var_Chan;
+                (Term.var_Term 1)..] := by
+          have h := Typed.var wf2 (Has.zero (A := B))
+          rwa [show B⟨(id : Nat → Nat); ↑⟩
+                = (B[Chan.var_Chan; up_Term_Term (funcomp Term.var_Term (· + 2))])[Chan.var_Chan;
+                  (Term.var_Term 1)..] from by
+                  asimp; substify; congr 1; funext x; rcases x with _ | x <;> rfl] at h
+        have agr : (B :: A :: Γ)
+            ⊢ Term.pair (.var_Term 1) (.var_Term 0) i t .: funcomp Term.var_Term (· + 2)
+            ⊣ (Term.sig A B i t :: Γ) :=
+          agr0.wk1 (A := Term.sig A B i t) (Typed.pair tySig' tyv1 tyv0)
+        have hwit := hC.substitution agr
+        have eqn : (C'⟨ξ; (id : Nat → Nat)⟩)[Chan.var_Chan;
+              Term.pair (.var_Term 1) (.var_Term 0) i t .: funcomp Term.var_Term (· + 2)]
+            ≃ C'[Chan.var_Chan;
+              Term.pair (.var_Term 1) (.var_Term 0) i t .: funcomp Term.var_Term (· + 2)] := by
+          have h := cren_conv0 (m := C'[Chan.var_Chan;
+            Term.pair (.var_Term 1) (.var_Term 0) i t .: funcomp Term.var_Term (· + 2)]) .refl ξ
+          rwa [show (C'[Chan.var_Chan;
+                Term.pair (.var_Term 1) (.var_Term 0) i t .: funcomp Term.var_Term (· + 2)])⟨ξ;
+                  (id : Nat → Nat)⟩
+                = (C'⟨ξ; (id : Nat → Nat)⟩)[Chan.var_Chan;
+                  Term.pair (.var_Term 1) (.var_Term 0) i t .: funcomp Term.var_Term (· + 2)]
+                from by asimp; congr 1] at h
+        have tyn' := Typed.conv eqn (ihn rfl) hwit
+        have eqC : (C'⟨ξ; (id : Nat → Nat)⟩)[Chan.var_Chan; (m'⟨ξ; (id : Nat → Nat)⟩)..]
+            ≃ C'[Chan.var_Chan; m'..] :=
+          ARS.conv_trans (conv_beta (cren_conv0 .refl ξ)) (conv_subst (m'..) (cren_conv0 .refl ξ))
+        exact .conv (ARS.conv_sym eqC) (.proj hC hm tyn') (tyC.toTyped.subst tym.toTyped)
+  | @fix Γ A m s ar gr tyA tym ihA ihm =>
+    cases m <;> asimp at e <;> (try cases e)
+    case fix A' m' =>
+      have hA := ihA rfl
+      have ar' := cren_arity_proto_inv ξ ar
+      have gr2 : Guarded 0 (m'⟨upRen_Term_Chan ξ; (id : Nat → Nat)⟩) := by
+        have := gr; asimp at this ⊢; exact this
+      have gr' := cren_guarded_inv (upRen_Term_Chan ξ) gr2
+      have hbody := @ihm m' (upRen_Term_Chan ξ) (by asimp)
+      have hwk : (A'⟨ξ; (id : Nat → Nat)⟩ :: Γ) ⊢ A'⟨(id : Nat → Nat); ↑⟩ : Term.srt s :=
+        hA.weaken tyA.toTyped
+      have hbody2 : (A'⟨ξ; (id : Nat → Nat)⟩ :: Γ) ⊢ m' : A'⟨(id : Nat → Nat); ↑⟩ :=
+        Typed.conv (conv_ren Nat.succ (cren_conv0 .refl ξ)) hbody hwk
+      have hbody3 : (A' :: Γ) ⊢ m' : A'⟨(id : Nat → Nat); ↑⟩ :=
+        Typed.ctx_conv (ARS.conv_sym (cren_conv0 .refl ξ)) hA hbody2
+      exact .conv (ARS.conv_sym (cren_conv0 .refl ξ)) (.fix ar' gr' hbody3) tyA.toTyped
+  | @unit Γ wf ih =>
+    cases m <;> asimp at e <;> (try cases e)
+    case unit => exact .unit wf.toWf
+  | @one Γ wf ih =>
+    cases m <;> asimp at e <;> (try cases e)
+    case one => exact .one wf.toWf
+  | @bool Γ wf ih =>
+    cases m <;> asimp at e <;> (try cases e)
+    case bool => exact .bool wf.toWf
+  | @tt Γ wf ih =>
+    cases m <;> asimp at e <;> (try cases e)
+    case tt => exact .tt wf.toWf
+  | @ff Γ wf ih =>
+    cases m <;> asimp at e <;> (try cases e)
+    case ff => exact .ff wf.toWf
+  | @ite Γ A m n1 n2 s tyA tym tyn1 tyn2 ihA ihm ihn1 ihn2 =>
+    cases m <;> asimp at e <;> (try cases e)
+    case ite A' m' n1' n2' =>
+      have hA := ihA rfl
+      have hm := ihm rfl
+      have h1 := hA.subst (Typed.tt tym.toTyped.wf)
+      have h2 := hA.subst (Typed.ff tym.toTyped.wf)
+      have hn1 : Γ ⊢ n1' : A'[Chan.var_Chan; Term.tt..] :=
+        Typed.conv (conv_subst (Term.tt..) (cren_conv0 .refl ξ)) (ihn1 rfl) h1
+      have hn2 : Γ ⊢ n2' : A'[Chan.var_Chan; Term.ff..] :=
+        Typed.conv (conv_subst (Term.ff..) (cren_conv0 .refl ξ)) (ihn2 rfl) h2
+      have eq : (A'⟨ξ; (id : Nat → Nat)⟩)[Chan.var_Chan; (m'⟨ξ; (id : Nat → Nat)⟩)..]
+          ≃ A'[Chan.var_Chan; m'..] :=
+        ARS.conv_trans (conv_beta (cren_conv0 .refl ξ)) (conv_subst (m'..) (cren_conv0 .refl ξ))
+      exact .conv (ARS.conv_sym eq) (.ite hA hm hn1 hn2) (tyA.toTyped.subst tym.toTyped)
+  | @M Γ A s tyA ihA =>
+    cases m <;> asimp at e <;> (try cases e)
+    case M => exact .M (ihA rfl)
+  | @pure Γ m A tym ihm =>
+    cases m <;> asimp at e <;> (try cases e)
+    case pure => exact .pure (ihm rfl)
+  | @mlet Γ m n A B s tyB tym tyn ihB ihm ihn =>
+    cases m <;> asimp at e <;> (try cases e)
+    case mlet m' n' =>
+      have hn : (A :: Γ) ⊢ n' : Term.M (B⟨(id : Nat → Nat); ↑⟩) :=
+        @ihn n' (upRen_Term_Chan ξ) (by asimp)
+      exact .mlet tyB.toTyped (ihm rfl) hn
+  | @proto Γ wf ih =>
+    cases m <;> asimp at e <;> (try cases e)
+    case proto => exact .proto wf.toWf
+  | @stop Γ wf ih =>
+    cases m <;> asimp at e <;> (try cases e)
+    case stop => exact .stop wf.toWf
+  | @act Γ b A B i s tyA tyB ihA ihB =>
+    cases m <;> asimp at e <;> (try cases e)
+    case act A' B' =>
+      exact .act (Typed.ctx_conv (ARS.conv_sym (cren_conv0 .refl ξ)) (ihA rfl)
+        (@ihB B' (upRen_Term_Chan ξ) (by asimp)))
+  | @ch Γ b A tyA ihA =>
+    cases m <;> asimp at e <;> (try cases e)
+    case ch => exact .ch (ihA rfl)
+  | @chan Γ b x A wf tyA ih ihA =>
+    cases m <;> asimp at e <;> (try cases e)
+    case chan c => cases c with | var_Chan x => exact .chan wf.toWf tyA.toTyped
+  | @fork Γ A m s tyCh tym ihCh ihm =>
+    cases m <;> asimp at e <;> (try cases e)
+    case fork A' m' =>
+      obtain ⟨tyAξ, _⟩ := ch_inv tyCh.toTyped
+      have hCh : Γ ⊢ Term.ch true A' : Term.srt s := @ihCh (Term.ch true A') ξ rfl
+      have hm := @ihm m' (upRen_Term_Chan ξ) (by asimp)
+      have hm' : (Term.ch true A' :: Γ) ⊢ m' : Term.M .unit :=
+        Typed.ctx_conv (conv_ch (ARS.conv_sym (cren_conv0 .refl ξ))) hCh hm
+      exact .conv (conv_M (conv_ch (ARS.conv_sym (cren_conv0 .refl ξ)))) (.fork hm')
+        (.M (.ch tyAξ))
+  | @recv Γ r1 r2 A B m i ex tym ihm =>
+    cases m <;> asimp at e <;> (try cases e)
+    case recv => exact .recv ex (ihm rfl)
+  | @send Γ r1 r2 A B m i ex tym ihm =>
+    cases m <;> asimp at e <;> (try cases e)
+    case send => exact .send ex (ihm rfl)
+  | @close Γ b m tym ihm =>
+    cases m <;> asimp at e <;> (try cases e)
+    case close => exact .close (ihm rfl)
+  | @conv Γ A B m s eq tym tyB ihm ihB =>
+    exact .conv eq (ihm e) tyB.toTyped
+  | nil => trivial
+  | cons _ _ _ _ => trivial
+
 end TLLC.Static

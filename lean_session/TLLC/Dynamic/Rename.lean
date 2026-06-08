@@ -32,7 +32,7 @@ inductive AgreeRen : (Nat → Nat) → Static.Ctx → Ctx → Static.Ctx → Ctx
     Γ ⊢ m : .srt s →
     AgreeRen ξ Γ Δ Γ' Δ' →
     AgreeRen (upRen_Term_Term ξ)
-      (m :: Γ) (□: Δ) (m⟨(id : Nat → Nat); ξ⟩ :: Γ') (□: Δ')
+      (m :: Γ) (none :: Δ) (m⟨(id : Nat → Nat); ξ⟩ :: Γ') (none :: Δ')
   | wkU {Γ Γ' Δ Δ' ξ m} :
     Γ' ⊢ m : .srt Srt.U →
     AgreeRen ξ Γ Δ Γ' Δ' →
@@ -40,7 +40,7 @@ inductive AgreeRen : (Nat → Nat) → Static.Ctx → Ctx → Static.Ctx → Ctx
   | wkN {Γ Γ' Δ Δ' ξ m s} :
     Γ' ⊢ m : .srt s →
     AgreeRen ξ Γ Δ Γ' Δ' →
-    AgreeRen (funcomp Nat.succ ξ) Γ Δ (m :: Γ') (□: Δ')
+    AgreeRen (funcomp Nat.succ ξ) Γ Δ (m :: Γ') (none :: Δ')
 
 /-- The static projection of a dynamic agreement (Coq `dyn_sta_agree_ren`). -/
 lemma AgreeRen.toStatic {Γ Γ' Δ Δ' ξ} (agr : AgreeRen ξ Γ Δ Γ' Δ') :
@@ -154,18 +154,18 @@ lemma AgreeRen.merge {Γ Γ' Δ Δ' ξ} (agr : AgreeRen ξ Γ Δ Γ' Δ') :
         .left _ mrg', .cons tym agr1, .cons tym agr2⟩
     | right1 _ mrg' =>
       obtain ⟨Δ1', Δ2', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨m⟨(id : Nat → Nat); ξ⟩ :L Δ1', □: Δ2',
+      exact ⟨m⟨(id : Nat → Nat); ξ⟩ :L Δ1', none :: Δ2',
         .right1 _ mrg', .cons tym agr1, .null tym agr2⟩
     | right2 _ mrg' =>
       obtain ⟨Δ1', Δ2', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨□: Δ1', m⟨(id : Nat → Nat); ξ⟩ :L Δ2',
+      exact ⟨none :: Δ1', m⟨(id : Nat → Nat); ξ⟩ :L Δ2',
         .right2 _ mrg', .null tym agr1, .cons tym agr2⟩
   | @null Γ Γ' Δ Δ' ξ m s tym agr ih =>
     intro _ _ mrg
     cases mrg with
     | null mrg' =>
       obtain ⟨Δ1', Δ2', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨□: Δ1', □: Δ2', .null mrg', .null tym agr1, .null tym agr2⟩
+      exact ⟨none :: Δ1', none :: Δ2', .null mrg', .null tym agr1, .null tym agr2⟩
   | @wkU Γ Γ' Δ Δ' ξ m tym agr ih =>
     intro _ _ mrg
     obtain ⟨Δ1', Δ2', mrg', agr1, agr2⟩ := ih mrg
@@ -173,7 +173,7 @@ lemma AgreeRen.merge {Γ Γ' Δ Δ' ξ} (agr : AgreeRen ξ Γ Δ Γ' Δ') :
   | @wkN Γ Γ' Δ Δ' ξ m s tym agr ih =>
     intro _ _ mrg
     obtain ⟨Δ1', Δ2', mrg', agr1, agr2⟩ := ih mrg
-    exact ⟨□: Δ1', □: Δ2', .null mrg', .wkN tym agr1, .wkN tym agr2⟩
+    exact ⟨none :: Δ1', none :: Δ2', .null mrg', .wkN tym agr1, .wkN tym agr2⟩
 
 /-- An agreement from the empty pair produces a well-formed target (Coq `dyn_agree_weak_wf_nil`). -/
 lemma AgreeRen.weak_wf_nil {Γ' Δ' ξ} (agr : AgreeRen ξ ([] : Static.Ctx) ([] : Ctx) Γ' Δ') :
@@ -209,11 +209,11 @@ lemma AgreeRen.weak_wf_ty {Γ Γ' Δ Δ' A s ξ}
 
 /-- Extending the source by a null slot keeps the target well-formed (Coq `dyn_agree_weak_wf_n`). -/
 lemma AgreeRen.weak_wf_n {Γ Γ' Δ Δ' A ξ}
-    (agr : AgreeRen ξ (A :: Γ) (□: Δ) Γ' Δ') (_wf : Wf Γ Δ)
+    (agr : AgreeRen ξ (A :: Γ) (none :: Δ) Γ' Δ') (_wf : Wf Γ Δ)
     (ih0 : ∀ {Γ' Δ' ξ}, AgreeRen ξ Γ Δ Γ' Δ' → Wf Γ' Δ') :
     Wf Γ' Δ' := by
   generalize e1 : (A :: Γ) = Γ0 at agr
-  generalize e2 : (□: Δ) = Δ0 at agr
+  generalize e2 : (none :: Δ) = Δ0 at agr
   induction agr with
   | nil => cases e1
   | @cons Γ1 Γ' Δ1 Δ' ξ m s' tym agr _ => cases e2
@@ -443,7 +443,7 @@ lemma Typed.weakenU {Θ Γ Δ m A B} (tyB : Γ ⊢ B : .srt Srt.U) (tym : Θ ⨾
 
 /-- Null weakening (Coq `dyn_weakenN`). -/
 lemma Typed.weakenN {Θ Γ Δ m A B s} (tyB : Γ ⊢ B : .srt s) (tym : Θ ⨾ Γ ⨾ Δ ⊢ m : A) :
-    Θ ⨾ (B :: Γ) ⨾ (□: Δ) ⊢ m⟨(id : Nat → Nat); ↑⟩ : A⟨(id : Nat → Nat); ↑⟩ :=
+    Θ ⨾ (B :: Γ) ⨾ (none :: Δ) ⊢ m⟨(id : Nat → Nat); ↑⟩ : A⟨(id : Nat → Nat); ↑⟩ :=
   tym.rename (.wkN tyB (.refl tym.wf))
 
 /-- Unrestricted weakening up to equality (Coq `dyn_eweakenU`). -/
@@ -457,7 +457,7 @@ lemma Typed.eweakenU {Θ Γ Δ m m' A A' B}
 lemma Typed.eweakenN {Θ Γ Δ m m' A A' B s}
     (em : m' = m⟨(id : Nat → Nat); ↑⟩) (eA : A' = A⟨(id : Nat → Nat); ↑⟩)
     (tyB : Γ ⊢ B : .srt s) (tym : Θ ⨾ Γ ⨾ Δ ⊢ m : A) :
-    Θ ⨾ (B :: Γ) ⨾ (□: Δ) ⊢ m' : A' := by
+    Θ ⨾ (B :: Γ) ⨾ (none :: Δ) ⊢ m' : A' := by
   subst em; subst eA; exact tym.weakenN tyB
 
 end TLLC.Dynamic

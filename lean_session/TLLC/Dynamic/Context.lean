@@ -35,8 +35,6 @@ scoped notation:67 m " :⟨" s "⟩ " Δ:67 => (Option.some (m, s)) :: Δ
 scoped notation:67 m " :U " Δ:67 => (Option.some (m, Srt.U)) :: Δ
 /-- A linear slot (Coq `m :L Γ`). -/
 scoped notation:67 m " :L " Δ:67 => (Option.some (m, Srt.L)) :: Δ
-/-- A null slot (Coq `_: Γ`). -/
-scoped notation:67 "□: " Δ:67 => (Option.none : Option (Term × Srt)) :: Δ
 
 /-- Linear context split (Coq `merge`, `Δ1 ∘ Δ2 => Δ`). -/
 @[aesop safe [constructors]]
@@ -48,13 +46,13 @@ inductive Merge : Ctx → Ctx → Ctx → Prop where
     Merge (m :U Δ1) (m :U Δ2) (m :U Δ)
   | right1 {Δ1 Δ2 Δ} (m) :
     Merge Δ1 Δ2 Δ →
-    Merge (m :L Δ1) (□: Δ2) (m :L Δ)
+    Merge (m :L Δ1) (none :: Δ2) (m :L Δ)
   | right2 {Δ1 Δ2 Δ} (m) :
     Merge Δ1 Δ2 Δ →
-    Merge (□: Δ1) (m :L Δ2) (m :L Δ)
+    Merge (none :: Δ1) (m :L Δ2) (m :L Δ)
   | null {Δ1 Δ2 Δ} :
     Merge Δ1 Δ2 Δ →
-    Merge (□: Δ1) (□: Δ2) (□: Δ)
+    Merge (none :: Δ1) (none :: Δ2) (none :: Δ)
 
 /-- All slots are at least sort `s` (Coq `key`, `Δ ▷ s`). -/
 @[aesop safe [constructors]]
@@ -69,7 +67,7 @@ inductive Key : Ctx → Srt → Prop where
     Key (m :⟨s⟩ Δ) Srt.L
   | null {Δ s} :
     Key Δ s →
-    Key (□: Δ) s
+    Key (none :: Δ) s
 
 @[inherit_doc] scoped notation:40 Δ:41 " ▷ " s:41 => Key Δ s
 
@@ -80,7 +78,7 @@ inductive Empty : Ctx → Prop where
     Empty []
   | null {Δ} :
     Empty Δ →
-    Empty (□: Δ)
+    Empty (none :: Δ)
 
 /-- Linear de Bruijn lookup with shifting (Coq `dyn_has`). -/
 inductive Has : Ctx → Nat → Srt → Term → Prop where
@@ -92,7 +90,7 @@ inductive Has : Ctx → Nat → Srt → Term → Prop where
     Has (B :U Δ) (x + 1) s (A⟨(id : Nat → Nat); ↑⟩)
   | null {Δ A x s} :
     Has Δ x s A →
-    Has (□: Δ) (x + 1) s (A⟨(id : Nat → Nat); ↑⟩)
+    Has (none :: Δ) (x + 1) s (A⟨(id : Nat → Nat); ↑⟩)
 
 /-- Single-linear-slot lookup used by channel variables (Coq `dyn_just`). -/
 inductive Just : Ctx → Nat → Term → Prop where
@@ -101,7 +99,7 @@ inductive Just : Ctx → Nat → Term → Prop where
     Just (A :L Δ) 0 (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
   | null {Δ A x} :
     Just Δ x A →
-    Just (□: Δ) (x + 1) (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
+    Just (none :: Δ) (x + 1) (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
 
 /-! ## Key lemmas -/
 
@@ -166,8 +164,8 @@ lemma Empty.merge_self {Δ} (emp : Empty Δ) : Merge Δ Δ Δ := by
 /-- A `Just` lookup exposes an empty splitter (Coq `just_empty`). -/
 lemma Just.empty {Δ x A} (js : Just Δ x A) : ∃ Δ0, Empty Δ0 ∧ Merge Δ0 Δ Δ := by
   induction js with
-  | zero emp => exact ⟨□: _, .null emp, .right2 _ (Empty.merge_self emp)⟩
-  | null _ ih => obtain ⟨Δ0, e, mrg⟩ := ih; exact ⟨□: Δ0, .null e, .null mrg⟩
+  | zero emp => exact ⟨none :: _, .null emp, .right2 _ (Empty.merge_self emp)⟩
+  | null _ ih => obtain ⟨Δ0, e, mrg⟩ := ih; exact ⟨none :: Δ0, .null e, .null mrg⟩
 
 /-- An empty context admits no `Just` lookup (Coq `empty_just`). -/
 lemma Empty.not_just {Δ x A} (emp : Empty Δ) : ¬ Just Δ x A := by
@@ -257,11 +255,11 @@ lemma Merge.splitL {Δ1 Δ2 Δ} (mrg : Merge Δ1 Δ2 Δ) :
     | left _ m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨m :U Δc, .left m ha, .left m hb⟩
   | right1 m _ ih => intro _ _ m2; cases m2 with
     | right1 _ m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨m :L Δc, .right1 m ha, .right1 m hb⟩
-    | right2 _ m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨□: Δc, .null ha, .right2 m hb⟩
+    | right2 _ m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨none :: Δc, .null ha, .right2 m hb⟩
   | right2 m _ ih => intro _ _ m2; cases m2 with
     | null m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨m :L Δc, .right2 m ha, .right1 m hb⟩
   | null _ ih => intro _ _ m2; cases m2 with
-    | null m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨□: Δc, .null ha, .null hb⟩
+    | null m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨none :: Δc, .null ha, .null hb⟩
 
 /-- Right split-rotation of a nested merge (Coq `merge_splitR`). -/
 lemma Merge.splitR {Δ1 Δ2 Δ} (mrg : Merge Δ1 Δ2 Δ) :
@@ -271,12 +269,12 @@ lemma Merge.splitR {Δ1 Δ2 Δ} (mrg : Merge Δ1 Δ2 Δ) :
   | left m _ ih => intro _ _ m2; cases m2 with
     | left _ m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨m :U Δc, .left m ha, .left m hb⟩
   | right1 m _ ih => intro _ _ m2; cases m2 with
-    | right1 _ m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨□: Δc, .null ha, .right2 m hb⟩
+    | right1 _ m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨none :: Δc, .null ha, .right2 m hb⟩
     | right2 _ m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨m :L Δc, .right1 m ha, .right1 m hb⟩
   | right2 m _ ih => intro _ _ m2; cases m2 with
     | null m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨m :L Δc, .right2 m ha, .right1 m hb⟩
   | null _ ih => intro _ _ m2; cases m2 with
-    | null m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨□: Δc, .null ha, .null hb⟩
+    | null m2' => obtain ⟨Δc, ha, hb⟩ := ih m2'; exact ⟨none :: Δc, .null ha, .null hb⟩
 
 /-- Distributivity of merge over two nested merges (Coq `merge_distr`). -/
 lemma Merge.distr {Γ1 Γ2 Γ Δ11 Δ12 Δ21 Δ22}
