@@ -96,6 +96,78 @@ lemma bindEndpointAt_zero_agree {Θ r A} (tyA : [] ⊢ A : .proto) :
   rw [bindEndpointAt_zero_eq]
   exact AgreeCSubst.ty (AgreeCSubst.pad (AgreeCSubst.nil (erasePCtx_empty Θ).procWf)) tyA
 
+lemma shift3_erasePCtx_agree {Θ : PCtx} :
+    AgreeCSubst (.none :: .none :: .none :: erasePCtx Θ)
+      (fun x => Chan.var_Chan (x + 3)) (erasePCtx Θ) := by
+  have a0 : AgreeCSubst (erasePCtx Θ) Chan.var_Chan (erasePCtx Θ) :=
+    AgreeCSubst.nil (erasePCtx_empty Θ).procWf
+  have a1 := AgreeCSubst.pad a0
+  have a2 := AgreeCSubst.pad a1
+  have a3 := AgreeCSubst.pad a2
+  simpa [funcomp, ren_Chan, Nat.add_assoc] using a3
+
+lemma bindEndpointAt_one_tail_agree {Θ r A} (tyA : [] ⊢ A : .proto) :
+    AgreeCSubst (.one r A :: .none :: .none :: erasePCtx Θ)
+      (Chan.var_Chan 0 .: fun x => Chan.var_Chan (x + 3))
+      (.one r A :: erasePCtx Θ) := by
+  have empTail : PEmpty (.none :: .none :: erasePCtx Θ) :=
+    .none (.none (erasePCtx_empty Θ))
+  have mrg : PMerge (.none :: .none :: .none :: erasePCtx Θ)
+      (.one r A :: .none :: .none :: erasePCtx Θ)
+      (.one r A :: .none :: .none :: erasePCtx Θ) :=
+    PMerge.oneR empTail.merge_self
+  have tyx : (.one r A :: .none :: .none :: erasePCtx Θ) ⨾
+      ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ .chan (Chan.var_Chan 0) : .ch r A :=
+    TLLC.Process.chanAt0 (.none (.none (erasePCtx_empty Θ))) tyA
+  exact AgreeCSubst.wk1 mrg shift3_erasePCtx_agree tyx
+
+lemma bindEndpointAt_one_none_agree {Θ r A} (tyA : [] ⊢ A : .proto) :
+    AgreeCSubst (.one r A :: .none :: .none :: erasePCtx Θ)
+      (bindEndpointAt 0 (Chan.var_Chan 1)) (.none :: .one r A :: erasePCtx Θ) := by
+  have agr : AgreeCSubst (.one r A :: .none :: .none :: erasePCtx Θ)
+      (Chan.var_Chan 1 .: (Chan.var_Chan 0 .: fun x => Chan.var_Chan (x + 3)))
+      (.none :: .one r A :: erasePCtx Θ) :=
+    AgreeCSubst.wk0 (bindEndpointAt_one_tail_agree (Θ := Θ) tyA)
+  convert agr using 1
+  funext x
+  cases x with
+  | zero => simp [bindEndpointAt]
+  | succ x =>
+    cases x with
+    | zero => simp [bindEndpointAt]
+    | succ x => simp [bindEndpointAt, Nat.add_assoc]
+
+lemma bindEndpointAt_one_one_agree {Θ r A r0 A0}
+    (tyA : [] ⊢ A : .proto) (tyA0 : [] ⊢ A0 : .proto) :
+    AgreeCSubst (.one r A :: .one r0 A0 :: .none :: erasePCtx Θ)
+      (bindEndpointAt 0 (Chan.var_Chan 1)) (.one r0 A0 :: .one r A :: erasePCtx Θ) := by
+  have agrTail : AgreeCSubst (.one r A :: .none :: .none :: erasePCtx Θ)
+      (Chan.var_Chan 0 .: fun x => Chan.var_Chan (x + 3)) (.one r A :: erasePCtx Θ) :=
+    bindEndpointAt_one_tail_agree tyA
+  have tyPrefix : (.none :: .one r0 A0 :: .none :: erasePCtx Θ) ⨾
+      ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ .chan (Chan.var_Chan 1) : .ch r0 A0 :=
+    TLLC.Process.chanAt1 (PEmpty.none (erasePCtx_empty Θ)) tyA0
+  have mrgTail : PMerge (.none :: .none :: erasePCtx Θ)
+      (.one r0 A0 :: .none :: erasePCtx Θ)
+      (.one r0 A0 :: .none :: erasePCtx Θ) :=
+    PMerge.oneR (PEmpty.none (erasePCtx_empty Θ)).merge_self
+  have mrg : PMerge (.one r A :: .none :: .none :: erasePCtx Θ)
+      (.none :: .one r0 A0 :: .none :: erasePCtx Θ)
+      (.one r A :: .one r0 A0 :: .none :: erasePCtx Θ) :=
+    PMerge.oneL mrgTail
+  have agr : AgreeCSubst (.one r A :: .one r0 A0 :: .none :: erasePCtx Θ)
+      (Chan.var_Chan 1 .: (Chan.var_Chan 0 .: fun x => Chan.var_Chan (x + 3)))
+      (.one r0 A0 :: .one r A :: erasePCtx Θ) :=
+    AgreeCSubst.wk1 mrg agrTail tyPrefix
+  convert agr using 1
+  funext x
+  cases x with
+  | zero => simp [bindEndpointAt]
+  | succ x =>
+    cases x with
+    | zero => simp [bindEndpointAt]
+    | succ x => simp [bindEndpointAt, Nat.add_assoc]
+
 lemma parAll_typed {Θ p ps} (ty : TLLC.Process.Typed Θ p)
     (tys : ∀ q, q ∈ ps → TLLC.Process.Typed [] q) :
     TLLC.Process.Typed Θ (parAll p ps) := by
@@ -110,6 +182,25 @@ lemma parAll_typed {Θ p ps} (ty : TLLC.Process.Typed Θ p)
     obtain ⟨Θe, emp, mrg⟩ := TLLC.Process.procWf_emptyR ty.procWf
     have tyq' : TLLC.Process.Typed Θe q := tyq.empty_irrel PEmpty.nil emp
     exact ih (TLLC.Process.Typed.par mrg ty tyq') tyqs
+
+lemma one_empty_irrel {Θ Θ' r A p} (ty : TLLC.Process.Typed (.one r A :: Θ) p)
+    (emp : PEmpty Θ) (emp' : PEmpty Θ') :
+    TLLC.Process.Typed (.one r A :: Θ') p :=
+  ty.pctxEmptyRel (.one (.empty emp emp'))
+
+lemma nu_par_typed {Θp Θc Θ p q r A} (tyA : [] ⊢ A : .proto)
+    (mrg : PMerge Θp Θc Θ)
+    (typ : TLLC.Process.Typed (.one r A :: Θp) p)
+    (tyq : TLLC.Process.Typed (.one (!r) A :: Θc) q) :
+    TLLC.Process.Typed Θ (.nu (.par p q)) :=
+  TLLC.Process.Typed.res tyA (TLLC.Process.Typed.par (.split mrg) typ tyq)
+
+lemma nu_par_empty_tail_typed {Θ p q r A} (emp : PEmpty Θ)
+    (tyA : [] ⊢ A : .proto)
+    (typ : TLLC.Process.Typed (.one r A :: Θ) p)
+    (tyq : TLLC.Process.Typed (.one (!r) A :: Θ) q) :
+    TLLC.Process.Typed Θ (.nu (.par p q)) :=
+  nu_par_typed tyA emp.merge_self typ tyq
 
 mutual
 
@@ -223,6 +314,44 @@ lemma flattenSubtrees_eq_map (trees : List Tree) :
   | nil => simp
   | cons tree trees ih => simp [ih]
 
+lemma shiftChildren_eq_nil {children : List (Chan × Tree)} :
+    shiftChildren children = [] → children = [] := by
+  cases children with
+  | nil => intro _; rfl
+  | cons child children =>
+    cases child with
+    | mk c tree =>
+      cases c
+      intro h
+      contradiction
+
+lemma ChildrenTyped.empty_of_eq_nil {Θ children} (tys : ChildrenTyped Θ children) :
+    children = [] → PEmpty Θ := by
+  induction Θ generalizing children with
+  | nil =>
+    intro _
+    exact .nil
+  | cons slot Θ ih =>
+    intro hnil
+    cases slot with
+    | none =>
+      cases tys with
+      | none tys0 => exact .none (ih tys0 (shiftChildren_eq_nil hnil))
+    | one _ _ =>
+      cases tys with
+      | one _ _ => contradiction
+    | both _ =>
+      cases tys
+
+lemma ChildrenTyped.empty_of_nil {Θ} (tys : ChildrenTyped Θ []) : PEmpty Θ :=
+  tys.empty_of_eq_nil rfl
+
+lemma ChildrenTyped.flattenChildren_nil_typed {Θ body} (tys : ChildrenTyped Θ [])
+    (tyBody : TLLC.Process.Typed Θ body) :
+    TLLC.Process.Typed (erasePCtx Θ) (flattenChildren body []) := by
+  have emp : PEmpty Θ := tys.empty_of_nil
+  simpa using tyBody.empty_irrel emp (erasePCtx_empty Θ)
+
 lemma SubtreesTyped.flattenSubtrees_typed {trees}
     (tys : SubtreesTyped trees)
     (valid : ∀ {tree}, Typed tree → TLLC.Process.Typed [] tree.flatten) :
@@ -253,5 +382,83 @@ lemma flattenChildren_nil_typed {Θ m}
     TLLC.Process.Typed Θ (flattenChildren (.tm m) []) := by
   simp
   exact TLLC.Process.Typed.exp tym
+
+lemma flatten_root_nil_valid {Θ m subtrees}
+    (tym : Θ ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ m : .M .unit)
+    (tyChildren : ChildrenTyped Θ [])
+    (tySubtrees : SubtreesTyped subtrees)
+    (valid : ∀ {tree}, Typed tree → TLLC.Process.Typed [] tree.flatten) :
+    TLLC.Process.Typed [] (flattenBody m [] subtrees) := by
+  have tyBody : TLLC.Process.Typed (erasePCtx Θ) (flattenChildren (.tm m) []) :=
+    tyChildren.flattenChildren_nil_typed (TLLC.Process.Typed.exp tym)
+  have tySubs : ∀ q, q ∈ flattenSubtrees subtrees → TLLC.Process.Typed [] q :=
+    tySubtrees.flattenSubtrees_typed valid
+  have tyFlat : TLLC.Process.Typed (erasePCtx Θ) (flattenBody m [] subtrees) :=
+    flattenBody_typed tyBody tySubs
+  exact tyFlat.empty_irrel (erasePCtx_empty Θ) PEmpty.nil
+
+lemma flattenChildren_cons_zero_typed {Θ r A body child children}
+    (tyA : [] ⊢ A : .proto)
+    (tyTail : TLLC.Process.Typed (.one r A :: erasePCtx Θ)
+      (flattenChildren body (shiftChildren children)))
+    (tyChild : TLLC.Process.Typed (.one (!r) A :: .none :: erasePCtx Θ)
+      ((child.flattenAt).2[bindEndpointAt 0 (child.flattenAt).1; Term.var_Term])) :
+    TLLC.Process.Typed (.none :: erasePCtx Θ)
+      (flattenChildren body ((Chan.var_Chan 0, child) :: shiftChildren children)) := by
+  have tyParent : TLLC.Process.Typed (.one r A :: .none :: erasePCtx Θ)
+      ((flattenChildren body (shiftChildren children))[bindEndpointAt 0 (Chan.var_Chan 0);
+        Term.var_Term]) :=
+    tyTail.csubstitution (bindEndpointAt_zero_agree (Θ := Θ) tyA)
+  cases h : child.flattenAt with
+  | mk d p =>
+    simp [flattenChildren, h]
+    exact nu_par_empty_tail_typed (.none (erasePCtx_empty Θ)) tyA tyParent (by
+      simpa [h] using tyChild)
+
+lemma flattenChildren_cons_one_none_typed {Θ r A body child children Θc}
+    (tyA : [] ⊢ A : .proto)
+    (tyTail : TLLC.Process.Typed (.none :: .one r A :: erasePCtx Θ)
+      (flattenChildren body children))
+    (tyChild : TLLC.Process.Typed (.one (!r) A :: Θc)
+      ((child.flattenAt).2[bindEndpointAt 0 (child.flattenAt).1; Term.var_Term]))
+    (empC : PEmpty Θc) :
+    TLLC.Process.Typed (.none :: .none :: erasePCtx Θ)
+      (flattenChildren body ((Chan.var_Chan 1, child) :: children)) := by
+  have tyParent : TLLC.Process.Typed (.one r A :: .none :: .none :: erasePCtx Θ)
+      ((flattenChildren body children)[bindEndpointAt 0 (Chan.var_Chan 1); Term.var_Term]) :=
+    tyTail.csubstitution (bindEndpointAt_one_none_agree (Θ := Θ) tyA)
+  have wfOuter : ProcWf (.none :: .none :: erasePCtx Θ) :=
+    .none (.none (erasePCtx_empty Θ).procWf)
+  obtain ⟨Θe, empE, mrg⟩ := TLLC.Process.procWf_emptyR wfOuter
+  have tyChild' : TLLC.Process.Typed (.one (!r) A :: Θe)
+      ((child.flattenAt).2[bindEndpointAt 0 (child.flattenAt).1; Term.var_Term]) :=
+    one_empty_irrel tyChild empC empE
+  cases h : child.flattenAt with
+  | mk d p =>
+    simp [flattenChildren, h]
+    exact nu_par_typed tyA mrg tyParent (by simpa [h] using tyChild')
+
+lemma flattenChildren_cons_one_one_typed {Θ r A r0 A0 body child children Θc}
+    (tyA : [] ⊢ A : .proto) (tyA0 : [] ⊢ A0 : .proto)
+    (tyTail : TLLC.Process.Typed (.one r0 A0 :: .one r A :: erasePCtx Θ)
+      (flattenChildren body children))
+    (tyChild : TLLC.Process.Typed (.one (!r) A :: Θc)
+      ((child.flattenAt).2[bindEndpointAt 0 (child.flattenAt).1; Term.var_Term]))
+    (empC : PEmpty Θc) :
+    TLLC.Process.Typed (.one r0 A0 :: .none :: erasePCtx Θ)
+      (flattenChildren body ((Chan.var_Chan 1, child) :: children)) := by
+  have tyParent : TLLC.Process.Typed (.one r A :: .one r0 A0 :: .none :: erasePCtx Θ)
+      ((flattenChildren body children)[bindEndpointAt 0 (Chan.var_Chan 1); Term.var_Term]) :=
+    tyTail.csubstitution (bindEndpointAt_one_one_agree (Θ := Θ) tyA tyA0)
+  have wfOuter : ProcWf (.one r0 A0 :: .none :: erasePCtx Θ) :=
+    .one (.none (erasePCtx_empty Θ).procWf) tyA0
+  obtain ⟨Θe, empE, mrg⟩ := TLLC.Process.procWf_emptyR wfOuter
+  have tyChild' : TLLC.Process.Typed (.one (!r) A :: Θe)
+      ((child.flattenAt).2[bindEndpointAt 0 (child.flattenAt).1; Term.var_Term]) :=
+    one_empty_irrel tyChild empC empE
+  cases h : child.flattenAt with
+  | mk d p =>
+    simp [flattenChildren, h]
+    exact nu_par_typed tyA mrg tyParent (by simpa [h] using tyChild')
 
 end TLLC.Spawning
