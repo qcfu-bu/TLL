@@ -57,6 +57,12 @@ theorem chanSubstInvariant_implicitPayload {c d : Chan} {payload : Term}
     (fun x => (bindEndpointAt 0 c x)[up_Chan_Chan σ])
     (fun x => (bindEndpointAt 0 d x)[up_Chan_Chan σ]) using 1 <;> asimp
 
+theorem implicitPayload_symm {c d : Chan} {payload : Term}
+    (implicit : implicitPayload c d payload) :
+    implicitPayload d c payload := by
+  intro σ
+  exact (implicit σ).symm
+
 /-- Split a child list into the children whose parent edge occurs in `m` and those whose edge does
 not occur in `m`. The first component is the report's `I'`; the second is the complement. -/
 def splitChildrenByTerm (m : Term) :

@@ -630,6 +630,146 @@ lemma process_step_comIm_edge_csubst {M N : EvalCtx} {payloadTerm : Term} {c d :
         all_goals try trivial
         try asimp
 
+lemma process_step_comIm_edge_symm_csubst {M N : EvalCtx} {payloadTerm : Term} {c d : Chan}
+    (payload : implicitPayload c d payloadTerm) :
+    ∀ σ : Nat → Chan,
+      TLLC.Process.Step
+        (.nu (.par
+          (.tm (((M.eval (.recv (Term.chan c) .im))[
+            bindEndpointAt 0 c; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+          (.tm (((N.eval (.app (.send (Term.chan d) .im) payloadTerm .im))[
+            bindEndpointAt 0 d; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))))
+        (.nu (.par
+          (.tm (((M.eval (.pure (.pair payloadTerm (Term.chan c) .im .L)))[
+            bindEndpointAt 0 c; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+          (.tm (((N.eval (.pure (Term.chan d)))[
+            bindEndpointAt 0 d; Term.var_Term])[up_Chan_Chan σ; Term.var_Term])))) := by
+  intro σ
+  exact TLLC.Process.Step.congr
+    (process_congr_res (ARS.conv1 TLLC.Process.Congr.par_sym))
+    (process_step_comIm_edge_csubst (M := N) (N := M) (payloadTerm := payloadTerm)
+      (c := d) (d := c) (implicitPayload_symm payload) σ)
+    (process_congr_res (ARS.conv1 TLLC.Process.Congr.par_sym))
+
+lemma process_step_comEx_edge_csubst {M N : EvalCtx} {valueTerm : Term} {c d : Chan}
+    (value : Val valueTerm) :
+    ∀ σ : Nat → Chan,
+      TLLC.Process.Step
+        (.nu (.par
+          (.tm (((M.eval (.app (.send (Term.chan c) .ex) valueTerm .ex))[
+            bindEndpointAt 0 c; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+          (.tm (((N.eval (.recv (Term.chan d) .ex))[
+            bindEndpointAt 0 d; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))))
+        (.nu (.par
+          (.tm (((M.eval (.pure (Term.chan c)))[
+            bindEndpointAt 0 c; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+          (.tm (((N.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 d))).cren
+            (TLLC.Static.csubst_ren (up_Chan_Chan σ))).eval
+              (.pure (.pair
+                (valueTerm[bindEndpointAt 0 c; Term.var_Term][up_Chan_Chan σ; Term.var_Term])
+                (TLLC.Process.cvar 0) .ex .L)))))) := by
+  intro σ
+  cases c with
+  | var_Chan parentIndex =>
+    cases d with
+    | var_Chan childIndex =>
+      convert (TLLC.Process.Step.comEx
+        (M := (M.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 (Chan.var_Chan parentIndex)))).cren
+          (TLLC.Static.csubst_ren (up_Chan_Chan σ)))
+        (N := (N.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 (Chan.var_Chan childIndex)))).cren
+          (TLLC.Static.csubst_ren (up_Chan_Chan σ)))
+        (v := valueTerm[bindEndpointAt 0 (Chan.var_Chan parentIndex); Term.var_Term][up_Chan_Chan σ;
+          Term.var_Term])
+        (dynamic_val_csubst (dynamic_val_csubst value (bindEndpointAt 0 (Chan.var_Chan parentIndex)))
+          (up_Chan_Chan σ))) using 1
+      all_goals
+        repeat rw [evalctx_csubst]
+        asimp
+        unfold bindEndpointAt chanIndex
+        simp
+        try constructor
+        all_goals try trivial
+        try asimp
+
+lemma process_step_comEx_edge_symm_csubst {M N : EvalCtx} {valueTerm : Term} {c d : Chan}
+    (value : Val valueTerm) :
+    ∀ σ : Nat → Chan,
+      TLLC.Process.Step
+        (.nu (.par
+          (.tm (((M.eval (.recv (Term.chan c) .ex))[
+            bindEndpointAt 0 c; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+          (.tm (((N.eval (.app (.send (Term.chan d) .ex) valueTerm .ex))[
+            bindEndpointAt 0 d; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))))
+        (.nu (.par
+          (.tm (((M.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 c))).cren
+            (TLLC.Static.csubst_ren (up_Chan_Chan σ))).eval
+              (.pure (.pair
+                (valueTerm[bindEndpointAt 0 d; Term.var_Term][up_Chan_Chan σ; Term.var_Term])
+                (TLLC.Process.cvar 0) .ex .L))))
+          (.tm (((N.eval (.pure (Term.chan d)))[
+            bindEndpointAt 0 d; Term.var_Term])[up_Chan_Chan σ; Term.var_Term])))) := by
+  intro σ
+  exact TLLC.Process.Step.congr
+    (process_congr_res (ARS.conv1 TLLC.Process.Congr.par_sym))
+    (process_step_comEx_edge_csubst (M := N) (N := M) (valueTerm := valueTerm)
+      (c := d) (d := c) value σ)
+    (process_congr_res (ARS.conv1 TLLC.Process.Congr.par_sym))
+
+lemma process_step_end_edge_csubst {M N : EvalCtx} {c d : Chan} :
+    ∀ σ : Nat → Chan,
+      TLLC.Process.Step
+        (.nu (.par
+          (.tm (((M.eval (.close true (Term.chan c)))[
+            bindEndpointAt 0 c; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+          (.tm (((N.eval (.close false (Term.chan d)))[
+            bindEndpointAt 0 d; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))))
+        (.par
+          (.tm ((((M.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 c))).cren
+            (TLLC.Static.csubst_ren (up_Chan_Chan σ))).cren ((· - 1) : Nat → Nat)).eval
+              (.pure .one)))
+          (.tm ((((N.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 d))).cren
+            (TLLC.Static.csubst_ren (up_Chan_Chan σ))).cren ((· - 1) : Nat → Nat)).eval
+              (.pure .one)))) := by
+  intro σ
+  cases c with
+  | var_Chan parentIndex =>
+    cases d with
+    | var_Chan childIndex =>
+      convert (TLLC.Process.Step.end
+        (M := (M.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 (Chan.var_Chan parentIndex)))).cren
+          (TLLC.Static.csubst_ren (up_Chan_Chan σ)))
+        (N := (N.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 (Chan.var_Chan childIndex)))).cren
+          (TLLC.Static.csubst_ren (up_Chan_Chan σ)))
+        rfl rfl) using 1
+      · repeat rw [evalctx_csubst]
+        asimp
+        unfold bindEndpointAt chanIndex
+        simp
+        try constructor
+        all_goals try trivial
+        try asimp
+
+lemma process_step_end_edge_symm_csubst {M N : EvalCtx} {c d : Chan} :
+    ∀ σ : Nat → Chan,
+      TLLC.Process.Step
+        (.nu (.par
+          (.tm (((M.eval (.close false (Term.chan c)))[
+            bindEndpointAt 0 c; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+          (.tm (((N.eval (.close true (Term.chan d)))[
+            bindEndpointAt 0 d; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))))
+        (.par
+          (.tm ((((M.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 c))).cren
+            (TLLC.Static.csubst_ren (up_Chan_Chan σ))).cren ((· - 1) : Nat → Nat)).eval
+              (.pure .one)))
+          (.tm ((((N.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 d))).cren
+            (TLLC.Static.csubst_ren (up_Chan_Chan σ))).cren ((· - 1) : Nat → Nat)).eval
+              (.pure .one)))) := by
+  intro σ
+  exact TLLC.Process.Step.congr
+    (process_congr_res (ARS.conv1 TLLC.Process.Congr.par_sym))
+    (process_step_end_edge_csubst (M := N) (N := M) (c := d) (d := c) σ)
+    (ARS.conv1 TLLC.Process.Congr.par_sym)
+
 lemma parAll_csubst (body : Proc) (processes : List Proc) :
     ∀ σ : Nat → Chan,
       (parAll body processes)[σ; Term.var_Term] =
