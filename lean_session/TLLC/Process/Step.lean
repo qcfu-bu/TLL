@@ -67,7 +67,7 @@ inductive Step : Proc → Proc → Prop where
     N' = N.cren ((· + 1) : Nat → Nat) →
     Step (.tm (N.eval (.fork A m)))
       (.nu (.par (.tm (N'.eval (.pure (cvar 0)))) (.tm (m'[Chan.var_Chan; (cvar 0)..]))))
-  | com {M N : EvalCtx} {m} :
+  | comIm {M N : EvalCtx} {m} :
     Step (.nu (.par (.tm (M.eval (.app (.send (cvar 0) .im) m .im))) (.tm (N.eval (.recv (cvar 0) .im)))))
       (.nu (.par (.tm (M.eval (.pure (cvar 0)))) (.tm (N.eval (.pure (.pair m (cvar 0) .im .L))))))
   | comEx {M N : EvalCtx} {v} :
