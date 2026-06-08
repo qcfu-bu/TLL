@@ -656,216 +656,152 @@ lemma flattenChildren_cons_prefix_tail_typed {tail r A body child children Θc p
     simp [flattenChildren, h]
     exact nu_par_typed tyA mrg tyParent (by simpa [h] using tyChild')
 
-/-! ## Mutual induction package -/
-
-namespace FlattenInduction
-
-abbrev RootGoal (tree : Tree) : Prop :=
-  TLLC.Process.Typed [] tree.flatten
-
-abbrev NodeGoal (r : Bool) (Ashift : Term) (tree : Tree) : Prop :=
-  ∀ {A}, [] ⊢ A : .proto →
-    Ashift = A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ →
-    TLLC.Process.Typed (.one r A :: [])
-      ((tree.flattenAt).2[bindEndpointAt 0 (tree.flattenAt).1; Term.var_Term])
-
-abbrev ChildrenGoal (Θ : PCtx) (children : List (Chan × Tree)) : Prop :=
-  ∀ {body pre}, PCtxSingle pre → ProcWf pre → ProcWf Θ →
-    TLLC.Process.Typed (pre ++ Θ) body →
-    TLLC.Process.Typed (pre ++ erasePCtx Θ)
-      (flattenChildren body (shiftChildrenN pre.length children))
-
-abbrev ChildrenAtGoal (Θ : PCtx) (x : Nat) (children : List (Chan × Tree)) : Prop :=
-  ∀ {body pre}, PCtxSingle pre → ProcWf pre → ProcWf Θ →
-    TLLC.Process.Typed (pre ++ Θ) body →
-    TLLC.Process.Typed (pre ++ eraseExcept Θ x)
-      (flattenChildren body (shiftChildrenN pre.length children))
-
-abbrev SubtreesGoal (trees : List Tree) : Prop :=
-  ∀ q, q ∈ flattenSubtrees trees → TLLC.Process.Typed [] q
-
-lemma root {Θ m children subtrees}
-    (_ : PCtxSingle Θ)
-    (tym : Θ ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ m : .M .unit)
-    (_ : ChildrenTyped Θ children) (_ : SubtreesTyped subtrees)
-    (ihChildren : ChildrenGoal Θ children) (ihSubtrees : SubtreesGoal subtrees) :
-    RootGoal (.root m children subtrees) := by
-  have tyChildrenFlat : TLLC.Process.Typed (erasePCtx Θ)
-      (flattenChildren (.tm m) children) := by
-    simpa using ihChildren (body := .tm m) (pre := []) PCtxSingle.nil ProcWf.nil
-      tym.procWf (TLLC.Process.Typed.exp tym)
-  have tyBody : TLLC.Process.Typed (erasePCtx Θ) (flattenBody m children subtrees) :=
-    flattenBody_typed tyChildrenFlat ihSubtrees
-  simpa [RootGoal] using tyBody.empty_irrel (erasePCtx_empty Θ) PEmpty.nil
-
-lemma node {Θ x r Ashift m children subtrees}
-    (_ : PCtxSingle Θ) (has : PHas Θ x r Ashift)
-    (tym : Θ ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ m : .M .unit)
-    (_ : ChildrenTypedAt Θ x r Ashift children) (_ : SubtreesTyped subtrees)
-    (ihChildren : ChildrenAtGoal Θ x children) (ihSubtrees : SubtreesGoal subtrees) :
-    NodeGoal r Ashift (.node (Chan.var_Chan x) m children subtrees) := by
-  intro A tyA hEq
-  subst hEq
-  have tyChildrenFlat : TLLC.Process.Typed (eraseExcept Θ x)
-      (flattenChildren (.tm m) children) := by
-    simpa using ihChildren (body := .tm m) (pre := []) PCtxSingle.nil ProcWf.nil
-      tym.procWf (TLLC.Process.Typed.exp tym)
-  have tyBody : TLLC.Process.Typed (eraseExcept Θ x) (flattenBody m children subtrees) :=
-    flattenBody_typed tyChildrenFlat ihSubtrees
-  obtain ⟨Θe, empE, agr⟩ := PHas_bindEndpointAt_eraseExcept_agree has tym.procWf tyA
-  have tySubst : TLLC.Process.Typed (.one r A :: Θe)
-      ((flattenBody m children subtrees)[bindEndpointAt 0 (Chan.var_Chan x);
-        Term.var_Term]) :=
-    tyBody.csubstitution agr
-  have tyFlat : TLLC.Process.Typed (.one r A :: [])
-      ((flattenBody m children subtrees)[bindEndpointAt 0 (Chan.var_Chan x);
-        Term.var_Term]) :=
-    one_empty_irrel tySubst empE PEmpty.nil
-  simpa [Tree.flattenAt] using tyFlat
-
-lemma childrenNil : ChildrenGoal [] [] := by
-  intro body pre _ _ _ tyBody
-  simpa [shiftChildrenN] using tyBody
-
-lemma childrenNone {Θ children}
-    (_ : ChildrenTyped Θ children) (ih : ChildrenGoal Θ children) :
-    ChildrenGoal (.none :: Θ) (shiftChildren children) := by
-  intro body pre singlePre wfPre wfΘ tyBody
-  cases wfΘ with
-  | none wfTail =>
-    have singlePre' : PCtxSingle (pre ++ ([Slot.none] : PCtx)) :=
-      PCtxSingle.append_none singlePre
-    have wfPre' : ProcWf (pre ++ ([Slot.none] : PCtx)) :=
-      ProcWf.append_none wfPre
-    have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.none] : PCtx)) ++ Θ) body := by
-      simpa [List.append_assoc] using tyBody
-    have h := ih (body := body) (pre := pre ++ ([Slot.none] : PCtx))
-      singlePre' wfPre' wfTail tyBody'
-    simpa [List.append_assoc, shiftChildrenN_shiftChildren] using h
-
-lemma childrenOne {Θ r A child children}
-    (_ : TypedAt (!r) (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) child)
-    (_ : ChildrenTyped Θ children)
-    (ihChild : NodeGoal (!r) (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) child)
-    (ihTail : ChildrenGoal Θ children) :
-    ChildrenGoal (.one r A :: Θ) ((Chan.var_Chan 0, child) :: shiftChildren children) := by
-  intro body pre singlePre wfPre wfΘ tyBody
-  cases wfΘ with
-  | one wfTail tyA =>
-    have singlePre' : PCtxSingle (pre ++ ([Slot.one r A] : PCtx)) :=
-      PCtxSingle.append_one singlePre
-    have wfPre' : ProcWf (pre ++ ([Slot.one r A] : PCtx)) :=
-      ProcWf.append_one wfPre tyA
-    have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.one r A] : PCtx)) ++ Θ) body := by
-      simpa [List.append_assoc] using tyBody
-    have tyTail := ihTail (body := body) (pre := pre ++ ([Slot.one r A] : PCtx))
-      singlePre' wfPre' wfTail tyBody'
-    have tyChildBase := ihChild tyA rfl
-    have h := flattenChildren_cons_prefix_tail_typed (tail := erasePCtx Θ) (r := r) (A := A)
-      (body := body) (child := child)
-      (children := shiftChildrenN (pre.length + 1) children) (Θc := [])
-      (pre := pre) singlePre wfPre (erasePCtx_empty Θ).procWf tyA (by
-        simpa [List.append_assoc] using tyTail) tyChildBase PEmpty.nil
-    simpa [shiftChildrenN_shiftChildren, shiftChildrenN_one_cons, List.append_assoc] using h
-
-lemma atParent {Θ r A children}
-    (_ : ChildrenTyped Θ children) (ihChildren : ChildrenGoal Θ children) :
-    ChildrenAtGoal (.one r A :: Θ) 0 (shiftChildren children) := by
-  intro body pre singlePre wfPre wfΘ tyBody
-  cases wfΘ with
-  | one wfTail tyA =>
-    have singlePre' : PCtxSingle (pre ++ ([Slot.one r A] : PCtx)) :=
-      PCtxSingle.append_one singlePre
-    have wfPre' : ProcWf (pre ++ ([Slot.one r A] : PCtx)) :=
-      ProcWf.append_one wfPre tyA
-    have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.one r A] : PCtx)) ++ Θ) body := by
-      simpa [List.append_assoc] using tyBody
-    have h := ihChildren (body := body) (pre := pre ++ ([Slot.one r A] : PCtx))
-      singlePre' wfPre' wfTail tyBody'
-    simpa [List.append_assoc, shiftChildrenN_shiftChildren] using h
-
-lemma atNone {Θ x r A children}
-    (_ : ChildrenTypedAt Θ x r A children) (ih : ChildrenAtGoal Θ x children) :
-    ChildrenAtGoal (.none :: Θ) (x + 1) (shiftChildren children) := by
-  intro body pre singlePre wfPre wfΘ tyBody
-  cases wfΘ with
-  | none wfTail =>
-    have singlePre' : PCtxSingle (pre ++ ([Slot.none] : PCtx)) :=
-      PCtxSingle.append_none singlePre
-    have wfPre' : ProcWf (pre ++ ([Slot.none] : PCtx)) :=
-      ProcWf.append_none wfPre
-    have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.none] : PCtx)) ++ Θ) body := by
-      simpa [List.append_assoc] using tyBody
-    have h := ih (body := body) (pre := pre ++ ([Slot.none] : PCtx))
-      singlePre' wfPre' wfTail tyBody'
-    simpa [List.append_assoc, shiftChildrenN_shiftChildren] using h
-
-lemma atOne {Θ x r A r0 A0 child children}
-    (_ : TypedAt (!r0) (A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) child)
-    (_ : ChildrenTypedAt Θ x r A children)
-    (ihChild : NodeGoal (!r0) (A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) child)
-    (ihTail : ChildrenAtGoal Θ x children) :
-    ChildrenAtGoal (.one r0 A0 :: Θ) (x + 1)
-      ((Chan.var_Chan 0, child) :: shiftChildren children) := by
-  intro body pre singlePre wfPre wfΘ tyBody
-  cases wfΘ with
-  | one wfTail tyA0 =>
-    have singlePre' : PCtxSingle (pre ++ ([Slot.one r0 A0] : PCtx)) :=
-      PCtxSingle.append_one singlePre
-    have wfPre' : ProcWf (pre ++ ([Slot.one r0 A0] : PCtx)) :=
-      ProcWf.append_one wfPre tyA0
-    have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.one r0 A0] : PCtx)) ++ Θ) body := by
-      simpa [List.append_assoc] using tyBody
-    have tyTail := ihTail (body := body) (pre := pre ++ ([Slot.one r0 A0] : PCtx))
-      singlePre' wfPre' wfTail tyBody'
-    have wfKeep : ProcWf (eraseExcept Θ x) := procWf_eraseExcept wfTail x
-    have tyChildBase := ihChild tyA0 rfl
-    have h := flattenChildren_cons_prefix_tail_typed (tail := eraseExcept Θ x)
-      (r := r0) (A := A0) (body := body) (child := child)
-      (children := shiftChildrenN (pre.length + 1) children) (Θc := []) (pre := pre)
-      singlePre wfPre wfKeep tyA0 (by
-        simpa [List.append_assoc] using tyTail) tyChildBase PEmpty.nil
-    simpa [shiftChildrenN_shiftChildren, shiftChildrenN_one_cons, List.append_assoc] using h
-
-lemma subtreesNil : SubtreesGoal [] := by
-  intro q hq
-  simp at hq
-
-lemma subtreesCons {tree trees}
-    (_ : Typed tree) (_ : SubtreesTyped trees)
-    (ihTree : RootGoal tree) (ihTrees : SubtreesGoal trees) :
-    SubtreesGoal (tree :: trees) := by
-  intro q hq
-  simp at hq
-  rcases hq with hq | hq
-  · subst hq
-    exact ihTree
-  · exact ihTrees q hq
-
-end FlattenInduction
-
 /-! ## Main theorems -/
 
 /-- Lemma 5.85, root half: flattening a valid root spawning tree yields a well-typed process. -/
 theorem Typed.flatten_typed {tree} (ty : Typed tree) :
     TLLC.Process.Typed [] tree.flatten := by
-  exact Typed.rec
-    (motive_1 := fun tree _ => FlattenInduction.RootGoal tree)
-    (motive_2 := fun r A tree _ => FlattenInduction.NodeGoal r A tree)
-    (motive_3 := fun Θ children _ => FlattenInduction.ChildrenGoal Θ children)
-    (motive_4 := fun Θ x _ _ children _ => FlattenInduction.ChildrenAtGoal Θ x children)
-    (motive_5 := fun trees _ => FlattenInduction.SubtreesGoal trees)
-    FlattenInduction.root
-    FlattenInduction.node
-    FlattenInduction.childrenNil
-    FlattenInduction.childrenNone
-    FlattenInduction.childrenOne
-    FlattenInduction.atParent
-    FlattenInduction.atNone
-    FlattenInduction.atOne
-    FlattenInduction.subtreesNil
-    FlattenInduction.subtreesCons
-    ty
+  refine Typed.rec
+    (motive_1 := fun tree _ => TLLC.Process.Typed [] tree.flatten)
+    (motive_2 := fun r Ashift tree _ =>
+      ∀ {A}, [] ⊢ A : .proto →
+        Ashift = A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ →
+        TLLC.Process.Typed (.one r A :: [])
+          ((tree.flattenAt).2[bindEndpointAt 0 (tree.flattenAt).1; Term.var_Term]))
+    (motive_3 := fun Θ children _ =>
+      ∀ {body pre}, PCtxSingle pre → ProcWf pre → ProcWf Θ →
+        TLLC.Process.Typed (pre ++ Θ) body →
+        TLLC.Process.Typed (pre ++ erasePCtx Θ)
+          (flattenChildren body (shiftChildrenN pre.length children)))
+    (motive_4 := fun Θ x _ _ children _ =>
+      ∀ {body pre}, PCtxSingle pre → ProcWf pre → ProcWf Θ →
+        TLLC.Process.Typed (pre ++ Θ) body →
+        TLLC.Process.Typed (pre ++ eraseExcept Θ x)
+          (flattenChildren body (shiftChildrenN pre.length children)))
+    (motive_5 := fun trees _ =>
+      ∀ q, q ∈ flattenSubtrees trees → TLLC.Process.Typed [] q)
+    ?root ?node ?childrenNil ?childrenNone ?childrenOne ?atParent ?atNone ?atOne
+    ?subsNil ?subsCons ty
+  case root =>
+    intro Θ m children subtrees _ tym _ _ ihChildren ihSubtrees
+    have tyChildrenFlat : TLLC.Process.Typed (erasePCtx Θ)
+        (flattenChildren (.tm m) children) := by
+      simpa using ihChildren (body := .tm m) (pre := []) PCtxSingle.nil ProcWf.nil
+        tym.procWf (TLLC.Process.Typed.exp tym)
+    have tyBody : TLLC.Process.Typed (erasePCtx Θ) (flattenBody m children subtrees) :=
+      flattenBody_typed tyChildrenFlat ihSubtrees
+    simpa using tyBody.empty_irrel (erasePCtx_empty Θ) PEmpty.nil
+  case node =>
+    intro Θ x r _ m children subtrees _ has tym _ _ ihChildren ihSubtrees A tyA hEq
+    subst hEq
+    have tyChildrenFlat : TLLC.Process.Typed (eraseExcept Θ x)
+        (flattenChildren (.tm m) children) := by
+      simpa using ihChildren (body := .tm m) (pre := []) PCtxSingle.nil ProcWf.nil
+        tym.procWf (TLLC.Process.Typed.exp tym)
+    have tyBody : TLLC.Process.Typed (eraseExcept Θ x) (flattenBody m children subtrees) :=
+      flattenBody_typed tyChildrenFlat ihSubtrees
+    obtain ⟨Θe, empE, agr⟩ := PHas_bindEndpointAt_eraseExcept_agree has tym.procWf tyA
+    have tySubst : TLLC.Process.Typed (.one r A :: Θe)
+        ((flattenBody m children subtrees)[bindEndpointAt 0 (Chan.var_Chan x);
+          Term.var_Term]) :=
+      tyBody.csubstitution agr
+    have tyFlat : TLLC.Process.Typed (.one r A :: [])
+        ((flattenBody m children subtrees)[bindEndpointAt 0 (Chan.var_Chan x);
+          Term.var_Term]) :=
+      one_empty_irrel tySubst empE PEmpty.nil
+    simpa [Tree.flattenAt] using tyFlat
+  case childrenNil =>
+    intro body pre _ _ _ tyBody
+    simpa [shiftChildrenN] using tyBody
+  case childrenNone =>
+    intro Θ children _ ih body pre singlePre wfPre wfΘ tyBody
+    cases wfΘ with
+    | none wfTail =>
+      have singlePre' : PCtxSingle (pre ++ ([Slot.none] : PCtx)) :=
+        PCtxSingle.append_none singlePre
+      have wfPre' : ProcWf (pre ++ ([Slot.none] : PCtx)) :=
+        ProcWf.append_none wfPre
+      have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.none] : PCtx)) ++ Θ) body := by
+        simpa [List.append_assoc] using tyBody
+      have h := ih (body := body) (pre := pre ++ ([Slot.none] : PCtx))
+        singlePre' wfPre' wfTail tyBody'
+      simpa [List.append_assoc, shiftChildrenN_shiftChildren] using h
+  case childrenOne =>
+    intro Θ r A child children _ _ ihChild ihTail body pre singlePre wfPre wfΘ tyBody
+    cases wfΘ with
+    | one wfTail tyA =>
+      have singlePre' : PCtxSingle (pre ++ ([Slot.one r A] : PCtx)) :=
+        PCtxSingle.append_one singlePre
+      have wfPre' : ProcWf (pre ++ ([Slot.one r A] : PCtx)) :=
+        ProcWf.append_one wfPre tyA
+      have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.one r A] : PCtx)) ++ Θ) body := by
+        simpa [List.append_assoc] using tyBody
+      have tyTail := ihTail (body := body) (pre := pre ++ ([Slot.one r A] : PCtx))
+        singlePre' wfPre' wfTail tyBody'
+      have tyChildBase := ihChild tyA rfl
+      have h := flattenChildren_cons_prefix_tail_typed (tail := erasePCtx Θ) (r := r) (A := A)
+        (body := body) (child := child)
+        (children := shiftChildrenN (pre.length + 1) children) (Θc := [])
+        (pre := pre) singlePre wfPre (erasePCtx_empty Θ).procWf tyA (by
+          simpa [List.append_assoc] using tyTail) tyChildBase PEmpty.nil
+      simpa [shiftChildrenN_shiftChildren, shiftChildrenN_one_cons, List.append_assoc] using h
+  case atParent =>
+    intro Θ r A children _ ihChildren body pre singlePre wfPre wfΘ tyBody
+    cases wfΘ with
+    | one wfTail tyA =>
+      have singlePre' : PCtxSingle (pre ++ ([Slot.one r A] : PCtx)) :=
+        PCtxSingle.append_one singlePre
+      have wfPre' : ProcWf (pre ++ ([Slot.one r A] : PCtx)) :=
+        ProcWf.append_one wfPre tyA
+      have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.one r A] : PCtx)) ++ Θ) body := by
+        simpa [List.append_assoc] using tyBody
+      have h := ihChildren (body := body) (pre := pre ++ ([Slot.one r A] : PCtx))
+        singlePre' wfPre' wfTail tyBody'
+      simpa [List.append_assoc, shiftChildrenN_shiftChildren] using h
+  case atNone =>
+    intro Θ x _ _ children _ ih body pre singlePre wfPre wfΘ tyBody
+    cases wfΘ with
+    | none wfTail =>
+      have singlePre' : PCtxSingle (pre ++ ([Slot.none] : PCtx)) :=
+        PCtxSingle.append_none singlePre
+      have wfPre' : ProcWf (pre ++ ([Slot.none] : PCtx)) :=
+        ProcWf.append_none wfPre
+      have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.none] : PCtx)) ++ Θ) body := by
+        simpa [List.append_assoc] using tyBody
+      have h := ih (body := body) (pre := pre ++ ([Slot.none] : PCtx))
+        singlePre' wfPre' wfTail tyBody'
+      simpa [List.append_assoc, shiftChildrenN_shiftChildren] using h
+  case atOne =>
+    intro Θ x _ _ r0 A0 child children _ _ ihChild ihTail body pre singlePre wfPre
+      wfΘ tyBody
+    cases wfΘ with
+    | one wfTail tyA0 =>
+      have singlePre' : PCtxSingle (pre ++ ([Slot.one r0 A0] : PCtx)) :=
+        PCtxSingle.append_one singlePre
+      have wfPre' : ProcWf (pre ++ ([Slot.one r0 A0] : PCtx)) :=
+        ProcWf.append_one wfPre tyA0
+      have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.one r0 A0] : PCtx)) ++ Θ) body := by
+        simpa [List.append_assoc] using tyBody
+      have tyTail := ihTail (body := body) (pre := pre ++ ([Slot.one r0 A0] : PCtx))
+        singlePre' wfPre' wfTail tyBody'
+      have wfKeep : ProcWf (eraseExcept Θ x) := procWf_eraseExcept wfTail x
+      have tyChildBase := ihChild tyA0 rfl
+      have h := flattenChildren_cons_prefix_tail_typed (tail := eraseExcept Θ x)
+        (r := r0) (A := A0) (body := body) (child := child)
+        (children := shiftChildrenN (pre.length + 1) children) (Θc := []) (pre := pre)
+        singlePre wfPre wfKeep tyA0 (by
+          simpa [List.append_assoc] using tyTail) tyChildBase PEmpty.nil
+      simpa [shiftChildrenN_shiftChildren, shiftChildrenN_one_cons, List.append_assoc] using h
+  case subsNil =>
+    intro q hq
+    simp at hq
+  case subsCons =>
+    intro tree trees _ _ ihTree ihTrees q hq
+    simp at hq
+    rcases hq with hq | hq
+    · subst hq
+      exact ihTree
+    · exact ihTrees q hq
 
 /-- Lemma 5.85, node half: flattening a valid node yields a process typed by the exposed parent
 endpoint. The statement exposes the raw protocol `A`; the `TypedAt` premise carries the one-step
@@ -874,22 +810,146 @@ theorem TypedAt.flattenAt_typed {r A tree} (tyA : [] ⊢ A : .proto)
     (ty : TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) tree) :
     TLLC.Process.Typed (.one r A :: [])
       ((tree.flattenAt).2[bindEndpointAt 0 (tree.flattenAt).1; Term.var_Term]) := by
-  exact (TypedAt.rec
-    (motive_1 := fun tree _ => FlattenInduction.RootGoal tree)
-    (motive_2 := fun r A tree _ => FlattenInduction.NodeGoal r A tree)
-    (motive_3 := fun Θ children _ => FlattenInduction.ChildrenGoal Θ children)
-    (motive_4 := fun Θ x _ _ children _ => FlattenInduction.ChildrenAtGoal Θ x children)
-    (motive_5 := fun trees _ => FlattenInduction.SubtreesGoal trees)
-    FlattenInduction.root
-    FlattenInduction.node
-    FlattenInduction.childrenNil
-    FlattenInduction.childrenNone
-    FlattenInduction.childrenOne
-    FlattenInduction.atParent
-    FlattenInduction.atNone
-    FlattenInduction.atOne
-    FlattenInduction.subtreesNil
-    FlattenInduction.subtreesCons
-    (t := ty)) tyA rfl
+  refine (TypedAt.rec
+    (motive_1 := fun tree _ => TLLC.Process.Typed [] tree.flatten)
+    (motive_2 := fun r Ashift tree _ =>
+      ∀ {A}, [] ⊢ A : .proto →
+        Ashift = A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ →
+        TLLC.Process.Typed (.one r A :: [])
+          ((tree.flattenAt).2[bindEndpointAt 0 (tree.flattenAt).1; Term.var_Term]))
+    (motive_3 := fun Θ children _ =>
+      ∀ {body pre}, PCtxSingle pre → ProcWf pre → ProcWf Θ →
+        TLLC.Process.Typed (pre ++ Θ) body →
+        TLLC.Process.Typed (pre ++ erasePCtx Θ)
+          (flattenChildren body (shiftChildrenN pre.length children)))
+    (motive_4 := fun Θ x _ _ children _ =>
+      ∀ {body pre}, PCtxSingle pre → ProcWf pre → ProcWf Θ →
+        TLLC.Process.Typed (pre ++ Θ) body →
+        TLLC.Process.Typed (pre ++ eraseExcept Θ x)
+          (flattenChildren body (shiftChildrenN pre.length children)))
+    (motive_5 := fun trees _ =>
+      ∀ q, q ∈ flattenSubtrees trees → TLLC.Process.Typed [] q)
+    ?root ?node ?childrenNil ?childrenNone ?childrenOne ?atParent ?atNone ?atOne
+    ?subsNil ?subsCons (t := ty)) tyA rfl
+  case root =>
+    intro Θ m children subtrees _ tym _ _ ihChildren ihSubtrees
+    have tyChildrenFlat : TLLC.Process.Typed (erasePCtx Θ)
+        (flattenChildren (.tm m) children) := by
+      simpa using ihChildren (body := .tm m) (pre := []) PCtxSingle.nil ProcWf.nil
+        tym.procWf (TLLC.Process.Typed.exp tym)
+    have tyBody : TLLC.Process.Typed (erasePCtx Θ) (flattenBody m children subtrees) :=
+      flattenBody_typed tyChildrenFlat ihSubtrees
+    simpa using tyBody.empty_irrel (erasePCtx_empty Θ) PEmpty.nil
+  case node =>
+    intro Θ x r _ m children subtrees _ has tym _ _ ihChildren ihSubtrees A tyA hEq
+    subst hEq
+    have tyChildrenFlat : TLLC.Process.Typed (eraseExcept Θ x)
+        (flattenChildren (.tm m) children) := by
+      simpa using ihChildren (body := .tm m) (pre := []) PCtxSingle.nil ProcWf.nil
+        tym.procWf (TLLC.Process.Typed.exp tym)
+    have tyBody : TLLC.Process.Typed (eraseExcept Θ x) (flattenBody m children subtrees) :=
+      flattenBody_typed tyChildrenFlat ihSubtrees
+    obtain ⟨Θe, empE, agr⟩ := PHas_bindEndpointAt_eraseExcept_agree has tym.procWf tyA
+    have tySubst : TLLC.Process.Typed (.one r A :: Θe)
+        ((flattenBody m children subtrees)[bindEndpointAt 0 (Chan.var_Chan x);
+          Term.var_Term]) :=
+      tyBody.csubstitution agr
+    have tyFlat : TLLC.Process.Typed (.one r A :: [])
+        ((flattenBody m children subtrees)[bindEndpointAt 0 (Chan.var_Chan x);
+          Term.var_Term]) :=
+      one_empty_irrel tySubst empE PEmpty.nil
+    simpa [Tree.flattenAt] using tyFlat
+  case childrenNil =>
+    intro body pre _ _ _ tyBody
+    simpa [shiftChildrenN] using tyBody
+  case childrenNone =>
+    intro Θ children _ ih body pre singlePre wfPre wfΘ tyBody
+    cases wfΘ with
+    | none wfTail =>
+      have singlePre' : PCtxSingle (pre ++ ([Slot.none] : PCtx)) :=
+        PCtxSingle.append_none singlePre
+      have wfPre' : ProcWf (pre ++ ([Slot.none] : PCtx)) :=
+        ProcWf.append_none wfPre
+      have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.none] : PCtx)) ++ Θ) body := by
+        simpa [List.append_assoc] using tyBody
+      have h := ih (body := body) (pre := pre ++ ([Slot.none] : PCtx))
+        singlePre' wfPre' wfTail tyBody'
+      simpa [List.append_assoc, shiftChildrenN_shiftChildren] using h
+  case childrenOne =>
+    intro Θ r A child children _ _ ihChild ihTail body pre singlePre wfPre wfΘ tyBody
+    cases wfΘ with
+    | one wfTail tyA =>
+      have singlePre' : PCtxSingle (pre ++ ([Slot.one r A] : PCtx)) :=
+        PCtxSingle.append_one singlePre
+      have wfPre' : ProcWf (pre ++ ([Slot.one r A] : PCtx)) :=
+        ProcWf.append_one wfPre tyA
+      have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.one r A] : PCtx)) ++ Θ) body := by
+        simpa [List.append_assoc] using tyBody
+      have tyTail := ihTail (body := body) (pre := pre ++ ([Slot.one r A] : PCtx))
+        singlePre' wfPre' wfTail tyBody'
+      have tyChildBase := ihChild tyA rfl
+      have h := flattenChildren_cons_prefix_tail_typed (tail := erasePCtx Θ) (r := r) (A := A)
+        (body := body) (child := child)
+        (children := shiftChildrenN (pre.length + 1) children) (Θc := [])
+        (pre := pre) singlePre wfPre (erasePCtx_empty Θ).procWf tyA (by
+          simpa [List.append_assoc] using tyTail) tyChildBase PEmpty.nil
+      simpa [shiftChildrenN_shiftChildren, shiftChildrenN_one_cons, List.append_assoc] using h
+  case atParent =>
+    intro Θ r A children _ ihChildren body pre singlePre wfPre wfΘ tyBody
+    cases wfΘ with
+    | one wfTail tyA =>
+      have singlePre' : PCtxSingle (pre ++ ([Slot.one r A] : PCtx)) :=
+        PCtxSingle.append_one singlePre
+      have wfPre' : ProcWf (pre ++ ([Slot.one r A] : PCtx)) :=
+        ProcWf.append_one wfPre tyA
+      have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.one r A] : PCtx)) ++ Θ) body := by
+        simpa [List.append_assoc] using tyBody
+      have h := ihChildren (body := body) (pre := pre ++ ([Slot.one r A] : PCtx))
+        singlePre' wfPre' wfTail tyBody'
+      simpa [List.append_assoc, shiftChildrenN_shiftChildren] using h
+  case atNone =>
+    intro Θ x _ _ children _ ih body pre singlePre wfPre wfΘ tyBody
+    cases wfΘ with
+    | none wfTail =>
+      have singlePre' : PCtxSingle (pre ++ ([Slot.none] : PCtx)) :=
+        PCtxSingle.append_none singlePre
+      have wfPre' : ProcWf (pre ++ ([Slot.none] : PCtx)) :=
+        ProcWf.append_none wfPre
+      have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.none] : PCtx)) ++ Θ) body := by
+        simpa [List.append_assoc] using tyBody
+      have h := ih (body := body) (pre := pre ++ ([Slot.none] : PCtx))
+        singlePre' wfPre' wfTail tyBody'
+      simpa [List.append_assoc, shiftChildrenN_shiftChildren] using h
+  case atOne =>
+    intro Θ x _ _ r0 A0 child children _ _ ihChild ihTail body pre singlePre wfPre
+      wfΘ tyBody
+    cases wfΘ with
+    | one wfTail tyA0 =>
+      have singlePre' : PCtxSingle (pre ++ ([Slot.one r0 A0] : PCtx)) :=
+        PCtxSingle.append_one singlePre
+      have wfPre' : ProcWf (pre ++ ([Slot.one r0 A0] : PCtx)) :=
+        ProcWf.append_one wfPre tyA0
+      have tyBody' : TLLC.Process.Typed ((pre ++ ([Slot.one r0 A0] : PCtx)) ++ Θ) body := by
+        simpa [List.append_assoc] using tyBody
+      have tyTail := ihTail (body := body) (pre := pre ++ ([Slot.one r0 A0] : PCtx))
+        singlePre' wfPre' wfTail tyBody'
+      have wfKeep : ProcWf (eraseExcept Θ x) := procWf_eraseExcept wfTail x
+      have tyChildBase := ihChild tyA0 rfl
+      have h := flattenChildren_cons_prefix_tail_typed (tail := eraseExcept Θ x)
+        (r := r0) (A := A0) (body := body) (child := child)
+        (children := shiftChildrenN (pre.length + 1) children) (Θc := []) (pre := pre)
+        singlePre wfPre wfKeep tyA0 (by
+          simpa [List.append_assoc] using tyTail) tyChildBase PEmpty.nil
+      simpa [shiftChildrenN_shiftChildren, shiftChildrenN_one_cons, List.append_assoc] using h
+  case subsNil =>
+    intro q hq
+    simp at hq
+  case subsCons =>
+    intro tree trees _ _ ihTree ihTrees q hq
+    simp at hq
+    rcases hq with hq | hq
+    · subst hq
+      exact ihTree
+    · exact ihTrees q hq
 
 end TLLC.Spawning
