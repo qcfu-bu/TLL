@@ -15,6 +15,10 @@ The self-dual process encoding uses one channel variable together with endpoint 
 typing. At the spawning-tree level we still keep the report's two names for an edge: the channel used
 by the parent (`c`) and the channel carried by the child node (`d`). Flattening ties these two names
 together under one `Proc.nu`.
+
+The report's Root-Unit and Node-Unit cleanup rules are deliberately left out of `Step`. They remove
+finished detached subtrees, which corresponds to structural congruence after flattening rather than
+a concrete process reduction. Terminality and process congruence handle that cleanup separately.
 -/
 
 namespace TLLC.Spawning
@@ -250,15 +254,6 @@ inductive Step : Tree → Tree → Prop where
   | nodeExpr {p m m' ms qs} :
       Dynamic.Step m m' →
       Step (.node p m ms qs) (.node p m' ms qs)
-
-  | rootUnit {m ms l r} :
-      Step
-        (.root m ms (l ++ Tree.root (.pure .one) [] [] :: r))
-        (.root m ms (l ++ r))
-  | nodeUnit {p m ms l r} :
-      Step
-        (.node p m ms (l ++ Tree.root (.pure .one) [] [] :: r))
-        (.node p m ms (l ++ r))
 
 @[inherit_doc] scoped infix:50 " ⇛ₛ " => Step
 
