@@ -13,6 +13,7 @@ Lemma 5.86 for the productive spawning-tree step relation. Finished-subtree clea
 namespace TLLC.Spawning
 open Autosubst Autosubst.Notation
 open TLLC.Dynamic
+open scoped TLLC.Static TLLC.Dynamic
 
 lemma SubtreesTyped.typed_of_mem {trees : List Tree} {tree : Tree}
     (typed : SubtreesTyped trees) (member : tree ∈ trees) :
@@ -416,6 +417,63 @@ lemma ChildrenTypedAt.typedAt_of_mem {Θ : PCtx} {x : Nat} {role : Bool} {protoc
               obtain ⟨c', memberTailOriginal⟩ := shiftChildren_mem_child memberTail
               exact ih typedTail memberTailOriginal
 
+lemma ChildrenTyped.typedAt_of_mem_wf {Θ : PCtx} {children : List (Chan × Tree)}
+    {c : Chan} {child : Tree}
+    (typed : ChildrenTyped Θ children) (wf : ProcWf Θ) (member : (c, child) ∈ children) :
+    ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) child := by
+  induction Θ generalizing children c child with
+  | nil =>
+      cases typed
+      cases member
+  | cons slot Θ ih =>
+      cases typed with
+      | none typedTail =>
+          cases wf with
+          | none wfTail =>
+              obtain ⟨c', memberTail⟩ := shiftChildren_mem_child member
+              exact ih typedTail wfTail memberTail
+      | one typedChild typedTail =>
+          cases wf with
+          | one wfTail tyA =>
+              cases member with
+              | head =>
+                  exact ⟨_, _, tyA, typedChild⟩
+              | tail _ memberTail =>
+                  obtain ⟨c', memberTailOriginal⟩ := shiftChildren_mem_child memberTail
+                  exact ih typedTail wfTail memberTailOriginal
+
+lemma ChildrenTypedAt.typedAt_of_mem_wf {Θ : PCtx} {x : Nat} {role : Bool}
+    {protocol : Term} {children : List (Chan × Tree)} {c : Chan} {child : Tree}
+    (typed : ChildrenTypedAt Θ x role protocol children) (wf : ProcWf Θ)
+    (member : (c, child) ∈ children) :
+    ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) child := by
+  induction Θ generalizing x protocol children c child with
+  | nil =>
+      cases typed
+  | cons slot Θ ih =>
+      cases typed with
+      | parent typedChildren =>
+          cases wf with
+          | one wfTail _ =>
+              obtain ⟨c', memberTail⟩ := shiftChildren_mem_child member
+              exact typedChildren.typedAt_of_mem_wf wfTail memberTail
+      | none typedTail =>
+          cases wf with
+          | none wfTail =>
+              obtain ⟨c', memberTail⟩ := shiftChildren_mem_child member
+              exact ih typedTail wfTail memberTail
+      | one typedChild typedTail =>
+          cases wf with
+          | one wfTail tyA =>
+              cases member with
+              | head =>
+                  exact ⟨_, _, tyA, typedChild⟩
+              | tail _ memberTail =>
+                  obtain ⟨c', memberTailOriginal⟩ := shiftChildren_mem_child memberTail
+                  exact ih typedTail wfTail memberTailOriginal
+
 lemma Typed.child_typedAt {m : Term} {children : List (Chan × Tree)}
     {subtrees : List Tree} {c : Chan} {child : Tree}
     (typed : Typed (.root m children subtrees)) (member : (c, child) ∈ children) :
@@ -431,6 +489,82 @@ lemma TypedAt.child_typedAt {parent : Chan} {m : Term} {children : List (Chan ×
   cases typed with
   | node _ _ _ typedChildren _ =>
       exact typedChildren.typedAt_of_mem member
+
+lemma Typed.child_typedAt_wf {m : Term} {children : List (Chan × Tree)}
+    {subtrees : List Tree} {c : Chan} {child : Tree}
+    (typed : Typed (.root m children subtrees)) (member : (c, child) ∈ children) :
+    ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) child := by
+  cases typed with
+  | root _ typedTerm typedChildren _ =>
+      exact typedChildren.typedAt_of_mem_wf typedTerm.procWf member
+
+lemma TypedAt.child_typedAt_wf {parent : Chan} {m : Term} {children : List (Chan × Tree)}
+    {subtrees : List Tree} {c : Chan} {child : Tree} {r : Bool} {A : Term}
+    (typed : TypedAt r A (.node parent m children subtrees)) (member : (c, child) ∈ children) :
+    ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) child := by
+  cases typed with
+  | node _ _ typedTerm typedChildren _ =>
+      exact typedChildren.typedAt_of_mem_wf typedTerm.procWf member
+
+lemma PHas.pos_true {Θ x r A} (has : PHas Θ x r A) :
+    CvarPos Θ x true := by
+  induction has with
+  | zero =>
+      exact CvarPos.one
+  | succ _ ih =>
+      exact CvarPos.cons ih
+
+lemma evalctx_occurs_close_chan (M : EvalCtx) (b : Bool) (c : Chan) :
+    occurs (chanIndex c) (M.eval (.close b (Term.chan c))) =
+      occurs (chanIndex c) (M.eval (.pure .one)) + 1 := by
+  induction M with
+  | hole =>
+      cases c with
+      | var_Chan x =>
+          simp [EvalCtx.eval, occurs, chanIndex]
+  | bnd M n ih =>
+      simp [EvalCtx.eval, occurs, ih, Nat.add_comm, Nat.add_left_comm]
+
+lemma Typed.close_unused {M : EvalCtx} {b : Bool} {c : Chan}
+    {children : List (Chan × Tree)} {subtrees : List Tree}
+    (typed : Typed (.root (M.eval (.close b (Term.chan c))) children subtrees))
+    (member : c ∈ childLabels children) :
+    occurs (chanIndex c) (M.eval (.pure .one)) = 0 := by
+  cases typed with
+  | root _ typedTerm typedChildren _ =>
+      have pos := typedChildren.pos_of_label member
+      have occ := typedTerm.occurs1 pos
+      rw [evalctx_occurs_close_chan] at occ
+      omega
+
+lemma TypedAt.close_unused {M : EvalCtx} {b : Bool} {c parent : Chan}
+    {children : List (Chan × Tree)} {subtrees : List Tree} {r A}
+    (typed : TypedAt r A (.node parent (M.eval (.close b (Term.chan c))) children subtrees))
+    (member : c ∈ childLabels children) :
+    occurs (chanIndex c) (M.eval (.pure .one)) = 0 := by
+  cases typed with
+  | node _ _ typedTerm typedChildren _ =>
+      have pos := typedChildren.pos_of_label member
+      have occ := typedTerm.occurs1 pos
+      rw [evalctx_occurs_close_chan] at occ
+      omega
+
+lemma TypedAt.parent_close_unused {N : EvalCtx} {b : Bool} {d : Chan}
+    {children : List (Chan × Tree)} {subtrees : List Tree} {r A}
+    (typed : TypedAt r A (.node d (N.eval (.close b (Term.chan d))) children subtrees)) :
+    occurs (chanIndex d) (N.eval (.pure .one)) = 0 := by
+  cases d with
+  | var_Chan x =>
+      cases typed with
+      | node _ has typedTerm _ _ =>
+          have pos := has.pos_true
+          have occ := typedTerm.occurs1 pos
+          have h := evalctx_occurs_close_chan N b (Chan.var_Chan x)
+          simp [chanIndex] at h occ ⊢
+          rw [h] at occ
+          omega
 
 lemma Step.node_result {parent : Chan} {m : Term} {children : List (Chan × Tree)}
     {subtrees : List Tree} {tree : Tree}
@@ -996,6 +1130,171 @@ lemma process_congr_csubst_of_eqv {p : Proc} {i : Nat} {σ τ : Nat → Chan}
             simpa [funcomp] using congrArg (ren_Chan Nat.succ) (eqv x hx')
       exact process_congr_res (ih eqvUp unused)
 
+lemma occurs_csubst_zero_of_all {m : Term} {σ : Nat → Chan} {i : Nat}
+    (zero : ∀ j, occurs j m = 0) :
+    occurs i (m[σ; Term.var_Term]) = 0 := by
+  induction m generalizing i σ with
+  | var_Term x =>
+      rfl
+  | srt s =>
+      rfl
+  | pi A B r s ihA ihB =>
+      rfl
+  | lam A m r s ihA ihm =>
+      asimp
+      exact ihm (fun j => zero j)
+  | app m n r ihm ihn =>
+      cases r with
+      | im =>
+          asimp
+          exact ihm (fun j => zero j)
+      | ex =>
+          asimp
+          have zm : ∀ j, occurs j m = 0 := by
+            intro j
+            exact Nat.eq_zero_of_add_eq_zero_right (zero j)
+          have zn : ∀ j, occurs j n = 0 := by
+            intro j
+            exact Nat.eq_zero_of_add_eq_zero_left (zero j)
+          simp [occurs, ihm zm, ihn zn]
+  | sig A B r s ihA ihB =>
+      rfl
+  | pair m n r s ihm ihn =>
+      cases r with
+      | im =>
+          asimp
+          exact ihn (fun j => zero j)
+      | ex =>
+          asimp
+          have zm : ∀ j, occurs j m = 0 := by
+            intro j
+            exact Nat.eq_zero_of_add_eq_zero_right (zero j)
+          have zn : ∀ j, occurs j n = 0 := by
+            intro j
+            exact Nat.eq_zero_of_add_eq_zero_left (zero j)
+          simp [occurs, ihm zm, ihn zn]
+  | proj C m n ihC ihm ihn =>
+      asimp
+      have zm : ∀ j, occurs j m = 0 := by
+        intro j
+        exact Nat.eq_zero_of_add_eq_zero_right (zero j)
+      have zn : ∀ j, occurs j n = 0 := by
+        intro j
+        exact Nat.eq_zero_of_add_eq_zero_left (zero j)
+      simp [occurs, ihm zm, ihn zn]
+  | fix A m ihA ihm =>
+      asimp
+      exact ihm (fun j => zero j)
+  | unit =>
+      rfl
+  | one =>
+      rfl
+  | bool =>
+      rfl
+  | tt =>
+      rfl
+  | ff =>
+      rfl
+  | ite A m n1 n2 ihA ihm ihn1 ihn2 =>
+      asimp
+      have zm : ∀ j, occurs j m = 0 := by
+        intro j
+        exact Nat.eq_zero_of_add_eq_zero_right (zero j)
+      have zmax : ∀ j, max (occurs j n1) (occurs j n2) = 0 := by
+        intro j
+        exact Nat.eq_zero_of_add_eq_zero_left (zero j)
+      have zn1 : ∀ j, occurs j n1 = 0 := by
+        intro j
+        have h := zmax j
+        omega
+      have zn2 : ∀ j, occurs j n2 = 0 := by
+        intro j
+        have h := zmax j
+        omega
+      simp [occurs, ihm zm, ihn1 zn1, ihn2 zn2]
+  | M A ihA =>
+      rfl
+  | pure m ihm =>
+      asimp
+      exact ihm (fun j => zero j)
+  | mlet m n ihm ihn =>
+      asimp
+      have zm : ∀ j, occurs j m = 0 := by
+        intro j
+        exact Nat.eq_zero_of_add_eq_zero_right (zero j)
+      have zn : ∀ j, occurs j n = 0 := by
+        intro j
+        exact Nat.eq_zero_of_add_eq_zero_left (zero j)
+      simp [occurs, ihm zm, ihn zn]
+  | proto =>
+      rfl
+  | stop =>
+      rfl
+  | act b A B r ihA ihB =>
+      rfl
+  | ch b A ihA =>
+      rfl
+  | chan c =>
+      cases c with
+      | var_Chan x =>
+          have h := zero x
+          simp [occurs] at h
+  | fork A m ihA ihm =>
+      asimp
+      exact ihm (fun j => zero j)
+  | recv m r ihm =>
+      asimp
+      exact ihm (fun j => zero j)
+  | send m r ihm =>
+      asimp
+      exact ihm (fun j => zero j)
+  | close b m ihm =>
+      asimp
+      exact ihm (fun j => zero j)
+  | box =>
+      rfl
+
+lemma congrTerm_consume_endpoint {r : Rlv} {m : Term} {c : Chan} {σ : Nat → Chan}
+    (unused : r = .ex → occurs (chanIndex c) m = 0) :
+    TLLC.Process.CongrTerm r
+      (((m[bindEndpointAt 0 c; Term.var_Term])[up_Chan_Chan σ; Term.var_Term])⟨((· - 1) : Nat → Nat);
+        (id : Nat → Nat)⟩)
+      (m[σ; Term.var_Term]) := by
+  cases c with
+  | var_Chan x =>
+      convert (congrTerm_csubst_of_eqv (r := r) (m := m) (i := x)
+        (σ := fun y => ((bindEndpointAt 0 (Chan.var_Chan x) y)[up_Chan_Chan σ])⟨((· - 1) : Nat → Nat)⟩)
+        (τ := σ)
+        (by
+          intro y hy
+          unfold bindEndpointAt chanIndex
+          simp [hy]
+          cases hσ : σ y with
+          | var_Chan z =>
+              asimp
+              rw [hσ]
+              asimp
+              change Chan.var_Chan ((z + 1) - 1) = Chan.var_Chan z
+              congr)
+        (by simpa using unused)) using 1
+      asimp
+
+lemma evalctx_consume_endpoint_pure_one {M : EvalCtx} {c : Chan} {σ : Nat → Chan}
+    (unused : occurs (chanIndex c) (M.eval (.pure .one)) = 0) :
+    TLLC.Process.CongrTerm .ex
+      ((((M.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 c))).cren
+        (TLLC.Static.csubst_ren (up_Chan_Chan σ))).cren ((· - 1) : Nat → Nat)).eval
+          (.pure .one))
+      ((M.eval (.pure .one))[σ; Term.var_Term]) := by
+  convert congrTerm_consume_endpoint (r := .ex) (m := M.eval (.pure .one)) (c := c) (σ := σ)
+    (by intro _; exact unused) using 1
+  · rw [evalctx_csubst]
+    rw [evalctx_csubst]
+    asimp
+    exact (evalctx_cren ((· - 1) : Nat → Nat)
+      ((M.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 c))).cren
+        (TLLC.Static.csubst_ren (up_Chan_Chan σ))) (.pure .one)).symm
+
 lemma process_congr_pred_succ_of_unused {p : Proc}
     (unused : TLLC.Process.procOccurs 0 p = 0) :
     TLLC.Process.Congruence p
@@ -1064,10 +1363,31 @@ lemma process_step_scope_unused_left {p q q' : Proc}
       (o := p⟨((· - 1) : Nat → Nat); (id : Nat → Nat)⟩) step)
     (ARS.conv_sym (process_congr_scope_out_left (p := p) (q := q') unused))
 
+lemma process_step_scope_remove_unused_right {p p' q : Proc}
+    (unused : TLLC.Process.procOccurs 0 q = 0)
+    (step : TLLC.Process.Step (.nu p) p') :
+    TLLC.Process.Step (.nu (.par p q))
+      (.par p' (q⟨((· - 1) : Nat → Nat); (id : Nat → Nat)⟩)) := by
+  exact TLLC.Process.Step.congr
+    (process_congr_scope_out_right (p := p) (q := q) unused)
+    (TLLC.Process.Step.congr
+      (ARS.conv1 TLLC.Process.CongrProc.par_sym)
+      (TLLC.Process.Step.par
+        (o := q⟨((· - 1) : Nat → Nat); (id : Nat → Nat)⟩) step)
+      (ARS.conv1 TLLC.Process.CongrProc.par_sym))
+    ARS.Conv.refl
+
 lemma Typed.flatten_occurs0 {tree : Tree} (typed : Typed tree) (i : Nat) :
     TLLC.Process.procOccurs i tree.flatten = 0 := by
   have ty := typed.flatten_typed
   exact ty.procOccurs0 (by cases i <;> rfl)
+
+lemma TypedAt.flattenAt_occurs_succ {r A tree} (tyA : ([] : Static.Ctx) ⊢ A : .proto)
+    (typed : TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) tree) (i : Nat) :
+    TLLC.Process.procOccurs (i + 1)
+      ((tree.flattenAt).2[bindEndpointAt 0 (tree.flattenAt).1; Term.var_Term]) = 0 := by
+  have ty := typed.flattenAt_typed tyA
+  exact ty.procOccurs0 (by rfl)
 
 lemma SubtreesTyped.flattenSubtrees_occurs0 {trees : List Tree} {p : Proc} {i : Nat}
     (typed : SubtreesTyped trees) (member : p ∈ flattenSubtrees trees) :
@@ -1113,6 +1433,25 @@ lemma process_step_scope_parAll_right {p p' : Proc} (processes : List Proc)
         exact processesZero r (by simp [hr])
       have stepQ : TLLC.Process.Step (.nu (.par p q)) (.nu (.par p' q)) :=
         process_step_scope_unused_right qZero step
+      simpa [parAll] using ih restZero stepQ
+
+lemma process_step_scope_remove_parAll_right {p p' : Proc} (processes : List Proc)
+    (processesZero : ∀ q, q ∈ processes → TLLC.Process.procOccurs 0 q = 0)
+    (step : TLLC.Process.Step (.nu p) p') :
+    TLLC.Process.Step (.nu (parAll p processes))
+      (parAll p' (processes.map
+        (fun q => q⟨((· - 1) : Nat → Nat); (id : Nat → Nat)⟩))) := by
+  induction processes generalizing p p' with
+  | nil =>
+      simpa [parAll] using step
+  | cons q processes ih =>
+      have qZero : TLLC.Process.procOccurs 0 q = 0 := processesZero q (by simp)
+      have restZero : ∀ r, r ∈ processes → TLLC.Process.procOccurs 0 r = 0 := by
+        intro r hr
+        exact processesZero r (by simp [hr])
+      have stepQ : TLLC.Process.Step (.nu (.par p q))
+          (.par p' (q⟨((· - 1) : Nat → Nat); (id : Nat → Nat)⟩)) :=
+        process_step_scope_remove_unused_right qZero step
       simpa [parAll] using ih restZero stepQ
 
 lemma process_step_crename_zero {p q : Proc} (step : TLLC.Process.Step p q) :
@@ -1241,6 +1580,18 @@ lemma process_congr_parAll_accumulator {p q : Proc} (processes : List Proc)
         ih (p := .par p process) (q := .par q process)
           (process_congr_parallel_left (r := process) congr)
 
+lemma process_congr_par_parAll_right (p q : Proc) (processes : List Proc) :
+    TLLC.Process.Congruence (.par p (parAll q processes))
+      (parAll (.par p q) processes) := by
+  induction processes generalizing q with
+  | nil =>
+      exact ARS.Conv.refl
+  | cons r processes ih =>
+      simpa [parAll] using ARS.conv_trans
+        (ih (.par q r))
+        (process_congr_parAll_accumulator processes
+          (ARS.conv1 (TLLC.Process.CongrProc.assoc (o := p) (p := q) (q := r))))
+
 lemma process_congr_parAll_accumulator_csubst {p q : Proc} (processes : List Proc)
     (congr : ∀ σ : Nat → Chan,
       TLLC.Process.Congruence (p[σ; Term.var_Term]) (q[σ; Term.var_Term])) :
@@ -1314,6 +1665,18 @@ lemma process_congr_swap_right {a b c : Proc} :
     (ARS.conv_trans
       (process_congr_parallel_right (r := a) (ARS.conv1 TLLC.Process.CongrProc.par_sym))
       (ARS.conv1 (TLLC.Process.CongrProc.assoc (o := a) (p := c) (q := b))))
+
+lemma process_congr_parAll_push_right (body p : Proc) (processes : List Proc) :
+    TLLC.Process.Congruence (parAll (.par body p) processes)
+      (parAll body (processes ++ [p])) := by
+  induction processes generalizing body with
+  | nil =>
+      exact ARS.Conv.refl
+  | cons q processes ih =>
+      simpa [parAll, List.cons_append] using ARS.conv_trans
+        (process_congr_parAll_accumulator processes
+          (process_congr_swap_right (a := body) (b := p) (c := q)))
+        (ih (body := .par body q))
 
 lemma process_step_comIm_edge_csubst {M N : EvalCtx} {payloadTerm : Term} {c d : Chan}
     (payload : implicitPayload c d payloadTerm) :
@@ -1567,6 +1930,64 @@ lemma process_step_end_edge_symm_csubst {M N : EvalCtx} {c d : Chan} :
     (process_congr_res (ARS.conv1 TLLC.Process.CongrProc.par_sym))
     (process_step_end_edge_csubst (M := N) (N := M) (c := d) (d := c) σ)
     (ARS.conv1 TLLC.Process.CongrProc.par_sym)
+
+lemma process_congr_end_target_csubst {M N : EvalCtx} {c d : Chan} {σ : Nat → Chan}
+    (pUnused : occurs (chanIndex c) (M.eval (.pure .one)) = 0)
+    (cUnused : occurs (chanIndex d) (N.eval (.pure .one)) = 0) :
+    TLLC.Process.Congruence
+      (.par
+        (.tm ((((M.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 c))).cren
+          (TLLC.Static.csubst_ren (up_Chan_Chan σ))).cren ((· - 1) : Nat → Nat)).eval
+            (.pure .one)))
+        (.tm ((((N.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 d))).cren
+          (TLLC.Static.csubst_ren (up_Chan_Chan σ))).cren ((· - 1) : Nat → Nat)).eval
+            (.pure .one))))
+      (.par
+        (.tm ((M.eval (.pure .one))[σ; Term.var_Term]))
+        (.tm ((N.eval (.pure .one))[σ; Term.var_Term]))) := by
+  exact ARS.conv1 (TLLC.Process.CongrProc.par
+    (TLLC.Process.CongrProc.tm
+      (evalctx_consume_endpoint_pure_one (M := M) (c := c) (σ := σ) pUnused))
+    (TLLC.Process.CongrProc.tm
+      (evalctx_consume_endpoint_pure_one (M := N) (c := d) (σ := σ) cUnused)))
+
+lemma process_step_end_final_csubst {M N : EvalCtx} {c d : Chan}
+    (pUnused : occurs (chanIndex c) (M.eval (.pure .one)) = 0)
+    (cUnused : occurs (chanIndex d) (N.eval (.pure .one)) = 0) :
+    ∀ σ : Nat → Chan,
+      TLLC.Process.Step
+        (.nu (.par
+          (.tm (((M.eval (.close true (Term.chan c)))[
+            bindEndpointAt 0 c; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+          (.tm (((N.eval (.close false (Term.chan d)))[
+            bindEndpointAt 0 d; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))))
+        (.par
+          (.tm ((M.eval (.pure .one))[σ; Term.var_Term]))
+          (.tm ((N.eval (.pure .one))[σ; Term.var_Term]))) := by
+  intro σ
+  exact TLLC.Process.Step.congr ARS.Conv.refl
+    (process_step_end_edge_csubst (M := M) (N := N) (c := c) (d := d) σ)
+    (process_congr_end_target_csubst (M := M) (N := N) (c := c) (d := d)
+      (σ := σ) pUnused cUnused)
+
+lemma process_step_end_final_symm_csubst {M N : EvalCtx} {c d : Chan}
+    (pUnused : occurs (chanIndex c) (M.eval (.pure .one)) = 0)
+    (cUnused : occurs (chanIndex d) (N.eval (.pure .one)) = 0) :
+    ∀ σ : Nat → Chan,
+      TLLC.Process.Step
+        (.nu (.par
+          (.tm (((M.eval (.close false (Term.chan c)))[
+            bindEndpointAt 0 c; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+          (.tm (((N.eval (.close true (Term.chan d)))[
+            bindEndpointAt 0 d; Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))))
+        (.par
+          (.tm ((M.eval (.pure .one))[σ; Term.var_Term]))
+          (.tm ((N.eval (.pure .one))[σ; Term.var_Term]))) := by
+  intro σ
+  exact TLLC.Process.Step.congr ARS.Conv.refl
+    (process_step_end_edge_symm_csubst (M := M) (N := N) (c := c) (d := d) σ)
+    (process_congr_end_target_csubst (M := M) (N := N) (c := c) (d := d)
+      (σ := σ) pUnused cUnused)
 
 lemma parAll_csubst (body : Proc) (processes : List Proc) :
     ∀ σ : Nat → Chan,
@@ -1828,10 +2249,166 @@ theorem simulation_csubst {p q : Tree}
             | node single has typedTerm typedChildren typedSubtrees =>
                 exact typedChildren.not_label_of_fresh typedTerm freshD
       sorry
-  | rootWait => sorry
-  | nodeWait => sorry
-  | rootClose => sorry
-  | nodeClose => sorry
+  | rootWait =>
+      rename_i M N c d before after childChildren subtrees childSubtrees
+      have labels :
+          (childLabels
+            (before ++
+              (c, Tree.node d (N.eval (.close true (Term.chan d))) childChildren childSubtrees) ::
+                after)).Nodup := by
+        cases typed with
+        | inl ty =>
+            cases ty with
+            | root _ _ typedChildren _ =>
+                exact typedChildren.labels_nodup
+        | inr ty =>
+            obtain ⟨r, A, ty⟩ := ty
+            cases ty
+      have cBefore := childLabel_notin_before labels
+      have cAfter := childLabel_notin_after labels
+      have pUnused : occurs (chanIndex c) (M.eval (.pure .one)) = 0 := by
+        cases typed with
+        | inl ty =>
+            exact ty.close_unused (by simp [childLabels])
+        | inr ty =>
+            obtain ⟨r, A, ty⟩ := ty
+            cases ty
+      have tyChild :
+          ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+            TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
+              (Tree.node d (N.eval (.close true (Term.chan d))) childChildren childSubtrees) := by
+        cases typed with
+        | inl ty =>
+            exact ty.child_typedAt_wf (c := c)
+              (child := Tree.node d (N.eval (.close true (Term.chan d))) childChildren childSubtrees)
+              (by simp)
+        | inr ty =>
+            obtain ⟨r, A, ty⟩ := ty
+            cases ty
+      obtain ⟨rChild, AChild, tyAChild, typedChild⟩ := tyChild
+      have cUnused := typedChild.parent_close_unused
+      have cFree := typedChild.flattenAt_occurs_succ tyAChild
+      sorry
+  | nodeWait =>
+      rename_i M N parent c d before after childChildren subtrees childSubtrees
+      have labels :
+          (childLabels
+            (before ++
+              (c, Tree.node d (N.eval (.close true (Term.chan d))) childChildren childSubtrees) ::
+                after)).Nodup := by
+        cases typed with
+        | inl ty =>
+            cases ty
+        | inr ty =>
+            obtain ⟨r, A, ty⟩ := ty
+            cases ty with
+            | node _ _ _ typedChildren _ =>
+                exact typedChildren.labels_nodup
+      have cBefore := childLabel_notin_before labels
+      have cAfter := childLabel_notin_after labels
+      have pUnused : occurs (chanIndex c) (M.eval (.pure .one)) = 0 := by
+        cases typed with
+        | inl ty =>
+            cases ty
+        | inr ty =>
+            obtain ⟨r, A, ty⟩ := ty
+            exact ty.close_unused (by simp [childLabels])
+      have tyChild :
+          ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+            TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
+              (Tree.node d (N.eval (.close true (Term.chan d))) childChildren childSubtrees) := by
+        cases typed with
+        | inl ty =>
+            cases ty
+        | inr ty =>
+            obtain ⟨r, A, ty⟩ := ty
+            exact ty.child_typedAt_wf (c := c)
+              (child := Tree.node d (N.eval (.close true (Term.chan d))) childChildren childSubtrees)
+              (by simp)
+      obtain ⟨rChild, AChild, tyAChild, typedChild⟩ := tyChild
+      have cUnused := typedChild.parent_close_unused
+      have cFree := typedChild.flattenAt_occurs_succ tyAChild
+      sorry
+  | rootClose =>
+      rename_i M N c d before after childChildren subtrees childSubtrees
+      have labels :
+          (childLabels
+            (before ++
+              (c, Tree.node d (N.eval (.close false (Term.chan d))) childChildren childSubtrees) ::
+                after)).Nodup := by
+        cases typed with
+        | inl ty =>
+            cases ty with
+            | root _ _ typedChildren _ =>
+                exact typedChildren.labels_nodup
+        | inr ty =>
+            obtain ⟨r, A, ty⟩ := ty
+            cases ty
+      have cBefore := childLabel_notin_before labels
+      have cAfter := childLabel_notin_after labels
+      have pUnused : occurs (chanIndex c) (M.eval (.pure .one)) = 0 := by
+        cases typed with
+        | inl ty =>
+            exact ty.close_unused (by simp [childLabels])
+        | inr ty =>
+            obtain ⟨r, A, ty⟩ := ty
+            cases ty
+      have tyChild :
+          ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+            TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
+              (Tree.node d (N.eval (.close false (Term.chan d))) childChildren childSubtrees) := by
+        cases typed with
+        | inl ty =>
+            exact ty.child_typedAt_wf (c := c)
+              (child := Tree.node d (N.eval (.close false (Term.chan d))) childChildren childSubtrees)
+              (by simp)
+        | inr ty =>
+            obtain ⟨r, A, ty⟩ := ty
+            cases ty
+      obtain ⟨rChild, AChild, tyAChild, typedChild⟩ := tyChild
+      have cUnused := typedChild.parent_close_unused
+      have cFree := typedChild.flattenAt_occurs_succ tyAChild
+      sorry
+  | nodeClose =>
+      rename_i M N parent c d before after childChildren subtrees childSubtrees
+      have labels :
+          (childLabels
+            (before ++
+              (c, Tree.node d (N.eval (.close false (Term.chan d))) childChildren childSubtrees) ::
+                after)).Nodup := by
+        cases typed with
+        | inl ty =>
+            cases ty
+        | inr ty =>
+            obtain ⟨r, A, ty⟩ := ty
+            cases ty with
+            | node _ _ _ typedChildren _ =>
+                exact typedChildren.labels_nodup
+      have cBefore := childLabel_notin_before labels
+      have cAfter := childLabel_notin_after labels
+      have pUnused : occurs (chanIndex c) (M.eval (.pure .one)) = 0 := by
+        cases typed with
+        | inl ty =>
+            cases ty
+        | inr ty =>
+            obtain ⟨r, A, ty⟩ := ty
+            exact ty.close_unused (by simp [childLabels])
+      have tyChild :
+          ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+            TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
+              (Tree.node d (N.eval (.close false (Term.chan d))) childChildren childSubtrees) := by
+        cases typed with
+        | inl ty =>
+            cases ty
+        | inr ty =>
+            obtain ⟨r, A, ty⟩ := ty
+            exact ty.child_typedAt_wf (c := c)
+              (child := Tree.node d (N.eval (.close false (Term.chan d))) childChildren childSubtrees)
+              (by simp)
+      obtain ⟨rChild, AChild, tyAChild, typedChild⟩ := tyChild
+      have cUnused := typedChild.parent_close_unused
+      have cFree := typedChild.flattenAt_occurs_succ tyAChild
+      sorry
   | rootSendEx => sorry
   | nodeSendEx => sorry
   | rootRecvEx => sorry
@@ -1853,6 +2430,20 @@ theorem simulation_csubst {p q : Tree}
             cases typedAtRoot
       have cNotBefore := childLabel_notin_before labelsNodup
       have cNotAfter := childLabel_notin_after labelsNodup
+      have tyChild :
+          ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+            TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
+              (Tree.node d (N.eval (.recv (Term.chan d) .im)) childChildren childSubtrees) := by
+        cases typed with
+        | inl typedRoot =>
+            exact typedRoot.child_typedAt_wf (c := c)
+              (child := Tree.node d (N.eval (.recv (Term.chan d) .im)) childChildren childSubtrees)
+              (by simp)
+        | inr typedAtRoot =>
+            obtain ⟨r, A, typedAtRoot⟩ := typedAtRoot
+            cases typedAtRoot
+      obtain ⟨rChild, AChild, tyAChild, typedChild⟩ := tyChild
+      have childPosFree := typedChild.flattenAt_occurs_succ tyAChild
       sorry
   | nodeSendIm implicitPayload =>
       rename_i M N parent payload c d before after childChildren subtrees childSubtrees
@@ -1871,6 +2462,20 @@ theorem simulation_csubst {p q : Tree}
                 exact typedChildren.labels_nodup
       have cNotBefore := childLabel_notin_before labelsNodup
       have cNotAfter := childLabel_notin_after labelsNodup
+      have tyChild :
+          ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+            TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
+              (Tree.node d (N.eval (.recv (Term.chan d) .im)) childChildren childSubtrees) := by
+        cases typed with
+        | inl typedNode =>
+            cases typedNode
+        | inr typedAtNode =>
+            obtain ⟨r, A, typedAtNode⟩ := typedAtNode
+            exact typedAtNode.child_typedAt_wf (c := c)
+              (child := Tree.node d (N.eval (.recv (Term.chan d) .im)) childChildren childSubtrees)
+              (by simp)
+      obtain ⟨rChild, AChild, tyAChild, typedChild⟩ := tyChild
+      have childPosFree := typedChild.flattenAt_occurs_succ tyAChild
       sorry
   | rootRecvIm implicitPayload =>
       rename_i M N payload c d before after childChildren subtrees childSubtrees
@@ -1889,6 +2494,22 @@ theorem simulation_csubst {p q : Tree}
             cases typedAtRoot
       have cNotBefore := childLabel_notin_before labelsNodup
       have cNotAfter := childLabel_notin_after labelsNodup
+      have tyChild :
+          ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+            TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
+              (Tree.node d (N.eval (.app (.send (Term.chan d) .im) payload .im))
+                childChildren childSubtrees) := by
+        cases typed with
+        | inl typedRoot =>
+            exact typedRoot.child_typedAt_wf (c := c)
+              (child := Tree.node d (N.eval (.app (.send (Term.chan d) .im) payload .im))
+                childChildren childSubtrees)
+              (by simp)
+        | inr typedAtRoot =>
+            obtain ⟨r, A, typedAtRoot⟩ := typedAtRoot
+            cases typedAtRoot
+      obtain ⟨rChild, AChild, tyAChild, typedChild⟩ := tyChild
+      have childPosFree := typedChild.flattenAt_occurs_succ tyAChild
       sorry
   | nodeRecvIm implicitPayload =>
       rename_i M N parent payload c d before after childChildren subtrees childSubtrees
@@ -1907,6 +2528,22 @@ theorem simulation_csubst {p q : Tree}
                 exact typedChildren.labels_nodup
       have cNotBefore := childLabel_notin_before labelsNodup
       have cNotAfter := childLabel_notin_after labelsNodup
+      have tyChild :
+          ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+            TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
+              (Tree.node d (N.eval (.app (.send (Term.chan d) .im) payload .im))
+                childChildren childSubtrees) := by
+        cases typed with
+        | inl typedNode =>
+            cases typedNode
+        | inr typedAtNode =>
+            obtain ⟨r, A, typedAtNode⟩ := typedAtNode
+            exact typedAtNode.child_typedAt_wf (c := c)
+              (child := Tree.node d (N.eval (.app (.send (Term.chan d) .im) payload .im))
+                childChildren childSubtrees)
+              (by simp)
+      obtain ⟨rChild, AChild, tyAChild, typedChild⟩ := tyChild
+      have childPosFree := typedChild.flattenAt_occurs_succ tyAChild
       sorry
   | nodeForward => sorry
   | rootChild stepChild ih =>
