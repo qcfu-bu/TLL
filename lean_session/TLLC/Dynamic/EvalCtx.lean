@@ -30,10 +30,10 @@ def EvalCtx.eval : EvalCtx → Term → Term
 /-- Decomposition of a well-typed plugged term (Coq `dyn_eval_ctx_inv`). -/
 lemma evalCtx_inv {Θ} {M : EvalCtx} {m B} (ty : Θ ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ M.eval m : .M B) :
     ∃ Θ1 Θ2 A,
-      Merge Θ1 Θ2 Θ ∧
+      PMerge Θ1 Θ2 Θ ∧
       (Θ1 ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ m : .M A) ∧
       (∀ Θ3 Θ' n,
-        Merge Θ2 Θ3 Θ' →
+        PMerge Θ2 Θ3 Θ' →
         (Θ3 ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ n : .M A) →
         Θ' ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ M.eval n : .M B) := by
   induction M generalizing Θ m B with

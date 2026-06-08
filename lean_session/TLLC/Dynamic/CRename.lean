@@ -34,80 +34,88 @@ open Autosubst Autosubst.Notation
 open scoped TLLC.Static
 
 /-- Channel-renaming agreement on the process context `Θ` (Coq `dyn_ctx_cren`). -/
-inductive CtxCRen : (Nat → Nat) → Ctx → Ctx → Prop where
+inductive CtxCRen : (Nat → Nat) → PCtx → PCtx → Prop where
   | O {Θ} :
     CtxCRen (id : Nat → Nat) Θ Θ
-  | ty {ξ r A Θ Θ'} :
+  | one {ξ r A Θ Θ'} :
     [] ⊢ A : .proto →
     CtxCRen ξ Θ Θ' →
     CtxCRen (upRen_Chan_Chan ξ)
-      (.ch r A :L Θ) (.ch r (A⟨ξ; (id : Nat → Nat)⟩) :L Θ')
+      (.one r A :: Θ) (.one r (A⟨ξ; (id : Nat → Nat)⟩) :: Θ')
+  | both {ξ A Θ Θ'} :
+    [] ⊢ A : .proto →
+    CtxCRen ξ Θ Θ' →
+    CtxCRen (upRen_Chan_Chan ξ)
+      (.both A :: Θ) (.both (A⟨ξ; (id : Nat → Nat)⟩) :: Θ')
   | n {ξ Θ Θ'} :
     CtxCRen ξ Θ Θ' →
-    CtxCRen (upRen_Chan_Chan ξ) (none :: Θ) (none :: Θ')
+    CtxCRen (upRen_Chan_Chan ξ) (.none :: Θ) (.none :: Θ')
   | plus {ξ Θ Θ'} :
     CtxCRen ξ Θ Θ' →
-    CtxCRen (funcomp Nat.succ ξ) Θ (none :: Θ')
+    CtxCRen (funcomp Nat.succ ξ) Θ (.none :: Θ')
   | minus {ξ Θ Θ'} :
     CtxCRen ξ Θ Θ' →
-    CtxCRen (funcomp ξ (· - 1)) (none :: Θ) Θ'
+    CtxCRen (funcomp ξ (· - 1)) (.none :: Θ) Θ'
 
 
 /-! ## Structural lemmas. -/
 
 /-- Channel renaming preserves emptiness of the process context (Coq `dyn_ctx_cren_empty`). -/
-lemma CtxCRen.empty {Θ Θ' ξ} (agr : CtxCRen ξ Θ Θ') (emp : Empty Θ) : Empty Θ' := by
+lemma CtxCRen.empty {Θ Θ' ξ} (agr : CtxCRen ξ Θ Θ') (emp : PEmpty Θ) : PEmpty Θ' := by
   induction agr with
   | O => exact emp
-  | ty _ _ ih => cases emp
-  | n _ ih => cases emp with | null e => exact .null (ih e)
-  | plus _ ih => exact .null (ih emp)
-  | minus _ ih => cases emp with | null e => exact ih e
+  | one _ _ ih => cases emp
+  | both _ _ ih => cases emp
+  | n _ ih => cases emp with | none e => exact .none (ih e)
+  | plus _ ih => exact .none (ih emp)
+  | minus _ ih => cases emp with | none e => exact ih e
 
 /-- Channel renaming transports keys (Coq `dyn_ctx_cren_key`). -/
-lemma CtxCRen.key {Θ Θ' ξ s} (agr : CtxCRen ξ Θ Θ') (k : Θ ▷ s) : Θ' ▷ s := by
+lemma CtxCRen.key {Θ Θ' ξ s} (agr : CtxCRen ξ Θ Θ') (k : Θ ▷ₚ s) : Θ' ▷ₚ s := by
   induction agr generalizing s with
   | O => exact k
-  | ty _ _ ih => cases k with | L _ k' => exact .L _ (ih k')
-  | n _ ih => cases k with | null k' => exact .null (ih k')
-  | plus _ ih => exact .null (ih k)
-  | minus _ ih => cases k with | null k' => exact ih k'
+  | one _ _ ih => cases k with | one k' => exact .one (ih k')
+  | both _ _ ih => cases k with | both k' => exact .both (ih k')
+  | n _ ih => cases k with | none k' => exact .none (ih k')
+  | plus _ ih => exact .none (ih k)
+  | minus _ ih => cases k with | none k' => exact ih k'
 
-/-- Channel renaming transports `Just` lookups (Coq `dyn_ctx_cren_just`). -/
-lemma CtxCRen.just {Θ Θ' A x ξ} (agr : CtxCRen ξ Θ Θ') (js : Just Θ x A) :
-    Just Θ' (ξ x) (A⟨ξ; (id : Nat → Nat)⟩) := by
-  induction agr generalizing A x with
+/-- Channel renaming transports `PJust` lookups (Coq `dyn_ctx_cren_just`). -/
+lemma CtxCRen.just {Θ Θ' A x r ξ} (agr : CtxCRen ξ Θ Θ') (js : PJust Θ x r A) :
+    PJust Θ' (ξ x) r (A⟨ξ; (id : Nat → Nat)⟩) := by
+  induction agr generalizing A x r with
   | @O Θ =>
     rw [show A⟨(id : Nat → Nat); (id : Nat → Nat)⟩ = A from by asimp]
     exact js
-  | @ty ξ r A0 Θ Θ' tyA agr ih =>
+  | @one ξ r0 A0 Θ Θ' tyA agr ih =>
     have hmap : funcomp (upRen_Chan_Chan ξ) Nat.succ = funcomp Nat.succ ξ := by
       funext y; cases y <;> rfl
     cases js with
     | zero emp =>
-      -- lookup type is `(ch r A0)⟨+1; id⟩`; target slot holds `ch r (A0⟨ξ; id⟩)`
-      rw [show ((Term.ch r A0)⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)⟨upRen_Chan_Chan ξ;
+      rw [show (A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)⟨upRen_Chan_Chan ξ;
             (id : Nat → Nat)⟩
-            = (Term.ch r (A0⟨ξ; (id : Nat → Nat)⟩))⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩
+            = (A0⟨ξ; (id : Nat → Nat)⟩)⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩
             from by asimp; rw [hmap]]
-      exact Just.zero (agr.empty emp)
+      exact PJust.zero (agr.empty emp)
+  | @both ξ A0 Θ Θ' tyA agr ih =>
+    cases js
   | @n ξ Θ Θ' agr ih =>
     have hmap : funcomp (upRen_Chan_Chan ξ) Nat.succ = funcomp Nat.succ ξ := by
       funext y; cases y <;> rfl
     cases js with
-    | @null _ A1 x0 js =>
+    | @none _ x0 r A1 js =>
       rw [show (A1⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)⟨upRen_Chan_Chan ξ; (id : Nat → Nat)⟩
             = (A1⟨ξ; (id : Nat → Nat)⟩)⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ from by
             asimp; rw [hmap]]
-      exact Just.null (ih js)
+      exact PJust.none (ih js)
   | @plus ξ Θ Θ' agr ih =>
-    have h := Just.null (ih js)
+    have h := PJust.none (ih js)
     rw [show (A⟨ξ; (id : Nat → Nat)⟩)⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩
           = A⟨funcomp Nat.succ ξ; (id : Nat → Nat)⟩ from by asimp] at h
     exact h
   | @minus ξ Θ Θ' agr ih =>
     cases js with
-    | @null _ A1 x0 js =>
+    | @none _ x0 r A1 js =>
       have ih' := ih js
       have hmap : funcomp (funcomp ξ (· - 1)) Nat.succ = ξ := by
         funext y; show ξ (y + 1 - 1) = ξ y; rw [Nat.add_sub_cancel]
@@ -119,35 +127,51 @@ lemma CtxCRen.just {Θ Θ' A x ξ} (agr : CtxCRen ξ Θ Θ') (js : Just Θ x A) 
 
 /-- Channel renaming is compatible with merge (Coq `dyn_ctx_cren_merge`). -/
 lemma CtxCRen.merge {Θ1 Θ2 Θ Θ' ξ} (agr : CtxCRen ξ Θ Θ') :
-    Merge Θ1 Θ2 Θ →
-    ∃ Θ1' Θ2', Merge Θ1' Θ2' Θ' ∧ CtxCRen ξ Θ1 Θ1' ∧ CtxCRen ξ Θ2 Θ2' := by
+    PMerge Θ1 Θ2 Θ →
+    ∃ Θ1' Θ2', PMerge Θ1' Θ2' Θ' ∧ CtxCRen ξ Θ1 Θ1' ∧ CtxCRen ξ Θ2 Θ2' := by
   induction agr generalizing Θ1 Θ2 with
   | @O Θ => intro mrg; exact ⟨Θ1, Θ2, mrg, .O, .O⟩
-  | @ty ξ r A Θ Θ' tyA agr ih =>
+  | @one ξ r A Θ Θ' tyA agr ih =>
     intro mrg
     cases mrg with
-    | right1 _ mrg' =>
+    | oneL mrg' =>
       obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨.ch r (A⟨ξ; (id : Nat → Nat)⟩) :L Θ1', none :: Θ2',
-        .right1 _ mrg', .ty tyA agr1, .n agr2⟩
-    | right2 _ mrg' =>
+      exact ⟨.one r (A⟨ξ; (id : Nat → Nat)⟩) :: Θ1', .none :: Θ2',
+        .oneL mrg', .one tyA agr1, .n agr2⟩
+    | oneR mrg' =>
       obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨none :: Θ1', .ch r (A⟨ξ; (id : Nat → Nat)⟩) :L Θ2',
-        .right2 _ mrg', .n agr1, .ty tyA agr2⟩
+      exact ⟨.none :: Θ1', .one r (A⟨ξ; (id : Nat → Nat)⟩) :: Θ2',
+        .oneR mrg', .n agr1, .one tyA agr2⟩
+  | @both ξ A Θ Θ' tyA agr ih =>
+    intro mrg
+    cases mrg with
+    | bothL mrg' =>
+      obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := ih mrg'
+      exact ⟨.both (A⟨ξ; (id : Nat → Nat)⟩) :: Θ1', .none :: Θ2',
+        .bothL mrg', .both tyA agr1, .n agr2⟩
+    | bothR mrg' =>
+      obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := ih mrg'
+      exact ⟨.none :: Θ1', .both (A⟨ξ; (id : Nat → Nat)⟩) :: Θ2',
+        .bothR mrg', .n agr1, .both tyA agr2⟩
+    | @split Δ1 Δ2 Δ r A0 mrg' =>
+      obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := ih mrg'
+      exact ⟨.one r (A⟨ξ; (id : Nat → Nat)⟩) :: Θ1',
+        .one (!r) (A⟨ξ; (id : Nat → Nat)⟩) :: Θ2',
+        .split mrg', .one tyA agr1, .one tyA agr2⟩
   | @n ξ Θ Θ' agr ih =>
     intro mrg
     cases mrg with
-    | null mrg' =>
+    | none mrg' =>
       obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨none :: Θ1', none :: Θ2', .null mrg', .n agr1, .n agr2⟩
+      exact ⟨.none :: Θ1', .none :: Θ2', .none mrg', .n agr1, .n agr2⟩
   | @plus ξ Θ Θ' agr ih =>
     intro mrg
     obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := ih mrg
-    exact ⟨none :: Θ1', none :: Θ2', .null mrg', .plus agr1, .plus agr2⟩
+    exact ⟨.none :: Θ1', .none :: Θ2', .none mrg', .plus agr1, .plus agr2⟩
   | @minus ξ Θ Θ' agr ih =>
     intro mrg
     cases mrg with
-    | null mrg' =>
+    | none mrg' =>
       obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := ih mrg'
       exact ⟨Θ1', Θ2', mrg', .minus agr1, .minus agr2⟩
 
@@ -360,10 +384,7 @@ lemma Typed.crename {Θ Γ Δ m A} (tym : Θ ⨾ Γ ⨾ Δ ⊢ m : A) :
     exact .mlet mrgΘ' mrgΔ tyB (ihm agr1) ihn'
   | @chan Θ Γ Δ r x A js wf k tyA =>
     intro Θ' ξ agr
-    -- `js' : Just Θ' (ξ x) (ch r (A⟨ξ; id⟩))`
     have js' := agr.just js
-    rw [show ((Term.ch r A))⟨ξ; (id : Nat → Nat)⟩ = Term.ch r (A⟨ξ; (id : Nat → Nat)⟩) from by asimp]
-      at js'
     have tyAr := Static.Typed.crename tyA ξ
     -- well-sortedness of the goal type `ch r (A⟨id; +Γ.length⟩)`
     have tych : Γ ⊢ Term.ch r (A⟨(id : Nat → Nat); (· + Γ.length)⟩) : .srt .L := by
@@ -406,7 +427,7 @@ lemma Typed.crename {Θ Γ Δ m A} (tym : Θ ⨾ Γ ⨾ Δ ⊢ m : A) :
 
 /-- Channel strengthening (Coq `dyn_cstrengthen`). -/
 lemma Typed.cstrengthen {Θ Γ Δ m A}
-    (tym : (none :: Θ) ⨾ Γ ⨾ Δ ⊢ m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ : A) :
+    (tym : (Slot.none :: Θ) ⨾ Γ ⨾ Δ ⊢ m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ : A) :
     Θ ⨾ Γ ⨾ Δ ⊢ m : A := by
   have h := tym.crename (Θ' := Θ) (ξ := funcomp (id : Nat → Nat) (· - 1)) (.minus .O)
   have hmap : funcomp ((· - 1) : Nat → Nat) ((· + 1) : Nat → Nat) = (id : Nat → Nat) := by
@@ -418,7 +439,7 @@ lemma Typed.cstrengthen {Θ Γ Δ m A}
 
 /-- Channel weakening (Coq `dyn_cweaken`). -/
 lemma Typed.cweaken {Θ Γ Δ m A} (tym : Θ ⨾ Γ ⨾ Δ ⊢ m : A) :
-    (none :: Θ) ⨾ Γ ⨾ Δ ⊢ m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ : A := by
+    (Slot.none :: Θ) ⨾ Γ ⨾ Δ ⊢ m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ : A := by
   have h := tym.crename (.plus .O)
   rw [show m⟨funcomp Nat.succ (id : Nat → Nat); (id : Nat → Nat)⟩
         = m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ from by asimp] at h

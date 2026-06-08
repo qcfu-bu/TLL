@@ -83,9 +83,9 @@ lemma Has.key {Δ x s A} (hs : Has Δ x s A) : Δ ▷ s := by
 
 /-- A value's context keys match its type's sort (Coq `dyn_val_stability`). -/
 lemma Typed.val_stability {Θ Γ Δ m A s}
-    (ty : Θ ⨾ Γ ⨾ Δ ⊢ m : A) (tyA : Γ ⊢ A : .srt s) (vl : Val m) : Θ ▷ s ∧ Δ ▷ s := by
+    (ty : Θ ⨾ Γ ⨾ Δ ⊢ m : A) (tyA : Γ ⊢ A : .srt s) (vl : Val m) : Θ ▷ₚ s ∧ Δ ▷ s := by
   cases s with
-  | L => exact ⟨Key.impure, Key.impure⟩
+  | L => exact ⟨PKey.impure, Key.impure⟩
   | U =>
     induction ty with
     | @var Θ Γ Δ x s A emp wf shs dhs =>
@@ -209,7 +209,7 @@ lemma Typed.val_stability {Θ Γ Δ m A s}
 
 /-- A pure process context is empty (Coq `dyn_pure_empty`). -/
 lemma Typed.pure_empty {Θ Γ Δ m A}
-    (ty : Θ ⨾ Γ ⨾ Δ ⊢ m : A) (k : Θ ▷ Srt.U) : Empty Θ := by
+    (ty : Θ ⨾ Γ ⨾ Δ ⊢ m : A) (k : Θ ▷ₚ Srt.U) : PEmpty Θ := by
   induction ty with
   | var emp _ _ _ => exact emp
   | lamIm _ _ _ ih => exact ih k

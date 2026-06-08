@@ -52,20 +52,20 @@ lemma PMerge.pcount {Θ1 Θ2 Θ} (mrg : PMerge Θ1 Θ2 Θ) :
 
 /-- A leaf lowering identifies the endpoint count (`0` or `1`, since a realised context has no
     `both`) with the dynamic channel positivity. -/
-lemma Realize.cvarPos {Θ Θd} (rea : Realize Θ Θd) :
-    ∀ i, (pcount Θ i = 0 ∧ CvarPos Θd i false) ∨ (pcount Θ i = 1 ∧ CvarPos Θd i true) := by
+lemma PCtxSingle.cvarPos {Θ} (rea : PCtxSingle Θ) :
+    ∀ i, (pcount Θ i = 0 ∧ CvarPos Θ i false) ∨ (pcount Θ i = 1 ∧ CvarPos Θ i true) := by
   induction rea with
   | nil => intro i; exact .inl ⟨rfl, .nil⟩
   | none _ ih =>
     intro i
     cases i with
-    | zero => exact .inl ⟨rfl, .n⟩
+    | zero => exact .inl ⟨rfl, .none⟩
     | succ i => rcases ih i with ⟨e, pos⟩ | ⟨e, pos⟩
                 exacts [.inl ⟨e, .cons pos⟩, .inr ⟨e, .cons pos⟩]
   | one _ ih =>
     intro i
     cases i with
-    | zero => exact .inr ⟨rfl, .ty⟩
+    | zero => exact .inr ⟨rfl, .one⟩
     | succ i => rcases ih i with ⟨e, pos⟩ | ⟨e, pos⟩
                 exacts [.inl ⟨e, .cons pos⟩, .inr ⟨e, .cons pos⟩]
 
@@ -73,16 +73,16 @@ lemma Realize.cvarPos {Θ Θd} (rea : Realize Θ Θd) :
     self-dual generalisation of Coq `proc_type_occurs0`/`proc_type_occurs1`). -/
 lemma Typed.occursCount {Θ p} (ty : Θ ⊩ p) : ∀ i, procOccurs i p = pcount Θ i := by
   induction ty with
-  | @exp Θ Θd m rea tym =>
+  | @exp Θ m rea tym =>
     intro i
     show occurs i m = pcount Θ i
-    rcases rea.cvarPos i with ⟨e, pos⟩ | ⟨e, pos⟩
+    rcases TLLC.Process.PCtxSingle.cvarPos rea i with ⟨e, pos⟩ | ⟨e, pos⟩
     · rw [e]; exact tym.occurs0 pos
     · rw [e]; exact tym.occurs1 pos
   | @par Θ1 Θ2 Θ p q mrg _ _ ihp ihq =>
     intro i
     show procOccurs i p + procOccurs i q = pcount Θ i
-    rw [ihp i, ihq i, mrg.pcount i]
+    rw [ihp i, ihq i, TLLC.Process.PMerge.pcount mrg i]
   | @res Θ p A _ _ ih =>
     intro i
     show procOccurs (i + 1) p = pcount Θ i

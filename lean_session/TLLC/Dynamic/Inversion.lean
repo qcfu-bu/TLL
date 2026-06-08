@@ -141,7 +141,7 @@ lemma pairEx_invX {Θ Γ Δ A B m n s r t C}
     (tyS : Γ ⊢ .sig A B .ex r : .srt t) :
     ∃ Θ1 Θ2 Δ1 Δ2,
       s = r ∧
-      Merge Θ1 Θ2 Θ ∧
+      PMerge Θ1 Θ2 Θ ∧
       Merge Δ1 Δ2 Δ ∧
       Θ1 ⨾ Γ ⨾ Δ1 ⊢ m : A ∧
       Θ2 ⨾ Γ ⨾ Δ2 ⊢ n : B[Chan.var_Chan; m..] := by
@@ -175,7 +175,7 @@ lemma pairEx_inv {Θ Γ Δ A B m n s r}
     (ty : Θ ⨾ Γ ⨾ Δ ⊢ .pair m n .ex s : .sig A B .ex r) :
     ∃ Θ1 Θ2 Δ1 Δ2,
       s = r ∧
-      Merge Θ1 Θ2 Θ ∧
+      PMerge Θ1 Θ2 Θ ∧
       Merge Δ1 Δ2 Δ ∧
       Θ1 ⨾ Γ ⨾ Δ1 ⊢ m : A ∧
       Θ2 ⨾ Γ ⨾ Δ2 ⊢ n : B[Chan.var_Chan; m..] := by
@@ -203,7 +203,7 @@ lemma appIm_inv {Θ Γ Δ m n C}
 lemma appEx_inv {Θ Γ Δ m n C}
     (ty : Θ ⨾ Γ ⨾ Δ ⊢ .app m n .ex : C) :
     ∃ A B s Θ1 Θ2 Δ1 Δ2,
-      Merge Θ1 Θ2 Θ ∧
+      PMerge Θ1 Θ2 Θ ∧
       Merge Δ1 Δ2 Δ ∧
       Θ1 ⨾ Γ ⨾ Δ1 ⊢ m : .pi A B .ex s ∧
       Θ2 ⨾ Γ ⨾ Δ2 ⊢ n : A ∧
@@ -222,7 +222,7 @@ lemma appEx_inv {Θ Γ Δ m n C}
   all_goals (exact absurd e (by simp))
 
 /-- Inversion for `one` (Coq `dyn_ii_inv`). -/
-lemma one_inv {Θ Γ Δ A} (ty : Θ ⨾ Γ ⨾ Δ ⊢ .one : A) : Empty Θ := by
+lemma one_inv {Θ Γ Δ A} (ty : Θ ⨾ Γ ⨾ Δ ⊢ .one : A) : PEmpty Θ := by
   generalize e : Term.one = m
   rw [e] at ty
   induction ty
@@ -231,7 +231,7 @@ lemma one_inv {Θ Γ Δ A} (ty : Θ ⨾ Γ ⨾ Δ ⊢ .one : A) : Empty Θ := by
   all_goals (exact absurd e (by simp))
 
 /-- Inversion for `tt` (Coq `dyn_tt_inv`). -/
-lemma tt_inv {Θ Γ Δ A} (ty : Θ ⨾ Γ ⨾ Δ ⊢ .tt : A) : Empty Θ := by
+lemma tt_inv {Θ Γ Δ A} (ty : Θ ⨾ Γ ⨾ Δ ⊢ .tt : A) : PEmpty Θ := by
   generalize e : Term.tt = m
   rw [e] at ty
   induction ty
@@ -240,7 +240,7 @@ lemma tt_inv {Θ Γ Δ A} (ty : Θ ⨾ Γ ⨾ Δ ⊢ .tt : A) : Empty Θ := by
   all_goals (exact absurd e (by simp))
 
 /-- Inversion for `ff` (Coq `dyn_ff_inv`). -/
-lemma ff_inv {Θ Γ Δ A} (ty : Θ ⨾ Γ ⨾ Δ ⊢ .ff : A) : Empty Θ := by
+lemma ff_inv {Θ Γ Δ A} (ty : Θ ⨾ Γ ⨾ Δ ⊢ .ff : A) : PEmpty Θ := by
   generalize e : Term.ff = m
   rw [e] at ty
   induction ty
@@ -278,7 +278,7 @@ lemma pure_inv {Θ Γ Δ m A}
 lemma mlet_invX {Θ Γ Δ m n C}
     (ty : Θ ⨾ Γ ⨾ Δ ⊢ .mlet m n : C) :
     ∃ Θ1 Θ2 Δ1 Δ2 A B s t,
-      Merge Θ1 Θ2 Θ ∧
+      PMerge Θ1 Θ2 Θ ∧
       Merge Δ1 Δ2 Δ ∧
       Γ ⊢ B : .srt t ∧
       Θ1 ⨾ Γ ⨾ Δ1 ⊢ m : .M A ∧
@@ -302,7 +302,7 @@ lemma mlet_invX {Θ Γ Δ m n C}
 lemma mlet_inv {Θ Γ Δ m n B}
     (ty : Θ ⨾ Γ ⨾ Δ ⊢ .mlet m n : .M B) :
     ∃ Θ1 Θ2 Δ1 Δ2 A s,
-      Merge Θ1 Θ2 Θ ∧
+      PMerge Θ1 Θ2 Θ ∧
       Merge Δ1 Δ2 Δ ∧
       Θ1 ⨾ Γ ⨾ Δ1 ⊢ m : .M A ∧
       Θ2 ⨾ (A :: Γ) ⨾ (A :⟨s⟩ Δ2) ⊢ n : .M (B⟨(id : Nat → Nat); ↑⟩) := by
@@ -326,7 +326,7 @@ lemma mlet_inv {Θ Γ Δ m n B}
 lemma chan_inv {Θ Γ Δ x B}
     (ty : Θ ⨾ Γ ⨾ Δ ⊢ .chan (Chan.var_Chan x) : B) :
     ∃ r A,
-      Just Θ x (.ch r A) ∧
+      PJust Θ x r A ∧
       [] ⊢ A : .proto ∧
       (B ≃ .ch r (A⟨(id : Nat → Nat); (· + Γ.length)⟩)) := by
   generalize e : Term.chan (Chan.var_Chan x) = m

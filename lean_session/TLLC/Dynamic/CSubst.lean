@@ -44,33 +44,37 @@ open scoped TLLC.Static
 
 /-- Channel-substitution agreement on the process context `Θ` (Coq `dyn_agree_csubst`).
     `σ : Nat → Chan` is the channel substitution mapping the target `Θ2` to the source `Θ1`. -/
-inductive AgreeCSubst : Ctx → (Nat → Chan) → Ctx → Prop where
+inductive AgreeCSubst : PCtx → (Nat → Chan) → PCtx → Prop where
   | nil {Θ} :
     ProcWf Θ →
     AgreeCSubst Θ Chan.var_Chan Θ
   | pad {Θ1 σ Θ2} :
     AgreeCSubst Θ1 σ Θ2 →
-    AgreeCSubst (none :: Θ1) (funcomp (ren_Chan Nat.succ) σ) Θ2
+    AgreeCSubst (.none :: Θ1) (funcomp (ren_Chan Nat.succ) σ) Θ2
   | ty {Θ1 σ Θ2 r A} :
     AgreeCSubst Θ1 σ Θ2 →
     [] ⊢ A : .proto →
-    AgreeCSubst (.ch r A :L Θ1) (up_Chan_Chan σ) (.ch r A :L Θ2)
+    AgreeCSubst (.one r A :: Θ1) (up_Chan_Chan σ) (.one r A :: Θ2)
+  | both {Θ1 σ Θ2 A} :
+    AgreeCSubst Θ1 σ Θ2 →
+    [] ⊢ A : .proto →
+    AgreeCSubst (.both A :: Θ1) (up_Chan_Chan σ) (.both A :: Θ2)
   | n {Θ1 σ Θ2} :
     AgreeCSubst Θ1 σ Θ2 →
-    AgreeCSubst (none :: Θ1) (up_Chan_Chan σ) (none :: Θ2)
+    AgreeCSubst (.none :: Θ1) (up_Chan_Chan σ) (.none :: Θ2)
   | wk0 {Θ1 σ Θ2 x} :
     AgreeCSubst Θ1 σ Θ2 →
-    AgreeCSubst Θ1 (Chan.var_Chan x .: σ) (none :: Θ2)
+    AgreeCSubst Θ1 (Chan.var_Chan x .: σ) (.none :: Θ2)
   | wk1 {Θa Θb Θ1 σ Θ2 x r A} :
-    Merge Θa Θb Θ1 →
+    PMerge Θa Θb Θ1 →
     AgreeCSubst Θa σ Θ2 →
     Θb ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ .chan (Chan.var_Chan x) : .ch r A →
-    AgreeCSubst Θ1 (Chan.var_Chan x .: σ) (.ch r A :L Θ2)
+    AgreeCSubst Θ1 (Chan.var_Chan x .: σ) (.one r A :: Θ2)
   | conv {Θ1 σ Θ2 A B r} :
     A ≃ B →
     [] ⊢ B : .proto →
-    AgreeCSubst Θ1 σ (.ch r A :L Θ2) →
-    AgreeCSubst Θ1 σ (.ch r B :L Θ2)
+    AgreeCSubst Θ1 σ (.one r A :: Θ2) →
+    AgreeCSubst Θ1 σ (.one r B :: Θ2)
 
 @[inherit_doc] scoped notation:50 Θ1:50 " ⊩ " σ:51 " ⫣ " Θ2:51 => AgreeCSubst Θ1 σ Θ2
 
@@ -95,45 +99,52 @@ lemma AgreeCSubst.csubst_cren {Θ1 Θ2 σ} (_agr : Θ1 ⊩ σ ⫣ Θ2) (m : Term
 /-! ## Structural lemmas. -/
 
 /-- Channel substitution preserves emptiness of the process context (Coq `dyn_agree_csubst_empty`). -/
-lemma AgreeCSubst.empty {Θ1 Θ2 σ} (agr : Θ1 ⊩ σ ⫣ Θ2) (emp : Empty Θ2) : Empty Θ1 := by
+lemma AgreeCSubst.empty {Θ1 Θ2 σ} (agr : Θ1 ⊩ σ ⫣ Θ2) (emp : PEmpty Θ2) : PEmpty Θ1 := by
   induction agr with
   | nil _ => exact emp
-  | pad _ ih => exact .null (ih emp)
+  | pad _ ih => exact .none (ih emp)
   | ty _ _ => cases emp
-  | n _ ih => cases emp with | null e => exact .null (ih e)
-  | wk0 _ ih => cases emp with | null e => exact ih e
+  | both _ _ => cases emp
+  | n _ ih => cases emp with | none e => exact .none (ih e)
+  | wk0 _ ih => cases emp with | none e => exact ih e
   | wk1 _ _ _ => cases emp
   | conv _ _ _ => cases emp
 
 /-- Channel substitution transports keys (Coq `dyn_agree_csubst_key`). -/
-lemma AgreeCSubst.key {Θ1 Θ2 σ s} (agr : Θ1 ⊩ σ ⫣ Θ2) (k : Θ2 ▷ s) : Θ1 ▷ s := by
+lemma AgreeCSubst.key {Θ1 Θ2 σ s} (agr : Θ1 ⊩ σ ⫣ Θ2) (k : Θ2 ▷ₚ s) : Θ1 ▷ₚ s := by
   induction agr generalizing s with
   | nil _ => exact k
-  | pad _ ih => exact .null (ih k)
-  | ty _ _ ih => cases k with | L _ k' => exact .L _ (ih k')
-  | n _ ih => cases k with | null k' => exact .null (ih k')
-  | wk0 _ ih => cases k with | null k' => exact ih k'
+  | pad _ ih => exact .none (ih k)
+  | ty _ _ ih => cases k with | one k' => exact .one (ih k')
+  | both _ _ ih => cases k with | both k' => exact .both (ih k')
+  | n _ ih => cases k with | none k' => exact .none (ih k')
+  | wk0 _ ih => cases k with | none k' => exact ih k'
   | @wk1 Θa Θb Θ1 σ Θ2 x r A mrg agr tyx ih =>
-    cases k with | L _ k' => exact mrg.key_image (ih k') Key.impure
-  | conv _ _ _ ih => cases k with | L _ k' => exact ih (.L _ k')
+    cases k with | one k' => exact mrg.key_image (ih k') PKey.impure
+  | conv _ _ _ ih => cases k with | one k' => exact ih (.one k')
 
 /-- Merge inversion for well-formed process contexts (Coq `proc_wf_merge_inv`). -/
-lemma ProcWf.merge_inv {Θ1 Θ2 Θ} (mrg : Merge Θ1 Θ2 Θ) (wf : ProcWf Θ) :
+lemma ProcWf.merge_inv {Θ1 Θ2 Θ} (mrg : PMerge Θ1 Θ2 Θ) (wf : ProcWf Θ) :
     ProcWf Θ1 ∧ ProcWf Θ2 := by
   induction mrg with
   | nil => exact ⟨.nil, .nil⟩
-  | left _ _ => cases wf
-  | right1 _ mrg' ih => cases wf with
-    | ty wf' tyA => obtain ⟨w1, w2⟩ := ih wf'; exact ⟨.ty w1 tyA, .null w2⟩
-  | right2 _ mrg' ih => cases wf with
-    | ty wf' tyA => obtain ⟨w1, w2⟩ := ih wf'; exact ⟨.null w1, .ty w2 tyA⟩
-  | null _ ih => cases wf with
-    | null wf' => obtain ⟨w1, w2⟩ := ih wf'; exact ⟨.null w1, .null w2⟩
+  | none _ ih => cases wf with
+    | none wf' => obtain ⟨w1, w2⟩ := ih wf'; exact ⟨.none w1, .none w2⟩
+  | oneL _ ih => cases wf with
+    | one wf' tyA => obtain ⟨w1, w2⟩ := ih wf'; exact ⟨.one w1 tyA, .none w2⟩
+  | oneR _ ih => cases wf with
+    | one wf' tyA => obtain ⟨w1, w2⟩ := ih wf'; exact ⟨.none w1, .one w2 tyA⟩
+  | bothL _ ih => cases wf with
+    | both wf' tyA => obtain ⟨w1, w2⟩ := ih wf'; exact ⟨.both w1 tyA, .none w2⟩
+  | bothR _ ih => cases wf with
+    | both wf' tyA => obtain ⟨w1, w2⟩ := ih wf'; exact ⟨.none w1, .both w2 tyA⟩
+  | split _ ih => cases wf with
+    | both wf' tyA => obtain ⟨w1, w2⟩ := ih wf'; exact ⟨.one w1 tyA, .one w2 tyA⟩
 
 /-- Channel substitution is compatible with merge (Coq `dyn_agree_csubst_merge`). -/
 lemma AgreeCSubst.merge {Θ1 Θ2 σ} (agr : Θ1 ⊩ σ ⫣ Θ2) :
-    ∀ {Θa Θb}, Merge Θa Θb Θ2 →
-    ∃ Θa' Θb', Merge Θa' Θb' Θ1 ∧ (Θa' ⊩ σ ⫣ Θa) ∧ (Θb' ⊩ σ ⫣ Θb) := by
+    ∀ {Θa Θb}, PMerge Θa Θb Θ2 →
+    ∃ Θa' Θb', PMerge Θa' Θb' Θ1 ∧ (Θa' ⊩ σ ⫣ Θa) ∧ (Θb' ⊩ σ ⫣ Θb) := by
   induction agr with
   | @nil Θ wf =>
     intro Θa Θb mrg
@@ -142,47 +153,59 @@ lemma AgreeCSubst.merge {Θ1 Θ2 σ} (agr : Θ1 ⊩ σ ⫣ Θ2) :
   | @pad Θ1 σ Θ2 agr ih =>
     intro Θa Θb mrg
     obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg
-    exact ⟨none :: Θa', none :: Θb', .null mrg', .pad agr1, .pad agr2⟩
+    exact ⟨.none :: Θa', .none :: Θb', .none mrg', .pad agr1, .pad agr2⟩
   | @ty Θ1 σ Θ2 r A agr tyA ih =>
     intro Θa Θb mrg
     cases mrg with
-    | right1 _ mrg' =>
+    | oneL mrg' =>
       obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨.ch r A :L Θa', none :: Θb', .right1 _ mrg', .ty agr1 tyA, .n agr2⟩
-    | right2 _ mrg' =>
+      exact ⟨.one r A :: Θa', .none :: Θb', .oneL mrg', .ty agr1 tyA, .n agr2⟩
+    | oneR mrg' =>
       obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨none :: Θa', .ch r A :L Θb', .right2 _ mrg', .n agr1, .ty agr2 tyA⟩
+      exact ⟨.none :: Θa', .one r A :: Θb', .oneR mrg', .n agr1, .ty agr2 tyA⟩
+  | @both Θ1 σ Θ2 A agr tyA ih =>
+    intro Θa Θb mrg
+    cases mrg with
+    | bothL mrg' =>
+      obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg'
+      exact ⟨.both A :: Θa', .none :: Θb', .bothL mrg', .both agr1 tyA, .n agr2⟩
+    | bothR mrg' =>
+      obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg'
+      exact ⟨.none :: Θa', .both A :: Θb', .bothR mrg', .n agr1, .both agr2 tyA⟩
+    | split mrg' =>
+      obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg'
+      exact ⟨.one _ A :: Θa', .one _ A :: Θb', .split mrg', .ty agr1 tyA, .ty agr2 tyA⟩
   | @n Θ1 σ Θ2 agr ih =>
     intro Θa Θb mrg
     cases mrg with
-    | null mrg' =>
+    | none mrg' =>
       obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg'
-      exact ⟨none :: Θa', none :: Θb', .null mrg', .n agr1, .n agr2⟩
+      exact ⟨.none :: Θa', .none :: Θb', .none mrg', .n agr1, .n agr2⟩
   | @wk0 Θ1 σ Θ2 x agr ih =>
     intro Θa Θb mrg
     cases mrg with
-    | null mrg' =>
+    | none mrg' =>
       obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg'
       exact ⟨Θa', Θb', mrg', .wk0 agr1, .wk0 agr2⟩
   | @wk1 Θa0 Θb0 Θ1 σ Θ2 x r A mrgΘ agr tyx ih =>
     intro Θa Θb mrg
     cases mrg with
-    | right1 _ mrg' =>
+    | oneL mrg' =>
       obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg'
       obtain ⟨Θc, mrg1, mrg2⟩ := mrgΘ.splitL mrg'
       exact ⟨Θc, Θb', mrg2, .wk1 mrg1 agr1 tyx, .wk0 agr2⟩
-    | right2 _ mrg' =>
+    | oneR mrg' =>
       obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih mrg'
       obtain ⟨Θc, mrg1, mrg2⟩ := mrgΘ.splitR mrg'
       exact ⟨Θa', Θc, mrg2.sym, .wk0 agr1, .wk1 mrg1 agr2 tyx⟩
   | @conv Θ1 σ Θ2 A B r eq tyB agr ih =>
     intro Θa Θb mrg
     cases mrg with
-    | right1 _ mrg' =>
-      obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih (.right1 (Term.ch r A) mrg')
+    | oneL mrg' =>
+      obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih (.oneL mrg')
       exact ⟨Θa', Θb', mrg', .conv eq tyB agr1, agr2⟩
-    | right2 _ mrg' =>
-      obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih (.right2 (Term.ch r A) mrg')
+    | oneR mrg' =>
+      obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih (.oneR mrg')
       exact ⟨Θa', Θb', mrg', agr1, .conv eq tyB agr2⟩
 
 /-- The source of a channel substitution agreement is well-formed (Coq `dyn_agree_csubst_wf`). -/
@@ -190,45 +213,30 @@ lemma AgreeCSubst.procWf {Θ1 Θ2 σ} (agr : Θ1 ⊩ σ ⫣ Θ2) : ProcWf Θ2 :=
   induction agr with
   | nil wf => exact wf
   | pad _ ih => exact ih
-  | ty _ tyA ih => exact .ty ih tyA
-  | n _ ih => exact .null ih
-  | wk0 _ ih => exact .null ih
+  | ty _ tyA ih => exact .one ih tyA
+  | both _ tyA ih => exact .both ih tyA
+  | n _ ih => exact .none ih
+  | wk0 _ ih => exact .none ih
   | @wk1 Θa Θb Θ1 σ Θ2 x r A mrg agr tyx ih =>
     obtain ⟨s, tyC⟩ := tyx.validity
     obtain ⟨tyA, _⟩ := Static.ch_inv tyC
-    exact .ty ih tyA
-  | conv eq tyB _ ih => cases ih with | ty wf' _ => exact .ty wf' tyB
+    exact .one ih tyA
+  | conv eq tyB _ ih => cases ih with | one wf' _ => exact .one wf' tyB
 
 /-! ## Channel-variable typing under a substitution. -/
 
-/-- Peeling a null-slot `Just` lookup at a channel type: the de Bruijn shift on the stored type is
-    `⟨(·+1); id⟩`, which on a `.ch` head reduces to a shift of the protocol; the channel-predecessor
-    renaming `(· - 1)` undoes it (Coq's `inv js; destruct A0; inv H0; apply (sta_crename (-1))`). -/
-lemma just_ch_pred {Θ x r A} (js : Just (none :: Θ) x (.ch r A)) :
-    ∃ z A0, x = z + 1 ∧ A = A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ ∧ Just Θ z (.ch r A0) := by
-  generalize hC : Term.ch r A = C at js
+/-- Peeling a null-slot `PJust` lookup exposes the predecessor index and protocol. -/
+lemma just_ch_pred {Θ x r A} (js : PJust (.none :: Θ) x r A) :
+    ∃ z A0, x = z + 1 ∧ A = A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ ∧ PJust Θ z r A0 := by
   cases js with
-  | @null _ A1 z js' =>
-    -- `A1⟨(·+1);id⟩ = .ch r A`; so `A1 = .ch r A0` with `A = A0⟨(·+1);id⟩`.
-    cases A1
-    case ch r' A0 =>
-      rw [show (Term.ch r' A0)⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩
-            = Term.ch r' (A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) from by asimp] at hC
-      cases hC
-      exact ⟨z, A0, rfl, rfl, js'⟩
-    all_goals (asimp at hC; exact absurd hC (by simp))
+  | none js' => exact ⟨_, _, rfl, rfl, js'⟩
 
-/-- Peeling a real-slot `Just` lookup at a channel type (the `Just.zero` case): the index is `0`,
-    the slots after are empty, and the stored type is the front protocol shifted by `(·+1)`. -/
-lemma just_ch_zero {Θ x r A r0 A0} (js : Just (.ch r A :L Θ) x (.ch r0 A0)) :
-    x = 0 ∧ r0 = r ∧ A0 = A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ ∧ Empty Θ := by
-  generalize hC : Term.ch r0 A0 = C at js
+/-- Peeling a real-slot `PJust` lookup: the index is `0`, the tail is empty, and the stored
+    protocol is the front protocol shifted by `(·+1)`. -/
+lemma just_ch_zero {Θ x r A r0 A0} (js : PJust (.one r A :: Θ) x r0 A0) :
+    x = 0 ∧ r0 = r ∧ A0 = A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ ∧ PEmpty Θ := by
   cases js with
-  | zero emp =>
-    rw [show (Term.ch r A)⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩
-          = Term.ch r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) from by asimp] at hC
-    cases hC
-    exact ⟨rfl, rfl, rfl, emp⟩
+  | zero emp => exact ⟨rfl, rfl, rfl, emp⟩
 
 /-- A channel renaming by the predecessor `(· - 1)` undoes the `(·+1)` shift on a closed protocol,
     keeping it well-typed (the `sta_crename (-1)` + `term_cren_comp`/`term_cren_id` chain). -/
@@ -246,7 +254,7 @@ lemma proto_pred {A0 : Term} (tyA : [] ⊢ A0⟨((· + 1) : Nat → Nat); (id : 
     cases peel via a channel-predecessor renaming `(· - 1)` (Coq `sta_crename (-1)` with
     `term_cren_comp`/`term_cren_id`; here truncated-`Nat` arithmetic). -/
 lemma AgreeCSubst.just {Θ1 Θ2 σ x r A} (agr : Θ1 ⊩ σ ⫣ Θ2)
-    (tyA : [] ⊢ A : .proto) (js : Just Θ2 x (.ch r A)) :
+    (tyA : [] ⊢ A : .proto) (js : PJust Θ2 x r A) :
     Θ1 ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ .chan (σ x) : .ch r A := by
   induction agr generalizing x r A with
   | @nil Θ wf =>
@@ -274,16 +282,16 @@ lemma AgreeCSubst.just {Θ1 Θ2 σ x r A} (agr : Θ1 ⊩ σ ⫣ Θ2)
     have emp1 := agr.empty emp2
     -- `up_Chan_Chan σ 0 = Chan.var_Chan 0`; the front-channel typing matches the shifted goal type.
     rw [show up_Chan_Chan σ 0 = Chan.var_Chan 0 from rfl]
-    have js0 : Just (.ch r A0 :L Θ1) 0 (.ch r (A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)) := by
-      have h0 := Just.zero (Δ := Θ1) (A := Term.ch r A0) emp1
-      rwa [show (Term.ch r A0)⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩
-            = Term.ch r (A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) from by asimp] at h0
+    have js0 : PJust (.one r A0 :: Θ1) 0 r (A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) :=
+      PJust.zero emp1
     have h := Typed.chan (Γ := []) (Δ := []) js0 Wf.nil Key.nil tyA
     rw [show (A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)⟨(id : Nat → Nat);
           (· + ([] : Static.Ctx).length)⟩ = A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ from by
           simp only [List.length_nil, Nat.add_zero]
           rw [show ((fun x => x) : Nat → Nat) = (id : Nat → Nat) from rfl]; asimp] at h
     exact h
+  | @both Θ1 σ Θ2 A0 agr tyA0 ih =>
+    cases js
   | @n Θ1 σ Θ2 agr ih =>
     obtain ⟨z, A0, hx, hA, js'⟩ := just_ch_pred js
     subst hx; subst hA
@@ -310,7 +318,7 @@ lemma AgreeCSubst.just {Θ1 Θ2 σ x r A} (agr : Θ1 ⊩ σ ⫣ Θ2)
   | @wk1 Θa Θb Θ1 σ Θ2 y r0 A0 mrg agr tyx ih =>
     obtain ⟨hx, hr, hA, emp2⟩ := just_ch_zero js
     subst hx; subst hr; subst hA
-    -- `Empty Θa` (via `agr.empty`), so the merge `Θa ∘ Θb => Θ1` makes `Θb = Θ1`.
+    -- `PEmpty Θa` (via `agr.empty`), so the merge `Θa ∘ Θb => Θ1` makes `Θb = Θ1`.
     have emp_a := agr.empty emp2
     have e := mrg.emptyL emp_a; subst e
     -- `(Chan.var_Chan y .: σ) 0 = Chan.var_Chan y`; `tyx : Θ1 ⊢ chan y : .ch r0 A0`.
@@ -318,16 +326,14 @@ lemma AgreeCSubst.just {Θ1 Θ2 σ x r A} (agr : Θ1 ⊩ σ ⫣ Θ2)
     apply Typed.conv ?_ tyx (.ch tyA)
     exact Static.conv_ch (ARS.conv_sym (Static.cren_conv0 .refl ((· + 1) : Nat → Nat)))
   | @conv Θ1 σ Θ2 A1 B r0 eq tyB agr ih =>
-    -- target is `.ch r0 B :L Θ2`; peel the lookup, then run `ih` over the pre-conv `.ch r0 A1 :L Θ2`.
+    -- target is `.one r0 B :: Θ2`; peel the lookup, then run `ih` over the pre-conv slot.
     obtain ⟨hx, hr, hA, emp2⟩ := just_ch_zero js
     subst hx; subst hr; subst hA
     -- recover `[] ⊢ A1 : proto` from the pre-conv agreement's well-formedness.
-    have wfA1 : [] ⊢ A1 : .proto := by cases agr.procWf with | ty _ tyA1 => exact tyA1
+    have wfA1 : [] ⊢ A1 : .proto := by cases agr.procWf with | one _ tyA1 => exact tyA1
     have tyA1s := Static.Typed.crename wfA1 ((· + 1) : Nat → Nat)
-    have js0 : Just (.ch r A1 :L Θ2) 0 (.ch r (A1⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)) := by
-      have h0 := Just.zero (Δ := Θ2) (A := Term.ch r A1) emp2
-      rwa [show (Term.ch r A1)⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩
-            = Term.ch r (A1⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) from by asimp] at h0
+    have js0 : PJust (.one r A1 :: Θ2) 0 r (A1⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) :=
+      PJust.zero emp2
     have h := ih tyA1s js0
     -- adapt `.ch r (A1⟨+1;id⟩)` to the goal `.ch r (B⟨+1;id⟩)` via `A1 ≃ B`.
     apply Typed.conv ?_ h (.ch tyA)

@@ -25,9 +25,9 @@ open scoped TLLC.Static
 
 /-- Dynamic substitution agreement (Coq `dyn_agree_subst`). -/
 inductive AgreeSubst :
-    Ctx → Static.Ctx → Ctx → (Nat → Term) → Static.Ctx → Ctx → Prop where
+    PCtx → Static.Ctx → Ctx → (Nat → Term) → Static.Ctx → Ctx → Prop where
   | nil {Θ1} :
-    Empty Θ1 →
+    PEmpty Θ1 →
     AgreeSubst Θ1 ([] : Static.Ctx) ([] : Ctx) Term.var_Term ([] : Static.Ctx) ([] : Ctx)
   | ty {Θ1 Γ1 Δ1 σ Γ2 Δ2 A s} :
     AgreeSubst Θ1 Γ1 Δ1 σ Γ2 Δ2 →
@@ -44,9 +44,9 @@ inductive AgreeSubst :
     Γ1 ⊢ n : A[Chan.var_Chan; σ] →
     AgreeSubst Θ1 Γ1 Δ1 (n .: σ) (A :: Γ2) (none :: Δ2)
   | wk1 {Θa Θb Θ1 Γ1 Γ2 σ Δ1 Δ2 Δa Δb n A s} :
-    Θb ▷ s →
+    Θb ▷ₚ s →
     Δb ▷ s →
-    Merge Θa Θb Θ1 →
+    PMerge Θa Θb Θ1 →
     Merge Δa Δb Δ1 →
     AgreeSubst Θa Γ1 Δa σ Γ2 Δ2 →
     Typed Θb Γ1 Δb n (A[Chan.var_Chan; σ]) →
@@ -70,13 +70,13 @@ scoped notation:50 Θ1:50 " ⨾ " Γ1:51 " ⨾ " Δ1:51 " ⊢ " σ:51 " ⊣ " Γ
 
 /-- Substitution agreement transports keys (Coq `dyn_agree_subst_key`). -/
 lemma AgreeSubst.key {Θ1 Γ1 Γ2 Δ1 Δ2 σ s}
-    (agr : Θ1 ⨾ Γ1 ⨾ Δ1 ⊢ σ ⊣ Γ2 ⨾ Δ2) (k : Δ2 ▷ s) : Θ1 ▷ s ∧ Δ1 ▷ s := by
+    (agr : Θ1 ⨾ Γ1 ⨾ Δ1 ⊢ σ ⊣ Γ2 ⨾ Δ2) (k : Δ2 ▷ s) : Θ1 ▷ₚ s ∧ Δ1 ▷ s := by
   induction agr generalizing s with
   | nil emp => exact ⟨emp.key, .nil⟩
   | @ty Θ1 Γ1 Δ1 σ Γ2 Δ2 A s' agr tyA ih =>
     cases k with
     | U _ k' => obtain ⟨k1, k2⟩ := ih k'; exact ⟨k1, .U _ k2⟩
-    | L _ k' => obtain ⟨k1, k2⟩ := ih k'; exact ⟨Key.impure, .L _ k2⟩
+    | L _ k' => obtain ⟨k1, k2⟩ := ih k'; exact ⟨PKey.impure, .L _ k2⟩
   | @n Θ1 Γ1 Δ1 σ Γ2 Δ2 A s' agr tyA ih =>
     cases k with
     | null k' => obtain ⟨k1, k2⟩ := ih k'; exact ⟨k1, .null k2⟩
@@ -86,7 +86,7 @@ lemma AgreeSubst.key {Θ1 Γ1 Γ2 Δ1 Δ2 σ s}
   | @wk1 Θa Θb Θ1 Γ1 Γ2 σ Δ1 Δ2 Δa Δb n A s' kb kΔb mrgΘ mrgΔ agr tyn ih =>
     cases k with
     | U _ k' => obtain ⟨k1, k2⟩ := ih k'; exact ⟨mrgΘ.key_image k1 kb, mrgΔ.key_image k2 kΔb⟩
-    | L _ k' => exact ⟨Key.impure, Key.impure⟩
+    | L _ k' => exact ⟨PKey.impure, Key.impure⟩
   | @conv0 Θ1 Γ1 Δ1 σ Γ2 Δ2 A B s' eq tyB1 tyB2 agr ih =>
     cases k with
     | null k' => exact ih (.null k')
@@ -108,7 +108,7 @@ lemma AgreeSubst.toStatic {Θ1 Γ1 Γ2 Δ1 Δ2 σ}
   | conv1 eq tyB1 tyB2 _ ih => exact .conv eq tyB1 tyB2 ih
 
 /-- The identity substitution agrees a well-formed pair with itself (Coq `dyn_agree_subst_refl`). -/
-lemma AgreeSubst.refl : ∀ {Θ Γ Δ}, Empty Θ → Wf Γ Δ → Θ ⨾ Γ ⨾ Δ ⊢ Term.var_Term ⊣ Γ ⨾ Δ
+lemma AgreeSubst.refl : ∀ {Θ Γ Δ}, PEmpty Θ → Wf Γ Δ → Θ ⨾ Γ ⨾ Δ ⊢ Term.var_Term ⊣ Γ ⨾ Δ
   | _, _, _, emp, .nil => .nil emp
   | _, _, _, emp, @Wf.cons Γ Δ A s wf tyA => by
     have ih := AgreeSubst.refl emp wf
@@ -125,7 +125,7 @@ lemma AgreeSubst.refl : ∀ {Θ Γ Δ}, Empty Θ → Wf Γ Δ → Θ ⨾ Γ ⨾ 
 
 /-- A typing in a process context yields an empty splitter (Coq `dyn_type_empty`). -/
 lemma Typed.empty {Θ1 Γ Δ m A} (ty : Θ1 ⨾ Γ ⨾ Δ ⊢ m : A) :
-    ∃ Θ, Empty Θ ∧ Merge Θ Θ1 Θ1 := by
+    ∃ Θ, PEmpty Θ ∧ PMerge Θ Θ1 Θ1 := by
   induction ty with
   | @var Θ Γ Δ x s A emp wf shs dhs => exact ⟨Θ, emp, emp.merge_self⟩
   | @lamIm Θ Γ Δ A B m s k1 k2 tym ih => exact ih
@@ -181,7 +181,7 @@ lemma Typed.empty {Θ1 Γ Δ m A} (ty : Θ1 ⨾ Γ ⨾ Δ ⊢ m : A) :
 
 /-- Substitution agreement transports linear lookups (Coq `dyn_agree_subst_has`). -/
 lemma AgreeSubst.has {Θ1 Θ2 Θ Γ1 Γ2 σ Δ1 Δ2 x s A}
-    (agr : Θ1 ⨾ Γ1 ⨾ Δ1 ⊢ σ ⊣ Γ2 ⨾ Δ2) (emp2 : Empty Θ2) (mrg : Merge Θ1 Θ2 Θ)
+    (agr : Θ1 ⨾ Γ1 ⨾ Δ1 ⊢ σ ⊣ Γ2 ⨾ Δ2) (emp2 : PEmpty Θ2) (mrg : PMerge Θ1 Θ2 Θ)
     (wf : Wf Γ1 Δ1) (hs : Has Δ2 x s A) :
     Θ ⨾ Γ1 ⨾ Δ1 ⊢ σ x : A[Chan.var_Chan; σ] := by
   induction agr generalizing x Θ2 Θ s A with
@@ -248,7 +248,7 @@ lemma AgreeSubst.merge {Θ1 Γ1 Γ2 Δ1 Δ2 σ}
     (agr : Θ1 ⨾ Γ1 ⨾ Δ1 ⊢ σ ⊣ Γ2 ⨾ Δ2) :
     ∀ {Δa Δb}, Merge Δa Δb Δ2 →
     ∃ Θa' Θb' Δa' Δb',
-      Merge Θa' Θb' Θ1 ∧
+      PMerge Θa' Θb' Θ1 ∧
       Merge Δa' Δb' Δ1 ∧
       (Θa' ⨾ Γ1 ⨾ Δa' ⊢ σ ⊣ Γ2 ⨾ Δa) ∧
       (Θb' ⨾ Γ1 ⨾ Δb' ⊢ σ ⊣ Γ2 ⨾ Δb) := by
@@ -405,7 +405,7 @@ lemma Wf.substitution {Γ2 Δ2} (wf : Wf Γ2 Δ2) :
 
 /-- Substitution preserves dynamic typing (Coq `dyn_substitution`). -/
 lemma Typed.substitution {Θ2 Γ2 Δ2 m A} (tym : Θ2 ⨾ Γ2 ⨾ Δ2 ⊢ m : A) :
-    ∀ {Θ1 Θ Γ1 Δ1 σ}, Merge Θ1 Θ2 Θ → (Θ1 ⨾ Γ1 ⨾ Δ1 ⊢ σ ⊣ Γ2 ⨾ Δ2) →
+    ∀ {Θ1 Θ Γ1 Δ1 σ}, PMerge Θ1 Θ2 Θ → (Θ1 ⨾ Γ1 ⨾ Δ1 ⊢ σ ⊣ Γ2 ⨾ Δ2) →
       Θ ⨾ Γ1 ⨾ Δ1 ⊢ m[Chan.var_Chan; σ] : A[Chan.var_Chan; σ] := by
   induction tym with
   | @var Θ2 Γ Δ x s A emp wf shs dhs =>
@@ -631,7 +631,7 @@ lemma Typed.subst0 {Θ Γ Δ m n A B}
 
 /-- Linear substitution of an argument (Coq `dyn_subst1`). -/
 lemma Typed.subst1 {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s}
-    (k1 : Θ2 ▷ s) (mrg1 : Merge Θ1 Θ2 Θ) (k2 : Δ2 ▷ s) (mrg2 : Merge Δ1 Δ2 Δ)
+    (k1 : Θ2 ▷ₚ s) (mrg1 : PMerge Θ1 Θ2 Θ) (k2 : Δ2 ▷ s) (mrg2 : Merge Δ1 Δ2 Δ)
     (tym : Θ1 ⨾ (A :: Γ) ⨾ (A :⟨s⟩ Δ1) ⊢ m : B) (tyn : Θ2 ⨾ Γ ⨾ Δ2 ⊢ n : A) :
     Θ ⨾ Γ ⨾ Δ ⊢ m[Chan.var_Chan; n..] : B[Chan.var_Chan; n..] := by
   cases tym.wf with
@@ -656,7 +656,7 @@ lemma Typed.esubst0 {Θ Γ Δ m m' n A B B'}
 lemma Typed.esubst1 {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m m' n A B B' s}
     (em : m' = m[Chan.var_Chan; n..])
     (eB : B' = B[Chan.var_Chan; n..])
-    (k1 : Θ2 ▷ s) (mrg1 : Merge Θ1 Θ2 Θ) (k2 : Δ2 ▷ s) (mrg2 : Merge Δ1 Δ2 Δ)
+    (k1 : Θ2 ▷ₚ s) (mrg1 : PMerge Θ1 Θ2 Θ) (k2 : Δ2 ▷ s) (mrg2 : Merge Δ1 Δ2 Δ)
     (tym : Θ1 ⨾ (A :: Γ) ⨾ (A :⟨s⟩ Δ1) ⊢ m : B) (tyn : Θ2 ⨾ Γ ⨾ Δ2 ⊢ n : A) :
     Θ ⨾ Γ ⨾ Δ ⊢ m' : B' := by
   subst em; subst eB

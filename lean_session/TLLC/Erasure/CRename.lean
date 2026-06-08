@@ -233,12 +233,10 @@ theorem Erased.crename {Θ Γ Δ m m' A} (h : Θ ⨾ Γ ⨾ Δ ⊢ m ~ m' : A) :
     obtain ⟨Θ1', Θ2', mrgΘ', agr1, agr2⟩ := agr.merge mrgΘ
     have ihn' := ihn agr2
     asimp
-    exact .mlet mrgΘ' mrgΔ tyB (ihm agr1) ihn'
+    exact .mlet (s := s) mrgΘ' mrgΔ tyB (ihm agr1) ihn'
   | @chan Θ Γ Δ r x A js wf k tyA =>
     intro Θ' ξ agr
     have js' := agr.just js
-    rw [show ((Term.ch r A))⟨ξ; (id : Nat → Nat)⟩ = Term.ch r (A⟨ξ; (id : Nat → Nat)⟩) from by asimp]
-      at js'
     have tyAr := Static.Typed.crename tyA ξ
     have tych : Γ ⊢ Term.ch r (A⟨(id : Nat → Nat); (· + Γ.length)⟩) : .srt .L := by
       apply Static.Typed.ch
@@ -279,9 +277,9 @@ theorem Erased.crename {Θ Γ Δ m m' A} (h : Θ ⨾ Γ ⨾ Δ ⊢ m ~ m' : A) :
 
 /-! ## Channel strengthening/weakening. -/
 
-/-- Channel strengthening for erasure (Coq `era_cstrengthen`). -/
-lemma Erased.cstrengthen {Θ Γ Δ m m' A}
-    (h : (none :: Θ) ⨾ Γ ⨾ Δ
+  /-- Channel strengthening for erasure (Coq `era_cstrengthen`). -/
+  lemma Erased.cstrengthen {Θ Γ Δ m m' A}
+      (h : (Slot.none :: Θ) ⨾ Γ ⨾ Δ
       ⊢ m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ ~ m'⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ : A) :
     Θ ⨾ Γ ⨾ Δ ⊢ m ~ m' : A := by
   have h := h.crename (Θ' := Θ) (ξ := funcomp (id : Nat → Nat) (· - 1)) (.minus .O)
@@ -293,9 +291,9 @@ lemma Erased.cstrengthen {Θ Γ Δ m m' A}
         (id : Nat → Nat)⟩ = m' from by asimp; rw [hmap]; asimp] at h
   exact h
 
-/-- Channel weakening for erasure (Coq `era_cweaken`). -/
-lemma Erased.cweaken {Θ Γ Δ m m' A} (h : Θ ⨾ Γ ⨾ Δ ⊢ m ~ m' : A) :
-    (none :: Θ) ⨾ Γ ⨾ Δ
+  /-- Channel weakening for erasure (Coq `era_cweaken`). -/
+  lemma Erased.cweaken {Θ Γ Δ m m' A} (h : Θ ⨾ Γ ⨾ Δ ⊢ m ~ m' : A) :
+      (Slot.none :: Θ) ⨾ Γ ⨾ Δ
       ⊢ m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ ~ m'⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ : A := by
   have h := h.crename (.plus .O)
   rw [show m⟨funcomp Nat.succ (id : Nat → Nat); (id : Nat → Nat)⟩

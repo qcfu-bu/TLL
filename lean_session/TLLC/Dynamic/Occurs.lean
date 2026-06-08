@@ -28,16 +28,16 @@ open scoped TLLC.Static
 
 /-- Channel-occurrence positivity in the process context `Θ` (Coq `cvar_pos`): `CvarPos Θ i b` holds
     when channel index `i` is present (`b = true`) or absent (`b = false`) in `Θ`. -/
-inductive CvarPos : Ctx → Nat → Bool → Prop where
+inductive CvarPos : PCtx → Nat → Bool → Prop where
   | nil {i} :
     CvarPos [] i false
-  | ty {Θ A} :
-    CvarPos (A :L Θ) 0 true
-  | n {Θ} :
-    CvarPos (none :: Θ) 0 false
-  | cons {Θ x A b} :
+  | one {Θ r A} :
+    CvarPos (.one r A :: Θ) 0 true
+  | none {Θ} :
+    CvarPos (.none :: Θ) 0 false
+  | cons {Θ x s b} :
     CvarPos Θ x b →
-    CvarPos (A :: Θ) (x + 1) b
+    CvarPos (s :: Θ) (x + 1) b
 
 /-- The occurrence count of channel variable `i` in a term (Coq `dyn_occurs`). Channels are not bound
     by any `Term` binder, so `i` is never lifted under a binder. -/
@@ -76,102 +76,116 @@ def occurs (i : Nat) : Term → Nat
 /-! ## Positivity / merge interaction. -/
 
 /-- Absent on both merge components implies absent on the result (Coq `cvar_pos_merge_false`). -/
-lemma CvarPos.merge_false {Θ1 Θ2 Θ i} (mrg : Merge Θ1 Θ2 Θ) :
+lemma CvarPos.merge_false {Θ1 Θ2 Θ i} (mrg : PMerge Θ1 Θ2 Θ) :
     CvarPos Θ1 i false → CvarPos Θ2 i false → CvarPos Θ i false := by
   induction mrg generalizing i with
   | nil => intro p1 _; exact p1
-  | left _ _ ih => intro p1 p2; cases p1 with
+  | none _ ih => intro p1 p2; cases p1 with
+    | none => exact .none
     | cons p1' => cases p2 with | cons p2' => exact .cons (ih p1' p2')
-  | right1 _ _ ih => intro p1 p2; cases p1 with
+  | oneL _ ih => intro p1 p2; cases p1 with
     | cons p1' => cases p2 with | cons p2' => exact .cons (ih p1' p2')
-  | right2 _ _ ih => intro p1 p2; cases p2 with
+  | oneR _ ih => intro p1 p2; cases p2 with
     | cons p2' => cases p1 with | cons p1' => exact .cons (ih p1' p2')
-  | null _ ih => intro p1 p2; cases p1 with
-    | n => exact .n
+  | bothL _ ih => intro p1 p2; cases p1 with
+    | cons p1' => cases p2 with | cons p2' => exact .cons (ih p1' p2')
+  | bothR _ ih => intro p1 p2; cases p2 with
+    | cons p2' => cases p1 with | cons p1' => exact .cons (ih p1' p2')
+  | split _ ih => intro p1 p2; cases p1 with
     | cons p1' => cases p2 with | cons p2' => exact .cons (ih p1' p2')
 
 /-- Absent on a merge result splits into absent on both components (Coq `cvar_pos_split_false`). -/
-lemma CvarPos.split_false {Θ1 Θ2 Θ i} (mrg : Merge Θ1 Θ2 Θ) :
+lemma CvarPos.split_false {Θ1 Θ2 Θ i} (mrg : PMerge Θ1 Θ2 Θ) :
     CvarPos Θ i false → CvarPos Θ1 i false ∧ CvarPos Θ2 i false := by
   induction mrg generalizing i with
   | nil => intro p; exact ⟨p, p⟩
-  | left _ _ ih => intro p; cases p with
+  | none _ ih => intro p; cases p with
+    | none => exact ⟨.none, .none⟩
     | cons p' => obtain ⟨p1, p2⟩ := ih p'; exact ⟨.cons p1, .cons p2⟩
-  | right1 _ _ ih => intro p; cases p with
+  | oneL _ ih => intro p; cases p with
     | cons p' => obtain ⟨p1, p2⟩ := ih p'; exact ⟨.cons p1, .cons p2⟩
-  | right2 _ _ ih => intro p; cases p with
+  | oneR _ ih => intro p; cases p with
     | cons p' => obtain ⟨p1, p2⟩ := ih p'; exact ⟨.cons p1, .cons p2⟩
-  | null _ ih => intro p; cases p with
-    | n => exact ⟨.n, .n⟩
+  | bothL _ ih => intro p; cases p with
+    | cons p' => obtain ⟨p1, p2⟩ := ih p'; exact ⟨.cons p1, .cons p2⟩
+  | bothR _ ih => intro p; cases p with
+    | cons p' => obtain ⟨p1, p2⟩ := ih p'; exact ⟨.cons p1, .cons p2⟩
+  | split _ ih => intro p; cases p with
     | cons p' => obtain ⟨p1, p2⟩ := ih p'; exact ⟨.cons p1, .cons p2⟩
 
 /-- Present on a merge result is present on exactly one component (Coq `cvar_pos_split_true`). -/
-lemma CvarPos.split_true {Θ1 Θ2 Θ i} (mrg : Merge Θ1 Θ2 Θ) :
+lemma CvarPos.split_true {Θ1 Θ2 Θ i} (mrg : PMerge Θ1 Θ2 Θ) :
     CvarPos Θ i true →
     (CvarPos Θ1 i false ∧ CvarPos Θ2 i true) ∨ (CvarPos Θ1 i true ∧ CvarPos Θ2 i false) := by
   induction mrg generalizing i with
   | nil => intro p; cases p
-  | left _ _ ih => intro p; cases p with
+  | none _ ih => intro p; cases p with
     | cons p' => rcases ih p' with ⟨p1, p2⟩ | ⟨p1, p2⟩
                  exacts [.inl ⟨.cons p1, .cons p2⟩, .inr ⟨.cons p1, .cons p2⟩]
-  | right1 _ _ ih => intro p; cases p with
-    | ty => exact .inr ⟨.ty, .n⟩
+  | oneL _ ih => intro p; cases p with
+    | one => exact .inr ⟨.one, .none⟩
     | cons p' => rcases ih p' with ⟨p1, p2⟩ | ⟨p1, p2⟩
                  exacts [.inl ⟨.cons p1, .cons p2⟩, .inr ⟨.cons p1, .cons p2⟩]
-  | right2 _ _ ih => intro p; cases p with
-    | ty => exact .inl ⟨.n, .ty⟩
+  | oneR _ ih => intro p; cases p with
+    | one => exact .inl ⟨.none, .one⟩
     | cons p' => rcases ih p' with ⟨p1, p2⟩ | ⟨p1, p2⟩
                  exacts [.inl ⟨.cons p1, .cons p2⟩, .inr ⟨.cons p1, .cons p2⟩]
-  | null _ ih => intro p; cases p with
+  | bothL _ ih => intro p; cases p with
+    | cons p' => rcases ih p' with ⟨p1, p2⟩ | ⟨p1, p2⟩
+                 exacts [.inl ⟨.cons p1, .cons p2⟩, .inr ⟨.cons p1, .cons p2⟩]
+  | bothR _ ih => intro p; cases p with
+    | cons p' => rcases ih p' with ⟨p1, p2⟩ | ⟨p1, p2⟩
+                 exacts [.inl ⟨.cons p1, .cons p2⟩, .inr ⟨.cons p1, .cons p2⟩]
+  | split _ ih => intro p; cases p with
     | cons p' => rcases ih p' with ⟨p1, p2⟩ | ⟨p1, p2⟩
                  exacts [.inl ⟨.cons p1, .cons p2⟩, .inr ⟨.cons p1, .cons p2⟩]
 
 /-! ## Empty / Just interaction. -/
 
 /-- An empty process context has no present channel (Coq `dyn_empty_pos_true`). -/
-lemma Empty.pos_true {Θ i} (emp : Empty Θ) : CvarPos Θ i true → False := by
+lemma PEmpty.pos_true {Θ i} (emp : PEmpty Θ) : CvarPos Θ i true → False := by
   induction emp generalizing i with
   | nil => intro p; cases p
-  | null _ ih => intro p; cases p with | cons p' => exact ih p'
+  | none _ ih => intro p; cases p with | cons p' => exact ih p'
 
 /-- Every channel is absent in an empty process context (Coq `dyn_empty_pos_false`). -/
-lemma Empty.pos_false {Θ i} (emp : Empty Θ) : CvarPos Θ i false := by
+lemma PEmpty.pos_false {Θ i} (emp : PEmpty Θ) : CvarPos Θ i false := by
   induction emp generalizing i with
   | nil => exact .nil
-  | null _ ih => cases i with
-    | zero => exact .n
+  | none _ ih => cases i with
+    | zero => exact .none
     | succ i => exact .cons ih
 
-/-- A `Just` slot is present at `i` iff `x = i` (Coq `dyn_just_pos_true`). -/
-lemma Just.pos_true {Θ x i A} (js : Just Θ x A) : CvarPos Θ i true ↔ x = i := by
+/-- A `PJust` slot is present at `i` iff `x = i` (Coq `dyn_just_pos_true`). -/
+lemma PJust.pos_true {Θ x i r A} (js : PJust Θ x r A) : CvarPos Θ i true ↔ x = i := by
   induction js generalizing i with
-  | @zero Θ A emp =>
+  | @zero Θ r A emp =>
     refine ⟨fun p => ?_, fun e => ?_⟩
     · cases p with
-      | ty => rfl
+      | one => rfl
       | cons p' => exact absurd p' emp.pos_true
-    · subst e; exact .ty
-  | @null Θ A x js ih =>
+    · subst e; exact .one
+  | @none Θ x r A js ih =>
     refine ⟨fun p => ?_, fun e => ?_⟩
     · cases p with | cons p' => rw [ih] at p'; rw [p']
     · subst e; exact .cons (ih.mpr rfl)
 
-/-- A `Just` slot is absent at `i` iff `x ≠ i` (Coq `dyn_just_pos_false`). -/
-lemma Just.pos_false {Θ x i A} (js : Just Θ x A) : CvarPos Θ i false ↔ x ≠ i := by
+/-- A `PJust` slot is absent at `i` iff `x ≠ i` (Coq `dyn_just_pos_false`). -/
+lemma PJust.pos_false {Θ x i r A} (js : PJust Θ x r A) : CvarPos Θ i false ↔ x ≠ i := by
   induction js generalizing i with
-  | @zero Θ A emp =>
+  | @zero Θ r A emp =>
     refine ⟨fun p => ?_, fun neq => ?_⟩
     · cases p with | cons p' => omega
     · cases i with
       | zero => exact absurd rfl neq
       | succ i => exact .cons emp.pos_false
-  | @null Θ A x js ih =>
+  | @none Θ x r A js ih =>
     refine ⟨fun p => ?_, fun neq => ?_⟩
     · cases p with
-      | n => omega
+      | none => omega
       | cons p' => rw [ih] at p'; omega
     · cases i with
-      | zero => exact .n
+      | zero => exact .none
       | succ i => exact .cons (ih.mpr (by omega))
 
 /-! ## Typing ↔ occurrence count. -/

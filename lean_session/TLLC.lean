@@ -26,6 +26,7 @@ import TLLC.Dynamic.Occurs
 import TLLC.Dynamic.SR
 import TLLC.Dynamic.EvalCtx
 import TLLC.Dynamic.Progress
+import TLLC.Dynamic.PContext
 import TLLC.Erasure.Typing
 import TLLC.Erasure.Validity
 import TLLC.Erasure.Uniqueness
@@ -36,7 +37,6 @@ import TLLC.Erasure.Inversion
 import TLLC.Erasure.Occurs
 import TLLC.Erasure.CSubst
 import TLLC.Erasure.SR
-import TLLC.Process.Context
 import TLLC.Process.Typing
 import TLLC.Process.Step
 import TLLC.Process.CRename

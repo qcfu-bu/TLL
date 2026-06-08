@@ -1,4 +1,5 @@
 import TLLC.Dynamic.Context
+import TLLC.Dynamic.PContext
 import TLLC.Static.Typing
 
 /-!
@@ -6,7 +7,8 @@ import TLLC.Static.Typing
 
 Port of `coq_session/dyn_type.v`: the linear typing judgment `dyn_type` over three contexts
 (`Θ ; Γ ; Δ ⊢ m : A`, here `Typed Θ Γ Δ m A`) and the dynamic well-formedness `dyn_wf`
-(here `Wf`). `Θ`/`Δ` are dynamic (linear) contexts and `Γ` is the static context.
+(here `Wf`). `Θ` is the channel-aware process context `PCtx`, `Δ` is the ordinary
+dynamic variable context, and `Γ` is the static context.
 
 A structural note: although Coq declares `dyn_type` and `dyn_wf` in one `with` block, `dyn_wf`'s
 premises are *static* typings (`Γ ⊢ A : Sort s`), so it never mentions `dyn_type`. Hence the two are
@@ -44,22 +46,23 @@ inductive Wf : Static.Ctx → Ctx → Prop where
 
 /-! ## Dynamic typing (Coq `dyn_type`). -/
 
-/-- Linear typing judgment over `Θ` (process), `Γ` (static), `Δ` (linear) (Coq `dyn_type`). -/
-inductive Typed : Ctx → Static.Ctx → Ctx → Term → Term → Prop where
+/-- Linear typing judgment over `Θ` (process channels), `Γ` (static), `Δ` (linear variables)
+(Coq `dyn_type`). -/
+inductive Typed : PCtx → Static.Ctx → Ctx → Term → Term → Prop where
   -- core
   | var {Θ Γ Δ x s A} :
-    Empty Θ →
+    PEmpty Θ →
     Wf Γ Δ →
     Static.Has Γ x A →
     Has Δ x s A →
     Typed Θ Γ Δ (.var_Term x) A
   | lamIm {Θ Γ Δ A B m s} :
-    Θ ▷ s →
+    Θ ▷ₚ s →
     Δ ▷ s →
     Typed Θ (A :: Γ) (none :: Δ) m B →
     Typed Θ Γ Δ (.lam A m .im s) (.pi A B .im s)
   | lamEx {Θ Γ Δ A B m s t} :
-    Θ ▷ s →
+    Θ ▷ₚ s →
     Δ ▷ s →
     Typed Θ (A :: Γ) (A :⟨t⟩ Δ) m B →
     Typed Θ Γ Δ (.lam A m .ex s) (.pi A B .ex s)
@@ -68,7 +71,7 @@ inductive Typed : Ctx → Static.Ctx → Ctx → Term → Term → Prop where
     Γ ⊢ n : A →
     Typed Θ Γ Δ (.app m n .im) (B[Chan.var_Chan; n..])
   | appEx {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s} :
-    Merge Θ1 Θ2 Θ →
+    PMerge Θ1 Θ2 Θ →
     Merge Δ1 Δ2 Δ →
     Typed Θ1 Γ Δ1 m (.pi A B .ex s) →
     Typed Θ2 Γ Δ2 n A →
@@ -79,14 +82,14 @@ inductive Typed : Ctx → Static.Ctx → Ctx → Term → Term → Prop where
     Typed Θ Γ Δ n (B[Chan.var_Chan; m..]) →
     Typed Θ Γ Δ (.pair m n .im t) (.sig A B .im t)
   | pairEx {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t} :
-    Merge Θ1 Θ2 Θ →
+    PMerge Θ1 Θ2 Θ →
     Merge Δ1 Δ2 Δ →
     Γ ⊢ .sig A B .ex t : .srt t →
     Typed Θ1 Γ Δ1 m A →
     Typed Θ2 Γ Δ2 n (B[Chan.var_Chan; m..]) →
     Typed Θ Γ Δ (.pair m n .ex t) (.sig A B .ex t)
   | projIm {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t} :
-    Merge Θ1 Θ2 Θ →
+    PMerge Θ1 Θ2 Θ →
     Merge Δ1 Δ2 Δ →
     .sig A B .im t :: Γ ⊢ C : .srt s →
     Typed Θ1 Γ Δ1 m (.sig A B .im t) →
@@ -94,7 +97,7 @@ inductive Typed : Ctx → Static.Ctx → Ctx → Term → Term → Prop where
       (C[Chan.var_Chan; (Term.pair (.var_Term 1) (.var_Term 0) .im t) .: funcomp Term.var_Term (· + 2)]) →
     Typed Θ Γ Δ (.proj C m n) (C[Chan.var_Chan; m..])
   | projEx {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t} :
-    Merge Θ1 Θ2 Θ →
+    PMerge Θ1 Θ2 Θ →
     Merge Δ1 Δ2 Δ →
     .sig A B .ex t :: Γ ⊢ C : .srt s →
     Typed Θ1 Γ Δ1 m (.sig A B .ex t) →
@@ -103,22 +106,22 @@ inductive Typed : Ctx → Static.Ctx → Ctx → Term → Term → Prop where
     Typed Θ Γ Δ (.proj C m n) (C[Chan.var_Chan; m..])
   -- data
   | one {Θ Γ Δ} :
-    Empty Θ →
+    PEmpty Θ →
     Wf Γ Δ →
     Δ ▷ Srt.U →
     Typed Θ Γ Δ .one .unit
   | tt {Θ Γ Δ} :
-    Empty Θ →
+    PEmpty Θ →
     Wf Γ Δ →
     Δ ▷ Srt.U →
     Typed Θ Γ Δ .tt .bool
   | ff {Θ Γ Δ} :
-    Empty Θ →
+    PEmpty Θ →
     Wf Γ Δ →
     Δ ▷ Srt.U →
     Typed Θ Γ Δ .ff .bool
   | ite {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s} :
-    Merge Θ1 Θ2 Θ →
+    PMerge Θ1 Θ2 Θ →
     Merge Δ1 Δ2 Δ →
     .bool :: Γ ⊢ A : .srt s →
     Typed Θ1 Γ Δ1 m .bool →
@@ -130,7 +133,7 @@ inductive Typed : Ctx → Static.Ctx → Ctx → Term → Term → Prop where
     Typed Θ Γ Δ m A →
     Typed Θ Γ Δ (.pure m) (.M A)
   | mlet {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t} :
-    Merge Θ1 Θ2 Θ →
+    PMerge Θ1 Θ2 Θ →
     Merge Δ1 Δ2 Δ →
     Γ ⊢ B : .srt t →
     Typed Θ1 Γ Δ1 m (.M A) →
@@ -138,7 +141,7 @@ inductive Typed : Ctx → Static.Ctx → Ctx → Term → Term → Prop where
     Typed Θ Γ Δ (.mlet m n) (.M B)
   -- session
   | chan {Θ Γ Δ r x A} :
-    Just Θ x (.ch r A) →
+    PJust Θ x r A →
     Wf Γ Δ →
     Δ ▷ Srt.U →
     [] ⊢ A : .proto →

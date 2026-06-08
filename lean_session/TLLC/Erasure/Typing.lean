@@ -9,8 +9,8 @@ Port of `coq_session/era_type.v`: the erasure relation `era_type`
 subterms (implicit-`Pi`/`Sig` annotations, the implicit argument/component, the `LetIn`/`Ifte`/`Fork`
 motive/type) with `Box` (`.box`).
 
-The judgment is structurally parallel to the dynamic typing `Dynamic.Typed` (it reuses the entire
-Dynamic context machinery — `Wf`/`Merge`/`Key`/`Empty`/`Has`/`Just`), threading a second (erased)
+The judgment is structurally parallel to the dynamic typing `Dynamic.Typed` (it reuses the dynamic
+variable context machinery plus the process `PCtx` machinery), threading a second (erased)
 term. As in the dynamic layer, Coq's implicit/explicit constructor pairs merge via the `Rlv`/`Bool`
 tag only where identical; CBV/linearity asymmetries stay split (`lamIm`/`lamEx`, `appIm`/`appEx`,
 `pairIm`/`pairEx`, `projIm`/`projEx`); merged: `ite`, `mlet` (Coq `Bind`), `recv`/`send`,
@@ -23,21 +23,21 @@ open TLLC.Dynamic
 open scoped TLLC.Static TLLC.Dynamic
 
 /-- The erasure relation (Coq `era_type`): `m` erases to `m'` at type `A`. -/
-inductive Erased : Ctx → Static.Ctx → Ctx → Term → Term → Term → Prop where
+inductive Erased : PCtx → Static.Ctx → Ctx → Term → Term → Term → Prop where
   -- core
   | var {Θ Γ Δ x s A} :
-    Empty Θ →
+    PEmpty Θ →
     Wf Γ Δ →
     Static.Has Γ x A →
     Has Δ x s A →
     Erased Θ Γ Δ (.var_Term x) (.var_Term x) A
   | lamIm {Θ Γ Δ A B m m' s} :
-    Θ ▷ s →
+    Θ ▷ₚ s →
     Δ ▷ s →
     Erased Θ (A :: Γ) (none :: Δ) m m' B →
     Erased Θ Γ Δ (.lam A m .im s) (.lam .box m' .im s) (.pi A B .im s)
   | lamEx {Θ Γ Δ A B m m' s t} :
-    Θ ▷ s →
+    Θ ▷ₚ s →
     Δ ▷ s →
     Erased Θ (A :: Γ) (A :⟨t⟩ Δ) m m' B →
     Erased Θ Γ Δ (.lam A m .ex s) (.lam .box m' .ex s) (.pi A B .ex s)
@@ -46,7 +46,7 @@ inductive Erased : Ctx → Static.Ctx → Ctx → Term → Term → Term → Pro
     Γ ⊢ n : A →
     Erased Θ Γ Δ (.app m n .im) (.app m' .box .im) (B[Chan.var_Chan; n..])
   | appEx {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' s} :
-    Merge Θ1 Θ2 Θ →
+    PMerge Θ1 Θ2 Θ →
     Merge Δ1 Δ2 Δ →
     Erased Θ1 Γ Δ1 m m' (.pi A B .ex s) →
     Erased Θ2 Γ Δ2 n n' A →
@@ -57,14 +57,14 @@ inductive Erased : Ctx → Static.Ctx → Ctx → Term → Term → Term → Pro
     Erased Θ Γ Δ n n' (B[Chan.var_Chan; m..]) →
     Erased Θ Γ Δ (.pair m n .im t) (.pair .box n' .im t) (.sig A B .im t)
   | pairEx {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' t} :
-    Merge Θ1 Θ2 Θ →
+    PMerge Θ1 Θ2 Θ →
     Merge Δ1 Δ2 Δ →
     Γ ⊢ .sig A B .ex t : .srt t →
     Erased Θ1 Γ Δ1 m m' A →
     Erased Θ2 Γ Δ2 n n' (B[Chan.var_Chan; m..]) →
     Erased Θ Γ Δ (.pair m n .ex t) (.pair m' n' .ex t) (.sig A B .ex t)
   | projIm {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r t} :
-    Merge Θ1 Θ2 Θ →
+    PMerge Θ1 Θ2 Θ →
     Merge Δ1 Δ2 Δ →
     .sig A B .im t :: Γ ⊢ C : .srt s →
     Erased Θ1 Γ Δ1 m m' (.sig A B .im t) →
@@ -72,7 +72,7 @@ inductive Erased : Ctx → Static.Ctx → Ctx → Term → Term → Term → Pro
       (C[Chan.var_Chan; (Term.pair (.var_Term 1) (.var_Term 0) .im t) .: funcomp Term.var_Term (· + 2)]) →
     Erased Θ Γ Δ (.proj C m n) (.proj .box m' n') (C[Chan.var_Chan; m..])
   | projEx {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t} :
-    Merge Θ1 Θ2 Θ →
+    PMerge Θ1 Θ2 Θ →
     Merge Δ1 Δ2 Δ →
     .sig A B .ex t :: Γ ⊢ C : .srt s →
     Erased Θ1 Γ Δ1 m m' (.sig A B .ex t) →
@@ -81,22 +81,22 @@ inductive Erased : Ctx → Static.Ctx → Ctx → Term → Term → Term → Pro
     Erased Θ Γ Δ (.proj C m n) (.proj .box m' n') (C[Chan.var_Chan; m..])
   -- data
   | one {Θ Γ Δ} :
-    Empty Θ →
+    PEmpty Θ →
     Wf Γ Δ →
     Δ ▷ Srt.U →
     Erased Θ Γ Δ .one .one .unit
   | tt {Θ Γ Δ} :
-    Empty Θ →
+    PEmpty Θ →
     Wf Γ Δ →
     Δ ▷ Srt.U →
     Erased Θ Γ Δ .tt .tt .bool
   | ff {Θ Γ Δ} :
-    Empty Θ →
+    PEmpty Θ →
     Wf Γ Δ →
     Δ ▷ Srt.U →
     Erased Θ Γ Δ .ff .ff .bool
   | ite {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m m' n1 n1' n2 n2' s} :
-    Merge Θ1 Θ2 Θ →
+    PMerge Θ1 Θ2 Θ →
     Merge Δ1 Δ2 Δ →
     .bool :: Γ ⊢ A : .srt s →
     Erased Θ1 Γ Δ1 m m' .bool →
@@ -108,7 +108,7 @@ inductive Erased : Ctx → Static.Ctx → Ctx → Term → Term → Term → Pro
     Erased Θ Γ Δ m m' A →
     Erased Θ Γ Δ (.pure m) (.pure m') (.M A)
   | mlet {Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m m' n n' A B s t} :
-    Merge Θ1 Θ2 Θ →
+    PMerge Θ1 Θ2 Θ →
     Merge Δ1 Δ2 Δ →
     Γ ⊢ B : .srt t →
     Erased Θ1 Γ Δ1 m m' (.M A) →
@@ -116,7 +116,7 @@ inductive Erased : Ctx → Static.Ctx → Ctx → Term → Term → Term → Pro
     Erased Θ Γ Δ (.mlet m n) (.mlet m' n') (.M B)
   -- session
   | chan {Θ Γ Δ r x A} :
-    Just Θ x (.ch r A) →
+    PJust Θ x r A →
     Wf Γ Δ →
     Δ ▷ Srt.U →
     [] ⊢ A : .proto →

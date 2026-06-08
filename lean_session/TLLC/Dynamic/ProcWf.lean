@@ -1,4 +1,4 @@
-import TLLC.Dynamic.Context
+import TLLC.Dynamic.PContext
 import TLLC.Static.Typing
 
 /-!
@@ -20,15 +20,19 @@ open Autosubst Autosubst.Notation
 open scoped TLLC.Static
 
 /-- Well-formed process context (Coq `proc_wf`). -/
-inductive ProcWf : Ctx → Prop where
+inductive ProcWf : PCtx → Prop where
   | nil :
     ProcWf []
-  | ty {Θ r A} :
+  | one {Θ r A} :
     ProcWf Θ →
     [] ⊢ A : .proto →
-    ProcWf (.ch r A :L Θ)
-  | null {Θ} :
+    ProcWf (.one r A :: Θ)
+  | both {Θ A} :
     ProcWf Θ →
-    ProcWf (none :: Θ)
+    [] ⊢ A : .proto →
+    ProcWf (.both A :: Θ)
+  | none {Θ} :
+    ProcWf Θ →
+    ProcWf (.none :: Θ)
 
 end TLLC.Dynamic

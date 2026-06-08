@@ -10,13 +10,11 @@ Port of `coq_session/proc_cren.v`: channel renaming preserves process typing
 [[tllc-process-channel-encoding]]): the process context is the trinary `PCtx`, so the Coq's
 `dyn_ctx_cren` agreement is replaced by `PCtxCRen`, a channel-renaming agreement over `PCtx`.
 
-The headline lemma lowers to the dynamic `Dynamic.Typed.crename` at each leaf through the bridge
-`PCtxCRen.realize`: a `PCtxCRen ξ Θ Θ'` together with a leaf lowering `Realize Θ Θd` produces a
-renamed lowering `Realize Θ' Θd'` and a dynamic agreement `Dynamic.CtxCRen ξ Θd Θd'`. Since `Realize`
-has no `both` case, the `both` constructor of `PCtxCRen` is vacuous under a lowering — exactly the
-slots a thread can never see. The `par` case routes through `PCtxCRen.merge` (the count-conserving
-analogue of `dyn_ctx_cren_merge`), and the `scope` case renames the `both A` slot using the protocol
-typing `[] ⊢ A : .proto` carried directly by `Process.Typed.res`.
+The headline lemma reuses the dynamic `Dynamic.Typed.crename` at each leaf through
+`PCtxCRen.toDynamic`; `PCtxCRen.pctxSingle` only preserves the leaf-safe `PCtxSingle` predicate. The `par`
+case routes through `PCtxCRen.merge` (the count-conserving analogue of `dyn_ctx_cren_merge`), and the
+`scope` case renames the `both A` slot using the protocol typing `[] ⊢ A : .proto` carried directly by
+`Process.Typed.res`.
 -/
 
 namespace TLLC.Process
@@ -49,37 +47,41 @@ inductive PCtxCRen : (Nat → Nat) → PCtx → PCtx → Prop where
 
 /-! ## Bridge to the dynamic channel renaming. -/
 
-/-- A process-context channel renaming lifts a leaf lowering to a renamed leaf lowering plus a
-    dynamic channel-renaming agreement. The `both` slots are vacuous (a `Realize`d context has
-    none), so a thread only ever sees the `one`/`none` cases. -/
-lemma PCtxCRen.realize {ξ Θ Θ'} (agr : PCtxCRen ξ Θ Θ') :
-    ∀ {Θd}, Realize Θ Θd → ∃ Θd', Realize Θ' Θd' ∧ Dynamic.CtxCRen ξ Θd Θd' := by
+/-- A process-context channel renaming is the dynamic PCtx channel-renaming agreement. -/
+lemma PCtxCRen.toDynamic {ξ Θ Θ'} (agr : PCtxCRen ξ Θ Θ') : Dynamic.CtxCRen ξ Θ Θ' := by
   induction agr with
-  | O => intro Θd rea; exact ⟨Θd, rea, .O⟩
+  | O => exact .O
+  | one tyA _ ih => exact .one tyA ih
+  | both tyA _ ih => exact .both tyA ih
+  | n _ ih => exact .n ih
+  | plus _ ih => exact .plus ih
+  | minus _ ih => exact .minus ih
+
+/-- A process-context channel renaming preserves leaf-safety. -/
+lemma PCtxCRen.pctxSingle {ξ Θ Θ'} (agr : PCtxCRen ξ Θ Θ') :
+    PCtxSingle Θ → PCtxSingle Θ' := by
+  induction agr with
+  | O => intro rea; exact rea
   | one tyA _ ih =>
-    intro Θd rea
+    intro rea
     cases rea with
     | one rea0 =>
-      obtain ⟨Θd0', rea0', cc⟩ := ih rea0
-      exact ⟨_, .one rea0', .ty tyA cc⟩
+      exact .one (ih rea0)
   | both _ _ _ =>
-    intro Θd rea; cases rea
+    intro rea; cases rea
   | n _ ih =>
-    intro Θd rea
+    intro rea
     cases rea with
     | none rea0 =>
-      obtain ⟨Θd0', rea0', cc⟩ := ih rea0
-      exact ⟨_, .none rea0', .n cc⟩
+      exact .none (ih rea0)
   | plus _ ih =>
-    intro Θd rea
-    obtain ⟨Θd', rea', cc⟩ := ih rea
-    exact ⟨.none :: Θd', .none rea', .plus cc⟩
+    intro rea
+    exact .none (ih rea)
   | minus _ ih =>
-    intro Θd rea
+    intro rea
     cases rea with
     | none rea0 =>
-      obtain ⟨Θd0', rea0', cc⟩ := ih rea0
-      exact ⟨Θd0', rea0', .minus cc⟩
+      exact ih rea0
 
 /-! ## Compatibility with merge. -/
 
@@ -134,11 +136,10 @@ lemma PCtxCRen.merge {ξ Θ Θ'} (agr : PCtxCRen ξ Θ Θ') :
 lemma Typed.crename {Θ p} (ty : Θ ⊩ p) :
     ∀ {Θ' ξ}, PCtxCRen ξ Θ Θ' → Θ' ⊩ p⟨ξ; (id : Nat → Nat)⟩ := by
   induction ty with
-  | @exp Θ Θd m rea tym =>
+  | @exp Θ m rea tym =>
     intro Θ' ξ agr
-    obtain ⟨Θd', rea', cc⟩ := agr.realize rea
     asimp
-    exact .exp rea' (tym.crename cc)
+    exact .exp (agr.pctxSingle rea) (tym.crename agr.toDynamic)
   | @par Θ1 Θ2 Θ p q mrg _ _ ihp ihq =>
     intro Θ' ξ agr
     obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := agr.merge mrg

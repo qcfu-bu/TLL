@@ -118,12 +118,12 @@ lemma Erased.val {Θ Γ Δ m m' A} (er : Θ ⨾ Γ ⨾ Δ ⊢ m ~ m' : A) (vl : 
 
 /-- A value's context keys match its type sort (Coq `era_val_stability`). -/
 lemma Erased.val_stability {Θ Γ Δ m m' A s}
-    (er : Θ ⨾ Γ ⨾ Δ ⊢ m ~ m' : A) (tyA : Γ ⊢ A : .srt s) (vl : Val m) : Θ ▷ s ∧ Δ ▷ s :=
+    (er : Θ ⨾ Γ ⨾ Δ ⊢ m ~ m' : A) (tyA : Γ ⊢ A : .srt s) (vl : Val m) : Θ ▷ₚ s ∧ Δ ▷ s :=
   er.toDyn.val_stability tyA vl
 
 /-- A pure process context is empty (Coq `era_pure_empty`). -/
 lemma Erased.pure_empty {Θ Γ Δ m m' A}
-    (er : Θ ⨾ Γ ⨾ Δ ⊢ m ~ m' : A) (k : Θ ▷ Srt.U) : Empty Θ :=
+    (er : Θ ⨾ Γ ⨾ Δ ⊢ m ~ m' : A) (k : Θ ▷ₚ Srt.U) : PEmpty Θ :=
   er.toDyn.pure_empty k
 
 /-- Erasure subject reduction over a closed term (Coq `era_sr`). -/
