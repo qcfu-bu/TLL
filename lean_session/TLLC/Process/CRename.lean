@@ -16,7 +16,7 @@ renamed lowering `Realize Θ' Θd'` and a dynamic agreement `Dynamic.CtxCRen ξ 
 has no `both` case, the `both` constructor of `PCtxCRen` is vacuous under a lowering — exactly the
 slots a thread can never see. The `par` case routes through `PCtxCRen.merge` (the count-conserving
 analogue of `dyn_ctx_cren_merge`), and the `scope` case renames the `both A` slot using the protocol
-typing `[] ⊢ A : .proto` carried directly by `Process.Typed.scope`.
+typing `[] ⊢ A : .proto` carried directly by `Process.Typed.res`.
 -/
 
 namespace TLLC.Process
@@ -144,10 +144,10 @@ lemma Typed.crename {Θ p} (ty : Θ ⊩ p) :
     obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := agr.merge mrg
     asimp
     exact .par mrg' (ihp agr1) (ihq agr2)
-  | @scope Θ p A tyA _ ih =>
+  | @res Θ p A tyA _ ih =>
     intro Θ' ξ agr
     asimp
-    exact .scope (Static.Typed.crename tyA ξ) (ih (.both tyA agr))
+    exact .res (Static.Typed.crename tyA ξ) (ih (.both tyA agr))
 
 /-- Channel strengthening (Coq `proc_cstrengthen`). -/
 lemma Typed.cstrengthen {Θ p}

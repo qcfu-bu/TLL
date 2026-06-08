@@ -51,4 +51,4 @@ autosubst
   Proc where
     | tm  : Term → Proc
     | par : Proc → Proc → Proc
-    | res : (bind Chan in Proc) → Proc
+    | nu : (bind Chan in Proc) → Proc

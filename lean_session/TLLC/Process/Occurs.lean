@@ -7,7 +7,7 @@ import TLLC.Dynamic.Occurs
 Port of `coq_session/proc_occurs.v`: the channel-occurrence count `proc_occurs` on processes and its
 typing characterisation, adapted to the self-dual encoding (see [[tllc-process-channel-encoding]]).
 
-Because each `res` binds ONE self-dual channel (not Coq's two endpoints), the `res` case shifts the
+Because each `nu` binds ONE self-dual channel (not Coq's two endpoints), the `res` case shifts the
 index by `+1` (Coq used `i.+2`). The typing characterisation generalises Coq's boolean pair
 `proc_type_occurs0`/`proc_type_occurs1`: in the trinary context a `both A` slot carries *two* live
 endpoints, so a channel can occur `0`, `1`, or `2` times. The unified statement
@@ -26,7 +26,7 @@ open scoped TLLC.Static TLLC.Dynamic
 def procOccurs (i : Nat) : Proc → Nat
   | .tm m => occurs i m
   | .par p q => procOccurs i p + procOccurs i q
-  | .res p => procOccurs (i + 1) p
+  | .nu p => procOccurs (i + 1) p
 
 /-- The number of live endpoints of channel `i` in a process context (`none ↦ 0`, `one ↦ 1`,
     `both ↦ 2`). The self-dual analogue of Coq's boolean `cvar_pos`. -/
@@ -83,7 +83,7 @@ lemma Typed.occursCount {Θ p} (ty : Θ ⊩ p) : ∀ i, procOccurs i p = pcount 
     intro i
     show procOccurs i p + procOccurs i q = pcount Θ i
     rw [ihp i, ihq i, mrg.pcount i]
-  | @scope Θ p A _ _ ih =>
+  | @res Θ p A _ _ ih =>
     intro i
     show procOccurs (i + 1) p = pcount Θ i
     rw [ih (i + 1)]; rfl
@@ -110,7 +110,7 @@ lemma procOccurs_cren {i : Nat} {ξ : Nat → Nat} (ir : Iren i ξ) (p : Proc) :
   | par p q ihp ihq =>
     show procOccurs i (p⟨ξ; (id : Nat → Nat)⟩) + procOccurs i (q⟨ξ; (id : Nat → Nat)⟩) = 0
     rw [ihp ir, ihq ir]
-  | res p ih =>
+  | nu p ih =>
     show procOccurs (i + 1) (p⟨upRen_Chan_Chan ξ; (id : Nat → Nat)⟩) = 0
     exact ih ir.upren
 

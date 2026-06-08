@@ -4,7 +4,7 @@ import TLLC.Dynamic.Context
 # Process channel contexts (self-dual single-channel encoding)
 
 The process channel context `PCtx` and its merge algebra, for the Lean **self-dual single-channel**
-scope restriction (`Proc.res : bind Chan in Proc`, one bound channel) rather than the Coq `Nu`'s two
+scope restriction (`Proc.nu : bind Chan in Proc`, one bound channel) rather than the Coq `Nu`'s two
 endpoints / the report's two-channel `vcd.P`. See [[tllc-process-channel-encoding]].
 
 ## The self-dual design
@@ -140,6 +140,26 @@ inductive Realize : PCtx → Ctx → Prop where
   | one {Θ Θ' r A} :
     Realize Θ Θ' →
     Realize (.one r A :: Θ) (.ch r A :L Θ')
+
+/-- A dynamic merge of a realized context lifts to a process merge of compatible realized halves
+    (each `one`/`none` slot routes entirely to one side — no duplication). -/
+lemma Realize.split {Θ Θd Θ1d Θ2d} (rea : Realize Θ Θd) (mrg : Merge Θ1d Θ2d Θd) :
+    ∃ Θ1 Θ2, PMerge Θ1 Θ2 Θ ∧ Realize Θ1 Θ1d ∧ Realize Θ2 Θ2d := by
+  induction rea generalizing Θ1d Θ2d with
+  | nil => cases mrg; exact ⟨[], [], .nil, .nil, .nil⟩
+  | none _ ih =>
+    cases mrg with
+    | null mrg' =>
+      obtain ⟨Θ1, Θ2, m, r1, r2⟩ := ih mrg'
+      exact ⟨.none :: Θ1, .none :: Θ2, .none m, .none r1, .none r2⟩
+  | one _ ih =>
+    cases mrg with
+    | right1 _ mrg' =>
+      obtain ⟨Θ1, Θ2, m, r1, r2⟩ := ih mrg'
+      exact ⟨.one _ _ :: Θ1, .none :: Θ2, .oneL m, .one r1, .none r2⟩
+    | right2 _ mrg' =>
+      obtain ⟨Θ1, Θ2, m, r1, r2⟩ := ih mrg'
+      exact ⟨.none :: Θ1, .one _ _ :: Θ2, .oneR m, .none r1, .one r2⟩
 
 /-! ## Empty process contexts. -/
 

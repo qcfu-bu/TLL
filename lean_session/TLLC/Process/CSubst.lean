@@ -201,20 +201,20 @@ lemma Typed.cexch {Θ p} (ty : Θ ⊩ p) :
     obtain ⟨Θ1', Θ2', mrg', ex1, ex2⟩ := ex.merge mrg
     asimp
     exact .par mrg' (ihp ex1) (ihq ex2)
-  | @scope Θ p A tyA _ ih =>
+  | @res Θ p A tyA _ ih =>
     intro σ Θ' ex
     asimp
-    exact .scope tyA (ih (.lift ex))
+    exact .res tyA (ih (.lift ex))
 
 /-- The scope-exchange congruence preserves typing (Coq `proc_exch_type`). -/
-lemma Typed.exch {Θ p} (ty : Θ ⊩ Proc.res (Proc.res p)) :
-    Θ ⊩ Proc.res (Proc.res (p⟨exch_ren; (id : Nat → Nat)⟩)) := by
+lemma Typed.exch {Θ p} (ty : Θ ⊩ Proc.nu (Proc.nu p)) :
+    Θ ⊩ Proc.nu (Proc.nu (p⟨exch_ren; (id : Nat → Nat)⟩)) := by
   cases ty with
-  | scope tyA1 ty1 =>
+  | res tyA1 ty1 =>
     cases ty1 with
-    | scope tyA0 ty0 =>
+    | res tyA0 ty0 =>
       have key := ty0.cexch (PCExch.swap (s0 := Slot.both _) (s1 := Slot.both _) (Θ := Θ))
       rw [csubst_exch] at key
-      exact .scope tyA0 (.scope tyA1 key)
+      exact .res tyA0 (.res tyA1 key)
 
 end TLLC.Process

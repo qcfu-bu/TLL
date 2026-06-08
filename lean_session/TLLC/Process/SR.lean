@@ -67,14 +67,14 @@ lemma Typed.congr0 {p q} (cgr : Congr p q) : ∀ {Θ}, (Θ ⊩ p) ↔ (Θ ⊩ q)
       cases ty with
       | par mrg t1 t2 =>
         cases t1 with
-        | scope tyA tp => exact .scope tyA (.par (.bothL mrg) tp t2.cweaken)
+        | res tyA tp => exact .res tyA (.par (.bothL mrg) tp t2.cweaken)
     · intro ty
       cases ty with
-      | scope tyA tpar =>
+      | res tyA tpar =>
         cases tpar with
         | par mrg tp tq =>
           cases mrg with
-          | bothL mrg' => exact .par mrg' (.scope tyA tp) tq.cstrengthen
+          | bothL mrg' => exact .par mrg' (.res tyA tp) tq.cstrengthen
           | bothR mrg' =>
             have h1 := tq.occursCount 0
             rw [procOccurs_cren iren0_succ q] at h1
@@ -99,11 +99,11 @@ lemma Typed.congr0 {p q} (cgr : Congr p q) : ∀ {Θ}, (Θ ⊩ p) ↔ (Θ ⊩ q)
     constructor
     · intro ty; cases ty with | par mrg t1 t2 => exact .par mrg (ihp.mp t1) (ihq.mp t2)
     · intro ty; cases ty with | par mrg t1 t2 => exact .par mrg (ihp.mpr t1) (ihq.mpr t2)
-  | @nu p p' _ ih =>
+  | @res p p' _ ih =>
     intro Θ
     constructor
-    · intro ty; cases ty with | scope tyA tp => exact .scope tyA (ih.mp tp)
-    · intro ty; cases ty with | scope tyA tp => exact .scope tyA (ih.mpr tp)
+    · intro ty; cases ty with | res tyA tp => exact .res tyA (ih.mp tp)
+    · intro ty; cases ty with | res tyA tp => exact .res tyA (ih.mpr tp)
   | @«end» p =>
     intro Θ
     constructor

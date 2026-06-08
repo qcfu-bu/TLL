@@ -37,16 +37,16 @@ inductive Congr : Proc → Proc → Prop where
   | assoc {o p q} :
     Congr (.par o (.par p q)) (.par (.par o p) q)
   | scope {p q} :
-    Congr (.par (.res p) q) (.res (.par p (q⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)))
+    Congr (.par (.nu p) q) (.nu (.par p (q⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)))
   | exch {p} :
-    Congr (.res (.res p)) (.res (.res (p[exch; Term.var_Term])))
+    Congr (.nu (.nu p)) (.nu (.nu (p[exch; Term.var_Term])))
   | par {p p' q q'} :
     Congr p p' →
     Congr q q' →
     Congr (.par p q) (.par p' q')
-  | nu {p p'} :
+  | res {p p'} :
     Congr p p' →
-    Congr (.res p) (.res p')
+    Congr (.nu p) (.nu p')
   | «end» {p} :
     Congr (.par p (.tm (.pure .one))) p
 
@@ -66,26 +66,26 @@ inductive Step : Proc → Proc → Prop where
     m' = m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ →
     N' = N.cren ((· + 1) : Nat → Nat) →
     Step (.tm (N.eval (.fork A m)))
-      (.res (.par (.tm (N'.eval (.pure (cvar 0)))) (.tm (m'[Chan.var_Chan; (cvar 0)..]))))
+      (.nu (.par (.tm (N'.eval (.pure (cvar 0)))) (.tm (m'[Chan.var_Chan; (cvar 0)..]))))
   | com {M N : EvalCtx} {m} :
-    Step (.res (.par (.tm (M.eval (.app (.send (cvar 0) .im) m .im))) (.tm (N.eval (.recv (cvar 0) .im)))))
-      (.res (.par (.tm (M.eval (.pure (cvar 0)))) (.tm (N.eval (.pure (.pair m (cvar 0) .im .L))))))
+    Step (.nu (.par (.tm (M.eval (.app (.send (cvar 0) .im) m .im))) (.tm (N.eval (.recv (cvar 0) .im)))))
+      (.nu (.par (.tm (M.eval (.pure (cvar 0)))) (.tm (N.eval (.pure (.pair m (cvar 0) .im .L))))))
   | comEx {M N : EvalCtx} {v} :
     Val v →
-    Step (.res (.par (.tm (M.eval (.app (.send (cvar 0) .ex) v .ex))) (.tm (N.eval (.recv (cvar 0) .ex)))))
-      (.res (.par (.tm (M.eval (.pure (cvar 0)))) (.tm (N.eval (.pure (.pair v (cvar 0) .ex .L))))))
+    Step (.nu (.par (.tm (M.eval (.app (.send (cvar 0) .ex) v .ex))) (.tm (N.eval (.recv (cvar 0) .ex)))))
+      (.nu (.par (.tm (M.eval (.pure (cvar 0)))) (.tm (N.eval (.pure (.pair v (cvar 0) .ex .L))))))
   | «end» {M N M' N' : EvalCtx} :
     M' = M.cren ((· - 1) : Nat → Nat) →
     N' = N.cren ((· - 1) : Nat → Nat) →
-    Step (.res (.par (.tm (M.eval (.close true (cvar 0)))) (.tm (N.eval (.close false (cvar 0))))))
+    Step (.nu (.par (.tm (M.eval (.close true (cvar 0)))) (.tm (N.eval (.close false (cvar 0))))))
       (.par (.tm (M'.eval (.pure .one))) (.tm (N'.eval (.pure .one))))
   -- congruence
   | par {o p q} :
     Step p q →
     Step (.par o p) (.par o q)
-  | nu {p q} :
+  | res {p q} :
     Step p q →
-    Step (.res p) (.res q)
+    Step (.nu p) (.nu q)
   | congr {p p' q q'} :
     p ≡ₚ p' →
     Step p' q' →

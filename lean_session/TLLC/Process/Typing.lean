@@ -31,10 +31,10 @@ inductive Typed : PCtx → Proc → Prop where
     Typed Θ1 p →
     Typed Θ2 q →
     Typed Θ (.par p q)
-  | scope {Θ p A} :
+  | res {Θ p A} :
     [] ⊢ A : .proto →
     Typed (.both A :: Θ) p →
-    Typed Θ (.res p)
+    Typed Θ (.nu p)
 
 @[inherit_doc] scoped notation:50 Θ:50 " ⊩ " p:51 => Typed Θ p
 
