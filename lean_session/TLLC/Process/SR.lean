@@ -35,11 +35,196 @@ lemma iren0_succ : Iren 0 ((· + 1) : Nat → Nat) := fun x => Nat.succ_ne_zero 
 
 /-! ## Structural congruence preserves typing. -/
 
+lemma projMotive_wellSorted {Γ A B C i t s}
+    (tyC : (Term.sig A B i t :: Γ) ⊢ C : .srt s)
+    (wf : Static.Wf (Term.sig A B i t :: Γ)) :
+    (B :: A :: Γ) ⊢
+      C[Chan.var_Chan; Term.pair (.var_Term 1) (.var_Term 0) i t .:  (·+2) >> Term.var_Term]
+      : .srt s := by
+  cases wf with
+  | @cons _ _ s0 wfΓ tyS =>
+    obtain ⟨s1, r, ord1, ord2, tyA, tyB, _⟩ := Static.sig_inv tyS
+    have wf2 : Static.Wf (B :: A :: Γ) := .cons (.cons wfΓ tyA) tyB
+    have agr0 : (B :: A :: Γ) ⊢ funcomp Term.var_Term (· + 2) ⊣ Γ := by
+      have h := ((Static.AgreeSubst.refl wfΓ).wk2 (s := s1) tyA).wk2 (s := r) tyB
+      rwa [show (fun x => ((Term.var_Term x)⟨(id : Nat → Nat); ↑⟩)⟨(id : Nat → Nat); ↑⟩)
+            = funcomp Term.var_Term (· + 2) from by funext x; asimp] at h
+    have tyS' := (Static.Typed.sig ord1 ord2 tyA tyB).substitution agr0
+    asimp at tyS'
+    have tyv1 : (B :: A :: Γ) ⊢ Term.var_Term 1
+        : A[Chan.var_Chan; funcomp Term.var_Term (· + 2)] := by
+      have h := Static.Typed.var wf2 (Static.Has.succ Static.Has.zero)
+      rwa [show A⟨(id : Nat → Nat); ↑⟩⟨(id : Nat → Nat); ↑⟩
+            = A[Chan.var_Chan; funcomp Term.var_Term (· + 2)] from by asimp; substify] at h
+    have tyv0 : (B :: A :: Γ) ⊢ Term.var_Term 0
+        : (B[Chan.var_Chan; up_Term_Term (funcomp Term.var_Term (· + 2))])[Chan.var_Chan;
+            (Term.var_Term 1)..] := by
+      have h := Static.Typed.var wf2 (Static.Has.zero (A := B))
+      rwa [show B⟨(id : Nat → Nat); ↑⟩
+            = (B[Chan.var_Chan; up_Term_Term (funcomp Term.var_Term (· + 2))])[Chan.var_Chan;
+              (Term.var_Term 1)..] from by
+              asimp; substify; congr 1; funext x; rcases x with _ | x <;> rfl] at h
+    have agr : (B :: A :: Γ)
+        ⊢ Term.pair (.var_Term 1) (.var_Term 0) i t .: funcomp Term.var_Term (· + 2)
+        ⊣ (Term.sig A B i t :: Γ) :=
+      agr0.wk1 (A := Term.sig A B i t) (Static.Typed.pair tyS' tyv1 tyv0)
+    exact tyC.substitution agr
+
+lemma CongrTerm.dyn {Θ Γ Δ m n A} (ty : Θ ⨾ Γ ⨾ Δ ⊢ m : A)
+    (e : CongrTerm .ex m n) :
+    Θ ⨾ Γ ⨾ Δ ⊢ n : A := by
+  induction ty generalizing n with
+  | @var Θ Γ Δ x s A emp wf hs hΔ =>
+      cases e
+      exact .var emp wf hs hΔ
+  | @lamIm Θ Γ Δ A B m s k1 k2 tym ihm =>
+      cases e with
+      | lam eA em =>
+          cases tym.wf with
+          | @null _ _ _ sA _ tyA =>
+              obtain ⟨t, tyB⟩ := tym.validity
+              have tyA' := tyA.prd (ARS.star1 eA.pstep)
+              have hm := Typed.ctx_conv0 (ARS.conv_sym eA.conv) tyA' (ihm em)
+              exact .conv (Static.conv_pi (ARS.conv_sym eA.conv) .refl)
+                (.lamIm k1 k2 hm) (.pi tyA tyB)
+  | @lamEx Θ Γ Δ A B m s t k1 k2 tym ihm =>
+      cases e with
+      | lam eA em =>
+          cases tym.wf with
+          | @cons _ _ _ sA _ tyA =>
+              obtain ⟨u, tyB⟩ := tym.validity
+              have tyA' := tyA.prd (ARS.star1 eA.pstep)
+              have hm := Typed.ctx_conv1 (ARS.conv_sym eA.conv) tyA' (ihm em)
+              exact .conv (Static.conv_pi (ARS.conv_sym eA.conv) .refl)
+                (.lamEx k1 k2 hm) (.pi tyA tyB)
+  | @appIm Θ Γ Δ A B m n s tym tyn ihm =>
+      cases e with
+      | app em en =>
+          obtain ⟨t, tyP⟩ := tym.validity
+          obtain ⟨u, tyB, _⟩ := Static.pi_inv tyP
+          have tyBn := tyB.subst tyn
+          asimp at tyBn
+          have tyn' := tyn.prd (ARS.star1 en.pstep)
+          exact .conv (Static.conv_beta (ARS.conv_sym en.conv))
+            (.appIm (ihm em) tyn') tyBn
+  | @appEx Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n s mrgΘ mrgΔ tym tyn ihm ihn =>
+      cases e with
+      | app em en =>
+          obtain ⟨t, tyP⟩ := tym.validity
+          obtain ⟨u, tyB, _⟩ := Static.pi_inv tyP
+          have tyBn := tyB.subst tyn.toStatic
+          asimp at tyBn
+          exact .conv (Static.conv_beta (ARS.conv_sym en.conv))
+            (.appEx mrgΘ mrgΔ (ihm em) (ihn en)) tyBn
+  | @pairIm Θ Γ Δ A B m n t tyS tym tyn ihn =>
+      cases e with
+      | pair em en =>
+          obtain ⟨s, r, _, _, tyA, tyB, _⟩ := Static.sig_inv tyS
+          have tym' := tym.prd (ARS.star1 em.pstep)
+          have tyBm' := tyB.subst tym'
+          asimp at tyBm'
+          have hn : Θ ⨾ Γ ⨾ Δ ⊢ _ : B[Chan.var_Chan; _..] :=
+            Typed.conv (Static.conv_beta em.conv) (ihn en) tyBm'
+          exact .pairIm tyS tym' hn
+  | @pairEx Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m n t mrgΘ mrgΔ tyS tym tyn ihm ihn =>
+      cases e with
+      | pair em en =>
+          obtain ⟨s, r, _, _, tyA, tyB, _⟩ := Static.sig_inv tyS
+          have tym' := ihm em
+          have tyBm' := tyB.subst tym'.toStatic
+          asimp at tyBm'
+          have hn : Θ2 ⨾ Γ ⨾ Δ2 ⊢ _ : B[Chan.var_Chan; _..] :=
+            Typed.conv (Static.conv_beta em.conv) (ihn en) tyBm'
+          exact .pairEx mrgΘ mrgΔ tyS tym' hn
+  | @projIm Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r t mrgΘ mrgΔ tyC tym tyn ihm ihn =>
+      cases e with
+      | proj eC em en =>
+          have tyC' := tyC.prd (ARS.star1 eC.pstep)
+          have hwit := projMotive_wellSorted (i := .im) tyC' tyC.wf
+          have hn := Typed.conv (Static.conv_subst _ eC.conv) (ihn en) hwit
+          have eqC := ARS.conv_trans (Static.conv_subst _ (ARS.conv_sym eC.conv))
+            (Static.conv_beta (ARS.conv_sym em.conv))
+          exact .conv eqC (.projIm mrgΘ mrgΔ tyC' (ihm em) hn) (tyC.subst tym.toStatic)
+  | @projEx Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrgΘ mrgΔ tyC tym tyn ihm ihn =>
+      cases e with
+      | proj eC em en =>
+          have tyC' := tyC.prd (ARS.star1 eC.pstep)
+          have hwit := projMotive_wellSorted (i := .ex) tyC' tyC.wf
+          have hn := Typed.conv (Static.conv_subst _ eC.conv) (ihn en) hwit
+          have eqC := ARS.conv_trans (Static.conv_subst _ (ARS.conv_sym eC.conv))
+            (Static.conv_beta (ARS.conv_sym em.conv))
+          exact .conv eqC (.projEx mrgΘ mrgΔ tyC' (ihm em) hn) (tyC.subst tym.toStatic)
+  | @one Θ Γ Δ emp wf k =>
+      cases e
+      exact .one emp wf k
+  | @tt Θ Γ Δ emp wf k =>
+      cases e
+      exact .tt emp wf k
+  | @ff Θ Γ Δ emp wf k =>
+      cases e
+      exact .ff emp wf k
+  | @ite Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A m n1 n2 s mrgΘ mrgΔ tyA tym tyn1 tyn2 ihm ihn1 ihn2 =>
+      cases e with
+      | ite eA em en1 en2 =>
+          have tyA' := tyA.prd (ARS.star1 eA.pstep)
+          have h1 := tyA'.subst (Static.Typed.tt tym.wf.toStatic)
+          have h2 := tyA'.subst (Static.Typed.ff tym.wf.toStatic)
+          have hn1 := Typed.conv (Static.conv_subst _ eA.conv) (ihn1 en1) h1
+          have hn2 := Typed.conv (Static.conv_subst _ eA.conv) (ihn2 en2) h2
+          have eq := ARS.conv_trans (Static.conv_subst _ (ARS.conv_sym eA.conv))
+            (Static.conv_beta (ARS.conv_sym em.conv))
+          exact .conv eq (.ite mrgΘ mrgΔ tyA' (ihm em) hn1 hn2) (tyA.subst tym.toStatic)
+  | @pure Θ Γ Δ m A tym ihm =>
+      cases e with
+      | pure em =>
+          exact .pure (ihm em)
+  | @mlet Θ1 Θ2 Θ Γ Δ1 Δ2 Δ m n A B s t mrgΘ mrgΔ tyB tym tyn ihm ihn =>
+      cases e with
+      | mlet em en =>
+          exact .mlet mrgΘ mrgΔ tyB (ihm em) (ihn en)
+  | @chan Θ Γ Δ r x A js wf k tyA =>
+      cases e
+      exact .chan js wf k tyA
+  | @fork Θ Γ Δ A m tym ihm =>
+      cases e with
+      | fork eA em =>
+          cases tym.wf with
+          | @cons _ _ _ s _ tyCh =>
+              obtain ⟨tyA, _⟩ := Static.ch_inv tyCh
+              have tyA' := tyA.prd (ARS.star1 eA.pstep)
+              have hm := Typed.ctx_conv1 (Static.conv_ch (ARS.conv_sym eA.conv))
+                (Static.Typed.ch tyA') (ihm em)
+              exact .conv (Static.conv_M (Static.conv_ch (ARS.conv_sym eA.conv)))
+                (.fork hm) (Static.Typed.M (Static.Typed.ch tyA))
+  | @recv Θ Γ Δ r1 r2 A B m i xor tym ihm =>
+      cases e with
+      | recv em =>
+          exact .recv xor (ihm em)
+  | @send Θ Γ Δ r1 r2 A B m i xor tym ihm =>
+      cases e with
+      | send em =>
+          exact .send xor (ihm em)
+  | @close Θ Γ Δ b m tym ihm =>
+      cases e with
+      | close em =>
+          exact .close (ihm em)
+  | @conv Θ Γ Δ A B m s eq tym tyB ihm =>
+      exact .conv eq (ihm e) tyB
+
 /-- One-step structural congruence preserves typing in both directions (Coq `proc_congr0_type`). -/
-lemma Typed.congr0 {p q} (cgr : CongrProc p q) : ∀ {Θ}, (Θ ⊩ p) ↔ (Θ ⊩ q) := by
+lemma Typed.congr_step {p q} (cgr : CongrProc p q) : ∀ {Θ}, (Θ ⊩ p) ↔ (Θ ⊩ q) := by
   induction cgr with
   | tm e =>
-    sorry
+    intro Θ
+    constructor
+    · intro ty
+      cases ty with
+      | exp tym =>
+          exact .exp (CongrTerm.dyn tym e)
+    · intro ty
+      cases ty with
+      | exp tym =>
+          exact .exp (CongrTerm.dyn tym e.sym)
   | @par_sym p q =>
     intro Θ
     constructor <;>
@@ -125,8 +310,8 @@ lemma Typed.congr0 {p q} (cgr : CongrProc p q) : ∀ {Θ}, (Θ ⊩ p) ↔ (Θ �
 lemma Typed.congr {Θ p q} (ty : Θ ⊩ p) (e : p ≡ₚ q) : Θ ⊩ q := by
   induction e generalizing Θ with
   | refl => exact ty
-  | tail _ c ih => exact (Typed.congr0 c).mp (ih ty)
-  | taili _ c ih => exact (Typed.congr0 c).mpr (ih ty)
+  | tail _ c ih => exact (Typed.congr_step c).mp (ih ty)
+  | taili _ c ih => exact (Typed.congr_step c).mpr (ih ty)
 
 /-! ## Subject reduction. -/
 

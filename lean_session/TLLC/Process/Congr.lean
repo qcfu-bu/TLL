@@ -190,6 +190,68 @@ lemma CongrTerm.refl (r : Rlv) (m : Term) : CongrTerm r m m := by
   | box =>
       exact .box
 
+lemma CongrTerm.sym {r : Rlv} {m m' : Term} (e : CongrTerm r m m') :
+    CongrTerm r m' m := by
+  induction e with
+  | var =>
+      exact .var
+  | srt =>
+      exact .srt
+  | pi eA eB ihA ihB =>
+      exact .pi ihA ihB
+  | lam eA em ihA ihm =>
+      exact .lam ihA ihm
+  | app em en ihm ihn =>
+      exact .app ihm ihn
+  | sig eA eB ihA ihB =>
+      exact .sig ihA ihB
+  | pair em en ihm ihn =>
+      exact .pair ihm ihn
+  | proj eC em en ihC ihm ihn =>
+      exact .proj ihC ihm ihn
+  | fix eA em ihA ihm =>
+      exact .fix ihA ihm
+  | unit =>
+      exact .unit
+  | one =>
+      exact .one
+  | bool =>
+      exact .bool
+  | tt =>
+      exact .tt
+  | ff =>
+      exact .ff
+  | ite eA em en1 en2 ihA ihm ihn1 ihn2 =>
+      exact .ite ihA ihm ihn1 ihn2
+  | M eA ihA =>
+      exact .M ihA
+  | pure em ihm =>
+      exact .pure ihm
+  | mlet em en ihm ihn =>
+      exact .mlet ihm ihn
+  | proto =>
+      exact .proto
+  | stop =>
+      exact .stop
+  | act eA eB ihA ihB =>
+      exact .act ihA ihB
+  | ch eA ihA =>
+      exact .ch ihA
+  | chan_im =>
+      exact .chan_im
+  | chan_ex =>
+      exact .chan_ex
+  | fork eA em ihA ihm =>
+      exact .fork ihA ihm
+  | recv em ihm =>
+      exact .recv ihm
+  | send em ihm =>
+      exact .send ihm
+  | close em ihm =>
+      exact .close ihm
+  | box =>
+      exact .box
+
 lemma CongrTerm.crename {r : Rlv} {m m' : Term} (e : CongrTerm r m m') :
     ∀ ξ : Nat → Nat,
       CongrTerm r (m⟨ξ; (id : Nat → Nat)⟩) (m'⟨ξ; (id : Nat → Nat)⟩) := by
@@ -294,6 +356,71 @@ lemma CongrTerm.crename {r : Rlv} {m m' : Term} (e : CongrTerm r m m') :
   | box =>
       intro ξ
       simpa using CongrTerm.box
+
+lemma CongrTerm.pstep {r : Rlv} {m m' : Term} (e : CongrTerm r m m') :
+    TLLC.Static.PStep m m' := by
+  induction e with
+  | var =>
+      exact .var
+  | srt =>
+      exact .srt
+  | pi eA eB ihA ihB =>
+      exact .pi ihA ihB
+  | lam eA em ihA ihm =>
+      exact .lam ihA ihm
+  | app em en ihm ihn =>
+      exact .app ihm ihn
+  | sig eA eB ihA ihB =>
+      exact .sig ihA ihB
+  | pair em en ihm ihn =>
+      exact .pair ihm ihn
+  | proj eC em en ihC ihm ihn =>
+      exact .proj ihC ihm ihn
+  | fix eA em ihA ihm =>
+      exact .fix ihA ihm
+  | unit =>
+      exact .unit
+  | one =>
+      exact .one
+  | bool =>
+      exact .bool
+  | tt =>
+      exact .tt
+  | ff =>
+      exact .ff
+  | ite eA em en1 en2 ihA ihm ihn1 ihn2 =>
+      exact .ite ihA ihm ihn1 ihn2
+  | M eA ihA =>
+      exact .M ihA
+  | pure em ihm =>
+      exact .pure ihm
+  | mlet em en ihm ihn =>
+      exact .mlet ihm ihn
+  | proto =>
+      exact .proto
+  | stop =>
+      exact .stop
+  | act eA eB ihA ihB =>
+      exact .act ihA ihB
+  | ch eA ihA =>
+      exact .ch ihA
+  | chan_im =>
+      exact .chan
+  | chan_ex =>
+      exact .chan
+  | fork eA em ihA ihm =>
+      exact .fork ihA ihm
+  | recv em ihm =>
+      exact .recv ihm
+  | send em ihm =>
+      exact .send ihm
+  | close em ihm =>
+      exact .close ihm
+  | box =>
+      exact .box
+
+lemma CongrTerm.conv {r : Rlv} {m m' : Term} (e : CongrTerm r m m') : m ≃ m' := by
+  exact ARS.conv1 e.pstep
 
 /-- One-step structural congruence (Coq `proc_CongrTerm`). -/
 inductive CongrProc : Proc → Proc → Prop where
