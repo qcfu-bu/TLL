@@ -1,6 +1,4 @@
-import TLLC.Dynamic.Step
-import TLLC.Dynamic.EvalCtx
-import TLLC.Process.Typing
+import TLLC.Process.Congr
 
 /-!
 # Process reduction (self-dual single-channel encoding)
@@ -21,38 +19,6 @@ namespace TLLC.Process
 open Autosubst Autosubst.Notation
 open TLLC.Dynamic
 open scoped TLLC.Static TLLC.Dynamic
-
-/-- The channel `CVar 0` as a term. -/
-abbrev cvar (n : Nat) : Term := .chan (Chan.var_Chan n)
-
-/-- Channel exchange substitution swapping the two innermost channels `0 ↔ 1` (Coq `exch`, here over
-one channel per `res` instead of two endpoints). -/
-abbrev exch : Nat → Chan := Dynamic.cexch
-
-/-- One-step structural congruence (Coq `proc_congr0`). -/
-inductive Congr : Proc → Proc → Prop where
-  | par_sym {p q} :
-    Congr (.par p q) (.par q p)
-  | assoc {o p q} :
-    Congr (.par o (.par p q)) (.par (.par o p) q)
-  | scope {p q} :
-    Congr (.par (.nu p) q) (.nu (.par p (q⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)))
-  | exch {p} :
-    Congr (.nu (.nu p)) (.nu (.nu (p[exch; Term.var_Term])))
-  | par {p p' q q'} :
-    Congr p p' →
-    Congr q q' →
-    Congr (.par p q) (.par p' q')
-  | res {p p'} :
-    Congr p p' →
-    Congr (.nu p) (.nu p')
-  | «end» {p} :
-    Congr (.par p (.tm (.pure .one))) p
-
-/-- Structural congruence (the conversion closure of `Congr`, Coq `≡`). -/
-abbrev Cong : Proc → Proc → Prop := ARS.Conv Congr
-
-@[inherit_doc] scoped infix:50 " ≡ₚ " => Cong
 
 /-- Process reduction (Coq `proc_step`, `p ⇛ q`). -/
 inductive Step : Proc → Proc → Prop where

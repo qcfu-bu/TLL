@@ -36,8 +36,10 @@ lemma iren0_succ : Iren 0 ((· + 1) : Nat → Nat) := fun x => Nat.succ_ne_zero 
 /-! ## Structural congruence preserves typing. -/
 
 /-- One-step structural congruence preserves typing in both directions (Coq `proc_congr0_type`). -/
-lemma Typed.congr0 {p q} (cgr : Congr p q) : ∀ {Θ}, (Θ ⊩ p) ↔ (Θ ⊩ q) := by
+lemma Typed.congr0 {p q} (cgr : CongrProc p q) : ∀ {Θ}, (Θ ⊩ p) ↔ (Θ ⊩ q) := by
   induction cgr with
+  | tm e =>
+    sorry
   | @par_sym p q =>
     intro Θ
     constructor <;>

@@ -356,20 +356,23 @@ lemma dynamic_step_crename {m n : Term} (step : TLLC.Dynamic.Step m n) :
   · rw [← TLLC.Static.csubst_cren]
     congr
 
-lemma process_congr0_crename {p q : Proc} (congr : TLLC.Process.Congr p q) :
+lemma process_congr0_crename {p q : Proc} (congr : TLLC.Process.CongrProc p q) :
     ∀ ξ : Nat → Nat,
-      TLLC.Process.Congr (p⟨ξ; (id : Nat → Nat)⟩) (q⟨ξ; (id : Nat → Nat)⟩) := by
+      TLLC.Process.CongrProc (p⟨ξ; (id : Nat → Nat)⟩) (q⟨ξ; (id : Nat → Nat)⟩) := by
   induction congr with
+  | tm e =>
+      intro ξ
+      simpa using TLLC.Process.CongrProc.tm (TLLC.Process.CongrTerm.crename e ξ)
   | par_sym =>
       intro ξ
-      simpa using TLLC.Process.Congr.par_sym
+      simpa using TLLC.Process.CongrProc.par_sym
   | assoc =>
       intro ξ
-      simpa using TLLC.Process.Congr.assoc
+      simpa using TLLC.Process.CongrProc.assoc
   | scope =>
       rename_i p q
       intro ξ
-      convert (TLLC.Process.Congr.scope
+      convert (TLLC.Process.CongrProc.scope
         (p := p⟨upRen_Chan_Chan ξ; (id : Nat → Nat)⟩)
         (q := q⟨ξ; (id : Nat → Nat)⟩)) using 1
       · asimp
@@ -377,23 +380,23 @@ lemma process_congr0_crename {p q : Proc} (congr : TLLC.Process.Congr p q) :
   | exch =>
       rename_i p
       intro ξ
-      convert (TLLC.Process.Congr.exch
+      convert (TLLC.Process.CongrProc.exch
         (p := p⟨upRen_Chan_Chan (upRen_Chan_Chan ξ); (id : Nat → Nat)⟩)) using 1
         ; asimp
       · congr 2
-  | par congrLeft congrRight ihLeft ihRight =>
+  | par cp cq ihp ihq =>
       intro ξ
-      simpa using TLLC.Process.Congr.par (ihLeft ξ) (ihRight ξ)
-  | res congr ih =>
+      simpa using TLLC.Process.CongrProc.par (ihp ξ) (ihq ξ)
+  | res cp ihp =>
       intro ξ
-      simpa using TLLC.Process.Congr.res (ih (upRen_Chan_Chan ξ))
+      simpa using TLLC.Process.CongrProc.res (ihp (upRen_Chan_Chan ξ))
   | «end» =>
       intro ξ
-      simpa using TLLC.Process.Congr.end
+      simpa using TLLC.Process.CongrProc.end
 
-lemma process_congr_crename {p q : Proc} (congr : TLLC.Process.Cong p q) :
+lemma process_congr_crename {p q : Proc} (congr : TLLC.Process.Congruence p q) :
     ∀ ξ : Nat → Nat,
-      TLLC.Process.Cong (p⟨ξ; (id : Nat → Nat)⟩) (q⟨ξ; (id : Nat → Nat)⟩) := by
+      TLLC.Process.Congruence (p⟨ξ; (id : Nat → Nat)⟩) (q⟨ξ; (id : Nat → Nat)⟩) := by
   intro ξ
   induction congr with
   | refl =>
@@ -404,17 +407,17 @@ lemma process_congr_crename {p q : Proc} (congr : TLLC.Process.Cong p q) :
       exact TLLC.ARS.Conv.taili ih (process_congr0_crename step ξ)
 
 lemma process_congr0_parallel_left {p q r : Proc}
-    (congr : TLLC.Process.Congr p q) :
-    TLLC.Process.Cong (.par p r) (.par q r) := by
+    (congr : TLLC.Process.CongrProc p q) :
+    TLLC.Process.Congruence (.par p r) (.par q r) := by
   exact ARS.conv_trans
-    (ARS.conv1i (TLLC.Process.Congr.end (p := .par p r)))
+    (ARS.conv1i (TLLC.Process.CongrProc.end (p := .par p r)))
     (ARS.conv_trans
-      (ARS.conv1i (TLLC.Process.Congr.assoc (o := p) (p := r) (q := .tm (.pure .one))))
-      (ARS.conv1 (TLLC.Process.Congr.par congr (TLLC.Process.Congr.end (p := r)))))
+      (ARS.conv1i (TLLC.Process.CongrProc.assoc (o := p) (p := r) (q := .tm (.pure .one))))
+      (ARS.conv1 (TLLC.Process.CongrProc.par congr (TLLC.Process.CongrProc.end (p := r)))))
 
 lemma process_congr_parallel_left {p q r : Proc}
-    (congr : TLLC.Process.Cong p q) :
-    TLLC.Process.Cong (.par p r) (.par q r) := by
+    (congr : TLLC.Process.Congruence p q) :
+    TLLC.Process.Congruence (.par p r) (.par q r) := by
   induction congr with
   | refl =>
       exact ARS.Conv.refl
@@ -424,21 +427,21 @@ lemma process_congr_parallel_left {p q r : Proc}
       exact ARS.conv_trans ih (ARS.conv_sym (process_congr0_parallel_left (r := r) step))
 
 lemma process_congr_parallel_right {p q r : Proc}
-    (congr : TLLC.Process.Cong p q) :
-    TLLC.Process.Cong (.par r p) (.par r q) := by
+    (congr : TLLC.Process.Congruence p q) :
+    TLLC.Process.Congruence (.par r p) (.par r q) := by
   exact ARS.conv_trans
-    (ARS.conv1 TLLC.Process.Congr.par_sym)
+    (ARS.conv1 TLLC.Process.CongrProc.par_sym)
     (ARS.conv_trans (process_congr_parallel_left (r := r) congr)
-      (ARS.conv1 TLLC.Process.Congr.par_sym))
+      (ARS.conv1 TLLC.Process.CongrProc.par_sym))
 
 lemma process_congr0_res {p q : Proc}
-    (congr : TLLC.Process.Congr p q) :
-    TLLC.Process.Cong (.nu p) (.nu q) := by
-  exact ARS.conv1 (TLLC.Process.Congr.res congr)
+    (congr : TLLC.Process.CongrProc p q) :
+    TLLC.Process.Congruence (.nu p) (.nu q) := by
+  exact ARS.conv1 (TLLC.Process.CongrProc.res congr)
 
 lemma process_congr_res {p q : Proc}
-    (congr : TLLC.Process.Cong p q) :
-    TLLC.Process.Cong (.nu p) (.nu q) := by
+    (congr : TLLC.Process.Congruence p q) :
+    TLLC.Process.Congruence (.nu p) (.nu q) := by
   induction congr with
   | refl =>
       exact ARS.Conv.refl
@@ -547,9 +550,9 @@ lemma process_step_parallel_left {p q r : Proc}
     (step : TLLC.Process.Step p q) :
     TLLC.Process.Step (.par p r) (.par q r) := by
   exact TLLC.Process.Step.congr
-    (ARS.conv1 TLLC.Process.Congr.par_sym)
+    (ARS.conv1 TLLC.Process.CongrProc.par_sym)
     (TLLC.Process.Step.par (o := r) step)
-    (ARS.conv1 TLLC.Process.Congr.par_sym)
+    (ARS.conv1 TLLC.Process.CongrProc.par_sym)
 
 lemma process_step_parAll_accumulator {p q : Proc} (processes : List Proc)
     (step : TLLC.Process.Step p q) :
@@ -563,8 +566,8 @@ lemma process_step_parAll_accumulator {p q : Proc} (processes : List Proc)
           (process_step_parallel_left (r := process) step)
 
 lemma process_congr_parAll_accumulator {p q : Proc} (processes : List Proc)
-    (congr : TLLC.Process.Cong p q) :
-    TLLC.Process.Cong (parAll p processes) (parAll q processes) := by
+    (congr : TLLC.Process.Congruence p q) :
+    TLLC.Process.Congruence (parAll p processes) (parAll q processes) := by
   induction processes generalizing p q with
   | nil =>
       simpa using congr
@@ -646,10 +649,10 @@ lemma process_step_comIm_edge_symm_csubst {M N : EvalCtx} {payloadTerm : Term} {
             bindEndpointAt 0 d; Term.var_Term])[up_Chan_Chan σ; Term.var_Term])))) := by
   intro σ
   exact TLLC.Process.Step.congr
-    (process_congr_res (ARS.conv1 TLLC.Process.Congr.par_sym))
+    (process_congr_res (ARS.conv1 TLLC.Process.CongrProc.par_sym))
     (process_step_comIm_edge_csubst (M := N) (N := M) (payloadTerm := payloadTerm)
       (c := d) (d := c) (implicitPayload_symm payload) σ)
-    (process_congr_res (ARS.conv1 TLLC.Process.Congr.par_sym))
+    (process_congr_res (ARS.conv1 TLLC.Process.CongrProc.par_sym))
 
 lemma process_step_comEx_edge_csubst {M N : EvalCtx} {valueTerm : Term} {c d : Chan}
     (value : Val valueTerm) :
@@ -710,10 +713,10 @@ lemma process_step_comEx_edge_symm_csubst {M N : EvalCtx} {valueTerm : Term} {c 
             bindEndpointAt 0 d; Term.var_Term])[up_Chan_Chan σ; Term.var_Term])))) := by
   intro σ
   exact TLLC.Process.Step.congr
-    (process_congr_res (ARS.conv1 TLLC.Process.Congr.par_sym))
+    (process_congr_res (ARS.conv1 TLLC.Process.CongrProc.par_sym))
     (process_step_comEx_edge_csubst (M := N) (N := M) (valueTerm := valueTerm)
       (c := d) (d := c) value σ)
-    (process_congr_res (ARS.conv1 TLLC.Process.Congr.par_sym))
+    (process_congr_res (ARS.conv1 TLLC.Process.CongrProc.par_sym))
 
 lemma process_step_end_edge_csubst {M N : EvalCtx} {c d : Chan} :
     ∀ σ : Nat → Chan,
@@ -766,9 +769,9 @@ lemma process_step_end_edge_symm_csubst {M N : EvalCtx} {c d : Chan} :
               (.pure .one)))) := by
   intro σ
   exact TLLC.Process.Step.congr
-    (process_congr_res (ARS.conv1 TLLC.Process.Congr.par_sym))
+    (process_congr_res (ARS.conv1 TLLC.Process.CongrProc.par_sym))
     (process_step_end_edge_csubst (M := N) (N := M) (c := d) (d := c) σ)
-    (ARS.conv1 TLLC.Process.Congr.par_sym)
+    (ARS.conv1 TLLC.Process.CongrProc.par_sym)
 
 lemma parAll_csubst (body : Proc) (processes : List Proc) :
     ∀ σ : Nat → Chan,
