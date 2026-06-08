@@ -136,51 +136,98 @@ lemma Step.node_flattenAt_eq {parent : Chan} {m : Term} {children : List (Chan �
 
 lemma dynamic_thunk_csubst {m : Term} (thunk : Thunk m) :
     ∀ σ : Nat → Chan, Thunk (m[σ; Term.var_Term]) := by
-  exact TLLC.Dynamic.Thunk.rec
-    (motive_1 := fun m _ => ∀ σ : Nat → Chan, Thunk (m[σ; Term.var_Term]))
-    (motive_2 := fun m _ => ∀ σ : Nat → Chan, Val (m[σ; Term.var_Term]))
-    (fun _ ih σ => by simpa using Thunk.mlet (ih σ))
-    (fun σ => by simpa using (Thunk.fork (A := _)))
-    (fun σ => by simpa using (Thunk.recv (c := _)))
-    (fun σ => by simpa using (Thunk.appSendIm (c := _)))
-    (fun _ ih σ => by simpa using Thunk.appSendEx (ih σ))
-    (fun σ => by simpa using (Thunk.close (c := _)))
-    (fun σ => by simpa using (Val.var (x := _)))
-    (fun σ => by simpa using (Val.lam (A := _)))
-    (fun _ ih σ => by simpa using Val.pairIm (ih σ))
-    (fun _ _ ihLeft ihRight σ => by simpa using Val.pairEx (ihLeft σ) (ihRight σ))
-    (by intro σ; simpa using Val.one)
-    (by intro σ; simpa using Val.tt)
-    (by intro σ; simpa using Val.ff)
-    (fun _ ih σ => by simpa using Val.pure (ih σ))
-    (fun σ => by simpa using (Val.chan (x := _)))
-    (fun σ => by simpa using (Val.send (c := _)))
-    (fun _ ih σ => by simpa using Val.thunk (ih σ))
-    thunk
+  induction thunk using @TLLC.Dynamic.Thunk.rec
+    (motive_2 := fun m _ => ∀ σ : Nat → Chan, Val (m[σ; Term.var_Term])) with
+  | mlet thunk ih =>
+      intro σ
+      simpa using Thunk.mlet (ih σ)
+  | fork =>
+      intro σ
+      simpa using (Thunk.fork (A := _))
+  | recv =>
+      intro σ
+      simpa using (Thunk.recv (c := _))
+  | appSendIm =>
+      intro σ
+      simpa using (Thunk.appSendIm (c := _))
+  | appSendEx value ih =>
+      intro σ
+      simpa using Thunk.appSendEx (ih σ)
+  | close =>
+      intro σ
+      simpa using (Thunk.close (c := _))
+  | var =>
+      simpa using (Val.var (x := _))
+  | lam =>
+      simpa using (Val.lam (A := _))
+  | pairIm value ih =>
+      simpa using Val.pairIm (ih _)
+  | pairEx valueLeft valueRight ihLeft ihRight =>
+      simpa using Val.pairEx (ihLeft _) (ihRight _)
+  | one =>
+      simpa using Val.one
+  | tt =>
+      simpa using Val.tt
+  | ff =>
+      simpa using Val.ff
+  | pure value ih =>
+      simpa using Val.pure (ih _)
+  | chan =>
+      simpa using (Val.chan (x := _))
+  | send =>
+      simpa using (Val.send (c := _))
+  | thunk thunk ih =>
+      simpa using Val.thunk (ih _)
 
 lemma dynamic_val_csubst {m : Term} (value : Val m) :
     ∀ σ : Nat → Chan, Val (m[σ; Term.var_Term]) := by
-  exact TLLC.Dynamic.Val.rec
-    (motive_1 := fun m _ => ∀ σ : Nat → Chan, Thunk (m[σ; Term.var_Term]))
-    (motive_2 := fun m _ => ∀ σ : Nat → Chan, Val (m[σ; Term.var_Term]))
-    (fun _ ih σ => by simpa using Thunk.mlet (ih σ))
-    (fun σ => by simpa using (Thunk.fork (A := _)))
-    (fun σ => by simpa using (Thunk.recv (c := _)))
-    (fun σ => by simpa using (Thunk.appSendIm (c := _)))
-    (fun _ ih σ => by simpa using Thunk.appSendEx (ih σ))
-    (fun σ => by simpa using (Thunk.close (c := _)))
-    (fun σ => by simpa using (Val.var (x := _)))
-    (fun σ => by simpa using (Val.lam (A := _)))
-    (fun _ ih σ => by simpa using Val.pairIm (ih σ))
-    (fun _ _ ihLeft ihRight σ => by simpa using Val.pairEx (ihLeft σ) (ihRight σ))
-    (by intro σ; simpa using Val.one)
-    (by intro σ; simpa using Val.tt)
-    (by intro σ; simpa using Val.ff)
-    (fun _ ih σ => by simpa using Val.pure (ih σ))
-    (fun σ => by simpa using (Val.chan (x := _)))
-    (fun σ => by simpa using (Val.send (c := _)))
-    (fun _ ih σ => by simpa using Val.thunk (ih σ))
-    value
+  induction value using @TLLC.Dynamic.Val.rec
+    (motive_1 := fun m _ => ∀ σ : Nat → Chan, Thunk (m[σ; Term.var_Term])) with
+  | mlet thunk ih =>
+      simpa using Thunk.mlet (ih _)
+  | fork =>
+      simpa using (Thunk.fork (A := _))
+  | recv =>
+      simpa using (Thunk.recv (c := _))
+  | appSendIm =>
+      simpa using (Thunk.appSendIm (c := _))
+  | appSendEx value ih =>
+      simpa using Thunk.appSendEx (ih _)
+  | close =>
+      simpa using (Thunk.close (c := _))
+  | var =>
+      intro σ
+      simpa using (Val.var (x := _))
+  | lam =>
+      intro σ
+      simpa using (Val.lam (A := _))
+  | pairIm value ih =>
+      intro σ
+      simpa using Val.pairIm (ih σ)
+  | pairEx valueLeft valueRight ihLeft ihRight =>
+      intro σ
+      simpa using Val.pairEx (ihLeft σ) (ihRight σ)
+  | one =>
+      intro σ
+      simpa using Val.one
+  | tt =>
+      intro σ
+      simpa using Val.tt
+  | ff =>
+      intro σ
+      simpa using Val.ff
+  | pure value ih =>
+      intro σ
+      simpa using Val.pure (ih σ)
+  | chan =>
+      intro σ
+      simpa using (Val.chan (x := _))
+  | send =>
+      intro σ
+      simpa using (Val.send (c := _))
+  | thunk thunk ih =>
+      intro σ
+      simpa using Val.thunk (ih σ)
 
 lemma dynamic_step_csubst {m n : Term} (step : TLLC.Dynamic.Step m n) :
     ∀ σ : Nat → Chan,
@@ -263,6 +310,177 @@ lemma dynamic_step_csubst {m n : Term} (step : TLLC.Dynamic.Step m n) :
   | close step ih =>
       intro σ
       simpa using TLLC.Dynamic.Step.close (ih σ)
+
+lemma evalctx_cren_comp (M : EvalCtx) (ξ ζ : Nat → Nat) :
+    (M.cren ξ).cren ζ = M.cren (funcomp ζ ξ) := by
+  induction M with
+  | hole =>
+      rfl
+  | bnd M n ih =>
+      simp [EvalCtx.cren, ih]
+      asimp
+
+lemma dynamic_val_crename {m : Term} (value : Val m) :
+    ∀ ξ : Nat → Nat, Val (m⟨ξ; (id : Nat → Nat)⟩) := by
+  intro ξ
+  have renamed := dynamic_val_csubst value (fun x => Chan.var_Chan (ξ x))
+  convert renamed using 1
+  rw [← TLLC.Static.csubst_cren]
+  congr
+
+lemma dynamic_step_crename {m n : Term} (step : TLLC.Dynamic.Step m n) :
+    ∀ ξ : Nat → Nat,
+      TLLC.Dynamic.Step (m⟨ξ; (id : Nat → Nat)⟩) (n⟨ξ; (id : Nat → Nat)⟩) := by
+  intro ξ
+  have renamed := dynamic_step_csubst step (fun x => Chan.var_Chan (ξ x))
+  convert renamed using 1
+  · rw [← TLLC.Static.csubst_cren]
+    congr
+  · rw [← TLLC.Static.csubst_cren]
+    congr
+
+lemma process_congr0_crename {p q : Proc} (congr : TLLC.Process.Congr p q) :
+    ∀ ξ : Nat → Nat,
+      TLLC.Process.Congr (p⟨ξ; (id : Nat → Nat)⟩) (q⟨ξ; (id : Nat → Nat)⟩) := by
+  induction congr with
+  | par_sym =>
+      intro ξ
+      simpa using TLLC.Process.Congr.par_sym
+  | assoc =>
+      intro ξ
+      simpa using TLLC.Process.Congr.assoc
+  | scope =>
+      rename_i p q
+      intro ξ
+      convert (TLLC.Process.Congr.scope
+        (p := p⟨upRen_Chan_Chan ξ; (id : Nat → Nat)⟩)
+        (q := q⟨ξ; (id : Nat → Nat)⟩)) using 1
+      · asimp
+        congr 3
+  | exch =>
+      rename_i p
+      intro ξ
+      convert (TLLC.Process.Congr.exch
+        (p := p⟨upRen_Chan_Chan (upRen_Chan_Chan ξ); (id : Nat → Nat)⟩)) using 1
+        ; asimp
+      · congr 2
+  | par congrLeft congrRight ihLeft ihRight =>
+      intro ξ
+      simpa using TLLC.Process.Congr.par (ihLeft ξ) (ihRight ξ)
+  | res congr ih =>
+      intro ξ
+      simpa using TLLC.Process.Congr.res (ih (upRen_Chan_Chan ξ))
+  | «end» =>
+      intro ξ
+      simpa using TLLC.Process.Congr.end
+
+lemma process_congr_crename {p q : Proc} (congr : TLLC.Process.Cong p q) :
+    ∀ ξ : Nat → Nat,
+      TLLC.Process.Cong (p⟨ξ; (id : Nat → Nat)⟩) (q⟨ξ; (id : Nat → Nat)⟩) := by
+  intro ξ
+  induction congr with
+  | refl =>
+      exact TLLC.ARS.Conv.refl
+  | tail _ step ih =>
+      exact TLLC.ARS.Conv.tail ih (process_congr0_crename step ξ)
+  | taili _ step ih =>
+      exact TLLC.ARS.Conv.taili ih (process_congr0_crename step ξ)
+
+lemma process_step_crename_zero {p q : Proc} (step : TLLC.Process.Step p q) :
+    ∀ ξ : Nat → Nat, ξ 0 = 0 →
+      TLLC.Process.Step (p⟨ξ; (id : Nat → Nat)⟩) (q⟨ξ; (id : Nat → Nat)⟩) := by
+  induction step with
+  | exp step =>
+      intro ξ _
+      simpa using TLLC.Process.Step.exp (dynamic_step_crename step ξ)
+  | fork eqTerm eqCtx =>
+      rename_i A m m' N N'
+      intro ξ _
+      subst eqTerm
+      subst eqCtx
+      convert (TLLC.Process.Step.fork
+        (A := A⟨ξ; (id : Nat → Nat)⟩)
+        (m := m⟨ξ; (id : Nat → Nat)⟩)
+        (m' := (m⟨ξ; (id : Nat → Nat)⟩)⟨((· + 1) : Nat → Nat);
+          (id : Nat → Nat)⟩)
+        (N := N.cren ξ)
+        (N' := (N.cren ξ).cren ((· + 1) : Nat → Nat)) rfl rfl) using 1
+      · asimp
+        rw [evalctx_cren]
+        asimp
+      · asimp
+        rw [evalctx_cren]
+        rw [evalctx_cren_comp]
+        rw [show funcomp (upRen_Chan_Chan ξ) ((· + 1) : Nat → Nat) =
+            funcomp ((· + 1) : Nat → Nat) ξ from by funext x; rfl]
+        rw [← evalctx_cren_comp]
+        asimp
+        congr 3
+  | comIm =>
+      rename_i M N m
+      intro ξ _
+      convert (TLLC.Process.Step.comIm
+        (M := M.cren (upRen_Chan_Chan ξ))
+        (N := N.cren (upRen_Chan_Chan ξ))
+        (m := m⟨upRen_Chan_Chan ξ; (id : Nat → Nat)⟩)) using 1
+      all_goals
+        asimp
+        rw [evalctx_cren]
+        rw [evalctx_cren]
+        asimp
+  | comEx value =>
+      rename_i M N v
+      intro ξ _
+      convert (TLLC.Process.Step.comEx
+        (M := M.cren (upRen_Chan_Chan ξ))
+        (N := N.cren (upRen_Chan_Chan ξ))
+        (v := v⟨upRen_Chan_Chan ξ; (id : Nat → Nat)⟩)
+        (dynamic_val_crename value (upRen_Chan_Chan ξ))) using 1
+      all_goals
+        asimp
+        rw [evalctx_cren]
+        rw [evalctx_cren]
+        asimp
+  | «end» eqM eqN =>
+      rename_i M N M' N'
+      intro ξ h0
+      subst eqM
+      subst eqN
+      convert (TLLC.Process.Step.end
+        (M := M.cren (upRen_Chan_Chan ξ))
+        (N := N.cren (upRen_Chan_Chan ξ))
+        (M' := (M.cren (upRen_Chan_Chan ξ)).cren ((· - 1) : Nat → Nat))
+        (N' := (N.cren (upRen_Chan_Chan ξ)).cren ((· - 1) : Nat → Nat)) rfl rfl) using 1
+      · asimp
+        rw [evalctx_cren]
+        rw [evalctx_cren]
+        asimp
+      · asimp
+        rw [evalctx_cren]
+        rw [evalctx_cren]
+        asimp
+        rw [evalctx_cren_comp M ((· - 1) : Nat → Nat) ξ]
+        rw [evalctx_cren_comp N ((· - 1) : Nat → Nat) ξ]
+        rw [evalctx_cren_comp M (upRen_Chan_Chan ξ) ((· - 1) : Nat → Nat)]
+        rw [evalctx_cren_comp N (upRen_Chan_Chan ξ) ((· - 1) : Nat → Nat)]
+        rw [show funcomp ((· - 1) : Nat → Nat) (upRen_Chan_Chan ξ) =
+            funcomp ξ ((· - 1) : Nat → Nat) from by
+              funext x
+              cases x with
+              | zero =>
+                  exact h0.symm
+              | succ x =>
+                  rfl]
+  | par step ih =>
+      intro ξ h0
+      simpa using TLLC.Process.Step.par (ih ξ h0)
+  | res step ih =>
+      intro ξ h0
+      simpa using TLLC.Process.Step.res (ih (upRen_Chan_Chan ξ) rfl)
+  | congr left step right ih =>
+      intro ξ h0
+      exact TLLC.Process.Step.congr (process_congr_crename left ξ) (ih ξ h0)
+        (process_congr_crename right ξ)
 
 lemma process_step_parallel_left {p q r : Proc}
     (step : TLLC.Process.Step p q) :
