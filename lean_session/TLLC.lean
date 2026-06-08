@@ -43,3 +43,5 @@ import TLLC.Process.CRename
 import TLLC.Process.Occurs
 import TLLC.Process.CSubst
 import TLLC.Process.SR
+import TLLC.Spawning.Tree
+import TLLC.Spawning.Typing
