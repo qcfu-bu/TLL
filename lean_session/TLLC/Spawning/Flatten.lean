@@ -1,5 +1,6 @@
 import Mathlib.Tactic
 import TLLC.Process.CSubst
+import TLLC.Spawning.Channel
 import TLLC.Spawning.Tree
 import TLLC.Spawning.Typing
 
@@ -23,17 +24,6 @@ open TLLC.Dynamic
 open scoped TLLC.Static TLLC.Dynamic
 
 /-! ## Process-context and substitution utilities -/
-
-/-- Extract the de Bruijn index from a channel variable. -/
-def chanIndex : Chan → Nat
-  | .var_Chan x => x
-
-@[simp] lemma chanIndex_var (x : Nat) : chanIndex (.var_Chan x) = x := rfl
-
-/-- Channel substitution for moving under one fresh binder and tying one named endpoint to it. The
-selected endpoint becomes the freshly bound channel `0`; all other free channels are weakened. -/
-def bindEndpointAt (depth : Nat) (c : Chan) (x : Nat) : Chan :=
-  if x = chanIndex c + depth then .var_Chan 0 else .var_Chan (x + 1)
 
 /-- Parallel composition of a list of processes with an accumulator. -/
 def parAll (p : Proc) (ps : List Proc) : Proc :=

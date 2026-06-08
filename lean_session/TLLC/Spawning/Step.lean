@@ -1,6 +1,7 @@
 import TLLC.Dynamic.EvalCtx
 import TLLC.Dynamic.Occurs
 import TLLC.Dynamic.Step
+import TLLC.Spawning.Channel
 import TLLC.Spawning.Tree
 
 /-!
@@ -33,6 +34,28 @@ def chanOccursIn : Chan → Term → Prop
 /-- `c ∉ FC(m)` from the report. -/
 def chanFreshIn : Chan → Term → Prop
   | .var_Chan x, m => Dynamic.occurs x m = 0
+
+/-- A term that does not observe channel substitutions. This is stronger than the edge-local implicit
+payload premise, but is often easier to provide directly. -/
+def chanSubstInvariant (payload : Term) : Prop :=
+  ∀ σ τ : Nat → Chan,
+    payload[σ; Term.var_Term] = payload[τ; Term.var_Term]
+
+/-- An implicit payload is untied from a parent/child edge when flattening may bind either endpoint
+without changing the payload. This is the local replacement for the report's separation between
+static channels and process endpoints. -/
+def implicitPayload (c d : Chan) (payload : Term) : Prop :=
+  ∀ σ : Nat → Chan,
+    payload[bindEndpointAt 0 c; Term.var_Term][up_Chan_Chan σ; Term.var_Term] =
+      payload[bindEndpointAt 0 d; Term.var_Term][up_Chan_Chan σ; Term.var_Term]
+
+theorem chanSubstInvariant_implicitPayload {c d : Chan} {payload : Term}
+    (invariant : chanSubstInvariant payload) :
+    implicitPayload c d payload := by
+  intro σ
+  convert invariant
+    (fun x => (bindEndpointAt 0 c x)[up_Chan_Chan σ])
+    (fun x => (bindEndpointAt 0 d x)[up_Chan_Chan σ]) using 1 <;> asimp
 
 /-- Split a child list into the children whose parent edge occurs in `m` and those whose edge does
 not occur in `m`. The first component is the report's `I'`; the second is the complement. -/
@@ -72,14 +95,14 @@ def recvExChildren (v : Term) (c d : Chan) (N : Dynamic.EvalCtx)
   let child' := Tree.node d (N.eval (.pure (Term.chan d))) split.2 qs'
   ms ++ split.1 ++ [(c, child')]
 
-/-- Children after a ghost send from the current node to a selected child. Ghost payloads do not
+/-- Children after an implicit send from the current node to a selected child. Implicit payloads do not
 carry channels, so no child subtrees move. -/
 def sendImChildren (o : Term) (c d : Chan) (N : Dynamic.EvalCtx)
     (ms' : List (Chan × Tree)) (qs' : List Tree)
     (ms : List (Chan × Tree)) : List (Chan × Tree) :=
   ms ++ [(c, .node d (N.eval (.pure (.pair o (Term.chan d) .im .L))) ms' qs')]
 
-/-- Children after a ghost receive by the current node from a selected child. -/
+/-- Children after an implicit receive by the current node from a selected child. -/
 def recvImChildren (_o : Term) (c d : Chan) (N : Dynamic.EvalCtx)
     (ms' : List (Chan × Tree)) (qs' : List Tree)
     (ms : List (Chan × Tree)) : List (Chan × Tree) :=
@@ -180,6 +203,7 @@ inductive Step : Tree → Tree → Prop where
 
   | rootSendIm {M N : Dynamic.EvalCtx}
       {o c d l r ms' qs qs'} :
+      implicitPayload c d o →
       Step
         (.root (M.eval (.app (.send (Term.chan c) .im) o .im))
           (l ++ (c, .node d (N.eval (.recv (Term.chan d) .im)) ms' qs') :: r)
@@ -189,6 +213,7 @@ inductive Step : Tree → Tree → Prop where
           qs)
   | nodeSendIm {M N : Dynamic.EvalCtx}
       {p o c d l r ms' qs qs'} :
+      implicitPayload c d o →
       Step
         (.node p (M.eval (.app (.send (Term.chan c) .im) o .im))
           (l ++ (c, .node d (N.eval (.recv (Term.chan d) .im)) ms' qs') :: r)
@@ -198,6 +223,7 @@ inductive Step : Tree → Tree → Prop where
           qs)
   | rootRecvIm {M N : Dynamic.EvalCtx}
       {o c d l r ms' qs qs'} :
+      implicitPayload c d o →
       Step
         (.root (M.eval (.recv (Term.chan c) .im))
           (l ++ (c, .node d (N.eval (.app (.send (Term.chan d) .im) o .im)) ms' qs') :: r)
@@ -207,6 +233,7 @@ inductive Step : Tree → Tree → Prop where
           qs)
   | nodeRecvIm {M N : Dynamic.EvalCtx}
       {p o c d l r ms' qs qs'} :
+      implicitPayload c d o →
       Step
         (.node p (M.eval (.recv (Term.chan c) .im))
           (l ++ (c, .node d (N.eval (.app (.send (Term.chan d) .im) o .im)) ms' qs') :: r)
