@@ -1,5 +1,7 @@
 import Mathlib.Tactic
+import TLLC.Process.CSubst
 import TLLC.Spawning.Tree
+import TLLC.Spawning.Typing
 
 /-!
 # Flattening spawning trees
@@ -17,6 +19,8 @@ child's parent endpoint `d` by that bound channel. Children are scoped one at a 
 
 namespace TLLC.Spawning
 open Autosubst Autosubst.Notation
+open TLLC.Dynamic
+open scoped TLLC.Static TLLC.Dynamic
 
 /-- Extract the de Bruijn index from a channel variable. -/
 def chanIndex : Chan → Nat
@@ -37,6 +41,21 @@ def parAll (p : Proc) (ps : List Proc) : Proc :=
 
 @[simp] lemma parAll_cons (p q : Proc) (ps : List Proc) :
     parAll p (q :: ps) = parAll (.par p q) ps := rfl
+
+/-- Keep the de Bruijn shape of a process context, but erase all live endpoints. -/
+def erasePCtx : PCtx → PCtx
+  | [] => []
+  | _ :: Θ => .none :: erasePCtx Θ
+
+@[simp] lemma erasePCtx_nil : erasePCtx [] = [] := rfl
+
+@[simp] lemma erasePCtx_cons (slot : Slot) (Θ : PCtx) :
+    erasePCtx (slot :: Θ) = .none :: erasePCtx Θ := rfl
+
+lemma erasePCtx_empty (Θ : PCtx) : PEmpty (erasePCtx Θ) := by
+  induction Θ with
+  | nil => exact .nil
+  | cons _ Θ ih => exact .none ih
 
 mutual
 
@@ -82,23 +101,20 @@ decreasing_by
     omega
 
 def flattenBody (m : Term) (children : List (Chan × Tree)) (subtrees : List Tree) : Proc :=
-  parAll (flattenChildren 0 (.tm m) children) (flattenSubtrees subtrees)
+  parAll (flattenChildren (.tm m) children) (flattenSubtrees subtrees)
 termination_by childListSize children + treeListSize subtrees + 1
 decreasing_by
   all_goals omega
 
-/-- Add the child processes to an accumulated body, introducing one fresh channel per child edge.
-The `depth` parameter records how many restrictions already surround the body; an original endpoint
-label `c` is therefore found at de Bruijn index `c + depth`. -/
-def flattenChildren : Nat → Proc → List (Chan × Tree) → Proc
-  | _, body, [] => body
-  | depth, body, (c, child) :: children =>
+/-- Add the child processes to an accumulated body, introducing one fresh channel per child edge. -/
+def flattenChildren : Proc → List (Chan × Tree) → Proc
+  | body, [] => body
+  | body, (c, child) :: children =>
       let (d, p) := child.flattenAt
-      .nu (flattenChildren (depth + 1)
-        (.par (body[bindEndpointAt depth c; Term.var_Term])
-          (p[bindEndpointAt depth d; Term.var_Term]))
-        children)
-termination_by _ _ children => childListSize children
+      .nu (.par
+        ((flattenChildren body children)[bindEndpointAt 0 c; Term.var_Term])
+        (p[bindEndpointAt 0 d; Term.var_Term]))
+termination_by _ children => childListSize children
 decreasing_by
   all_goals
     simp only [childListSize]
@@ -135,8 +151,8 @@ end
     Tree.flattenAt (.node parent m children subtrees) = (parent, flattenBody m children subtrees) := by
   simp [Tree.flattenAt]
 
-@[simp] lemma flattenChildren_nil (depth : Nat) (body : Proc) :
-    flattenChildren depth body [] = body := by
+@[simp] lemma flattenChildren_nil (body : Proc) :
+    flattenChildren body [] = body := by
   simp [flattenChildren]
 
 @[simp] lemma flattenSubtrees_nil : flattenSubtrees [] = [] := by
