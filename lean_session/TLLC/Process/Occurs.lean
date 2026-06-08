@@ -38,7 +38,7 @@ def pcount : PCtx → Nat → Nat
   | _ :: Θ, i + 1 => pcount Θ i
 
 /-- Endpoint counts are additive over the process-context merge (the count-conserving heart: `split`
-    realises `2 = 1 + 1`). -/
+    witnesses `2 = 1 + 1`). -/
 lemma PMerge.pcount {Θ1 Θ2 Θ} (mrg : PMerge Θ1 Θ2 Θ) :
     ∀ i, pcount Θ i = pcount Θ1 i + pcount Θ2 i := by
   induction mrg with
@@ -50,7 +50,7 @@ lemma PMerge.pcount {Θ1 Θ2 Θ} (mrg : PMerge Θ1 Θ2 Θ) :
   | bothR _ ih => intro i; cases i with | zero => rfl | succ i => exact ih i
   | split _ ih => intro i; cases i with | zero => rfl | succ i => exact ih i
 
-/-- A leaf lowering identifies the endpoint count (`0` or `1`, since a realised context has no
+/-- A leaf-safe context identifies the endpoint count (`0` or `1`, since it has no
     `both`) with the dynamic channel positivity. -/
 lemma PCtxSingle.cvarPos {Θ} (rea : PCtxSingle Θ) :
     ∀ i, (pcount Θ i = 0 ∧ CvarPos Θ i false) ∨ (pcount Θ i = 1 ∧ CvarPos Θ i true) := by
@@ -69,16 +69,88 @@ lemma PCtxSingle.cvarPos {Θ} (rea : PCtxSingle Θ) :
     | succ i => rcases ih i with ⟨e, pos⟩ | ⟨e, pos⟩
                 exacts [.inl ⟨e, .cons pos⟩, .inr ⟨e, .cons pos⟩]
 
+/-- Empty process contexts have zero endpoint count at every index. -/
+lemma pempty_pcount_zero {Θ} (emp : PEmpty Θ) : ∀ i, pcount Θ i = 0 := by
+  induction emp with
+  | nil => intro i; rfl
+  | none _ ih =>
+    intro i
+    cases i with
+    | zero => rfl
+    | succ i => exact ih i
+
+/-- A single endpoint lookup contributes exactly one endpoint at its index. -/
+lemma pjust_pcount {Θ x r A} (js : PJust Θ x r A) :
+    ∀ i, pcount Θ i = if x = i then 1 else 0 := by
+  induction js with
+  | zero emp =>
+    intro i
+    cases i with
+    | zero => rfl
+    | succ i =>
+      simpa [pcount] using pempty_pcount_zero emp i
+  | none _ ih =>
+    intro i
+    cases i with
+    | zero => rfl
+    | succ i =>
+      simpa [pcount, Nat.succ.injEq] using ih i
+
+/-- Dynamic typing determines the exact channel occurrence count, including `both` slots. -/
+lemma dynOccursCount {Θ Γ Δ m A} (ty : Θ ⨾ Γ ⨾ Δ ⊢ m : A) :
+    ∀ i, occurs i m = pcount Θ i := by
+  induction ty with
+  | var emp _ _ _ =>
+    intro i
+    simpa [occurs] using (pempty_pcount_zero emp i).symm
+  | lamIm _ _ _ ih => intro i; exact ih i
+  | lamEx _ _ _ ih => intro i; exact ih i
+  | appIm _ _ ihm => intro i; exact ihm i
+  | appEx mrgΘ _ _ _ ihm ihn =>
+    intro i
+    simp only [occurs, ihm i, ihn i]
+    rw [PMerge.pcount mrgΘ i]
+  | pairIm _ _ _ ihn => intro i; exact ihn i
+  | pairEx mrgΘ _ _ _ _ ihm ihn =>
+    intro i
+    simp only [occurs, ihm i, ihn i]
+    rw [PMerge.pcount mrgΘ i]
+  | projIm mrgΘ _ _ _ _ ihm ihn =>
+    intro i
+    simp only [occurs, ihm i, ihn i]
+    rw [PMerge.pcount mrgΘ i]
+  | projEx mrgΘ _ _ _ _ ihm ihn =>
+    intro i
+    simp only [occurs, ihm i, ihn i]
+    rw [PMerge.pcount mrgΘ i]
+  | one emp _ _ => intro i; simpa [occurs] using (pempty_pcount_zero emp i).symm
+  | tt emp _ _ => intro i; simpa [occurs] using (pempty_pcount_zero emp i).symm
+  | ff emp _ _ => intro i; simpa [occurs] using (pempty_pcount_zero emp i).symm
+  | ite mrgΘ _ _ _ _ _ ihm ihn1 ihn2 =>
+    intro i
+    simp only [occurs, ihm i, ihn1 i, ihn2 i, Nat.max_self]
+    rw [PMerge.pcount mrgΘ i]
+  | pure _ ihm => intro i; exact ihm i
+  | mlet mrgΘ _ _ _ _ ihm ihn =>
+    intro i
+    simp only [occurs, ihm i, ihn i]
+    rw [PMerge.pcount mrgΘ i]
+  | chan js _ _ _ =>
+    intro i
+    exact (pjust_pcount js i).symm
+  | fork _ ihm => intro i; exact ihm i
+  | recv _ _ ihm => intro i; exact ihm i
+  | send _ _ ihm => intro i; exact ihm i
+  | close _ ihm => intro i; exact ihm i
+  | conv _ _ _ ihm => intro i; exact ihm i
+
 /-- The occurrence count of a channel equals its endpoint count in the process context (the
     self-dual generalisation of Coq `proc_type_occurs0`/`proc_type_occurs1`). -/
 lemma Typed.occursCount {Θ p} (ty : Θ ⊩ p) : ∀ i, procOccurs i p = pcount Θ i := by
   induction ty with
-  | @exp Θ m rea tym =>
+  | @exp Θ m tym =>
     intro i
-    show occurs i m = pcount Θ i
-    rcases TLLC.Process.PCtxSingle.cvarPos rea i with ⟨e, pos⟩ | ⟨e, pos⟩
-    · rw [e]; exact tym.occurs0 pos
-    · rw [e]; exact tym.occurs1 pos
+    exact dynOccursCount tym i
   | @par Θ1 Θ2 Θ p q mrg _ _ ihp ihq =>
     intro i
     show procOccurs i p + procOccurs i q = pcount Θ i

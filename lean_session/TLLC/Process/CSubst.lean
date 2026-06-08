@@ -16,9 +16,8 @@ The transposition does not commute with the linear de-Bruijn `+1` shifts of `PJu
 `CtxCRen` constructor (the renamed lookup type only matches up to `cren_conv0` conversion). Instead
 we reuse the already-proven dynamic channel *substitution* `Dynamic.Typed.csubstitution` at each leaf:
 the process exchange relation `PCExch` (`swap` two front slots + `lift` under a binder) bridges to a
-dynamic `AgreeCSubst Θ' exch Θ` over `PCtx` (`PCExch.pctxSingle`), built by `dynSwap` (the four cases on
-the two front leaf-safe slots, with the channel typings reconciled by `cren_conv0`). `PCExch.merge`
-splits the exchange across `par`, and `Typed.cexch` runs the process induction.
+dynamic `AgreeCSubst Θ' exch Θ` over `PCtx` (`PCExch.agree`). `PCExch.merge` splits the exchange
+across `par`, and `Typed.cexch` runs the process induction.
 -/
 
 namespace TLLC.Process
@@ -75,62 +74,6 @@ lemma chanAt1 {Θe : PCtx} {r} {A : Term} (emp : PEmpty Θe) (tyA : [] ⊢ A : .
   exact chanTyped js (Static.Typed.crename (Static.Typed.crename tyA _) _)
     (ARS.conv_trans (Static.cren_conv0 .refl _) (Static.cren_conv0 .refl _)) tyA
 
-/-! ## The four dynamic swap agreements (the two front single slots ∈ {none, one}). -/
-
-/-- Swap two front `none` slots. -/
-lemma dynSwapNN {Θ0 : PCtx} (wf : ProcWf Θ0) :
-    AgreeCSubst (.none :: .none :: Θ0) exch (.none :: .none :: Θ0) :=
-  (((AgreeCSubst.nil wf).pad.pad.wk0 (x := 0)).wk0 (x := 1))
-
-/-- Swap a front channel slot (`c0`) past a `none` slot (`c1`). -/
-lemma dynSwapCN {Θ0 : PCtx} {r0 A0} (wf : ProcWf Θ0) (tyA0 : [] ⊢ A0 : .proto) :
-    AgreeCSubst (.none :: .one r0 A0 :: Θ0) exch (.one r0 A0 :: .none :: Θ0) := by
-  obtain ⟨Θe, emp, mrgE⟩ := procWf_emptyR wf
-  have base := (AgreeCSubst.nil wf).pad.pad
-  have h0 := base.wk0 (x := 0)
-  exact h0.wk1 (.none (.oneR mrgE)) (chanAt1 emp tyA0)
-
-/-- Swap a front `none` slot (`c0`) past a channel slot (`c1`). -/
-lemma dynSwapNC {Θ0 : PCtx} {r1 A1} (wf : ProcWf Θ0) (tyA1 : [] ⊢ A1 : .proto) :
-    AgreeCSubst (.one r1 A1 :: .none :: Θ0) exch (.none :: .one r1 A1 :: Θ0) := by
-  obtain ⟨Θe, emp, mrgE⟩ := procWf_emptyR wf
-  have base := (AgreeCSubst.nil wf).pad.pad
-  have mrg1 :
-      PMerge (.none :: .none :: Θ0) (.one r1 A1 :: .none :: Θe)
-        (.one r1 A1 :: .none :: Θ0) :=
-    .oneR (.none mrgE)
-  have ch1 :
-      (.one r1 A1 :: .none :: Θe) ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx)
-        ⊢ .chan (Chan.var_Chan 0) : .ch r1 A1 :=
-    chanAt0 (.none emp) tyA1
-  have h1 := base.wk1 mrg1 ch1
-  exact h1.wk0 (x := 1)
-
-/-- Swap two front channel slots. -/
-lemma dynSwapCC {Θ0 : PCtx} {r0 A0 r1 A1} (wf : ProcWf Θ0)
-    (tyA0 : [] ⊢ A0 : .proto) (tyA1 : [] ⊢ A1 : .proto) :
-    AgreeCSubst (.one r1 A1 :: .one r0 A0 :: Θ0) exch (.one r0 A0 :: .one r1 A1 :: Θ0) := by
-  obtain ⟨Θe, emp, mrgE⟩ := procWf_emptyR wf
-  have base := (AgreeCSubst.nil wf).pad.pad
-  have mrg1 :
-      PMerge (.none :: .none :: Θ0) (.one r1 A1 :: .none :: Θe)
-        (.one r1 A1 :: .none :: Θ0) :=
-    .oneR (.none mrgE)
-  have ch1 :
-      (.one r1 A1 :: .none :: Θe) ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx)
-        ⊢ .chan (Chan.var_Chan 0) : .ch r1 A1 :=
-    chanAt0 (.none emp) tyA1
-  have h1 := base.wk1 mrg1 ch1
-  have mrg0 :
-      PMerge (.one r1 A1 :: .none :: Θ0) (.none :: .one r0 A0 :: Θe)
-        (.one r1 A1 :: .one r0 A0 :: Θ0) :=
-    .oneL (.oneR mrgE)
-  have ch0 :
-      (.none :: .one r0 A0 :: Θe) ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx)
-        ⊢ .chan (Chan.var_Chan 1) : .ch r0 A0 :=
-    chanAt1 emp tyA0
-  exact h1.wk1 mrg0 ch0
-
 /-! ## The process exchange relation and its preservation. -/
 
 /-- Process channel-exchange agreement: `swap` the two front slots (renaming by `exch`), `lift`
@@ -142,41 +85,22 @@ inductive PCExch : (Nat → Chan) → PCtx → PCtx → Prop where
     PCExch σ Θ Θ' →
     PCExch (up_Chan_Chan σ) (s :: Θ) (s :: Θ')
 
-/-- The exchange preserves leaf-safety and bridges to a dynamic channel substitution (`dynSwap` at the
-    swap, `AgreeCSubst.ty`/`.n` lifts under binders). The `both` slots are vacuous (`PCtxSingle` has none). -/
-lemma PCExch.pctxSingle {σ Θ Θ'} (ex : PCExch σ Θ Θ') :
-    PCtxSingle Θ → ProcWf Θ → PCtxSingle Θ' ∧ AgreeCSubst Θ' σ Θ := by
+/-- Process exchange bridges directly to dynamic channel-substitution agreement. -/
+lemma PCExch.agree {σ Θ Θ'} (ex : PCExch σ Θ Θ') :
+    ProcWf Θ → AgreeCSubst Θ' σ Θ := by
   induction ex with
   | @swap s0 s1 Θ =>
-    intro rea wf
-    cases rea with
-    | none rea1 =>
-      cases rea1 with
-      | none rea2 =>
-        cases wf with | none wf1 => cases wf1 with | none wf0 =>
-          exact ⟨.none (.none rea2), dynSwapNN wf0⟩
-      | one rea2 =>
-        cases wf with | none wf1 => cases wf1 with | one wf0 tyA1 =>
-          exact ⟨.one (.none rea2), dynSwapNC wf0 tyA1⟩
-    | one rea1 =>
-      cases rea1 with
-      | none rea2 =>
-        cases wf with | one wf1 tyA0 => cases wf1 with | none wf0 =>
-          exact ⟨.none (.one rea2), dynSwapCN wf0 tyA0⟩
-      | one rea2 =>
-        cases wf with | one wf1 tyA0 => cases wf1 with | one wf0 tyA1 =>
-          exact ⟨.one (.one rea2), dynSwapCC wf0 tyA0 tyA1⟩
+    intro wf
+    exact .swap wf
   | @lift σ s Θ Θ' _ ih =>
-    intro rea wf
-    cases rea with
-    | none rea0 =>
-      cases wf with | none wf0 =>
-        obtain ⟨rea0', agr⟩ := ih rea0 wf0
-        exact ⟨.none rea0', .n agr⟩
-    | one rea0 =>
-      cases wf with | one wf0 tyA =>
-        obtain ⟨rea0', agr⟩ := ih rea0 wf0
-        exact ⟨.one rea0', .ty agr tyA⟩
+    intro wf
+    cases s with
+    | none =>
+      cases wf with | none wf0 => exact .n (ih wf0)
+    | one r A =>
+      cases wf with | one wf0 tyA => exact .ty (ih wf0) tyA
+    | both A =>
+      cases wf with | both wf0 tyA => exact .both (ih wf0) tyA
 
 /-- The exchange splits across a process merge. -/
 lemma PCExch.merge {σ Θ Θ'} (ex : PCExch σ Θ Θ') :
@@ -208,11 +132,11 @@ lemma PCExch.merge {σ Θ Θ'} (ex : PCExch σ Θ Θ') :
 lemma Typed.cexch {Θ p} (ty : Θ ⊩ p) :
     ∀ {σ Θ'}, PCExch σ Θ Θ' → Θ' ⊩ p[σ; Term.var_Term] := by
   induction ty with
-  | @exp Θ m rea tym =>
+  | @exp Θ m tym =>
     intro σ Θ' ex
-    obtain ⟨rea', agr⟩ := ex.pctxSingle rea tym.procWf
+    obtain agr := ex.agree tym.procWf
     asimp
-    exact .exp rea' (tym.csubstitution agr)
+    exact .exp (tym.csubstitution agr)
   | @par Θ1 Θ2 Θ p q mrg _ _ ihp ihq =>
     intro σ Θ' ex
     obtain ⟨Θ1', Θ2', mrg', ex1, ex2⟩ := ex.merge mrg

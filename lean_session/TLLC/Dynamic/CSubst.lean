@@ -75,6 +75,9 @@ inductive AgreeCSubst : PCtx → (Nat → Chan) → PCtx → Prop where
     [] ⊢ B : .proto →
     AgreeCSubst Θ1 σ (.one r A :: Θ2) →
     AgreeCSubst Θ1 σ (.one r B :: Θ2)
+  | swap {s0 s1 Θ} :
+    ProcWf (s0 :: s1 :: Θ) →
+    AgreeCSubst (s1 :: s0 :: Θ) cexch (s0 :: s1 :: Θ)
 
 @[inherit_doc] scoped notation:50 Θ1:50 " ⊩ " σ:51 " ⫣ " Θ2:51 => AgreeCSubst Θ1 σ Θ2
 
@@ -109,6 +112,7 @@ lemma AgreeCSubst.empty {Θ1 Θ2 σ} (agr : Θ1 ⊩ σ ⫣ Θ2) (emp : PEmpty Θ
   | wk0 _ ih => cases emp with | none e => exact ih e
   | wk1 _ _ _ => cases emp
   | conv _ _ _ => cases emp
+  | swap _ => cases emp with | none e1 => cases e1 with | none e0 => exact .none (.none e0)
 
 /-- Channel substitution transports keys (Coq `dyn_agree_csubst_key`). -/
 lemma AgreeCSubst.key {Θ1 Θ2 σ s} (agr : Θ1 ⊩ σ ⫣ Θ2) (k : Θ2 ▷ₚ s) : Θ1 ▷ₚ s := by
@@ -122,6 +126,10 @@ lemma AgreeCSubst.key {Θ1 Θ2 σ s} (agr : Θ1 ⊩ σ ⫣ Θ2) (k : Θ2 ▷ₚ 
   | @wk1 Θa Θb Θ1 σ Θ2 x r A mrg agr tyx ih =>
     cases k with | one k' => exact mrg.key_image (ih k') PKey.impure
   | conv _ _ _ ih => cases k with | one k' => exact ih (.one k')
+  | @swap s0 s1 Θ wf =>
+    cases s0 <;> cases s1 <;> cases k <;> try exact PKey.impure
+    all_goals rename_i k1; cases k1; try exact PKey.impure
+    all_goals constructor; constructor; assumption
 
 /-- Merge inversion for well-formed process contexts (Coq `proc_wf_merge_inv`). -/
 lemma ProcWf.merge_inv {Θ1 Θ2 Θ} (mrg : PMerge Θ1 Θ2 Θ) (wf : ProcWf Θ) :
@@ -207,6 +215,11 @@ lemma AgreeCSubst.merge {Θ1 Θ2 σ} (agr : Θ1 ⊩ σ ⫣ Θ2) :
     | oneR mrg' =>
       obtain ⟨Θa', Θb', mrg', agr1, agr2⟩ := ih (.oneR mrg')
       exact ⟨Θa', Θb', mrg', agr1, .conv eq tyB agr2⟩
+  | @swap s0 s1 Θ wf =>
+    intro Θa Θb mrg
+    obtain ⟨wfa, wfb⟩ := ProcWf.merge_inv mrg wf
+    cases mrg <;> rename_i h1 <;> cases h1 <;> rename_i mrg0 <;>
+      exact ⟨_, _, by constructor; constructor; exact mrg0, .swap wfa, .swap wfb⟩
 
 /-- The source of a channel substitution agreement is well-formed (Coq `dyn_agree_csubst_wf`). -/
 lemma AgreeCSubst.procWf {Θ1 Θ2 σ} (agr : Θ1 ⊩ σ ⫣ Θ2) : ProcWf Θ2 := by
@@ -222,6 +235,7 @@ lemma AgreeCSubst.procWf {Θ1 Θ2 σ} (agr : Θ1 ⊩ σ ⫣ Θ2) : ProcWf Θ2 :=
     obtain ⟨tyA, _⟩ := Static.ch_inv tyC
     exact .one ih tyA
   | conv eq tyB _ ih => cases ih with | one wf' _ => exact .one wf' tyB
+  | swap wf => exact wf
 
 /-! ## Channel-variable typing under a substitution. -/
 
@@ -248,6 +262,15 @@ lemma proto_pred {A0 : Term} (tyA : [] ⊢ A0⟨((· + 1) : Nat → Nat); (id : 
   rw [show (A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)⟨funcomp (id : Nat → Nat) (· - 1);
         (id : Nat → Nat)⟩ = A0 from by asimp; rw [hmap]; asimp] at h
   exact h
+
+/-- Type a channel variable from a `PJust` lookup in the empty static/dynamic contexts. -/
+private lemma chanFromJust {Θ x r A} (js : PJust Θ x r A) (tyA : [] ⊢ A : .proto) :
+    Θ ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ .chan (Chan.var_Chan x) : .ch r A := by
+  have h := Typed.chan js Wf.nil Key.nil tyA
+  rwa [show A⟨(id : Nat → Nat); (· + ([] : Static.Ctx).length)⟩ = A from by
+    simp only [List.length_nil, Nat.add_zero]
+    rw [show ((fun x => x) : Nat → Nat) = (id : Nat → Nat) from rfl]
+    asimp] at h
 
 /-- Channel substitution types the substituted channel variable (Coq `dyn_agree_csubst_just`). The
     `Just` lookup type carries a `⟨(·+1); id⟩` channel shift (the de Bruijn lift), which the hard
@@ -337,9 +360,43 @@ lemma AgreeCSubst.just {Θ1 Θ2 σ x r A} (agr : Θ1 ⊩ σ ⫣ Θ2)
     have h := ih tyA1s js0
     -- adapt `.ch r (A1⟨+1;id⟩)` to the goal `.ch r (B⟨+1;id⟩)` via `A1 ≃ B`.
     apply Typed.conv ?_ h (.ch tyA)
-    apply Static.conv_ch
-    exact ARS.conv_trans (Static.cren_conv0 .refl ((· + 1) : Nat → Nat))
-      (ARS.conv_trans eq (ARS.conv_sym (Static.cren_conv0 .refl ((· + 1) : Nat → Nat))))
+    exact Static.conv_ch (Static.cren_conv eq ((· + 1) : Nat → Nat))
+  | @swap s0 s1 Θ wf =>
+    cases js with
+    | zero emp =>
+      rename_i A0
+      cases emp with
+      | none emp0 =>
+        rw [show cexch 0 = Chan.var_Chan 1 from rfl]
+        have js1 : PJust (.none :: .one r A0 :: Θ) 1 r
+            ((A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)⟨((· + 1) : Nat → Nat);
+              (id : Nat → Nat)⟩) :=
+          PJust.none (PJust.zero emp0)
+        have h := chanFromJust js1 (Static.Typed.crename tyA ((· + 1) : Nat → Nat))
+        apply Typed.conv ?_ h (.ch tyA)
+        exact Static.conv_ch (Static.cren_conv0 .refl ((· + 1) : Nat → Nat))
+    | none js1 =>
+      rename_i x0 A0
+      cases js1 with
+      | zero emp =>
+        rename_i A1
+        rw [show cexch 1 = Chan.var_Chan 0 from rfl]
+        have js0 : PJust (.one r A1 :: .none :: Θ) 0 r
+            (A1⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) :=
+          PJust.zero (.none emp)
+        have tyA0 := proto_pred tyA
+        have h := chanFromJust js0 tyA0
+        apply Typed.conv ?_ h (.ch tyA)
+        apply Static.conv_ch
+        exact ARS.conv_sym (Static.cren_conv0 .refl ((· + 1) : Nat → Nat))
+      | none js2 =>
+        rename_i x1 A1
+        rw [show cexch (x1 + 2) = Chan.var_Chan (x1 + 2) from rfl]
+        have js2' : PJust (.none :: .none :: Θ) (x1 + 2) r
+            ((A1⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)⟨((· + 1) : Nat → Nat);
+              (id : Nat → Nat)⟩) :=
+          PJust.none (PJust.none js2)
+        exact chanFromJust js2' tyA
 
 /-- Well-sortedness of the `proj` branch motive `C[⟨1,0⟩ .: (+2)]` under the pattern context
     `B :: A :: Γ` (the static `Σ`-elim pair-injection substitution; same construction as the

@@ -27,8 +27,7 @@ abbrev cvar (n : Nat) : Term := .chan (Chan.var_Chan n)
 
 /-- Channel exchange substitution swapping the two innermost channels `0 ↔ 1` (Coq `exch`, here over
 one channel per `res` instead of two endpoints). -/
-def exch : Nat → Chan :=
-  Chan.var_Chan 1 .: Chan.var_Chan 0 .: (fun x => Chan.var_Chan (x + 2))
+abbrev exch : Nat → Chan := Dynamic.cexch
 
 /-- One-step structural congruence (Coq `proc_congr0`). -/
 inductive Congr : Proc → Proc → Prop where

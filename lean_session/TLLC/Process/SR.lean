@@ -18,7 +18,7 @@ open scoped TLLC.Static TLLC.Dynamic
 
 /-- The empty process types the trivial returning thread `⟨return ()⟩`. -/
 lemma PEmpty.return {Θ} (emp : PEmpty Θ) : Θ ⊩ Proc.tm (.pure .one) := by
-  exact .exp emp.pctxSingle (.pure (.one emp .nil .nil))
+  exact .exp (.pure (.one emp .nil .nil))
 
 /-! ## Exchange involution and the `0`-channel non-occurrence. -/
 
@@ -110,7 +110,7 @@ lemma Typed.congr0 {p q} (cgr : Congr p q) : ∀ {Θ}, (Θ ⊩ p) ↔ (Θ ⊩ q)
       cases ty with
       | par mrg t1 t2 =>
         cases t2 with
-        | exp rea tym =>
+        | exp tym =>
           obtain ⟨B, ty1, _⟩ := pure_invX tym
           have emp := one_inv ty1
           have e := mrg.emptyR emp
@@ -133,12 +133,12 @@ theorem Typed.sr {p q} (st : p ⇛ q) : ∀ {Θ}, Θ ⊩ p → Θ ⊩ q := by
   induction st with
   | exp dst =>
     intro Θ ty
-    cases ty with | exp rea tym => exact .exp rea (tym.sr dst)
+    cases ty with | exp tym => exact .exp (tym.sr dst)
   | @fork A m m' N N' e1 e2 =>
     intro Θ ty
     subst e1; subst e2
     cases ty with
-    | exp rea tyEval =>
+    | exp tyEval =>
       -- shift the whole thread under the fresh ν, then split off the redex
       have tyW := tyEval.cweaken
       rw [evalctx_cren] at tyW
@@ -159,16 +159,14 @@ theorem Typed.sr {p q} (st : p ⇛ q) : ∀ {Θ}, Θ ⊩ p → Θ ⊩ q := by
         obtain ⟨wf1, wf2⟩ := ProcWf.merge_inv mrgΘ' wfd
         obtain ⟨Θ1e, emp1, mrgE1⟩ := procWf_emptyR wf1
         obtain ⟨Θ2e, emp2, mrgE2⟩ := procWf_emptyR wf2
-        -- process-level split of the existing resources
-        obtain ⟨real1, real2⟩ := rea.split mrgΘ'
         refine .res tyA' (.par (.split (r := false) mrgΘ'.sym) ?parent ?child)
         · -- parent: the continuation fed the returned channel
-          refine .exp (.one real2) ?_
+          refine .exp ?_
           refine tyCont (.one false (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) :: Θ2e) _
             (.pure (cvar 0)) (.oneR mrgE2) ?_
           exact Typed.conv (ARS.conv_sym eqA0) (.pure (chanAt0 emp2 tyA')) tyMA0
         · -- child: the fork body with its endpoint substituted in
-          refine .exp (.one real1) ?_
+          refine .exp ?_
           exact Typed.esubst1 rfl (by asimp) PKey.impure (.oneR mrgE1)
             Key.nil Merge.nil tyBody (chanAt0 emp1 tyA')
   | @comIm M N m =>
@@ -179,12 +177,10 @@ theorem Typed.sr {p q} (st : p ⇛ q) : ∀ {Θ}, Θ ⊩ p → Θ ⊩ q := by
       | par mrgPar tyS tyR =>
         cases mrgPar with
         | bothL mrgΘ' =>
-          -- receiver references `cvar 0` on an absent slot — impossible
-          exfalso
-          cases tyR with
-          | exp reaR tyRDyn =>
-            cases reaR with
-            | none reaR' =>
+            -- receiver references `cvar 0` on an absent slot — impossible
+            exfalso
+            cases tyR with
+            | exp tyRDyn =>
               obtain ⟨ΘR1, ΘR2, AR0, mrgR, tyRecv, _⟩ := evalCtx_inv tyRDyn
               cases mrgR with
               | none mrgR' =>
@@ -192,12 +188,10 @@ theorem Typed.sr {p q} (st : p ⇛ q) : ∀ {Θ}, Θ ⊩ p → Θ ⊩ q := by
                 obtain ⟨_, _, js, _, _⟩ := chan_inv tyv
                 cases js
         | bothR mrgΘ' =>
-          -- sender references `cvar 0` on an absent slot — impossible
-          exfalso
-          cases tyS with
-          | exp reaS tySDyn =>
-            cases reaS with
-            | none reaS' =>
+            -- sender references `cvar 0` on an absent slot — impossible
+            exfalso
+            cases tyS with
+            | exp tySDyn =>
               obtain ⟨ΘS1, ΘS2, AS0, mrgS, tyApp, _⟩ := evalCtx_inv tySDyn
               cases mrgS with
               | none mrgS' =>
@@ -205,83 +199,79 @@ theorem Typed.sr {p q} (st : p ⇛ q) : ∀ {Θ}, Θ ⊩ p → Θ ⊩ q := by
                 obtain ⟨_, _, _, _, _, _, tyv⟩ := sendIm_inv tySend
                 obtain ⟨_, _, js, _, _⟩ := chan_inv tyv
                 cases js
-        | @split _ _ _ rS _ mrgΘ' =>
-          cases tyS with
-          | exp reaS tySDyn =>
-            cases reaS with
-            | one reaS' =>
+          | @split _ _ _ rS _ mrgΘ' =>
+            cases tyS with
+            | exp tySDyn =>
               cases tyR with
-              | exp reaR tyRDyn =>
-                cases reaR with
-                | one reaR' =>
-                  obtain ⟨ΘS1, ΘS2, AS0, mrgS, tyApp, tyContS⟩ := evalCtx_inv tySDyn
-                  obtain ⟨ΘR1, ΘR2, AR0, mrgR, tyRecv, tyContR⟩ := evalCtx_inv tyRDyn
-                  obtain ⟨AS, BS, sS, tySend, tyMsg, eqApp⟩ := appIm_inv tyApp
-                  obtain ⟨rs1, rs2, AAs, BBs, xorS, eqPiS, tyvS⟩ := sendIm_inv tySend
-                  obtain ⟨rr1, rr2, AAr, BBr, xorR, eqMR, tyvR⟩ := recvIm_inv tyRecv
-                  -- pin each endpoint onto the single channel slot
-                  cases mrgS with
-                  | oneR _ => obtain ⟨_, _, js, _, _⟩ := chan_inv tyvS; cases js
-                  | @oneL ΘSa ΘSb _ _ _ mrgS' =>
-                    cases mrgR with
-                    | oneR _ => obtain ⟨_, _, js, _, _⟩ := chan_inv tyvR; cases js
-                    | @oneL ΘRa ΘRb _ _ _ mrgR' =>
-                      obtain ⟨rJS, AJS, jsS, _, eqChS⟩ := chan_inv tyvS
-                      obtain ⟨rJR, AJR, jsR, _, eqChR⟩ := chan_inv tyvR
-                      cases jsS with
-                      | zero empS =>
-                        cases jsR with
-                        | zero empR =>
-                          -- protocol facts: `A ≃ act …`, message type, continuation `BBs[m..]`
-                          obtain ⟨ers1, eactS⟩ := Static.ch_inj eqChS
-                          obtain ⟨err1, eactR⟩ := Static.ch_inj eqChR
-                          subst ers1; subst err1
-                          obtain ⟨eAAsr, eBBsr, _, _⟩ :=
-                            Static.act_inj (ARS.conv_trans eactS (ARS.conv_sym eactR))
-                          obtain ⟨_, tyChS⟩ := tyvS.validity
-                          obtain ⟨tyActS, _⟩ := Static.ch_inv tyChS
-                          have tyBBs := Static.act_inv tyActS
-                          obtain ⟨_, tyAAs⟩ : ∃ s, [] ⊢ AAs : Term.srt s := by
-                            cases tyBBs.wf with | cons _ h => exact ⟨_, h⟩
-                          obtain ⟨eAS, eBS, _, _⟩ := Static.pi_inj eqPiS
-                          have tyMsgA : [] ⊢ m : AAs := Static.Typed.conv eAS tyMsg tyAAs
-                          have tyP : [] ⊢ BBs[Chan.var_Chan; m..] : .proto := by
-                            have h := tyBBs.subst tyMsgA; asimp at h; exact h
-                          obtain ⟨_, tyMAS0⟩ := tyApp.validity
-                          -- empty right-identities for the post-redex resources
-                          have eS := mrgS'.emptyL empS; subst eS
-                          have wfS' : ProcWf ΘSb := by cases tySDyn.procWf with | one w _ => exact w
-                          obtain ⟨ΘSe, empSe, mrgSe⟩ := procWf_emptyR wfS'
-                          refine .res tyP (.par (.split (r := rs1) mrgΘ') ?sender ?recv)
-                          · -- sender: returns the (advanced) channel
-                            refine .exp (.one reaS') ?_
-                            refine tyContS (.one rs1 (BBs[Chan.var_Chan; m..]) :: ΘSe) _
-                              (.pure (cvar 0)) (.oneR mrgSe) ?_
-                            refine Typed.conv ?_ (.pure (chanAt0 empSe tyP)) tyMAS0
-                            refine ARS.conv_sym (ARS.conv_trans eqApp ?_)
-                            exact Static.conv_subst (m..) eBS
-                          · -- receiver: returns the message paired with the (advanced) channel
-                            obtain ⟨_, tyChR⟩ := tyvR.validity
-                            obtain ⟨tyActR, _⟩ := Static.ch_inv tyChR
-                            have tyBBr := Static.act_inv tyActR
-                            obtain ⟨_, tyAAr⟩ : ∃ s, [] ⊢ AAr : Term.srt s := by
-                              cases tyBBr.wf with | cons _ h => exact ⟨_, h⟩
-                            have tyMsgR : [] ⊢ m : AAr := Static.Typed.conv (ARS.conv_trans eAS eAAsr) tyMsg tyAAr
-                            have eR := mrgR'.emptyL empR; subst eR
-                            have wfR' : ProcWf ΘRb := by cases tyRDyn.procWf with | one w _ => exact w
-                            obtain ⟨ΘRe, empRe, mrgRe⟩ := procWf_emptyR wfR'
-                            obtain ⟨_, tyMAR0⟩ := tyRecv.validity
-                            refine .exp (.one reaR') ?_
-                            refine tyContR (.one (!rs1) (BBs[Chan.var_Chan; m..]) :: ΘRe) _
-                              (.pure (.pair m (cvar 0) .im .L)) (.oneR mrgRe) ?_
-                            refine Typed.conv (ARS.conv_sym eqMR) (.pure ?_) tyMAR0
-                            refine Typed.pairIm
-                              (Static.Typed.sig (by nofun) Static.sort_leq_Lgt tyAAr (Static.Typed.ch tyBBr))
-                              tyMsgR ?_
-                            refine Typed.conv (s := .L) (Static.conv_ch (Static.conv_subst (m..) eBBsr))
-                              (chanAt0 empRe tyP) ?_
-                            have h := Static.Typed.ch (b := !rs1) (tyBBr.subst tyMsgR)
-                            asimp at h ⊢; exact h
+              | exp tyRDyn =>
+                obtain ⟨ΘS1, ΘS2, AS0, mrgS, tyApp, tyContS⟩ := evalCtx_inv tySDyn
+                obtain ⟨ΘR1, ΘR2, AR0, mrgR, tyRecv, tyContR⟩ := evalCtx_inv tyRDyn
+                obtain ⟨AS, BS, sS, tySend, tyMsg, eqApp⟩ := appIm_inv tyApp
+                obtain ⟨rs1, rs2, AAs, BBs, xorS, eqPiS, tyvS⟩ := sendIm_inv tySend
+                obtain ⟨rr1, rr2, AAr, BBr, xorR, eqMR, tyvR⟩ := recvIm_inv tyRecv
+                -- pin each endpoint onto the single channel slot
+                cases mrgS with
+                | oneR _ => obtain ⟨_, _, js, _, _⟩ := chan_inv tyvS; cases js
+                | @oneL ΘSa ΘSb _ _ _ mrgS' =>
+                  cases mrgR with
+                  | oneR _ => obtain ⟨_, _, js, _, _⟩ := chan_inv tyvR; cases js
+                  | @oneL ΘRa ΘRb _ _ _ mrgR' =>
+                    obtain ⟨rJS, AJS, jsS, _, eqChS⟩ := chan_inv tyvS
+                    obtain ⟨rJR, AJR, jsR, _, eqChR⟩ := chan_inv tyvR
+                    cases jsS with
+                    | zero empS =>
+                      cases jsR with
+                      | zero empR =>
+                        -- protocol facts: `A ≃ act …`, message type, continuation `BBs[m..]`
+                        obtain ⟨ers1, eactS⟩ := Static.ch_inj eqChS
+                        obtain ⟨err1, eactR⟩ := Static.ch_inj eqChR
+                        subst ers1; subst err1
+                        obtain ⟨eAAsr, eBBsr, _, _⟩ :=
+                          Static.act_inj (ARS.conv_trans eactS (ARS.conv_sym eactR))
+                        obtain ⟨_, tyChS⟩ := tyvS.validity
+                        obtain ⟨tyActS, _⟩ := Static.ch_inv tyChS
+                        have tyBBs := Static.act_inv tyActS
+                        obtain ⟨_, tyAAs⟩ : ∃ s, [] ⊢ AAs : Term.srt s := by
+                          cases tyBBs.wf with | cons _ h => exact ⟨_, h⟩
+                        obtain ⟨eAS, eBS, _, _⟩ := Static.pi_inj eqPiS
+                        have tyMsgA : [] ⊢ m : AAs := Static.Typed.conv eAS tyMsg tyAAs
+                        have tyP : [] ⊢ BBs[Chan.var_Chan; m..] : .proto := by
+                          have h := tyBBs.subst tyMsgA; asimp at h; exact h
+                        obtain ⟨_, tyMAS0⟩ := tyApp.validity
+                        -- empty right-identities for the post-redex resources
+                        have eS := mrgS'.emptyL empS; subst eS
+                        have wfS' : ProcWf ΘSb := by cases tySDyn.procWf with | one w _ => exact w
+                        obtain ⟨ΘSe, empSe, mrgSe⟩ := procWf_emptyR wfS'
+                        refine .res tyP (.par (.split (r := rs1) mrgΘ') ?sender ?recv)
+                        · -- sender: returns the (advanced) channel
+                          refine .exp ?_
+                          refine tyContS (.one rs1 (BBs[Chan.var_Chan; m..]) :: ΘSe) _
+                            (.pure (cvar 0)) (.oneR mrgSe) ?_
+                          refine Typed.conv ?_ (.pure (chanAt0 empSe tyP)) tyMAS0
+                          refine ARS.conv_sym (ARS.conv_trans eqApp ?_)
+                          exact Static.conv_subst (m..) eBS
+                        · -- receiver: returns the message paired with the (advanced) channel
+                          obtain ⟨_, tyChR⟩ := tyvR.validity
+                          obtain ⟨tyActR, _⟩ := Static.ch_inv tyChR
+                          have tyBBr := Static.act_inv tyActR
+                          obtain ⟨_, tyAAr⟩ : ∃ s, [] ⊢ AAr : Term.srt s := by
+                            cases tyBBr.wf with | cons _ h => exact ⟨_, h⟩
+                          have tyMsgR : [] ⊢ m : AAr := Static.Typed.conv (ARS.conv_trans eAS eAAsr) tyMsg tyAAr
+                          have eR := mrgR'.emptyL empR; subst eR
+                          have wfR' : ProcWf ΘRb := by cases tyRDyn.procWf with | one w _ => exact w
+                          obtain ⟨ΘRe, empRe, mrgRe⟩ := procWf_emptyR wfR'
+                          obtain ⟨_, tyMAR0⟩ := tyRecv.validity
+                          refine .exp ?_
+                          refine tyContR (.one (!rs1) (BBs[Chan.var_Chan; m..]) :: ΘRe) _
+                            (.pure (.pair m (cvar 0) .im .L)) (.oneR mrgRe) ?_
+                          refine Typed.conv (ARS.conv_sym eqMR) (.pure ?_) tyMAR0
+                          refine Typed.pairIm
+                            (Static.Typed.sig (by nofun) Static.sort_leq_Lgt tyAAr (Static.Typed.ch tyBBr))
+                            tyMsgR ?_
+                          refine Typed.conv (s := .L) (Static.conv_ch (Static.conv_subst (m..) eBBsr))
+                            (chanAt0 empRe tyP) ?_
+                          have h := Static.Typed.ch (b := !rs1) (tyBBr.subst tyMsgR)
+                          asimp at h ⊢; exact h
   | @comEx M N v vv =>
     intro Θ ty
     cases ty with
@@ -290,12 +280,10 @@ theorem Typed.sr {p q} (st : p ⇛ q) : ∀ {Θ}, Θ ⊩ p → Θ ⊩ q := by
       | par mrgPar tyS tyR =>
         cases mrgPar with
         | bothL mrgΘ' =>
-          -- receiver references `cvar 0` on an absent slot — impossible
-          exfalso
-          cases tyR with
-          | exp reaR tyRDyn =>
-            cases reaR with
-            | none reaR' =>
+            -- receiver references `cvar 0` on an absent slot — impossible
+            exfalso
+            cases tyR with
+            | exp tyRDyn =>
               obtain ⟨ΘR1, ΘR2, AR0, mrgR, tyRecv, _⟩ := evalCtx_inv tyRDyn
               cases mrgR with
               | none mrgR' =>
@@ -303,12 +291,10 @@ theorem Typed.sr {p q} (st : p ⇛ q) : ∀ {Θ}, Θ ⊩ p → Θ ⊩ q := by
                 obtain ⟨_, _, js, _, _⟩ := chan_inv tyv
                 cases js
         | bothR mrgΘ' =>
-          -- sender references `cvar 0` on an absent slot — impossible
-          exfalso
-          cases tyS with
-          | exp reaS tySDyn =>
-            cases reaS with
-            | none reaS' =>
+            -- sender references `cvar 0` on an absent slot — impossible
+            exfalso
+            cases tyS with
+            | exp tySDyn =>
               obtain ⟨ΘS1, ΘS2, AS0, mrgS, tyApp, _⟩ := evalCtx_inv tySDyn
               cases mrgS with
               | none mrgS' =>
@@ -320,69 +306,105 @@ theorem Typed.sr {p q} (st : p ⇛ q) : ∀ {Θ}, Θ ⊩ p → Θ ⊩ q := by
                   obtain ⟨_, _, _, _, _, _, tyv⟩ := sendEx_inv tySend
                   obtain ⟨_, _, js, _, _⟩ := chan_inv tyv
                   cases js
-        | @split _ _ _ rS _ mrgΘ' =>
-          cases tyS with
-          | exp reaS tySDyn =>
-            cases reaS with
-            | one reaS' =>
+          | @split _ _ _ rS _ mrgΘ' =>
+            cases tyS with
+            | exp tySDyn =>
               cases tyR with
-              | exp reaR tyRDyn =>
-                cases reaR with
-                | one reaR' =>
-                  obtain ⟨ΘS1, ΘS2, AS0, mrgS, tyApp, tyContS⟩ := evalCtx_inv tySDyn
-                  obtain ⟨ΘR1, ΘR2, AR0, mrgR, tyRecv, tyContR⟩ := evalCtx_inv tyRDyn
-                  obtain ⟨AS, BS, sS, ΘSF, ΘSV, ΔSF, ΔSV, mrgAppΘ, mrgAppΔ, tySend, tyMsg, eqApp⟩ :=
-                    appEx_inv tyApp
-                  cases mrgAppΔ
-                  obtain ⟨rs1, rs2, AAs, BBs, xorS, eqPiS, tyvS⟩ := sendEx_inv tySend
-                  obtain ⟨rr1, rr2, AAr, BBr, xorR, eqMR, tyvR⟩ := recvEx_inv tyRecv
-                  -- pin each endpoint onto the single channel slot, then move the explicit
-                  -- message resources from the sender side to the receiver side.
-                  cases mrgS with
+              | exp tyRDyn =>
+                obtain ⟨ΘS1, ΘS2, AS0, mrgS, tyApp, tyContS⟩ := evalCtx_inv tySDyn
+                obtain ⟨ΘR1, ΘR2, AR0, mrgR, tyRecv, tyContR⟩ := evalCtx_inv tyRDyn
+                obtain ⟨AS, BS, sS, ΘSF, ΘSV, ΔSF, ΔSV, mrgAppΘ, mrgAppΔ, tySend, tyMsg, eqApp⟩ :=
+                  appEx_inv tyApp
+                cases mrgAppΔ
+                obtain ⟨rs1, rs2, AAs, BBs, xorS, eqPiS, tyvS⟩ := sendEx_inv tySend
+                obtain ⟨rr1, rr2, AAr, BBr, xorR, eqMR, tyvR⟩ := recvEx_inv tyRecv
+                -- pin each endpoint onto the single channel slot, then move the explicit
+                -- message resources from the sender side to the receiver side.
+                cases mrgS with
+                | oneR _ =>
+                  cases mrgAppΘ with
+                  | none mrgAppΘ' =>
+                    obtain ⟨_, _, js, _, _⟩ := chan_inv tyvS
+                    cases js
+                | @oneL ΘSa ΘSb _ _ _ mrgS' =>
+                  cases mrgAppΘ with
                   | oneR _ =>
-                    cases mrgAppΘ with
-                    | none mrgAppΘ' =>
-                      obtain ⟨_, _, js, _, _⟩ := chan_inv tyvS
-                      cases js
-                  | @oneL ΘSa ΘSb _ _ _ mrgS' =>
-                    cases mrgAppΘ with
-                    | oneR _ =>
-                      obtain ⟨_, _, js, _, _⟩ := chan_inv tyvS
-                      cases js
-                    | @oneL ΘSFa ΘSVa _ _ _ mrgAppΘ' =>
-                      cases mrgR with
-                      | oneR _ => obtain ⟨_, _, js, _, _⟩ := chan_inv tyvR; cases js
-                      | @oneL ΘRa ΘRb _ _ _ mrgR' =>
-                        obtain ⟨rJS, AJS, jsS, _, eqChS⟩ := chan_inv tyvS
-                        obtain ⟨rJR, AJR, jsR, _, eqChR⟩ := chan_inv tyvR
-                        cases jsS with
-                        | zero empS =>
-                          cases jsR with
-                          | zero empR =>
-                            -- protocol facts: `A ≃ act …`, message type, continuation `BBs[v..]`
-                            have eApp := mrgAppΘ'.emptyL empS; subst eApp
-                            obtain ⟨ers1, eactS⟩ := Static.ch_inj eqChS
-                            obtain ⟨err1, eactR⟩ := Static.ch_inj eqChR
-                            subst ers1; subst err1
-                            obtain ⟨eAAsr, eBBsr, _, _⟩ :=
-                              Static.act_inj (ARS.conv_trans eactS (ARS.conv_sym eactR))
-                            obtain ⟨_, tyChS⟩ := tyvS.validity
-                            obtain ⟨tyActS, _⟩ := Static.ch_inv tyChS
-                            have tyBBs := Static.act_inv tyActS
-                            obtain ⟨_, tyAAs⟩ : ∃ s, [] ⊢ AAs : Term.srt s := by
-                              cases tyBBs.wf with | cons _ h => exact ⟨_, h⟩
-                            obtain ⟨eAS, eBS, _, _⟩ := Static.pi_inj eqPiS
-                            have tyMsgA : (Slot.none :: ΘSVa) ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ v : AAs :=
-                              Typed.conv eAS tyMsg tyAAs
-                            have tyP : [] ⊢ BBs[Chan.var_Chan; v..] : .proto := by
-                              have h := tyBBs.subst tyMsgA.toStatic; asimp at h; exact h
-                            obtain ⟨_, tyMAS0⟩ := tyApp.validity
-                            have eR := mrgR'.emptyL empR; subst eR
-                            obtain ⟨wfMsg, wfCont⟩ :=
-                              ProcWf.merge_inv mrgS' (by cases tySDyn.procWf with | one w _ => exact w)
-                            obtain ⟨ΘSe, empSe, mrgSe⟩ := procWf_emptyR wfCont
-                            obtain ⟨ΘVe, empVe, mrgVe⟩ := procWf_emptyR wfMsg
-                            sorry
+                    obtain ⟨_, _, js, _, _⟩ := chan_inv tyvS
+                    cases js
+                  | @oneL ΘSFa ΘSVa _ _ _ mrgAppΘ' =>
+                    cases mrgR with
+                    | oneR _ => obtain ⟨_, _, js, _, _⟩ := chan_inv tyvR; cases js
+                    | @oneL ΘRa ΘRb _ _ _ mrgR' =>
+                      obtain ⟨rJS, AJS, jsS, _, eqChS⟩ := chan_inv tyvS
+                      obtain ⟨rJR, AJR, jsR, _, eqChR⟩ := chan_inv tyvR
+                      cases jsS with
+                      | zero empS =>
+                        cases jsR with
+                        | zero empR =>
+                          -- protocol facts: `A ≃ act …`, message type, continuation `BBs[v..]`
+                          have eApp := mrgAppΘ'.emptyL empS; subst eApp
+                          obtain ⟨ers1, eactS⟩ := Static.ch_inj eqChS
+                          obtain ⟨err1, eactR⟩ := Static.ch_inj eqChR
+                          subst ers1; subst err1
+                          obtain ⟨eAAsr, eBBsr, _, _⟩ :=
+                            Static.act_inj (ARS.conv_trans eactS (ARS.conv_sym eactR))
+                          obtain ⟨_, tyChS⟩ := tyvS.validity
+                          obtain ⟨tyActS, _⟩ := Static.ch_inv tyChS
+                          have tyBBs := Static.act_inv tyActS
+                          obtain ⟨_, tyAAs⟩ : ∃ s, [] ⊢ AAs : Term.srt s := by
+                            cases tyBBs.wf with | cons _ h => exact ⟨_, h⟩
+                          obtain ⟨eAS, eBS, _, _⟩ := Static.pi_inj eqPiS
+                          have tyMsgA : (Slot.none :: ΘSVa) ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ v : AAs :=
+                            Typed.conv eAS tyMsg tyAAs
+                          have tyP : [] ⊢ BBs[Chan.var_Chan; v..] : .proto := by
+                            have h := tyBBs.subst tyMsgA.toStatic; asimp at h; exact h
+                          obtain ⟨_, tyMAS0⟩ := tyApp.validity
+                          have eR := mrgR'.emptyL empR; subst eR
+                          obtain ⟨wfMsg, wfCont⟩ :=
+                            ProcWf.merge_inv mrgS' (by cases tySDyn.procWf with | one w _ => exact w)
+                          obtain ⟨ΘSe, empSe, mrgSe⟩ := procWf_emptyR wfCont
+                          obtain ⟨ΘVe, empVe, mrgVe⟩ := procWf_emptyR wfMsg
+                          obtain ⟨ΘRecvP, mrgMsgRecv, mrgRecvContRev⟩ := mrgΘ'.splitL mrgS'
+                          have mrgContRecv : PMerge ΘSb ΘRecvP Θ := mrgRecvContRev.sym
+                          have tySender :
+                              (Slot.one rs1 (BBs[Chan.var_Chan; v..]) :: ΘSb) ⊩
+                                Proc.tm (M.eval (.pure (cvar 0))) := by
+                            refine .exp ?_
+                            refine tyContS (.one rs1 (BBs[Chan.var_Chan; v..]) :: ΘSe) _
+                              (.pure (cvar 0)) (.oneR mrgSe) ?_
+                            refine Typed.conv ?_ (.pure (chanAt0 empSe tyP)) tyMAS0
+                            refine ARS.conv_sym (ARS.conv_trans eqApp ?_)
+                            exact Static.conv_subst (v..) eBS
+                          have tyReceiver :
+                              (Slot.one (!rs1) (BBs[Chan.var_Chan; v..]) :: ΘRecvP) ⊩
+                                Proc.tm (N.eval (.pure (.pair v (cvar 0) .ex .L))) := by
+                            obtain ⟨_, tyChR⟩ := tyvR.validity
+                            obtain ⟨tyActR, _⟩ := Static.ch_inv tyChR
+                            have tyBBr := Static.act_inv tyActR
+                            obtain ⟨_, tyAAr⟩ : ∃ s, [] ⊢ AAr : Term.srt s := by
+                              cases tyBBr.wf with | cons _ h => exact ⟨_, h⟩
+                            have tyMsgR :
+                                (Slot.none :: ΘSVa) ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ v : AAr :=
+                              Typed.conv eAAsr tyMsgA tyAAr
+                            obtain ⟨_, tyMAR0⟩ := tyRecv.validity
+                            have tyPayload :
+                                (Slot.one (!rs1) (BBs[Chan.var_Chan; v..]) :: ΘSVa) ⨾
+                                    ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢
+                                  .pure (.pair v (cvar 0) .ex .L) : AR0.M := by
+                              refine Typed.conv (ARS.conv_sym eqMR) (.pure ?_) tyMAR0
+                              refine Typed.pairEx (.oneR mrgVe) .nil
+                                (Static.Typed.sig (fun _ => Static.sort_leq_Lgt)
+                                  Static.sort_leq_Lgt tyAAr (Static.Typed.ch tyBBr))
+                                tyMsgR ?_
+                              refine Typed.conv (s := .L)
+                                (Static.conv_ch (Static.conv_subst (v..) eBBsr))
+                                (chanAt0 empVe tyP) ?_
+                              have h := Static.Typed.ch (b := !rs1) (tyBBr.subst tyMsgR.toStatic)
+                              asimp at h ⊢; exact h
+                            refine .exp ?_
+                            exact tyContR (.one (!rs1) (BBs[Chan.var_Chan; v..]) :: ΘSVa) _
+                              (.pure (.pair v (cvar 0) .ex .L)) (.oneR mrgMsgRecv.sym) tyPayload
+                          exact .res tyP (.par (.split (r := rs1) mrgContRecv) tySender tyReceiver)
   | @«end» M N M' N' e1 e2 =>
     intro Θ ty
     subst e1; subst e2
@@ -392,12 +414,10 @@ theorem Typed.sr {p q} (st : p ⇛ q) : ∀ {Θ}, Θ ⊩ p → Θ ⊩ q := by
       | par mrgPar tyS tyR =>
         cases mrgPar with
         | bothL mrgΘ' =>
-          -- receiver references `cvar 0` on an absent slot — impossible
-          exfalso
-          cases tyR with
-          | exp reaR tyRDyn =>
-            cases reaR with
-            | none reaR' =>
+            -- receiver references `cvar 0` on an absent slot — impossible
+            exfalso
+            cases tyR with
+            | exp tyRDyn =>
               obtain ⟨ΘR1, ΘR2, AR0, mrgR, tyCloseR, _⟩ := evalCtx_inv tyRDyn
               cases mrgR with
               | none mrgR' =>
@@ -405,44 +425,74 @@ theorem Typed.sr {p q} (st : p ⇛ q) : ∀ {Θ}, Θ ⊩ p → Θ ⊩ q := by
                 obtain ⟨_, _, js, _, _⟩ := chan_inv tyvR
                 cases js
         | bothR mrgΘ' =>
-          -- sender references `cvar 0` on an absent slot — impossible
-          exfalso
-          cases tyS with
-          | exp reaS tySDyn =>
-            cases reaS with
-            | none reaS' =>
+            -- sender references `cvar 0` on an absent slot — impossible
+            exfalso
+            cases tyS with
+            | exp tySDyn =>
               obtain ⟨ΘS1, ΘS2, AS0, mrgS, tyCloseS, _⟩ := evalCtx_inv tySDyn
               cases mrgS with
               | none mrgS' =>
                 obtain ⟨_, tyvS⟩ := close_inv tyCloseS
                 obtain ⟨_, _, js, _, _⟩ := chan_inv tyvS
                 cases js
-        | @split _ _ _ rS _ mrgΘ' =>
-          cases tyS with
-          | exp reaS tySDyn =>
-            cases reaS with
-            | one reaS' =>
+          | @split _ _ _ rS _ mrgΘ' =>
+            cases tyS with
+            | exp tySDyn =>
               cases tyR with
-              | exp reaR tyRDyn =>
-                cases reaR with
-                | one reaR' =>
-                  obtain ⟨ΘS1, ΘS2, AS0, mrgS, tyCloseS, tyContS⟩ := evalCtx_inv tySDyn
-                  obtain ⟨ΘR1, ΘR2, AR0, mrgR, tyCloseR, tyContR⟩ := evalCtx_inv tyRDyn
-                  obtain ⟨eqCloseS, tyvS⟩ := close_inv tyCloseS
-                  obtain ⟨eqCloseR, tyvR⟩ := wait_inv tyCloseR
-                  cases mrgS with
-                  | oneR _ => obtain ⟨_, _, js, _, _⟩ := chan_inv tyvS; cases js
-                  | @oneL ΘSa ΘSb _ _ _ mrgS' =>
-                    cases mrgR with
-                    | oneR _ => obtain ⟨_, _, js, _, _⟩ := chan_inv tyvR; cases js
-                      | @oneL ΘRa ΘRb _ _ _ mrgR' =>
-                        obtain ⟨rJS, AJS, jsS, _, eqChS⟩ := chan_inv tyvS
-                        obtain ⟨rJR, AJR, jsR, _, eqChR⟩ := chan_inv tyvR
-                        cases jsS with
-                        | zero empS =>
-                          cases jsR with
-                          | zero empR =>
-                            sorry
+              | exp tyRDyn =>
+                obtain ⟨ΘS1, ΘS2, AS0, mrgS, tyCloseS, tyContS⟩ := evalCtx_inv tySDyn
+                obtain ⟨ΘR1, ΘR2, AR0, mrgR, tyCloseR, tyContR⟩ := evalCtx_inv tyRDyn
+                obtain ⟨eqCloseS, tyvS⟩ := close_inv tyCloseS
+                obtain ⟨eqCloseR, tyvR⟩ := wait_inv tyCloseR
+                cases mrgS with
+                | oneR _ => obtain ⟨_, _, js, _, _⟩ := chan_inv tyvS; cases js
+                | @oneL ΘSa ΘSb _ _ _ mrgS' =>
+                  cases mrgR with
+                  | oneR _ => obtain ⟨_, _, js, _, _⟩ := chan_inv tyvR; cases js
+                  | @oneL ΘRa ΘRb _ _ _ mrgR' =>
+                    obtain ⟨rJS, AJS, jsS, _, eqChS⟩ := chan_inv tyvS
+                    obtain ⟨rJR, AJR, jsR, _, eqChR⟩ := chan_inv tyvR
+                    cases jsS with
+                    | zero empS =>
+                      cases jsR with
+                      | zero empR =>
+                        have eS := mrgS'.emptyL empS; subst eS
+                        have eR := mrgR'.emptyL empR; subst eR
+                        have wfS' : ProcWf ΘSb := by
+                          cases tySDyn.procWf with | one w _ => exact w
+                        have wfR' : ProcWf ΘRb := by
+                          cases tyRDyn.procWf with | one w _ => exact w
+                        obtain ⟨ΘSe, empSe, mrgSe⟩ := procWf_emptyR wfS'
+                        obtain ⟨ΘRe, empRe, mrgRe⟩ := procWf_emptyR wfR'
+                        refine .par mrgΘ' ?senderEnd ?recvEnd
+                        · refine .exp ?_
+                          have tyUnitS :
+                              (Slot.none :: ΘSe) ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢
+                                .pure .one : AS0.M := by
+                            obtain ⟨_, tyMAS0⟩ := tyCloseS.validity
+                            refine Typed.conv (ARS.conv_sym eqCloseS)
+                              (.pure (.one (.none empSe) .nil .nil)) tyMAS0
+                          have h := tyContS (Slot.none :: ΘSe) (Slot.none :: ΘSb)
+                            (.pure .one) (.none mrgSe) tyUnitS
+                          have h' := h.crename (Θ' := ΘSb)
+                            (ξ := funcomp (id : Nat → Nat) (· - 1)) (.minus .O)
+                          rw [evalctx_cren] at h'
+                          asimp at h'
+                          exact h'
+                        · refine .exp ?_
+                          have tyUnitR :
+                              (Slot.none :: ΘRe) ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢
+                                .pure .one : AR0.M := by
+                            obtain ⟨_, tyMAR0⟩ := tyCloseR.validity
+                            refine Typed.conv (ARS.conv_sym eqCloseR)
+                              (.pure (.one (.none empRe) .nil .nil)) tyMAR0
+                          have h := tyContR (Slot.none :: ΘRe) (Slot.none :: ΘRb)
+                            (.pure .one) (.none mrgRe) tyUnitR
+                          have h' := h.crename (Θ' := ΘRb)
+                            (ξ := funcomp (id : Nat → Nat) (· - 1)) (.minus .O)
+                          rw [evalctx_cren] at h'
+                          asimp at h'
+                          exact h'
   | par _ ih =>
     intro Θ ty
     cases ty with | par mrg ho tp => exact .par mrg ho (ih tp)

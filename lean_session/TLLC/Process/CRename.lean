@@ -11,10 +11,9 @@ Port of `coq_session/proc_cren.v`: channel renaming preserves process typing
 `dyn_ctx_cren` agreement is replaced by `PCtxCRen`, a channel-renaming agreement over `PCtx`.
 
 The headline lemma reuses the dynamic `Dynamic.Typed.crename` at each leaf through
-`PCtxCRen.toDynamic`; `PCtxCRen.pctxSingle` only preserves the leaf-safe `PCtxSingle` predicate. The `par`
-case routes through `PCtxCRen.merge` (the count-conserving analogue of `dyn_ctx_cren_merge`), and the
-`scope` case renames the `both A` slot using the protocol typing `[] ⊢ A : .proto` carried directly by
-`Process.Typed.res`.
+`PCtxCRen.toDynamic`. The `par` case routes through `PCtxCRen.merge` (the count-conserving analogue of
+`dyn_ctx_cren_merge`), and the `scope` case renames the `both A` slot using the protocol typing
+`[] ⊢ A : .proto` carried directly by `Process.Typed.res`.
 -/
 
 namespace TLLC.Process
@@ -136,10 +135,10 @@ lemma PCtxCRen.merge {ξ Θ Θ'} (agr : PCtxCRen ξ Θ Θ') :
 lemma Typed.crename {Θ p} (ty : Θ ⊩ p) :
     ∀ {Θ' ξ}, PCtxCRen ξ Θ Θ' → Θ' ⊩ p⟨ξ; (id : Nat → Nat)⟩ := by
   induction ty with
-  | @exp Θ m rea tym =>
+  | @exp Θ m tym =>
     intro Θ' ξ agr
     asimp
-    exact .exp (agr.pctxSingle rea) (tym.crename agr.toDynamic)
+    exact .exp (tym.crename agr.toDynamic)
   | @par Θ1 Θ2 Θ p q mrg _ _ ihp ihq =>
     intro Θ' ξ agr
     obtain ⟨Θ1', Θ2', mrg', agr1, agr2⟩ := agr.merge mrg

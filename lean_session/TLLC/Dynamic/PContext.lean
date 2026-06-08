@@ -20,8 +20,8 @@ The process-context merge `PMerge` is **count-conserving**: its `split` rule div
 into `one r` + `one (¬r)` (the two dual endpoints, 1 + 1). Crucially `split` PRODUCES a `both`, which
 can never re-enter as a `one`, so a single endpoint cannot be split-merged against several duals (the
 unsoundness of a naive `ch r`-shaped result). A single endpoint reaches exactly one leaf via the
-ordinary `one`/`none` routing. Leaf (thread) typing uses `PCtxSingle` to assert that every slot is
-`none` or `one`; a `both` channel must be `split` by a `par` before any thread can use it.
+ordinary `one`/`none` routing. Dynamic leaf typing is channel-aware over the full `PCtx`; the
+`PCtxSingle` predicate remains only as an auxiliary way to talk about contexts with no `both` slots.
 -/
 
 namespace TLLC.Dynamic
@@ -35,6 +35,10 @@ inductive Slot where
 
 /-- Process channel context: a list of trinary channel slots. -/
 abbrev PCtx := List Slot
+
+/-- Channel substitution swapping the two innermost channels `0 ↔ 1`. -/
+abbrev cexch : Nat → Chan :=
+  Chan.var_Chan 1 .: Chan.var_Chan 0 .: (fun x => Chan.var_Chan (x + 2))
 
 /-! ## Key and endpoint lookup. -/
 
