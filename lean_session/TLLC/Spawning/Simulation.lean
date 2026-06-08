@@ -2200,6 +2200,115 @@ lemma process_step_flattenChildren_body {body body' : Proc}
     TLLC.Process.Step (flattenChildren body children) (flattenChildren body' children) := by
   convert process_step_flattenChildren_body_csubst children step Chan.var_Chan using 1 <;> asimp
 
+/-! ## Child-edge reordering (report's "rearrange by Proc-Congr") -/
+
+/-- Flattening a concatenated child list folds the suffix into a new base. -/
+lemma flattenChildren_append (body : Proc) (l X : List (Chan × Tree)) :
+    flattenChildren body (l ++ X) = flattenChildren (flattenChildren body X) l := by
+  induction l generalizing body with
+  | nil => simp
+  | cons edge l ih =>
+      rcases edge with ⟨c, child⟩
+      rw [List.cons_append, flattenChildren, flattenChildren]
+      cases h : child.flattenAt with
+      | mk d p =>
+          simp only [h]
+          rw [ih]
+
+/-- Reshape `.nu (.par (.nu W) Y)` into double-`nu` normal form via the scope congruence. -/
+lemma swap_normal_form (W Y : Proc) :
+    TLLC.Process.Congruence
+      (.nu (.par (.nu W) Y))
+      (.nu (.nu (.par W (Y⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)))) :=
+  process_congr_res (ARS.conv1 TLLC.Process.CongrProc.scope)
+
+/-- Core de Bruijn algebra for swapping two adjacent child edges in a flattened child list: the two
+fresh channels commute (`exch`), and by linearity (`f1`/`f2`) neither sibling process mentions the
+other's parent endpoint. This is the report's *"apply structural congruence to rearrange the
+scoping"* step, made precise for the self-dual single-channel encoding. -/
+lemma flattenChildren_swap2 (B : Proc) (c1 c2 d1 d2 : Chan) (p1 p2 : Proc)
+    (hne : chanIndex c1 ≠ chanIndex c2)
+    (f1 : TLLC.Process.procOccurs (chanIndex c1 + 1)
+      (p2[bindEndpointAt 0 d2; Term.var_Term]) = 0)
+    (f2 : TLLC.Process.procOccurs (chanIndex c2 + 1)
+      (p1[bindEndpointAt 0 d1; Term.var_Term]) = 0) :
+    TLLC.Process.Congruence
+      (.nu (.par (.nu (.par
+          (B[bindEndpointAt 0 c2; Term.var_Term][up_Chan_Chan (bindEndpointAt 0 c1); Term.var_Term])
+          (p2[bindEndpointAt 0 d2; Term.var_Term][up_Chan_Chan (bindEndpointAt 0 c1); Term.var_Term])))
+        (p1[bindEndpointAt 0 d1; Term.var_Term])))
+      (.nu (.par (.nu (.par
+          (B[bindEndpointAt 0 c1; Term.var_Term][up_Chan_Chan (bindEndpointAt 0 c2); Term.var_Term])
+          (p1[bindEndpointAt 0 d1; Term.var_Term][up_Chan_Chan (bindEndpointAt 0 c2); Term.var_Term])))
+        (p2[bindEndpointAt 0 d2; Term.var_Term]))) := by
+  -- L into double-nu normal form, then exch
+  refine ARS.conv_trans (swap_normal_form _ _) ?_
+  refine ARS.conv_trans (process_congr_exch) ?_
+  -- S into double-nu normal form (reverse direction)
+  refine ARS.conv_trans ?_ (ARS.conv_sym (swap_normal_form _ _))
+  -- both sides are nu nu (par (par _ _) _); peel the two nu's
+  refine process_congr_res (process_congr_res ?_)
+  simp only [(show ∀ (a b : Proc) (σ : Nat → Chan),
+    (Proc.par a b)[σ; Term.var_Term] = Proc.par (a[σ; Term.var_Term]) (b[σ; Term.var_Term])
+    from fun _ _ _ => rfl)]
+  set P1 := p1[bindEndpointAt 0 d1; Term.var_Term] with hP1
+  set P2 := p2[bindEndpointAt 0 d2; Term.var_Term] with hP2
+  -- the base process moves by a pure substitution identity (needs only c1 ≠ c2)
+  have leafB :
+      B[bindEndpointAt 0 c2; Term.var_Term][up_Chan_Chan (bindEndpointAt 0 c1); Term.var_Term][
+        Process.exch; Term.var_Term] =
+      B[bindEndpointAt 0 c1; Term.var_Term][up_Chan_Chan (bindEndpointAt 0 c2); Term.var_Term] := by
+    obtain ⟨a⟩ := c1
+    obtain ⟨b⟩ := c2
+    asimp
+    congr 1
+    funext x
+    simp only [chanIndex] at hne
+    rcases eq_or_ne x a with rfl | hxa
+    · unfold bindEndpointAt; simp_all [chanIndex, asimp_lemmas, funcomp]
+    rcases eq_or_ne x b with rfl | hxb
+    · unfold bindEndpointAt; simp_all [chanIndex, asimp_lemmas, funcomp]
+    · unfold bindEndpointAt; simp_all [chanIndex, asimp_lemmas, funcomp]
+  -- the receiving sibling moves by a congruence (uses f1: c1 ∉ that sibling)
+  have leaf2 :
+      TLLC.Process.Congruence
+        (P2[up_Chan_Chan (bindEndpointAt 0 c1); Term.var_Term][Process.exch; Term.var_Term])
+        (P2⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) := by
+    rw [show P2⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩
+          = P2[(fun x => Chan.var_Chan (x + 1)); Term.var_Term] from by
+        rw [← process_csubst_cren]; rfl]
+    conv_lhs => simp only [asimp_lemmas]
+    apply process_congr_csubst_of_eqv (i := chanIndex c1 + 1) _ f1
+    intro x hx
+    obtain ⟨a⟩ := c1
+    simp only [chanIndex] at hx
+    rcases x with _ | k
+    · simp [scons, asimp_lemmas]
+    · rcases eq_or_ne k a with rfl | hk
+      · omega
+      · simp [bindEndpointAt, chanIndex, scons, funcomp, hk, asimp_lemmas]
+  -- the moved sibling itself (uses f2: c2 ∉ that sibling)
+  have leaf1 :
+      TLLC.Process.Congruence
+        (P1⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩[Process.exch; Term.var_Term])
+        (P1[up_Chan_Chan (bindEndpointAt 0 c2); Term.var_Term]) := by
+    conv_lhs => simp only [asimp_lemmas]
+    apply process_congr_csubst_of_eqv (i := chanIndex c2 + 1) _ f2
+    intro x hx
+    obtain ⟨b⟩ := c2
+    simp only [chanIndex] at hx
+    rcases x with _ | k
+    · simp [scons, asimp_lemmas]
+    · rcases eq_or_ne k b with rfl | hk
+      · omega
+      · simp [bindEndpointAt, chanIndex, scons, funcomp, hk, asimp_lemmas]
+  -- assemble: swap the two sibling positions, then rewrite the three leaves
+  refine ARS.conv_trans process_congr_swap_right ?_
+  rw [leafB]
+  exact ARS.conv_trans
+    (process_congr_parallel_left (process_congr_parallel_right leaf1))
+    (process_congr_parallel_right leaf2)
+
 /-- Lemma 5.86 for productive spawning-tree steps, strengthened under channel substitution. -/
 theorem simulation_csubst {p q : Tree}
     (typed : Typed p ∨ ∃ r A, TypedAt r A p)
