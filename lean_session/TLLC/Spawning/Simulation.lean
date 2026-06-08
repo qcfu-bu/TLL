@@ -10,6 +10,7 @@ Lemma 5.86 for the productive spawning-tree step relation. Finished-subtree clea
 -/
 
 namespace TLLC.Spawning
+open Autosubst Autosubst.Notation
 open TLLC.Dynamic
 
 lemma SubtreesTyped.typed_of_mem {trees : List Tree} {tree : Tree}
@@ -133,6 +134,136 @@ lemma Step.node_flattenAt_eq {parent : Chan} {m : Term} {children : List (Chan �
   obtain ⟨m', children', subtrees', rfl⟩ := step.node_result
   simp
 
+lemma dynamic_thunk_csubst {m : Term} (thunk : Thunk m) :
+    ∀ σ : Nat → Chan, Thunk (m[σ; Term.var_Term]) := by
+  exact TLLC.Dynamic.Thunk.rec
+    (motive_1 := fun m _ => ∀ σ : Nat → Chan, Thunk (m[σ; Term.var_Term]))
+    (motive_2 := fun m _ => ∀ σ : Nat → Chan, Val (m[σ; Term.var_Term]))
+    (fun _ ih σ => by simpa using Thunk.mlet (ih σ))
+    (fun σ => by simpa using (Thunk.fork (A := _)))
+    (fun σ => by simpa using (Thunk.recv (c := _)))
+    (fun σ => by simpa using (Thunk.appSendIm (c := _)))
+    (fun _ ih σ => by simpa using Thunk.appSendEx (ih σ))
+    (fun σ => by simpa using (Thunk.close (c := _)))
+    (fun σ => by simpa using (Val.var (x := _)))
+    (fun σ => by simpa using (Val.lam (A := _)))
+    (fun _ ih σ => by simpa using Val.pairIm (ih σ))
+    (fun _ _ ihLeft ihRight σ => by simpa using Val.pairEx (ihLeft σ) (ihRight σ))
+    (by intro σ; simpa using Val.one)
+    (by intro σ; simpa using Val.tt)
+    (by intro σ; simpa using Val.ff)
+    (fun _ ih σ => by simpa using Val.pure (ih σ))
+    (fun σ => by simpa using (Val.chan (x := _)))
+    (fun σ => by simpa using (Val.send (c := _)))
+    (fun _ ih σ => by simpa using Val.thunk (ih σ))
+    thunk
+
+lemma dynamic_val_csubst {m : Term} (value : Val m) :
+    ∀ σ : Nat → Chan, Val (m[σ; Term.var_Term]) := by
+  exact TLLC.Dynamic.Val.rec
+    (motive_1 := fun m _ => ∀ σ : Nat → Chan, Thunk (m[σ; Term.var_Term]))
+    (motive_2 := fun m _ => ∀ σ : Nat → Chan, Val (m[σ; Term.var_Term]))
+    (fun _ ih σ => by simpa using Thunk.mlet (ih σ))
+    (fun σ => by simpa using (Thunk.fork (A := _)))
+    (fun σ => by simpa using (Thunk.recv (c := _)))
+    (fun σ => by simpa using (Thunk.appSendIm (c := _)))
+    (fun _ ih σ => by simpa using Thunk.appSendEx (ih σ))
+    (fun σ => by simpa using (Thunk.close (c := _)))
+    (fun σ => by simpa using (Val.var (x := _)))
+    (fun σ => by simpa using (Val.lam (A := _)))
+    (fun _ ih σ => by simpa using Val.pairIm (ih σ))
+    (fun _ _ ihLeft ihRight σ => by simpa using Val.pairEx (ihLeft σ) (ihRight σ))
+    (by intro σ; simpa using Val.one)
+    (by intro σ; simpa using Val.tt)
+    (by intro σ; simpa using Val.ff)
+    (fun _ ih σ => by simpa using Val.pure (ih σ))
+    (fun σ => by simpa using (Val.chan (x := _)))
+    (fun σ => by simpa using (Val.send (c := _)))
+    (fun _ ih σ => by simpa using Val.thunk (ih σ))
+    value
+
+lemma dynamic_step_csubst {m n : Term} (step : TLLC.Dynamic.Step m n) :
+    ∀ σ : Nat → Chan,
+      TLLC.Dynamic.Step (m[σ; Term.var_Term]) (n[σ; Term.var_Term]) := by
+  induction step with
+  | appL step ih =>
+      intro σ
+      simpa using TLLC.Dynamic.Step.appL (ih σ)
+  | appR step ih =>
+      intro σ
+      simpa using TLLC.Dynamic.Step.appR (ih σ)
+  | betaIm =>
+      rename_i A m n s
+      intro σ
+      convert
+        (TLLC.Dynamic.Step.betaIm (A := A[σ; Term.var_Term])
+          (m := m[σ; Term.var_Term]) (n := n[σ; Term.var_Term]) (s := s))
+        using 1 <;> asimp
+  | betaEx value =>
+      rename_i A m v s
+      intro σ
+      convert
+        (TLLC.Dynamic.Step.betaEx (A := A[σ; Term.var_Term])
+          (m := m[σ; Term.var_Term]) (v := v[σ; Term.var_Term]) (s := s)
+          (dynamic_val_csubst value σ))
+        using 1 <;> asimp
+  | pairL step ih =>
+      intro σ
+      simpa using TLLC.Dynamic.Step.pairL (ih σ)
+  | pairR step ih =>
+      intro σ
+      simpa using TLLC.Dynamic.Step.pairR (ih σ)
+  | projM step ih =>
+      intro σ
+      simpa using TLLC.Dynamic.Step.projM (ih σ)
+  | projE value =>
+      rename_i A m1 m2 n i s
+      intro σ
+      convert
+        (TLLC.Dynamic.Step.projE (A := A[σ; Term.var_Term])
+          (m1 := m1[σ; Term.var_Term]) (m2 := m2[σ; Term.var_Term])
+          (n := n[σ; Term.var_Term]) (i := i) (s := s)
+          (dynamic_val_csubst value σ))
+        using 1 <;> asimp
+  | fixE =>
+      rename_i A m
+      intro σ
+      convert
+        (TLLC.Dynamic.Step.fixE (A := A[σ; Term.var_Term])
+          (m := m[σ; Term.var_Term]))
+        using 1 <;> asimp
+  | iteM step ih =>
+      intro σ
+      simpa using TLLC.Dynamic.Step.iteM (ih σ)
+  | iteT =>
+      intro σ
+      simpa using (TLLC.Dynamic.Step.iteT (A := _) (n1 := _) (n2 := _))
+  | iteF =>
+      intro σ
+      simpa using (TLLC.Dynamic.Step.iteF (A := _) (n1 := _) (n2 := _))
+  | pure step ih =>
+      intro σ
+      simpa using TLLC.Dynamic.Step.pure (ih σ)
+  | mletL step ih =>
+      intro σ
+      simpa using TLLC.Dynamic.Step.mletL (ih σ)
+  | mletE value =>
+      rename_i v n
+      intro σ
+      convert
+        (TLLC.Dynamic.Step.mletE (v := v[σ; Term.var_Term])
+          (n := n[σ; Term.var_Term]) (dynamic_val_csubst value σ))
+        using 1 <;> asimp
+  | recv step ih =>
+      intro σ
+      simpa using TLLC.Dynamic.Step.recv (ih σ)
+  | send step ih =>
+      intro σ
+      simpa using TLLC.Dynamic.Step.send (ih σ)
+  | close step ih =>
+      intro σ
+      simpa using TLLC.Dynamic.Step.close (ih σ)
+
 lemma process_step_parallel_left {p q r : Proc}
     (step : TLLC.Process.Step p q) :
     TLLC.Process.Step (.par p r) (.par q r) := by
@@ -175,6 +306,44 @@ lemma process_step_flattenSubtrees_list {body : Proc} {subtree subtree' : Tree}
   simpa [flattenSubtrees_eq_map, List.map_append] using
     process_step_parAll_list (body := body)
       (before.map Tree.flatten) (after.map Tree.flatten) step
+
+lemma process_step_flattenChildren_body_csubst {body body' : Proc}
+    (children : List (Chan × Tree))
+    (step : ∀ σ : Nat → Chan,
+      TLLC.Process.Step (body[σ; Term.var_Term]) (body'[σ; Term.var_Term])) :
+    ∀ σ : Nat → Chan,
+      TLLC.Process.Step ((flattenChildren body children)[σ; Term.var_Term])
+        ((flattenChildren body' children)[σ; Term.var_Term]) := by
+  induction children with
+  | nil =>
+      intro σ
+      simpa [flattenChildren] using step σ
+  | cons edge children ih =>
+      intro σ
+      rcases edge with ⟨c, child⟩
+      rw [flattenChildren]
+      rw [flattenChildren]
+      cases h : child.flattenAt with
+      | mk d childProcess =>
+          have tailStep := ih (fun x => (bindEndpointAt 0 c x)[up_Chan_Chan σ])
+          convert
+            TLLC.Process.Step.res
+              (process_step_parallel_left
+                (r := childProcess[bindEndpointAt 0 d; Term.var_Term][up_Chan_Chan σ;
+                  Term.var_Term])
+                tailStep)
+            using 1
+          · simp
+            asimp
+          · simp
+            asimp
+
+lemma process_step_flattenChildren_body {body body' : Proc}
+    (children : List (Chan × Tree))
+    (step : ∀ σ : Nat → Chan,
+      TLLC.Process.Step (body[σ; Term.var_Term]) (body'[σ; Term.var_Term])) :
+    TLLC.Process.Step (flattenChildren body children) (flattenChildren body' children) := by
+  convert process_step_flattenChildren_body_csubst children step Chan.var_Chan using 1 <;> asimp
 
 /-- Lemma 5.86 for productive spawning-tree steps. -/
 theorem simulation {p q : Tree}
@@ -223,7 +392,23 @@ theorem simulation {p q : Tree}
       simpa [Tree.flatten_node, flattenBody] using
         process_step_flattenSubtrees_list (body := flattenChildren (.tm m) children)
           before after subtreeStep
-  | rootExpr => sorry
-  | nodeExpr => sorry
+  | rootExpr termStep =>
+      rename_i m m' children subtrees
+      have bodyStep :
+          TLLC.Process.Step (flattenChildren (.tm m) children)
+            (flattenChildren (.tm m') children) :=
+        process_step_flattenChildren_body children (fun σ => by
+          simpa using TLLC.Process.Step.exp (dynamic_step_csubst termStep σ))
+      simpa [Tree.flatten_root, flattenBody] using
+        process_step_parAll_accumulator (flattenSubtrees subtrees) bodyStep
+  | nodeExpr termStep =>
+      rename_i parent m m' children subtrees
+      have bodyStep :
+          TLLC.Process.Step (flattenChildren (.tm m) children)
+            (flattenChildren (.tm m') children) :=
+        process_step_flattenChildren_body children (fun σ => by
+          simpa using TLLC.Process.Step.exp (dynamic_step_csubst termStep σ))
+      simpa [Tree.flatten_node, flattenBody] using
+        process_step_parAll_accumulator (flattenSubtrees subtrees) bodyStep
 
 end TLLC.Spawning
