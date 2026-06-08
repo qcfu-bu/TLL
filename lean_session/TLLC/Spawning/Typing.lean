@@ -75,16 +75,16 @@ inductive ChildrenTypedAt : PCtx → Nat → Bool → Term → List (Prod Chan T
   | parent {Θ r A children} :
     ChildrenTyped Θ children →
     ChildrenTypedAt (.one r A :: Θ) 0 r
-      (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) (shiftChildren children)
+      (A⟨(·+1); (id : Nat → Nat)⟩) (shiftChildren children)
   | none {Θ x r A children} :
     ChildrenTypedAt Θ x r A children →
     ChildrenTypedAt (.none :: Θ) (x + 1) r
-      (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) (shiftChildren children)
+      (A⟨(·+1); (id : Nat → Nat)⟩) (shiftChildren children)
   | one {Θ x r A r0 A0 child children} :
     TypedAt (!r0) (A0⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) child →
     ChildrenTypedAt Θ x r A children →
     ChildrenTypedAt (.one r0 A0 :: Θ) (x + 1) r
-      (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
+      (A⟨(·+1); (id : Nat → Nat)⟩)
       (Prod.mk (Chan.var_Chan 0) child :: shiftChildren children)
 
 /-- Typing for detached subtrees. -/

@@ -23,6 +23,4 @@ inductive Tree where
   /-- An internal process additionally carries the channel connecting it to its parent. -/
   | node (p : Chan) (m : Term) (ms : List (Chan × Tree)) (ns : List Tree)
 
-
-
 end TLLC.Spawning
