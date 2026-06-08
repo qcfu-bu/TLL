@@ -128,10 +128,14 @@ def forwardChildren (v : Term) (c d : Chan) (M : Dynamic.EvalCtx)
 /-- Spawning-tree reduction from the companion report. -/
 inductive Step : Tree → Tree → Prop where
   | rootFork {M : Dynamic.EvalCtx} {A m c d ms qs} :
+      chanFreshIn c (M.eval (.fork A m)) →
+      chanFreshIn d (M.eval (.fork A m)) →
       Step
         (.root (M.eval (.fork A m)) ms qs)
         (.root (M.eval (.pure (Term.chan c))) (forkChildren m c d ms) qs)
   | nodeFork {M : Dynamic.EvalCtx} {p A m c d ms qs} :
+      chanFreshIn c (M.eval (.fork A m)) →
+      chanFreshIn d (M.eval (.fork A m)) →
       Step
         (.node p (M.eval (.fork A m)) ms qs)
         (.node p (M.eval (.pure (Term.chan c))) (forkChildren m c d ms) qs)
