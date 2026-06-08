@@ -401,7 +401,7 @@ theorem Typed.csubstitution {Θ2 Γ Δ m A} (tym : Θ2 ⨾ Γ ⨾ Δ ⊢ m : A) 
   | @close Θ Γ Δ b m tym ihm =>
     intro Θ1 σ agr; asimp; exact .close (ihm agr)
   | @conv Θ Γ Δ A B m s eq tym tyB ihm =>
-    intro Θ1 σ agr; asimp; exact .conv eq (ihm agr) tyB
+    intro Θ1 σ agr; exact .conv eq (ihm agr) tyB
   | @lamIm Θ Γ Δ A B m s k1 k2 tym ihm =>
     intro Θ1 σ agr
     asimp
@@ -532,7 +532,7 @@ theorem Typed.csubstitution {Θ2 Γ Δ m A} (tym : Θ2 ⨾ Γ ⨾ Δ ⊢ m : A) 
     -- the term renaming fixes the channel variable; the type is `.ch r (A⟨id; +Γ.length⟩)`.
     cases hc : σ x with
     | var_Chan c =>
-      rw [hc] at h; asimp at h
+      rw [hc] at h
       simpa using h
   | @fork Θ Γ Δ A m tym ihm =>
     intro Θ1 σ agr

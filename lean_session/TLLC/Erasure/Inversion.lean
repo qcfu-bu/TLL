@@ -579,9 +579,9 @@ lemma mlet_inv {Θ Γ Δ m1 m2 n1 n2 B}
     have ce : B0⟨(id : Nat → Nat); ↑⟩ ≃ B⟨(id : Nat → Nat); ↑⟩ := by
       have h := Static.conv_subst (funcomp Term.var_Term Nat.succ) (ARS.conv_sym eq)
       have e1 : B0⟨(id : Nat → Nat); ↑⟩ = B0[Chan.var_Chan; funcomp Term.var_Term Nat.succ] := by
-        asimp; substify
+        substify
       have e2 : B⟨(id : Nat → Nat); ↑⟩ = B[Chan.var_Chan; funcomp Term.var_Term Nat.succ] := by
-        asimp; substify
+        substify
       rw [e1, e2]; exact h
     exact Erased.conv (Static.conv_M ce) ern (tyB.weaken tyA).M
 

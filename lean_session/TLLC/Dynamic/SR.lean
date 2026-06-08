@@ -341,7 +341,7 @@ theorem Typed.sr {Θ m n A}
               · apply AgreeSubst.wk0
                 · exact AgreeSubst.refl emp tym2.wf
                 · asimp; exact tym1
-              · asimp; exact tym2
+              · exact tym2
             | thunk h => cases h
   | @projEx Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m n s r1 r2 t mrg1 mrg2 tyC tym tyn ihm ihn =>
     subst e1; subst e2
@@ -382,7 +382,7 @@ theorem Typed.sr {Θ m n A}
               apply AgreeSubst.wk1 k1 k2 mrg0 .nil
               · exact AgreeSubst.refl emp tym1.wf
               · asimp; exact tym1
-              · asimp; exact tym2
+              · exact tym2
             | thunk h => cases h
   | @one Θ Γ Δ emp wf k => cases st
   | @tt Θ Γ Δ emp wf k => cases st

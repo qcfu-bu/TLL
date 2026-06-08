@@ -245,7 +245,7 @@ theorem Erased.sr {Θ m m' n A}
               · apply AgreeSubst.wk0
                 · exact AgreeSubst.refl emp erm2.wf
                 · asimp; exact tym1
-              · asimp; exact erm2
+              · exact erm2
   | @projEx Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B C m m' n n' s r1 r2 t mrgΘ mrgΔ tyC erm ern ihm ihn =>
     subst e1; subst e2
     cases mrgΔ
@@ -292,7 +292,7 @@ theorem Erased.sr {Θ m m' n A}
               apply AgreeSubst.wk1 k1 k2 mrg0 .nil
               · exact AgreeSubst.refl emp erm1.wf
               · asimp; exact erm1
-              · asimp; exact erm2
+              · exact erm2
   | one => cases st
   | tt => cases st
   | ff => cases st

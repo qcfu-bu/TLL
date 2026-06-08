@@ -238,7 +238,7 @@ theorem Typed.psr {Γ m n A} (ty : Γ ⊢ m : A) (st : m ≈> n) : Γ ⊢ n : A 
         apply AgreeSubst.wk1
         · apply AgreeSubst.wk1 (AgreeSubst.refl tym1.wf)
           asimp; exact tym1
-        · asimp; exact tym2
+        · exact tym2
       · exact tyC'
   | @fix Γ A m s ar gr tyA tym ihA ihm =>
     -- shared: reduced fix is well typed (Coq's transformed `tym'`)

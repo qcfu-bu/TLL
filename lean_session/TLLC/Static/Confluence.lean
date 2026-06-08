@@ -328,9 +328,9 @@ lemma psstep_refl (σ : Nat → Term) : PSstep σ σ := fun _ => pstep_refl _
 private lemma pstep_shift {m n} (p : m ≈> n) :
     (ren_Term (id : Nat → Nat) Nat.succ m) ≈> (ren_Term (id : Nat → Nat) Nat.succ n) := by
   rw [show ren_Term (id : Nat → Nat) Nat.succ m
-        = m[Chan.var_Chan; funcomp Term.var_Term Nat.succ] from by substify,
+        = m[Chan.var_Chan; funcomp Term.var_Term Nat.succ] from by asimp; substify,
       show ren_Term (id : Nat → Nat) Nat.succ n
-        = n[Chan.var_Chan; funcomp Term.var_Term Nat.succ] from by substify]
+        = n[Chan.var_Chan; funcomp Term.var_Term Nat.succ] from by asimp; substify]
   exact pstep_subst p (funcomp Term.var_Term Nat.succ)
 
 lemma psstep_up {σ τ} (h : PSstep σ τ) : PSstep (up_Term_Term σ) (up_Term_Term τ) := by
