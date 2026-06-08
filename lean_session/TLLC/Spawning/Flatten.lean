@@ -57,6 +57,60 @@ lemma erasePCtx_empty (Θ : PCtx) : PEmpty (erasePCtx Θ) := by
   | nil => exact .nil
   | cons _ Θ ih => exact .none ih
 
+/-- Erase every endpoint except the one at the given de Bruijn index. -/
+def eraseExcept : PCtx → Nat → PCtx
+  | [], _ => []
+  | slot :: Θ, 0 => slot :: erasePCtx Θ
+  | _ :: Θ, x + 1 => .none :: eraseExcept Θ x
+
+@[simp] lemma eraseExcept_nil (x : Nat) : eraseExcept [] x = [] := by
+  cases x <;> rfl
+
+@[simp] lemma eraseExcept_zero (slot : Slot) (Θ : PCtx) :
+    eraseExcept (slot :: Θ) 0 = slot :: erasePCtx Θ := rfl
+
+@[simp] lemma eraseExcept_succ (slot : Slot) (Θ : PCtx) (x : Nat) :
+    eraseExcept (slot :: Θ) (x + 1) = .none :: eraseExcept Θ x := rfl
+
+lemma PHas.eraseExcept {Θ x r A} (has : PHas Θ x r A) :
+    PJust (eraseExcept Θ x) x r A := by
+  induction has with
+  | zero =>
+    simp
+    exact PJust.zero (erasePCtx_empty _)
+  | succ _ ih =>
+    simp
+    exact PJust.none ih
+
+lemma bindEndpointAt_zero_eq :
+    bindEndpointAt 0 (Chan.var_Chan 0) =
+      up_Chan_Chan (funcomp (ren_Chan Nat.succ) Chan.var_Chan) := by
+  funext x
+  cases x with
+  | zero => simp [bindEndpointAt, up_Chan_Chan]
+  | succ x => simp [bindEndpointAt, up_Chan_Chan, funcomp, ren_Chan]
+
+lemma bindEndpointAt_zero_agree {Θ r A} (tyA : [] ⊢ A : .proto) :
+    AgreeCSubst (.one r A :: .none :: erasePCtx Θ)
+      (bindEndpointAt 0 (Chan.var_Chan 0)) (.one r A :: erasePCtx Θ) := by
+  rw [bindEndpointAt_zero_eq]
+  exact AgreeCSubst.ty (AgreeCSubst.pad (AgreeCSubst.nil (erasePCtx_empty Θ).procWf)) tyA
+
+lemma parAll_typed {Θ p ps} (ty : TLLC.Process.Typed Θ p)
+    (tys : ∀ q, q ∈ ps → TLLC.Process.Typed [] q) :
+    TLLC.Process.Typed Θ (parAll p ps) := by
+  induction ps generalizing Θ p with
+  | nil =>
+    simpa using ty
+  | cons q qs ih =>
+    have tyq : TLLC.Process.Typed [] q := tys q (by simp)
+    have tyqs : ∀ q', q' ∈ qs → TLLC.Process.Typed [] q' := by
+      intro q' hq'
+      exact tys q' (by simp [hq'])
+    obtain ⟨Θe, emp, mrg⟩ := TLLC.Process.procWf_emptyR ty.procWf
+    have tyq' : TLLC.Process.Typed Θe q := tyq.empty_irrel PEmpty.nil emp
+    exact ih (TLLC.Process.Typed.par mrg ty tyq') tyqs
+
 mutual
 
 /-- Size measure for spawning trees, used only to justify the mutual recursion below. -/
@@ -168,5 +222,36 @@ lemma flattenSubtrees_eq_map (trees : List Tree) :
   induction trees with
   | nil => simp
   | cons tree trees ih => simp [ih]
+
+lemma SubtreesTyped.flattenSubtrees_typed {trees}
+    (tys : SubtreesTyped trees)
+    (valid : ∀ {tree}, Typed tree → TLLC.Process.Typed [] tree.flatten) :
+    ∀ q, q ∈ flattenSubtrees trees → TLLC.Process.Typed [] q := by
+  induction trees with
+  | nil =>
+    intro q hq
+    simp at hq
+  | cons tree trees ih =>
+    cases tys with
+    | cons tyt tyts =>
+      intro q hq
+      simp at hq
+      rcases hq with hq | hq
+      · subst hq
+        exact valid tyt
+      · exact ih tyts q hq
+
+lemma flattenBody_typed {Θ m children subtrees}
+    (tyChildren : TLLC.Process.Typed Θ (flattenChildren (.tm m) children))
+    (tySubtrees : ∀ q, q ∈ flattenSubtrees subtrees → TLLC.Process.Typed [] q) :
+    TLLC.Process.Typed Θ (flattenBody m children subtrees) := by
+  simp [flattenBody]
+  exact parAll_typed tyChildren tySubtrees
+
+lemma flattenChildren_nil_typed {Θ m}
+    (tym : Θ ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ m : .M .unit) :
+    TLLC.Process.Typed Θ (flattenChildren (.tm m) []) := by
+  simp
+  exact TLLC.Process.Typed.exp tym
 
 end TLLC.Spawning
