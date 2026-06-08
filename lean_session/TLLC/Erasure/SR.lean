@@ -38,41 +38,37 @@ lemma Erased.thunk_val {Θ Γ Δ m m' A} (er : Θ ⨾ Γ ⨾ Δ ⊢ m ~ m' : A) 
     refine ⟨?_, ?_⟩
     · intro h
       cases h with
-      | appSendIm hv =>
+      | appSendIm =>
         obtain ⟨m0, e⟩ := sendIm_form erm; subst e
-        have hv' := ihm.2 (.send hv)
-        cases hv' with
-        | send hv0 => exact .appSendIm hv0
+        cases ihm.2 .send with
+        | send => exact .appSendIm
         | thunk h => cases h
     · intro h
       cases h with
       | thunk h =>
         cases h with
-        | appSendIm hv =>
+        | appSendIm =>
           obtain ⟨m0, e⟩ := sendIm_form erm; subst e
-          have hv' := ihm.2 (.send hv)
-          cases hv' with
-          | send hv0 => exact .thunk (.appSendIm hv0)
+          cases ihm.2 .send with
+          | send => exact .thunk .appSendIm
           | thunk h => cases h
   | @appEx Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A B m m' n n' s mrgΘ mrgΔ erm ern ihm ihn =>
     refine ⟨?_, ?_⟩
     · intro h
       cases h with
-      | appSendEx hv1 hv2 =>
+      | appSendEx hv2 =>
         obtain ⟨m0, e⟩ := sendEx_form erm; subst e
-        have hv' := ihm.2 (.send hv1)
-        cases hv' with
-        | send hv0 => exact .appSendEx hv0 (ihn.2 hv2)
+        cases ihm.2 .send with
+        | send => exact .appSendEx (ihn.2 hv2)
         | thunk h => cases h
     · intro h
       cases h with
       | thunk h =>
         cases h with
-        | appSendEx hv1 hv2 =>
+        | appSendEx hv2 =>
           obtain ⟨m0, e⟩ := sendEx_form erm; subst e
-          have hv' := ihm.2 (.send hv1)
-          cases hv' with
-          | send hv0 => exact .thunk (.appSendEx hv0 (ihn.2 hv2))
+          cases ihm.2 .send with
+          | send => exact .thunk (.appSendEx (ihn.2 hv2))
           | thunk h => cases h
   | pairIm _ _ _ ihn =>
     refine ⟨nofun, fun h => ?_⟩
@@ -101,19 +97,19 @@ lemma Erased.thunk_val {Θ Γ Δ m m' A} (er : Θ ⨾ Γ ⨾ Δ ⊢ m ~ m' : A) 
     · cases h with | thunk h => cases h with | mlet hm => exact .thunk (.mlet (ihm.1 hm))
   | chan => exact ⟨nofun, fun _ => .chan⟩
   | fork _ _ => exact ⟨fun _ => .fork, fun h => by cases h with | thunk h => exact .thunk .fork⟩
-  | recv _ _ ihm =>
+  | recv _ erm ihm =>
     refine ⟨fun h => ?_, fun h => ?_⟩
-    · cases h with | recv hv => exact .recv (ihm.2 hv)
-    · cases h with | thunk h => cases h with | recv hv => exact .thunk (.recv (ihm.2 hv))
-  | send _ _ ihm =>
+    · cases h with | recv => rw [chan_form erm]; exact .recv
+    · cases h with | thunk h => cases h with | recv => rw [chan_form erm]; exact .thunk .recv
+  | send _ erm ihm =>
     refine ⟨nofun, fun h => ?_⟩
     cases h with
-    | send hv => exact .send (ihm.2 hv)
+    | send => rw [chan_form erm]; exact .send
     | thunk h => cases h
-  | close _ ihm =>
+  | close erm ihm =>
     refine ⟨fun h => ?_, fun h => ?_⟩
-    · cases h with | close hv => exact .close (ihm.2 hv)
-    · cases h with | thunk h => cases h with | close hv => exact .thunk (.close (ihm.2 hv))
+    · cases h with | close => rw [chan_form erm]; exact .close
+    · cases h with | thunk h => cases h with | close => rw [chan_form erm]; exact .thunk .close
   | conv _ _ _ ihm => exact ihm
 
 /-- Erasure preserves value-hood (Coq `era_dyn_val`). -/

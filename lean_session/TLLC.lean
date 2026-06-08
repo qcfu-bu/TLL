@@ -36,5 +36,10 @@ import TLLC.Erasure.Inversion
 import TLLC.Erasure.Occurs
 import TLLC.Erasure.CSubst
 import TLLC.Erasure.SR
+import TLLC.Process.Context
 import TLLC.Process.Typing
 import TLLC.Process.Step
+import TLLC.Process.CRename
+import TLLC.Process.Occurs
+import TLLC.Process.CSubst
+import TLLC.Process.SR

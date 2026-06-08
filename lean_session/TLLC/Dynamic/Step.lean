@@ -32,19 +32,15 @@ inductive Thunk : Term → Prop where
     Thunk (.mlet m n)
   | fork {A m} :
     Thunk (.fork A m)
-  | recv {v i} :
+  | recv {c i} :
+    Thunk (.recv (.chan (Chan.var_Chan c)) i)
+  | appSendIm {c m} :
+    Thunk (.app (.send (.chan (Chan.var_Chan c)) .im) m .im)
+  | appSendEx {c v} :
     Val v →
-    Thunk (.recv v i)
-  | appSendIm {v m} :
-    Val v →
-    Thunk (.app (.send v .im) m .im)
-  | appSendEx {v1 v2} :
-    Val v1 →
-    Val v2 →
-    Thunk (.app (.send v1 .ex) v2 .ex)
-  | close {b v} :
-    Val v →
-    Thunk (.close b v)
+    Thunk (.app (.send (.chan (Chan.var_Chan c)) .ex) v .ex)
+  | close {b c} :
+    Thunk (.close b (.chan (Chan.var_Chan c)))
 
 /-- Runtime values (Coq `dyn_val`). -/
 inductive Val : Term → Prop where
@@ -70,13 +66,28 @@ inductive Val : Term → Prop where
     Val (.pure v)
   | chan {x} :
     Val (.chan (Chan.var_Chan x))
-  | send {v i} :
-    Val v →
-    Val (.send v i)
+  | send {c i} :
+    Val (.send (.chan (Chan.var_Chan c)) i)
   | thunk {m} :
     Thunk m →
     Val m
 end
+
+/-- Partial session redexes (Coq `dyn_partial`): a session operation blocked on a channel variable.
+    These are exactly the non-`mlet` `Thunk` shapes — a `Thunk` is one of these inside an evaluation
+    context (`Thunk.evalctx`). -/
+inductive Partial : Term → Prop where
+  | fork {A m} :
+    Partial (.fork A m)
+  | recv {c i} :
+    Partial (.recv (.chan (Chan.var_Chan c)) i)
+  | appSendIm {c m} :
+    Partial (.app (.send (.chan (Chan.var_Chan c)) .im) m .im)
+  | appSendEx {c v} :
+    Val v →
+    Partial (.app (.send (.chan (Chan.var_Chan c)) .ex) v .ex)
+  | close {b c} :
+    Partial (.close b (.chan (Chan.var_Chan c)))
 
 /-! ## Single-step reduction (Coq `dyn_step`, `m ~>> n`). -/
 

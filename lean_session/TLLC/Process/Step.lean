@@ -1,17 +1,20 @@
 import TLLC.Dynamic.Step
+import TLLC.Dynamic.EvalCtx
 import TLLC.Process.Typing
 
 /-!
 # Process reduction (self-dual single-channel encoding)
 
-Port of `coq_session/proc_step.v`: structural congruence `≡` (Coq `proc_congr0` + its `conv` closure)
-and process reduction `⇛` (Coq `proc_step`), adapted to the self-dual single-channel encoding (see
+Port of `rocq_formal/proc_step.v`: structural congruence `≡` (`proc_congr0` + its `conv` closure)
+and process reduction `⇛` (`proc_step`), adapted to the self-dual single-channel encoding (see
 [[tllc-process-channel-encoding]]).
 
-Because each `res` binds ONE self-dual channel (both communicating threads reference `CVar 0`, with
-polarity supplied by typing), the Coq's symmetric rule pairs collapse: `proc_step_com0`/`com0i`,
-`com1`/`com1i`, and `end`/`endi` each become ONE rule, the `exch` congruence swaps just channels
-`0 ↔ 1`, and the channel shifts are `±1` (Coq used `±2`).
+Following rocq_formal, the session redexes sit inside an **evaluation context** `N.eval (redex)`
+(`Dynamic.EvalCtx`) rather than at the head of a single `Bind`. Because each `res` binds ONE self-dual
+channel (both communicating threads reference `CVar 0`, with polarity supplied by typing), the Coq's
+symmetric rule pairs collapse: `proc_step_com0`/`com0i`, `com1`/`com1i`, and `end`/`endi` each become
+ONE rule, the `exch` congruence swaps just channels `0 ↔ 1`, and the channel shifts are `±1` (Coq used
+`±2`; eval contexts are renamed by `EvalCtx.cren`).
 -/
 
 namespace TLLC.Process
@@ -59,23 +62,23 @@ inductive Step : Proc → Proc → Prop where
     m ~>> m' →
     Step (.tm m) (.tm m')
   -- session
-  | fork {A m m' n n'} :
+  | fork {A m m'} {N N' : EvalCtx} :
     m' = m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ →
-    n' = n⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩ →
-    Step (.tm (.mlet (.fork A m) n))
-      (.res (.par (.tm (n'[Chan.var_Chan; (cvar 0)..])) (.tm (m'[Chan.var_Chan; (cvar 0)..]))))
-  | com {m n1 n2} :
-    Step (.res (.par (.tm (.mlet (.app (.send (cvar 0) .im) m .im) n1)) (.tm (.mlet (.recv (cvar 0) .im) n2))))
-      (.res (.par (.tm (.mlet (.pure (cvar 0)) n1)) (.tm (.mlet (.pure (.pair m (cvar 0) .im .L)) n2))))
-  | comEx {v n1 n2} :
+    N' = N.cren ((· + 1) : Nat → Nat) →
+    Step (.tm (N.eval (.fork A m)))
+      (.res (.par (.tm (N'.eval (.pure (cvar 0)))) (.tm (m'[Chan.var_Chan; (cvar 0)..]))))
+  | com {M N : EvalCtx} {m} :
+    Step (.res (.par (.tm (M.eval (.app (.send (cvar 0) .im) m .im))) (.tm (N.eval (.recv (cvar 0) .im)))))
+      (.res (.par (.tm (M.eval (.pure (cvar 0)))) (.tm (N.eval (.pure (.pair m (cvar 0) .im .L))))))
+  | comEx {M N : EvalCtx} {v} :
     Val v →
-    Step (.res (.par (.tm (.mlet (.app (.send (cvar 0) .ex) v .ex) n1)) (.tm (.mlet (.recv (cvar 0) .ex) n2))))
-      (.res (.par (.tm (.mlet (.pure (cvar 0)) n1)) (.tm (.mlet (.pure (.pair v (cvar 0) .ex .L)) n2))))
-  | «end» {m m' n n'} :
-    m' = m⟨((· - 1) : Nat → Nat); (id : Nat → Nat)⟩ →
-    n' = n⟨((· - 1) : Nat → Nat); (id : Nat → Nat)⟩ →
-    Step (.res (.par (.tm (.mlet (.close true (cvar 0)) m)) (.tm (.mlet (.close false (cvar 0)) n))))
-      (.par (.tm (.mlet (.pure .one) m')) (.tm (.mlet (.pure .one) n')))
+    Step (.res (.par (.tm (M.eval (.app (.send (cvar 0) .ex) v .ex))) (.tm (N.eval (.recv (cvar 0) .ex)))))
+      (.res (.par (.tm (M.eval (.pure (cvar 0)))) (.tm (N.eval (.pure (.pair v (cvar 0) .ex .L))))))
+  | «end» {M N M' N' : EvalCtx} :
+    M' = M.cren ((· - 1) : Nat → Nat) →
+    N' = N.cren ((· - 1) : Nat → Nat) →
+    Step (.res (.par (.tm (M.eval (.close true (cvar 0)))) (.tm (N.eval (.close false (cvar 0))))))
+      (.par (.tm (M'.eval (.pure .one))) (.tm (N'.eval (.pure .one))))
   -- congruence
   | par {o p q} :
     Step p q →

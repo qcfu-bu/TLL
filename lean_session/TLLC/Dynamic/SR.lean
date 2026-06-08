@@ -105,7 +105,7 @@ lemma Typed.val_stability {Θ Γ Δ m A s}
       cases vl with
       | thunk h =>
         cases h with
-        | appSendIm hv =>
+        | appSendIm =>
           obtain ⟨r1, r2, A0, B0, _, eqP, tyv⟩ := sendIm_inv tym
           obtain ⟨eqA, eqB, _, _⟩ := Static.pi_inj eqP
           obtain ⟨_, tyCh⟩ := tyv.validity
@@ -124,7 +124,7 @@ lemma Typed.val_stability {Θ Γ Δ m A s}
       cases vl with
       | thunk h =>
         cases h with
-        | appSendEx hv1 hv2 =>
+        | appSendEx hv2 =>
           obtain ⟨r1, r2, A0, B0, _, eqP, tyv⟩ := sendEx_inv tym
           obtain ⟨eqA, eqB, _, _⟩ := Static.pi_inj eqP
           obtain ⟨_, tyCh⟩ := tyv.validity

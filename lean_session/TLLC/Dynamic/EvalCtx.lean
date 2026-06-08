@@ -1,4 +1,5 @@
 import TLLC.Dynamic.Inversion
+import TLLC.Dynamic.Step
 
 /-!
 # Evaluation contexts (global-progress seed)
@@ -57,5 +58,20 @@ lemma evalCtx_inv {Θ} {M : EvalCtx} {m B} (ty : Θ ⨾ ([] : Static.Ctx) ⨾ ([
     obtain ⟨Θc, mrgc, mrgd⟩ := mrgH.splitL mrga
     have tyM0 := hcont Θ3 Θc n mrgc tyn
     exact .mlet mrgd .nil tyB tyM0 tyn'
+
+/-- Channel renaming of an evaluation context (Coq `CRename_evalctx`). -/
+def EvalCtx.cren (ξ : Nat → Nat) : EvalCtx → EvalCtx
+  | .hole => .hole
+  | .bnd M n => .bnd (M.cren ξ) (n⟨ξ; (id : Nat → Nat)⟩)
+
+/-- Channel renaming commutes with plugging (Coq `evalctx_cren`). -/
+lemma evalctx_cren (ξ : Nat → Nat) (M : EvalCtx) (m : Term) :
+    (M.eval m)⟨ξ; (id : Nat → Nat)⟩ = (M.cren ξ).eval (m⟨ξ; (id : Nat → Nat)⟩) := by
+  induction M with
+  | hole => rfl
+  | bnd M' n ih =>
+    show (Term.mlet (M'.eval m) n)⟨ξ; (id : Nat → Nat)⟩
+      = Term.mlet ((M'.cren ξ).eval (m⟨ξ; (id : Nat → Nat)⟩)) (n⟨ξ; (id : Nat → Nat)⟩)
+    asimp; rw [ih]
 
 end TLLC.Dynamic
