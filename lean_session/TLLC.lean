@@ -45,3 +45,4 @@ import TLLC.Process.CSubst
 import TLLC.Process.SR
 import TLLC.Spawning.Tree
 import TLLC.Spawning.Typing
+import TLLC.Spawning.Flatten
