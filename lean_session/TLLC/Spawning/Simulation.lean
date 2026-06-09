@@ -2455,6 +2455,282 @@ lemma comIm_edge_parAll (M N : EvalCtx) (payload : Term) (c d : Chan) (SS : List
   step_par_parAll_spectators _ _ _ _ SS ssZero
     (process_step_comIm_edge_csubst (M := M) (N := N) (payloadTerm := payload) (c := c) (d := d) imp σ)
 
+/-- Conditional `occurs`-under-renaming: `i` does not occur in `m⟨ξ⟩` provided every channel that `ξ`
+maps onto `i` is already absent from `m`. -/
+lemma occurs_cren_zero {i : Nat} {ξ : Nat → Nat} {m : Term}
+    (h : ∀ k, ξ k = i → occurs k m = 0) :
+    occurs i (m⟨ξ; (id : Nat → Nat)⟩) = 0 := by
+  induction m generalizing i ξ with
+  | var_Term _ => rfl
+  | srt _ => rfl
+  | pi _ _ _ _ _ _ => rfl
+  | lam _ _ _ _ _ ihm => asimp; exact ihm h
+  | app a b r iha ihb =>
+      cases r with
+      | im => asimp; exact iha (fun k hk => by have := h k hk; simpa [occurs] using this)
+      | ex =>
+          asimp
+          have ha := iha (fun k hk => by have := h k hk; simp [occurs] at this; omega)
+          have hb := ihb (fun k hk => by have := h k hk; simp [occurs] at this; omega)
+          simp [occurs, ha, hb]
+  | sig _ _ _ _ _ _ => rfl
+  | pair a b r s iha ihb =>
+      cases r with
+      | im => asimp; exact ihb (fun k hk => by have := h k hk; simpa [occurs] using this)
+      | ex =>
+          asimp
+          have ha := iha (fun k hk => by have := h k hk; simp [occurs] at this; omega)
+          have hb := ihb (fun k hk => by have := h k hk; simp [occurs] at this; omega)
+          simp [occurs, ha, hb]
+  | proj C a b ihC iha ihb =>
+      asimp
+      have ha := iha (fun k hk => by have := h k hk; simp [occurs] at this; omega)
+      have hb := ihb (fun k hk => by have := h k hk; simp [occurs] at this; omega)
+      simp [occurs, ha, hb]
+  | fix _ _ _ ihm => asimp; exact ihm h
+  | unit => rfl
+  | one => rfl
+  | bool => rfl
+  | tt => rfl
+  | ff => rfl
+  | ite C a b1 b2 ihC iha ihb1 ihb2 =>
+      asimp
+      have ha := iha (fun k hk => by have := h k hk; simp [occurs] at this; omega)
+      have hb1 := ihb1 (fun k hk => by have := h k hk; simp [occurs] at this; omega)
+      have hb2 := ihb2 (fun k hk => by have := h k hk; simp [occurs] at this; omega)
+      simp [occurs, ha, hb1, hb2]
+  | M _ _ => rfl
+  | pure _ ihm => asimp; exact ihm h
+  | mlet a b iha ihb =>
+      asimp
+      have ha := iha (fun k hk => by have := h k hk; simp [occurs] at this; omega)
+      have hb := ihb (fun k hk => by have := h k hk; simp [occurs] at this; omega)
+      simp [occurs, ha, hb]
+  | proto => rfl
+  | stop => rfl
+  | act _ _ _ _ _ _ => rfl
+  | ch _ _ _ => rfl
+  | chan c =>
+      cases c with
+      | var_Chan y =>
+          asimp
+          show (if ξ y = i then 1 else 0) = 0
+          rw [if_neg]
+          intro hy
+          have := h y hy
+          simp [occurs] at this
+  | fork _ _ _ ihm => asimp; exact ihm h
+  | recv _ _ ihm => asimp; exact ihm h
+  | send _ _ ihm => asimp; exact ihm h
+  | close _ _ ihm => asimp; exact ihm h
+  | box => rfl
+
+/-- Conditional `procOccurs`-under-renaming, the process analogue of `occurs_cren_zero`. -/
+lemma procOccurs_cren_zero {i : Nat} {ξ : Nat → Nat} {p : Proc}
+    (h : ∀ k, ξ k = i → TLLC.Process.procOccurs k p = 0) :
+    TLLC.Process.procOccurs i (p⟨ξ; (id : Nat → Nat)⟩) = 0 := by
+  induction p generalizing i ξ with
+  | tm m =>
+      show occurs i (m⟨ξ; (id : Nat → Nat)⟩) = 0
+      exact occurs_cren_zero h
+  | par a b iha ihb =>
+      have ha := iha (fun k hk => by have := h k hk; simp [TLLC.Process.procOccurs] at this; omega)
+      have hb := ihb (fun k hk => by have := h k hk; simp [TLLC.Process.procOccurs] at this; omega)
+      asimp
+      simp only [TLLC.Process.procOccurs, ha, hb]
+  | nu q ih =>
+      asimp
+      show TLLC.Process.procOccurs (i + 1) (q⟨upRen_Chan_Chan ξ; (id : Nat → Nat)⟩) = 0
+      apply ih
+      intro k hk
+      cases k with
+      | zero => simp [upRen_Chan_Chan, asimp_lemmas] at hk
+      | succ j =>
+          have hj : ξ j = i := by
+            asimp at hk
+            simp only [funcomp, Nat.succ_eq_add_one] at hk
+            omega
+          have := h j hj
+          simpa [TLLC.Process.procOccurs] using this
+
+/-- Conditional `procOccurs`-under-substitution. -/
+lemma procOccurs_csubst_zero {i : Nat} {τ : Nat → Chan} {p : Proc}
+    (h : ∀ k, τ k = Chan.var_Chan i → TLLC.Process.procOccurs k p = 0) :
+    TLLC.Process.procOccurs i (p[τ; Term.var_Term]) = 0 := by
+  rw [← process_csubst_cren]
+  apply procOccurs_cren_zero
+  intro k hk
+  apply h k
+  have hτ : τ k = Chan.var_Chan (Static.csubst_ren τ k) := by
+    unfold Static.csubst_ren; cases τ k with | var_Chan y => rfl
+  rw [hτ, hk]
+
+set_option maxHeartbeats 1000000 in
+/-- SS-free implicit-com edge with grandchildren `ms'`; each grandchild extrudes to a spectator and
+the core `comIm` fires on the exposed `.tm recv`. -/
+lemma comIm_edge_grandchildren (M N : EvalCtx) (payload : Term) (c d : Chan)
+    (imp : implicitPayload c d payload) :
+    ∀ (ms' : List (Chan × Tree)) (σ : Nat → Chan),
+      (∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+        TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc) →
+      (∀ pre e gc suf, ms' = pre ++ (e, gc) :: suf →
+        TLLC.Process.procOccurs (chanIndex e)
+          (flattenChildren (.tm (N.eval (.recv (Term.chan d) .im))) suf) = 0) →
+      (∀ pre e gc suf, ms' = pre ++ (e, gc) :: suf →
+        TLLC.Process.procOccurs (chanIndex e)
+          (flattenChildren (.tm (N.eval (.pure (.pair payload (Term.chan d) .im .L)))) suf) = 0) →
+      TLLC.Process.Step
+        (.nu (.par
+          (.tm (((M.eval (.app (.send (Term.chan c) .im) payload .im))[bindEndpointAt 0 c;
+            Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+          ((flattenChildren (.tm (N.eval (.recv (Term.chan d) .im))) ms')[bindEndpointAt 0 d;
+            Term.var_Term][up_Chan_Chan σ; Term.var_Term])))
+        (.nu (.par
+          (.tm (((M.eval (.pure (Term.chan c)))[bindEndpointAt 0 c;
+            Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+          ((flattenChildren (.tm (N.eval (.pure (.pair payload (Term.chan d) .im .L)))) ms')[
+            bindEndpointAt 0 d; Term.var_Term][up_Chan_Chan σ; Term.var_Term]))) := by
+  intro ms'
+  induction ms' with
+  | nil =>
+      intro σ _ _ _
+      simp only [flattenChildren]
+      exact process_step_comIm_edge_csubst (M := M) (N := N) (payloadTerm := payload)
+        (c := c) (d := d) imp σ
+  | cons edge rest ih =>
+      intro σ tyMs eFreshRecv eFreshRpair
+      obtain ⟨e, gc⟩ := edge
+      cases hgc : gc.flattenAt with
+      | mk gp GP =>
+        set σ' : Nat → Chan := σ >> ⟨((· + 1) : Nat → Nat)⟩ with hσ'
+        have tyRest : ∀ e gc, (e, gc) ∈ rest → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+            TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc :=
+          fun e gc mem => tyMs e gc (List.mem_cons_of_mem _ mem)
+        have fRecvRest : ∀ pre e' gc' suf, rest = pre ++ (e', gc') :: suf →
+            TLLC.Process.procOccurs (chanIndex e')
+              (flattenChildren (.tm (N.eval (.recv (Term.chan d) .im))) suf) = 0 :=
+          fun pre e' gc' suf h => eFreshRecv ((e, gc) :: pre) e' gc' suf (by rw [h]; rfl)
+        have fRpairRest : ∀ pre e' gc' suf, rest = pre ++ (e', gc') :: suf →
+            TLLC.Process.procOccurs (chanIndex e')
+              (flattenChildren (.tm (N.eval (.pure (.pair payload (Term.chan d) .im .L)))) suf) = 0 :=
+          fun pre e' gc' suf h => eFreshRpair ((e, gc) :: pre) e' gc' suf (by rw [h]; rfl)
+        have innerStep := ih σ' tyRest fRecvRest fRpairRest
+        simp only [flattenChildren, hgc,
+          (show ∀ (p : Proc) (τ : Nat → Chan),
+              (Proc.nu p)[τ; Term.var_Term] = Proc.nu (p[up_Chan_Chan τ; Term.var_Term])
+            from fun _ _ => rfl),
+          (show ∀ (a b : Proc) (τ : Nat → Chan),
+              (Proc.par a b)[τ; Term.var_Term] = Proc.par (a[τ; Term.var_Term]) (b[τ; Term.var_Term])
+            from fun _ _ _ => rfl)]
+        set Q1exp : Proc :=
+          (GP[bindEndpointAt 0 gp; Term.var_Term][up_Chan_Chan (bindEndpointAt 0 d);
+            Term.var_Term][up_Chan_Chan (up_Chan_Chan σ); Term.var_Term])[TLLC.Process.exch;
+            Term.var_Term] with hQ1exp
+        -- leaf facts (algebra + freshness)
+        -- shared substitution identity: ↑ then exch absorbs into σ' = σ >> ⟨↑⟩
+        have key : ∀ (m : Term),
+            (m[up_Chan_Chan σ; Term.var_Term])⟨((· + 1) : Nat → Nat);
+              (id : Nat → Nat)⟩[TLLC.Process.exch; Term.var_Term]
+              = m[up_Chan_Chan σ'; Term.var_Term] := by
+          intro m
+          rw [hσ']
+          asimp
+          congr 1
+        have leafA :
+            (Proc.tm (((M.eval (.app (.send (Term.chan c) .im) payload .im))[bindEndpointAt 0 c;
+                Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))⟨((· + 1) : Nat → Nat);
+                (id : Nat → Nat)⟩[TLLC.Process.exch; Term.var_Term]
+              = Proc.tm (((M.eval (.app (.send (Term.chan c) .im) payload .im))[bindEndpointAt 0 c;
+                Term.var_Term])[up_Chan_Chan σ'; Term.var_Term]) := by
+          show Proc.tm _ = Proc.tm _; congr 1; exact key _
+        have leafA' :
+            (Proc.tm (((M.eval (.pure (Term.chan c)))[bindEndpointAt 0 c;
+                Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))⟨((· + 1) : Nat → Nat);
+                (id : Nat → Nat)⟩[TLLC.Process.exch; Term.var_Term]
+              = Proc.tm (((M.eval (.pure (Term.chan c)))[bindEndpointAt 0 c;
+                Term.var_Term])[up_Chan_Chan σ'; Term.var_Term]) := by
+          show Proc.tm _ = Proc.tm _; congr 1; exact key _
+        have leafPof : ∀ (R : Proc), TLLC.Process.procOccurs (chanIndex e) R = 0 →
+            TLLC.Process.Congruence
+              ((R[bindEndpointAt 0 e; Term.var_Term][up_Chan_Chan (bindEndpointAt 0 d);
+                Term.var_Term][up_Chan_Chan (up_Chan_Chan σ); Term.var_Term])[TLLC.Process.exch;
+                Term.var_Term])
+              (R[bindEndpointAt 0 d; Term.var_Term][up_Chan_Chan σ'; Term.var_Term]) := by
+          intro R fresh
+          rw [hσ']
+          conv_lhs => simp only [asimp_lemmas]
+          conv_rhs => simp only [asimp_lemmas]
+          apply process_congr_csubst_of_eqv (i := chanIndex e) _ fresh
+          intro x hx
+          rcases eq_or_ne x (chanIndex d) with hxd | hxd
+          · subst hxd
+            simp [bindEndpointAt, scons, funcomp, asimp_lemmas, hx]
+          · cases hσx : σ x with
+            | var_Chan j =>
+                simp [bindEndpointAt, scons, funcomp, asimp_lemmas, hx, hxd, hσx]
+        have leafP := leafPof _ (eFreshRecv [] e gc rest rfl)
+        have leafP' := leafPof _ (eFreshRpair [] e gc rest rfl)
+        have parPush : ∀ (a b : Proc), (Proc.par a b)[TLLC.Process.exch; Term.var_Term]
+            = Proc.par (a[TLLC.Process.exch; Term.var_Term]) (b[TLLC.Process.exch; Term.var_Term]) :=
+          fun _ _ => rfl
+        refine TLLC.Process.Step.congr ?cL
+          (TLLC.Process.Step.res
+            (process_step_scope_unused_right (q := Q1exp) ?q1zero innerStep)) ?cR
+        case q1zero =>
+          obtain ⟨r0, A0, tyA0, tyGc⟩ := tyMs e gc (by simp)
+          have yFresh : ∀ i, TLLC.Process.procOccurs (i + 1)
+              (GP[bindEndpointAt 0 gp; Term.var_Term]) = 0 := by
+            intro i
+            have hh := tyGc.flattenAt_occurs_succ tyA0 i
+            rw [hgc] at hh
+            exact hh
+          rw [hQ1exp]
+          apply procOccurs_csubst_zero; intro k hk
+          obtain rfl : k = 1 := by
+            rcases k with _ | _ | j <;> simp_all [Process.exch, cexch, scons]
+          apply procOccurs_csubst_zero; intro k hk
+          obtain rfl : k = 1 := by
+            rcases k with _ | _ | j
+            · simp_all [up_Chan_Chan, scons]
+            · rfl
+            · exfalso
+              cases hσj : σ j with
+              | var_Chan m =>
+                  simp [up_Chan_Chan, scons, funcomp, asimp_lemmas, hσj] at hk
+          apply procOccurs_csubst_zero; intro k hk
+          rcases k with _ | j
+          · simp [up_Chan_Chan, scons] at hk
+          · exact yFresh j
+        case cL =>
+          refine ARS.conv_trans (process_congr_res process_congr_scope_right) ?_
+          refine ARS.conv_trans process_congr_exch ?_
+          simp only [parPush]
+          refine ARS.conv_trans (process_congr_res (process_congr_res
+            (ARS.conv1 (TLLC.Process.CongrProc.assoc)))) ?_
+          refine process_congr_res (process_congr_res ?_)
+          refine ARS.conv_trans (process_congr_parallel_left ?inner)
+            (process_congr_parallel_right ?cQ)
+          case inner =>
+            refine ARS.conv_trans (process_congr_parallel_left ?cX)
+              (process_congr_parallel_right leafP)
+            case cX => rw [leafA]; exact ARS.Conv.refl
+          case cQ => exact ARS.Conv.refl
+        case cR =>
+          refine ARS.conv_trans ?_
+            (ARS.conv_sym (process_congr_res process_congr_scope_right))
+          refine ARS.conv_trans ?_ (ARS.conv_sym process_congr_exch)
+          simp only [parPush]
+          refine ARS.conv_trans ?_ (ARS.conv_sym (process_congr_res (process_congr_res
+            (ARS.conv1 (TLLC.Process.CongrProc.assoc)))))
+          refine process_congr_res (process_congr_res ?_)
+          refine ARS.conv_trans (process_congr_parallel_left ?inner)
+            (process_congr_parallel_right ?cQ)
+          case inner =>
+            refine ARS.conv_trans (process_congr_parallel_left ?cX)
+              (process_congr_parallel_right (ARS.conv_sym leafP'))
+            case cX => rw [leafA']; exact ARS.Conv.refl
+          case cQ => exact ARS.Conv.refl
+
 /-- Lemma 5.86 for productive spawning-tree steps, strengthened under channel substitution. -/
 theorem simulation_csubst {p q : Tree}
     (typed : Typed p ∨ ∃ r A, TypedAt r A p)
