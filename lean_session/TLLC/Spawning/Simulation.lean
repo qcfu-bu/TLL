@@ -2309,6 +2309,117 @@ lemma flattenChildren_swap2 (B : Proc) (c1 c2 d1 d2 : Chan) (p1 p2 : Proc)
     (process_congr_parallel_left (process_congr_parallel_right leaf1))
     (process_congr_parallel_right leaf2)
 
+/-- `flattenChildren`-level adjacent swap. The freshness premises say each sibling's flattened body
+does not mention the other sibling's parent endpoint (linearity); in use they come from
+`TypedAt.flattenAt_occurs_succ`. -/
+lemma flattenChildren_swap_adjacent (body : Proc) (c1 c2 : Chan) (ch1 ch2 : Tree)
+    (rest : List (Chan × Tree))
+    (hne : chanIndex c1 ≠ chanIndex c2)
+    (f1 : TLLC.Process.procOccurs (chanIndex c1 + 1)
+      ((ch2.flattenAt).2[bindEndpointAt 0 (ch2.flattenAt).1; Term.var_Term]) = 0)
+    (f2 : TLLC.Process.procOccurs (chanIndex c2 + 1)
+      ((ch1.flattenAt).2[bindEndpointAt 0 (ch1.flattenAt).1; Term.var_Term]) = 0) :
+    TLLC.Process.Congruence
+      (flattenChildren body ((c1, ch1) :: (c2, ch2) :: rest))
+      (flattenChildren body ((c2, ch2) :: (c1, ch1) :: rest)) := by
+  cases h1 : ch1.flattenAt with
+  | mk d1 p1 =>
+  cases h2 : ch2.flattenAt with
+  | mk d2 p2 =>
+    simp only [h1, h2] at f1 f2
+    simp only [flattenChildren, h1, h2,
+      (show ∀ (p : Proc) (σ : Nat → Chan),
+          (Proc.nu p)[σ; Term.var_Term] = Proc.nu (p[up_Chan_Chan σ; Term.var_Term])
+        from fun _ _ => rfl),
+      (show ∀ (a b : Proc) (σ : Nat → Chan),
+          (Proc.par a b)[σ; Term.var_Term] = Proc.par (a[σ; Term.var_Term]) (b[σ; Term.var_Term])
+        from fun _ _ _ => rfl)]
+    exact flattenChildren_swap2 (flattenChildren body rest) c1 c2 d1 d2 p1 p2 hne f1 f2
+
+/-- Adjacent swap with freshness supplied by typing (`flattenAt_occurs_succ`). -/
+lemma flattenChildren_swap_adjacent_typed (body : Proc) (c1 c2 : Chan) (ch1 ch2 : Tree)
+    (rest : List (Chan × Tree)) (hne : chanIndex c1 ≠ chanIndex c2)
+    (ty1 : ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) ch1)
+    (ty2 : ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) ch2) :
+    TLLC.Process.Congruence
+      (flattenChildren body ((c1, ch1) :: (c2, ch2) :: rest))
+      (flattenChildren body ((c2, ch2) :: (c1, ch1) :: rest)) := by
+  obtain ⟨r1, A1, tyA1, t1⟩ := ty1
+  obtain ⟨r2, A2, tyA2, t2⟩ := ty2
+  exact flattenChildren_swap_adjacent body c1 c2 ch1 ch2 rest hne
+    (t2.flattenAt_occurs_succ tyA2 (chanIndex c1)) (t1.flattenAt_occurs_succ tyA1 (chanIndex c2))
+
+/-- Lift a congruence between two child lists through one shared prefix edge. -/
+lemma flattenChildren_congr_prefix_one (body : Proc) (e : Chan) (sib : Tree)
+    (A A' : List (Chan × Tree))
+    (cong : TLLC.Process.Congruence (flattenChildren body A) (flattenChildren body A')) :
+    TLLC.Process.Congruence
+      (flattenChildren body ((e, sib) :: A)) (flattenChildren body ((e, sib) :: A')) := by
+  cases hs : sib.flattenAt with
+  | mk ds sp =>
+    have eqL : flattenChildren body ((e, sib) :: A) = .nu (.par
+        ((flattenChildren body A)[bindEndpointAt 0 e; Term.var_Term])
+        (sp[bindEndpointAt 0 ds; Term.var_Term])) := by simp only [flattenChildren, hs]
+    have eqR : flattenChildren body ((e, sib) :: A') = .nu (.par
+        ((flattenChildren body A')[bindEndpointAt 0 e; Term.var_Term])
+        (sp[bindEndpointAt 0 ds; Term.var_Term])) := by simp only [flattenChildren, hs]
+    rw [eqL, eqR]
+    exact process_congr_res (process_congr_parallel_left (process_congr_csubst cong _))
+
+/-- Move the head child of a flattened list to the last position (report's "rearrange by Proc-Congr").
+The typing premises supply distinctness and linearity freshness. -/
+lemma flattenChildren_move_head_to_last (body : Proc) (c : Chan) (child : Tree)
+    (tyChild : ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) child) :
+    ∀ (r : List (Chan × Tree)),
+    (∀ e sib, (e, sib) ∈ r → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) sib) →
+    (∀ e sib, (e, sib) ∈ r → chanIndex c ≠ chanIndex e) →
+    TLLC.Process.Congruence
+      (flattenChildren body ((c, child) :: r)) (flattenChildren body (r ++ [(c, child)])) := by
+  intro r
+  induction r with
+  | nil => intro _ _; exact ARS.Conv.refl
+  | cons edge r' ih =>
+      rcases edge with ⟨e, sib⟩
+      intro tyR distinct
+      refine ARS.conv_trans
+        (flattenChildren_swap_adjacent_typed body c e child sib r'
+          (distinct e sib (by simp)) tyChild (tyR e sib (by simp))) ?_
+      have ihC := ih (fun e' sib' mem => tyR e' sib' (List.mem_cons_of_mem _ mem))
+        (fun e' sib' mem => distinct e' sib' (List.mem_cons_of_mem _ mem))
+      simp only [List.cons_append]
+      exact flattenChildren_congr_prefix_one body e sib ((c, child) :: r') (r' ++ [(c, child)]) ihC
+
+/-- Lift a child-list congruence through an arbitrary prefix `l`. -/
+lemma flattenChildren_congr_prefix (body : Proc) (l A A' : List (Chan × Tree))
+    (cong : TLLC.Process.Congruence (flattenChildren body A) (flattenChildren body A')) :
+    TLLC.Process.Congruence
+      (flattenChildren body (l ++ A)) (flattenChildren body (l ++ A')) := by
+  induction l with
+  | nil => simpa using cong
+  | cons edge l ih =>
+      rcases edge with ⟨e, sib⟩
+      simpa only [List.cons_append] using
+        flattenChildren_congr_prefix_one body e sib (l ++ A) (l ++ A') ih
+
+/-- Move a child at an arbitrary position to the last position (general "rearrange by Proc-Congr"). -/
+lemma flattenChildren_move_to_last (body : Proc) (c : Chan) (child : Tree)
+    (l r : List (Chan × Tree))
+    (tyChild : ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) child)
+    (tyR : ∀ e sib, (e, sib) ∈ r → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) sib)
+    (distinct : ∀ e sib, (e, sib) ∈ r → chanIndex c ≠ chanIndex e) :
+    TLLC.Process.Congruence
+      (flattenChildren body (l ++ (c, child) :: r))
+      (flattenChildren body ((l ++ r) ++ [(c, child)])) := by
+  have h := flattenChildren_congr_prefix body l ((c, child) :: r) (r ++ [(c, child)])
+    (flattenChildren_move_head_to_last body c child tyChild r tyR distinct)
+  simpa [List.append_assoc] using h
+
 /-- Lemma 5.86 for productive spawning-tree steps, strengthened under channel substitution. -/
 theorem simulation_csubst {p q : Tree}
     (typed : Typed p ∨ ∃ r A, TypedAt r A p)
