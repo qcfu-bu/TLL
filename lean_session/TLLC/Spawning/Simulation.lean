@@ -2420,6 +2420,40 @@ lemma flattenChildren_move_to_last (body : Proc) (c : Chan) (child : Tree)
     (flattenChildren_move_head_to_last body c child tyChild r tyR distinct)
   simpa [List.append_assoc] using h
 
+/-! ## Exposing the receiver body (report's "Proc-Scope/Proc-Par to isolate"), spectator half -/
+
+/-- The implicit com fires with arbitrary parallel spectators `SS` on the receiver side, provided the
+spectators do not mention the shared channel (`ssZero`). This handles a selected child's detached
+subtrees `qs'`; the grandchildren `ms'` still require scope-extrusion separately. -/
+lemma comIm_edge_parAll (M N : EvalCtx) (payload : Term) (c d : Chan) (SS : List Proc)
+    (imp : implicitPayload c d payload)
+    (ssZero : ∀ q, q ∈ SS → TLLC.Process.procOccurs 0 q = 0) (σ : Nat → Chan) :
+    TLLC.Process.Step
+      (.nu (.par
+        (.tm (((M.eval (.app (.send (Term.chan c) .im) payload .im))[bindEndpointAt 0 c;
+          Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+        (parAll (.tm (((N.eval (.recv (Term.chan d) .im))[bindEndpointAt 0 d;
+          Term.var_Term])[up_Chan_Chan σ; Term.var_Term])) SS)))
+      (.nu (.par
+        (.tm (((M.eval (.pure (Term.chan c)))[bindEndpointAt 0 c;
+          Term.var_Term])[up_Chan_Chan σ; Term.var_Term]))
+        (parAll (.tm (((N.eval (.pure (.pair payload (Term.chan d) .im .L)))[bindEndpointAt 0 d;
+          Term.var_Term])[up_Chan_Chan σ; Term.var_Term])) SS))) := by
+  set A := Proc.tm (((M.eval (.app (.send (Term.chan c) .im) payload .im))[bindEndpointAt 0 c;
+    Term.var_Term])[up_Chan_Chan σ; Term.var_Term])
+  set B := Proc.tm (((N.eval (.recv (Term.chan d) .im))[bindEndpointAt 0 d;
+    Term.var_Term])[up_Chan_Chan σ; Term.var_Term])
+  set A' := Proc.tm (((M.eval (.pure (Term.chan c)))[bindEndpointAt 0 c;
+    Term.var_Term])[up_Chan_Chan σ; Term.var_Term])
+  set B' := Proc.tm (((N.eval (.pure (.pair payload (Term.chan d) .im .L)))[bindEndpointAt 0 d;
+    Term.var_Term])[up_Chan_Chan σ; Term.var_Term])
+  have edge : TLLC.Process.Step (.nu (.par A B)) (.nu (.par A' B')) :=
+    process_step_comIm_edge_csubst (M := M) (N := N) (payloadTerm := payload) (c := c) (d := d) imp σ
+  exact TLLC.Process.Step.congr
+    (process_congr_res (process_congr_par_parAll_right A B SS))
+    (process_step_scope_parAll_right SS ssZero edge)
+    (process_congr_res (ARS.conv_sym (process_congr_par_parAll_right A' B' SS)))
+
 /-- Lemma 5.86 for productive spawning-tree steps, strengthened under channel substitution. -/
 theorem simulation_csubst {p q : Tree}
     (typed : Typed p ∨ ∃ r A, TypedAt r A p)
