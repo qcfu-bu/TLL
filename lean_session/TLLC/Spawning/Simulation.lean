@@ -2420,7 +2420,24 @@ lemma flattenChildren_move_to_last (body : Proc) (c : Chan) (child : Tree)
     (flattenChildren_move_head_to_last body c child tyChild r tyR distinct)
   simpa [List.append_assoc] using h
 
-/-! ## Exposing the receiver body (report's "Proc-Scope/Proc-Par to isolate"), spectator half -/
+/-! ## Exposing the receiver body (report's "Proc-Scope/Proc-Par to isolate") -/
+
+/-- Abstract extrusion congruence: pull a grandchild `nu` out past the parent `nu` (`scope_right` then
+`exch` then `assoc`). After this, the parent channel is the INNER `nu`'s `cvar 0` and the grandchild
+`GP` is a parallel spectator referencing the OUTER `nu`. -/
+lemma extrude_one_congr (A X GP : Proc) :
+    TLLC.Process.Congruence
+      (.nu (.par A (.nu (.par X GP))))
+      (.nu (.nu (.par
+        (.par (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩[Process.exch; Term.var_Term])
+              (X[Process.exch; Term.var_Term]))
+        (GP[Process.exch; Term.var_Term])))) := by
+  refine ARS.conv_trans (process_congr_res process_congr_scope_right) ?_
+  refine ARS.conv_trans process_congr_exch ?_
+  simp only [(show ∀ (a b : Proc) (σ : Nat → Chan),
+    (Proc.par a b)[σ; Term.var_Term] = Proc.par (a[σ; Term.var_Term]) (b[σ; Term.var_Term])
+    from fun _ _ _ => rfl)]
+  exact process_congr_res (process_congr_res (ARS.conv1 TLLC.Process.CongrProc.assoc))
 
 /-- A com step `nu(par A B) ⇛ nu(par A' B')` lifts through parallel spectators `SS` on the receiver
 side (each with `procOccurs 0 = 0`). This is the report's "Proc-Par to set aside the other subtrees";
