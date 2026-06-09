@@ -1,5 +1,6 @@
 import TLLC.Process.Occurs
 import TLLC.Process.Step
+import TLLC.Spawning.Distinct
 import TLLC.Spawning.Flatten
 import TLLC.Spawning.Step
 
@@ -2995,10 +2996,189 @@ lemma sendIm_bodyStep (M N : EvalCtx) (o : Term) (c d : Chan)
     (flattenChildren_move_to_last (.tm (M.eval (.app (.send (Term.chan c) .im) o .im)))
       c (Tree.node d (N.eval (.recv (Term.chan d) .im)) ms' qs') l r tyChild tyR distinctR) σ
 
+/-- Core freshness extraction: in a node/root with children `children` containing a child node
+`(c, node d N grandkids gsubs)`, distinctness of `labels ++ interior` forces every grandchild
+label `e` to be different from the child's endpoint `d` and from all sibling labels. -/
+lemma grandchild_fresh {children : List (Chan × Tree)} {c d : Chan} {N : EvalCtx}
+    {grandkids : List (Chan × Tree)} {gsubs : List Tree}
+    (hnodup : ((children.map (fun e => chanIndex e.1)) ++ childInteriors children).Nodup)
+    (memChild : (c, .node d (N.eval (.recv (Term.chan d) .im)) grandkids gsubs) ∈ children)
+    {e : Chan} {gc : Tree} (memGc : (e, gc) ∈ grandkids) :
+    chanIndex e ≠ chanIndex d ∧ e ∉ childLabels children := by
+  rw [List.nodup_append] at hnodup
+  obtain ⟨_, hinterior, hdisj⟩ := hnodup
+  set selChild : Tree := .node d (N.eval (.recv (Term.chan d) .im)) grandkids gsubs with hsel
+  have hsub : List.Sublist (treeChans selChild) (childInteriors children) :=
+    treeChans_sublist_childInteriors memChild
+  have hmemSel : chanIndex e ∈ treeChans selChild := by
+    rw [hsel, treeChans_node]
+    exact List.mem_cons_of_mem _
+      (List.mem_append_left _ (List.mem_append_left _
+        (List.mem_map.mpr ⟨(e, gc), memGc, rfl⟩)))
+  have hmemInt : chanIndex e ∈ childInteriors children := hsub.subset hmemSel
+  have hnodupSel : (treeChans selChild).Nodup := hsub.nodup hinterior
+  refine ⟨?_, ?_⟩
+  · rw [hsel, treeChans_node, List.nodup_cons] at hnodupSel
+    intro heq
+    apply hnodupSel.1
+    rw [← heq]
+    exact List.mem_append_left _ (List.mem_append_left _
+      (List.mem_map.mpr ⟨(e, gc), memGc, rfl⟩))
+  · intro hmemLabel
+    have hmapMem : chanIndex e ∈ children.map (fun x => chanIndex x.1) := by
+      rcases List.mem_map.mp hmemLabel with ⟨edge, hedge, herfl⟩
+      exact List.mem_map.mpr ⟨edge, hedge, by rw [herfl]⟩
+    exact hdisj _ hmapMem _ hmemInt rfl
+
+/-- In a node, a grandchild label differs from the node's own parent endpoint. -/
+lemma grandchild_ne_node_parent {parent d : Chan} {mt : Term} {N : EvalCtx} {c : Chan}
+    {children grandkids : List (Chan × Tree)} {gsubs subtrees : List Tree}
+    (h : Distinct (.node parent mt children subtrees))
+    (memChild : (c, .node d (N.eval (.recv (Term.chan d) .im)) grandkids gsubs) ∈ children)
+    {e : Chan} {gc : Tree} (memGc : (e, gc) ∈ grandkids) :
+    chanIndex e ≠ chanIndex parent := by
+  unfold Distinct at h
+  rw [treeChans_node, List.nodup_cons] at h
+  intro heq
+  apply h.1
+  rw [← heq]
+  have hsub := treeChans_sublist_childInteriors memChild
+  have hmemSel : chanIndex e ∈
+      treeChans (.node d (N.eval (.recv (Term.chan d) .im)) grandkids gsubs) := by
+    rw [treeChans_node]
+    exact List.mem_cons_of_mem _ (List.mem_append_left _ (List.mem_append_left _
+      (List.mem_map.mpr ⟨(e, gc), memGc, rfl⟩)))
+  exact List.mem_append_left _ (List.mem_append_right _ (hsub.subset hmemSel))
+
+/-- Forward direction of `childLabels_shift_mem_inv`. -/
+lemma childLabels_shift_mem {children : List (Chan × Tree)} {x : Nat}
+    (member : Chan.var_Chan x ∈ childLabels children) :
+    Chan.var_Chan (x + 1) ∈ childLabels (shiftChildren children) := by
+  induction children with
+  | nil => simp [childLabels] at member
+  | cons head children ih =>
+      rcases head with ⟨c, child⟩
+      cases c with
+      | var_Chan y =>
+          rw [shiftChildren]
+          simp only [childLabels, List.map_cons, List.mem_cons] at member ⊢
+          rcases member with heq | mem
+          · left; rw [Chan.var_Chan.injEq] at heq ⊢; omega
+          · exact Or.inr (ih mem)
+
+/-- For root children, channels that are not child labels are absent from the context. -/
+lemma ChildrenTyped.notLabel_false {Θ children c}
+    (typed : ChildrenTyped Θ children) (notLabel : c ∉ childLabels children) :
+    CvarPos Θ (chanIndex c) false := by
+  refine ChildrenTyped.rec
+    (motive_1 := fun _ _ => True)
+    (motive_2 := fun _ _ _ _ => True)
+    (motive_3 := fun Θ children _ =>
+      ∀ c, c ∉ childLabels children → CvarPos Θ (chanIndex c) false)
+    (motive_4 := fun _ _ _ _ _ _ => True)
+    (motive_5 := fun _ _ => True)
+    (fun _ _ _ _ _ _ => trivial)
+    (fun _ _ _ _ _ _ _ => trivial)
+    (fun _ _ => CvarPos.nil)
+    (fun _ ih c notLabel => by
+      cases c with
+      | var_Chan x =>
+          cases x with
+          | zero => exact CvarPos.none
+          | succ x =>
+              exact CvarPos.cons (ih (Chan.var_Chan x)
+                (fun hmem => notLabel (childLabels_shift_mem hmem))))
+    (fun _ _ _ ih c notLabel => by
+      cases c with
+      | var_Chan x =>
+          cases x with
+          | zero => exact absurd (by simp [childLabels]) notLabel
+          | succ x =>
+              refine CvarPos.cons (ih (Chan.var_Chan x) (fun hmem => notLabel ?_))
+              exact List.mem_cons_of_mem _ (childLabels_shift_mem hmem))
+    (fun _ _ => trivial)
+    (fun _ _ => trivial)
+    (fun _ _ _ _ => trivial)
+    trivial
+    (fun _ _ _ _ => trivial)
+    typed c notLabel
+
+/-- For node children, channels that are neither a child label nor the reserved parent endpoint
+are absent from the context. -/
+lemma ChildrenTypedAt.notLabel_false {Θ x r A children c}
+    (typed : ChildrenTypedAt Θ x r A children)
+    (notLabel : c ∉ childLabels children) (notParent : chanIndex c ≠ x) :
+    CvarPos Θ (chanIndex c) false := by
+  refine ChildrenTypedAt.rec
+    (motive_1 := fun _ _ => True)
+    (motive_2 := fun _ _ _ _ => True)
+    (motive_3 := fun Θ children _ =>
+      ∀ c, c ∉ childLabels children → CvarPos Θ (chanIndex c) false)
+    (motive_4 := fun Θ x _ _ children _ =>
+      ∀ c, c ∉ childLabels children → chanIndex c ≠ x → CvarPos Θ (chanIndex c) false)
+    (motive_5 := fun _ _ => True)
+    (fun _ _ _ _ _ _ => trivial)
+    (fun _ _ _ _ _ _ _ => trivial)
+    (fun _ _ => CvarPos.nil)
+    (fun _ ih c notLabel => by
+      cases c with
+      | var_Chan x =>
+          cases x with
+          | zero => exact CvarPos.none
+          | succ x =>
+              exact CvarPos.cons (ih (Chan.var_Chan x)
+                (fun hmem => notLabel (childLabels_shift_mem hmem))))
+    (fun _ _ _ ih c notLabel => by
+      cases c with
+      | var_Chan x =>
+          cases x with
+          | zero => exact absurd (by simp [childLabels]) notLabel
+          | succ x =>
+              refine CvarPos.cons (ih (Chan.var_Chan x) (fun hmem => notLabel ?_))
+              exact List.mem_cons_of_mem _ (childLabels_shift_mem hmem))
+    (fun _ ih c notLabel notParent => by
+      cases c with
+      | var_Chan x =>
+          cases x with
+          | zero => exact absurd rfl notParent
+          | succ x =>
+              exact CvarPos.cons (ih (Chan.var_Chan x)
+                (fun hmem => notLabel (childLabels_shift_mem hmem))))
+    (fun _ ih c notLabel notParent => by
+      cases c with
+      | var_Chan x =>
+          cases x with
+          | zero => exact CvarPos.none
+          | succ x =>
+              refine CvarPos.cons (ih (Chan.var_Chan x)
+                (fun hmem => notLabel (childLabels_shift_mem hmem)) ?_)
+              simp only [chanIndex] at notParent ⊢; omega)
+    (fun _ _ _ ih c notLabel notParent => by
+      cases c with
+      | var_Chan x =>
+          cases x with
+          | zero => exact absurd (by simp [childLabels]) notLabel
+          | succ x =>
+              refine CvarPos.cons (ih (Chan.var_Chan x)
+                (fun hmem => notLabel (List.mem_cons_of_mem _ (childLabels_shift_mem hmem))) ?_)
+              simp only [chanIndex] at notParent ⊢; omega)
+    trivial
+    (fun _ _ _ _ => trivial)
+    typed c notLabel notParent
+
+/-- The implicit-send body term and its post-step pure form have the same channel occurrences:
+the implicit payload is erased, both reduce to `chan c` in the hole. -/
+lemma sendIm_term_occurs_eq (M : EvalCtx) (c : Chan) (o : Term) (i : Nat) :
+    occurs i (M.eval (.app (.send (Term.chan c) .im) o .im)) =
+      occurs i (M.eval (.pure (Term.chan c))) := by
+  induction M with
+  | hole => cases c with | var_Chan x => simp [EvalCtx.eval, occurs]
+  | bnd M n ih => simp [EvalCtx.eval, occurs, ih]
 
 /-- Lemma 5.86 for productive spawning-tree steps, strengthened under channel substitution. -/
 theorem simulation_csubst {p q : Tree}
     (typed : Typed p ∨ ∃ r A, TypedAt r A p)
+    (distinct : Distinct p)
     (step : Step p q) :
     ∀ σ : Nat → Chan,
       TLLC.Process.Step (p.flatten[σ; Term.var_Term]) (q.flatten[σ; Term.var_Term]) := by
@@ -3239,11 +3419,56 @@ theorem simulation_csubst {p q : Tree}
             obtain ⟨r, A, typedAtRoot⟩ := typedAtRoot
             cases typedAtRoot
       obtain ⟨rChild, AChild, tyAChild, typedChild⟩ := tyChild
-      have childPosFree := typedChild.flattenAt_occurs_succ tyAChild
+      have memSel :
+          (c, Tree.node d (N.eval (.recv (Term.chan d) .im)) childChildren childSubtrees) ∈
+            before ++
+              (c, Tree.node d (N.eval (.recv (Term.chan d) .im)) childChildren childSubtrees) ::
+                after := by simp
+      have hnodup := labelsInteriors_sublist_root.nodup distinct
+      -- Per grandchild edge, distinctness gives `e ≠ d` and `e` not a root child label; the root
+      -- term typing then forces `occurs (chanIndex e) M = 0`.
+      have mFresh : ∀ e gc, (e, gc) ∈ childChildren →
+          chanIndex e ≠ chanIndex d ∧
+          occurs (chanIndex e) (M.eval (.app (.send (Term.chan c) .im) payload .im)) = 0 ∧
+          occurs (chanIndex e) (M.eval (.pure (Term.chan c))) = 0 := by
+        intro e gc memGc
+        have hfresh := grandchild_fresh hnodup memSel memGc
+        have hzero : occurs (chanIndex e)
+            (M.eval (.app (.send (Term.chan c) .im) payload .im)) = 0 := by
+          cases typed with
+          | inl typedRoot =>
+              cases typedRoot with
+              | root single typedTerm typedChildren typedSubtrees =>
+                  exact typedTerm.occurs0 (typedChildren.notLabel_false hfresh.2)
+          | inr typedAtRoot => obtain ⟨r, A, h⟩ := typedAtRoot; cases h
+        exact ⟨hfresh.1, hzero, by rw [← sendIm_term_occurs_eq M c payload]; exact hzero⟩
+      have qsZero : ∀ q, q ∈ flattenSubtrees childSubtrees →
+          ∀ i, TLLC.Process.procOccurs i q = 0 := by
+        intro q hq i
+        cases typedChild with
+        | node single has typedTermChild typedChildrenChild typedSubtreesChild =>
+            exact typedSubtreesChild.flattenSubtrees_occurs0 hq
+      have tyR : ∀ e sib, (e, sib) ∈ after → ∃ rr A, ([] : Static.Ctx) ⊢ A : .proto ∧
+          TypedAt rr (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) sib := by
+        intro e sib mem
+        cases typed with
+        | inl typedRoot =>
+            exact typedRoot.child_typedAt_wf
+              (List.mem_append_right _ (List.mem_cons_of_mem _ mem))
+        | inr typedAtRoot => obtain ⟨r, A, h⟩ := typedAtRoot; cases h
+      have distinctR : ∀ e sib, (e, sib) ∈ after → chanIndex c ≠ chanIndex e := by
+        intro e sib mem hidx
+        apply cNotAfter
+        have hce : c = e := by
+          cases c with
+          | var_Chan cx => cases e with
+            | var_Chan ex => simp only [chanIndex] at hidx; rw [hidx]
+        rw [hce]
+        exact List.mem_map.mpr ⟨(e, sib), mem, rfl⟩
       intro σ
       have bodyStep := sendIm_bodyStep M N payload c d childChildren childSubtrees before after
-        implicitPayload (fun e gc mem => typedChild.child_typedAt_wf mem) (by sorry) (by sorry)
-        ⟨rChild, AChild, tyAChild, typedChild⟩ (by sorry) (by sorry) σ
+        implicitPayload (fun e gc mem => typedChild.child_typedAt_wf mem) mFresh qsZero
+        ⟨rChild, AChild, tyAChild, typedChild⟩ tyR distinctR σ
       simpa [Tree.flatten_root, flattenBody, parAll_csubst, sendImChildren] using
         process_step_parAll_accumulator
           ((flattenSubtrees subtrees).map (fun p => p[σ; Term.var_Term])) bodyStep
@@ -3277,8 +3502,62 @@ theorem simulation_csubst {p q : Tree}
               (child := Tree.node d (N.eval (.recv (Term.chan d) .im)) childChildren childSubtrees)
               (by simp)
       obtain ⟨rChild, AChild, tyAChild, typedChild⟩ := tyChild
-      have childPosFree := typedChild.flattenAt_occurs_succ tyAChild
-      sorry
+      have memSel :
+          (c, Tree.node d (N.eval (.recv (Term.chan d) .im)) childChildren childSubtrees) ∈
+            before ++
+              (c, Tree.node d (N.eval (.recv (Term.chan d) .im)) childChildren childSubtrees) ::
+                after := by simp
+      have hnodup := labelsInteriors_sublist_node.nodup distinct
+      -- Node version: grandchild labels must additionally avoid the node's own parent endpoint
+      -- (the reserved slot of `ChildrenTypedAt`), supplied by `grandchild_ne_node_parent`.
+      have mFresh : ∀ e gc, (e, gc) ∈ childChildren →
+          chanIndex e ≠ chanIndex d ∧
+          occurs (chanIndex e) (M.eval (.app (.send (Term.chan c) .im) payload .im)) = 0 ∧
+          occurs (chanIndex e) (M.eval (.pure (Term.chan c))) = 0 := by
+        intro e gc memGc
+        have hfresh := grandchild_fresh hnodup memSel memGc
+        have eParent := grandchild_ne_node_parent distinct memSel memGc
+        have hzero : occurs (chanIndex e)
+            (M.eval (.app (.send (Term.chan c) .im) payload .im)) = 0 := by
+          cases typed with
+          | inl typedNode => cases typedNode
+          | inr typedAtNode =>
+              obtain ⟨r, A, typedAtNode⟩ := typedAtNode
+              cases typedAtNode with
+              | node single has typedTerm typedChildren typedSubtrees =>
+                  exact typedTerm.occurs0 (typedChildren.notLabel_false hfresh.2 eParent)
+        exact ⟨hfresh.1, hzero, by rw [← sendIm_term_occurs_eq M c payload]; exact hzero⟩
+      have qsZero : ∀ q, q ∈ flattenSubtrees childSubtrees →
+          ∀ i, TLLC.Process.procOccurs i q = 0 := by
+        intro q hq i
+        cases typedChild with
+        | node single has typedTermChild typedChildrenChild typedSubtreesChild =>
+            exact typedSubtreesChild.flattenSubtrees_occurs0 hq
+      have tyR : ∀ e sib, (e, sib) ∈ after → ∃ rr A, ([] : Static.Ctx) ⊢ A : .proto ∧
+          TypedAt rr (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) sib := by
+        intro e sib mem
+        cases typed with
+        | inl typedNode => cases typedNode
+        | inr typedAtNode =>
+            obtain ⟨r, A, typedAtNode⟩ := typedAtNode
+            exact typedAtNode.child_typedAt_wf
+              (List.mem_append_right _ (List.mem_cons_of_mem _ mem))
+      have distinctR : ∀ e sib, (e, sib) ∈ after → chanIndex c ≠ chanIndex e := by
+        intro e sib mem hidx
+        apply cNotAfter
+        have hce : c = e := by
+          cases c with
+          | var_Chan cx => cases e with
+            | var_Chan ex => simp only [chanIndex] at hidx; rw [hidx]
+        rw [hce]
+        exact List.mem_map.mpr ⟨(e, sib), mem, rfl⟩
+      intro σ
+      have bodyStep := sendIm_bodyStep M N payload c d childChildren childSubtrees before after
+        implicitPayload (fun e gc mem => typedChild.child_typedAt_wf mem) mFresh qsZero
+        ⟨rChild, AChild, tyAChild, typedChild⟩ tyR distinctR σ
+      simpa [Tree.flatten_node, flattenBody, parAll_csubst, sendImChildren] using
+        process_step_parAll_accumulator
+          ((flattenSubtrees subtrees).map (fun p => p[σ; Term.var_Term])) bodyStep
   | rootRecvIm implicitPayload =>
       rename_i M N payload c d before after childChildren subtrees childSubtrees
       have labelsNodup :
@@ -3357,7 +3636,7 @@ theorem simulation_csubst {p q : Tree}
         | inr typedAtRoot =>
             obtain ⟨r, A, typedAtRoot⟩ := typedAtRoot
             cases typedAtRoot
-      have childStep := ih (Or.inr ⟨rChild, AChild, typedChild⟩)
+      have childStep := ih (Or.inr ⟨rChild, AChild, typedChild⟩) (distinct.child_root (c := c) (by simp))
       cases typedChild with
       | node single has typedTerm typedChildren typedSubtrees =>
           rename_i Θ x mChild childrenChild subtreesChild
@@ -3389,7 +3668,7 @@ theorem simulation_csubst {p q : Tree}
         | inr typedAtNode =>
             obtain ⟨r, A, typedAtNode⟩ := typedAtNode
             exact typedAtNode.child_typedAt (c := c) (child := child) (by simp)
-      have childStep := ih (Or.inr ⟨rChild, AChild, typedChild⟩)
+      have childStep := ih (Or.inr ⟨rChild, AChild, typedChild⟩) (distinct.child_node (c := c) (by simp))
       cases typedChild with
       | node single has typedTerm typedChildren typedSubtrees =>
           rename_i Θ x mChild childrenChild subtreesChild
@@ -3420,7 +3699,7 @@ theorem simulation_csubst {p q : Tree}
             exact Or.inl (typedRoot.subtree_typed (by simp))
         | inr typedAtRoot =>
             obtain ⟨r, A, typedAtRoot⟩ := typedAtRoot
-            cases typedAtRoot)
+            cases typedAtRoot) (distinct.subtree_root (by simp))
       intro σ
       simpa [Tree.flatten_root, flattenBody] using
         process_step_flattenSubtrees_list_csubst (body := flattenChildren (.tm m) children)
@@ -3433,7 +3712,7 @@ theorem simulation_csubst {p q : Tree}
             cases typedNode
         | inr typedAtNode =>
             obtain ⟨r, A, typedAtNode⟩ := typedAtNode
-            exact Or.inl (typedAtNode.subtree_typed (by simp)))
+            exact Or.inl (typedAtNode.subtree_typed (by simp))) (distinct.subtree_node (by simp))
       intro σ
       simpa [Tree.flatten_node, flattenBody] using
         process_step_flattenSubtrees_list_csubst (body := flattenChildren (.tm m) children)
@@ -3464,8 +3743,9 @@ theorem simulation_csubst {p q : Tree}
 /-- Lemma 5.86 for productive spawning-tree steps. -/
 theorem simulation {p q : Tree}
     (typed : Typed p ∨ ∃ r A, TypedAt r A p)
+    (distinct : Distinct p)
     (step : Step p q) :
     TLLC.Process.Step p.flatten q.flatten := by
-  convert simulation_csubst typed step Chan.var_Chan using 1 <;> asimp
+  convert simulation_csubst typed distinct step Chan.var_Chan using 1 <;> asimp
 
 end TLLC.Spawning
