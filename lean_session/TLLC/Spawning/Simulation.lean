@@ -2748,6 +2748,145 @@ lemma comIm_edge_grandchildren (M N : EvalCtx) (payload : Term) (c d : Chan)
             case cX => rw [leafA']; exact ARS.Conv.refl
           case cQ => exact ARS.Conv.refl
 
+/-- Core of lemma (B), implicit case: `comIm` fires through the receiver child's grandchildren
+`flattenChildren (.tm (N op)) ms'`. Induct on `ms'`, extruding one grandchild nu per step
+(`extrude_one_congr`); the exposed inner com is the IH at `σ⁺ = fun y => (σ y)⟨↑⟩` (with the `e`-slot
+sent to `0`). `mFresh`: the parent body does not mention any grandchild edge (linearity). -/
+lemma comIm_through_FC (M N : EvalCtx) (payload : Term) (c d : Chan)
+    (imp : implicitPayload c d payload) :
+    ∀ (ms' : List (Chan × Tree)),
+    (∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc) →
+    (∀ e gc, (e, gc) ∈ ms' →
+      chanIndex e ≠ chanIndex d ∧
+      occurs (chanIndex e) (M.eval (.app (.send (Term.chan c) .im) payload .im)) = 0 ∧
+      occurs (chanIndex e) (M.eval (.pure (Term.chan c))) = 0) →
+    ∀ σ : Nat → Chan,
+    TLLC.Process.Step
+      (.nu (.par
+        (((Proc.tm (M.eval (.app (.send (Term.chan c) .im) payload .im)))[bindEndpointAt 0 c;
+          Term.var_Term])[up_Chan_Chan σ; Term.var_Term])
+        ((flattenChildren (.tm (N.eval (.recv (Term.chan d) .im))) ms')[bindEndpointAt 0 d;
+          Term.var_Term][up_Chan_Chan σ; Term.var_Term])))
+      (.nu (.par
+        (((Proc.tm (M.eval (.pure (Term.chan c))))[bindEndpointAt 0 c;
+          Term.var_Term])[up_Chan_Chan σ; Term.var_Term])
+        ((flattenChildren (.tm (N.eval (.pure (.pair payload (Term.chan d) .im .L)))) ms')[
+          bindEndpointAt 0 d; Term.var_Term][up_Chan_Chan σ; Term.var_Term]))) := by
+  intro ms'
+  induction ms' with
+  | nil =>
+      intro _ _ σ
+      simp only [flattenChildren_nil]
+      exact process_step_comIm_edge_csubst (M := M) (N := N) (payloadTerm := payload)
+        (c := c) (d := d) imp σ
+  | cons edge ms'' ih =>
+      rcases edge with ⟨e, gc⟩
+      intro tyMs mFresh σ
+      cases hg : gc.flattenAt with
+      | mk dg gp =>
+        simp only [flattenChildren, hg,
+          (show ∀ (p : Proc) (τ : Nat → Chan),
+              (Proc.nu p)[τ; Term.var_Term] = Proc.nu (p[up_Chan_Chan τ; Term.var_Term])
+            from fun _ _ => rfl),
+          (show ∀ (a b : Proc) (τ : Nat → Chan),
+              (Proc.par a b)[τ; Term.var_Term] = Proc.par (a[τ; Term.var_Term]) (b[τ; Term.var_Term])
+            from fun _ _ _ => rfl)]
+        refine TLLC.Process.Step.congr (extrude_one_congr _ _ _) ?_
+          (ARS.conv_sym (extrude_one_congr _ _ _))
+        refine TLLC.Process.Step.res (process_step_scope_unused_right ?gpFresh ?innerCom)
+        case gpFresh =>
+          obtain ⟨r', A', tyA', tgc⟩ := tyMs e gc (by simp)
+          have hgp : ∀ i, TLLC.Process.procOccurs (i + 1)
+              (gp[bindEndpointAt 0 dg; Term.var_Term]) = 0 := by
+            intro i; simpa [hg] using tgc.flattenAt_occurs_succ tyA' i
+          apply procOccurs_csubst_zero
+          intro k hk
+          have hk1 : k = 1 := by rcases k with _ | _ | k <;> simp_all [Process.exch, cexch]
+          subst hk1
+          apply procOccurs_csubst_zero
+          intro k hk
+          have hk1 : k = 1 := by
+            rcases k with _ | _ | k
+            · simp_all [up_Chan_Chan, scons, funcomp, asimp_lemmas]
+            · rfl
+            · exfalso
+              cases hσ : σ k with
+              | var_Chan j => simp_all [up_Chan_Chan, scons, funcomp, asimp_lemmas]
+          subst hk1
+          apply procOccurs_csubst_zero
+          intro k hk
+          have hkd : k = chanIndex d + 1 := by
+            rcases k with _ | k
+            · simp_all [up_Chan_Chan, scons, funcomp, asimp_lemmas]
+            · by_cases hkd : k = chanIndex d
+              · subst hkd; rfl
+              · exfalso
+                simp_all [up_Chan_Chan, bindEndpointAt, chanIndex, scons, funcomp, asimp_lemmas]
+          subst hkd
+          exact hgp (chanIndex d)
+        case innerCom =>
+          have key := ih (fun e' gc' mem => tyMs e' gc' (List.mem_cons_of_mem _ mem))
+            (fun e' gc' mem => mFresh e' gc' (List.mem_cons_of_mem _ mem))
+            (fun y => if y = chanIndex e then Chan.var_Chan 0
+                      else Chan.var_Chan (chanIndex (σ y) + 1))
+          refine TLLC.Process.Step.congr ?congL key ?congR
+          case congL =>
+            apply process_congr_res
+            refine ARS.conv_trans (process_congr_parallel_left ?cA)
+              (process_congr_parallel_right ?cF)
+            case cF =>
+              have hed : chanIndex e ≠ chanIndex d := (mFresh e gc (by simp)).1
+              asimp
+              convert ARS.Conv.refl using 2
+              funext x
+              rcases eq_or_ne x (chanIndex d) with rfl | hxd
+              · unfold bindEndpointAt
+                simp_all [chanIndex, asimp_lemmas, funcomp, eq_comm]
+              rcases eq_or_ne x (chanIndex e) with rfl | hxe
+              · simp_all [bindEndpointAt, chanIndex, asimp_lemmas, funcomp]
+              · cases hσ : σ x with
+                | var_Chan k => simp_all [bindEndpointAt, chanIndex, asimp_lemmas, funcomp]
+            case cA =>
+              apply ARS.conv1
+              apply TLLC.Process.CongrProc.tm
+              asimp
+              refine congrTerm_csubst_of_eqv (i := chanIndex e) ?_
+                (fun _ => (mFresh e gc (by simp)).2.1)
+              intro x hx
+              rcases eq_or_ne x (chanIndex c) with rfl | hxc
+              · unfold bindEndpointAt; simp_all [chanIndex, asimp_lemmas, funcomp]
+              · cases hσ : σ x with
+                | var_Chan k => unfold bindEndpointAt; simp_all [chanIndex, asimp_lemmas, funcomp, hx]
+          case congR =>
+            apply ARS.conv_sym
+            apply process_congr_res
+            refine ARS.conv_trans (process_congr_parallel_left ?cA')
+              (process_congr_parallel_right ?cF')
+            case cF' =>
+              have hed : chanIndex e ≠ chanIndex d := (mFresh e gc (by simp)).1
+              asimp
+              convert ARS.Conv.refl using 2
+              funext x
+              rcases eq_or_ne x (chanIndex d) with rfl | hxd
+              · unfold bindEndpointAt
+                simp_all [chanIndex, asimp_lemmas, funcomp, eq_comm]
+              rcases eq_or_ne x (chanIndex e) with rfl | hxe
+              · simp_all [bindEndpointAt, chanIndex, asimp_lemmas, funcomp]
+              · cases hσ : σ x with
+                | var_Chan k => simp_all [bindEndpointAt, chanIndex, asimp_lemmas, funcomp]
+            case cA' =>
+              apply ARS.conv1
+              apply TLLC.Process.CongrProc.tm
+              asimp
+              refine congrTerm_csubst_of_eqv (i := chanIndex e) ?_
+                (fun _ => (mFresh e gc (by simp)).2.2)
+              intro x hx
+              rcases eq_or_ne x (chanIndex c) with rfl | hxc
+              · unfold bindEndpointAt; simp_all [chanIndex, asimp_lemmas, funcomp]
+              · cases hσ : σ x with
+                | var_Chan k => unfold bindEndpointAt; simp_all [chanIndex, asimp_lemmas, funcomp, hx]
+
 /-- Lemma 5.86 for productive spawning-tree steps, strengthened under channel substitution. -/
 theorem simulation_csubst {p q : Tree}
     (typed : Typed p ∨ ∃ r A, TypedAt r A p)
