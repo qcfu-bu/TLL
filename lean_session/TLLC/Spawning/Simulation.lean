@@ -1130,6 +1130,140 @@ lemma process_congr_csubst_of_eqv {p : Proc} {i : Nat} {σ τ : Nat → Chan}
               omega
             simpa [funcomp] using congrArg (ren_Chan Nat.succ) (eqv x hx')
       exact process_congr_res (ih eqvUp unused)
+/-- Channel substitutions that agree on every channel that explicitly occurs in `m` induce a term
+congruence (implicit channels are erased). The "occurs"-dual of `congrTerm_csubst_of_eqv`. -/
+lemma congrTerm_csubst_of_occurs {r : Rlv} {m : Term} {σ τ : Nat → Chan}
+    (occ : r = .ex → ∀ k, occurs k m ≠ 0 → σ k = τ k) :
+    TLLC.Process.CongrTerm r (m[σ; Term.var_Term]) (m[τ; Term.var_Term]) := by
+  induction m generalizing r σ τ with
+  | var_Term x => asimp; exact TLLC.Process.CongrTerm.var
+  | srt s => asimp; exact TLLC.Process.CongrTerm.srt
+  | pi A B r2 s ihA ihB =>
+      asimp
+      exact TLLC.Process.CongrTerm.pi (ihA (r := .im) (by intro h; cases h))
+        (ihB (r := .im) (by intro h; cases h))
+  | lam A m r2 s ihA ihm =>
+      asimp
+      exact TLLC.Process.CongrTerm.lam (ihA (r := .im) (by intro h; cases h))
+        (ihm (r := r) (fun hr k hk => occ hr k (by simpa [occurs] using hk)))
+  | app m n r2 ihm ihn =>
+      asimp
+      refine TLLC.Process.CongrTerm.app (ihm (r := r) ?_)
+        (ihn (r := TLLC.Process.under r r2) ?_)
+      · intro hr k hk
+        exact occ hr k (by cases r2 <;> simp [occurs] <;> omega)
+      · intro hr k hk
+        cases r2 with
+        | im => cases r <;> simp [TLLC.Process.under] at hr
+        | ex => exact occ (by cases r <;> simp_all [TLLC.Process.under]) k (by simp [occurs]; omega)
+  | sig A B r2 s ihA ihB =>
+      asimp
+      exact TLLC.Process.CongrTerm.sig (ihA (r := .im) (by intro h; cases h))
+        (ihB (r := .im) (by intro h; cases h))
+  | pair m n r2 s ihm ihn =>
+      asimp
+      refine TLLC.Process.CongrTerm.pair (ihm (r := TLLC.Process.under r r2) ?_)
+        (ihn (r := r) ?_)
+      · intro hr k hk
+        cases r2 with
+        | im => cases r <;> simp [TLLC.Process.under] at hr
+        | ex => exact occ (by cases r <;> simp_all [TLLC.Process.under]) k (by simp [occurs]; omega)
+      · intro hr k hk
+        exact occ hr k (by cases r2 <;> simp [occurs] <;> omega)
+  | proj C m n ihC ihm ihn =>
+      asimp
+      refine TLLC.Process.CongrTerm.proj (ihC (r := .im) (by intro h; cases h))
+        (ihm (r := r) ?_) (ihn (r := r) ?_)
+      · intro hr k hk; exact occ hr k (by simp [occurs]; omega)
+      · intro hr k hk; exact occ hr k (by simp [occurs]; omega)
+  | fix A m ihA ihm =>
+      asimp
+      exact TLLC.Process.CongrTerm.fix (ihA (r := .im) (by intro h; cases h))
+        (ihm (r := r) (fun hr k hk => occ hr k (by simpa [occurs] using hk)))
+  | unit => asimp; exact TLLC.Process.CongrTerm.unit
+  | one => asimp; exact TLLC.Process.CongrTerm.one
+  | bool => asimp; exact TLLC.Process.CongrTerm.bool
+  | tt => asimp; exact TLLC.Process.CongrTerm.tt
+  | ff => asimp; exact TLLC.Process.CongrTerm.ff
+  | ite A m n1 n2 ihA ihm ihn1 ihn2 =>
+      asimp
+      refine TLLC.Process.CongrTerm.ite (ihA (r := .im) (by intro h; cases h))
+        (ihm (r := r) ?_) (ihn1 (r := r) ?_) (ihn2 (r := r) ?_)
+      · intro hr k hk; exact occ hr k (by simp [occurs]; omega)
+      · intro hr k hk; exact occ hr k (by simp [occurs]; omega)
+      · intro hr k hk; exact occ hr k (by simp [occurs]; omega)
+  | M A ihA => asimp; exact TLLC.Process.CongrTerm.M (ihA (r := .im) (by intro h; cases h))
+  | pure m ihm =>
+      asimp
+      exact TLLC.Process.CongrTerm.pure
+        (ihm (r := r) (fun hr k hk => occ hr k (by simpa [occurs] using hk)))
+  | mlet m n ihm ihn =>
+      asimp
+      refine TLLC.Process.CongrTerm.mlet (ihm (r := r) ?_) (ihn (r := r) ?_)
+      · intro hr k hk; exact occ hr k (by simp [occurs]; omega)
+      · intro hr k hk; exact occ hr k (by simp [occurs]; omega)
+  | proto => asimp; exact TLLC.Process.CongrTerm.proto
+  | stop => asimp; exact TLLC.Process.CongrTerm.stop
+  | act b A B r2 ihA ihB =>
+      asimp
+      exact TLLC.Process.CongrTerm.act (ihA (r := .im) (by intro h; cases h))
+        (ihB (r := .im) (by intro h; cases h))
+  | ch b A ihA =>
+      asimp; exact TLLC.Process.CongrTerm.ch (ihA (r := .im) (by intro h; cases h))
+  | chan c =>
+      cases r with
+      | im => asimp; exact TLLC.Process.CongrTerm.chan_im
+      | ex =>
+          cases c with
+          | var_Chan x =>
+              asimp
+              rw [occ rfl x (by simp [occurs])]
+              exact TLLC.Process.CongrTerm.chan_ex
+  | fork A m ihA ihm =>
+      asimp
+      exact TLLC.Process.CongrTerm.fork (ihA (r := .im) (by intro h; cases h))
+        (ihm (r := r) (fun hr k hk => occ hr k (by simpa [occurs] using hk)))
+  | recv m r2 ihm =>
+      asimp
+      exact TLLC.Process.CongrTerm.recv
+        (ihm (r := r) (fun hr k hk => occ hr k (by simpa [occurs] using hk)))
+  | send m r2 ihm =>
+      asimp
+      exact TLLC.Process.CongrTerm.send
+        (ihm (r := r) (fun hr k hk => occ hr k (by simpa [occurs] using hk)))
+  | close b m ihm =>
+      asimp
+      exact TLLC.Process.CongrTerm.close
+        (ihm (r := r) (fun hr k hk => occ hr k (by simpa [occurs] using hk)))
+  | box => asimp; exact TLLC.Process.CongrTerm.box
+
+/-- Process analogue of `congrTerm_csubst_of_occurs`. -/
+lemma process_congr_csubst_of_occurs {p : Proc} {σ τ : Nat → Chan}
+    (occ : ∀ k, TLLC.Process.procOccurs k p ≠ 0 → σ k = τ k) :
+    TLLC.Process.Congruence (p[σ; Term.var_Term]) (p[τ; Term.var_Term]) := by
+  induction p generalizing σ τ with
+  | tm m =>
+      asimp
+      exact ARS.conv1 (TLLC.Process.CongrProc.tm
+        (congrTerm_csubst_of_occurs (r := .ex) (fun _ k hk => occ k hk)))
+  | par p q ihp ihq =>
+      asimp
+      refine ARS.conv_trans
+        (process_congr_parallel_left (r := q[σ; Term.var_Term]) (ihp ?_))
+        (process_congr_parallel_right (r := p[τ; Term.var_Term]) (ihq ?_))
+      · intro k hk; exact occ k (by simp [TLLC.Process.procOccurs]; omega)
+      · intro k hk; exact occ k (by simp [TLLC.Process.procOccurs]; omega)
+  | nu p ih =>
+      asimp
+      apply process_congr_res
+      apply ih
+      intro k hk
+      cases k with
+      | zero => rfl
+      | succ k =>
+          have := occ k (by simpa [TLLC.Process.procOccurs] using hk)
+          simpa [funcomp] using congrArg (ren_Chan Nat.succ) this
+
 
 lemma occurs_csubst_zero_of_all {m : Term} {σ : Nat → Chan} {i : Nat}
     (zero : ∀ j, occurs j m = 0) :
@@ -3250,6 +3384,163 @@ lemma recvIm_term_occurs_eq (M : EvalCtx) (c : Chan) (o : Term) (i : Nat) :
   induction M with
   | hole => cases c with | var_Chan x => simp [EvalCtx.eval, occurs]
   | bnd M n ih => simp [EvalCtx.eval, occurs, ih]
+/-- The close edge step threaded through the selected child's grandchildren `ms'`. The parent `nu`
+is removed by the close; the child's flattened body (close consumed → `pure one`, grandchildren
+preserved) floats out as a parallel process. -/
+lemma end_through_FC (M N : EvalCtx) (c d : Chan)
+    (pUnused : occurs (chanIndex c) (M.eval (.pure .one)) = 0)
+    (cUnused : occurs (chanIndex d) (N.eval (.pure .one)) = 0) :
+    ∀ (ms' : List (Chan × Tree)),
+    (∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc) →
+    (∀ e gc, (e, gc) ∈ ms' →
+      chanIndex e ≠ chanIndex d ∧
+      occurs (chanIndex e) (M.eval (.close true (Term.chan c))) = 0 ∧
+      occurs (chanIndex e) (M.eval (.pure .one)) = 0) →
+    ∀ σ : Nat → Chan,
+    TLLC.Process.Step
+      (.nu (.par
+        (((Proc.tm (M.eval (.close true (Term.chan c))))[bindEndpointAt 0 c;
+          Term.var_Term])[up_Chan_Chan σ; Term.var_Term])
+        ((flattenChildren (.tm (N.eval (.close false (Term.chan d)))) ms')[bindEndpointAt 0 d;
+          Term.var_Term][up_Chan_Chan σ; Term.var_Term])))
+      (.par
+        ((Proc.tm (M.eval (.pure .one)))[σ; Term.var_Term])
+        ((flattenChildren (.tm (N.eval (.pure .one))) ms')[σ; Term.var_Term])) := by
+  intro ms'
+  induction ms' with
+  | nil =>
+      intro _ _ σ
+      simp only [flattenChildren_nil]
+      exact process_step_end_final_csubst (M := M) (N := N) (c := c) (d := d) pUnused cUnused σ
+  | cons edge ms'' ih =>
+      rcases edge with ⟨e, gc⟩
+      intro tyMs mFresh σ
+      cases hg : gc.flattenAt with
+      | mk dg gp =>
+        simp only [flattenChildren, hg,
+          (show ∀ (p : Proc) (τ : Nat → Chan),
+              (Proc.nu p)[τ; Term.var_Term] = Proc.nu (p[up_Chan_Chan τ; Term.var_Term])
+            from fun _ _ => rfl),
+          (show ∀ (a b : Proc) (τ : Nat → Chan),
+              (Proc.par a b)[τ; Term.var_Term] = Proc.par (a[τ; Term.var_Term]) (b[τ; Term.var_Term])
+            from fun _ _ _ => rfl)]
+        refine TLLC.Process.Step.congr (extrude_one_congr _ _ _)
+          (TLLC.Process.Step.res
+            (process_step_scope_remove_unused_right ?gpFresh
+              (TLLC.Process.Step.congr ?cL
+                (ih (fun e' gc' mem => tyMs e' gc' (List.mem_cons_of_mem _ mem))
+                    (fun e' gc' mem => mFresh e' gc' (List.mem_cons_of_mem _ mem))
+                    (fun y => if y = chanIndex e then Chan.var_Chan 0
+                              else Chan.var_Chan (chanIndex (σ y) + 1)))
+                ARS.Conv.refl)))
+          ?rhsConv
+        case gpFresh =>
+          obtain ⟨r', A', tyA', tgc⟩ := tyMs e gc (by simp)
+          have hgp : ∀ i, TLLC.Process.procOccurs (i + 1)
+              (gp[bindEndpointAt 0 dg; Term.var_Term]) = 0 := by
+            intro i; simpa [hg] using tgc.flattenAt_occurs_succ tyA' i
+          apply procOccurs_csubst_zero
+          intro k hk
+          have hk1 : k = 1 := by rcases k with _ | _ | k <;> simp_all [Process.exch, cexch]
+          subst hk1
+          apply procOccurs_csubst_zero
+          intro k hk
+          have hk1 : k = 1 := by
+            rcases k with _ | _ | k
+            · simp_all [up_Chan_Chan, scons, funcomp, asimp_lemmas]
+            · rfl
+            · exfalso
+              cases hσ : σ k with
+              | var_Chan j => simp_all [up_Chan_Chan, scons, funcomp, asimp_lemmas]
+          subst hk1
+          apply procOccurs_csubst_zero
+          intro k hk
+          have hkd : k = chanIndex d + 1 := by
+            rcases k with _ | k
+            · simp_all [up_Chan_Chan, scons, funcomp, asimp_lemmas]
+            · by_cases hkd : k = chanIndex d
+              · subst hkd; rfl
+              · exfalso
+                simp_all [up_Chan_Chan, bindEndpointAt, chanIndex, scons, funcomp, asimp_lemmas]
+          subst hkd
+          exact hgp (chanIndex d)
+        case cL =>
+          apply process_congr_res
+          refine ARS.conv_trans (process_congr_parallel_left ?cA)
+            (process_congr_parallel_right ?cF)
+          case cF =>
+            have hed : chanIndex e ≠ chanIndex d := (mFresh e gc (by simp)).1
+            asimp
+            convert ARS.Conv.refl using 2
+            funext x
+            clear ih pUnused cUnused tyMs mFresh
+            rcases eq_or_ne x (chanIndex d) with rfl | hxd
+            · unfold bindEndpointAt
+              simp_all [chanIndex, asimp_lemmas, funcomp, eq_comm]
+            rcases eq_or_ne x (chanIndex e) with rfl | hxe
+            · simp_all [bindEndpointAt, chanIndex, asimp_lemmas, funcomp]
+            · cases hσ : σ x with
+              | var_Chan k => simp_all [bindEndpointAt, chanIndex, asimp_lemmas, funcomp]
+          case cA =>
+            apply ARS.conv1
+            apply TLLC.Process.CongrProc.tm
+            asimp
+            refine congrTerm_csubst_of_eqv (i := chanIndex e) ?_
+              (fun _ => (mFresh e gc (by simp)).2.1)
+            intro x hx
+            rcases eq_or_ne x (chanIndex c) with rfl | hxc
+            · unfold bindEndpointAt; simp_all [chanIndex, asimp_lemmas, funcomp]
+            · cases hσ : σ x with
+              | var_Chan k => unfold bindEndpointAt; simp_all [chanIndex, asimp_lemmas, funcomp, hx]
+        case rhsConv =>
+          refine ARS.conv_trans
+            (process_congr_res (ARS.conv1i TLLC.Process.CongrProc.assoc)) ?_
+          refine ARS.conv_trans (process_congr_scope_out_left ?Afresh) ?_
+          case Afresh =>
+            apply procOccurs_csubst_zero
+            intro k hk
+            by_cases hke : k = chanIndex e
+            · subst hke; exact (mFresh e gc (by simp)).2.2
+            · exfalso; simp [hke, Chan.var_Chan.injEq] at hk
+          refine ARS.conv_trans
+            (process_congr_parallel_left ?Mpart)
+            (process_congr_parallel_right ?nupart)
+          case Mpart =>
+            apply ARS.conv1
+            apply TLLC.Process.CongrProc.tm
+            asimp
+            refine congrTerm_csubst_of_eqv (i := chanIndex e) ?_
+              (fun _ => (mFresh e gc (by simp)).2.2)
+            intro x hx
+            cases hσ : σ x with
+            | var_Chan k => simp_all [chanIndex, asimp_lemmas, funcomp]
+          case nupart =>
+            apply process_congr_res
+            refine ARS.conv_trans
+              (process_congr_parallel_left ?Bpart)
+              (process_congr_parallel_right ?Cpart)
+            case Bpart =>
+              asimp
+              convert ARS.Conv.refl using 2
+              funext x
+              rcases eq_or_ne x (chanIndex e) with rfl | hxe
+              · simp [bindEndpointAt, chanIndex, asimp_lemmas, funcomp]
+              · cases hσ : σ x with
+                | var_Chan k => simp_all [bindEndpointAt, chanIndex, asimp_lemmas, funcomp]
+            case Cpart =>
+              obtain ⟨r', A', tyA', tgc⟩ := tyMs e gc (by simp)
+              have hgp : ∀ i, TLLC.Process.procOccurs (i + 1)
+                  (gp[bindEndpointAt 0 dg; Term.var_Term]) = 0 := by
+                intro i; simpa [hg] using tgc.flattenAt_occurs_succ tyA' i
+              generalize gp[bindEndpointAt 0 dg; Term.var_Term] = q at hgp ⊢
+              asimp
+              apply process_congr_csubst_of_occurs
+              intro k hk
+              rcases k with _ | k
+              · simp [scons, asimp_lemmas]
+              · exact absurd (hgp k) hk
+
 
 /-- Core freshness extraction: in a node/root with children `children` containing a child node
 `(c, node d N grandkids gsubs)`, distinctness of `labels ++ interior` forces every grandchild
