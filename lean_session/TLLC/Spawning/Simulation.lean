@@ -2887,6 +2887,115 @@ lemma comIm_through_FC (M N : EvalCtx) (payload : Term) (c d : Chan)
               · cases hσ : σ x with
                 | var_Chan k => unfold bindEndpointAt; simp_all [chanIndex, asimp_lemmas, funcomp, hx]
 
+/-- Base of the implicit-send last-edge step: the selected child is the only one. Combines
+`comIm_through_FC` (through the child's grandchildren `ms'`) with `step_par_parAll_spectators`
+(the child's subtrees `qs'` as parallel spectators). -/
+lemma sendIm_base_step (M N : EvalCtx) (o : Term) (c d : Chan)
+    (ms' : List (Chan × Tree)) (qs' : List Tree)
+    (imp : implicitPayload c d o)
+    (tyMs : ∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc)
+    (mFresh : ∀ e gc, (e, gc) ∈ ms' →
+      chanIndex e ≠ chanIndex d ∧
+      occurs (chanIndex e) (M.eval (.app (.send (Term.chan c) .im) o .im)) = 0 ∧
+      occurs (chanIndex e) (M.eval (.pure (Term.chan c))) = 0)
+    (qsZero : ∀ q, q ∈ flattenSubtrees qs' → ∀ i, TLLC.Process.procOccurs i q = 0)
+    (σ : Nat → Chan) :
+    TLLC.Process.Step
+      ((flattenChildren (.tm (M.eval (.app (.send (Term.chan c) .im) o .im)))
+        [(c, .node d (N.eval (.recv (Term.chan d) .im)) ms' qs')])[σ; Term.var_Term])
+      ((flattenChildren (.tm (M.eval (.pure (Term.chan c))))
+        [(c, .node d (N.eval (.pure (.pair o (Term.chan d) .im .L))) ms' qs')])[σ;
+          Term.var_Term]) := by
+  simp only [flattenChildren, flattenChildren_nil, Tree.flattenAt_node, flattenBody, parAll_csubst,
+    (show ∀ (p : Proc) (τ : Nat → Chan),
+        (Proc.nu p)[τ; Term.var_Term] = Proc.nu (p[up_Chan_Chan τ; Term.var_Term])
+      from fun _ _ => rfl),
+    (show ∀ (a b : Proc) (τ : Nat → Chan),
+        (Proc.par a b)[τ; Term.var_Term] = Proc.par (a[τ; Term.var_Term]) (b[τ; Term.var_Term])
+      from fun _ _ _ => rfl)]
+  refine step_par_parAll_spectators _ _ _ _ _ ?ssZero
+    (comIm_through_FC M N o c d imp ms' tyMs mFresh σ)
+  intro q hq
+  simp only [List.mem_map] at hq
+  obtain ⟨q1, ⟨q0, hq0mem, rfl⟩, rfl⟩ := hq
+  apply procOccurs_csubst_zero; intro k _
+  apply procOccurs_csubst_zero; intro j _
+  exact qsZero q0 hq0mem j
+
+/-- The implicit-send last-edge step over the `before` siblings (the selected child is last). -/
+lemma sendIm_over_before (M N : EvalCtx) (o : Term) (c d : Chan)
+    (ms' : List (Chan × Tree)) (qs' : List Tree)
+    (imp : implicitPayload c d o)
+    (tyMs : ∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc)
+    (mFresh : ∀ e gc, (e, gc) ∈ ms' →
+      chanIndex e ≠ chanIndex d ∧
+      occurs (chanIndex e) (M.eval (.app (.send (Term.chan c) .im) o .im)) = 0 ∧
+      occurs (chanIndex e) (M.eval (.pure (Term.chan c))) = 0)
+    (qsZero : ∀ q, q ∈ flattenSubtrees qs' → ∀ i, TLLC.Process.procOccurs i q = 0)
+    (before : List (Chan × Tree)) :
+    ∀ σ : Nat → Chan,
+    TLLC.Process.Step
+      ((flattenChildren (.tm (M.eval (.app (.send (Term.chan c) .im) o .im)))
+        (before ++ [(c, .node d (N.eval (.recv (Term.chan d) .im)) ms' qs')]))[σ; Term.var_Term])
+      ((flattenChildren (.tm (M.eval (.pure (Term.chan c))))
+        (before ++ [(c, .node d (N.eval (.pure (.pair o (Term.chan d) .im .L))) ms' qs')]))[σ;
+          Term.var_Term]) := by
+  induction before with
+  | nil =>
+      intro σ
+      simpa using sendIm_base_step M N o c d ms' qs' imp tyMs mFresh qsZero σ
+  | cons edge before ih =>
+      intro σ
+      rcases edge with ⟨e, sibling⟩
+      rw [List.cons_append]
+      cases siblingAt : sibling.flattenAt with
+      | mk f p =>
+          have tailStep := ih (fun x => (bindEndpointAt 0 e x)[up_Chan_Chan σ])
+          convert
+            TLLC.Process.Step.res
+              (process_step_parallel_left
+                (r := p[bindEndpointAt 0 f; Term.var_Term][up_Chan_Chan σ; Term.var_Term])
+                tailStep)
+            using 1
+          · simp [flattenChildren, siblingAt]
+            asimp
+          · simp [flattenChildren, siblingAt]
+            asimp
+
+/-- The full implicit-send children-body step: move the selected child to last (congruence), then
+fire the last-edge step. This is `bodyStep` for the rootSendIm/nodeSendIm cases. -/
+lemma sendIm_bodyStep (M N : EvalCtx) (o : Term) (c d : Chan)
+    (ms' qs' : _) (l r : List (Chan × Tree))
+    (imp : implicitPayload c d o)
+    (tyMs : ∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc)
+    (mFresh : ∀ e gc, (e, gc) ∈ ms' →
+      chanIndex e ≠ chanIndex d ∧
+      occurs (chanIndex e) (M.eval (.app (.send (Term.chan c) .im) o .im)) = 0 ∧
+      occurs (chanIndex e) (M.eval (.pure (Term.chan c))) = 0)
+    (qsZero : ∀ q, q ∈ flattenSubtrees qs' → ∀ i, TLLC.Process.procOccurs i q = 0)
+    (tyChild : ∃ rr A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt rr (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)
+        (Tree.node d (N.eval (.recv (Term.chan d) .im)) ms' qs'))
+    (tyR : ∀ e sib, (e, sib) ∈ r → ∃ rr A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt rr (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) sib)
+    (distinctR : ∀ e sib, (e, sib) ∈ r → chanIndex c ≠ chanIndex e)
+    (σ : Nat → Chan) :
+    TLLC.Process.Step
+      ((flattenChildren (.tm (M.eval (.app (.send (Term.chan c) .im) o .im)))
+        (l ++ (c, .node d (N.eval (.recv (Term.chan d) .im)) ms' qs') :: r))[σ; Term.var_Term])
+      ((flattenChildren (.tm (M.eval (.pure (Term.chan c))))
+        ((l ++ r) ++ [(c, .node d (N.eval (.pure (.pair o (Term.chan d) .im .L))) ms' qs')]))[σ;
+          Term.var_Term]) := by
+  refine TLLC.Process.Step.congr ?_
+    (sendIm_over_before M N o c d ms' qs' imp tyMs mFresh qsZero (l ++ r) σ) ARS.Conv.refl
+  exact process_congr_csubst
+    (flattenChildren_move_to_last (.tm (M.eval (.app (.send (Term.chan c) .im) o .im)))
+      c (Tree.node d (N.eval (.recv (Term.chan d) .im)) ms' qs') l r tyChild tyR distinctR) σ
+
+
 /-- Lemma 5.86 for productive spawning-tree steps, strengthened under channel substitution. -/
 theorem simulation_csubst {p q : Tree}
     (typed : Typed p ∨ ∃ r A, TypedAt r A p)
@@ -3131,7 +3240,13 @@ theorem simulation_csubst {p q : Tree}
             cases typedAtRoot
       obtain ⟨rChild, AChild, tyAChild, typedChild⟩ := tyChild
       have childPosFree := typedChild.flattenAt_occurs_succ tyAChild
-      sorry
+      intro σ
+      have bodyStep := sendIm_bodyStep M N payload c d childChildren childSubtrees before after
+        implicitPayload (fun e gc mem => typedChild.child_typedAt_wf mem) (by sorry) (by sorry)
+        ⟨rChild, AChild, tyAChild, typedChild⟩ (by sorry) (by sorry) σ
+      simpa [Tree.flatten_root, flattenBody, parAll_csubst, sendImChildren] using
+        process_step_parAll_accumulator
+          ((flattenSubtrees subtrees).map (fun p => p[σ; Term.var_Term])) bodyStep
   | nodeSendIm implicitPayload =>
       rename_i M N parent payload c d before after childChildren subtrees childSubtrees
       have labelsNodup :
