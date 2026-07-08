@@ -5413,7 +5413,7 @@ theorem simulation_csubst {p q : Tree}
     ∀ σ : Nat → Chan,
       TLLC.Process.Step (p.flatten[σ; Term.var_Term]) (q.flatten[σ; Term.var_Term]) := by
   induction step with
-  | rootFork freshC freshD =>
+  | rootFork freshC freshD treeFresh =>
       rename_i M A m c d children subtrees
       have freshC' : occurs (chanIndex c) (M.eval (.fork A m)) = 0 := by
         cases c with | var_Chan cx => exact freshC
@@ -5446,7 +5446,7 @@ theorem simulation_csubst {p q : Tree}
       have tyRes : Typed (.root (M.eval (.pure (Term.chan c))) (forkChildren m c d children)
           subtrees) := by
         cases typed with
-        | inl ty => exact (fidelity_mutual (Step.rootFork freshC freshD)).1 ty distinct
+        | inl ty => exact (fidelity_mutual (Step.rootFork freshC freshD treeFresh)).1 ty distinct
         | inr ty => obtain ⟨r0, A0, ty0⟩ := ty; cases ty0
       have permON : List.Perm ((splitChildrenByTerm m children).2 ++
           [(c, Tree.node d (m[Chan.var_Chan; (Term.chan d)..])
@@ -5464,7 +5464,7 @@ theorem simulation_csubst {p q : Tree}
       simpa [Tree.flatten_root, flattenBody, parAll_csubst] using
         process_step_parAll_accumulator
           ((flattenSubtrees subtrees).map (fun p => p[σ; Term.var_Term])) bodyStep'
-  | nodeFork freshC freshD _freshP =>
+  | nodeFork freshC freshD _freshP treeFresh =>
       rename_i M parent A m c d children subtrees
       have freshC' : occurs (chanIndex c) (M.eval (.fork A m)) = 0 := by
         cases c with | var_Chan cx => exact freshC
@@ -5506,7 +5506,8 @@ theorem simulation_csubst {p q : Tree}
         | inr ty =>
             obtain ⟨r0, A0, ty0⟩ := ty
             exact ⟨r0, A0,
-              (fidelity_mutual (Step.nodeFork freshC freshD _freshP)).2 r0 A0 ty0 distinct⟩
+              (fidelity_mutual (Step.nodeFork freshC freshD _freshP treeFresh)).2 r0 A0 ty0
+                distinct⟩
       have permON : List.Perm ((splitChildrenByTerm m children).2 ++
           [(c, Tree.node d (m[Chan.var_Chan; (Term.chan d)..])
             (splitChildrenByTerm m children).1 [])])
@@ -7527,7 +7528,7 @@ theorem simulation_csubst {p q : Tree}
         (process_congr_parAll_accumulator_csubst
           (flattenSubtrees childSubtrees) bridge σ)
       simpa [Tree.flatten_node, flattenBody] using bodyStep'
-  | rootChild stepChild ih =>
+  | rootChild stepChild _avoids ih =>
       rename_i m c child child' before after subtrees
       obtain ⟨rChild, AChild, typedChild⟩ := by
         cases typed with
@@ -7559,7 +7560,7 @@ theorem simulation_csubst {p q : Tree}
           simpa [Tree.flatten_root, flattenBody, parAll_csubst] using
             process_step_parAll_accumulator
               ((flattenSubtrees subtrees).map (fun process => process[σ; Term.var_Term])) bodyStep
-  | nodeChild stepChild ih =>
+  | nodeChild stepChild _avoids ih =>
       rename_i parent m c child child' before after subtrees
       obtain ⟨rChild, AChild, typedChild⟩ := by
         cases typed with
@@ -7591,7 +7592,7 @@ theorem simulation_csubst {p q : Tree}
           simpa [Tree.flatten_node, flattenBody, parAll_csubst] using
             process_step_parAll_accumulator
               ((flattenSubtrees subtrees).map (fun process => process[σ; Term.var_Term])) bodyStep
-  | rootSubtree stepSubtree ih =>
+  | rootSubtree stepSubtree _avoids ih =>
       rename_i m children subtree subtree' before after
       have subtreeStep := ih (by
         cases typed with
@@ -7604,7 +7605,7 @@ theorem simulation_csubst {p q : Tree}
       simpa [Tree.flatten_root, flattenBody] using
         process_step_flattenSubtrees_list_csubst (body := flattenChildren (.tm m) children)
           before after subtreeStep σ
-  | nodeSubtree stepSubtree ih =>
+  | nodeSubtree stepSubtree _avoids ih =>
       rename_i parent m children subtree subtree' before after
       have subtreeStep := ih (by
         cases typed with
@@ -7648,6 +7649,26 @@ theorem simulation {p q : Tree}
     TLLC.Process.Step p.flatten q.flatten := by
   convert simulation_csubst typed distinct step Chan.var_Chan using 1 <;> asimp
 
-
+/-- Lemma 5.86 along multi-step reduction: since fidelity carries validity *and* channel
+distinctness (`Step.distinct`) across every step, flattening simulates whole reduction
+sequences. -/
+theorem simulation_red {p q : Tree}
+    (typed : Typed p ∨ ∃ r A, TypedAt r A p)
+    (distinct : Distinct p)
+    (red : Red p q) :
+    TLLC.Process.Red p.flatten q.flatten := by
+  induction red with
+  | refl => exact ARS.Star.refl
+  | @tail y z rd st ih =>
+      have inv : (Typed y ∨ ∃ r A, TypedAt r A y) ∧ Distinct y := by
+        cases typed with
+        | inl ty =>
+            have h := ty.fidelity_red distinct rd
+            exact ⟨Or.inl h.1, h.2⟩
+        | inr h =>
+            obtain ⟨r, A, ty⟩ := h
+            have h := ty.fidelity_red distinct rd
+            exact ⟨Or.inr ⟨r, A, h.1⟩, h.2⟩
+      exact ARS.Star.tail ih (simulation inv.1 inv.2 st)
 
 end TLLC.Spawning

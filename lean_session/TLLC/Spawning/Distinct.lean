@@ -163,4 +163,86 @@ lemma Distinct.subtree_node {d m ms ns sub}
     (h : Distinct (.node d m ms ns)) (mem : sub ∈ ns) : Distinct sub :=
   ((treeChans_sublist_subInteriors mem).trans subInteriors_sublist_treeChans_node).nodup h
 
+/-! ## Multiset view
+
+`Step.distinct` (in `TLLC/Spawning/Fidelity.lean`) shows that reduction preserves `Distinct`. Its
+bookkeeping is a series of multiset identities, so we provide a multiset view of `treeChans` whose
+children/detached collectors are permutation-invariant by construction. -/
+
+/-- Multiset of all channel indices appearing anywhere in a tree. -/
+def treeChansM (t : Tree) : Multiset Nat := treeChans t
+
+/-- Multiset of all channel indices contributed by a children list: each edge label together with
+the channels of the child below it. -/
+def childChansM (ms : List (Chan × Tree)) : Multiset Nat :=
+  (ms.map (fun e => chanIndex e.1 ::ₘ treeChansM e.2)).sum
+
+/-- Multiset of all channel indices contributed by a detached-subtree list. -/
+def subChansM (ns : List Tree) : Multiset Nat := (ns.map treeChansM).sum
+
+@[simp] lemma childChansM_nil : childChansM [] = 0 := rfl
+
+@[simp] lemma childChansM_cons (c : Chan) (t : Tree) (ms : List (Chan × Tree)) :
+    childChansM ((c, t) :: ms) = (chanIndex c ::ₘ treeChansM t) + childChansM ms := by
+  simp [childChansM]
+
+@[simp] lemma childChansM_append (l r : List (Chan × Tree)) :
+    childChansM (l ++ r) = childChansM l + childChansM r := by
+  simp [childChansM]
+
+/-- `childChansM` only sees the underlying multiset of edges. -/
+lemma childChansM_perm {ms ms' : List (Chan × Tree)} (h : List.Perm ms ms') :
+    childChansM ms = childChansM ms' :=
+  List.Perm.sum_eq (h.map _)
+
+@[simp] lemma subChansM_nil : subChansM [] = 0 := rfl
+
+@[simp] lemma subChansM_cons (t : Tree) (ns : List Tree) :
+    subChansM (t :: ns) = treeChansM t + subChansM ns := by
+  simp [subChansM]
+
+@[simp] lemma subChansM_append (l r : List Tree) :
+    subChansM (l ++ r) = subChansM l + subChansM r := by
+  simp [subChansM]
+
+/-- `subChansM` only sees the underlying multiset of subtrees. -/
+lemma subChansM_perm {ns ns' : List Tree} (h : List.Perm ns ns') :
+    subChansM ns = subChansM ns' :=
+  List.Perm.sum_eq (h.map _)
+
+lemma childChansM_eq (ms : List (Chan × Tree)) :
+    childChansM ms
+      = (↑(ms.map (fun e => chanIndex e.1)) : Multiset Nat) + ↑(childInteriors ms) := by
+  induction ms with
+  | nil => simp
+  | cons e ms ih =>
+      obtain ⟨c, t⟩ := e
+      simp only [childChansM_cons, ih, childInteriors_cons, List.map_cons,
+        ← Multiset.cons_coe, ← Multiset.coe_add, ← Multiset.singleton_add, treeChansM]
+      abel
+
+lemma coe_subInteriors (ns : List Tree) :
+    (↑(subInteriors ns) : Multiset Nat) = subChansM ns := by
+  induction ns with
+  | nil => simp
+  | cons t ns ih =>
+      rw [subInteriors_cons, ← Multiset.coe_add, ih, subChansM_cons, treeChansM]
+
+@[simp] lemma treeChansM_root (m : Term) (ms : List (Chan × Tree)) (ns : List Tree) :
+    treeChansM (.root m ms ns) = childChansM ms + subChansM ns := by
+  rw [treeChansM, treeChans_root, ← Multiset.coe_add, ← Multiset.coe_add,
+    ← childChansM_eq, coe_subInteriors]
+
+@[simp] lemma treeChansM_node (d : Chan) (m : Term) (ms : List (Chan × Tree)) (ns : List Tree) :
+    treeChansM (.node d m ms ns) = chanIndex d ::ₘ (childChansM ms + subChansM ns) := by
+  rw [treeChansM, treeChans_node, ← Multiset.cons_coe, ← Multiset.coe_add, ← Multiset.coe_add,
+    ← childChansM_eq, coe_subInteriors]
+
+/-- `Distinct` in multiset form. -/
+lemma distinct_iff_nodupM {t : Tree} : Distinct t ↔ (treeChansM t).Nodup :=
+  Iff.symm Multiset.coe_nodup
+
+@[simp] lemma mem_treeChansM {x : Nat} {t : Tree} : x ∈ treeChansM t ↔ x ∈ treeChans t :=
+  Multiset.mem_coe
+
 end TLLC.Spawning

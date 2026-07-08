@@ -4,6 +4,7 @@ import TLLC.Dynamic.Occurs
 import TLLC.Dynamic.Step
 import TLLC.Spawning.Channel
 import TLLC.Spawning.Tree
+import TLLC.Spawning.Distinct
 
 /-!
 # Spawning-tree reduction
@@ -30,6 +31,13 @@ must not capture the node's parent endpoint). The report states the analogous si
 `d ∉ FC(v)` only for Node-Send (with Node-Forward covering the capturing case) but omits it for
 Node-Fork; without it the successor tree of a parent-capturing fork is ill-typed and the fidelity
 theorem (Lemma 5.87) fails. See `TLLC/Spawning/Fidelity.lean`.
+
+The report leaves the freshness of the two fork channels informal. Here it is global: both fork
+rules carry `forkFresh`, requiring `c`/`d` to avoid every channel index of the source *tree* (not
+merely the redex term) and each other, and the four congruence rules carry `stepAvoids`, requiring
+the channels created by an inner reduction to avoid the enclosing tree. These side conditions make
+channel distinctness an invariant of reduction (`Step.distinct` in `TLLC/Spawning/Fidelity.lean`),
+which iterating fidelity and simulation along `Red` requires.
 -/
 
 namespace TLLC.Spawning
@@ -72,6 +80,18 @@ theorem implicitPayload_symm {c d : Chan} {payload : Term}
     implicitPayload d c payload := by
   intro σ
   exact (implicit σ).symm
+
+/-- The two channels minted by a fork avoid every channel index of the source tree, and each
+other. Together with the `chanFreshIn` premises on the redex term this keeps `Distinct` invariant
+under reduction (`Step.distinct`). -/
+def forkFresh (c d : Chan) (t : Tree) : Prop :=
+  chanIndex c ∉ treeChans t ∧ chanIndex d ∉ treeChans t ∧ chanIndex c ≠ chanIndex d
+
+/-- Channels created by an inner reduction step (present in the result subtree but not in the
+source subtree) avoid every channel index of the enclosing source tree. Each congruence layer
+imposes this on the step it wraps, keeping deep forks globally fresh. -/
+def stepAvoids (sub sub' whole : Tree) : Prop :=
+  ∀ x ∈ treeChans sub', x ∉ treeChans sub → x ∉ treeChans whole
 
 /-- Label order on child edges. -/
 def childLE (p q : Chan × Tree) : Prop := chanIndex p.1 ≤ chanIndex q.1
@@ -141,6 +161,7 @@ inductive Step : Tree → Tree → Prop where
   | rootFork {M : Dynamic.EvalCtx} {A m c d ms qs} :
       chanFreshIn c (M.eval (.fork A m)) →
       chanFreshIn d (M.eval (.fork A m)) →
+      forkFresh c d (.root (M.eval (.fork A m)) ms qs) →
       Step
         (.root (M.eval (.fork A m)) ms qs)
         (.root (M.eval (.pure (Term.chan c))) (forkChildren m c d ms) qs)
@@ -148,6 +169,7 @@ inductive Step : Tree → Tree → Prop where
       chanFreshIn c (M.eval (.fork A m)) →
       chanFreshIn d (M.eval (.fork A m)) →
       chanFreshIn p m →
+      forkFresh c d (.node p (M.eval (.fork A m)) ms qs) →
       Step
         (.node p (M.eval (.fork A m)) ms qs)
         (.node p (M.eval (.pure (Term.chan c))) (forkChildren m c d ms) qs)
@@ -278,21 +300,25 @@ inductive Step : Tree → Tree → Prop where
 
   | rootChild {m c child child' l r qs} :
       Step child child' →
+      stepAvoids child child' (.root m (l ++ (c, child) :: r) qs) →
       Step
         (.root m (l ++ (c, child) :: r) qs)
         (.root m (l ++ (c, child') :: r) qs)
   | nodeChild {p m c child child' l r qs} :
       Step child child' →
+      stepAvoids child child' (.node p m (l ++ (c, child) :: r) qs) →
       Step
         (.node p m (l ++ (c, child) :: r) qs)
         (.node p m (l ++ (c, child') :: r) qs)
   | rootSubtree {m ms subtree subtree' l r} :
       Step subtree subtree' →
+      stepAvoids subtree subtree' (.root m ms (l ++ subtree :: r)) →
       Step
         (.root m ms (l ++ subtree :: r))
         (.root m ms (l ++ subtree' :: r))
   | nodeSubtree {p m ms subtree subtree' l r} :
       Step subtree subtree' →
+      stepAvoids subtree subtree' (.node p m ms (l ++ subtree :: r)) →
       Step
         (.node p m ms (l ++ subtree :: r))
         (.node p m ms (l ++ subtree' :: r))

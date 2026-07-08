@@ -1553,7 +1553,7 @@ theorem fidelity_mutual : ∀ {t t' : Tree}, Step t t' →
     (∀ ry Ay, TypedAt ry Ay t → Distinct t → TypedAt ry Ay t') := by
   intro t t' st
   induction st with
-  | @rootFork M A m c d ms qs freshC freshD =>
+  | @rootFork M A m c d ms qs freshC freshD _treeFresh =>
       refine ⟨fun ty dist => ?_, fun ry Ay ty _ => (by cases ty)⟩
       cases ty with
       | @root Θ0 _ _ _ single0 tym0 tyms0 tyqs =>
@@ -1682,7 +1682,7 @@ theorem fidelity_mutual : ∀ {t t' : Tree}, Step t t' →
         simp [forkChildren]
       rw [hfork, e1, e2, eNew]
       exact Typed.root singleΘ' tyTerm' tyMsNew tyqs
-  | @nodeFork M p A m c d ms qs freshC freshD freshP =>
+  | @nodeFork M p A m c d ms qs freshC freshD freshP _treeFresh =>
       refine ⟨fun ty _ => (by cases ty), fun ry Ay ty dist => ?_⟩
       cases ty with
       | @node Θ0 y _ _ _ _ _ single0 has0 tym0 tyms0 tyqs =>
@@ -3892,7 +3892,7 @@ theorem fidelity_mutual : ∀ {t t' : Tree}, Step t t' →
           (ChildrenTypedAt.sorted tyMsTop)
       rw [hsim, e1, e2, eMid, eTop]
       exact TypedAt.node singleTop hasY tyTermTop tyMsTop tyqs'
-  | @rootChild m c child child' l r qs st' ih =>
+  | @rootChild m c child child' l r qs st' _avoids ih =>
       refine ⟨fun ty dist => ?_, fun ry Ay ty _ => (by cases ty)⟩
       cases ty with
       | root single tym tyms tyqs =>
@@ -3901,7 +3901,7 @@ theorem fidelity_mutual : ∀ {t t' : Tree}, Step t t' →
             ChildrenTyped.replace_via (F := fun _ u => u = child') tyms rfl
               (fun rc C tyc => ⟨child', rfl, ih.2 rc C tyc distC⟩)
           exact Typed.root single tym tyms' tyqs
-  | @nodeChild p m c child child' l r qs st' ih =>
+  | @nodeChild p m c child child' l r qs st' _avoids ih =>
       refine ⟨fun ty _ => (by cases ty), fun ry Ay ty dist => ?_⟩
       cases ty with
       | node single has tym tyms tyqs =>
@@ -3910,7 +3910,7 @@ theorem fidelity_mutual : ∀ {t t' : Tree}, Step t t' →
             ChildrenTypedAt.replace_via (F := fun _ u => u = child') tyms rfl
               (fun rc C tyc => ⟨child', rfl, ih.2 rc C tyc distC⟩)
           exact TypedAt.node single has tym tyms' tyqs
-  | @rootSubtree m ms sub sub' l r st' ih =>
+  | @rootSubtree m ms sub sub' l r st' _avoids ih =>
       refine ⟨fun ty dist => ?_, fun ry Ay ty _ => (by cases ty)⟩
       cases ty with
       | root single tym tyms tyqs =>
@@ -3919,7 +3919,7 @@ theorem fidelity_mutual : ∀ {t t' : Tree}, Step t t' →
             SubtreesTyped.replace_via (F := fun _ u => u = sub') tyqs
               (fun tys => ⟨sub', rfl, ih.1 tys distS⟩)
           exact Typed.root single tym tyms tyqs'
-  | @nodeSubtree p m ms sub sub' l r st' ih =>
+  | @nodeSubtree p m ms sub sub' l r st' _avoids ih =>
       refine ⟨fun ty _ => (by cases ty), fun ry Ay ty dist => ?_⟩
       cases ty with
       | node single has tym tyms tyqs =>
@@ -3939,15 +3939,395 @@ theorem fidelity_mutual : ∀ {t t' : Tree}, Step t t' →
       | node single has tym tyms tyqs =>
           exact TypedAt.node single has (tym.sr dst) tyms tyqs
 
-/-- Lemma 5.87, root half: a valid, channel-distinct spawning tree steps to a valid tree. -/
-theorem Typed.fidelity {t t' : Tree} (ty : Typed t) (dist : Distinct t) (st : Step t t') :
-    Typed t' :=
-  (fidelity_mutual st).1 ty dist
+/-! ## Distinctness preservation
 
-/-- Lemma 5.87, node half: the parent endpoint keeps its polarity and protocol. -/
+Only the fork rules create channels; every other rule permutes or drops them. The fork side
+conditions (`forkFresh`) and the congruence side conditions (`stepAvoids`) are exactly what keeps
+the global channel multiset duplicate-free, so `Distinct` is an invariant of reduction and the
+fidelity/simulation theorems can be iterated along `Red`. -/
+
+lemma childChansM_insertChild (c : Chan) (t : Tree) (ms : List (Chan × Tree)) :
+    childChansM (insertChild c t ms) = (chanIndex c ::ₘ treeChansM t) + childChansM ms := by
+  rw [childChansM_perm (insertChild_perm c t ms), childChansM_cons]
+
+lemma childChansM_mergeChildren (extra base : List (Chan × Tree)) :
+    childChansM (mergeChildren extra base) = childChansM extra + childChansM base := by
+  rw [childChansM_perm (mergeChildren_perm extra base), childChansM_append]
+
+lemma childChansM_split (v : Term) (ms : List (Chan × Tree)) :
+    childChansM (splitChildrenByTerm v ms).1 + childChansM (splitChildrenByTerm v ms).2
+      = childChansM ms := by
+  rw [← childChansM_perm (splitChildrenByTerm_perm v ms), childChansM_append]
+  exact add_comm _ _
+
+/-- Replacing a sub-multiset by a duplicate-free one whose new elements avoid the whole keeps the
+whole duplicate-free. -/
+lemma nodupM_replace {ctx s s' : Multiset Nat}
+    (h : (ctx + s).Nodup) (hs' : s'.Nodup)
+    (avoid : ∀ x ∈ s', x ∉ s → x ∉ ctx + s) : (ctx + s').Nodup := by
+  rw [Multiset.nodup_add] at h ⊢
+  refine ⟨h.1, hs', Multiset.disjoint_left.mpr ?_⟩
+  intro x hxc hxs'
+  by_cases hxs : x ∈ s
+  · exact Multiset.disjoint_left.mp h.2.2 hxc hxs
+  · exact avoid x hxs' hxs (Multiset.mem_add.mpr (Or.inl hxc))
+
+/-- Channel distinctness is preserved by spawning-tree reduction. -/
+theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t' := by
+  simp only [distinct_iff_nodupM]
+  induction st with
+  | @rootFork M A m c d ms qs _freshC _freshD treeFresh =>
+      intro h
+      obtain ⟨hc, hd, hcd⟩ := treeFresh
+      have e : treeChansM (.root (M.eval (.pure (Term.chan c))) (forkChildren m c d ms) qs)
+          = chanIndex c ::ₘ chanIndex d ::ₘ treeChansM (.root (M.eval (.fork A m)) ms qs) := by
+        simp only [treeChansM_root, forkChildren, childChansM_insertChild, treeChansM_node,
+          subChansM_nil, add_zero, ← Multiset.singleton_add]
+        rw [← childChansM_split m ms]
+        abel
+      rw [e, Multiset.nodup_cons, Multiset.nodup_cons]
+      refine ⟨?_, by simpa only [mem_treeChansM] using hd, h⟩
+      simp only [Multiset.mem_cons, mem_treeChansM]
+      exact fun h' => h'.elim hcd hc
+  | @nodeFork M p A m c d ms qs _freshC _freshD _freshP treeFresh =>
+      intro h
+      obtain ⟨hc, hd, hcd⟩ := treeFresh
+      have e : treeChansM (.node p (M.eval (.pure (Term.chan c))) (forkChildren m c d ms) qs)
+          = chanIndex c ::ₘ chanIndex d ::ₘ treeChansM (.node p (M.eval (.fork A m)) ms qs) := by
+        simp only [treeChansM_root, forkChildren, childChansM_insertChild, treeChansM_node,
+          subChansM_nil, add_zero, ← Multiset.singleton_add]
+        rw [← childChansM_split m ms]
+        abel
+      rw [e, Multiset.nodup_cons, Multiset.nodup_cons]
+      refine ⟨?_, by simpa only [mem_treeChansM] using hd, h⟩
+      simp only [Multiset.mem_cons, mem_treeChansM]
+      exact fun h' => h'.elim hcd hc
+  | @rootWait M N c d l r ms' qs qs' =>
+      intro h
+      have e : treeChansM (.root (M.eval (.close false (Term.chan c)))
+            (l ++ (c, .node d (N.eval (.close true (Term.chan d))) ms' qs') :: r) qs)
+          = chanIndex c ::ₘ chanIndex d ::ₘ
+              treeChansM (.root (M.eval (.pure .one)) (l ++ r)
+                (qs ++ [Tree.root (N.eval (.pure .one)) ms' qs'])) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
+          childChansM_nil, subChansM_append, subChansM_cons, subChansM_nil, add_zero,
+          ← Multiset.singleton_add]
+        abel
+      rw [e] at h
+      exact (Multiset.nodup_cons.mp (Multiset.nodup_cons.mp h).2).2
+  | @nodeWait M N p c d l r ms' qs qs' =>
+      intro h
+      have e : treeChansM (.node p (M.eval (.close false (Term.chan c)))
+            (l ++ (c, .node d (N.eval (.close true (Term.chan d))) ms' qs') :: r) qs)
+          = chanIndex c ::ₘ chanIndex d ::ₘ
+              treeChansM (.node p (M.eval (.pure .one)) (l ++ r)
+                (qs ++ [Tree.root (N.eval (.pure .one)) ms' qs'])) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
+          childChansM_nil, subChansM_append, subChansM_cons, subChansM_nil, add_zero,
+          ← Multiset.singleton_add]
+        abel
+      rw [e] at h
+      exact (Multiset.nodup_cons.mp (Multiset.nodup_cons.mp h).2).2
+  | @rootClose M N c d l r ms' qs qs' =>
+      intro h
+      have e : treeChansM (.root (M.eval (.close true (Term.chan c)))
+            (l ++ (c, .node d (N.eval (.close false (Term.chan d))) ms' qs') :: r) qs)
+          = chanIndex c ::ₘ chanIndex d ::ₘ
+              treeChansM (.root (M.eval (.pure .one)) (l ++ r)
+                (qs ++ [Tree.root (N.eval (.pure .one)) ms' qs'])) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
+          childChansM_nil, subChansM_append, subChansM_cons, subChansM_nil, add_zero,
+          ← Multiset.singleton_add]
+        abel
+      rw [e] at h
+      exact (Multiset.nodup_cons.mp (Multiset.nodup_cons.mp h).2).2
+  | @nodeClose M N p c d l r ms' qs qs' =>
+      intro h
+      have e : treeChansM (.node p (M.eval (.close true (Term.chan c)))
+            (l ++ (c, .node d (N.eval (.close false (Term.chan d))) ms' qs') :: r) qs)
+          = chanIndex c ::ₘ chanIndex d ::ₘ
+              treeChansM (.node p (M.eval (.pure .one)) (l ++ r)
+                (qs ++ [Tree.root (N.eval (.pure .one)) ms' qs'])) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
+          childChansM_nil, subChansM_append, subChansM_cons, subChansM_nil, add_zero,
+          ← Multiset.singleton_add]
+        abel
+      rw [e] at h
+      exact (Multiset.nodup_cons.mp (Multiset.nodup_cons.mp h).2).2
+  | @rootSendEx M N v c d l r ms' qs qs' _value =>
+      intro h
+      have e3 : childChansM (splitChildrenByTerm v (l ++ r)).1
+            + childChansM (splitChildrenByTerm v (l ++ r)).2
+          = childChansM l + childChansM r := by
+        rw [childChansM_split, childChansM_append]
+      have e1 : treeChansM (.root (M.eval (.pure (Term.chan c)))
+            (sendExChildren v c d N ms' qs' (l ++ r)) qs)
+          = (childChansM (splitChildrenByTerm v (l ++ r)).1
+              + childChansM (splitChildrenByTerm v (l ++ r)).2)
+            + ({chanIndex c} + {chanIndex d} + childChansM ms' + subChansM qs'
+                + subChansM qs) := by
+        simp only [sendExChildren, treeChansM_root, treeChansM_node, childChansM_insertChild,
+          childChansM_mergeChildren, ← Multiset.singleton_add]
+        abel
+      have e2 : treeChansM (.root (M.eval (.app (.send (Term.chan c) .ex) v .ex))
+            (l ++ (c, .node d (N.eval (.recv (Term.chan d) .ex)) ms' qs') :: r) qs)
+          = (childChansM l + childChansM r)
+            + ({chanIndex c} + {chanIndex d} + childChansM ms' + subChansM qs'
+                + subChansM qs) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
+          ← Multiset.singleton_add]
+        abel
+      rw [e1, e3, ← e2]
+      exact h
+  | @nodeSendEx M N p v c d l r ms' qs qs' _value _freshP =>
+      intro h
+      have e3 : childChansM (splitChildrenByTerm v (l ++ r)).1
+            + childChansM (splitChildrenByTerm v (l ++ r)).2
+          = childChansM l + childChansM r := by
+        rw [childChansM_split, childChansM_append]
+      have e1 : treeChansM (.node p (M.eval (.pure (Term.chan c)))
+            (sendExChildren v c d N ms' qs' (l ++ r)) qs)
+          = (childChansM (splitChildrenByTerm v (l ++ r)).1
+              + childChansM (splitChildrenByTerm v (l ++ r)).2)
+            + ({chanIndex p} + {chanIndex c} + {chanIndex d} + childChansM ms' + subChansM qs'
+                + subChansM qs) := by
+        simp only [sendExChildren, treeChansM_root, treeChansM_node, childChansM_insertChild,
+          childChansM_mergeChildren, ← Multiset.singleton_add]
+        abel
+      have e2 : treeChansM (.node p (M.eval (.app (.send (Term.chan c) .ex) v .ex))
+            (l ++ (c, .node d (N.eval (.recv (Term.chan d) .ex)) ms' qs') :: r) qs)
+          = (childChansM l + childChansM r)
+            + ({chanIndex p} + {chanIndex c} + {chanIndex d} + childChansM ms' + subChansM qs'
+                + subChansM qs) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
+          ← Multiset.singleton_add]
+        abel
+      rw [e1, e3, ← e2]
+      exact h
+  | @rootRecvEx M N v c d l r ms' qs qs' _value =>
+      intro h
+      have e3 : childChansM (splitChildrenByTerm v ms').1
+            + childChansM (splitChildrenByTerm v ms').2
+          = childChansM ms' := childChansM_split v ms'
+      have e1 : treeChansM (.root (M.eval (.pure (.pair v (Term.chan c) .ex .L)))
+            (recvExChildren v c d N ms' qs' (l ++ r)) qs)
+          = (childChansM (splitChildrenByTerm v ms').1
+              + childChansM (splitChildrenByTerm v ms').2)
+            + ({chanIndex c} + {chanIndex d} + childChansM l + childChansM r + subChansM qs'
+                + subChansM qs) := by
+        simp only [recvExChildren, treeChansM_root, treeChansM_node, childChansM_insertChild,
+          childChansM_mergeChildren, childChansM_append, ← Multiset.singleton_add]
+        abel
+      have e2 : treeChansM (.root (M.eval (.recv (Term.chan c) .ex))
+            (l ++ (c, .node d (N.eval (.app (.send (Term.chan d) .ex) v .ex)) ms' qs') :: r) qs)
+          = childChansM ms'
+            + ({chanIndex c} + {chanIndex d} + childChansM l + childChansM r + subChansM qs'
+                + subChansM qs) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
+          ← Multiset.singleton_add]
+        abel
+      rw [e1, e3, ← e2]
+      exact h
+  | @nodeRecvEx M N p v c d l r ms' qs qs' _value =>
+      intro h
+      have e3 : childChansM (splitChildrenByTerm v ms').1
+            + childChansM (splitChildrenByTerm v ms').2
+          = childChansM ms' := childChansM_split v ms'
+      have e1 : treeChansM (.node p (M.eval (.pure (.pair v (Term.chan c) .ex .L)))
+            (recvExChildren v c d N ms' qs' (l ++ r)) qs)
+          = (childChansM (splitChildrenByTerm v ms').1
+              + childChansM (splitChildrenByTerm v ms').2)
+            + ({chanIndex p} + {chanIndex c} + {chanIndex d} + childChansM l + childChansM r
+                + subChansM qs' + subChansM qs) := by
+        simp only [recvExChildren, treeChansM_root, treeChansM_node, childChansM_insertChild,
+          childChansM_mergeChildren, childChansM_append, ← Multiset.singleton_add]
+        abel
+      have e2 : treeChansM (.node p (M.eval (.recv (Term.chan c) .ex))
+            (l ++ (c, .node d (N.eval (.app (.send (Term.chan d) .ex) v .ex)) ms' qs') :: r) qs)
+          = childChansM ms'
+            + ({chanIndex p} + {chanIndex c} + {chanIndex d} + childChansM l + childChansM r
+                + subChansM qs' + subChansM qs) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
+          ← Multiset.singleton_add]
+        abel
+      rw [e1, e3, ← e2]
+      exact h
+  | @rootSendIm M N o c d l r ms' qs qs' _implicit =>
+      intro h
+      have e : treeChansM (.root (M.eval (.pure (Term.chan c)))
+            (l ++ (c, .node d (N.eval (.pure (.pair o (Term.chan d) .im .L))) ms' qs') :: r) qs)
+          = treeChansM (.root (M.eval (.app (.send (Term.chan c) .im) o .im))
+              (l ++ (c, .node d (N.eval (.recv (Term.chan d) .im)) ms' qs') :: r) qs) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons]
+      rw [e]
+      exact h
+  | @nodeSendIm M N p o c d l r ms' qs qs' _implicit =>
+      intro h
+      have e : treeChansM (.node p (M.eval (.pure (Term.chan c)))
+            (l ++ (c, .node d (N.eval (.pure (.pair o (Term.chan d) .im .L))) ms' qs') :: r) qs)
+          = treeChansM (.node p (M.eval (.app (.send (Term.chan c) .im) o .im))
+              (l ++ (c, .node d (N.eval (.recv (Term.chan d) .im)) ms' qs') :: r) qs) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons]
+      rw [e]
+      exact h
+  | @rootRecvIm M N o c d l r ms' qs qs' _implicit =>
+      intro h
+      have e : treeChansM (.root (M.eval (.pure (.pair o (Term.chan c) .im .L)))
+            (l ++ (c, .node d (N.eval (.pure (Term.chan d))) ms' qs') :: r) qs)
+          = treeChansM (.root (M.eval (.recv (Term.chan c) .im))
+              (l ++ (c, .node d (N.eval (.app (.send (Term.chan d) .im) o .im)) ms' qs') :: r)
+              qs) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons]
+      rw [e]
+      exact h
+  | @nodeRecvIm M N p o c d l r ms' qs qs' _implicit =>
+      intro h
+      have e : treeChansM (.node p (M.eval (.pure (.pair o (Term.chan c) .im .L)))
+            (l ++ (c, .node d (N.eval (.pure (Term.chan d))) ms' qs') :: r) qs)
+          = treeChansM (.node p (M.eval (.recv (Term.chan c) .im))
+              (l ++ (c, .node d (N.eval (.app (.send (Term.chan d) .im) o .im)) ms' qs') :: r)
+              qs) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons]
+      rw [e]
+      exact h
+  | @nodeForward M N p v c d l r ms' qs qs' _value _occursP =>
+      intro h
+      have e3 : childChansM (splitChildrenByTerm v (l ++ r)).1
+            + childChansM (splitChildrenByTerm v (l ++ r)).2
+          = childChansM l + childChansM r := by
+        rw [childChansM_split, childChansM_append]
+      have e1 : treeChansM (.node p (N.eval (.pure (.pair v (Term.chan d) .ex .L)))
+            (forwardChildren v c d M ms' (l ++ r) qs) qs')
+          = (childChansM (splitChildrenByTerm v (l ++ r)).1
+              + childChansM (splitChildrenByTerm v (l ++ r)).2)
+            + ({chanIndex p} + {chanIndex c} + {chanIndex d} + childChansM ms' + subChansM qs'
+                + subChansM qs) := by
+        simp only [forwardChildren, treeChansM_root, treeChansM_node, childChansM_insertChild,
+          childChansM_mergeChildren, ← Multiset.singleton_add]
+        abel
+      have e2 : treeChansM (.node p (M.eval (.app (.send (Term.chan c) .ex) v .ex))
+            (l ++ (c, .node d (N.eval (.recv (Term.chan d) .ex)) ms' qs') :: r) qs)
+          = (childChansM l + childChansM r)
+            + ({chanIndex p} + {chanIndex c} + {chanIndex d} + childChansM ms' + subChansM qs'
+                + subChansM qs) := by
+        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
+          ← Multiset.singleton_add]
+        abel
+      rw [e1, e3, ← e2]
+      exact h
+  | @rootChild m c child child' l r qs _st avoids ih =>
+      intro h
+      have esrc : treeChansM (.root m (l ++ (c, child) :: r) qs)
+          = ({chanIndex c} + (childChansM l + childChansM r + subChansM qs))
+            + treeChansM child := by
+        simp only [treeChansM_root, childChansM_append, childChansM_cons,
+          ← Multiset.singleton_add]
+        abel
+      have etgt : treeChansM (.root m (l ++ (c, child') :: r) qs)
+          = ({chanIndex c} + (childChansM l + childChansM r + subChansM qs))
+            + treeChansM child' := by
+        simp only [treeChansM_root, childChansM_append, childChansM_cons,
+          ← Multiset.singleton_add]
+        abel
+      rw [esrc] at h
+      rw [etgt]
+      refine nodupM_replace h (ih (Multiset.nodup_add.mp h).2.1) ?_
+      intro x hx hnx
+      rw [← esrc, mem_treeChansM]
+      exact avoids x (mem_treeChansM.mp hx) (fun h' => hnx (mem_treeChansM.mpr h'))
+  | @nodeChild p m c child child' l r qs _st avoids ih =>
+      intro h
+      have esrc : treeChansM (.node p m (l ++ (c, child) :: r) qs)
+          = ({chanIndex p} + {chanIndex c} + (childChansM l + childChansM r + subChansM qs))
+            + treeChansM child := by
+        simp only [treeChansM_node, childChansM_append, childChansM_cons,
+          ← Multiset.singleton_add]
+        abel
+      have etgt : treeChansM (.node p m (l ++ (c, child') :: r) qs)
+          = ({chanIndex p} + {chanIndex c} + (childChansM l + childChansM r + subChansM qs))
+            + treeChansM child' := by
+        simp only [treeChansM_node, childChansM_append, childChansM_cons,
+          ← Multiset.singleton_add]
+        abel
+      rw [esrc] at h
+      rw [etgt]
+      refine nodupM_replace h (ih (Multiset.nodup_add.mp h).2.1) ?_
+      intro x hx hnx
+      rw [← esrc, mem_treeChansM]
+      exact avoids x (mem_treeChansM.mp hx) (fun h' => hnx (mem_treeChansM.mpr h'))
+  | @rootSubtree m ms sub sub' l r _st avoids ih =>
+      intro h
+      have esrc : treeChansM (.root m ms (l ++ sub :: r))
+          = (childChansM ms + subChansM l + subChansM r) + treeChansM sub := by
+        simp only [treeChansM_root, subChansM_append, subChansM_cons]
+        abel
+      have etgt : treeChansM (.root m ms (l ++ sub' :: r))
+          = (childChansM ms + subChansM l + subChansM r) + treeChansM sub' := by
+        simp only [treeChansM_root, subChansM_append, subChansM_cons]
+        abel
+      rw [esrc] at h
+      rw [etgt]
+      refine nodupM_replace h (ih (Multiset.nodup_add.mp h).2.1) ?_
+      intro x hx hnx
+      rw [← esrc, mem_treeChansM]
+      exact avoids x (mem_treeChansM.mp hx) (fun h' => hnx (mem_treeChansM.mpr h'))
+  | @nodeSubtree p m ms sub sub' l r _st avoids ih =>
+      intro h
+      have esrc : treeChansM (.node p m ms (l ++ sub :: r))
+          = ({chanIndex p} + (childChansM ms + subChansM l + subChansM r))
+            + treeChansM sub := by
+        simp only [treeChansM_node, subChansM_append, subChansM_cons, ← Multiset.singleton_add]
+        abel
+      have etgt : treeChansM (.node p m ms (l ++ sub' :: r))
+          = ({chanIndex p} + (childChansM ms + subChansM l + subChansM r))
+            + treeChansM sub' := by
+        simp only [treeChansM_node, subChansM_append, subChansM_cons, ← Multiset.singleton_add]
+        abel
+      rw [esrc] at h
+      rw [etgt]
+      refine nodupM_replace h (ih (Multiset.nodup_add.mp h).2.1) ?_
+      intro x hx hnx
+      rw [← esrc, mem_treeChansM]
+      exact avoids x (mem_treeChansM.mp hx) (fun h' => hnx (mem_treeChansM.mpr h'))
+  | @rootExpr m m' ms qs _dst =>
+      intro h
+      have e : treeChansM (.root m' ms qs) = treeChansM (.root m ms qs) := by
+        simp only [treeChansM_root]
+      rw [e]
+      exact h
+  | @nodeExpr p m m' ms qs _dst =>
+      intro h
+      have e : treeChansM (.node p m' ms qs) = treeChansM (.node p m ms qs) := by
+        simp only [treeChansM_node]
+      rw [e]
+      exact h
+
+/-- Lemma 5.87, root half: a valid, channel-distinct spawning tree steps to a valid,
+channel-distinct tree. -/
+theorem Typed.fidelity {t t' : Tree} (ty : Typed t) (dist : Distinct t) (st : Step t t') :
+    Typed t' ∧ Distinct t' :=
+  ⟨(fidelity_mutual st).1 ty dist, st.distinct dist⟩
+
+/-- Lemma 5.87, node half: the parent endpoint keeps its polarity and protocol, and channel
+distinctness is preserved. -/
 theorem TypedAt.fidelity {ry : Bool} {Ay : Term} {t t' : Tree}
     (ty : TypedAt ry Ay t) (dist : Distinct t) (st : Step t t') :
-    TypedAt ry Ay t' :=
-  (fidelity_mutual st).2 ry Ay ty dist
+    TypedAt ry Ay t' ∧ Distinct t' :=
+  ⟨(fidelity_mutual st).2 ry Ay ty dist, st.distinct dist⟩
+
+/-- Lemma 5.87 iterated along multi-step reduction, root half. -/
+theorem Typed.fidelity_red {t t' : Tree} (ty : Typed t) (dist : Distinct t) (red : Red t t') :
+    Typed t' ∧ Distinct t' := by
+  induction red with
+  | refl => exact ⟨ty, dist⟩
+  | tail _ st ih => exact ih.1.fidelity ih.2 st
+
+/-- Lemma 5.87 iterated along multi-step reduction, node half. -/
+theorem TypedAt.fidelity_red {ry : Bool} {Ay : Term} {t t' : Tree}
+    (ty : TypedAt ry Ay t) (dist : Distinct t) (red : Red t t') :
+    TypedAt ry Ay t' ∧ Distinct t' := by
+  induction red with
+  | refl => exact ⟨ty, dist⟩
+  | tail _ st ih => exact ih.1.fidelity ih.2 st
 
 end TLLC.Spawning
