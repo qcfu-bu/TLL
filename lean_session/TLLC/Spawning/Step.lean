@@ -1,3 +1,4 @@
+import Mathlib.Data.List.Sort
 import TLLC.Dynamic.EvalCtx
 import TLLC.Dynamic.Occurs
 import TLLC.Dynamic.Step
@@ -10,7 +11,10 @@ import TLLC.Spawning.Tree
 This file formalizes the spawning-tree operational semantics from report pages 28--31. The report
 presents children and detached subtrees as finite sets. The raw Lean syntax uses lists, so rules
 select an entry by decomposing a list as `l ++ selected :: r`, and set comprehensions such as
-`{i | cᵢ ∈ FC(v)}` are represented by deterministic list partitions.
+`{i | cᵢ ∈ FC(v)}` are represented by deterministic list partitions. Result children lists keep the
+canonical increasing-label order of the validity judgment (`ChildrenTyped`): an updated child is
+written back in place, and freshly (re)labelled children are inserted at their label-ordered
+position (`insertChild`/`mergeChildren`), so tree validity is preserved literally by reduction.
 
 The self-dual process encoding uses one channel variable together with endpoint polarity supplied by
 typing. At the spawning-tree level we still keep the report's two names for an edge: the channel used
@@ -20,6 +24,12 @@ together under one `Proc.nu`.
 The report's Root-Unit and Node-Unit cleanup rules are deliberately left out of `Step`. They remove
 finished detached subtrees, which corresponds to structural congruence after flattening rather than
 a concrete process reduction. Terminality and process congruence handle that cleanup separately.
+
+Deviation from the report: `nodeFork` carries the side condition `chanFreshIn p m` (the fork body
+must not capture the node's parent endpoint). The report states the analogous side condition
+`d ∉ FC(v)` only for Node-Send (with Node-Forward covering the capturing case) but omits it for
+Node-Fork; without it the successor tree of a parent-capturing fork is ill-typed and the fidelity
+theorem (Lemma 5.87) fails. See `TLLC/Spawning/Fidelity.lean`.
 -/
 
 namespace TLLC.Spawning
@@ -63,6 +73,20 @@ theorem implicitPayload_symm {c d : Chan} {payload : Term}
   intro σ
   exact (implicit σ).symm
 
+/-- Label order on child edges. -/
+def childLE (p q : Chan × Tree) : Prop := chanIndex p.1 ≤ chanIndex q.1
+
+instance : DecidableRel childLE := fun p q =>
+  inferInstanceAs (Decidable (chanIndex p.1 ≤ chanIndex q.1))
+
+/-- Insert a child edge at its label-ordered position. -/
+def insertChild (c : Chan) (t : Tree) (ms : List (Chan × Tree)) : List (Chan × Tree) :=
+  List.orderedInsert childLE (c, t) ms
+
+/-- Insert finitely many child edges at their label-ordered positions. -/
+def mergeChildren (extra base : List (Chan × Tree)) : List (Chan × Tree) :=
+  extra.foldr (fun p acc => List.orderedInsert childLE p acc) base
+
 /-- Split a child list into the children whose parent edge occurs in `m` and those whose edge does
 not occur in `m`. The first component is the report's `I'`; the second is the complement. -/
 def splitChildrenByTerm (m : Term) :
@@ -82,7 +106,7 @@ the mentioned children under the freshly spawned node. -/
 def forkChildren (m : Term) (c d : Chan) (ms : List (Chan × Tree)) :
     List (Chan × Tree) :=
   let split := splitChildrenByTerm m ms
-  split.2 ++ [(c, .node d (m[Chan.var_Chan; (Term.chan d)..]) split.1 [])]
+  insertChild c (.node d (m[Chan.var_Chan; (Term.chan d)..]) split.1 []) split.2
 
 /-- Children after an explicit send from the current node to a selected child. -/
 def sendExChildren (v : Term) (c d : Chan) (N : Dynamic.EvalCtx)
@@ -90,8 +114,8 @@ def sendExChildren (v : Term) (c d : Chan) (N : Dynamic.EvalCtx)
     (ms : List (Chan × Tree)) : List (Chan × Tree) :=
   let split := splitChildrenByTerm v ms
   let child' := Tree.node d (N.eval (.pure (.pair v (Term.chan d) .ex .L)))
-    (ms' ++ split.1) qs'
-  split.2 ++ [(c, child')]
+    (mergeChildren split.1 ms') qs'
+  insertChild c child' split.2
 
 /-- Children after an explicit receive by the current node from a selected child. -/
 def recvExChildren (v : Term) (c d : Chan) (N : Dynamic.EvalCtx)
@@ -99,20 +123,7 @@ def recvExChildren (v : Term) (c d : Chan) (N : Dynamic.EvalCtx)
     (ms : List (Chan × Tree)) : List (Chan × Tree) :=
   let split := splitChildrenByTerm v ms'
   let child' := Tree.node d (N.eval (.pure (Term.chan d))) split.2 qs'
-  ms ++ split.1 ++ [(c, child')]
-
-/-- Children after an implicit send from the current node to a selected child. Implicit payloads do not
-carry channels, so no child subtrees move. -/
-def sendImChildren (o : Term) (c d : Chan) (N : Dynamic.EvalCtx)
-    (ms' : List (Chan × Tree)) (qs' : List Tree)
-    (ms : List (Chan × Tree)) : List (Chan × Tree) :=
-  ms ++ [(c, .node d (N.eval (.pure (.pair o (Term.chan d) .im .L))) ms' qs')]
-
-/-- Children after an implicit receive by the current node from a selected child. -/
-def recvImChildren (_o : Term) (c d : Chan) (N : Dynamic.EvalCtx)
-    (ms' : List (Chan × Tree)) (qs' : List Tree)
-    (ms : List (Chan × Tree)) : List (Chan × Tree) :=
-  ms ++ [(c, .node d (N.eval (.pure (Term.chan d))) ms' qs')]
+  insertChild c child' (mergeChildren split.1 ms)
 
 /-- Children after forwarding the current node's parent channel through a selected child. The
 selected child becomes the new node at this position, and the old current node becomes its child. -/
@@ -121,7 +132,7 @@ def forwardChildren (v : Term) (c d : Chan) (M : Dynamic.EvalCtx)
     (qs : List Tree) : List (Chan × Tree) :=
   let split := splitChildrenByTerm v ms
   let oldParent := Tree.node c (M.eval (.pure (Term.chan c))) split.2 qs
-  ms' ++ split.1 ++ [(d, oldParent)]
+  insertChild d oldParent (mergeChildren split.1 ms')
 
 /-! ## Spawning-tree single-step reduction -/
 
@@ -136,6 +147,7 @@ inductive Step : Tree → Tree → Prop where
   | nodeFork {M : Dynamic.EvalCtx} {p A m c d ms qs} :
       chanFreshIn c (M.eval (.fork A m)) →
       chanFreshIn d (M.eval (.fork A m)) →
+      chanFreshIn p m →
       Step
         (.node p (M.eval (.fork A m)) ms qs)
         (.node p (M.eval (.pure (Term.chan c))) (forkChildren m c d ms) qs)
@@ -219,7 +231,7 @@ inductive Step : Tree → Tree → Prop where
           (l ++ (c, .node d (N.eval (.recv (Term.chan d) .im)) ms' qs') :: r)
           qs)
         (.root (M.eval (.pure (Term.chan c)))
-          (sendImChildren o c d N ms' qs' (l ++ r))
+          (l ++ (c, .node d (N.eval (.pure (.pair o (Term.chan d) .im .L))) ms' qs') :: r)
           qs)
   | nodeSendIm {M N : Dynamic.EvalCtx}
       {p o c d l r ms' qs qs'} :
@@ -229,7 +241,7 @@ inductive Step : Tree → Tree → Prop where
           (l ++ (c, .node d (N.eval (.recv (Term.chan d) .im)) ms' qs') :: r)
           qs)
         (.node p (M.eval (.pure (Term.chan c)))
-          (sendImChildren o c d N ms' qs' (l ++ r))
+          (l ++ (c, .node d (N.eval (.pure (.pair o (Term.chan d) .im .L))) ms' qs') :: r)
           qs)
   | rootRecvIm {M N : Dynamic.EvalCtx}
       {o c d l r ms' qs qs'} :
@@ -239,7 +251,7 @@ inductive Step : Tree → Tree → Prop where
           (l ++ (c, .node d (N.eval (.app (.send (Term.chan d) .im) o .im)) ms' qs') :: r)
           qs)
         (.root (M.eval (.pure (.pair o (Term.chan c) .im .L)))
-          (recvImChildren o c d N ms' qs' (l ++ r))
+          (l ++ (c, .node d (N.eval (.pure (Term.chan d))) ms' qs') :: r)
           qs)
   | nodeRecvIm {M N : Dynamic.EvalCtx}
       {p o c d l r ms' qs qs'} :
@@ -249,7 +261,7 @@ inductive Step : Tree → Tree → Prop where
           (l ++ (c, .node d (N.eval (.app (.send (Term.chan d) .im) o .im)) ms' qs') :: r)
           qs)
         (.node p (M.eval (.pure (.pair o (Term.chan c) .im .L)))
-          (recvImChildren o c d N ms' qs' (l ++ r))
+          (l ++ (c, .node d (N.eval (.pure (Term.chan d))) ms' qs') :: r)
           qs)
 
   | nodeForward {M N : Dynamic.EvalCtx}

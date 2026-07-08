@@ -47,4 +47,6 @@ import TLLC.Spawning.Tree
 import TLLC.Spawning.Typing
 import TLLC.Spawning.Flatten
 import TLLC.Spawning.Step
+import TLLC.Spawning.Inversion
+import TLLC.Spawning.Fidelity
 import TLLC.Spawning.Simulation
