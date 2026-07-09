@@ -58,3 +58,4 @@ import TLLC.Spawning.Simulation
 import TLLC.Spawning.Canonical
 import TLLC.Spawning.Progress
 import TLLC.Spawning.Reflection
+import TLLC.Spawning.DeadlockFree
