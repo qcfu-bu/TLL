@@ -1825,6 +1825,151 @@ theorem fidelity_mutual : ∀ {t t' : Tree}, Step t t' →
         simp [forkChildren]
       rw [hfork, e1, e2, eNew]
       exact TypedAt.node singleΘ' hasY tyTerm' tyMsNew tyqs
+  | @nodeForkForward M p A m c d ms qs freshC freshD occursP _treeFresh =>
+      refine ⟨fun ty _ => (by cases ty), fun ry Ay ty dist => ?_⟩
+      cases ty with
+      | @node Θ0 y _ _ _ _ _ single0 has0 tym0 tyms0 tyqs =>
+      cases c with
+      | var_Chan cx =>
+      cases d with
+      | var_Chan dx =>
+      have freshC' : occurs cx (M.eval (.fork A m)) = 0 := freshC
+      have freshD' : occurs dx (M.eval (.fork A m)) = 0 := freshD
+      have occursP' : occurs y m ≠ 0 := occursP
+      -- pad the endpoint context so both fresh indices fit
+      have single : PCtxSingle (Θ0 ++ List.replicate (cx + dx + 1) Slot.none) :=
+        PCtxSingle.append single0 (PCtxSingle.replicate _)
+      have tym := Typed.padR (cx + dx + 1) tym0
+      have tyms := ChildrenTypedAt.padR (cx + dx + 1) tyms0
+      have has := PHas.padR (cx + dx + 1) has0
+      have hLen : (Θ0 ++ List.replicate (cx + dx + 1) Slot.none).length
+          = Θ0.length + (cx + dx + 1) := by simp
+      -- invert the term typing at the fork redex
+      obtain ⟨Θ1, Θ2, A0, mrg, tyFork, cont⟩ := evalCtx_inv tym
+      obtain ⟨tyBody, eqA0⟩ := fork_inv tyFork
+      have tyA : ([] : Static.Ctx) ⊢ A : .proto := by
+        cases tyBody.wf with
+        | cons _ tyCh => exact (Static.ch_inv tyCh).1
+      have hL1 : Θ1.length = Θ0.length + (cx + dx + 1) := by
+        rw [PMerge.length_left mrg, hLen]
+      have hL2 : Θ2.length = Θ0.length + (cx + dx + 1) := by
+        rw [PMerge.length_right mrg, hLen]
+      have single1 := (PCtxSingle.split single mrg).1
+      have single2 := (PCtxSingle.split single mrg).2
+      -- freshness transfers to context liveness
+      have hD1 : CvarPos Θ1 dx true → False := by
+        intro h
+        have h1 := tyFork.occurs1 h
+        have h2 : occurs dx (Term.fork A m) = occurs dx m := rfl
+        have h3 := evalctx_occurs_plug M (.fork A m) dx
+        omega
+      have hC2 : CvarPos Θ2 cx true → False := by
+        intro h
+        have h1 := tym.occurs1 (CvarPos.merge_true_right single mrg h)
+        omega
+      -- the captured parent endpoint lives with the fork body
+      have posY1 : CvarPos Θ1 y true := by
+        rcases CvarPos.split_true mrg (PHas.pos_true has) with ⟨hpos1, _⟩ | ⟨hpos1, _⟩
+        · exact absurd (tyBody.occurs0 hpos1) occursP'
+        · exact hpos1
+      have posY2 : CvarPos Θ2 y false := by
+        rcases CvarPos.split_true mrg (PHas.pos_true has) with ⟨hpos1, _⟩ | ⟨_, hpos2⟩
+        · exact absurd (tyBody.occurs0 hpos1) occursP'
+        · exact hpos2
+      -- the fork body becomes the new top node: fire it at the fresh endpoint `d`
+      obtain ⟨Θtop, mrgD, singleTop⟩ :=
+        merge_fresh_single (Θ := Θ1) (x := dx) (r := true) (X := shiftK cx A) single1
+          (by omega) hD1
+      have justD : PJust (List.replicate dx Slot.none ++
+          .one true (shiftK cx A) :: List.replicate (Θ1.length - dx - 1) Slot.none) dx true
+          (shiftK (dx + 1) (shiftK cx A)) := PJust_single (PEmpty.replicate _)
+      have tyChanD := TLLC.Process.chanTyped justD
+        (shiftK_proto (shiftK_proto tyA cx) _)
+        (ARS.conv_trans (shiftK_conv (shiftK cx A) _) (shiftK_conv A cx)) tyA
+      have tyTopTerm : Θtop ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢
+          m[Chan.var_Chan; (Term.chan (Chan.var_Chan dx))..] : .M .unit :=
+        Typed.esubst1 rfl (by asimp) PKey.impure mrgD.sym Key.nil Merge.nil
+          tyBody tyChanD
+      -- children bookkeeping (the reserved parent endpoint stays on the left this time)
+      obtain ⟨ms2, ms1, ty2, ty1, hperm⟩ :=
+        ChildrenTypedAt.split_right mrg.sym single tyms posY2
+      have hperm' : List.Perm ms (ms1 ++ ms2) := hperm.trans List.perm_append_comm
+      obtain ⟨permSplit1, permSplit2⟩ :=
+        split_children_perm (w := m) single mrg
+          (fun p hp => ChildrenTyped.pos_of_label ty2 (List.mem_map.mpr ⟨p, hp, rfl⟩))
+          (List.Nodup.of_map _ (ChildrenTypedAt.labels_nodup ty1))
+          (List.Nodup.of_map _ (ChildrenTyped.labels_nodup ty2))
+          hperm' (ChildrenTypedAt.labels_nodup tyms)
+          (fun p hp => tyFork.occurs1
+            (ChildrenTypedAt.pos_of_label ty1 (List.mem_map.mpr ⟨p, hp, rfl⟩)))
+          (fun i h => tyFork.occurs0 h)
+      -- the continuation child: return the fresh endpoint `c`
+      obtain ⟨Θ', mrgC, singleΘ'⟩ :=
+        merge_fresh_single (Θ := Θ2) (x := cx) (r := false) (X := A) single2
+          (by omega) hC2
+      have justC : PJust (List.replicate cx Slot.none ++
+          .one false A :: List.replicate (Θ2.length - cx - 1) Slot.none)
+          cx false (shiftK (cx + 1) A) := PJust_single (PEmpty.replicate _)
+      have tyChanC := TLLC.Process.chanTyped justC (shiftK_proto tyA _)
+        (shiftK_conv A _) tyA
+      obtain ⟨s0, tyMA0⟩ := tyFork.validity
+      have tyPure := Typed.conv (ARS.conv_sym eqA0) (Typed.pure tyChanC) tyMA0
+      have tyContTerm := cont _ Θ' _ mrgC.sym tyPure
+      have hasC : PHas Θ' cx false (shiftK (cx + 1) A) :=
+        PHas.merge_left singleΘ' mrgC (PJust.toPHas justC)
+      have tymsC : ChildrenTypedAt Θ' cx false (shiftK (cx + 1) A) ms2 :=
+        ChildrenTypedAt.intro justC mrgC singleΘ' ty2
+      have tyCont : TypedAt false (shiftK (cx + 1) A)
+          (.node (Chan.var_Chan cx) (M.eval (.pure (Term.chan (Chan.var_Chan cx))))
+            ms2 qs) :=
+        TypedAt.node singleΘ' hasC tyContTerm tymsC tyqs
+      -- assemble the new top node's children
+      have tySingletonD : ChildrenTyped (List.replicate dx Slot.none ++
+          .one true (shiftK cx A) :: List.replicate (Θ1.length - dx - 1) Slot.none)
+          [(Chan.var_Chan dx, .node (Chan.var_Chan cx)
+            (M.eval (.pure (Term.chan (Chan.var_Chan cx)))) ms2 qs)] :=
+        childrenTyped_single (PEmpty.replicate _) tyCont
+      obtain ⟨msTop, tyMsTop, hpermTop⟩ :=
+        ChildrenTypedAt.merge mrgD.sym singleTop ty1 tySingletonD
+      -- the parent endpoint survives with the fork body
+      have hasY : PHas Θtop y ry Ay :=
+        PHas.merge_right singleTop mrgD (PHas.merge_inv_right mrg.sym has posY2)
+      -- canonical equalities
+      have sortedSrc := ChildrenTypedAt.sorted tyms
+      have e1 : (splitChildrenByTerm m ms).1 = ms1 :=
+        child_sorted_eq permSplit1
+          (List.Pairwise.sublist (splitChildrenByTerm_sublist₁ m ms) sortedSrc)
+          (ChildrenTypedAt.sorted ty1)
+      have e2 : (splitChildrenByTerm m ms).2 = ms2 :=
+        child_sorted_eq permSplit2
+          (List.Pairwise.sublist (splitChildrenByTerm_sublist₂ m ms) sortedSrc)
+          (ChildrenTyped.sorted ty2)
+      have freshD1 : ∀ p : Chan × Tree, p ∈ ms1 →
+          chanIndex (Chan.var_Chan dx) ≠ chanIndex p.1 := by
+        intro p hp he
+        apply hD1
+        have hpos := ChildrenTypedAt.pos_of_label ty1 (List.mem_map.mpr ⟨p, hp, rfl⟩)
+        have he' : dx = chanIndex p.1 := he
+        rw [← he'] at hpos
+        exact hpos
+      have eNew : insertChild (Chan.var_Chan dx)
+          (.node (Chan.var_Chan cx)
+            (M.eval (.pure (Term.chan (Chan.var_Chan cx)))) ms2 qs)
+          ms1 = msTop :=
+        child_sorted_eq
+          ((insertChild_perm _ _ _).trans
+            ((List.perm_append_singleton _ _).symm.trans hpermTop.symm))
+          (sorted_insertChild (ChildrenTypedAt.sorted ty1) freshD1)
+          (ChildrenTypedAt.sorted tyMsTop)
+      have hffwd : forkForwardChildren m (Chan.var_Chan cx) (Chan.var_Chan dx) M ms qs =
+          insertChild (Chan.var_Chan dx)
+            (.node (Chan.var_Chan cx)
+              (M.eval (.pure (Term.chan (Chan.var_Chan cx))))
+              (splitChildrenByTerm m ms).2 qs)
+            (splitChildrenByTerm m ms).1 := by
+        simp [forkForwardChildren]
+      rw [hffwd, e1, e2, eNew]
+      exact TypedAt.node singleTop hasY tyTopTerm tyMsTop .nil
   | @rootWait M N c d l r ms' qs qs' =>
       refine ⟨fun ty dist => ?_, fun ry Ay ty _ => (by cases ty)⟩
       cases ty with
@@ -3055,7 +3200,7 @@ theorem fidelity_mutual : ∀ {t t' : Tree}, Step t t' →
           (ChildrenTypedAt.sorted tyMsNew)
       rw [hsim, e1, e2, eMid, eTop]
       exact TypedAt.node singleΘ' hasY tyTermP tyMsNew tyqs
-  | @rootSendIm M N o c d l r ms' qs qs' implicit =>
+  | @rootSendIm M N o c d l r ms' qs qs' =>
       refine ⟨fun ty dist => ?_, fun ry Ay ty _ => (by cases ty)⟩
       cases ty with
       | @root Θ0 _ _ _ single tym tyms tyqs =>
@@ -3179,7 +3324,7 @@ theorem fidelity_mutual : ∀ {t t' : Tree}, Step t t' →
           (ChildrenTyped.sorted tyMsNew)
       rw [eNew]
       exact Typed.root singleΘ' tyTermP tyMsNew tyqs
-  | @nodeSendIm M N p o c d l r ms' qs qs' implicit =>
+  | @nodeSendIm M N p o c d l r ms' qs qs' =>
       refine ⟨fun ty _ => (by cases ty), fun ry Ay ty dist => ?_⟩
       cases ty with
       | @node Θ0 y _ _ _ _ _ single has tym tyms tyqs =>
@@ -3312,7 +3457,7 @@ theorem fidelity_mutual : ∀ {t t' : Tree}, Step t t' →
           (ChildrenTypedAt.sorted tyMsNew)
       rw [eNew]
       exact TypedAt.node singleΘ' hasY tyTermP tyMsNew tyqs
-  | @rootRecvIm M N o c d l r ms' qs qs' implicit =>
+  | @rootRecvIm M N o c d l r ms' qs qs' =>
       refine ⟨fun ty dist => ?_, fun ry Ay ty _ => (by cases ty)⟩
       cases ty with
       | @root Θ0 _ _ _ single tym tyms tyqs =>
@@ -3443,7 +3588,7 @@ theorem fidelity_mutual : ∀ {t t' : Tree}, Step t t' →
           (ChildrenTyped.sorted tyMsNew)
       rw [eNew]
       exact Typed.root singleΘ' tyTermP tyMsNew tyqs
-  | @nodeRecvIm M N p o c d l r ms' qs qs' implicit =>
+  | @nodeRecvIm M N p o c d l r ms' qs qs' =>
       refine ⟨fun ty _ => (by cases ty), fun ry Ay ty dist => ?_⟩
       cases ty with
       | @node Θ0 y _ _ _ _ _ single has tym tyms tyqs =>
@@ -3994,7 +4139,21 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
       obtain ⟨hc, hd, hcd⟩ := treeFresh
       have e : treeChansM (.node p (M.eval (.pure (Term.chan c))) (forkChildren m c d ms) qs)
           = chanIndex c ::ₘ chanIndex d ::ₘ treeChansM (.node p (M.eval (.fork A m)) ms qs) := by
-        simp only [treeChansM_root, forkChildren, childChansM_insertChild, treeChansM_node,
+        simp only [forkChildren, childChansM_insertChild, treeChansM_node,
+          subChansM_nil, add_zero, ← Multiset.singleton_add]
+        rw [← childChansM_split m ms]
+        abel
+      rw [e, Multiset.nodup_cons, Multiset.nodup_cons]
+      refine ⟨?_, by simpa only [mem_treeChansM] using hd, h⟩
+      simp only [Multiset.mem_cons, mem_treeChansM]
+      exact fun h' => h'.elim hcd hc
+  | @nodeForkForward M p A m c d ms qs _freshC _freshD _occursP treeFresh =>
+      intro h
+      obtain ⟨hc, hd, hcd⟩ := treeFresh
+      have e : treeChansM (.node p (m[Chan.var_Chan; (Term.chan d)..])
+            (forkForwardChildren m c d M ms qs) [])
+          = chanIndex c ::ₘ chanIndex d ::ₘ treeChansM (.node p (M.eval (.fork A m)) ms qs) := by
+        simp only [forkForwardChildren, childChansM_insertChild, treeChansM_node,
           subChansM_nil, add_zero, ← Multiset.singleton_add]
         rw [← childChansM_split m ms]
         abel
@@ -4010,7 +4169,7 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
               treeChansM (.root (M.eval (.pure .one)) (l ++ r)
                 (qs ++ [Tree.root (N.eval (.pure .one)) ms' qs'])) := by
         simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
-          childChansM_nil, subChansM_append, subChansM_cons, subChansM_nil, add_zero,
+          subChansM_append, subChansM_cons, subChansM_nil, add_zero,
           ← Multiset.singleton_add]
         abel
       rw [e] at h
@@ -4023,7 +4182,7 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
               treeChansM (.node p (M.eval (.pure .one)) (l ++ r)
                 (qs ++ [Tree.root (N.eval (.pure .one)) ms' qs'])) := by
         simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
-          childChansM_nil, subChansM_append, subChansM_cons, subChansM_nil, add_zero,
+          subChansM_append, subChansM_cons, subChansM_nil, add_zero,
           ← Multiset.singleton_add]
         abel
       rw [e] at h
@@ -4036,7 +4195,7 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
               treeChansM (.root (M.eval (.pure .one)) (l ++ r)
                 (qs ++ [Tree.root (N.eval (.pure .one)) ms' qs'])) := by
         simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
-          childChansM_nil, subChansM_append, subChansM_cons, subChansM_nil, add_zero,
+          subChansM_append, subChansM_cons, subChansM_nil, add_zero,
           ← Multiset.singleton_add]
         abel
       rw [e] at h
@@ -4049,7 +4208,7 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
               treeChansM (.node p (M.eval (.pure .one)) (l ++ r)
                 (qs ++ [Tree.root (N.eval (.pure .one)) ms' qs'])) := by
         simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
-          childChansM_nil, subChansM_append, subChansM_cons, subChansM_nil, add_zero,
+          subChansM_append, subChansM_cons, subChansM_nil, add_zero,
           ← Multiset.singleton_add]
         abel
       rw [e] at h
@@ -4091,7 +4250,7 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
               + childChansM (splitChildrenByTerm v (l ++ r)).2)
             + ({chanIndex p} + {chanIndex c} + {chanIndex d} + childChansM ms' + subChansM qs'
                 + subChansM qs) := by
-        simp only [sendExChildren, treeChansM_root, treeChansM_node, childChansM_insertChild,
+        simp only [sendExChildren, treeChansM_node, childChansM_insertChild,
           childChansM_mergeChildren, ← Multiset.singleton_add]
         abel
       have e2 : treeChansM (.node p (M.eval (.app (.send (Term.chan c) .ex) v .ex))
@@ -4099,7 +4258,7 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
           = (childChansM l + childChansM r)
             + ({chanIndex p} + {chanIndex c} + {chanIndex d} + childChansM ms' + subChansM qs'
                 + subChansM qs) := by
-        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
+        simp only [treeChansM_node, childChansM_append, childChansM_cons,
           ← Multiset.singleton_add]
         abel
       rw [e1, e3, ← e2]
@@ -4139,7 +4298,7 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
               + childChansM (splitChildrenByTerm v ms').2)
             + ({chanIndex p} + {chanIndex c} + {chanIndex d} + childChansM l + childChansM r
                 + subChansM qs' + subChansM qs) := by
-        simp only [recvExChildren, treeChansM_root, treeChansM_node, childChansM_insertChild,
+        simp only [recvExChildren, treeChansM_node, childChansM_insertChild,
           childChansM_mergeChildren, childChansM_append, ← Multiset.singleton_add]
         abel
       have e2 : treeChansM (.node p (M.eval (.recv (Term.chan c) .ex))
@@ -4147,12 +4306,12 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
           = childChansM ms'
             + ({chanIndex p} + {chanIndex c} + {chanIndex d} + childChansM l + childChansM r
                 + subChansM qs' + subChansM qs) := by
-        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
+        simp only [treeChansM_node, childChansM_append, childChansM_cons,
           ← Multiset.singleton_add]
         abel
       rw [e1, e3, ← e2]
       exact h
-  | @rootSendIm M N o c d l r ms' qs qs' _implicit =>
+  | @rootSendIm M N o c d l r ms' qs qs' =>
       intro h
       have e : treeChansM (.root (M.eval (.pure (Term.chan c)))
             (l ++ (c, .node d (N.eval (.pure (.pair o (Term.chan d) .im .L))) ms' qs') :: r) qs)
@@ -4161,16 +4320,16 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
         simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons]
       rw [e]
       exact h
-  | @nodeSendIm M N p o c d l r ms' qs qs' _implicit =>
+  | @nodeSendIm M N p o c d l r ms' qs qs' =>
       intro h
       have e : treeChansM (.node p (M.eval (.pure (Term.chan c)))
             (l ++ (c, .node d (N.eval (.pure (.pair o (Term.chan d) .im .L))) ms' qs') :: r) qs)
           = treeChansM (.node p (M.eval (.app (.send (Term.chan c) .im) o .im))
               (l ++ (c, .node d (N.eval (.recv (Term.chan d) .im)) ms' qs') :: r) qs) := by
-        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons]
+        simp only [treeChansM_node, childChansM_append, childChansM_cons]
       rw [e]
       exact h
-  | @rootRecvIm M N o c d l r ms' qs qs' _implicit =>
+  | @rootRecvIm M N o c d l r ms' qs qs' =>
       intro h
       have e : treeChansM (.root (M.eval (.pure (.pair o (Term.chan c) .im .L)))
             (l ++ (c, .node d (N.eval (.pure (Term.chan d))) ms' qs') :: r) qs)
@@ -4180,14 +4339,14 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
         simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons]
       rw [e]
       exact h
-  | @nodeRecvIm M N p o c d l r ms' qs qs' _implicit =>
+  | @nodeRecvIm M N p o c d l r ms' qs qs' =>
       intro h
       have e : treeChansM (.node p (M.eval (.pure (.pair o (Term.chan c) .im .L)))
             (l ++ (c, .node d (N.eval (.pure (Term.chan d))) ms' qs') :: r) qs)
           = treeChansM (.node p (M.eval (.recv (Term.chan c) .im))
               (l ++ (c, .node d (N.eval (.app (.send (Term.chan d) .im) o .im)) ms' qs') :: r)
               qs) := by
-        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons]
+        simp only [treeChansM_node, childChansM_append, childChansM_cons]
       rw [e]
       exact h
   | @nodeForward M N p v c d l r ms' qs qs' _value _occursP =>
@@ -4202,7 +4361,7 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
               + childChansM (splitChildrenByTerm v (l ++ r)).2)
             + ({chanIndex p} + {chanIndex c} + {chanIndex d} + childChansM ms' + subChansM qs'
                 + subChansM qs) := by
-        simp only [forwardChildren, treeChansM_root, treeChansM_node, childChansM_insertChild,
+        simp only [forwardChildren, treeChansM_node, childChansM_insertChild,
           childChansM_mergeChildren, ← Multiset.singleton_add]
         abel
       have e2 : treeChansM (.node p (M.eval (.app (.send (Term.chan c) .ex) v .ex))
@@ -4210,7 +4369,7 @@ theorem Step.distinct {t t' : Tree} (st : Step t t') : Distinct t → Distinct t
           = (childChansM l + childChansM r)
             + ({chanIndex p} + {chanIndex c} + {chanIndex d} + childChansM ms' + subChansM qs'
                 + subChansM qs) := by
-        simp only [treeChansM_root, treeChansM_node, childChansM_append, childChansM_cons,
+        simp only [treeChansM_node, childChansM_append, childChansM_cons,
           ← Multiset.singleton_add]
         abel
       rw [e1, e3, ← e2]

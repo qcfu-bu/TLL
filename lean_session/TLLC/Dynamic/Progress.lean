@@ -118,6 +118,24 @@ private lemma appSendEx_not_bool {Θ : PCtx} {Γ : Static.Ctx} {Δ : Ctx} {c : N
   asimp at h
   false_conv
 
+private lemma appSendIm_not_unit {Θ : PCtx} {Γ : Static.Ctx} {Δ : Ctx} {c : Nat}
+    {n A B : Term} {s : Srt}
+    (tySend : Θ ⨾ Γ ⨾ Δ ⊢ .send (.chan (Chan.var_Chan c)) .im : .pi A B .im s)
+    (eq : .unit ≃ B[Chan.var_Chan; n..]) : False := by
+  obtain ⟨r, C, hM⟩ := appSendIm_result_M (n := n) tySend
+  have h : Term.unit ≃ (Term.M (.ch r C))[Chan.var_Chan; n..] := ARS.conv_trans eq hM
+  asimp at h
+  false_conv
+
+private lemma appSendEx_not_unit {Θ : PCtx} {Γ : Static.Ctx} {Δ : Ctx} {c : Nat}
+    {v A B : Term} {s : Srt}
+    (tySend : Θ ⨾ Γ ⨾ Δ ⊢ .send (.chan (Chan.var_Chan c)) .ex : .pi A B .ex s)
+    (eq : .unit ≃ B[Chan.var_Chan; v..]) : False := by
+  obtain ⟨r, C, hM⟩ := appSendEx_result_M (v := v) tySend
+  have h : Term.unit ≃ (Term.M (.ch r C))[Chan.var_Chan; v..] := ARS.conv_trans eq hM
+  asimp at h
+  false_conv
+
 private lemma appSendIm_not_ch {Θ : PCtx} {Γ : Static.Ctx} {Δ : Ctx} {c : Nat}
     {n A A0 B : Term} {r : Bool} {s : Srt}
     (tySend : Θ ⨾ Γ ⨾ Δ ⊢ .send (.chan (Chan.var_Chan c)) .im : .pi A0 B .im s)
@@ -232,6 +250,29 @@ lemma Typed.bool_canonical {Θ v T}
   | @ite Θ1 Θ2 Θ Γ Δ1 Δ2 Δ A0 m0 n1 n2 s0 mrgΘ mrgΔ tyA tym tyn1 tyn2 ihm ihn1 ihn2 =>
     cases vl with | thunk th => cases th
   | @conv Θ Γ Δ A0 B0 m0 s0 eq1 tym tyB ih =>
+    exact ih vl (ARS.conv_trans eq (ARS.conv_sym eq1)) eΓ eΔ
+  | _ => false_conv
+
+/-- Canonical forms for closed values of unit type (report Lemma 5.78). -/
+lemma Typed.unit_canonical {Θ v T}
+    (ty : Θ ⨾ ([] : Static.Ctx) ⨾ ([] : Ctx) ⊢ v : T)
+    (vl : Val v) (eq : .unit ≃ T) : v = .one := by
+  generalize eΓ : ([] : Static.Ctx) = Γ at ty
+  generalize eΔ : ([] : Ctx) = Δ at ty
+  induction ty with
+  | var emp wf shs dhs => subst eΔ; cases dhs
+  | one => rfl
+  | appIm tym tyn ih =>
+    cases vl with | thunk th => cases th with | appSendIm => exact (appSendIm_not_unit tym eq).elim
+  | appEx mrgΘ mrgΔ tym tyn ihm ihn =>
+    cases vl with | thunk th => cases th with | appSendEx _ => exact (appSendEx_not_unit tym eq).elim
+  | projIm mrgΘ mrgΔ tyC tym tyn ihm ihn =>
+    cases vl with | thunk th => cases th
+  | projEx mrgΘ mrgΔ tyC tym tyn ihm ihn =>
+    cases vl with | thunk th => cases th
+  | ite mrgΘ mrgΔ tyA tym tyn1 tyn2 ihm ihn1 ihn2 =>
+    cases vl with | thunk th => cases th
+  | conv eq1 tym tyB ih =>
     exact ih vl (ARS.conv_trans eq (ARS.conv_sym eq1)) eΓ eΔ
   | _ => false_conv
 

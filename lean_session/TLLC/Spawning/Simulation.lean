@@ -1260,8 +1260,15 @@ lemma process_congr_parAll_push_right (body p : Proc) (processes : List Proc) :
           (process_congr_swap_right (a := body) (b := p) (c := q)))
         (ih (body := .par body q))
 
-lemma process_step_comIm_edge_csubst {M N : EvalCtx} {payloadTerm : Term} {c d : Chan}
-    (payload : implicitPayload c d payloadTerm) :
+lemma congrTerm_evalctx_congr (M : EvalCtx) {X Y : Term}
+    (h : TLLC.Process.CongrTerm .ex X Y) :
+    TLLC.Process.CongrTerm .ex (M.eval X) (M.eval Y) := by
+  induction M with
+  | hole => exact h
+  | bnd M n ih =>
+      exact TLLC.Process.CongrTerm.mlet ih (TLLC.Process.CongrTerm.refl _ _)
+
+lemma process_step_comIm_edge_csubst {M N : EvalCtx} {payloadTerm : Term} {c d : Chan} :
     ∀ σ : Nat → Chan,
       TLLC.Process.Step
         (.nu (.par
@@ -1279,32 +1286,33 @@ lemma process_step_comIm_edge_csubst {M N : EvalCtx} {payloadTerm : Term} {c d :
   | var_Chan parentIndex =>
     cases d with
     | var_Chan childIndex =>
-      have payloadEq :
-          payloadTerm[(fun x => if x = parentIndex then Chan.var_Chan 0 else Chan.var_Chan (x + 1)) >>
-              [Chan.var_Chan var_zero .: σ >> ⟨↑⟩]; Term.var_Term] =
-            payloadTerm[(fun x => if x = childIndex then Chan.var_Chan 0 else Chan.var_Chan (x + 1)) >>
-              [Chan.var_Chan var_zero .: σ >> ⟨↑⟩]; Term.var_Term] := by
-        convert payload σ using 1 <;>
-          (asimp; unfold bindEndpointAt chanIndex; simp)
-      convert (TLLC.Process.Step.comIm
-        (M := (M.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 (Chan.var_Chan parentIndex)))).cren
-          (TLLC.Static.csubst_ren (up_Chan_Chan σ)))
-        (N := (N.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 (Chan.var_Chan childIndex)))).cren
-          (TLLC.Static.csubst_ren (up_Chan_Chan σ)))
-        (m := payloadTerm[bindEndpointAt 0 (Chan.var_Chan parentIndex); Term.var_Term][up_Chan_Chan σ;
-          Term.var_Term])) using 1
-      all_goals
-        repeat rw [evalctx_csubst]
+      -- fire the com with the payload read through the parent's name, then re-read the delivered
+      -- copy through the child's name: ghosts are channel-blind (`CongrTerm.chan_im`)
+      refine TLLC.Process.Step.congr ?_
+        (TLLC.Process.Step.comIm
+          (M := (M.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 (Chan.var_Chan parentIndex)))).cren
+            (TLLC.Static.csubst_ren (up_Chan_Chan σ)))
+          (N := (N.cren (TLLC.Static.csubst_ren (bindEndpointAt 0 (Chan.var_Chan childIndex)))).cren
+            (TLLC.Static.csubst_ren (up_Chan_Chan σ)))
+          (m := payloadTerm[bindEndpointAt 0 (Chan.var_Chan parentIndex); Term.var_Term][up_Chan_Chan σ;
+            Term.var_Term])) ?_
+      · repeat rw [evalctx_csubst]
         asimp
         unfold bindEndpointAt chanIndex
         simp
-        try rw [← payloadEq]
-        try constructor
-        all_goals try trivial
-        try asimp
+        exact ARS.Conv.refl
+      · repeat rw [evalctx_csubst]
+        asimp
+        unfold bindEndpointAt chanIndex
+        simp
+        exact ARS.conv1 (TLLC.Process.CongrProc.res (TLLC.Process.CongrProc.par
+          (TLLC.Process.CongrProc.tm (TLLC.Process.CongrTerm.refl _ _))
+          (TLLC.Process.CongrProc.tm (congrTerm_evalctx_congr _
+            (TLLC.Process.CongrTerm.pure (TLLC.Process.CongrTerm.pair
+              (congrTerm_csubst_of_occurs (by intro h; cases h))
+              (TLLC.Process.CongrTerm.refl _ _)))))))
 
-lemma process_step_comIm_edge_symm_csubst {M N : EvalCtx} {payloadTerm : Term} {c d : Chan}
-    (payload : implicitPayload c d payloadTerm) :
+lemma process_step_comIm_edge_symm_csubst {M N : EvalCtx} {payloadTerm : Term} {c d : Chan} :
     ∀ σ : Nat → Chan,
       TLLC.Process.Step
         (.nu (.par
@@ -1321,11 +1329,11 @@ lemma process_step_comIm_edge_symm_csubst {M N : EvalCtx} {payloadTerm : Term} {
   exact TLLC.Process.Step.congr
     (process_congr_res (ARS.conv1 TLLC.Process.CongrProc.par_sym))
     (process_step_comIm_edge_csubst (M := N) (N := M) (payloadTerm := payloadTerm)
-      (c := d) (d := c) (implicitPayload_symm payload) σ)
+      (c := d) (d := c) σ)
     (process_congr_res (ARS.conv1 TLLC.Process.CongrProc.par_sym))
 
 lemma process_step_sendIm_last_csubst {M N : EvalCtx} {payloadTerm : Term} {c d : Chan}
-    (before : List (Chan × Tree)) (payload : implicitPayload c d payloadTerm) :
+    (before : List (Chan × Tree)) :
     ∀ σ : Nat → Chan,
       TLLC.Process.Step
         ((flattenChildren (.tm (M.eval (.app (.send (Term.chan c) .im) payloadTerm .im)))
@@ -1340,7 +1348,7 @@ lemma process_step_sendIm_last_csubst {M N : EvalCtx} {payloadTerm : Term} {c d 
       intro σ
       simp [flattenChildren, flattenBody, parAll]
       simpa using process_step_comIm_edge_csubst (M := M) (N := N)
-        (payloadTerm := payloadTerm) (c := c) (d := d) payload σ
+        (payloadTerm := payloadTerm) (c := c) (d := d) σ
   | cons edge before ih =>
       intro σ
       rcases edge with ⟨e, sibling⟩
@@ -1360,7 +1368,7 @@ lemma process_step_sendIm_last_csubst {M N : EvalCtx} {payloadTerm : Term} {c d 
             asimp
 
 lemma process_step_recvIm_last_csubst {M N : EvalCtx} {payloadTerm : Term} {c d : Chan}
-    (before : List (Chan × Tree)) (payload : implicitPayload c d payloadTerm) :
+    (before : List (Chan × Tree)) :
     ∀ σ : Nat → Chan,
       TLLC.Process.Step
         ((flattenChildren (.tm (M.eval (.recv (Term.chan c) .im)))
@@ -1375,7 +1383,7 @@ lemma process_step_recvIm_last_csubst {M N : EvalCtx} {payloadTerm : Term} {c d 
       intro σ
       simp [flattenChildren, flattenBody, parAll]
       simpa using process_step_comIm_edge_symm_csubst (M := M) (N := N)
-        (payloadTerm := payloadTerm) (c := c) (d := d) payload σ
+        (payloadTerm := payloadTerm) (c := c) (d := d) σ
   | cons edge before ih =>
       intro σ
       rcases edge with ⟨e, sibling⟩
@@ -2038,7 +2046,6 @@ lemma step_par_parAll_spectators (A B A' B' : Proc) (SS : List Proc)
 /-- The implicit com fires with arbitrary parallel spectators `SS` on the receiver side. This handles a
 selected child's detached subtrees `qs'`; the grandchildren `ms'` still require scope-extrusion. -/
 lemma comIm_edge_parAll (M N : EvalCtx) (payload : Term) (c d : Chan) (SS : List Proc)
-    (imp : implicitPayload c d payload)
     (ssZero : ∀ q, q ∈ SS → TLLC.Process.procOccurs 0 q = 0) (σ : Nat → Chan) :
     TLLC.Process.Step
       (.nu (.par
@@ -2052,7 +2059,7 @@ lemma comIm_edge_parAll (M N : EvalCtx) (payload : Term) (c d : Chan) (SS : List
         (parAll (.tm (((N.eval (.pure (.pair payload (Term.chan d) .im .L)))[bindEndpointAt 0 d;
           Term.var_Term])[up_Chan_Chan σ; Term.var_Term])) SS))) :=
   step_par_parAll_spectators _ _ _ _ SS ssZero
-    (process_step_comIm_edge_csubst (M := M) (N := N) (payloadTerm := payload) (c := c) (d := d) imp σ)
+    (process_step_comIm_edge_csubst (M := M) (N := N) (payloadTerm := payload) (c := c) (d := d) σ)
 
 /-- Conditional `occurs`-under-renaming: `i` does not occur in `m⟨ξ⟩` provided every channel that `ξ`
 maps onto `i` is already absent from `m`. -/
@@ -2168,7 +2175,7 @@ set_option maxHeartbeats 1000000 in
 /-- SS-free implicit-com edge with grandchildren `ms'`; each grandchild extrudes to a spectator and
 the core `comIm` fires on the exposed `.tm recv`. -/
 lemma comIm_edge_grandchildren (M N : EvalCtx) (payload : Term) (c d : Chan)
-    (imp : implicitPayload c d payload) :
+    :
     ∀ (ms' : List (Chan × Tree)) (σ : Nat → Chan),
       (∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
         TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc) →
@@ -2195,7 +2202,7 @@ lemma comIm_edge_grandchildren (M N : EvalCtx) (payload : Term) (c d : Chan)
       intro σ _ _ _
       simp only [flattenChildren]
       exact process_step_comIm_edge_csubst (M := M) (N := N) (payloadTerm := payload)
-        (c := c) (d := d) imp σ
+        (c := c) (d := d) σ
   | cons edge rest ih =>
       intro σ tyMs eFreshRecv eFreshRpair
       obtain ⟨e, gc⟩ := edge
@@ -2335,7 +2342,7 @@ lemma comIm_edge_grandchildren (M N : EvalCtx) (payload : Term) (c d : Chan)
 (`extrude_one_congr`); the exposed inner com is the IH at `σ⁺ = fun y => (σ y)⟨↑⟩` (with the `e`-slot
 sent to `0`). `mFresh`: the parent body does not mention any grandchild edge (linearity). -/
 lemma comIm_through_FC (M N : EvalCtx) (payload : Term) (c d : Chan)
-    (imp : implicitPayload c d payload) :
+    :
     ∀ (ms' : List (Chan × Tree)),
     (∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
       TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc) →
@@ -2361,7 +2368,7 @@ lemma comIm_through_FC (M N : EvalCtx) (payload : Term) (c d : Chan)
       intro _ _ σ
       simp only [flattenChildren_nil]
       exact process_step_comIm_edge_csubst (M := M) (N := N) (payloadTerm := payload)
-        (c := c) (d := d) imp σ
+        (c := c) (d := d) σ
   | cons edge ms'' ih =>
       rcases edge with ⟨e, gc⟩
       intro tyMs mFresh σ
@@ -2472,7 +2479,7 @@ lemma comIm_through_FC (M N : EvalCtx) (payload : Term) (c d : Chan)
 /-- Mirror of `comIm_through_FC` for implicit receive: the parent receives and the selected child
 sends. Verbatim copy with the parent/child terms swapped and the symmetric base step. -/
 lemma comIm_through_FC_symm (M N : EvalCtx) (payload : Term) (c d : Chan)
-    (imp : implicitPayload c d payload) :
+    :
     ∀ (ms' : List (Chan × Tree)),
     (∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
       TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc) →
@@ -2498,7 +2505,7 @@ lemma comIm_through_FC_symm (M N : EvalCtx) (payload : Term) (c d : Chan)
       intro _ _ σ
       simp only [flattenChildren_nil]
       exact process_step_comIm_edge_symm_csubst (M := M) (N := N) (payloadTerm := payload)
-        (c := c) (d := d) imp σ
+        (c := c) (d := d) σ
   | cons edge ms'' ih =>
       rcases edge with ⟨e, gc⟩
       intro tyMs mFresh σ
@@ -2611,7 +2618,6 @@ lemma comIm_through_FC_symm (M N : EvalCtx) (payload : Term) (c d : Chan)
 (the child's subtrees `qs'` as parallel spectators). -/
 lemma sendIm_base_step (M N : EvalCtx) (o : Term) (c d : Chan)
     (ms' : List (Chan × Tree)) (qs' : List Tree)
-    (imp : implicitPayload c d o)
     (tyMs : ∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
       TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc)
     (mFresh : ∀ e gc, (e, gc) ∈ ms' →
@@ -2634,7 +2640,7 @@ lemma sendIm_base_step (M N : EvalCtx) (o : Term) (c d : Chan)
         (Proc.par a b)[τ; Term.var_Term] = Proc.par (a[τ; Term.var_Term]) (b[τ; Term.var_Term])
       from fun _ _ _ => rfl)]
   refine step_par_parAll_spectators _ _ _ _ _ ?ssZero
-    (comIm_through_FC M N o c d imp ms' tyMs mFresh σ)
+    (comIm_through_FC M N o c d ms' tyMs mFresh σ)
   intro q hq
   simp only [List.mem_map] at hq
   obtain ⟨q1, ⟨q0, hq0mem, rfl⟩, rfl⟩ := hq
@@ -2645,7 +2651,6 @@ lemma sendIm_base_step (M N : EvalCtx) (o : Term) (c d : Chan)
 /-- The implicit-send last-edge step over the `before` siblings (the selected child is last). -/
 lemma sendIm_over_before (M N : EvalCtx) (o : Term) (c d : Chan)
     (ms' : List (Chan × Tree)) (qs' : List Tree)
-    (imp : implicitPayload c d o)
     (tyMs : ∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
       TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc)
     (mFresh : ∀ e gc, (e, gc) ∈ ms' →
@@ -2664,7 +2669,7 @@ lemma sendIm_over_before (M N : EvalCtx) (o : Term) (c d : Chan)
   induction before with
   | nil =>
       intro σ
-      simpa using sendIm_base_step M N o c d ms' qs' imp tyMs mFresh qsZero σ
+      simpa using sendIm_base_step M N o c d ms' qs' tyMs mFresh qsZero σ
   | cons edge before ih =>
       intro σ
       rcases edge with ⟨e, sibling⟩
@@ -2687,7 +2692,6 @@ lemma sendIm_over_before (M N : EvalCtx) (o : Term) (c d : Chan)
 fire the last-edge step. This is `bodyStep` for the rootSendIm/nodeSendIm cases. -/
 lemma sendIm_bodyStep (M N : EvalCtx) (o : Term) (c d : Chan)
     (ms' qs' : _) (l r : List (Chan × Tree))
-    (imp : implicitPayload c d o)
     (tyMs : ∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
       TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc)
     (mFresh : ∀ e gc, (e, gc) ∈ ms' →
@@ -2709,7 +2713,7 @@ lemma sendIm_bodyStep (M N : EvalCtx) (o : Term) (c d : Chan)
         ((l ++ r) ++ [(c, .node d (N.eval (.pure (.pair o (Term.chan d) .im .L))) ms' qs')]))[σ;
           Term.var_Term]) := by
   refine TLLC.Process.Step.congr ?_
-    (sendIm_over_before M N o c d ms' qs' imp tyMs mFresh qsZero (l ++ r) σ) ARS.Conv.refl
+    (sendIm_over_before M N o c d ms' qs' tyMs mFresh qsZero (l ++ r) σ) ARS.Conv.refl
   exact process_congr_csubst
     (flattenChildren_move_to_last (.tm (M.eval (.app (.send (Term.chan c) .im) o .im)))
       c (Tree.node d (N.eval (.recv (Term.chan d) .im)) ms' qs') l r tyChild tyR distinctR) σ
@@ -2717,7 +2721,6 @@ lemma sendIm_bodyStep (M N : EvalCtx) (o : Term) (c d : Chan)
 /-- Mirror of `sendIm_base_step` for implicit receive. -/
 lemma recvIm_base_step (M N : EvalCtx) (o : Term) (c d : Chan)
     (ms' : List (Chan × Tree)) (qs' : List Tree)
-    (imp : implicitPayload c d o)
     (tyMs : ∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
       TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc)
     (mFresh : ∀ e gc, (e, gc) ∈ ms' →
@@ -2740,7 +2743,7 @@ lemma recvIm_base_step (M N : EvalCtx) (o : Term) (c d : Chan)
         (Proc.par a b)[τ; Term.var_Term] = Proc.par (a[τ; Term.var_Term]) (b[τ; Term.var_Term])
       from fun _ _ _ => rfl)]
   refine step_par_parAll_spectators _ _ _ _ _ ?ssZero
-    (comIm_through_FC_symm M N o c d imp ms' tyMs mFresh σ)
+    (comIm_through_FC_symm M N o c d ms' tyMs mFresh σ)
   intro q hq
   simp only [List.mem_map] at hq
   obtain ⟨q1, ⟨q0, hq0mem, rfl⟩, rfl⟩ := hq
@@ -2751,7 +2754,6 @@ lemma recvIm_base_step (M N : EvalCtx) (o : Term) (c d : Chan)
 /-- The implicit-receive last-edge step over the `before` siblings (the selected child is last). -/
 lemma recvIm_over_before (M N : EvalCtx) (o : Term) (c d : Chan)
     (ms' : List (Chan × Tree)) (qs' : List Tree)
-    (imp : implicitPayload c d o)
     (tyMs : ∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
       TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc)
     (mFresh : ∀ e gc, (e, gc) ∈ ms' →
@@ -2771,7 +2773,7 @@ lemma recvIm_over_before (M N : EvalCtx) (o : Term) (c d : Chan)
   induction before with
   | nil =>
       intro σ
-      simpa using recvIm_base_step M N o c d ms' qs' imp tyMs mFresh qsZero σ
+      simpa using recvIm_base_step M N o c d ms' qs' tyMs mFresh qsZero σ
   | cons edge before ih =>
       intro σ
       rcases edge with ⟨e, sibling⟩
@@ -2794,7 +2796,6 @@ lemma recvIm_over_before (M N : EvalCtx) (o : Term) (c d : Chan)
 cases. -/
 lemma recvIm_bodyStep (M N : EvalCtx) (o : Term) (c d : Chan)
     (ms' qs' : _) (l r : List (Chan × Tree))
-    (imp : implicitPayload c d o)
     (tyMs : ∀ e gc, (e, gc) ∈ ms' → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
       TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) gc)
     (mFresh : ∀ e gc, (e, gc) ∈ ms' →
@@ -2817,7 +2818,7 @@ lemma recvIm_bodyStep (M N : EvalCtx) (o : Term) (c d : Chan)
         ((l ++ r) ++ [(c, .node d (N.eval (.pure (Term.chan d))) ms' qs')]))[σ;
           Term.var_Term]) := by
   refine TLLC.Process.Step.congr ?_
-    (recvIm_over_before M N o c d ms' qs' imp tyMs mFresh qsZero (l ++ r) σ) ARS.Conv.refl
+    (recvIm_over_before M N o c d ms' qs' tyMs mFresh qsZero (l ++ r) σ) ARS.Conv.refl
   exact process_congr_csubst
     (flattenChildren_move_to_last (.tm (M.eval (.recv (Term.chan c) .im)))
       c (Tree.node d (N.eval (.app (.send (Term.chan d) .im) o .im)) ms' qs') l r
@@ -4257,15 +4258,6 @@ lemma flattenChildren_rotate_congr (body : Proc) :
       rw [List.append_assoc]
       exact hrec
 
-/-- A `CongrTerm`-congruent pair of holes stays congruent under a fixed eval context. -/
-lemma congrTerm_evalctx_congr (M : EvalCtx) {X Y : Term}
-    (h : TLLC.Process.CongrTerm .ex X Y) :
-    TLLC.Process.CongrTerm .ex (M.eval X) (M.eval Y) := by
-  induction M with
-  | hole => exact h
-  | bnd M n ih =>
-      exact TLLC.Process.CongrTerm.mlet ih (TLLC.Process.CongrTerm.refl _ _)
-
 /-- The explicit com edge in tree form: the sent value re-binds from the parent endpoint `c` to
 the child endpoint `d`, justified by `c`/`d` being absent from the value. -/
 lemma process_step_comEx_edge_tree_csubst {M N : EvalCtx} {v : Term} {c d : Chan}
@@ -5405,6 +5397,176 @@ lemma flatten_children_perm_congr_csubst (body : Proc) {ms ms' : List (Chan × T
       ((flattenChildren body ms')[σ; Term.var_Term]) :=
   process_congr_csubst (flattenChildren_perm_congr body perm tyAll nodup) σ
 
+/-- A congruence of bodies persists under the children binders. -/
+lemma flattenChildren_body_congr {body body' : Proc} (children : List (Chan × Tree))
+    (congr : TLLC.Process.Congruence body body') :
+    TLLC.Process.Congruence (flattenChildren body children)
+      (flattenChildren body' children) := by
+  induction children generalizing body body' with
+  | nil => simpa [flattenChildren_nil] using congr
+  | cons edge children ih =>
+      rcases edge with ⟨e, sib⟩
+      cases hs : sib.flattenAt with
+      | mk ds sp =>
+          have eqL : flattenChildren body ((e, sib) :: children) = .nu (.par
+              ((flattenChildren body children)[bindEndpointAt 0 e; Term.var_Term])
+              (sp[bindEndpointAt 0 ds; Term.var_Term])) := by
+            simp only [flattenChildren, hs]
+          have eqR : flattenChildren body' ((e, sib) :: children) = .nu (.par
+              ((flattenChildren body' children)[bindEndpointAt 0 e; Term.var_Term])
+              (sp[bindEndpointAt 0 ds; Term.var_Term])) := by
+            simp only [flattenChildren, hs]
+          rw [eqL, eqR]
+          exact process_congr_res (process_congr_parallel_left
+            (process_congr_csubst (ih congr) _))
+
+/-- The full parent-capturing-fork children-body step: fire the fork with a bare spawned node
+appended last, then re-root by structural congruence — the spawned body (which holds the parent
+endpoint) becomes the new top, and the forking continuation, together with the children it keeps
+and the detached subtrees, becomes the child at the fresh edge. -/
+lemma forkForward_bodyStep (M : EvalCtx) (A m : Term) (c d : Chan)
+    (ms : List (Chan × Tree)) (qs : List Tree)
+    (freshC : occurs (chanIndex c) (M.eval (.fork A m)) = 0)
+    (freshD : occurs (chanIndex d) (M.eval (.fork A m)) = 0)
+    (tyMs : ∀ e sib, (e, sib) ∈ ms → ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+      TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) sib)
+    (nodup : (childLabels ms).Nodup)
+    (msFreshC : ∀ e sib, (e, sib) ∈ ms → chanIndex e ≠ chanIndex c)
+    (msFreshD : ∀ e sib, (e, sib) ∈ ms → chanIndex e ≠ chanIndex d)
+    (w2Body : ∀ e sib, (e, sib) ∈ (splitChildrenByTerm m ms).2 →
+      occurs (chanIndex e) (m[Chan.var_Chan; (Term.chan d)..]) = 0)
+    (qsZero : ∀ q, q ∈ flattenSubtrees qs → ∀ i, TLLC.Process.procOccurs i q = 0)
+    (σ : Nat → Chan) :
+    TLLC.Process.Step
+      ((parAll (flattenChildren (.tm (M.eval (.fork A m))) ms)
+        (flattenSubtrees qs))[σ; Term.var_Term])
+      ((flattenChildren (.tm (m[Chan.var_Chan; (Term.chan d)..]))
+        ((splitChildrenByTerm m ms).1 ++
+          [(d, .node c (M.eval (.pure (Term.chan c)))
+            (splitChildrenByTerm m ms).2 qs)]))[σ; Term.var_Term]) := by
+  have tyW21 : ∀ e sib,
+      (e, sib) ∈ (splitChildrenByTerm m ms).2 ++ (splitChildrenByTerm m ms).1 →
+      ∃ r A, ([] : Static.Ctx) ⊢ A : .proto ∧
+        TypedAt r (A⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) sib := by
+    intro e sib mem
+    rcases List.mem_append.mp mem with h | h
+    · exact tyMs e sib (splitChildrenByTerm_mem₂ h).1
+    · exact tyMs e sib (splitChildrenByTerm_mem₁ h).1
+  have nodupW21 : (childLabels
+      ((splitChildrenByTerm m ms).2 ++ (splitChildrenByTerm m ms).1)).Nodup :=
+    (((splitChildrenByTerm_perm m ms).map Prod.fst).nodup_iff).mpr nodup
+  -- fire the fork with a bare spawned node appended last
+  have stepMid : TLLC.Process.Step
+      ((parAll (flattenChildren (.tm (M.eval (.fork A m))) ms)
+        (flattenSubtrees qs))[σ; Term.var_Term])
+      ((parAll (flattenChildren (.tm (M.eval (.pure (Term.chan c))))
+        (((splitChildrenByTerm m ms).2 ++ (splitChildrenByTerm m ms).1) ++
+          [(c, .node d (m[Chan.var_Chan; (Term.chan d)..]) [] [])]))
+        (flattenSubtrees qs))[σ; Term.var_Term]) := by
+    rw [parAll_csubst, parAll_csubst]
+    refine process_step_parAll_accumulator _ ?_
+    exact TLLC.Process.Step.congr
+      (process_congr_csubst (flattenChildren_partition_congr _ m ms tyMs nodup) σ)
+      (fork_over_before M A m c d freshC freshD _ σ) ARS.Conv.refl
+  -- the re-rooting congruence
+  have post : TLLC.Process.Congruence
+      (parAll (flattenChildren (.tm (M.eval (.pure (Term.chan c))))
+        (((splitChildrenByTerm m ms).2 ++ (splitChildrenByTerm m ms).1) ++
+          [(c, .node d (m[Chan.var_Chan; (Term.chan d)..]) [] [])]))
+        (flattenSubtrees qs))
+      (flattenChildren (.tm (m[Chan.var_Chan; (Term.chan d)..]))
+        ((splitChildrenByTerm m ms).1 ++
+          [(d, .node c (M.eval (.pure (Term.chan c)))
+            (splitChildrenByTerm m ms).2 qs)])) := by
+    -- rotate the sibling groups so the kept children come first
+    have h1 : TLLC.Process.Congruence
+        (flattenChildren (.tm (M.eval (.pure (Term.chan c))))
+          (((splitChildrenByTerm m ms).2 ++ (splitChildrenByTerm m ms).1) ++
+            [(c, .node d (m[Chan.var_Chan; (Term.chan d)..]) [] [])]))
+        (flattenChildren (.tm (M.eval (.pure (Term.chan c))))
+          (((splitChildrenByTerm m ms).1 ++ (splitChildrenByTerm m ms).2) ++
+            [(c, .node d (m[Chan.var_Chan; (Term.chan d)..]) [] [])])) := by
+      rw [flattenChildren_append _ ((splitChildrenByTerm m ms).2 ++ _),
+        flattenChildren_append _ ((splitChildrenByTerm m ms).1 ++ _)]
+      exact flattenChildren_rotate_congr _ _ _ tyW21 nodupW21
+    -- flip the fresh edge: the spawned body becomes the outer process
+    have hflip : TLLC.Process.Congruence
+        (flattenChildren (.tm (M.eval (.pure (Term.chan c))))
+          [(c, .node d (m[Chan.var_Chan; (Term.chan d)..]) [] [])])
+        (flattenChildren (.tm (m[Chan.var_Chan; (Term.chan d)..]))
+          [(d, .node c (M.eval (.pure (Term.chan c))) [] [])]) :=
+      flattenChildren_flip_edge _ _ c d
+    have h3 : TLLC.Process.Congruence
+        (flattenChildren (.tm (M.eval (.pure (Term.chan c))))
+          ((splitChildrenByTerm m ms).2 ++
+            [(c, .node d (m[Chan.var_Chan; (Term.chan d)..]) [] [])]))
+        (flattenChildren (.tm (m[Chan.var_Chan; (Term.chan d)..]))
+          ((splitChildrenByTerm m ms).2 ++
+            [(d, .node c (M.eval (.pure (Term.chan c))) [] [])])) := by
+      rw [flattenChildren_append _ (splitChildrenByTerm m ms).2,
+        flattenChildren_append _ (splitChildrenByTerm m ms).2]
+      exact flattenChildren_body_congr _ hflip
+    -- the continuation child absorbs the children it keeps
+    have hoistHyp : ∀ e gc, (e, gc) ∈ (splitChildrenByTerm m ms).2 →
+        chanIndex e ≠ chanIndex d ∧ chanIndex e ≠ chanIndex c ∧
+        TLLC.Process.procOccurs (chanIndex e)
+          (Proc.tm (m[Chan.var_Chan; (Term.chan d)..])) = 0 ∧
+        ∀ k, TLLC.Process.procOccurs (k + 1)
+          ((gc.flattenAt).2[bindEndpointAt 0 (gc.flattenAt).1; Term.var_Term]) = 0 := by
+      intro e gc mem
+      obtain ⟨memMs, _⟩ := splitChildrenByTerm_mem₂ mem
+      refine ⟨msFreshD e gc memMs, msFreshC e gc memMs, ?_, ?_⟩
+      · show occurs (chanIndex e) (m[Chan.var_Chan; (Term.chan d)..]) = 0
+        exact w2Body e gc mem
+      · obtain ⟨r, A', tyA', tgc⟩ := tyMs e gc memMs
+        exact fun k => tgc.flattenAt_occurs_succ tyA' k
+    have h4 : TLLC.Process.Congruence
+        (flattenChildren (.tm (m[Chan.var_Chan; (Term.chan d)..]))
+          ((splitChildrenByTerm m ms).2 ++
+            [(d, .node c (M.eval (.pure (Term.chan c))) [] [])]))
+        (flattenChildren (.tm (m[Chan.var_Chan; (Term.chan d)..]))
+          [(d, .node c (M.eval (.pure (Term.chan c)))
+            (splitChildrenByTerm m ms).2 [])]) := by
+      have h := flattenChildren_hoist_children (.tm (m[Chan.var_Chan; (Term.chan d)..]))
+        d c (M.eval (.pure (Term.chan c))) (splitChildrenByTerm m ms).2 [] hoistHyp
+      simpa using h
+    -- the continuation child absorbs the detached subtrees
+    have h5 : TLLC.Process.Congruence
+        (parAll (flattenChildren (.tm (m[Chan.var_Chan; (Term.chan d)..]))
+          [(d, .node c (M.eval (.pure (Term.chan c)))
+            (splitChildrenByTerm m ms).2 [])])
+          (flattenSubtrees qs))
+        (flattenChildren (.tm (m[Chan.var_Chan; (Term.chan d)..]))
+          [(d, .node c (M.eval (.pure (Term.chan c)))
+            (splitChildrenByTerm m ms).2 qs)]) :=
+      ARS.conv_sym (flattenChildren_single_extract _ d c _ _ qs qsZero)
+    -- assemble: rotate, split off the kept children, float the subtrees in, rebuild
+    refine ARS.conv_trans (process_congr_parAll_accumulator _ h1) ?_
+    have hsplit1 : flattenChildren (.tm (M.eval (.pure (Term.chan c))))
+        (((splitChildrenByTerm m ms).1 ++ (splitChildrenByTerm m ms).2) ++
+          [(c, .node d (m[Chan.var_Chan; (Term.chan d)..]) [] [])])
+        = flattenChildren (flattenChildren (.tm (M.eval (.pure (Term.chan c))))
+            ((splitChildrenByTerm m ms).2 ++
+              [(c, .node d (m[Chan.var_Chan; (Term.chan d)..]) [] [])]))
+            (splitChildrenByTerm m ms).1 := by
+      rw [List.append_assoc, flattenChildren_append]
+    rw [hsplit1]
+    refine ARS.conv_trans
+      (ARS.conv_sym (flattenChildren_float_parAll _ qsZero _ _)) ?_
+    have hInner : TLLC.Process.Congruence
+        (parAll (flattenChildren (.tm (M.eval (.pure (Term.chan c))))
+          ((splitChildrenByTerm m ms).2 ++
+            [(c, .node d (m[Chan.var_Chan; (Term.chan d)..]) [] [])]))
+          (flattenSubtrees qs))
+        (flattenChildren (.tm (m[Chan.var_Chan; (Term.chan d)..]))
+          [(d, .node c (M.eval (.pure (Term.chan c)))
+            (splitChildrenByTerm m ms).2 qs)]) :=
+      ARS.conv_trans (process_congr_parAll_accumulator _ (ARS.conv_trans h3 h4)) h5
+    refine ARS.conv_trans (flattenChildren_body_congr _ hInner) ?_
+    rw [← flattenChildren_append]
+    exact ARS.Conv.refl
+  exact TLLC.Process.Step.congr ARS.Conv.refl stepMid (process_congr_csubst post σ)
+
 /-- Lemma 5.86 for productive spawning-tree steps, strengthened under channel substitution. -/
 theorem simulation_csubst {p q : Tree}
     (typed : Typed p ∨ ∃ r A, TypedAt r A p)
@@ -5524,6 +5686,101 @@ theorem simulation_csubst {p q : Tree}
       simpa [Tree.flatten_node, flattenBody, parAll_csubst] using
         process_step_parAll_accumulator
           ((flattenSubtrees subtrees).map (fun p => p[σ; Term.var_Term])) bodyStep'
+  | nodeForkForward freshC freshD occursP treeFresh =>
+      rename_i M parent A m c d children subtrees
+      have freshC' : occurs (chanIndex c) (M.eval (.fork A m)) = 0 := by
+        cases c with | var_Chan cx => exact freshC
+      have freshD' : occurs (chanIndex d) (M.eval (.fork A m)) = 0 := by
+        cases d with | var_Chan dx => exact freshD
+      obtain ⟨r0, A0, ty0⟩ : ∃ r0 A0, TypedAt r0 A0
+          (.node parent (M.eval (.fork A m)) children subtrees) := by
+        cases typed with
+        | inl ty => cases ty
+        | inr ty => exact ty
+      have tyMs : ∀ e sib, (e, sib) ∈ children → ∃ r A', ([] : Static.Ctx) ⊢ A' : .proto ∧
+          TypedAt r (A'⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩) sib :=
+        fun e sib mem => ty0.child_typedAt_wf mem
+      have nodup : (childLabels children).Nodup := by
+        cases ty0 with
+        | node _ _ _ tyc _ => exact tyc.labels_nodup
+      have labelMem : ∀ e sib, (e, sib) ∈ children →
+          chanIndex e ∈ treeChans (.node parent (M.eval (.fork A m)) children subtrees) := by
+        intro e sib mem
+        rw [treeChans_node]
+        simp only [List.mem_cons, List.mem_append, List.mem_map]
+        exact Or.inr (Or.inl (Or.inl ⟨(e, sib), mem, rfl⟩))
+      have msFreshC : ∀ e sib, (e, sib) ∈ children → chanIndex e ≠ chanIndex c := by
+        intro e sib mem he
+        exact treeFresh.1 (he ▸ labelMem e sib mem)
+      have msFreshD : ∀ e sib, (e, sib) ∈ children → chanIndex e ≠ chanIndex d := by
+        intro e sib mem he
+        exact treeFresh.2.1 (he ▸ labelMem e sib mem)
+      have labelNeParent : ∀ e sib, (e, sib) ∈ children →
+          chanIndex e ≠ chanIndex parent := by
+        intro e sib mem
+        cases e with
+        | var_Chan ex =>
+        cases ty0 with
+        | node _ _ _ tyc _ =>
+            exact ChildrenTypedAt.label_ne_parent (c := Chan.var_Chan ex) tyc
+              (List.mem_map.mpr ⟨(Chan.var_Chan ex, sib), mem, rfl⟩)
+      have qsZero : ∀ q, q ∈ flattenSubtrees subtrees →
+          ∀ i, TLLC.Process.procOccurs i q = 0 := by
+        intro q hq i
+        cases ty0 with
+        | node _ _ _ _ tyqs => exact tyqs.flattenSubtrees_occurs0 hq
+      have tyRes := (fidelity_mutual
+        (Step.nodeForkForward freshC freshD occursP treeFresh)).2 r0 A0 ty0 distinct
+      have disjW : List.Disjoint
+          (childLabels (splitChildrenByTerm m children).2)
+          (childLabels (splitChildrenByTerm m children).1) := by
+        refine List.disjoint_of_nodup_append ?_
+        have hperm : List.Perm (childLabels ((splitChildrenByTerm m children).2 ++
+            (splitChildrenByTerm m children).1)) (childLabels children) :=
+          (splitChildrenByTerm_perm m children).map Prod.fst
+        simpa [childLabels] using hperm.nodup_iff.mpr nodup
+      -- the moved continuation keeps no trace of the labels it gave up
+      have w2Body : ∀ e sib, (e, sib) ∈ (splitChildrenByTerm m children).2 →
+          occurs (chanIndex e) (m[Chan.var_Chan; (Term.chan d)..]) = 0 := by
+        intro e sib mem
+        obtain ⟨memMs, _⟩ := splitChildrenByTerm_mem₂ mem
+        cases tyRes with
+        | @node Θres yres _ _ _ _ _ singleRes hasRes tyTermRes tymsRes tyqsRes =>
+        cases e with
+        | var_Chan ex =>
+        refine tyTermRes.occurs0
+          (tymsRes.notLabel_false (c := Chan.var_Chan ex) ?_ ?_)
+        · -- not a label of the new top node's children
+          intro hmem
+          have hmem' : Chan.var_Chan ex ∈ childLabels
+              ((d, Tree.node c (M.eval (.pure (Term.chan c)))
+                (splitChildrenByTerm m children).2 subtrees) ::
+                (splitChildrenByTerm m children).1) := by
+            refine (List.Perm.mem_iff ?_).mp hmem
+            exact (insertChild_perm _ _ _).map Prod.fst
+          rcases List.mem_cons.mp hmem' with he | hmem''
+          · exact msFreshD _ sib memMs (by rw [he])
+          · exact disjW (List.mem_map.mpr ⟨(Chan.var_Chan ex, sib), mem, rfl⟩) hmem''
+        · -- not the parent endpoint
+          exact labelNeParent (Chan.var_Chan ex) sib memMs
+      intro σ
+      have bodyStep := forkForward_bodyStep M A m c d children subtrees freshC' freshD'
+        tyMs nodup msFreshC msFreshD w2Body qsZero σ
+      have permON : List.Perm ((splitChildrenByTerm m children).1 ++
+          [(d, Tree.node c (M.eval (.pure (Term.chan c)))
+            (splitChildrenByTerm m children).2 subtrees)])
+          (forkForwardChildren m c d M children subtrees) :=
+        (List.perm_append_singleton _ _).trans (insertChild_perm _ _ _).symm
+      have nodupNew : (childLabels (forkForwardChildren m c d M children subtrees)).Nodup := by
+        cases tyRes with
+        | node _ _ _ tyc _ => exact tyc.labels_nodup
+      have bridge := flatten_children_perm_congr_csubst
+        (.tm (m[Chan.var_Chan; (Term.chan d)..])) permON
+        (fun e sib mem => tyRes.child_typedAt_wf (permON.subset mem))
+        ((permON.symm.map Prod.fst).nodup nodupNew) σ
+      have bodyStep' := TLLC.Process.Step.congr ARS.Conv.refl bodyStep bridge
+      simpa [Tree.flatten_node, flattenBody, flattenSubtrees_nil, parAll_nil,
+        parAll_csubst] using bodyStep'
   | rootWait =>
       rename_i M N c d before after childChildren subtrees childSubtrees
       have labels :
@@ -6831,7 +7088,7 @@ theorem simulation_csubst {p q : Tree}
       simpa [Tree.flatten_node, flattenBody, parAll_csubst] using
         process_step_parAll_accumulator
           ((flattenSubtrees subtrees).map (fun p => p[σ; Term.var_Term])) bodyStep'
-  | rootSendIm implicitPayload =>
+  | rootSendIm =>
       rename_i M N payload c d before after childChildren subtrees childSubtrees
       have labelsNodup :
           (childLabels
@@ -6909,14 +7166,14 @@ theorem simulation_csubst {p q : Tree}
         exact List.mem_map.mpr ⟨(e, sib), mem, rfl⟩
       intro σ
       have bodyStep := sendIm_bodyStep M N payload c d childChildren childSubtrees before after
-        implicitPayload (fun e gc mem => typedChild.child_typedAt_wf mem) mFresh qsZero
+        (fun e gc mem => typedChild.child_typedAt_wf mem) mFresh qsZero
         ⟨rChild, AChild, tyAChild, typedChild⟩ tyR distinctR σ
       have tyRes : Typed (.root (M.eval (.pure (Term.chan c)))
           (before ++ (c, Tree.node d
             (N.eval (.pure (.pair payload (Term.chan d) .im .L)))
             childChildren childSubtrees) :: after) subtrees) := by
         cases typed with
-        | inl ty => exact (fidelity_mutual (Step.rootSendIm implicitPayload)).1 ty distinct
+        | inl ty => exact (fidelity_mutual Step.rootSendIm).1 ty distinct
         | inr ty => obtain ⟨r0, A0, ty0⟩ := ty; cases ty0
       have nodupRes : (childLabels (before ++ (c, Tree.node d
             (N.eval (.pure (.pair payload (Term.chan d) .im .L)))
@@ -6938,7 +7195,7 @@ theorem simulation_csubst {p q : Tree}
       simpa [Tree.flatten_root, flattenBody, parAll_csubst] using
         process_step_parAll_accumulator
           ((flattenSubtrees subtrees).map (fun p => p[σ; Term.var_Term])) bodyStep'
-  | nodeSendIm implicitPayload =>
+  | nodeSendIm =>
       rename_i M N parent payload c d before after childChildren subtrees childSubtrees
       have labelsNodup :
           (childLabels
@@ -7019,7 +7276,7 @@ theorem simulation_csubst {p q : Tree}
         exact List.mem_map.mpr ⟨(e, sib), mem, rfl⟩
       intro σ
       have bodyStep := sendIm_bodyStep M N payload c d childChildren childSubtrees before after
-        implicitPayload (fun e gc mem => typedChild.child_typedAt_wf mem) mFresh qsZero
+        (fun e gc mem => typedChild.child_typedAt_wf mem) mFresh qsZero
         ⟨rChild, AChild, tyAChild, typedChild⟩ tyR distinctR σ
       obtain ⟨r0, A0, tyRes⟩ : ∃ r0 A0, TypedAt r0 A0 (.node parent (M.eval (.pure (Term.chan c)))
           (before ++ (c, Tree.node d
@@ -7030,7 +7287,7 @@ theorem simulation_csubst {p q : Tree}
         | inr ty =>
             obtain ⟨r0, A0, ty0⟩ := ty
             exact ⟨r0, A0,
-              (fidelity_mutual (Step.nodeSendIm implicitPayload)).2 r0 A0 ty0 distinct⟩
+              (fidelity_mutual Step.nodeSendIm).2 r0 A0 ty0 distinct⟩
       have nodupRes : (childLabels (before ++ (c, Tree.node d
             (N.eval (.pure (.pair payload (Term.chan d) .im .L)))
             childChildren childSubtrees) :: after)).Nodup := by
@@ -7051,7 +7308,7 @@ theorem simulation_csubst {p q : Tree}
       simpa [Tree.flatten_node, flattenBody, parAll_csubst] using
         process_step_parAll_accumulator
           ((flattenSubtrees subtrees).map (fun p => p[σ; Term.var_Term])) bodyStep'
-  | rootRecvIm implicitPayload =>
+  | rootRecvIm =>
       rename_i M N payload c d before after childChildren subtrees childSubtrees
       have labelsNodup :
           (childLabels
@@ -7129,13 +7386,13 @@ theorem simulation_csubst {p q : Tree}
         exact List.mem_map.mpr ⟨(e, sib), mem, rfl⟩
       intro σ
       have bodyStep := recvIm_bodyStep M N payload c d childChildren childSubtrees before after
-        implicitPayload (fun e gc mem => typedChild.child_typedAt_wf mem) mFresh qsZero
+        (fun e gc mem => typedChild.child_typedAt_wf mem) mFresh qsZero
         ⟨rChild, AChild, tyAChild, typedChild⟩ tyR distinctR σ
       have tyRes : Typed (.root (M.eval (.pure (.pair payload (Term.chan c) .im .L)))
           (before ++ (c, Tree.node d (N.eval (.pure (Term.chan d)))
             childChildren childSubtrees) :: after) subtrees) := by
         cases typed with
-        | inl ty => exact (fidelity_mutual (Step.rootRecvIm implicitPayload)).1 ty distinct
+        | inl ty => exact (fidelity_mutual Step.rootRecvIm).1 ty distinct
         | inr ty => obtain ⟨r0, A0, ty0⟩ := ty; cases ty0
       have nodupRes : (childLabels (before ++ (c, Tree.node d (N.eval (.pure (Term.chan d)))
             childChildren childSubtrees) :: after)).Nodup := by
@@ -7154,7 +7411,7 @@ theorem simulation_csubst {p q : Tree}
       simpa [Tree.flatten_root, flattenBody, parAll_csubst] using
         process_step_parAll_accumulator
           ((flattenSubtrees subtrees).map (fun p => p[σ; Term.var_Term])) bodyStep'
-  | nodeRecvIm implicitPayload =>
+  | nodeRecvIm =>
       rename_i M N parent payload c d before after childChildren subtrees childSubtrees
       have labelsNodup :
           (childLabels
@@ -7235,7 +7492,7 @@ theorem simulation_csubst {p q : Tree}
         exact List.mem_map.mpr ⟨(e, sib), mem, rfl⟩
       intro σ
       have bodyStep := recvIm_bodyStep M N payload c d childChildren childSubtrees before after
-        implicitPayload (fun e gc mem => typedChild.child_typedAt_wf mem) mFresh qsZero
+        (fun e gc mem => typedChild.child_typedAt_wf mem) mFresh qsZero
         ⟨rChild, AChild, tyAChild, typedChild⟩ tyR distinctR σ
       obtain ⟨r0, A0, tyRes⟩ : ∃ r0 A0, TypedAt r0 A0 (.node parent (M.eval (.pure (.pair payload (Term.chan c) .im .L)))
           (before ++ (c, Tree.node d (N.eval (.pure (Term.chan d)))
@@ -7245,7 +7502,7 @@ theorem simulation_csubst {p q : Tree}
         | inr ty =>
             obtain ⟨r0, A0, ty0⟩ := ty
             exact ⟨r0, A0,
-              (fidelity_mutual (Step.nodeRecvIm implicitPayload)).2 r0 A0 ty0 distinct⟩
+              (fidelity_mutual Step.nodeRecvIm).2 r0 A0 ty0 distinct⟩
       have nodupRes : (childLabels (before ++ (c, Tree.node d (N.eval (.pure (Term.chan d)))
             childChildren childSubtrees) :: after)).Nodup := by
         cases tyRes with

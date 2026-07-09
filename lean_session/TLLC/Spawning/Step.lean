@@ -22,6 +22,11 @@ typing. At the spawning-tree level we still keep the report's two names for an e
 by the parent (`c`) and the channel carried by the child node (`d`). Flattening ties these two names
 together under one `Proc.nu`.
 
+The implicit-communication rules move the ghost payload verbatim and need no side condition:
+channels in implicit positions are erased, so the two readings of the payload (through the parent's
+or the child's name for the edge) are structurally congruent (`CongrTerm.chan_im`), which is all
+the simulation theorem requires.
+
 The report's Root-Unit and Node-Unit cleanup rules are deliberately left out of `Step`. They remove
 finished detached subtrees, which corresponds to structural congruence after flattening rather than
 a concrete process reduction. Terminality and process congruence handle that cleanup separately.
@@ -31,6 +36,12 @@ must not capture the node's parent endpoint). The report states the analogous si
 `d ∉ FC(v)` only for Node-Send (with Node-Forward covering the capturing case) but omits it for
 Node-Fork; without it the successor tree of a parent-capturing fork is ill-typed and the fidelity
 theorem (Lemma 5.87) fails. See `TLLC/Spawning/Fidelity.lean`.
+
+The complementary rule `nodeForkForward` (absent from the report) covers the parent-capturing
+fork, completing the Node-Send/Node-Forward pattern for fork: the spawned process holds the parent
+endpoint, so it becomes the node at this position and the forking continuation becomes its child.
+Without it the spawning-tree progress lemma (5.92) is false — a well-typed node poised at a
+parent-capturing fork would have no reduction.
 
 The report leaves the freshness of the two fork channels informal. Here it is global: both fork
 rules carry `forkFresh`, requiring `c`/`d` to avoid every channel index of the source *tree* (not
@@ -52,34 +63,6 @@ def chanOccursIn : Chan → Term → Prop
 /-- `c ∉ FC(m)` from the report. -/
 def chanFreshIn : Chan → Term → Prop
   | .var_Chan x, m => Dynamic.occurs x m = 0
-
-/-- A term that does not observe channel substitutions. This is stronger than the edge-local implicit
-payload premise, but is often easier to provide directly. -/
-def chanSubstInvariant (payload : Term) : Prop :=
-  ∀ σ τ : Nat → Chan,
-    payload[σ; Term.var_Term] = payload[τ; Term.var_Term]
-
-/-- An implicit payload is untied from a parent/child edge when flattening may bind either endpoint
-without changing the payload. This is the local replacement for the report's separation between
-static channels and process endpoints. -/
-def implicitPayload (c d : Chan) (payload : Term) : Prop :=
-  ∀ σ : Nat → Chan,
-    payload[bindEndpointAt 0 c; Term.var_Term][up_Chan_Chan σ; Term.var_Term] =
-      payload[bindEndpointAt 0 d; Term.var_Term][up_Chan_Chan σ; Term.var_Term]
-
-theorem chanSubstInvariant_implicitPayload {c d : Chan} {payload : Term}
-    (invariant : chanSubstInvariant payload) :
-    implicitPayload c d payload := by
-  intro σ
-  convert invariant
-    (fun x => (bindEndpointAt 0 c x)[up_Chan_Chan σ])
-    (fun x => (bindEndpointAt 0 d x)[up_Chan_Chan σ]) using 1 <;> asimp
-
-theorem implicitPayload_symm {c d : Chan} {payload : Term}
-    (implicit : implicitPayload c d payload) :
-    implicitPayload d c payload := by
-  intro σ
-  exact (implicit σ).symm
 
 /-- The two channels minted by a fork avoid every channel index of the source tree, and each
 other. Together with the `chanFreshIn` premises on the redex term this keeps `Distinct` invariant
@@ -154,6 +137,15 @@ def forwardChildren (v : Term) (c d : Chan) (M : Dynamic.EvalCtx)
   let oldParent := Tree.node c (M.eval (.pure (Term.chan c))) split.2 qs
   insertChild d oldParent (mergeChildren split.1 ms')
 
+/-- Children after a parent-capturing fork: the spawned process holds the parent endpoint, so it
+becomes the node at this position and the forking continuation becomes its child, keeping the
+children the fork body does not mention and the original detached subtrees. -/
+def forkForwardChildren (m : Term) (c d : Chan) (M : Dynamic.EvalCtx)
+    (ms : List (Chan × Tree)) (qs : List Tree) : List (Chan × Tree) :=
+  let split := splitChildrenByTerm m ms
+  let oldParent := Tree.node c (M.eval (.pure (Term.chan c))) split.2 qs
+  insertChild d oldParent split.1
+
 /-! ## Spawning-tree single-step reduction -/
 
 /-- Spawning-tree reduction from the companion report. -/
@@ -173,6 +165,15 @@ inductive Step : Tree → Tree → Prop where
       Step
         (.node p (M.eval (.fork A m)) ms qs)
         (.node p (M.eval (.pure (Term.chan c))) (forkChildren m c d ms) qs)
+  | nodeForkForward {M : Dynamic.EvalCtx} {p A m c d ms qs} :
+      chanFreshIn c (M.eval (.fork A m)) →
+      chanFreshIn d (M.eval (.fork A m)) →
+      chanOccursIn p m →
+      forkFresh c d (.node p (M.eval (.fork A m)) ms qs) →
+      Step
+        (.node p (M.eval (.fork A m)) ms qs)
+        (.node p (m[Chan.var_Chan; (Term.chan d)..])
+          (forkForwardChildren m c d M ms qs) [])
 
   | rootWait {M N : Dynamic.EvalCtx} {c d l r ms' qs qs'} :
       Step
@@ -247,7 +248,6 @@ inductive Step : Tree → Tree → Prop where
 
   | rootSendIm {M N : Dynamic.EvalCtx}
       {o c d l r ms' qs qs'} :
-      implicitPayload c d o →
       Step
         (.root (M.eval (.app (.send (Term.chan c) .im) o .im))
           (l ++ (c, .node d (N.eval (.recv (Term.chan d) .im)) ms' qs') :: r)
@@ -257,7 +257,6 @@ inductive Step : Tree → Tree → Prop where
           qs)
   | nodeSendIm {M N : Dynamic.EvalCtx}
       {p o c d l r ms' qs qs'} :
-      implicitPayload c d o →
       Step
         (.node p (M.eval (.app (.send (Term.chan c) .im) o .im))
           (l ++ (c, .node d (N.eval (.recv (Term.chan d) .im)) ms' qs') :: r)
@@ -267,7 +266,6 @@ inductive Step : Tree → Tree → Prop where
           qs)
   | rootRecvIm {M N : Dynamic.EvalCtx}
       {o c d l r ms' qs qs'} :
-      implicitPayload c d o →
       Step
         (.root (M.eval (.recv (Term.chan c) .im))
           (l ++ (c, .node d (N.eval (.app (.send (Term.chan d) .im) o .im)) ms' qs') :: r)
@@ -277,7 +275,6 @@ inductive Step : Tree → Tree → Prop where
           qs)
   | nodeRecvIm {M N : Dynamic.EvalCtx}
       {p o c d l r ms' qs qs'} :
-      implicitPayload c d o →
       Step
         (.node p (M.eval (.recv (Term.chan c) .im))
           (l ++ (c, .node d (N.eval (.app (.send (Term.chan d) .im) o .im)) ms' qs') :: r)

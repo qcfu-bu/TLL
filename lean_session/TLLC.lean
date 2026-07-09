@@ -51,3 +51,4 @@ import TLLC.Spawning.Inversion
 import TLLC.Spawning.Fidelity
 import TLLC.Spawning.Simulation
 import TLLC.Spawning.Canonical
+import TLLC.Spawning.Progress
