@@ -27,6 +27,7 @@ import TLLC.Dynamic.SR
 import TLLC.Dynamic.EvalCtx
 import TLLC.Dynamic.Progress
 import TLLC.Dynamic.PContext
+import TLLC.Dynamic.StepReflect
 import TLLC.Erasure.Typing
 import TLLC.Erasure.Validity
 import TLLC.Erasure.Uniqueness
@@ -43,6 +44,10 @@ import TLLC.Process.CRename
 import TLLC.Process.Occurs
 import TLLC.Process.CSubst
 import TLLC.Process.SR
+import TLLC.Process.CongrStep
+import TLLC.Process.Soup
+import TLLC.Process.SoupStep
+import TLLC.Process.SoupFlat
 import TLLC.Spawning.Tree
 import TLLC.Spawning.Typing
 import TLLC.Spawning.Flatten
@@ -52,3 +57,4 @@ import TLLC.Spawning.Fidelity
 import TLLC.Spawning.Simulation
 import TLLC.Spawning.Canonical
 import TLLC.Spawning.Progress
+import TLLC.Spawning.Reflection
