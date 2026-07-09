@@ -76,18 +76,4 @@ decreasing_by all_goals (simp only [subMeasure]; omega)
 
 end
 
-/-- A renaming realizes the edge list when it sends both names of the `i`-th edge to `i`. -/
-def RealizesEdges (σ : Nat → Nat) (es : List (Nat × Nat)) : Prop :=
-  ∀ i, (h : i < es.length) → σ (es.get ⟨i, h⟩).1 = i ∧ σ (es.get ⟨i, h⟩).2 = i
-
-/-- The structural description of the prenex soup of a flattened tree (proved for valid distinct
-trees): one binder per edge, the node bodies as threads, one global name-to-binder renaming. -/
-theorem flatten_soup {t : Tree} (ty : Typed t) (dist : Distinct t) :
-    ∃ σ : Nat → Nat,
-      RealizesEdges σ (treeEdges t) ∧
-      SoupEquiv (prenex t.flatten)
-        ((treeEdges t).length,
-          (treeBodies t).map (fun m => m⟨σ; (id : Nat → Nat)⟩)) := by
-  sorry
-
 end TLLC.Spawning

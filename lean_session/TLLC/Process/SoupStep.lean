@@ -98,4 +98,56 @@ lemma SoupStep.nuConfig {c c' : Config} (h : SoupStep c c') :
   exact ⟨TLLC.Process.nuConfig d₁, TLLC.Process.nuConfig d₂,
     SoupEquiv.nuConfig_congr e1, prim.nuConfig, SoupEquiv.nuConfig_congr e2⟩
 
+/-! ## Positional machine steps -/
+
+/-- Discard binder `e`: identity below, unshift above. -/
+def unbind (e : Nat) (x : Nat) : Nat := if x < e then x else x - 1
+
+/-- Machine steps with explicit redex positions and binder indices — no congruence slack. A
+`Prim` step of any soup-equivalent configuration pulls back to a `PrimAt` step
+(`prim_pullback` in `TLLC/Spawning/Reflection.lean`), which a spawning tree can replay
+literally. New fork binders are minted at index `0`, shifting the others up; a closed binder
+`e` is discarded, unshifting the others. -/
+inductive PrimAt : Config → Config → Prop where
+  | exp {k ts i m m'} :
+    ts[i]? = some m →
+    TLLC.Dynamic.Step m m' →
+    PrimAt (k, ts) (k, ts.set i m')
+  | fork {k ts i} {N : EvalCtx} {A m} :
+    ts[i]? = some (N.eval (.fork A m)) →
+    PrimAt (k, ts)
+      (k + 1,
+        ((ts.map (fun n => n⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)).set i
+          ((N.cren ((· + 1) : Nat → Nat)).eval (.pure (cvar 0)))) ++
+        [(m⟨((· + 1) : Nat → Nat); (id : Nat → Nat)⟩)[Chan.var_Chan; (cvar 0)..]])
+  | comIm {k ts i j e} {M N : EvalCtx} {o} :
+    i ≠ j →
+    e < k →
+    ts[i]? = some (M.eval (.app (.send (cvar e) .im) o .im)) →
+    ts[j]? = some (N.eval (.recv (cvar e) .im)) →
+    PrimAt (k, ts)
+      (k, (ts.set i (M.eval (.pure (cvar e)))).set j
+        (N.eval (.pure (.pair o (cvar e) .im .L))))
+  | comEx {k ts i j e} {M N : EvalCtx} {v} :
+    i ≠ j →
+    e < k →
+    Val v →
+    ts[i]? = some (M.eval (.app (.send (cvar e) .ex) v .ex)) →
+    ts[j]? = some (N.eval (.recv (cvar e) .ex)) →
+    PrimAt (k, ts)
+      (k, (ts.set i (M.eval (.pure (cvar e)))).set j
+        (N.eval (.pure (.pair v (cvar e) .ex .L))))
+  | close {k ts i j e} {M N : EvalCtx} :
+    i ≠ j →
+    e < k →
+    ts[i]? = some (M.eval (.close true (cvar e))) →
+    ts[j]? = some (N.eval (.close false (cvar e))) →
+    occurs e (M.eval (.pure .one)) = 0 →
+    occurs e (N.eval (.pure .one)) = 0 →
+    (∀ x m, ts[x]? = some m → x ≠ i → x ≠ j → occurs e m = 0) →
+    PrimAt (k, ts)
+      (k - 1,
+        ((ts.set i (M.eval (.pure .one))).set j (N.eval (.pure .one))).map
+          (fun n => n⟨unbind e; (id : Nat → Nat)⟩))
+
 end TLLC.Process
